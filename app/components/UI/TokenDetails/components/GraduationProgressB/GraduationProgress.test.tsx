@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { mockTheme } from '../../../../../util/theme';
+import { colorWithOpacity } from '../../../../../util/colors';
 import {
   GraduationProgress,
   GraduationProgressDetail,
@@ -75,18 +76,18 @@ describe('GraduationProgress', () => {
     expect(barStyle.height).toStrictEqual(3);
   });
 
-  it('renders the unlit fuse track from the border token', () => {
+  it('renders the unlit fuse track as a primary tint that reads on glass', () => {
     const { getByTestId } = render(<GraduationProgress viewModel={BONDING} />);
 
     const trackStyle = mergedStyle(
       getByTestId(GraduationProgressSelectors.TRACK).props.style,
     );
     expect(trackStyle.backgroundColor).toStrictEqual(
-      mockTheme.colors.border.muted,
+      colorWithOpacity(mockTheme.colors.primary.default, 0.3),
     );
   });
 
-  it('caps the fill with a 1.5 dp rounded right edge and clips its content', () => {
+  it('reveals the fill with a static-layout scaleX so the gradient paints on mount', () => {
     const { getByTestId } = render(<GraduationProgress viewModel={BONDING} />);
 
     const fillStyle = mergedStyle(
@@ -95,6 +96,16 @@ describe('GraduationProgress', () => {
     expect(fillStyle.borderTopRightRadius).toStrictEqual(1.5);
     expect(fillStyle.borderBottomRightRadius).toStrictEqual(1.5);
     expect(fillStyle.overflow).toStrictEqual('hidden');
+    expect(fillStyle.transformOrigin).toStrictEqual('left center');
+    expect(fillStyle.left).toStrictEqual(0);
+    expect(fillStyle.right).toStrictEqual(0);
+    expect(fillStyle.width).toBeUndefined();
+    // Mount starts fully collapsed and slid back; the worklets settle from
+    // here under the animation clock.
+    expect(fillStyle.transform).toStrictEqual([
+      { scaleX: 0 },
+      { translateX: -12 },
+    ]);
   });
 
   it('fills with primary to success below the high-heat threshold', () => {
@@ -125,6 +136,23 @@ describe('GraduationProgress', () => {
       mockTheme.colors.warning.default,
       mockTheme.colors.success.default,
     ]);
+  });
+
+  it('flows the sheen inside a clip that only spans the lit portion', () => {
+    const { getByTestId } = render(<GraduationProgress viewModel={BONDING} />);
+
+    const sheenStyle = mergedStyle(
+      getByTestId(GraduationProgressSelectors.SHEEN).props.style,
+    );
+    expect(sheenStyle.width).toStrictEqual(40);
+
+    const clipStyle = mergedStyle(
+      getByTestId(GraduationProgressSelectors.SHEEN_CLIP).props.style,
+    );
+    // The clip tracks the fill's animated percent, so the exact width depends
+    // on the animation frame; only its shape is stable.
+    expect(String(clipStyle.width)).toMatch(/^\d+%$/);
+    expect(clipStyle.overflow).toStrictEqual('hidden');
   });
 
   it('rides a two-layer 12 dp comet glow on the fuse head', () => {
@@ -164,15 +192,24 @@ describe('GraduationProgressDetail', () => {
     mockUseReducedMotion.mockReturnValue(false);
   });
 
-  it('renders the bonding microcopy with the distance to graduation', () => {
+  it('renders the bonding microcopy compactly with just the percent', () => {
     const { getByTestId } = render(
       <GraduationProgressDetail viewModel={BONDING} />,
     );
 
-    expect(getByTestId(GraduationProgressSelectors.DETAIL)).toHaveTextContent(
-      /^\d+% bonded · \$4\.0K to graduation$/,
+    const detail = getByTestId(GraduationProgressSelectors.DETAIL, {
+      includeHiddenElements: true,
+    });
+    // The count-up node is hidden from accessibility queries on purpose (the
+    // progressbar already announces this copy), so walk the tree structurally.
+    const countUp = detail.findByProps({
+      testID: GraduationProgressSelectors.COUNT_UP,
+    });
+    expect(String(countUp.props.children)).toMatch(/^\d+% bonded$/);
+    expect(detail.props.accessibilityElementsHidden).toBe(true);
+    expect(detail.props.importantForAccessibility).toStrictEqual(
+      'no-hide-descendants',
     );
-    expect(getByTestId(GraduationProgressSelectors.COUNT_UP)).toBeDefined();
   });
 
   it('renders the new-token microcopy', () => {
@@ -180,22 +217,30 @@ describe('GraduationProgressDetail', () => {
       <GraduationProgressDetail viewModel={NEW} />,
     );
 
-    expect(getByTestId(GraduationProgressSelectors.DETAIL)).toHaveTextContent(
-      /^\d+% to graduation$/,
-    );
-    expect(getByTestId(GraduationProgressSelectors.COUNT_UP)).toBeDefined();
+    const detail = getByTestId(GraduationProgressSelectors.DETAIL, {
+      includeHiddenElements: true,
+    });
+    expect(
+      String(
+        detail.findByProps({ testID: GraduationProgressSelectors.COUNT_UP })
+          .props.children,
+      ),
+    ).toMatch(/^\d+% to graduation$/);
   });
 
   it('shows the settled percent immediately under reduced motion', () => {
     mockUseReducedMotion.mockReturnValue(true);
 
-    const { getByTestId, queryByTestId } = render(
+    const { getByTestId } = render(
       <GraduationProgressDetail viewModel={BONDING} />,
     );
 
-    expect(getByTestId(GraduationProgressSelectors.DETAIL)).toHaveTextContent(
-      '94% bonded · $4.0K to graduation',
-    );
-    expect(queryByTestId(GraduationProgressSelectors.COUNT_UP)).toBeNull();
+    const detail = getByTestId(GraduationProgressSelectors.DETAIL, {
+      includeHiddenElements: true,
+    });
+    expect(detail.props.children).toStrictEqual('94% bonded');
+    expect(() =>
+      detail.findByProps({ testID: GraduationProgressSelectors.COUNT_UP }),
+    ).toThrow();
   });
 });

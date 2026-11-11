@@ -295,7 +295,9 @@ export const TokenDetailsInlineHeader = ({
     ) : null;
 
     const graduationDetail = graduationViewModel ? (
-      <GraduationProgressDetail viewModel={graduationViewModel} />
+      <Box key="graduation" twClassName="min-w-0 shrink">
+        <GraduationProgressDetail viewModel={graduationViewModel} />
+      </Box>
     ) : null;
 
     if (!primaryDetail && !graduationDetail) {
@@ -307,7 +309,7 @@ export const TokenDetailsInlineHeader = ({
         key="trailing-detail"
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="min-w-0"
+        twClassName="min-w-0 shrink"
       >
         {primaryDetail}
         {primaryDetail && graduationDetail ? (
@@ -359,7 +361,7 @@ export const TokenDetailsInlineHeader = ({
             color={TextColor.TextDefault}
             numberOfLines={1}
             ellipsizeMode="tail"
-            twClassName="shrink min-w-0"
+            twClassName="shrink-0 min-w-0"
             testID={TokenDetailsIds.header.ticker}
           >
             {tokenTicker}

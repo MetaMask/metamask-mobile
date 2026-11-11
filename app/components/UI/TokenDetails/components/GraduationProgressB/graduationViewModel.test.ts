@@ -91,6 +91,14 @@ describe('isGraduationProgressVisible', () => {
     ).toStrictEqual(true);
   });
 
+  it('shows new-stage tokens sent by fixtures alongside created', () => {
+    expect(
+      isGraduationProgressVisible(
+        launchpadData({ graduationStage: 'new', graduationPercent: 23.7 }),
+      ),
+    ).toStrictEqual(true);
+  });
+
   it('shows bonding tokens below one hundred percent', () => {
     expect(
       isGraduationProgressVisible(
@@ -152,7 +160,7 @@ describe('getGraduationProgressViewModel', () => {
     });
   });
 
-  it('maps the created stage to the new stage', () => {
+  it('maps the created and new stages to the new stage', () => {
     expect(
       getGraduationProgressViewModel(
         launchpadData({
@@ -166,6 +174,20 @@ describe('getGraduationProgressViewModel', () => {
       percent: 0,
       raisedUsd: 0,
       remainingUsd: DEFAULT_GRADUATION_TARGET_USD,
+    });
+    expect(
+      getGraduationProgressViewModel(
+        launchpadData({
+          graduationStage: 'new',
+          graduationPercent: 24,
+        }),
+        'pumpfun',
+      ),
+    ).toStrictEqual({
+      stage: 'new',
+      percent: 24,
+      raisedUsd: 16560,
+      remainingUsd: 52440,
     });
   });
 

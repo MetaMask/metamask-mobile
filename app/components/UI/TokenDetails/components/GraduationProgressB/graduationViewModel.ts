@@ -47,8 +47,10 @@ export const parseGraduationPercent = (
 
 /**
  * The one visibility predicate for the graduation progress UI: only pre-
- * graduation launchpad tokens with a usable percent show progress. Graduated,
- * migrated, unknown stages and tokens without `launchpadData` never do.
+ * graduation launchpad tokens with a usable percent show progress. Both
+ * `created` (the API's documented value) and `new` (seen in harness fixtures)
+ * map to the new-token stage. Graduated, migrated, unknown stages and tokens
+ * without `launchpadData` never do.
  */
 export const isGraduationProgressVisible = (
   launchpadData: TokenAssetLaunchpadData | null | undefined,
@@ -60,7 +62,10 @@ export const isGraduationProgressVisible = (
   if (percent == null) {
     return false;
   }
-  if (launchpadData.graduationStage === 'created') {
+  if (
+    launchpadData.graduationStage === 'created' ||
+    launchpadData.graduationStage === 'new'
+  ) {
     return true;
   }
   return launchpadData.graduationStage === 'bonding' && percent < 100;
@@ -85,7 +90,7 @@ export const getGraduationProgressViewModel = (
     (protocol != null && GRADUATION_TARGET_USD_BY_LAUNCHPAD[protocol]) ||
     DEFAULT_GRADUATION_TARGET_USD;
   return {
-    stage: launchpadData?.graduationStage === 'created' ? 'new' : 'bonding',
+    stage: launchpadData?.graduationStage === 'bonding' ? 'bonding' : 'new',
     percent,
     raisedUsd: (percent / 100) * targetUsd,
     remainingUsd: ((100 - percent) / 100) * targetUsd,

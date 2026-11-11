@@ -57,6 +57,14 @@ const HIGH_HEAT_PERCENT = 90;
 
 const TABULAR_NUMS = { fontVariant: ['tabular-nums' as const] };
 
+const styles = StyleSheet.create({
+  fill: {
+    borderTopRightRadius: FUSE_CAP_RADIUS,
+    borderBottomRightRadius: FUSE_CAP_RADIUS,
+    transformOrigin: 'left center',
+  },
+});
+
 const FIAT_CURRENCY = 'usd';
 
 /**
@@ -189,8 +197,11 @@ export const GraduationProgress = ({ viewModel }: GraduationProgressProps) => {
   }, []);
 
   const fillStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: fill.get() / 100 }, { translateX: slide.get() }],
+  }));
+
+  const sheenClipStyle = useAnimatedStyle(() => ({
     width: `${fill.get()}%`,
-    transform: [{ translateX: slide.get() }],
   }));
 
   const sheenStyle = useAnimatedStyle(() => ({
@@ -208,6 +219,10 @@ export const GraduationProgress = ({ viewModel }: GraduationProgressProps) => {
       ? colors.success.default
       : colors.background.default;
 
+  // A tinted track instead of a border token, following the stepper progress
+  // bar: the unfilled path stays visible on glass in both themes.
+  const trackColor = colorWithOpacity(colors.primary.default, 0.3);
+
   return (
     <Animated.View
       accessibilityLabel={getAccessibilityLabel(viewModel)}
@@ -223,19 +238,17 @@ export const GraduationProgress = ({ viewModel }: GraduationProgressProps) => {
       testID={GraduationProgressSelectors.BAR}
     >
       <View
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: colors.border.muted },
-        ]}
+        style={[StyleSheet.absoluteFill, { backgroundColor: trackColor }]}
         testID={GraduationProgressSelectors.TRACK}
       />
+      {/* The fill keeps a static full-width layout and reveals the lit
+       * portion with an animated scaleX: legacy-interop gradients paint only
+       * their mount-time frame, so an animated layout width stays blank until
+       * a re-render. */}
       <Animated.View
         style={[
-          tw.style('absolute bottom-0 left-0 top-0 overflow-hidden'),
-          {
-            borderTopRightRadius: FUSE_CAP_RADIUS,
-            borderBottomRightRadius: FUSE_CAP_RADIUS,
-          },
+          tw.style('absolute bottom-0 left-0 right-0 top-0 overflow-hidden'),
+          styles.fill,
           fillStyle,
         ]}
         testID={GraduationProgressSelectors.FILL}
@@ -251,6 +264,14 @@ export const GraduationProgress = ({ viewModel }: GraduationProgressProps) => {
           style={StyleSheet.absoluteFill}
           testID={GraduationProgressSelectors.FILL_GRADIENT}
         />
+      </Animated.View>
+      <Animated.View
+        style={[
+          tw.style('absolute bottom-0 left-0 top-0 overflow-hidden'),
+          sheenClipStyle,
+        ]}
+        testID={GraduationProgressSelectors.SHEEN_CLIP}
+      >
         <Animated.View
           style={[
             tw.style('absolute bottom-0 top-0'),
@@ -359,21 +380,20 @@ interface GraduationProgressDetailProps {
 
 /**
  * The graduation microcopy for the header subtitle: "24% to graduation" for
- * new tokens, "94% bonded · $4.2K to graduation" while bonding. The percent
- * counts up on mount (800 ms, tabular numerals) and renders statically under
- * reduced motion.
+ * new tokens, "50% bonded" while bonding. The full raised/remaining amounts
+ * live in the progressbar's accessibility label. The percent counts up on
+ * mount (800 ms, tabular numerals) and renders statically under reduced
+ * motion.
  */
 export const GraduationProgressDetail = ({
   viewModel,
 }: GraduationProgressDetailProps) => {
   const reduceMotion = useReducedMotion() ?? false;
-  const { stage, percent, remainingUsd } = viewModel;
+  const { stage, percent } = viewModel;
   const displayPercent = getGraduationDisplayPercent(percent);
-  const remaining = formatUsd(remainingUsd);
   const template =
     stage === 'bonding'
       ? strings('token_details_v1.graduation.bonding_detail', {
-          remaining,
           percent: PERCENT_PLACEHOLDER,
         })
       : strings('token_details_v1.graduation.new_detail', {
@@ -383,9 +403,13 @@ export const GraduationProgressDetail = ({
 
   return (
     <Text
+      // The fuse bar's progressbar node already announces this copy; hiding
+      // the visual text keeps screen readers from reading the header twice.
+      accessibilityElementsHidden
       color={TextColor.TextAlternative}
       ellipsizeMode="tail"
       fontWeight={FontWeight.Medium}
+      importantForAccessibility="no-hide-descendants"
       numberOfLines={1}
       style={TABULAR_NUMS}
       testID={GraduationProgressSelectors.DETAIL}
