@@ -39,6 +39,7 @@ export enum UserActionType {
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
   SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
   CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
+  SET_BRIDGE_LIMIT_TAB_SEEN = 'SET_BRIDGE_LIMIT_TAB_SEEN',
 }
 
 // User actions
@@ -164,6 +165,9 @@ export type SetPendingAppInstallAction =
 export type ClearPendingAppInstallAction =
   Action<UserActionType.CLEAR_PENDING_APP_INSTALL>;
 
+export type SetBridgeLimitTabSeenAction =
+  Action<UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN>;
+
 /**
  * User actions union type
  */
@@ -201,4 +205,5 @@ export type UserAction =
   | SetOnboardingStepperStepAction
   | SetAppInstallEventFiredAction
   | SetPendingAppInstallAction
-  | ClearPendingAppInstallAction;
+  | ClearPendingAppInstallAction
+  | SetBridgeLimitTabSeenAction;

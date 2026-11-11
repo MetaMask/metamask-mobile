@@ -44,7 +44,7 @@ const styleSheet = (theme: Theme) => {
     valueAndAddress: {
       paddingVertical: 4,
       paddingLeft: 8,
-      columnGap: 5,
+      columnGap: 4,
       rowGap: 8,
       flexDirection: 'row',
       alignItems: 'center',

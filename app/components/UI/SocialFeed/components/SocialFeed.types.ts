@@ -91,6 +91,11 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
    */
   pendingPostsSurface?: PendingPostSurface;
   /**
+   * Reorders the loaded posts, ties keeping the feed's order. Omitted keeps
+   * the feed's newest-first order. Memoize it.
+   */
+  comparePosts?: (left: SocialV1FeedPost, right: SocialV1FeedPost) => number;
+  /**
    * Host rows between posts, hidden while the first page loads. With no
    * posts they follow the empty state. Memoize the array.
    */

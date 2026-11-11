@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import KycEmailAdapter from '../../../KYC/Views/EmailAdapter';
-import KycIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
-import KycIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
+  VbaIdentityVerificationAdapter,
+  VbaIdentityVerifiedAdapter,
   VbaKycPendingAdapter,
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
@@ -13,7 +13,12 @@ import VbaAccountCreateErrorAdapter from './modules/AccountCreateErrorAdapter';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
+import {
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+  type VbaOnboardingRootParams,
+} from './routes';
+import { useFocusMoneyTabBelow } from './hooks/useFocusMoneyTabBelow';
 import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -39,7 +44,7 @@ const InstrumentedKycPending = withScreenPerformance(
   VBA_SCREEN_ID.KYC_PENDING,
 );
 const InstrumentedIdentityVerified = withScreenPerformance(
-  KycIdentityVerified,
+  VbaIdentityVerifiedAdapter,
   VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.IDENTITY_VERIFIED,
 );
@@ -66,7 +71,7 @@ const InstrumentedOnboardingError = withScreenPerformance(
   VBA_SCREEN_CONTENT_STATE.ERROR,
 );
 
-const VbaOnboardingNavigator = () => (
+const VbaOnboardingStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
@@ -82,7 +87,7 @@ const VbaOnboardingNavigator = () => (
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFICATION}
-      component={KycIdentityVerificationModule}
+      component={VbaIdentityVerificationAdapter}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_PENDING}
@@ -114,5 +119,28 @@ const VbaOnboardingNavigator = () => (
     />
   </Stack.Navigator>
 );
+
+const FocusMoneyTabBelow = () => {
+  useFocusMoneyTabBelow();
+  return null;
+};
+
+interface VbaOnboardingNavigatorProps {
+  route?: { params?: VbaOnboardingRootParams };
+}
+
+const VbaOnboardingNavigator = ({ route }: VbaOnboardingNavigatorProps) => {
+  // Read once on open, so a later reset of this route cannot drop the request.
+  const [focusMoneyTabBelow] = useState(
+    Boolean(route?.params?.focusMoneyTabBelow),
+  );
+
+  return (
+    <>
+      {focusMoneyTabBelow ? <FocusMoneyTabBelow /> : null}
+      <VbaOnboardingStack />
+    </>
+  );
+};
 
 export default VbaOnboardingNavigator;

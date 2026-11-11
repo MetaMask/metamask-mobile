@@ -549,6 +549,53 @@ describe('SocialPostComposerView', () => {
     dismissSpy.mockRestore();
   });
 
+  it('keeps the position and gif chips above the keyboard on Android', () => {
+    const platformDescriptor = Object.getOwnPropertyDescriptor(Platform, 'OS');
+    Object.defineProperty(Platform, 'OS', {
+      configurable: true,
+      get: () => 'android',
+    });
+    const listeners = new Map<string, ((event?: unknown) => void)[]>();
+    const addListenerMock = Keyboard.addListener as jest.Mock;
+    const originalAddListener = addListenerMock.getMockImplementation();
+    addListenerMock.mockImplementation((eventName, callback) => {
+      const callbacks = listeners.get(eventName) ?? [];
+      callbacks.push(callback as (event?: unknown) => void);
+      listeners.set(eventName, callbacks);
+      return { remove: jest.fn() } as unknown as ReturnType<
+        typeof Keyboard.addListener
+      >;
+    });
+
+    try {
+      renderWithProvider(<SocialPostComposerView />);
+
+      act(() => {
+        listeners.get('keyboardDidShow')?.forEach((callback) => {
+          callback({
+            endCoordinates: { height: 320 },
+          });
+        });
+      });
+
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId(SocialPostComposerViewSelectorsIDs.ACTION_BAR)
+            .props.style,
+        ).paddingBottom,
+      ).toBe(332);
+    } finally {
+      if (originalAddListener) {
+        addListenerMock.mockImplementation(originalAddListener);
+      } else {
+        addListenerMock.mockRestore();
+      }
+      if (platformDescriptor) {
+        Object.defineProperty(Platform, 'OS', platformDescriptor);
+      }
+    }
+  });
+
   it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
     renderWithProvider(<SocialPostComposerView />);
 
@@ -664,8 +711,10 @@ describe('SocialPostComposerView', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: ['SocialService:fetchTraderFeed'],
     });
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
     const [entry] = getPendingPostsSnapshot();
@@ -728,8 +777,10 @@ describe('SocialPostComposerView', () => {
     );
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
       );
     });
     expect(getPendingPostsSnapshot()).toHaveLength(0);
@@ -1178,7 +1229,7 @@ describe('SocialPostComposerView', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('opens the Social V1 feed on Trending when opened from another home tab', async () => {
+  it('returns to the Social tab on Trending when opened from another home tab', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
@@ -1193,17 +1244,19 @@ describe('SocialPostComposerView', () => {
 
     await postWithOpenSpot();
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
     );
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it.each([
     ['their own trader id', { traderId: 'current-user' }],
     ['another trader', { traderId: 'someone-else' }],
   ])(
-    'replaces the composer with Trending when opened from a profile with %s',
+    'pops to the Social tab on Trending when opened from a profile with %s',
     async (_label, params) => {
       mockNavigationState = {
         index: 1,
@@ -1216,14 +1269,16 @@ describe('SocialPostComposerView', () => {
 
       await postWithOpenSpot();
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
       );
       expect(mockGoBack).not.toHaveBeenCalled();
     },
   );
 
-  it('replaces the composer with Trending when shared from Perps', async () => {
+  it('pops to the Social tab on Trending when shared from Perps', async () => {
     mockNavigationState = {
       index: 1,
       routes: [
@@ -1235,8 +1290,10 @@ describe('SocialPostComposerView', () => {
 
     await postWithOpenSpot();
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+      { pop: true },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
   });
@@ -1351,8 +1408,10 @@ describe('SocialPostComposerView', () => {
     });
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1, { initialTab: 'trending' }),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { initialTab: 'trending' } },
+        { pop: true },
       );
     });
     const [entry] = getPendingPostsSnapshot();

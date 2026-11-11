@@ -141,6 +141,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   realtime = false,
   paused = false,
   pendingPostsSurface,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -234,22 +235,24 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   });
   const { pinnedPosts, refresh: refreshWithPendingPosts } = pendingOverlay;
   const overlaidPosts = pendingOverlay.posts;
-  const visiblePosts = useMemo(
-    () =>
-      [
-        ...(filterPost ? pinnedPosts.filter(filterPost) : pinnedPosts),
-        ...overlaidPosts,
-      ].filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [filterPost, isEntryHidden, overlaidPosts, pinnedPosts],
-  );
+  // Pinned posts stay on top; only the feed's own posts are reordered.
+  const visiblePosts = useMemo(() => {
+    const isShown = (post: SocialV1FeedPost) =>
+      !isEntryHidden({
+        postId: post.id,
+        authorId: post.item.author.id,
+        authorHandle: post.authorHandle,
+        commentId: post.commentId,
+      });
+    const shownPinned = (
+      filterPost ? pinnedPosts.filter(filterPost) : pinnedPosts
+    ).filter(isShown);
+    const shown = overlaidPosts.filter(isShown);
+    return [
+      ...shownPinned,
+      ...(comparePosts ? shown.sort(comparePosts) : shown),
+    ];
+  }, [comparePosts, filterPost, isEntryHidden, overlaidPosts, pinnedPosts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
