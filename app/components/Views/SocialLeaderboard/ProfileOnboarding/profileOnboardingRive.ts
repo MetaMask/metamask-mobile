@@ -43,6 +43,7 @@ export const PROFILE_ONBOARDING_RIVE_PATHS = {
  * layer orbits the embedded preset avatars continuously.
  *
  * `Profile Ready` view model (all RN → Rive):
+ * - `lightMode` (boolean): true is Theme Light, false is Theme Dark.
  * - `avatar` (image): the card avatar; defaults to an embedded stand-in.
  * - `displayName` (string).
  * - `handle` (string): rendered verbatim, so include the leading `@`.
@@ -53,6 +54,7 @@ export const PROFILE_READY_RIVE_ARTBOARD = 'Profile Ready';
 export const PROFILE_READY_RIVE_STATE_MACHINE = 'Profile Ready';
 
 export const PROFILE_READY_RIVE_PATHS = {
+  LIGHT_MODE: 'lightMode',
   AVATAR: 'avatar',
   DISPLAY_NAME: 'displayName',
   HANDLE: 'handle',
