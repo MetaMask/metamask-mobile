@@ -3,7 +3,7 @@ import { isCircuitBreakerOpenError } from './isCircuitBreakerOpenError';
 
 const CIRCUIT_BREAKER_OPEN_MESSAGE_KEY = 'fiat_on_ramp.circuit_breaker_open';
 const UNEXPECTED_SERVICE_RESPONSE =
-  /^(?:Query|Mutation) function for "(?:RampsService|NeoBankService):/u;
+  /^(?:Query|Mutation) function for "(?:RampsService|NeoBankService|TransakService):/u;
 
 function getRawMessage(error: unknown): string {
   if (error instanceof Error) {

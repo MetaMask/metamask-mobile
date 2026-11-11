@@ -636,24 +636,16 @@ const VbaDetails = () => {
           }
           const circuitOpen = error.result.kind === 'unavailable';
           pollingDoneRef.current = true;
-          if (circuitOpen) {
-            navigateToVbaOnboardingDestination(
-              navigation,
-              destinationId,
-              undefined,
-              undefined,
-              sourceCurrency,
-              true,
-              'fiat_on_ramp.circuit_breaker_open',
-            );
-            return;
-          }
           navigateToVbaOnboardingDestination(
             navigation,
             destinationId,
             undefined,
-            getAccountCreateFailureLogFields(error.result),
+            circuitOpen
+              ? undefined
+              : getAccountCreateFailureLogFields(error.result),
             sourceCurrency,
+            circuitOpen ? true : undefined,
+            circuitOpen ? 'fiat_on_ramp.circuit_breaker_open' : undefined,
           );
           return;
         }

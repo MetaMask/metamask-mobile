@@ -30,7 +30,7 @@ import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 /**
  * Wires the account-creation error screens into onboarding.
- * Validation and setup failures open support. Only HTTP 500 can be retried.
+ * An open circuit and HTTP 500 can be retried. Other failures open support.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();

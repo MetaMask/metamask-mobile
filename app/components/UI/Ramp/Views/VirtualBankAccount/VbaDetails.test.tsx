@@ -1261,6 +1261,8 @@ describe('VbaDetails', () => {
           undefined,
           { httpStatus: 200, fiatStatus: status },
           'BRL',
+          undefined,
+          undefined,
         );
       });
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
@@ -1489,6 +1491,8 @@ describe('VbaDetails', () => {
         undefined,
         undefined,
         'BRL',
+        undefined,
+        undefined,
       );
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
@@ -1512,6 +1516,8 @@ describe('VbaDetails', () => {
         undefined,
         { httpStatus: 500, traceId: 'moonpay-trace' },
         'BRL',
+        undefined,
+        undefined,
       );
     });
     expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {

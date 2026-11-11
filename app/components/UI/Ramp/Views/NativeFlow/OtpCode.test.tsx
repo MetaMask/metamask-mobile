@@ -654,6 +654,33 @@ describe('V2OtpCode', () => {
     });
   });
 
+  it('shows the circuit breaker message when resending the code is blocked', async () => {
+    mockSendUserOtp.mockRejectedValue(
+      Object.assign(new BrokenCircuitError(), {
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      }),
+    );
+
+    const { getByText, queryByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('fiat_on_ramp.circuit_breaker_open')).toBeOnTheScreen();
+    });
+    expect(
+      queryByText('Execution prevented because the circuit breaker is open'),
+    ).toBeNull();
+  });
+
   it('shows error when sendUserOtp API fails', async () => {
     mockSendUserOtp.mockRejectedValue(new Error('Network error'));
 

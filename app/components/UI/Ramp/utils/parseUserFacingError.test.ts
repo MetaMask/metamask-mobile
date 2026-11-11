@@ -54,6 +54,7 @@ describe('parseUserFacingError', () => {
     'Query function for "RampsService:getQuotes" returned an unexpected response: Expected a string, but received: 1.',
     'Mutation function for "NeoBankService:createAutoramp" returned an unexpected response: Expected an object, but received: null.',
     'Query function for "NeoBankService:getAutoramp" returned an unexpected response: Expected a string, but received: undefined.',
+    'Mutation function for "TransakService:createOrder" returned an unexpected response: Expected an object, but received: null.',
   ])('maps a malformed service response to the fallback: %s', (message) => {
     expect(parseUserFacingError(new Error(message), FALLBACK)).toBe(FALLBACK);
     expect(parseUserFacingError(new Error(message), FALLBACK)).not.toContain(

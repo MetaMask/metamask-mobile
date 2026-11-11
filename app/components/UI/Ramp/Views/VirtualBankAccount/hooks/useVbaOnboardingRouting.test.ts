@@ -1294,6 +1294,28 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
     });
   });
 
+  it('forwards the circuit breaker description to the error screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      undefined,
+      'BRL',
+      true,
+      'fiat_on_ramp.circuit_breaker_open',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        sourceCurrency: 'BRL',
+        retryable: true,
+        descriptionKey: 'fiat_on_ramp.circuit_breaker_open',
+      },
+    });
+  });
+
   it('passes the source currency to the retry screen', () => {
     navigateToVbaOnboardingDestination(
       navigation,

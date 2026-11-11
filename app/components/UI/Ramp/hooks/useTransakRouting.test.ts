@@ -1,3 +1,4 @@
+import { BrokenCircuitError } from '@metamask/controller-utils';
 import { renderHook, act } from '@testing-library/react-native';
 import {
   RampsOrderStatus,
@@ -718,6 +719,41 @@ describe('useTransakRouting', () => {
           ],
         }),
       );
+    });
+
+    it('shows the circuit breaker message when createOrder is blocked', async () => {
+      mockSelectedPaymentMethod = {
+        id: '/payments/bank-transfer',
+        isManualBankTransfer: true,
+      };
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockTransakCreateOrder.mockRejectedValue(
+        Object.assign(new BrokenCircuitError(), {
+          errorKey: 'CIRCUIT_BREAKER_OPEN',
+        }),
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await expect(
+        result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        ),
+      ).rejects.toThrow('fiat_on_ramp.circuit_breaker_open');
     });
 
     it('navigates to KycProcessing when KYC status is SUBMITTED', async () => {
