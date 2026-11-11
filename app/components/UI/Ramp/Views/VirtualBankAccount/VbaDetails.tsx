@@ -34,12 +34,6 @@ import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -62,6 +56,7 @@ import {
   logAccountCreateFailure,
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
+import { useVbaEligibility } from './hooks/useVbaEligibility';
 import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -99,6 +94,7 @@ export const VbaDetailsSelectorsIDs = {
   BANK_NAME: 'vba-details-bank-name',
   IBAN: 'vba-details-iban',
   BIC: 'vba-details-bic',
+  PAYMENT_REFERENCE: 'vba-details-payment-reference',
   PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
   PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
   LOADING: 'vba-details-loading',
@@ -219,6 +215,18 @@ const buildDetailRows = (
       value: formatIbanForDisplay(instructions.iban),
       copyValue: instructions.iban.replace(/\s+/gu, ''),
     });
+    // Pay-by-reference accounts need this in the SEPA reference so MoonPay can
+    // match the incoming transfer. Dedicated-IBAN accounts omit it.
+    if (instructions.paymentReference) {
+      rows.push({
+        id: 'payment-reference',
+        testID: VbaDetailsSelectorsIDs.PAYMENT_REFERENCE,
+        label: strings(
+          'virtual_bank_account.vba_details.payment_reference_label',
+        ),
+        value: instructions.paymentReference,
+      });
+    }
     if (instructions.bic) {
       rows.push({
         id: 'bic',
@@ -277,7 +285,7 @@ export const formatBankDetailsForCopy = (
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. PIX or US bank details come from
+ * onboarding. PIX, US bank, or SEPA details come from
  * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
@@ -285,13 +293,8 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const location = useSelector(selectGeolocationLocation);
-  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
-  const markets = useSelector(selectNeobankMarkets);
-  const sourceCurrency = getVbaMarketForCountry(
-    markets,
-    regionOverride ?? location,
-  )?.currency;
+  const { market } = useVbaEligibility();
+  const sourceCurrency = market?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -969,7 +972,7 @@ const VbaDetails = () => {
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
             {(sourceCurrency === 'EUR'
-              ? ['account-holder', 'iban', 'bic']
+              ? ['account-holder', 'iban', 'bic', 'bank-name']
               : ['pix-key', 'copia-cola']
             ).map((id) => (
               <ListItem

@@ -1212,6 +1212,7 @@
       "bank_name_label": "Bank name",
       "iban_label": "IBAN",
       "bic_label": "BIC",
+      "payment_reference_label": "Payment reference",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "copy_all_button": "Copy all details",

@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectNeobankMarkets } from '../../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaMarketForCountry } from '../../../../../../util/region/getVbaSourceCurrency';
 import { formatDelayFromArray } from '../../../Aggregator/utils';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
@@ -72,7 +69,7 @@ export function getVbaArrivalTimeframe(
  * copy; other regions use the ramps payment-methods catalog
  * (`PaymentMethod.delay`, in minutes).
  *
- * Region comes from the same GeolocationController IP lookup that gates VBA
+ * Region and market come from the same effective location that gates VBA
  * entry (`useVbaEligibility`), scoped to the Money Account deposit asset so
  * the controller resolves the providers that serve it. Read-only: the shared
  * catalog is never re-scoped by this screen.
@@ -80,14 +77,12 @@ export function getVbaArrivalTimeframe(
  * @returns The localized arrival title.
  */
 export function useVbaArrivalTime(): VbaArrivalTime {
-  const { location, isRegionEligible } = useVbaEligibility();
-  const markets = useSelector(selectNeobankMarkets);
+  const { location, isRegionEligible, market } = useVbaEligibility();
   const depositAssetId = useMoneyAccountDepositAssetId();
 
   // The rail follows the market. Choose Currency never changes it, and the
   // picker is skipped whenever a market resolves, so the flag cannot make the
   // rail unknown.
-  const market = getVbaMarketForCountry(markets, location);
   const isPixDeposit = market?.currency === 'BRL';
   // EUR copy is fixed to the SEPA window: instant to one business day.
   const isEurDeposit = market?.currency === 'EUR';

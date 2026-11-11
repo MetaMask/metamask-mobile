@@ -125,6 +125,7 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
+  selectGeolocationStatus: () => 'success',
 }));
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -877,7 +878,9 @@ describe('VbaDetails', () => {
     it('shows the SEPA rows on the bank transfer layout', async () => {
       mockGetDepositInstructions.mockResolvedValue(sepaInstructions);
 
-      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
 
       await waitFor(() => {
         expect(getByTestId(VbaDetailsSelectorsIDs.IBAN)).toBeOnTheScreen();
@@ -894,7 +897,31 @@ describe('VbaDetails', () => {
       ).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BIC)).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
+      ).not.toBeOnTheScreen();
       expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
+    });
+
+    it('shows the payment reference when MoonPay returns one', async () => {
+      mockGetDepositInstructions.mockResolvedValue({
+        ...sepaInstructions,
+        paymentReference: 'IR-K7M2QX',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
+        ).toBeOnTheScreen();
+      });
+      expect(getByText('IR-K7M2QX')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('virtual_bank_account.vba_details.payment_reference_label'),
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('does not show the Brazil provider disclosure on the SEPA layout', async () => {
@@ -927,6 +954,9 @@ describe('VbaDetails', () => {
       expect(queryByTestId(VbaDetailsSelectorsIDs.BIC)).not.toBeOnTheScreen();
       expect(
         queryByTestId(VbaDetailsSelectorsIDs.BANK_NAME),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.PAYMENT_REFERENCE),
       ).not.toBeOnTheScreen();
     });
 

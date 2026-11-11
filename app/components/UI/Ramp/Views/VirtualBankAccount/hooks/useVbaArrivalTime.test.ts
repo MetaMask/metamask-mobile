@@ -1,23 +1,16 @@
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectNeobankMarkets } from '../../../../../../selectors/featureFlagController/moneyAccount';
 import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
 import { useRampsPaymentMethodsForContext } from '../../../hooks/useRampsPaymentMethods';
 
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
 jest.mock('./useVbaEligibility');
 jest.mock('../../../../Money/hooks/useMoneyAccountDepositAssetId');
 jest.mock('../../../hooks/useRampsPaymentMethods');
 
-const mockUseSelector = jest.mocked(useSelector);
 const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 const mockUseMoneyAccountDepositAssetId = jest.mocked(
   useMoneyAccountDepositAssetId,
@@ -158,12 +151,18 @@ describe('useVbaArrivalTime', () => {
     };
     paymentMethods?: PaymentMethod[];
   } = {}) => {
-    mockUseSelector.mockImplementation((selector) =>
-      selector === selectNeobankMarkets ? markets : undefined,
-    );
+    // Mirror useVbaEligibility: the market follows the effective location.
+    const resolvedLocation =
+      eligibility && 'location' in eligibility ? eligibility.location : 'US';
+    const market = resolvedLocation
+      ? markets.find((candidate) =>
+          candidate.regions.includes(resolvedLocation.split('-')[0]),
+        )
+      : undefined;
     mockUseVbaEligibility.mockReturnValue({
-      location: 'US',
+      location: resolvedLocation,
       isRegionEligible: true,
+      market,
       ...eligibility,
     } as ReturnType<typeof useVbaEligibility>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(
