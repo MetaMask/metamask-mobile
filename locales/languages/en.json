@@ -1531,7 +1531,8 @@
       "post_failed": "Couldn't create post. Try again.",
       "linked_account_missing": "Your linked Social account isn't in this wallet.",
       "showing_linked_account": "Showing positions from {{account}}",
-      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed.",
+      "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
       "swap_in_progress": "Swap in progress",
