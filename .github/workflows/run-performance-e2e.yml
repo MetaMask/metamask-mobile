@@ -448,6 +448,22 @@ jobs:
             contents: write
             pull_requests: write
 
+      # No workaround here on purpose: report it so it is not a silent skip.
+      - name: Report bot token exchange failure
+        if: steps.get-token.outcome == 'failure'
+        run: |
+          echo "::warning::Bot token exchange failed; this job continues with GITHUB_TOKEN. See the 'Get bot token' step log for the reason."
+          {
+            echo "## Heal job: bot token exchange failed"
+            echo
+            echo "The \`Get bot token\` step failed (see its log for the exact error). The job continues with \`GITHUB_TOKEN\`:"
+            echo
+            echo "- pushing the heal branch and opening the draft PR can fail if the repository does not allow GitHub Actions to create pull requests;"
+            echo "- a PR opened with \`GITHUB_TOKEN\` does not start CI workflows."
+            echo
+            echo "A failed push or PR step below is shown as a failed step, not skipped."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Checkout the branch that ran
         uses: actions/checkout@v6
         with:

@@ -4,7 +4,10 @@ import {
   buildScenarioOutcome,
   classifyOutcome,
   completeSlackNotices,
+  computeCacheDrift,
+  healCategories,
   healKey,
+  healKeys,
   healRuleViolations,
   proposedKeys,
   renderHealPr,
@@ -432,5 +435,299 @@ describe('renderHealSlackMessage', () => {
     };
 
     expect(completeSlackNotices([notice, existing])).toEqual([existing]);
+  });
+});
+
+describe('cache drift on a passing run', () => {
+  const files = {
+    [MD_PATH]: MARKDOWN,
+    [CACHE_PATH]: `${JSON.stringify(
+      {
+        ...OLD_CACHE,
+        'Tap Review': [
+          { type: 'tap', locator: { strategy: 'testID', value: 'review' } },
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  };
+
+  /**
+   * Attempt 0 healed the cache and was INVALID_MEASUREMENT; attempt 1 replayed
+   * it and passed, so its own run reports no changes. The baseline carried over
+   * from attempt 0 is what shows the drift.
+   */
+  function retriedPass(
+    overrides: Partial<ScenarioOutcome> = {},
+  ): ScenarioOutcome {
+    return {
+      ...buildScenarioOutcome({
+        scenario: parseScenario(MARKDOWN),
+        scenarioPath: MD_PATH,
+        result: runResult({
+          status: 'PASS',
+          timers: [
+            { name: 'swap opens', valid: true, durationMs: 900 },
+            { name: 'quote shows', valid: true, durationMs: 1200 },
+          ],
+          changedSteps: [],
+          modelCalls: 0,
+        }),
+        cacheBefore: HEALED_CACHE as never,
+        cacheBaseline: OLD_CACHE as never,
+        cacheAfter: HEALED_CACHE as never,
+        thresholdViolations: [],
+        attempt: 1,
+      }),
+      ...overrides,
+    };
+  }
+
+  it('records the drift against the first attempt, not the replayed cache', () => {
+    const result = retriedPass();
+
+    expect(result.attempt).toBe(1);
+    expect(result.changedSteps).toEqual([]);
+    expect(result.cacheDrift).toEqual([
+      {
+        number: 3,
+        text: 'the swap screen is visible',
+        before: OLD_CACHE['the swap screen is visible'],
+        after: HEALED_CACHE['the swap screen is visible'],
+      },
+    ]);
+  });
+
+  it('does not count newly learned or removed entries as drift', () => {
+    const scenario = parseScenario(MARKDOWN);
+
+    expect(
+      computeCacheDrift(
+        scenario,
+        OLD_CACHE as never,
+        {
+          ...OLD_CACHE,
+          'Tap Review': [
+            { type: 'tap', locator: { strategy: 'testID', value: 'review' } },
+          ],
+        } as never,
+      ),
+    ).toEqual([]);
+    expect(
+      computeCacheDrift(scenario, OLD_CACHE as never, {} as never),
+    ).toEqual([]);
+    expect(computeCacheDrift(scenario, null, HEALED_CACHE as never)).toEqual(
+      [],
+    );
+  });
+
+  it('classifies a valid run with re-resolved steps as cache-drift and repairable', () => {
+    expect(classifyOutcome(retriedPass())).toEqual(
+      expect.objectContaining({
+        category: 'cache-drift',
+        repairable: true,
+        step: 3,
+        reason: expect.stringContaining('3. the swap screen is visible'),
+      }),
+    );
+  });
+
+  it('keeps a clean pass and a threshold failure out of cache-drift', () => {
+    expect(classifyOutcome(retriedPass({ cacheDrift: [] })).category).toBe(
+      'passed',
+    );
+    expect(
+      classifyOutcome(
+        retriedPass({
+          thresholdViolations: ['Step 1 exceeded: 4000ms > 2875ms'],
+        }),
+      ).category,
+    ).toBe('threshold');
+  });
+
+  it('never trusts drift from a run that did not pass', () => {
+    expect(
+      classifyOutcome(
+        retriedPass({
+          status: 'FAIL',
+          failedStep: { number: 3, text: 'x', error: 'boom' },
+        }),
+      ).repairable,
+    ).toBe(false);
+  });
+
+  it('writes only the re-resolved entry onto the committed cache and never touches the Markdown', () => {
+    const reworded = retriedPass({
+      rewordings: [
+        {
+          number: 2,
+          from: 'Tap the Swap button on the wallet home',
+          to: 'Tap Trade',
+        },
+      ],
+    });
+
+    const { changes } = buildHealChanges(reworded, repo(files));
+    const cache = JSON.parse(changes[0].after);
+
+    expect(changes.map((c) => c.path)).toEqual([CACHE_PATH]);
+    expect(cache['the swap screen is visible']).toEqual(
+      HEALED_CACHE['the swap screen is visible'],
+    );
+    expect(cache['Tap the Swap button on the wallet home']).toEqual(
+      OLD_CACHE['Tap the Swap button on the wallet home'],
+    );
+    expect(cache['Tap Review']).toBeDefined();
+    expect(healRuleViolations(changes, repo(files))).toEqual([]);
+  });
+
+  it('reports a note instead of a change when the branch has no such cached step', () => {
+    const { changes, notes } = buildHealChanges(
+      retriedPass(),
+      repo({ [MD_PATH]: MARKDOWN, [CACHE_PATH]: '{}\n' }),
+    );
+
+    expect(changes).toEqual([]);
+    expect(notes[0]).toContain('no cached entry');
+  });
+
+  it('puts the category, old vs new resolution, run and a marker per step in the PR body', () => {
+    const drift = retriedPass();
+    const { changes } = buildHealChanges(drift, repo(files));
+    const { body } = renderHealPr(
+      [
+        {
+          outcome: drift,
+          classification: classifyOutcome(drift),
+          changes,
+          notes: [],
+        },
+      ],
+      { runUrl: 'https://github.com/run/2', heJobUrls: [], baseRef: 'main' },
+    );
+
+    expect(body).toContain('Category: `cache-drift`');
+    expect(body).toContain('passed on retry 1');
+    expect(body).toContain(
+      '| 3. the swap screen is visible | expect testID=old-swap-screen | expect testID=swap-screen-v2 |',
+    );
+    expect(body).toContain('https://github.com/run/2');
+    expect(body).toContain('Cache drift only');
+    expect(body).not.toMatch(/- Step \d+ wording:/);
+    expect(proposedKeys([body])).toEqual(
+      new Set(healKeys(drift, classifyOutcome(drift))),
+    );
+  });
+
+  it('combines repairable with drift in other steps in one heal', () => {
+    const tapDrift = {
+      number: 2,
+      text: 'Tap the Swap button on the wallet home',
+      before: OLD_CACHE['Tap the Swap button on the wallet home'] as never,
+      after: [
+        {
+          type: 'tap',
+          locator: { strategy: 'testID', value: 'wallet-trade-button' },
+        },
+      ] as never,
+    };
+    const both = {
+      ...outcome(),
+      cacheDrift: [tapDrift, ...(outcome().cacheDrift ?? [])],
+      healedCache: {
+        ...HEALED_CACHE,
+        'Tap the Swap button on the wallet home': tapDrift.after,
+      } as never,
+    };
+    const classification = classifyOutcome(both);
+
+    expect(classification.category).toBe('repairable');
+    expect(healCategories(both, classification)).toEqual([
+      'repairable',
+      'cache-drift',
+    ]);
+    expect(healKeys(both, classification)).toEqual([
+      healKey(both, 3),
+      healKey(both, 2),
+    ]);
+    const { changes } = buildHealChanges(both, repo(files));
+    expect(
+      JSON.parse(changes[0].after)['Tap the Swap button on the wallet home'],
+    ).toEqual(tapDrift.after);
+  });
+});
+
+describe('pinned Expect failures', () => {
+  it('are reported as pinned-check, not no-path', () => {
+    const failed = outcome(
+      runResult({
+        status: 'FAIL',
+        steps: [
+          {
+            number: 4,
+            text: 'the ETH token overview screen is visible',
+            source: 'agent',
+            actions: [],
+            error:
+              'Step 4: expectation not met: the ETH token overview screen is visible (testID=perf-heal-test-does-not-exist: element still not displayed after 1501ms)',
+          },
+        ],
+      }),
+    );
+
+    expect(classifyOutcome(failed).category).toBe('pinned-check');
+  });
+
+  it('still calls an unpinned expectation the model could not meet no-path', () => {
+    const failed = outcome(
+      runResult({
+        status: 'FAIL',
+        steps: [
+          {
+            number: 3,
+            text: 'x',
+            source: 'agent',
+            actions: [],
+            error: 'Step 3: expectation not met: the quote is shown',
+          },
+        ],
+      }),
+    );
+
+    expect(classifyOutcome(failed).category).toBe('no-path');
+  });
+});
+
+describe('cache-drift Slack notice', () => {
+  it('says the run passed and the cache was stale', () => {
+    const [ready] = completeSlackNotices(
+      [
+        {
+          scenario: 'Predict [scenario shadow]',
+          category: 'cache-drift',
+          step: 3,
+          reason:
+            're-resolved 1 cached step: 3. the Predict home screen is visible',
+          runUrl: 'https://github.com/run/3',
+          heJobUrls: [],
+          prUrl: '',
+          commitSha: '',
+          commitUrl: '',
+        },
+      ],
+      {
+        prUrl: 'https://github.com/org/repo/pull/10',
+        commitSha: 'abc1234',
+        repositoryUrl: 'https://github.com/org/repo',
+      },
+    );
+
+    const text = renderHealSlackMessage([ready]);
+
+    expect(text).toContain(
+      'Cache drift in performance scenario (run passed, cache was stale): Predict [scenario shadow]',
+    );
+    expect(text).toContain('First re-resolved step: 3');
   });
 });

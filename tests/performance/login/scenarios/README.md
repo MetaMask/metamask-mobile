@@ -101,9 +101,28 @@ the `Heal agent-driven scenarios` job classifies every outcome:
   branch that ran (`perf-scenario-heal/<run id>`), labelled `team-qa` and
   `perf-scenario-heal`, with the healed cache and any step wording the agent
   proposed.
-- **Report only**: a pinned check failed, a threshold was exceeded, the submit
-  guard or an app alert stopped the run, a timeout or crash, or the model
-  found no path. These may be app bugs; the job summary lists them.
+- **Cache drift** (`cache-drift`): the run **passed** with a valid measurement,
+  but cached steps had to be re-resolved at runtime (a stale learned tap or end
+  element). The job opens the same kind of draft PR, which changes only the
+  re-resolved entries in `*.scenario.cache.json`. It never touches the
+  Markdown, so no wording, pins, timers or thresholds. If a failed run also
+  drifted in other steps, one PR covers both.
+- **Report only**: a pinned check failed (including a pinned `Expect:`), a
+  threshold was exceeded, the submit guard or an app alert stopped the run, a
+  timeout or crash, or the model found no path. These may be app bugs; the job
+  summary lists them.
+
+Drift survives retries. Playwright retries a failed scenario on the same
+HyperExecute VM, and the retry replays the cache the first attempt healed, so
+a retry that passes would report nothing. `scenario-outcome-<name>.json`
+therefore carries `cacheBaseline` (the cache before the first attempt),
+`attempt` (the retry index), and `cacheDrift` (each cached step whose
+resolution changed: step number, text, `before`, `after`). Newly learned or
+pruned entries are not drift.
+
+If the bot token exchange fails (`Get bot token`), the job says so in a
+warning and in the job summary, and continues with `GITHUB_TOKEN`; a failed
+push or PR step then fails visibly.
 
 A heal may only change `*.scenario.cache.json` and the wording of do/expect
 steps in `*.scenario.md`. Pins, `[if:]`, timers, thresholds, tags, Secret/App
@@ -195,7 +214,7 @@ and `[if: ...]` conditions are the original specs' Page Object calls, in
 ### Secrets and CI
 
 - `requiredEnv: ['TEST_SRP_3']` in a spec: when a listed variable is missing
-  or empty, the test is registered as skipped with the variable *name* in the
+  or empty, the test is registered as skipped with the variable _name_ in the
   reason, before any device session. Values are never logged or sent to the
   model; `requireSecretEnv(name)` fails a code step with the name only.
 - No cache yet: the agent learns the steps on the fly and writes
