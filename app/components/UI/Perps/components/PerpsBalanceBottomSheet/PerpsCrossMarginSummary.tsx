@@ -48,7 +48,7 @@ const TONE_COLOR: Record<CrossMarginRatioTone, TextColor> = {
   danger: TextColor.ErrorDefault,
 };
 
-const getToneColor = (tone: CrossMarginRatioTone | undefined) =>
+const getToneColor = (tone: CrossMarginRatioTone | undefined): TextColor =>
   tone ? TONE_COLOR[tone] : TextColor.TextDefault;
 
 /** Spoken risk level. The visible cue is an icon, matching the design. */
@@ -59,7 +59,7 @@ const TONE_LABEL_KEY: Record<CrossMarginRatioTone, string> = {
 };
 
 /**
- * Non-colour cue for elevated risk. A safe value has no icon, which keeps it
+ * Non-color cue for elevated risk. A safe value has no icon, which keeps it
  * as plain as the design shows it.
  */
 const TONE_ICON: Partial<
@@ -73,11 +73,12 @@ const TONE_ICON: Partial<
 // render the same tappable affordance on both platforms.
 const labelStyle = { textDecorationLine: 'underline' } as const;
 
+const LABEL_HIT_SLOP = 8;
+
 interface RowProps {
   tooltipKey: PerpsCrossMarginSummaryTooltipKey;
   value: string;
-  valueColor: TextColor;
-  /** Risk level, shown as an icon and spoken so colour is not the only signal. */
+  /** Risk level, shown as color, an icon, and spoken so color is not the only signal. */
   tone?: CrossMarginRatioTone;
   privacyMode: boolean;
   testID: string;
@@ -87,7 +88,6 @@ interface RowProps {
 const SummaryRow: React.FC<RowProps> = ({
   tooltipKey,
   value,
-  valueColor,
   tone,
   privacyMode,
   testID,
@@ -115,7 +115,7 @@ const SummaryRow: React.FC<RowProps> = ({
         onPress={() => onInfoPress(tooltipKey)}
         accessibilityRole="button"
         accessibilityLabel={label}
-        hitSlop={8}
+        hitSlop={LABEL_HIT_SLOP}
       >
         <Text
           variant={TextVariant.BodySm}
@@ -143,7 +143,7 @@ const SummaryRow: React.FC<RowProps> = ({
         <SensitiveText
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={valueColor}
+          color={getToneColor(tone)}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
           accessible={toneLabel ? false : undefined}
@@ -180,7 +180,6 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(accountRatio)
       }
-      valueColor={getToneColor(getCrossMarginRatioTone(accountRatio))}
       tone={getCrossMarginRatioTone(accountRatio)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}
@@ -193,7 +192,6 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatPerpsFiat(maintenanceMargin)
       }
-      valueColor={TextColor.TextDefault}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.MAINTENANCE_MARGIN_VALUE}
       onInfoPress={onInfoPress}
@@ -205,7 +203,6 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatAccountLeverage(accountLeverage)
       }
-      valueColor={TextColor.TextDefault}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_LEVERAGE_VALUE}
       onInfoPress={onInfoPress}
@@ -217,7 +214,6 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(crossMarginUsage)
       }
-      valueColor={getToneColor(getCrossMarginRatioTone(crossMarginUsage))}
       tone={getCrossMarginRatioTone(crossMarginUsage)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}
