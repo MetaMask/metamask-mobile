@@ -5,7 +5,6 @@ interface ChartPanHandlers {
   setIsChartBeingTouched: (isTouched: boolean) => void;
 }
 
-// Module scope: the compiler rejects refs captured by render-time config objects ("Cannot access refs during render").
 export const createChartPanResponder = ({
   updatePosition,
   setIsChartBeingTouched,

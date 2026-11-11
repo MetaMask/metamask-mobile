@@ -71,7 +71,6 @@ export function findNearestIndex(
   return lo;
 }
 
-// Ref lives inside the hook so the compiler does not see it ("Cannot access refs during render"); keeps the PanResponder alive across prop/layout updates mid-drag.
 const useStableCallback = <Args extends unknown[]>(
   callback: (...args: Args) => void,
 ) => {
