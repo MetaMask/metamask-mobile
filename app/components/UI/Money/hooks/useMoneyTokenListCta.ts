@@ -14,7 +14,7 @@ import {
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 
 const TOKEN_LIST_CTA_LABEL_KEY = 'money.token_list_cta.get_apy';
 

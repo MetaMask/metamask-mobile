@@ -1,18 +1,24 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { ScrollView, StatusBar } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   IconSize,
   Spinner,
   Text,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
@@ -28,9 +34,15 @@ import {
   clearImmersveKycOnClose,
 } from '../ImmersveKYCModal/ImmersveKYCModal';
 import OnboardingStep from './OnboardingStep';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
 
 // While the user waits on this screen, poll spending-prerequisites; give up after
-// this window and send them to the "we'll notify you" pending screen. Immersve
+// this window, send them to Card home (KYC still pending). Immersve
 // permits 2-3 min of direct-integration polling — we keep the 30s used by the
 // Veriff progress screen since real background checks take minutes to days.
 const POLLING_TIMEOUT_MS = 30000;
@@ -41,13 +53,26 @@ const POLLING_TIMEOUT_MS = 30000;
  * `spending-prerequisites`: opens the hosted KYC webview, then polls to a
  * terminal state.
  * - kyc (+url) → open the Immersve KYC webview modal (once)
- * - pending    → spinner + auto-poll; 30s timeout → KYC_PENDING
+ * - pending    → spinner + auto-poll; 30s timeout → Card home (pending)
  * - rejected   → KYC_FAILED (blocked / kyc_check_failed)
  * - active/funding (approved) → interim terminus (branch 6b wires SpendingLimit)
  */
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerHandlers = useCardHeaderHandlers('close-direct');
+  const isDarkTheme = useTheme().themeAppearance === AppThemeKey.dark;
+  // The reopen prompt does not use OnboardingStep, so it has to set the status
+  // bar itself. The spinner path's OnboardingStep sets the same style.
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle(
+        isDarkTheme ? 'light-content' : 'dark-content',
+        true,
+      );
+    }, [isDarkTheme]),
+  );
   const { countryKey, kycUrl } = useParams<{
     countryKey?: string;
     kycUrl?: string;
@@ -60,9 +85,9 @@ const ImmersveKYCProcessing = () => {
   const openKycWebview = useCallback(
     (url: string) => {
       hasOpenedWebview.current = true;
-      navigation.navigate(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.IMMERSVE_KYC,
-        params: { url, redirectUrl: KYC_REDIRECT_URL },
+      navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
+        url,
+        redirectUrl: KYC_REDIRECT_URL,
       });
     },
     [navigation],
@@ -106,10 +131,11 @@ const ImmersveKYCProcessing = () => {
     }
   }, [kycUrl, openKycWebview]);
 
-  // Re-poll when the webview closes. The transparentModal keeps this screen
-  // mounted without blurring it, so useFocusEffect can't detect the close — the
-  // modal invokes this callback instead. The poll then decides: kyc still
-  // action-required ⇒ the user bailed (show a reopen prompt); otherwise route.
+  // Re-poll when the webview closes back onto this screen. Exit to the wallet
+  // tears this screen down before focus returns, so useFocusEffect cannot be
+  // the signal — the webview invokes this callback instead. The poll then
+  // decides: kyc still action-required ⇒ the user bailed (show a reopen
+  // prompt); otherwise route.
   useEffect(() => {
     setImmersveKycOnClose(() => {
       refresh().catch(() => undefined);
@@ -160,7 +186,7 @@ const ImmersveKYCProcessing = () => {
       );
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.CARD.ONBOARDING.KYC_PENDING }],
+        routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
       });
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
@@ -196,13 +222,6 @@ const ImmersveKYCProcessing = () => {
         >
           {errorMessage}
         </Text>
-      ) : isReopenPrompt ? (
-        <Image
-          source={MM_CARD_VERIFY_IDENTITY}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-          testID="immersve-kyc-processing-illustration"
-        />
       ) : (
         <>
           <Spinner
@@ -223,7 +242,7 @@ const ImmersveKYCProcessing = () => {
     </Box>
   );
 
-  const handleReopenPress = () => {
+  const handleReopen = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties(
@@ -235,38 +254,89 @@ const ImmersveKYCProcessing = () => {
         .build(),
     );
     openKycWebview((nextAction?.type === 'kyc' && nextAction.url) || '');
-  };
+  }, [trackEvent, createEventBuilder, ctaHint, openKycWebview, nextAction]);
 
-  const titleKey = isReopenPrompt
-    ? isInfoNeeded
-      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
-      : 'card.card_onboarding.immersve_kyc_processing.incomplete_title'
-    : 'card.card_onboarding.immersve_kyc_processing.title';
+  if (isReopenPrompt) {
+    const title = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
+        : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
+    );
+    const description = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
+        : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
+    );
+    const buttonLabel = strings(
+      isInfoNeeded
+        ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
+        : 'card.card_onboarding.immersve_kyc_processing.continue_button',
+    );
 
-  const descriptionKey = isReopenPrompt
-    ? isInfoNeeded
-      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
-      : 'card.card_onboarding.immersve_kyc_processing.incomplete_description'
-    : 'card.card_onboarding.immersve_kyc_processing.description';
+    return (
+      <SafeAreaView
+        edges={['right', 'bottom', 'left']}
+        style={tw.style('flex-1 bg-default')}
+      >
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+        <ScrollView
+          contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
+        >
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            titleProps={{
+              twClassName: 'text-center',
+              testID: 'onboarding-title',
+            }}
+            titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
+            bottomLabelProps={{
+              twClassName: 'text-center',
+              testID: 'onboarding-description',
+            }}
+            bottomLabelWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            topAccessory={
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="mb-5 w-full overflow-hidden"
+                testID="immersve-kyc-processing-illustration"
+              >
+                <ImmersveVerifyingIdentityAnimation />
+              </Box>
+            }
+          />
+        </ScrollView>
+        <Box twClassName="gap-2 px-4 pb-2 pt-4">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleReopen}
+            testID="immersve-kyc-processing-reopen-button"
+          >
+            {buttonLabel}
+          </Button>
+        </Box>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <OnboardingStep
-      title={strings(titleKey)}
-      description={strings(descriptionKey)}
+      title={strings('card.card_onboarding.immersve_kyc_processing.title')}
+      description={strings(
+        'card.card_onboarding.immersve_kyc_processing.description',
+      )}
       formFields={renderFormFields()}
-      primaryButtonProps={
-        isReopenPrompt
-          ? {
-              children: strings(
-                isInfoNeeded
-                  ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
-                  : 'card.card_onboarding.immersve_kyc_processing.continue_button',
-              ),
-              onPress: handleReopenPress,
-              testID: 'immersve-kyc-processing-reopen-button',
-            }
-          : undefined
-      }
       headerMode="close-direct"
     />
   );
