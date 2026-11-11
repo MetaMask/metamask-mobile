@@ -149,11 +149,28 @@ const KalshiOnboarding = () => {
     setInput('');
   }, [step]);
 
+  // kyc-api decides the UKYC stage: ask it after every action, so the step
+  // shown is the server's (sessions.kalshi.nextStep).
+  const refreshServerStep = useCallback(
+    () =>
+      KycController.refreshStep({ vendor: VENDOR }).catch((caught) => {
+        Logger.error(caught as Error, {
+          tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+        });
+      }),
+    [KycController],
+  );
+
+  useEffect(() => {
+    refreshServerStep();
+  }, [refreshServerStep]);
+
   const run = useCallback(async (action: () => Promise<unknown>) => {
     setBusy(true);
     setError(undefined);
     try {
       await action();
+      await refreshServerStep();
     } catch (caught) {
       if (getMfaErrorCode(caught) === 'flow_cancelled') {
         return;
@@ -165,7 +182,7 @@ const KalshiOnboarding = () => {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [refreshServerStep]);
 
   // Terms catalog.
   useEffect(() => {
@@ -179,6 +196,15 @@ const KalshiOnboarding = () => {
       );
     });
   }, [KycController, run, step, terms]);
+
+  // While a decision is pending, keep asking kyc-api for the step.
+  useEffect(() => {
+    if (step !== 'waiting') {
+      return undefined;
+    }
+    const timer = setInterval(refreshServerStep, 5000);
+    return () => clearInterval(timer);
+  }, [refreshServerStep, step]);
 
   // Keep the decision fresh while waiting, and read the Kalshi account
   // once the identity is approved.
@@ -201,6 +227,9 @@ const KalshiOnboarding = () => {
         country,
         disclaimerIds: (terms ?? []).map(({ id }) => id),
       });
+      // kyc-api keeps the acceptance before a session exists and answers with
+      // the next step.
+      await KycController.recordVendorDisclaimers({ vendor: VENDOR });
     });
 
   const submitEmail = () =>
@@ -216,7 +245,6 @@ const KalshiOnboarding = () => {
         throw new Error('MetaMask could not confirm your email.');
       }
       await KycController.startSession({ vendor: VENDOR, aal2Token, email });
-      await KycController.recordVendorDisclaimers({ vendor: VENDOR });
     });
 
   const submitEmailCode = () =>
