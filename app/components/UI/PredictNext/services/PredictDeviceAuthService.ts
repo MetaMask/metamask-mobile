@@ -369,6 +369,14 @@ export class PredictDeviceAuthService {
     if (!readAllowed(profile, proposed)) {
       throw new TemplateError('class', 'read not allowed by the profile');
     }
+    if (
+      proposed.requestId !== undefined &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+        proposed.requestId,
+      )
+    ) {
+      throw new TemplateError('input', 'read challenge is not a UUID v4');
+    }
     const request: RenderedRequest = {
       name: 'proposal',
       class: 'read',
@@ -401,7 +409,7 @@ export class PredictDeviceAuthService {
     const [signature] = await Promise.all([
       signDeviceRequest(profile, request, context, {
         sign: binding.deviceKey.sign,
-        requestId: () => uuidv4(),
+        requestId: () => proposed.requestId ?? uuidv4(),
         now: this.#deps.now,
       }),
     ]);

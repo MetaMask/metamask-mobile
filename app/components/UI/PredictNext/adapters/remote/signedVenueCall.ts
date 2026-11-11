@@ -23,6 +23,8 @@ export interface ProposedRead {
   method: string;
   path: string;
   query: string;
+  /** Server challenge signed as the device request ID and signature nonce. */
+  requestId?: string;
 }
 
 /**
@@ -143,8 +145,8 @@ export const sendSigned = async <Response>(
  * Two-phase signed read (ADR-0004): `send()` first goes out bearer-only and
  * answers with a `sign_required` proposal of the one venue GET the route
  * needs. The phone signs that GET and re-calls the SAME route with the
- * envelope and the signed GET's coordinates. Nothing is kept on the server
- * between the two calls.
+ * envelope and the signed GET's coordinates. Reconciliation proposals may
+ * bind a server challenge to persisted scan progress.
  *
  * The signed call can itself answer `sign_required` when the route now
  * expects a different GET (its inputs moved between the calls); that fresh

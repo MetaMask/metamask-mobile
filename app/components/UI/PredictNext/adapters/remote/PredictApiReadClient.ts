@@ -524,7 +524,12 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     if (
       described.method !== 'GET' ||
       typeof described.path !== 'string' ||
-      typeof described.query !== 'string'
+      typeof described.query !== 'string' ||
+      (described.requestId !== undefined &&
+        (typeof described.requestId !== 'string' ||
+          !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(
+            described.requestId,
+          )))
     ) {
       return undefined;
     }
@@ -533,6 +538,9 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         method: 'GET',
         path: described.path,
         query: described.query,
+        ...(described.requestId !== undefined && {
+          requestId: described.requestId as string,
+        }),
       },
     };
   }

@@ -513,6 +513,7 @@ const checkBinaryLimitOrder = (
   const contractsInput = params?.contractsInput;
   const priceField = params?.priceField;
   const countField = params?.countField;
+  const reduceOnlyField = params?.reduceOnlyField;
   const actionInput = params?.actionInput;
   const outcomeInput = params?.outcomeInput;
   const feeCeilingCentsPerContract = params?.feeCeilingCentsPerContract;
@@ -525,6 +526,7 @@ const checkBinaryLimitOrder = (
     typeof contractsInput !== 'string' ||
     typeof priceField !== 'string' ||
     typeof countField !== 'string' ||
+    typeof reduceOnlyField !== 'string' ||
     typeof actionInput !== 'string' ||
     typeof outcomeInput !== 'string'
   ) {
@@ -535,6 +537,15 @@ const checkBinaryLimitOrder = (
   const outcome = inputString(context, outcomeInput);
   const action = inputString(context, actionInput);
   if (price === undefined || count === undefined || !outcome || !action) {
+    throw new TemplateError('invariant', implementation);
+  }
+  // A YES-leg ask alone can open NO (and a bid can open YES). Only the
+  // venue's IOC reduce_only constraint makes a sell closing-only, even if
+  // holdings changed since Preview. Its boolean is part of the signed body.
+  const reduceOnly: unknown = (JSON.parse(body) as Record<string, unknown>)[
+    reduceOnlyField
+  ];
+  if (reduceOnly !== (action === 'sell')) {
     throw new TemplateError('invariant', implementation);
   }
   const outcomeLimit =

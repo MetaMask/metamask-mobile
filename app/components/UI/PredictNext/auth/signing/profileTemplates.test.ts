@@ -105,6 +105,7 @@ describe('renderRequest for order.place', () => {
       price: '0.4500',
       time_in_force: 'immediate_or_cancel',
       self_trade_prevention_type: 'taker_at_cross',
+      reduce_only: false,
     });
   });
 
@@ -122,7 +123,45 @@ describe('renderRequest for order.place', () => {
     });
 
     expect(JSON.parse(rendered.body).side).toBe('bid');
+    expect(JSON.parse(rendered.body).reduce_only).toBe(true);
   });
+
+  it.each(['yes', 'no'] as const)(
+    'refuses to render a %s sell when the profile omits or weakens closing-only protection',
+    (outcome) => {
+      for (const constraint of [undefined, false, 'true']) {
+        const template = createOrder();
+        if (!template.body || template.body === 'empty') {
+          throw new Error('create_order carries no body');
+        }
+        const fields = template.body.json.filter(
+          (field) => field.key !== 'reduce_only',
+        );
+        if (constraint !== undefined) {
+          fields.push({ key: 'reduce_only', value: { const: constraint } });
+        }
+        const tampered = {
+          ...template,
+          body: { ...template.body, json: fields },
+        };
+
+        const render = () =>
+          renderRequest('create_order', tampered, {
+            inputs: {
+              action: 'sell',
+              outcome,
+              marketId: 'MKT-XYZ',
+              idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+              contracts: '10.00',
+            },
+            values: orderValues,
+            nowMs: NOW,
+          });
+
+        expect(render).toThrow(TemplateError);
+      }
+    },
+  );
 
   it('derives the venue display figures from the invariant', () => {
     const rendered = renderRequest('create_order', createOrder(), {

@@ -430,6 +430,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
       price: '0.5000',
       time_in_force: 'immediate_or_cancel',
       self_trade_prevention_type: 'taker_at_cross',
+      reduce_only: false,
     });
   });
 
@@ -456,6 +457,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
       'price',
       'time_in_force',
       'self_trade_prevention_type',
+      'reduce_only',
     ]);
   });
 
@@ -483,6 +485,23 @@ describe('PredictDeviceAuthService.signOperation', () => {
       service.signRead({ method: 'GET', path, query }),
     ).rejects.toMatchObject({ name: 'TemplateError', rule: 'class' });
   });
+
+  it.each(['not-a-uuid', 'a1b2c3d4-1111-1222-8333-444455556666'])(
+    'refuses a read challenge that is not UUID v4: %s',
+    async (requestId) => {
+      const { service } = createService();
+
+      await expect(
+        service.signRead({
+          method: 'GET',
+          path: '/trade-api/v2/portfolio/orders',
+          query: '',
+          requestId,
+        }),
+      ).rejects.toMatchObject({ name: 'TemplateError', rule: 'input' });
+      expect(mockEnsureDeviceKey).not.toHaveBeenCalled();
+    },
+  );
 
   it('returns undefined when signing is not available', async () => {
     const { service } = createService({ enabled: false });

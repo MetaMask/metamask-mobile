@@ -126,8 +126,8 @@ export class BundledSigningProfile {
 /** The keys shipped with this build. Dev keys for the phase-1 demo. */
 export const BUNDLED_PROFILE_PUBLIC_KEYS: ProfileKeys = {
   primary: `-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEMjz9jplo7IU30Qi83rW74OK5NEsX
-hnXINnuhOUW5u5+E/TxgbFa0ZGn/nhfVEJAlLK+XirT+Pmk6O5PWKcY/gQ==
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO6DzzjIDaItyEUqlSai5yI/ZKlnJ
+G2o2a7OFAQpuVrcpqSdUTPcxLh2pjaDJxpqSbdPI9Foz+kjPX18Rxw20DA==
 -----END PUBLIC KEY-----`,
   backup: undefined,
 };
@@ -547,7 +547,8 @@ const validateSource = (value: unknown): boolean => {
       value.map.inputs.length > 0 &&
       isRecord(value.map.table) &&
       Object.values(value.map.table).every(
-        (entry): entry is string => typeof entry === 'string',
+        (entry): entry is string | boolean =>
+          typeof entry === 'string' || typeof entry === 'boolean',
       )
     );
   }

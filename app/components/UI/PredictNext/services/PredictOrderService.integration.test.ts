@@ -532,6 +532,7 @@ describe('PredictNext Order Preview request', () => {
         price: '0.4000',
         time_in_force: 'immediate_or_cancel',
         self_trade_prevention_type: 'taker_at_cross',
+        reduce_only: true,
       },
     ]);
 
@@ -639,6 +640,7 @@ describe('PredictNext Order Preview request', () => {
         price: '0.4651',
         time_in_force: 'immediate_or_cancel',
         self_trade_prevention_type: 'taker_at_cross',
+        reduce_only: false,
       },
     ]);
 

@@ -1,5 +1,10 @@
+import { p256 } from '@noble/curves/nist';
+import { sha256 } from '@noble/hashes/sha2';
+
 import SecureKeychain from '../../../../core/SecureKeychain';
 import { buildPredictDeviceAuthIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
+import { loadVenueProfile } from '../auth/venueSigningProfiles';
+import { deviceSigningBase } from '../auth/signing/deviceRequestSigner';
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),
@@ -125,6 +130,83 @@ describe('PredictDeviceAuthService integration', () => {
     await harness.messenger.call('PredictDeviceAuthService:reset');
     expect(SecureKeychain.clearSecureScope).toHaveBeenCalled();
     expect(stored).toBeNull();
+  });
+
+  it('cryptographically binds a reconciliation read to the server challenge', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse(200, {
+          challengeId: '11111111-1111-4111-8111-111111111111',
+          srpMessage: 'metamask:nonce:0xabc',
+          expiresIn: 120,
+        }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse(200, { a2t: 'opaque-a2t', expiresIn: 900 }),
+      );
+    const harness = buildPredictDeviceAuthIntegrationHarness();
+    const proposed = {
+      method: 'GET' as const,
+      path: '/trade-api/v2/portfolio/orders',
+      query: 'limit=200&ticker=MKT-1',
+      requestId: 'a1b2c3d4-1111-4222-8333-444455556666',
+    };
+    const profile = await loadVenueProfile();
+    if (!profile) {
+      throw new Error('bundled signing profile unavailable');
+    }
+
+    const signed = await harness.messenger.call(
+      'PredictDeviceAuthService:signRead',
+      proposed,
+    );
+    const envelope = JSON.parse(
+      Buffer.from(signed?.value ?? '', 'base64url').toString('utf8'),
+    );
+    const signature = envelope.signatures[0];
+    const base = deviceSigningBase({
+      profile,
+      request: {
+        name: 'proposal',
+        class: 'read',
+        method: proposed.method,
+        path: proposed.path,
+        query: proposed.query,
+        body: '',
+      },
+      context: envelope.credential,
+      requestId: proposed.requestId,
+      signatureParams: signature.signatureInput.slice('kalshi='.length),
+    });
+    const raw = Buffer.from(
+      signature.signature.slice('kalshi=:'.length, -1),
+      'base64',
+    );
+
+    expect(signature.requestId).toBe(proposed.requestId);
+    expect(signature.signatureInput).toContain(`nonce="${proposed.requestId}"`);
+    expect(
+      p256.verify(
+        raw,
+        sha256(new TextEncoder().encode(base)),
+        Buffer.from(envelope.credential.deviceKey, 'base64url'),
+      ),
+    ).toBe(true);
+    expect(
+      p256.verify(
+        raw,
+        sha256(
+          new TextEncoder().encode(
+            base.replace(
+              proposed.requestId,
+              'b1b2c3d4-1111-4222-8333-444455556666',
+            ),
+          ),
+        ),
+        Buffer.from(envelope.credential.deviceKey, 'base64url'),
+      ),
+    ).toBe(false);
   });
 
   it('fails issuance without caching an issuer error', async () => {

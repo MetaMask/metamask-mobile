@@ -48,10 +48,19 @@ const errorResponse = (status: number, code: string): Response => {
  * describes the proposal from a clone so the caller can still parse the
  * original body.
  */
-const signRequired = (path: string, query = ''): Response => {
+const signRequired = (
+  path: string,
+  query = '',
+  requestId?: string,
+): Response => {
   const body = {
     kind: 'sign_required',
-    request: { method: 'GET', path, query },
+    request: {
+      method: 'GET',
+      path,
+      query,
+      ...(requestId !== undefined && { requestId }),
+    },
   };
   const response = createResponse({ status: 200, json: body });
   (response as unknown as { clone: () => Response }).clone = () =>
@@ -606,9 +615,10 @@ describe('PredictApiReadClient', () => {
         signRead,
       });
       const scan = 'limit=200&min_ts=1&ticker=MKT-1';
+      const requestId = 'a1b2c3d4-1111-4222-8333-444455556666';
       fetchMock
         .mockResolvedValueOnce(
-          signRequired('/trade-api/v2/portfolio/orders', scan),
+          signRequired('/trade-api/v2/portfolio/orders', scan, requestId),
         )
         .mockResolvedValueOnce(
           createResponse({ json: { previewId, status: 'filled' } }),
@@ -620,11 +630,31 @@ describe('PredictApiReadClient', () => {
         method: 'GET',
         path: '/trade-api/v2/portfolio/orders',
         query: scan,
+        requestId,
       });
       expect(fetchMock).toHaveBeenCalledTimes(2);
       expect(
         fetchMock.mock.calls.every(([, init]) => init?.method === 'GET'),
       ).toBe(true);
+    });
+
+    it('does not sign a malformed reconciliation challenge', async () => {
+      const signRead = makeSignRead();
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken: async () => 'secret-token',
+        signRead,
+      });
+      fetchMock.mockResolvedValueOnce(
+        signRequired('/trade-api/v2/portfolio/orders', '', 'not-a-uuid'),
+      );
+
+      await client.observeOrder(venueId, { previewId });
+
+      expect(signRead).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
 

@@ -104,7 +104,7 @@ describe('verifyProfileDocument accepts the bundled shape', () => {
   it('verifies a document this build signed and supports', async () => {
     await expect(verify(bundledPayload)).resolves.toMatchObject({
       id: 'kalshi-demo-signing',
-      version: 1,
+      version: 2,
       minDsl: 'dsl-1',
     });
   });
@@ -223,7 +223,7 @@ describe('verifyProfileDocument envelope refusals', () => {
       verifyProfileDocument({
         raw: sign(bundledPayload),
         keys: KEYS,
-        lastAcceptedVersion: 2,
+        lastAcceptedVersion: 3,
         minDslSupported: SUPPORTED_DSL,
       }),
     ).rejects.toMatchObject({ code: 'profile_document_low_version' });
