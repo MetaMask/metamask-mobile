@@ -20,17 +20,22 @@ import {
   StackActions,
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  type TextStyle,
+} from 'react-native';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -38,7 +43,10 @@ import {
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
+import type {
+  AppStackNavigationProp,
+  RootStackParamList,
+} from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
 import socialTermsOfUseContent from '../../../../util/termsOfUse/socialTermsOfUseContent';
 import {
@@ -47,9 +55,11 @@ import {
   XAuthErrorType,
 } from '../../../../core/XAuthService';
 import { getSocialProfileId } from '../../../../util/social/getSocialProfileId';
+import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -151,14 +161,27 @@ const LIVE_ACTIVITY = [
  * Spacing stays on the wrapper. The title paints its metrics as a style, so a
  * padding class on the text would lose to that style.
  */
+/**
+ * Design-system DisplayLg line box (40px font, 50px line). It replaces the
+ * Grotzec tight metrics, so the clip padding and negative margin are cleared.
+ */
+const DISPLAY_LG_LINE_STYLE: TextStyle = {
+  lineHeight: 50,
+  paddingTop: 0,
+  paddingBottom: 0,
+  marginBottom: 0,
+};
+
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
-}> = ({ children, twClassName }) => (
+  textStyle?: TextStyle;
+}> = ({ children, twClassName, textStyle }) => (
   <Box twClassName={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
+      style={textStyle}
     >
       {children}
     </MarketingMomentTitle>
@@ -259,7 +282,8 @@ const ReadyCardFallback: React.FC<{
   avatarBackgroundId: string | null | undefined;
   imageUrl?: string | null;
   handle: string;
-}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle }) => (
+  isVerified: boolean;
+}> = ({ avatarPresetId, avatarBackgroundId, imageUrl, handle, isVerified }) => (
   <>
     <Text twClassName="absolute left-6 top-6" variant={TextVariant.HeadingLg}>
       🦊
@@ -291,20 +315,31 @@ const ReadyCardFallback: React.FC<{
           size="xl"
         />
       </Box>
-      <Text
-        variant={TextVariant.BodyMd}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
         twClassName="pt-3"
-        testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
       >
-        @{handle}
-      </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          testID={SocialProfileOnboardingSelectorsIDs.READY_HANDLE}
+        >
+          @{handle}
+        </Text>
+        {isVerified ? (
+          <ProfileVerifiedBadge
+            testID={SocialProfileOnboardingSelectorsIDs.READY_VERIFIED_BADGE}
+          />
+        ) : null}
+      </Box>
     </Box>
   </>
 );
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
   const tw = useTailwind();
@@ -317,8 +352,12 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile, updateProfile } =
-    useProfileController();
+  const {
+    profile: controllerProfile,
+    checkUsernameAvailability,
+    createProfile,
+    updateProfile,
+  } = useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -337,6 +376,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
+  const isProfileCreatedAndVerified =
+    profileCreated && controllerProfile?.verified === true;
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -935,17 +976,26 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const createOnboardingProfile = useCallback(() => startSyncRef.current(), []);
 
+  // Set before Let's go. The native stack reads this screen's animation when
+  // the transition starts, and a pop with the default option leaves to the right.
+  useLayoutEffect(() => {
+    if (step !== 'ready') {
+      return;
+    }
+    navigation.setOptions({ animation: 'slide_from_left' });
+  }, [navigation, step]);
+
   const handleFinish = useCallback(() => {
     if (!profileCreatedRef.current) {
       return;
     }
-    // Replace drops onboarding from the stack. navigate() would leave it under
-    // the feed, so a later back swipe could reopen it.
-    navigation.dispatch(
-      StackActions.replace(
-        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
-      ),
-    );
+    if (draft.path === 'x') {
+      // Replace drops onboarding from the stack. My Profile's replace is a pop,
+      // so this screen's slide_from_left plays and it leaves toward the left.
+      navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
+      return;
+    }
+    finishProfileOnboardingToSocialTab(navigation);
   }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
@@ -961,6 +1011,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
     (step === 'account' && !draft.linkedAccountId);
+  // The first step of either path has no earlier step to return to, so it hides back.
+  const hasBackStep =
+    step !== 'intro' && step !== 'username' && step !== 'x-identity';
   const readyImageUrl =
     draft.useXAvatar && draft.xAvatarUrl ? draft.xAvatarUrl : null;
 
@@ -982,13 +1035,14 @@ const SocialProfileOnboardingView: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
+        twClassName="px-4"
         title=""
-        onBack={step === 'intro' ? undefined : handleBack}
+        onBack={hasBackStep ? handleBack : undefined}
         onClose={handleClose}
         backButtonProps={
-          step === 'intro'
-            ? undefined
-            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+          hasBackStep
+            ? { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+            : undefined
         }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
@@ -1082,7 +1136,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   gap={4}
                   testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle twClassName="pt-4 pb-5">
                     {strings(
                       'social_leaderboard.profile_onboarding.claim_username',
                     )}
@@ -1162,7 +1216,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'avatar' ? (
                 <Box alignItems={BoxAlignItems.Center}>
-                  <OnboardingTitle twClassName="pb-14">
+                  <OnboardingTitle twClassName="m-0.5 pt-3 pb-8">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
@@ -1182,7 +1236,10 @@ const SocialProfileOnboardingView: React.FC = () => {
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle twClassName="pt-2">
+                  <OnboardingTitle
+                    twClassName="m-0.5 pt-3 px-3 pb-3"
+                    textStyle={DISPLAY_LG_LINE_STYLE}
+                  >
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
@@ -1213,10 +1270,10 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'ready' ? (
                 <Box
-                  twClassName="relative flex-1 items-center justify-center py-8"
+                  twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.READY_STEP}
                 >
-                  <OnboardingTitle>
+                  <OnboardingTitle twClassName="pt-2">
                     {strings(
                       'social_leaderboard.profile_onboarding.feed_awaits',
                     )}
@@ -1230,22 +1287,28 @@ const SocialProfileOnboardingView: React.FC = () => {
                       'social_leaderboard.profile_onboarding.feed_awaits_description',
                     )}
                   </Text>
-                  <ProfileReadyAnimation
-                    displayName={draft.displayName}
-                    handle={username}
-                    avatarPresetId={draft.avatarPresetId}
-                    avatarBackgroundId={draft.avatarBackgroundId}
-                    imageUrl={readyImageUrl}
-                    isVerified={draft.path === 'x'}
-                    fallback={
-                      <ReadyCardFallback
-                        avatarPresetId={draft.avatarPresetId}
-                        avatarBackgroundId={draft.avatarBackgroundId}
-                        imageUrl={readyImageUrl}
-                        handle={username}
-                      />
-                    }
-                  />
+                  <Box
+                    twClassName="w-full flex-1 items-center justify-center"
+                    testID={SocialProfileOnboardingSelectorsIDs.READY_CARD_SLOT}
+                  >
+                    <ProfileReadyAnimation
+                      displayName={draft.displayName}
+                      handle={username}
+                      avatarPresetId={draft.avatarPresetId}
+                      avatarBackgroundId={draft.avatarBackgroundId}
+                      imageUrl={readyImageUrl}
+                      isVerified={isProfileCreatedAndVerified}
+                      fallback={
+                        <ReadyCardFallback
+                          avatarPresetId={draft.avatarPresetId}
+                          avatarBackgroundId={draft.avatarBackgroundId}
+                          imageUrl={readyImageUrl}
+                          handle={username}
+                          isVerified={isProfileCreatedAndVerified}
+                        />
+                      }
+                    />
+                  </Box>
                 </Box>
               ) : null}
             </ScrollView>

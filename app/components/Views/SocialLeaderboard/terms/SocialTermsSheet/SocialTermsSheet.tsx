@@ -8,7 +8,6 @@ import {
   ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
-  Checkbox,
   IconName,
   Text,
   TextColor,
@@ -26,7 +25,10 @@ import {
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { strings } from '../../../../../../locales/i18n';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
+import { themeSocialTermsHtml } from './socialTermsTheme';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -35,6 +37,36 @@ const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
 const WEBVIEW_SCROLL_NOT_END_EVENT = 'social-terms-scroll-not-end';
 const TERMS_BASE_URL = 'https://metamask.com';
+/** Sheet fills are hex tokens. Reject anything else before it reaches CSS. */
+const SHEET_BACKGROUND_COLOR_PATTERN =
+  /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
+
+/**
+ * The WebView and the terms document both paint white before the page's dark
+ * stylesheet applies. Force the sheet surface onto both so that first frame
+ * matches the bottom sheet.
+ */
+const sheetBackgroundStyle = (backgroundColor: string): string =>
+  `html,body{background-color:${backgroundColor}!important}`;
+
+const withSheetBackground = (html: string, backgroundColor: string): string => {
+  if (!SHEET_BACKGROUND_COLOR_PATTERN.test(backgroundColor)) {
+    return html;
+  }
+  const style = `<style>${sheetBackgroundStyle(backgroundColor)}</style>`;
+  const headOpen = /<head[^>]*>/iu.exec(html);
+  if (headOpen?.[0]) {
+    return html.replace(headOpen[0], `${headOpen[0]}${style}`);
+  }
+  return `${style}${html}`;
+};
+
+const sheetBackgroundScript = (backgroundColor: string): string | undefined => {
+  if (!SHEET_BACKGROUND_COLOR_PATTERN.test(backgroundColor)) {
+    return undefined;
+  }
+  return `(function(){var style=document.createElement('style');style.textContent='${sheetBackgroundStyle(backgroundColor)}';(document.head||document.documentElement).appendChild(style);})();`;
+};
 
 /**
  * Android composites WebView above later siblings. Elevation keeps this
@@ -107,9 +139,11 @@ const isAtEnd = ({
     contentSize.height - SCROLL_END_THRESHOLD;
 
 /**
- * Social Supplemental Terms consent sheet. The user must scroll to the end
- * before the checkbox enables, and check it before Agree enables. A circular
- * button jumps to that end and hides while the end is already on screen.
+ * Social Supplemental Terms consent sheet. Agree stays disabled until the
+ * terms have been scrolled to the end. The scroll helper stays visible after
+ * that. A circular button jumps to the end and hides while the end is on
+ * screen. The sheet already insets the home indicator, so the footer adds no
+ * extra bottom padding.
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   uri,
@@ -118,14 +152,25 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onClose,
 }) => {
   const { height: windowHeight } = useWindowDimensions();
+  const { colors, themeAppearance } = useTheme();
+  const termsBackground = colors.background.default;
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
+  const themedHtml = html
+    ? themeSocialTermsHtml(html, {
+        background: termsBackground,
+        text: colors.text.default,
+        heading: colors.text.default,
+        link: colors.primary.default,
+        colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
+      })
+    : undefined;
+  const webViewBackgroundStyle = { backgroundColor: termsBackground };
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
@@ -209,18 +254,30 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         {strings('social_leaderboard.terms.title')}
       </BottomSheetHeader>
       <Box
-        style={{ height: windowHeight * BODY_HEIGHT_RATIO }}
+        style={{
+          height: windowHeight * BODY_HEIGHT_RATIO,
+          backgroundColor: termsBackground,
+        }}
         twClassName="relative border-b border-muted"
       >
         {showsHostedTerms ? (
           <WebView
             ref={webViewRef}
             source={
-              html
-                ? { html, baseUrl: 'https://metamask.com' }
+              themedHtml
+                ? {
+                    html: withSheetBackground(themedHtml, termsBackground),
+                    baseUrl: TERMS_BASE_URL,
+                  }
                 : { uri: uri ?? '' }
             }
+            style={webViewBackgroundStyle}
+            containerStyle={webViewBackgroundStyle}
+            overScrollMode="never"
             nestedScrollEnabled
+            injectedJavaScriptBeforeContentLoaded={sheetBackgroundScript(
+              termsBackground,
+            )}
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
             onScroll={handleWebViewScroll}
@@ -264,35 +321,28 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           />
         )}
       </Box>
-      <Box twClassName="px-4 pt-4 pb-6 gap-4">
-        <Checkbox
-          isSelected={isChecked}
-          isDisabled={!hasReachedEnd}
-          onChange={setIsChecked}
-          label={strings('social_leaderboard.terms.checkbox')}
-          labelProps={{ style: { flex: 1 } }}
-          testID={SocialTermsSheetSelectorsIDs.CHECKBOX}
-        />
+      <Box
+        twClassName="px-4 pt-4 gap-2"
+        testID={SocialTermsSheetSelectorsIDs.FOOTER}
+      >
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={!isChecked}
+          isDisabled={!hasReachedEnd}
           onPress={onAgree}
           testID={SocialTermsSheetSelectorsIDs.AGREE_BUTTON}
         >
           {strings('social_leaderboard.terms.agree')}
         </Button>
-        {hasReachedEnd ? null : (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={SocialTermsSheetSelectorsIDs.SCROLL_HELPER}
-          >
-            {strings('social_leaderboard.terms.scroll_helper')}
-          </Text>
-        )}
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID={SocialTermsSheetSelectorsIDs.SCROLL_HELPER}
+        >
+          {strings('social_leaderboard.terms.scroll_helper')}
+        </Text>
       </Box>
     </BottomSheet>
   );

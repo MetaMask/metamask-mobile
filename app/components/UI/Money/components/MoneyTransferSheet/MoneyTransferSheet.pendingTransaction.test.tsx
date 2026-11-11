@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   TransactionStatus,
   type TransactionMeta,
@@ -41,8 +41,20 @@ const mockRecipient = '0x2222222222222222222222222222222222222222';
 // the TransactionController removing a transaction after it is rejected.
 const mockEngineState: {
   TransactionController: { transactions: TransactionMeta[] };
+  RemoteFeatureFlagController?: { remoteFeatureFlags: Record<string, unknown> };
 } = {
   TransactionController: { transactions: [] },
+};
+
+// Rolls Predict out to Kalshi only, which makes Kalshi the Active Venue.
+const KALSHI_ONLY_FLAGS = {
+  remoteFeatureFlags: {
+    predictConfig: {
+      enabled: true,
+      venues: { polymarket: { enabled: false }, kalshi: { enabled: true } },
+      venueSelection: { enabled: false },
+    },
+  },
 };
 
 jest.mock('@react-navigation/native', () => {
@@ -177,6 +189,16 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountAvailability', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccountAvailability'),
+  useMoneyAccountAvailability: jest.fn(() => ({
+    accessBlockReason: undefined,
+    isMoneyAccountAccessible: true,
+    assertMoneyAccountAccessible: jest.fn(),
+  })),
+  useMoneyAccountAccessRedirect: jest.fn(() => true),
+}));
+
 // The rescue row consumed the live balance hook; this harness renders without
 // a QueryClient, so stub the balance as unavailable (rescue row disabled —
 // out of scope for the pending-transaction regression it covers).
@@ -291,13 +313,15 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
     // withdrawal flow runs in one step — the user reaches the Send
     // confirmation instead of being stranded with a stuck pending transaction.
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
-    );
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
   });
 
   it('navigates to the Send flow when no transaction is pending (control)', async () => {
@@ -313,12 +337,103 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
+  });
+});
+
+/**
+ * PRED-1388: a Predictions transfer deferred behind a rejected confirmation
+ * must not start the legacy Polymarket deposit if the Active Venue moved to
+ * Kalshi before it runs.
+ */
+describe('MoneyTransferSheet — Predictions account with a pending transaction', () => {
+  const mockInitiatePredictDeposit = jest.fn().mockResolvedValue(undefined);
+  const pendingTx = {
+    id: PENDING_TX_ID,
+    status: TransactionStatus.unapproved,
+  } as TransactionMeta;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(selectMoneyAccountAccessBlockReason).mockReturnValue(undefined);
+    mockEngineState.TransactionController = { transactions: [] };
+    delete mockEngineState.RemoteFeatureFlagController;
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      initiatePerpsDeposit: jest.fn(),
+    });
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackBottomSheetViewed: jest.fn(),
+      trackSurfaceClicked: jest.fn(),
+    });
+  });
+
+  const clearPendingTransaction = async (
+    store: ReturnType<typeof renderHarness>['store'],
+  ) => {
+    mockEngineState.TransactionController = { transactions: [] };
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'TransactionController' }));
+    });
+    await flushAsync();
+  };
+
+  it('starts the deposit once the rejection clears while Polymarket stays active', async () => {
+    const { getByTestId, store } = renderHarness([pendingTx]);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
     );
+    await flushAsync();
+
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+
+    await clearPendingTransaction(store);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockInitiatePredictDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops the deferred deposit and keeps the sheet open when the Active Venue moves to Kalshi first', async () => {
+    const { getByTestId, queryByTestId, store } = renderHarness([pendingTx]);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+    await flushAsync();
+    expect(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest),
+    ).toHaveBeenCalledWith(PENDING_TX_ID, expect.anything());
+
+    mockEngineState.RemoteFeatureFlagController = KALSHI_ONLY_FLAGS;
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
+    });
+    await clearPendingTransaction(store);
+
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+    ).toBeOnTheScreen();
   });
 });

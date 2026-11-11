@@ -45,6 +45,7 @@ export const profileControllerToMySocialProfile = (
     rankingTag: null,
     xHandle: profile.connectedToX ? (xProfile?.username ?? null) : null,
     connectedToX: profile.connectedToX,
+    verified: profile.verified,
     followerCount: null,
     followingCount: null,
     winRatePercent: null,

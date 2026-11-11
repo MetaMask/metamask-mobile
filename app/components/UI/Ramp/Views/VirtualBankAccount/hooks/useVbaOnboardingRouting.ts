@@ -26,7 +26,11 @@ import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
+import {
+  VBA_DEFAULT_CALLER_ROUTE,
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+} from '../routes';
 import {
   accountCreateErrorVariantForDestination,
   isAccountCreateErrorDestination,
@@ -37,6 +41,7 @@ import {
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
+import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
@@ -54,12 +59,19 @@ interface StackController {
   getState: () => NavigationState | undefined;
 }
 
-const DEFAULT_CALLER_ROUTE = {
-  name: Routes.HOME_TABS,
-  params: {
+/**
+ * Leaves KYC for Money home. KYC screens call this through an `onExit`
+ * prop so the destination stays with the VBA caller.
+ *
+ * @param navigation - Navigation from the KYC screen's VBA adapter.
+ */
+export const exitVbaOnboardingToMoneyHome = (
+  navigation: AppNavigationProp,
+): void => {
+  navigation.navigate(Routes.HOME_TABS, {
     screen: Routes.MONEY.ROOT,
     params: { screen: Routes.MONEY.HOME },
-  },
+  });
 };
 
 const getCallerRoute = (state: NavigationState) => {
@@ -72,7 +84,7 @@ const getCallerRoute = (state: NavigationState) => {
       return route;
     }
   }
-  return DEFAULT_CALLER_ROUTE;
+  return VBA_DEFAULT_CALLER_ROUTE;
 };
 
 /**
@@ -144,12 +156,9 @@ export const openAsOnlyOnboardingRoute = (
  * directly to the caller instead of revealing the onboarding loader.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -164,12 +173,7 @@ export const openCompletedVbaAccount = (
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
@@ -182,6 +186,40 @@ export const openCompletedVbaAccount = (
     }
     current = parent;
   }
+};
+
+/**
+ * Opens the step after Identity verified: Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details,
+ * which creates the account. Shared by the Identity verified screen's
+ * Continue and the Money home `identity_verified` card, which skips that
+ * screen.
+ *
+ * Inside onboarding (Identity verified), Choose Currency is pushed so Back
+ * returns there. From outside it opens as the only onboarding route, so
+ * Back returns to the caller.
+ *
+ * @param navigation - Navigation from Identity verified or an entry surface.
+ * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ */
+export const openVbaAccountSetup = (
+  navigation: AppNavigationProp,
+  isChooseCurrencyEnabled: boolean,
+): void => {
+  if (!isChooseCurrencyEnabled) {
+    openCompletedVbaAccount(navigation);
+    return;
+  }
+  const isInsideOnboarding = Boolean(
+    navigation
+      .getState?.()
+      ?.routeNames?.includes(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+  );
+  if (isInsideOnboarding) {
+    navigation.dispatch(StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY));
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.CHOOSE_CURRENCY);
 };
 
 const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
@@ -333,7 +371,7 @@ const resumePersistedKycSession = async (): Promise<void> => {
   }
 
   try {
-    await kycController.startSession({
+    await startVbaKycSession({
       vendor: VBA_KYC_VENDOR,
     });
   } catch (error) {

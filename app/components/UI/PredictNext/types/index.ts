@@ -81,7 +81,17 @@ export interface PredictTeam {
   abbreviation?: string;
   logoUrl?: PredictHttpsUrl;
   primaryColor?: PredictHexColor;
+  /**
+   * The direction the logo art points. Absent when the logo has no
+   * direction; such a logo is never mirrored.
+   */
+  logoFacing?: PredictTeamLogoFacing;
 }
+
+export type PredictTeamLogoFacing = 'left' | 'right';
+
+/** The order a Game's Teams are listed in. Absent means `away_first`. */
+export type PredictGameTeamOrder = 'away_first' | 'home_first';
 
 export type PredictGameStatus =
   | 'scheduled'
@@ -94,6 +104,7 @@ export type PredictGameStatus =
 
 export interface PredictGame {
   status: PredictGameStatus;
+  teamOrder?: PredictGameTeamOrder;
   homeTeam: PredictTeam;
   awayTeam: PredictTeam;
   score?: {
@@ -260,6 +271,9 @@ export const PREDICT_FEED_KEYS = [
   'nfl-props',
   'college-football-games',
   'college-football-props',
+  'politics-trump',
+  'politics-congress',
+  'politics-iran',
 ] as const;
 export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
 
@@ -269,6 +283,9 @@ export interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  /** The Venue's Categories in display order, each named by its Feed key.
+   * Every key is in `feeds`, and the Category opens on that Feed. */
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
 }
 
@@ -490,6 +507,12 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /**
+   * Ordered, display-ready parts naming the Market beyond its Outcome, such
+   * as `["Josh Jacobs", "60+"]` for a threshold line whose Outcome label is
+   * only "Yes" or "No". Absent when the Outcome label names it alone.
+   */
+  marketLabels?: string[];
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a

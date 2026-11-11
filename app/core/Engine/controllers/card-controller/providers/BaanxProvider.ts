@@ -72,6 +72,9 @@ import {
   CreditWithdrawParams,
   CreditWithdrawResponse,
   type DelegationChallengeResponse,
+  type CompleteMoneyAccountLinkParams,
+  type MoneyAccountLinkPreparation,
+  type PrepareMoneyAccountLinkParams,
   emptyCardHomeData,
   isCardAuthTokenError,
   CardProviderIds,
@@ -84,6 +87,12 @@ import {
   type CardTransactionPage,
 } from '../provider-types';
 import { decodeCardCursor, encodeCardCursor } from '../utils/transactionCursor';
+import { resolveMoneyAccountCardToken } from '../utils/moneyAccountCardToken';
+import {
+  MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+  MONEY_ACCOUNT_DELEGATION_NETWORK,
+  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+} from '../../../../../components/UI/Card/util/vedaToken';
 import AppConstants from '../../../../AppConstants';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -408,6 +417,8 @@ export class BaanxProvider implements ICardProvider {
     supportsTransactionHistory: true,
     supportsContactDetails: false,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -473,10 +484,24 @@ export class BaanxProvider implements ICardProvider {
     if (credentials.type === 'email_password') {
       return this.handleEmailPassword(session, credentials);
     }
+    if (credentials.type === 'email_code') {
+      return this.handleEmailCode(session, credentials);
+    }
     throw new Error(`Unsupported credential type: ${credentials.type}`);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    try {
+      await this.service.post('/v1/auth/login/email-code/request', { email });
+    } catch (error) {
+      throw mapApiError(error, 'requestEmailLoginCode');
+    }
+  }
+
   async executeStepAction(session: CardAuthSession): Promise<void> {
+    if (session._metadata.otpMode === 'TOTP') {
+      return;
+    }
     const userId = session._metadata.otpUserId as string | undefined;
     if (!userId) {
       throw new CardProviderError(
@@ -959,6 +984,90 @@ export class BaanxProvider implements ICardProvider {
         sigHash: params.sigHash,
         sigMessage: params.sigMessage,
         token: params.token,
+      },
+      tokens,
+    );
+  }
+
+  async prepareMoneyAccountLink(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation> {
+    const cardToken = resolveMoneyAccountCardToken(params.delegationSettings);
+    if (!cardToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token unavailable',
+      );
+    }
+
+    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
+    if (!tokenAddress) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card spending token address missing',
+      );
+    }
+    if (!cardToken.delegationContract) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money Account Card delegation contract missing',
+      );
+    }
+
+    const { delegationToken, nonce } = await this.fetchDelegationChallenge(
+      {
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        address: params.moneyAccountAddress,
+      },
+      tokens,
+    );
+    const caipChainId =
+      cardToken.caipChainId ?? MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID;
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+      address: params.moneyAccountAddress,
+      nonce,
+      caipChainId,
+    });
+
+    return {
+      tokenAddress,
+      spender: cardToken.delegationContract,
+      decimals: cardToken.decimals ?? 6,
+      caipChainId,
+      context: {
+        signatureMessage,
+        delegationToken,
+        network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+      },
+    };
+  }
+
+  async completeMoneyAccountLink(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void> {
+    const { signatureMessage, delegationToken, network, currency } =
+      params.context;
+    if (!params.sigHash || !signatureMessage || !delegationToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account link completion is missing the delegation signature',
+      );
+    }
+
+    await this.approveFunding(
+      {
+        address: params.moneyAccountAddress,
+        network: network ?? MONEY_ACCOUNT_DELEGATION_NETWORK,
+        currency: currency ?? MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+        amount: params.amountHuman,
+        txHash: params.txHash,
+        sigHash: params.sigHash,
+        sigMessage: signatureMessage,
+        token: delegationToken,
       },
       tokens,
     );
@@ -1680,6 +1789,7 @@ export class BaanxProvider implements ICardProvider {
 
     if (loginResponse.isOtpRequired) {
       session._metadata.otpUserId = loginResponse.userId;
+      delete session._metadata.otpMode;
       return {
         done: false,
         nextStep: {
@@ -1697,6 +1807,61 @@ export class BaanxProvider implements ICardProvider {
           phase: loginResponse.phase,
         },
       };
+    }
+
+    try {
+      return await this.completeAuth(session, loginResponse);
+    } catch (error) {
+      throw mapApiError(error, 'completeAuth');
+    }
+  }
+
+  private async handleEmailCode(
+    session: CardAuthSession,
+    credentials: Extract<CardCredentials, { type: 'email_code' }>,
+  ): Promise<CardAuthResult> {
+    let loginResponse: CardLoginResponse & {
+      otpMode?: 'SMS' | 'TOTP' | null;
+    };
+    try {
+      loginResponse = await this.service.post('/v1/auth/login/email-code', {
+        email: credentials.email,
+        code: credentials.code,
+        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+      });
+    } catch (error) {
+      throw mapLoginError(error, !!credentials.otpCode);
+    }
+
+    if (loginResponse.isOtpRequired) {
+      const mode = loginResponse.otpMode === 'TOTP' ? 'TOTP' : 'SMS';
+      session._metadata.otpUserId = loginResponse.userId;
+      session._metadata.otpMode = mode;
+      return {
+        done: false,
+        nextStep: {
+          type: 'otp',
+          destination: loginResponse.phoneNumber ?? credentials.email,
+          mode,
+        },
+      };
+    }
+
+    if (loginResponse.phase) {
+      return {
+        done: false,
+        onboardingRequired: {
+          sessionId: loginResponse.userId,
+          phase: loginResponse.phase,
+        },
+      };
+    }
+
+    if (!loginResponse.accessToken) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Email-code login response missing access token',
+      );
     }
 
     try {

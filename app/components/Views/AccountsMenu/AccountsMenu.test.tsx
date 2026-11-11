@@ -24,6 +24,9 @@ import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationS
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
 import { CardFlow } from '../../UI/Card/util/metrics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -181,13 +184,22 @@ jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
   }),
 }));
 
-// Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
-// the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
-// beta and consent branches, since babel-jest leaves the fence as a comment.
+// Mirrors the Rewards utils.ts mocking shape: mocking the helper lets Jest
+// exercise both the beta and consent branches.
 const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+jest.mock('../../../util/environment', () => ({
+  ...jest.requireActual('../../../util/environment'),
+  isFlaskBuild: false,
+  isBetaBuild: false,
+}));
+const mockEnvironment = jest.requireMock('../../../util/environment') as {
+  isFlaskBuild: boolean;
+  isBetaBuild: boolean;
+};
 
 const mockUseCardUkMigrationUpdateBadge = jest.mocked(
   useCardUkMigrationUpdateBadge,
@@ -200,6 +212,8 @@ describe('AccountsMenu', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockEnvironment.isFlaskBuild = false;
+    mockEnvironment.isBetaBuild = false;
     jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
     jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
     jest
@@ -473,6 +487,57 @@ describe('AccountsMenu', () => {
         Routes.BRIDGE.ROOT,
         expect.anything(),
       );
+    });
+  });
+
+  describe('Quick Actions', () => {
+    it('renders Activity, Scan and Batch sell in that order', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId, getAllByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).toBeOnTheScreen();
+
+      // getAllByTestId returns matches in tree (render) order, so this
+      // assertion fails if the JSX order of the quick-action tiles changes.
+      const quickActionsInRenderOrder = getAllByTestId(
+        new RegExp(
+          `^(${AccountsMenuSelectorsIDs.ACTIVITY_BUTTON}|${WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}|${AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON})$`,
+        ),
+      ).map((node) => node.props.testID);
+
+      expect(quickActionsInRenderOrder).toEqual([
+        AccountsMenuSelectorsIDs.ACTIVITY_BUTTON,
+        WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+        AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON,
+      ]);
+    });
+  });
+
+  describe('Activity Button', () => {
+    it('navigates to the Activity screen and tracks the click when pressed', () => {
+      mockNavigate.mockClear();
+      mockTrackEvent.mockClear();
+
+      const { getByTestId } = render(<AccountsMenu />);
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.ACTIVITY_BUTTON));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        EVENT_NAME.ACTIVITY_CLICKED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { entryPoint: ActivityScreenEntryPoint.AccountsMenu },
+      });
     });
   });
 
@@ -826,13 +891,29 @@ describe('AccountsMenu', () => {
 
   describe('RESOURCES Section', () => {
     describe('About MetaMask Row', () => {
-      it('render About MetaMask row', () => {
+      it('render About MetaMask row with the default (main) title', () => {
         const { getByText, getByTestId } = render(<AccountsMenu />);
 
-        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
+        expect(getByText('app_settings.info_title')).toBeOnTheScreen();
         expect(
           getByTestId(AccountsMenuSelectorsIDs.ABOUT_METAMASK),
         ).toBeOnTheScreen();
+      });
+
+      it('render the flask title on flask builds', () => {
+        mockEnvironment.isFlaskBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_flask')).toBeOnTheScreen();
+      });
+
+      it('render the beta title on beta builds', () => {
+        mockEnvironment.isBetaBuild = true;
+
+        const { getByText } = render(<AccountsMenu />);
+
+        expect(getByText('app_settings.info_title_beta')).toBeOnTheScreen();
       });
 
       it('navigate to CompanySettings when About MetaMask is pressed', () => {

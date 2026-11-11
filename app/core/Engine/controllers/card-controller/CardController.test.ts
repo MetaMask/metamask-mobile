@@ -726,6 +726,30 @@ describe('CardController — auth methods', () => {
     });
   });
 
+  describe('requestEmailLoginCode', () => {
+    it('delegates to the active provider', async () => {
+      const provider = buildMockProvider();
+      provider.requestEmailLoginCode = jest.fn().mockResolvedValue(undefined);
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      const controller = buildController(provider);
+
+      await controller.initiateAuth('US');
+      await controller.requestEmailLoginCode('user@example.com');
+
+      expect(provider.requestEmailLoginCode).toHaveBeenCalledWith(
+        'user@example.com',
+      );
+    });
+
+    it('throws when no session has been initiated', async () => {
+      const controller = buildController(buildMockProvider());
+
+      await expect(
+        controller.requestEmailLoginCode('user@example.com'),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+  });
+
   describe('logout', () => {
     it('calls provider.logout, removes tokens, sets isAuthenticated to false', async () => {
       const provider = buildMockProvider();
@@ -3143,6 +3167,8 @@ describe('CardController — getCapabilities', () => {
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
     supportsMoneyAccountLinking: true,
+    usesMoneyAccountDelegationSettings: true,
+    reportsVerificationStatus: true,
     supportsTransactionHistory: true,
     supportsContactDetails: false,
   };
@@ -3591,17 +3617,48 @@ describe('CardController — data pass-throughs', () => {
       };
     }
 
+    const defaultLinkPreparation = {
+      tokenAddress: TOKEN_ADDRESS,
+      spender: DELEGATION_CONTRACT,
+      decimals: 6,
+      caipChainId: 'eip155:143' as const,
+      context: { signatureMessage: 'siwe-message-from-baanx' },
+    };
+
     function buildLinkController({
       provider,
       messenger,
       withDelegationSettings = true,
+      installLinkHooks = true,
+      cardHomeData,
     }: {
       provider: jest.Mocked<ICardProvider>;
       messenger: jest.Mocked<CardControllerMessenger>;
       withDelegationSettings?: boolean;
+      installLinkHooks?: boolean;
+      cardHomeData?: Record<string, unknown>;
     }) {
       mockTokenStore.get.mockResolvedValue(mockTokenSet);
       provider.validateTokens.mockReturnValue('valid');
+      Object.assign(provider, {
+        capabilities: {
+          ...provider.capabilities,
+          usesMoneyAccountDelegationSettings: true,
+        },
+      });
+      if (installLinkHooks && !provider.prepareMoneyAccountLink) {
+        provider.prepareMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
+      }
+      if (installLinkHooks && !provider.completeMoneyAccountLink) {
+        provider.completeMoneyAccountLink = jest
+          .fn()
+          .mockResolvedValue(undefined);
+      }
+      const initialCardHomeData =
+        cardHomeData ??
+        (withDelegationSettings ? cardHomeDataWithMonadUsdc : null);
       return new CardController({
         ...hostOptions,
         cardService: buildMockCardService(),
@@ -3610,9 +3667,10 @@ describe('CardController — data pass-throughs', () => {
         state: {
           activeProviderId: 'baanx',
           isAuthenticated: true,
-          cardHomeData: withDelegationSettings
-            ? (cardHomeDataWithMonadUsdc as unknown as Record<string, Json>)
-            : null,
+          cardHomeData: initialCardHomeData as unknown as Record<
+            string,
+            Json
+          > | null,
         },
       });
     }
@@ -3668,8 +3726,11 @@ describe('CardController — data pass-throughs', () => {
 
       await linkPromise;
 
-      expect(mockChallenge).toHaveBeenCalledWith(
-        { network: 'monad', address: MONEY_ACCOUNT_ADDRESS },
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
+        }),
         mockTokenSet,
       );
       expect(handle.signPersonalMessageCalls).toHaveLength(1);
@@ -3694,23 +3755,15 @@ describe('CardController — data pass-throughs', () => {
       expect(batchTransactions[0]).toMatchObject({
         params: { to: TOKEN_ADDRESS, value: '0x0' },
       });
-      expect(mockGenerateSiwe).toHaveBeenCalledWith(
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledWith(
         expect.objectContaining({
-          network: 'monad',
-          address: MONEY_ACCOUNT_ADDRESS,
-          nonce: 'nonce-1',
-        }),
-      );
-      expect(mockApproveFunding).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: MONEY_ACCOUNT_ADDRESS,
-          network: 'monad',
-          currency: 'veda',
-          amount: '2199023255551',
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          amountHuman: '2199023255551',
           txHash: TX_HASH,
           sigHash: '0xsig',
-          sigMessage: 'siwe-message-from-baanx',
-          token: 'jwt-1',
+          context: expect.objectContaining({
+            signatureMessage: 'siwe-message-from-baanx',
+          }),
         }),
         mockTokenSet,
       );
@@ -3748,7 +3801,7 @@ describe('CardController — data pass-throughs', () => {
       handle.emitConfirmed();
 
       await expect(linkPromise).resolves.toBeUndefined();
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('subscribes to transactionConfirmed BEFORE submitting the transaction (closes the race)', async () => {
@@ -3784,12 +3837,12 @@ describe('CardController — data pass-throughs', () => {
           handle.subscribedHandlers.length > 0 &&
           handle.addTransactionBatchCalls.length > 0,
       );
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
 
       handle.emitConfirmed();
       await linkPromise;
 
-      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+      expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
     });
 
     it('rejects when the approval transaction fails on-chain', async () => {
@@ -3823,17 +3876,109 @@ describe('CardController — data pass-throughs', () => {
       handle.emitFailed('out of gas');
 
       await expect(linkPromise).rejects.toThrow('out of gas');
-      expect(mockApproveFunding).not.toHaveBeenCalled();
+      expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
       // Refresh is only triggered on the success path — failed transactions
       // must NOT refresh card home data.
       expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
     });
 
+    it('refetches home data when persisted delegation settings have no Veda token', async () => {
+      const staleSettings = {
+        count: 0,
+        _links: { self: '/v1/delegation/chain/config' },
+        networks: [],
+      };
+      const provider = buildMockProvider({
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest.fn().mockResolvedValue(cardHomeDataWithMonadUsdc),
+      });
+
+      const handle = buildLinkMessenger();
+      const controller = buildLinkController({
+        provider,
+        messenger: handle.messenger,
+        cardHomeData: {
+          ...cardHomeDataWithMonadUsdc,
+          delegationSettings: staleSettings,
+        },
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      handle.emitConfirmed();
+      await linkPromise;
+
+      expect(provider.getCardHomeData).toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          delegationSettings: cardHomeDataWithMonadUsdc.delegationSettings,
+        }),
+        mockTokenSet,
+      );
+    });
+
+    it('does not block an Immersve link when home data has no delegation settings', async () => {
+      const provider = buildMockProvider({
+        id: CardProviderIds.Immersve,
+        prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+          ...defaultLinkPreparation,
+          context: { fundingSourceId: 'fs-1' },
+        }),
+        completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        getCardHomeData: jest
+          .fn()
+          .mockRejectedValue(new Error('home data down')),
+      });
+
+      const handle = buildLinkMessenger();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      const controller = new CardController({
+        ...hostOptions,
+        cardService: buildMockCardService(),
+        messenger: handle.messenger,
+        providers: { [CardProviderIds.Immersve]: provider },
+        state: {
+          activeProviderId: CardProviderIds.Immersve,
+          isAuthenticated: true,
+          cardHomeData: null,
+        },
+      });
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+      expect(provider.getCardHomeData).not.toHaveBeenCalled();
+      expect(provider.prepareMoneyAccountLink).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationSettings: null }),
+        mockTokenSet,
+      );
+
+      handle.emitConfirmed();
+      await linkPromise;
+    });
+
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: jest.fn(),
-        approveFunding: jest.fn(),
-        generateCardDelegationSignatureMessage: mockGenerateSiwe,
+        prepareMoneyAccountLink: jest
+          .fn()
+          .mockRejectedValue(
+            new CardProviderError(
+              CardProviderErrorCode.Unknown,
+              'Money Account Card spending token unavailable',
+            ),
+          ),
+        completeMoneyAccountLink: jest.fn(),
         getCardHomeData: jest.fn().mockResolvedValue({
           ...cardHomeDataWithMonadUsdc,
           delegationSettings: null,
@@ -3855,16 +4000,16 @@ describe('CardController — data pass-throughs', () => {
       ).rejects.toThrow('Money Account Card spending token unavailable');
     });
 
-    it('throws when provider lacks fetchDelegationChallenge, approveFunding, or generateCardDelegationSignatureMessage', async () => {
+    it('throws when provider lacks prepareMoneyAccountLink or completeMoneyAccountLink', async () => {
       const provider = buildMockProvider({
-        fetchDelegationChallenge: undefined,
-        approveFunding: undefined,
-        generateCardDelegationSignatureMessage: undefined,
+        prepareMoneyAccountLink: undefined,
+        completeMoneyAccountLink: undefined,
       });
       const handle = buildLinkMessenger();
       const controller = buildLinkController({
         provider,
         messenger: handle.messenger,
+        installLinkHooks: false,
       });
 
       await expect(
@@ -3945,14 +4090,52 @@ describe('CardController — data pass-throughs', () => {
               moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
               delegationAmountHuman: '2199023255551',
             }),
-          ).rejects.toThrow('Monad gas sponsorship unavailable');
+          ).rejects.toThrow('Gas sponsorship unavailable for chain 143');
         } finally {
           mockGasFeesSponsoredMap['0x8f'] = original;
         }
 
+        expect(provider.prepareMoneyAccountLink).toHaveBeenCalled();
         expect(handle.addTransactionBatchCalls).toHaveLength(0);
         expect(mockChallenge).not.toHaveBeenCalled();
-        expect(mockApproveFunding).not.toHaveBeenCalled();
+        expect(provider.completeMoneyAccountLink).not.toHaveBeenCalled();
+      });
+
+      it('submits the approve on the prepared chain when that chain is sponsored', async () => {
+        const provider = buildMockProvider({
+          prepareMoneyAccountLink: jest.fn().mockResolvedValue({
+            ...defaultLinkPreparation,
+            caipChainId: 'eip155:8453',
+          }),
+          completeMoneyAccountLink: jest.fn().mockResolvedValue(undefined),
+        });
+        const handle = buildLinkMessenger();
+        const controller = buildLinkController({
+          provider,
+          messenger: handle.messenger,
+        });
+
+        const originalMonad = mockGasFeesSponsoredMap['0x8f'];
+        mockGasFeesSponsoredMap['0x8f'] = false;
+        mockGasFeesSponsoredMap['0x2105'] = true;
+        try {
+          const linkPromise = controller.linkMoneyAccountCard({
+            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+            delegationAmountHuman: '2199023255551',
+          });
+          await waitFor(() => handle.addTransactionBatchCalls.length > 0);
+          handle.emitConfirmed();
+          await linkPromise;
+        } finally {
+          mockGasFeesSponsoredMap['0x8f'] = originalMonad;
+          delete mockGasFeesSponsoredMap['0x2105'];
+        }
+
+        expect(handle.addTransactionBatchCalls).toHaveLength(1);
+        expect(handle.messenger.call).toHaveBeenCalledWith(
+          'NetworkController:findNetworkClientIdByChainId',
+          '0x2105',
+        );
       });
 
       it('submits the approve via addTransactionBatch and lets Delegation7702PublishHook attach the upgrade authorization', async () => {
@@ -3993,7 +4176,7 @@ describe('CardController — data pass-throughs', () => {
           disableHook: true,
           disableSequential: true,
         });
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -4027,7 +4210,7 @@ describe('CardController — data pass-throughs', () => {
         await waitFor(() => handle.addTransactionBatchCalls.length > 0);
         handle.emitConfirmed();
         await expect(linkPromise).resolves.toBeUndefined();
-        expect(mockApproveFunding).toHaveBeenCalledTimes(1);
+        expect(provider.completeMoneyAccountLink).toHaveBeenCalledTimes(1);
       });
 
       it('retries the state read until the inner tx appears', async () => {
@@ -4079,15 +4262,12 @@ describe('CardController — data pass-throughs', () => {
         const mockApproveFunding = jest
           .fn()
           .mockImplementation(() => approveFundingGate);
-        const mockChallenge = jest.fn().mockResolvedValue({
-          delegationToken: 'jwt-1',
-          nonce: 'nonce-1',
-          expiresAt: '2099-01-01',
-        });
+        const mockChallenge = jest
+          .fn()
+          .mockResolvedValue(defaultLinkPreparation);
         const provider = buildMockProvider({
-          fetchDelegationChallenge: mockChallenge,
-          approveFunding: mockApproveFunding,
-          generateCardDelegationSignatureMessage: mockGenerateSiwe,
+          prepareMoneyAccountLink: mockChallenge,
+          completeMoneyAccountLink: mockApproveFunding,
         });
 
         const handle = buildLinkMessenger();
@@ -5702,6 +5882,37 @@ describe('CardController — Immersve onboarding pass-throughs', () => {
     const controller = buildController(provider);
     return { controller, provider };
   };
+
+  it('resolveMoneyAccountFundingSourceId delegates to the active provider with valid tokens', async () => {
+    const resolveMoneyAccountFundingSource = jest
+      .fn()
+      .mockResolvedValue({ id: 'fs-money' });
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource,
+    });
+
+    const result = await controller.resolveMoneyAccountFundingSourceId(
+      '0x000000000000000000000000000000000000dEaD',
+    );
+
+    expect(resolveMoneyAccountFundingSource).toHaveBeenCalledWith(
+      '0x000000000000000000000000000000000000dEaD',
+      mockTokenSet,
+    );
+    expect(result).toBe('fs-money');
+  });
+
+  it('resolveMoneyAccountFundingSourceId throws when the provider does not support it', async () => {
+    const { controller } = withValidSession({
+      resolveMoneyAccountFundingSource: undefined,
+    });
+
+    await expect(
+      controller.resolveMoneyAccountFundingSourceId(
+        '0x000000000000000000000000000000000000dEaD',
+      ),
+    ).rejects.toThrow('Money account funding source resolution not supported');
+  });
 
   it('createFundingSource delegates to the active provider with valid tokens', async () => {
     const createFundingSource = jest.fn().mockResolvedValue({ id: 'fs-1' });

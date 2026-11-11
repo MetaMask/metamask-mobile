@@ -9,12 +9,37 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image as ExpoImage } from 'expo-image';
 import type { PredictTeam } from '../../../types';
 
-export type TeamLogoSize = 'small' | 'medium' | 'large';
+export type TeamLogoSize =
+  | 'small'
+  | 'medium'
+  | 'large'
+  | 'largeWide'
+  | 'xlarge';
 
 const SIZE_CLASS_NAMES: Record<TeamLogoSize, string> = {
   small: 'h-8 w-8',
   medium: 'h-10 w-10',
   large: 'h-12 w-12',
+  // Helmet-shaped logos are drawn wider than tall.
+  largeWide: 'h-12 w-[52px]',
+  xlarge: 'h-14 w-14',
+};
+
+/** The abbreviation fallback stays a circle at every size. */
+const FALLBACK_CLASS_NAMES: Record<TeamLogoSize, string> = {
+  ...SIZE_CLASS_NAMES,
+  largeWide: SIZE_CLASS_NAMES.large,
+};
+
+const FALLBACK_TEXT: Record<
+  TeamLogoSize,
+  { variant: TextVariant; fontWeight: FontWeight }
+> = {
+  small: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
+  medium: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
+  large: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
+  largeWide: { variant: TextVariant.BodyXs, fontWeight: FontWeight.Medium },
+  xlarge: { variant: TextVariant.BodySm, fontWeight: FontWeight.Bold },
 };
 
 export interface TeamLogoProps {
@@ -22,7 +47,10 @@ export interface TeamLogoProps {
   /** Shown when the Team has no logo or it fails to load. */
   abbreviation: string;
   size?: TeamLogoSize;
-  /** Mirror horizontally so a helmet on the right faces its opponent. */
+  /**
+   * Mirror the image horizontally so it faces its opponent; see
+   * `shouldMirrorTeamLogo`. The abbreviation fallback is never mirrored.
+   */
   flipped?: boolean;
   testID?: string;
   fallbackTestID?: string;
@@ -63,11 +91,11 @@ export const TeamLogo = ({
         />
       ) : (
         <Box
-          twClassName={`${sizeClassName} items-center justify-center rounded-full bg-muted`}
+          twClassName={`${FALLBACK_CLASS_NAMES[size]} items-center justify-center rounded-full bg-muted`}
         >
           <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
+            variant={FALLBACK_TEXT[size].variant}
+            fontWeight={FALLBACK_TEXT[size].fontWeight}
             testID={fallbackTestID}
           >
             {abbreviation}

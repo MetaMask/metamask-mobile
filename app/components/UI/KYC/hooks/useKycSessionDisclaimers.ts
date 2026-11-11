@@ -30,9 +30,11 @@ const toLinks = (
  * Loads idOS + SumSub (KYC-provider) legal documents for the VBA Verify Identity
  * screen via {@link Engine.context.KycController.fetchSessionDisclaimers}.
  *
- * Passing no country argument loads the catalog for the user's geo country
- * from {@link Engine.context.KycService.getGeoCountry}
- * (`GET /disclaimers?country=`). Session-scoped consents are posted later by
+ * Loads the catalog for the geoCountry stored on the KYC controller, falling
+ * back to {@link Engine.context.KycService.getGeoCountry}
+ * (`GET /disclaimers?country=`). A session kept after the detected country
+ * changed stays on its stored country, so its terms match the consents
+ * recorded before Sumsub launches. Session-scoped consents are posted later by
  * {@link Engine.context.KycController.recordSessionDisclaimers}. Vendor T&Cs
  * stay on {@link Engine.context.KycController.fetchVendorDisclaimers} (Get Pix Key).
  *
@@ -89,7 +91,9 @@ export const useKycSessionDisclaimers = (): UseKycSessionDisclaimersResult => {
               throw new Error('KYC service is unavailable');
             }
 
-            const country = await kycService.getGeoCountry();
+            const country =
+              kycController.state?.geoCountry ??
+              (await kycService.getGeoCountry());
             return kycController.fetchSessionDisclaimers({ country });
           })(),
           abortedPromise,

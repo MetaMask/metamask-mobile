@@ -2,17 +2,15 @@ import React from 'react';
 import { ScrollView, type LayoutChangeEvent } from 'react-native';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
 
-import {
-  TokenDetailsV1,
-  TOKEN_DETAILS_TAB_BAR_STICKY_INDEX,
-  resolveSwipeTargetTab,
-} from './TokenDetailsV1';
+import { TokenDetailsV1, resolveSwipeTargetTab } from './TokenDetailsV1';
 import { TokenDetailsIds } from '../testIds';
 
 const TOKEN_DETAILS_V1_TEST_ID = TokenDetailsIds.v1;
 const TOKEN_DETAILS_V1_AGE_CHIP_TEST_ID = TokenDetailsIds.ageChip;
 const TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID = TokenDetailsIds.scrollView;
 const TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID = TokenDetailsIds.tabContent;
+const TOKEN_DETAILS_V1_TAB_PAGE_SECURITY_TEST_ID =
+  TokenDetailsIds.tabPage('security');
 import {
   TOKEN_DETAILS_V1_TABS,
   TokenDetailsSource,
@@ -37,6 +35,7 @@ import { SecuritySocialSectionSelectors } from '../components/V1/SecuritySocialS
 import { StatBarSelectors } from '../components/V1/StatBar/StatBar.testIds';
 import { TokenStatKey } from '../constants/tokenStats';
 import Routes from '../../../../constants/navigation/Routes';
+import type { QuickBuyTarget } from '../../QuickBuy';
 import { useSocialFeed } from '../../SocialFeed';
 import { mapFeedItem } from '../../SocialFeed/utils/mapFeedItem';
 import { TOKEN_HOLDERS_FIXTURE } from '../components/tabs/holders/tokenHolders.fixture';
@@ -45,12 +44,19 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  PostTradeShareOwner,
+  requestPostTradeShareReopen,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useIsFocused: () => true,
 }));
 
 jest.mock('react-redux', () => ({
@@ -327,6 +333,10 @@ jest.mock('../components/tabs/OverviewTab', () => {
 // Tab bar stand-in: expose each tab as a pressable that reports the tab key,
 // so this view test can cover tab switching end to end.
 const mockTabBarProps: Record<string, unknown>[] = [];
+const getInFlowTabBarProps = () =>
+  mockTabBarProps.filter((props) => !props.isPinnedCopy).at(-1);
+const getPinnedTabBarProps = () =>
+  mockTabBarProps.filter((props) => props.isPinnedCopy).at(-1);
 
 jest.mock('../components/TokenDetailsV1TabBar', () => {
   const actual = jest.requireActual('../components/TokenDetailsV1TabBar');
@@ -337,29 +347,32 @@ jest.mock('../components/TokenDetailsV1TabBar', () => {
     default: (props: {
       activeTab: string;
       onTabPress: (tab: string) => void;
-      onLayout?: (event: LayoutChangeEvent) => void;
       topInset?: number;
       tabs?: readonly string[];
+      isPinnedCopy?: boolean;
     }) => {
       mockTabBarProps.push(props);
       const {
         activeTab,
         onTabPress,
-        onLayout,
         topInset = 0,
         tabs = ['feed', 'overview', 'security'],
+        isPinnedCopy = false,
       } = props;
 
       return (
         <View
-          testID="mock-tab-bar"
-          onLayout={onLayout}
+          testID={isPinnedCopy ? 'mock-tab-bar-pinned' : 'mock-tab-bar'}
           style={{ paddingTop: topInset }}
         >
           {tabs.map((tab) => (
             <Pressable
               key={tab}
-              testID={`token-details-v1-tab-${tab}`}
+              testID={
+                isPinnedCopy
+                  ? `token-details-v1-tab-pinned-${tab}`
+                  : `token-details-v1-tab-${tab}`
+              }
               onPress={() => onTabPress(tab)}
             >
               <Text>{`${tab}:${activeTab === tab}`}</Text>
@@ -551,6 +564,10 @@ describe('TokenDetailsV1', () => {
     mockActionsSectionProps.length = 0;
   });
 
+  afterEach(() => {
+    clearPostTradeShareSession();
+  });
+
   it('renders the meme-TDP body with the token symbol in the header', () => {
     const { getByTestId, getByText } = render(
       <TokenDetailsV1
@@ -584,7 +601,7 @@ describe('TokenDetailsV1', () => {
       expect(mockInlineHeaderProps[0]).toEqual(
         expect.objectContaining({ isGlass: false }),
       );
-      expect(mockTabBarProps[0]).toEqual(
+      expect(getPinnedTabBarProps()).toEqual(
         expect.objectContaining({ topInset: 0 }),
       );
     });
@@ -606,8 +623,10 @@ describe('TokenDetailsV1', () => {
       expect(headerProps.isGlass).toBe(true);
       expect(headerProps.scrollY?.value).toBe(0);
       expect(headerProps.onLayout).toEqual(expect.any(Function));
-      expect(mockTabBarProps[0].topInset).toBeGreaterThan(0);
-      expect(mockTabBarProps[0].scrollY).toBe(headerProps.scrollY);
+      expect(getPinnedTabBarProps()?.topInset).toBeGreaterThan(0);
+      // Only the docked copy reserves the header inset, so the in-flow bar
+      // never changes height as the page scrolls.
+      expect(getInFlowTabBarProps()?.topInset).toBeUndefined();
 
       const layoutEvent = {
         nativeEvent: { layout: { height: 120 } },
@@ -623,7 +642,7 @@ describe('TokenDetailsV1', () => {
       ).toEqual(
         expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
       );
-      expect(mockTabBarProps.at(-1)?.topInset).toBe(120);
+      expect(getPinnedTabBarProps()?.topInset).toBe(120);
 
       fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
         nativeEvent: {
@@ -794,21 +813,163 @@ describe('TokenDetailsV1', () => {
     );
   });
 
-  it('docks the tab bar as a sticky ScrollView child', () => {
-    const { getByTestId } = render(
-      <TokenDetailsV1
-        token={baseToken}
-        variant={TokenDetailsVariant.Memecoin}
-      />,
-    );
+  describe('docked tab bar', () => {
+    const TAB_BAR_OFFSET_Y = 400;
+    // The copy that is not taking taps is also hidden from screen readers,
+    // so queries that inspect it have to opt in to hidden elements.
+    const HIDDEN = { includeHiddenElements: true };
 
-    // Child 0 = price hero (title, security/social row, chart, stat bar),
-    // child 1 = action tiles, child 2 = tab bar (sticky), child 3 = tab
-    // content stack.
-    expect(
-      getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
-        .stickyHeaderIndices,
-    ).toStrictEqual([TOKEN_DETAILS_TAB_BAR_STICKY_INDEX]);
+    const renderAndLayOutTabBar = () => {
+      const utils = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+      fireEvent(utils.getByTestId(TokenDetailsIds.tabBarSlot), 'layout', {
+        nativeEvent: { layout: { y: TAB_BAR_OFFSET_Y, height: 48 } },
+      });
+      return utils;
+    };
+
+    const scrollTo = (
+      getByTestId: ReturnType<typeof render>['getByTestId'],
+      y: number,
+    ) => {
+      fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
+        nativeEvent: { contentOffset: { y } },
+      });
+      // Let the UI-thread opacity mapper run a frame.
+      act(() => {
+        jest.advanceTimersByTime(16);
+      });
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('renders the docked tab bar outside the ScrollView instead of as a sticky header', () => {
+      const { getByTestId } = renderAndLayOutTabBar();
+      const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
+
+      // A sticky header is hit-tested from a stale position on Android, so
+      // taps on the docked tabs fell through to the feed under them.
+      expect(scrollView.props.stickyHeaderIndices).toBeUndefined();
+      expect(
+        within(scrollView).queryByTestId(
+          TokenDetailsIds.pinnedTabBarOverlay,
+          HIDDEN,
+        ),
+      ).toBeNull();
+      expect(
+        within(scrollView).getByTestId(TokenDetailsIds.tabBarSlot, HIDDEN),
+      ).toBeTruthy();
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN),
+      ).toBeTruthy();
+    });
+
+    it('lets only the in-flow tab bar take taps before the page scrolls past it', () => {
+      const { getByTestId } = renderAndLayOutTabBar();
+
+      scrollTo(getByTestId, TAB_BAR_OFFSET_Y - 1);
+
+      expect(
+        getByTestId(TokenDetailsIds.tabBarSlot, HIDDEN).props.pointerEvents,
+      ).toBe('auto');
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN).props
+          .pointerEvents,
+      ).toBe('none');
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN),
+      ).toHaveAnimatedStyle({ opacity: 0 });
+    });
+
+    it('hands taps to the docked tab bar once the page scrolls past the tab bar', () => {
+      const { getByTestId } = renderAndLayOutTabBar();
+
+      scrollTo(getByTestId, TAB_BAR_OFFSET_Y);
+
+      expect(
+        getByTestId(TokenDetailsIds.tabBarSlot, HIDDEN).props.pointerEvents,
+      ).toBe('none');
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN).props
+          .pointerEvents,
+      ).toBe('auto');
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN),
+      ).toHaveAnimatedStyle({ opacity: 1 });
+    });
+
+    it('switches tab when a docked tab is pressed while the tab bar is pinned', () => {
+      const { getByTestId, getAllByText } = renderAndLayOutTabBar();
+      scrollTo(getByTestId, TAB_BAR_OFFSET_Y + 600);
+
+      fireEvent.press(getByTestId('token-details-v1-tab-pinned-security'));
+
+      // Both copies read the same selected tab.
+      expect(getAllByText('security:true', HIDDEN)).toHaveLength(2);
+      expect(
+        getByTestId(TOKEN_DETAILS_V1_TAB_PAGE_SECURITY_TEST_ID).props.style,
+      ).toBeUndefined();
+    });
+
+    it('ignores presses on the in-flow tab bar while the tab bar is pinned', () => {
+      const { getByTestId, queryByTestId } = renderAndLayOutTabBar();
+      scrollTo(getByTestId, TAB_BAR_OFFSET_Y + 600);
+
+      // Hidden from screen readers too, so only one copy is announced.
+      expect(queryByTestId('token-details-v1-tab-security')).toBeNull();
+
+      fireEvent.press(getByTestId('token-details-v1-tab-security', HIDDEN));
+
+      expect(
+        getByTestId(TOKEN_DETAILS_V1_TAB_PAGE_SECURITY_TEST_ID, HIDDEN).props
+          .style,
+      ).toStrictEqual({ display: 'none' });
+    });
+
+    it('returns taps to the in-flow tab bar after scrolling back up', () => {
+      const { getByTestId } = renderAndLayOutTabBar();
+      scrollTo(getByTestId, TAB_BAR_OFFSET_Y + 600);
+      scrollTo(getByTestId, 0);
+
+      fireEvent.press(getByTestId('token-details-v1-tab-security'));
+
+      expect(
+        getByTestId(TOKEN_DETAILS_V1_TAB_PAGE_SECURITY_TEST_ID).props.style,
+      ).toBeUndefined();
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN).props
+          .pointerEvents,
+      ).toBe('none');
+    });
+
+    it('keeps the docked tab bar hidden and inert until the tab bar has laid out', () => {
+      const { getByTestId } = render(
+        <TokenDetailsV1
+          token={baseToken}
+          variant={TokenDetailsVariant.Memecoin}
+        />,
+      );
+
+      scrollTo(getByTestId, 5000);
+
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN).props
+          .pointerEvents,
+      ).toBe('none');
+      expect(
+        getByTestId(TokenDetailsIds.pinnedTabBarOverlay, HIDDEN),
+      ).toHaveAnimatedStyle({ opacity: 0 });
+    });
   });
 
   it('keeps room at the end of the page for the sticky footer', () => {
@@ -1411,6 +1572,53 @@ describe('TokenDetailsV1', () => {
         copyTradeOrigin: { commentId: 'comment-1' },
         initialTradeMode: 'buy',
         analyticsContext: { source: 'trader_feed' },
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
+      }),
+    );
+  });
+
+  it('reopens Quick Buy with the original copy-trade after a failed share', () => {
+    mockSelectors({ socialEnabled: true });
+    render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    const target: QuickBuyTarget = {
+      tokenAddress: '0xretry',
+      tokenSymbol: 'RETRY',
+      tokenName: 'Retry',
+      chain: 'eip155:1',
+    };
+    const copyTradeOrigin = { commentId: 'comment-retry' };
+
+    act(() => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'sell',
+        copyTradeOrigin,
+        owner: PostTradeShareOwner.tokenDetails,
+        preview: {
+          tokenSymbol: 'RETRY',
+          tokenAddress: '0xretry',
+          chain: 'ethereum',
+          side: 'buy',
+        },
+      });
+      requestPostTradeShareReopen();
+    });
+
+    expect(lastQuickBuyProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        target,
+        copyTradeOrigin,
+        initialTradeMode: 'sell',
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
     );
   });
@@ -1461,7 +1669,7 @@ describe('TokenDetailsV1', () => {
     const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
 
     // Simulate tab bar layout at offset Y = 400
-    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+    fireEvent(getByTestId(TokenDetailsIds.tabBarSlot), 'layout', {
       nativeEvent: { layout: { y: 400 } },
     });
 
@@ -1470,8 +1678,8 @@ describe('TokenDetailsV1', () => {
       nativeEvent: { contentOffset: { y: 800 } },
     });
 
-    // Switch to security tab
-    fireEvent.press(getByTestId('token-details-v1-tab-security'));
+    // Switch to security tab from the docked tab bar
+    fireEvent.press(getByTestId('token-details-v1-tab-pinned-security'));
 
     // Should scrollTo the docked tab bar offset (400) without animation to prevent UI jumping
     expect(scrollToSpy).toHaveBeenCalledWith({
@@ -1493,7 +1701,7 @@ describe('TokenDetailsV1', () => {
     fireEvent(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), 'layout', {
       nativeEvent: { layout: { height: 900 } },
     });
-    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+    fireEvent(getByTestId(TokenDetailsIds.tabBarSlot), 'layout', {
       nativeEvent: { layout: { y: 400, height: 48 } },
     });
 
@@ -1514,7 +1722,7 @@ describe('TokenDetailsV1', () => {
     const scrollView = getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID);
 
     // Simulate tab bar layout at offset Y = 400
-    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+    fireEvent(getByTestId(TokenDetailsIds.tabBarSlot), 'layout', {
       nativeEvent: { layout: { y: 400 } },
     });
 

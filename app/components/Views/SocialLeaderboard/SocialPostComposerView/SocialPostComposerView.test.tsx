@@ -31,11 +31,29 @@ jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   default: () => true,
 }));
 
+const mockTrackComposerInteraction = jest.fn();
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialInteraction: () => jest.fn(),
-  useSocialScreenAnalytics: () => jest.fn(),
+  useSocialScreenAnalytics: () => mockTrackComposerInteraction,
 }));
+
+const mockHeaderRender = jest.fn();
+jest.mock(
+  '../../../../component-library/components-temp/HeaderBaseGlass',
+  () => {
+    const Actual = jest.requireActual(
+      '../../../../component-library/components-temp/HeaderBaseGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderRender();
+        return <Actual {...props} />;
+      },
+    };
+  },
+);
 
 const mockPositionCardBody = jest.fn<null, [unknown]>();
 
@@ -587,6 +605,14 @@ describe('SocialPostComposerView', () => {
         source: 'metamask-mobile',
       });
     });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith('post_shared', {
+      share_destination: 'metamask_post',
+      trade_type: 'spot',
+    });
+    expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+      'post_submitted',
+      expect.not.objectContaining({ share_destination: expect.anything() }),
+    );
 
     await waitFor(() => {
       expect(getPendingPostsSnapshot()[0]?.post.gifUri).toBe(
@@ -858,6 +884,46 @@ describe('SocialPostComposerView', () => {
     );
   });
 
+  it('does not re-render the screen chrome while typing', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const headerRendersBeforeTyping = mockHeaderRender.mock.calls.length;
+
+    ['a', 'ab', 'abc'].forEach((text) => {
+      fireEvent.changeText(input, text);
+    });
+
+    expect(mockHeaderRender).toHaveBeenCalledTimes(headerRendersBeforeTyping);
+  });
+
+  it('does not rebuild the preview while typing', () => {
+    mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
+    renderWithProvider(<SocialPostComposerView />);
+    const input = screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT);
+    const previewRendersBeforeTyping = mockPositionCardBody.mock.calls.length;
+
+    fireEvent.changeText(input, 'this is alpha');
+
+    // The card never shows the caption, so typing leaves the preview alone.
+    expect(mockPositionCardBody).toHaveBeenCalledTimes(
+      previewRendersBeforeTyping,
+    );
+    const [props] = mockPositionCardBody.mock.lastCall ?? [];
+    expect(props).toEqual(
+      expect.objectContaining({
+        item: expect.objectContaining({ comment: '' }),
+      }),
+    );
+  });
+
+  it('keeps the character count a constant width with equal-width digits', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    expect(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
+    ).toHaveStyle({ fontVariant: ['tabular-nums'] });
+  });
+
   it('wraps the composer preview in the live price provider', () => {
     mockRouteParams = { position: liveSpot, entryPoint: 'token_details' };
 
@@ -1105,7 +1171,7 @@ describe('SocialPostComposerView', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
+  it('pops the composer to the Social tab when openFeedAfterPost is set', async () => {
     mockRouteParams = {
       position: openSpot,
       entryPoint: 'perps',
@@ -1122,10 +1188,13 @@ describe('SocialPostComposerView', () => {
     );
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.SOCIAL.V1),
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB },
+        { pop: true },
       );
     });
+    expect(mockDispatch).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(1);
     expect(consumePostsTabFocus()).toBe(false);
     expect(mockGoBack).not.toHaveBeenCalled();

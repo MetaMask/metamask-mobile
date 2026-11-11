@@ -1,7 +1,10 @@
 import React from 'react';
 import { Alert, Pressable } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useCardHeaderHandlers } from './useCardHeaderHandlers';
+import {
+  showCardExitConfirmation,
+  useCardHeaderHandlers,
+} from './useCardHeaderHandlers';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
@@ -69,6 +72,17 @@ describe('useCardHeaderHandlers', () => {
       'mocked_card.card_onboarding.exit_confirmation.message',
       expect.any(Array),
     );
+  });
+
+  it('runs the given exit action from showCardExitConfirmation', () => {
+    const onExit = jest.fn();
+
+    showCardExitConfirmation(onExit);
+
+    const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
+    alertCall[2][1].onPress();
+
+    expect(onExit).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to wallet home when exit is confirmed', () => {

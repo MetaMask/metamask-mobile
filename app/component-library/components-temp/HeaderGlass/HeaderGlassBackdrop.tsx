@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { BlurView } from 'expo-blur';
 import LinearGradient from 'react-native-linear-gradient';
@@ -9,6 +10,7 @@ import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
   useDerivedValue,
+  withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
 
@@ -21,6 +23,14 @@ export interface HeaderGlassBackdropProps {
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the effect fades in. */
   fadeInDistance?: number;
+  /**
+   * Extra height the effect covers below its parent before it fades, for
+   * content pinned under the header. A number eases to each new value; a
+   * shared value is followed as is.
+   *
+   * @default 0
+   */
+  extension?: number | SharedValue<number>;
   testID?: string;
 }
 
@@ -78,6 +88,7 @@ const styles = StyleSheet.create({
 const HeaderGlassBackdrop = ({
   scrollDistance,
   fadeInDistance = DEFAULT_FADE_IN_DISTANCE,
+  extension = 0,
   testID,
 }: HeaderGlassBackdropProps) => {
   const { colors } = useTheme();
@@ -110,6 +121,17 @@ const HeaderGlassBackdrop = ({
       : 1,
   );
   const fadeStyle = useAnimatedStyle(() => ({ opacity: progress.value }));
+  const tailHeight = canBlur ? BLUR_TAIL_HEIGHT : GRADIENT_TAIL_HEIGHT;
+  const animatedExtension = useDerivedValue(
+    () =>
+      typeof extension === 'number'
+        ? withTiming(extension, { duration: AnimationDuration.Fast })
+        : extension.value,
+    [extension],
+  );
+  const tailStyle = useAnimatedStyle(() => ({
+    bottom: -(tailHeight + animatedExtension.value),
+  }));
   const blurProps = useAnimatedProps(() => ({
     intensity: BLUR_INTENSITY * progress.value,
   }));
@@ -118,7 +140,7 @@ const HeaderGlassBackdrop = ({
     return (
       <Animated.View
         pointerEvents="none"
-        style={[styles.gradientTail, fadeStyle]}
+        style={[styles.gradientTail, fadeStyle, tailStyle]}
       >
         <LinearGradient
           colors={tintColors}
@@ -131,7 +153,7 @@ const HeaderGlassBackdrop = ({
   }
 
   return (
-    <View pointerEvents="none" style={styles.blurTail}>
+    <Animated.View pointerEvents="none" style={[styles.blurTail, tailStyle]}>
       <View style={styles.effect}>
         <MaskedView
           style={StyleSheet.absoluteFill}
@@ -160,7 +182,7 @@ const HeaderGlassBackdrop = ({
           />
         </Animated.View>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

@@ -29,6 +29,8 @@ export interface SocialFeedRowProps {
   requireSocialProfile?: boolean;
   /** Clock for relative timestamps; a new value re-renders the row. */
   now?: number;
+  /** Viewer's profile ID to hide copy trade on their own posts. */
+  viewerProfileId?: string;
 }
 
 const areReactionsEqual = (
@@ -60,6 +62,7 @@ export const areSocialFeedRowPropsEqual = (
   previous.requireSocialTerms === next.requireSocialTerms &&
   previous.requireSocialProfile === next.requireSocialProfile &&
   previous.now === next.now &&
+  previous.viewerProfileId === next.viewerProfileId &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -94,6 +97,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   requireSocialTerms,
   requireSocialProfile,
   now,
+  viewerProfileId,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
@@ -112,6 +116,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
           now={now}
+          showCopyTrade={post.item.author.id !== viewerProfileId}
         />
       </Box>
       {dividerTestID ? (

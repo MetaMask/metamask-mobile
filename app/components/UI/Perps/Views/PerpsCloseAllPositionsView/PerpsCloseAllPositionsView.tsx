@@ -411,6 +411,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
             testIDs={{
               feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
+              marginValue: PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+              receiveValue:
+                PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
             }}
           />
         )}

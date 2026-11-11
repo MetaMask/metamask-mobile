@@ -363,6 +363,8 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
+  MARGIN_VALUE: 'perps-close-all-positions-margin-value',
+  RECEIVE_VALUE: 'perps-close-all-positions-receive-value',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -467,6 +469,8 @@ export const PerpsWithdrawViewSelectorsIDs = {
 export const PerpsMarketDetailsViewSelectorsIDs = {
   CONTAINER: 'perps-market-details-view',
   SCROLL_VIEW: 'perps-market-details-scroll-view',
+  HEADER_SPACER: 'perps-market-details-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-market-details-bottom-inset-spacer',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
@@ -520,6 +524,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   CONTAINER: 'perps-pro-market-view',
   ERROR: 'perps-pro-market-error',
   SCROLL_VIEW: 'perps-pro-market-scroll-view',
+  HEADER_SPACER: 'perps-pro-market-header-spacer',
+  BOTTOM_INSET_SPACER: 'perps-pro-market-bottom-inset-spacer',
   HEADER: 'perps-pro-market-header',
   HEADER_SYMBOL: 'perps-pro-market-header-symbol',
   HEADER_BACK_BUTTON: 'perps-pro-market-header-back-button',
@@ -1094,6 +1100,7 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsTradeSheetSelectorsIDs = {
   SHEET: 'perps-trade-sheet',
   CONTENT: 'perps-trade-sheet-content',
+  PLACEHOLDER: 'perps-trade-sheet-placeholder',
   HEADER_PRICE: 'perps-trade-sheet-header-price',
   HEADER_CHANGE: 'perps-trade-sheet-header-change',
   HEADER_SKELETON: 'perps-trade-sheet-header-skeleton',
@@ -1225,6 +1232,7 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
+  TOTAL_PNL_ROW: 'close-position-bottom-sheet-total-pnl-row',
   TOTAL_TOOLTIP_BUTTON: 'close-position-bottom-sheet-total-tooltip-button',
   CONFIRM_BUTTON: 'close-position-bottom-sheet-confirm-button',
   FEE_DISCLAIMER: 'close-position-bottom-sheet-fee-disclaimer',
@@ -1257,6 +1265,16 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
   ISOLATED_OPTION: 'perps-margin-mode-isolated',
   CROSS_OPTION: 'perps-margin-mode-cross',
+} as const;
+
+export const PerpsCrossMarginConfirmBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-cross-margin-confirm-bottom-sheet',
+  CLOSE_BUTTON: 'perps-cross-margin-confirm-bottom-sheet-close',
+  COLLATERAL_ITEM: 'perps-cross-margin-confirm-collateral',
+  LIQUIDATION_ITEM: 'perps-cross-margin-confirm-liquidation',
+  MARGIN_ITEM: 'perps-cross-margin-confirm-margin',
+  GO_BACK_BUTTON: 'perps-cross-margin-confirm-go-back',
+  CONFIRM_BUTTON: 'perps-cross-margin-confirm-confirm',
 } as const;
 
 export const PerpsLeverageBottomSheetSelectorsIDs = {
