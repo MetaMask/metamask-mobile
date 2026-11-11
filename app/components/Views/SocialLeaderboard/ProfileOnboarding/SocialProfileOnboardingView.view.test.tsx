@@ -2212,5 +2212,86 @@ describe('SocialProfileOnboardingView', () => {
         Engine.context.ProfileController.fetchAndUpdateProfile,
       ).not.toHaveBeenCalled();
     });
+
+    it('opens the Social tab instead of creating a profile when sign-in recovers and the session already has one', async () => {
+      signOut();
+      await renderOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+      signIn();
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockResolvedValue(EXISTING_PROFILE);
+
+      await reachReadyStep();
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).toHaveTextContent(Routes.SOCIAL.TAB);
+      expect(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      ).toHaveBeenCalledWith('signed-in-profile');
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('opens the Social tab instead of creating a profile when the check on open failed and the profile exists', async () => {
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValue(EXISTING_PROFILE);
+      await renderOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      await reachReadyStep();
+
+      expect(
+        await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).toHaveTextContent(Routes.SOCIAL.TAB);
+      expect(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('creates the profile when the check on open failed and the check before creating finds none', async () => {
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockRejectedValueOnce(new Error('network'));
+      await renderOnboarding([{ name: Routes.HOME_TABS }]);
+
+      await reachReadyStep();
+
+      await waitFor(() => {
+        expect(
+          Engine.context.ProfileController.createProfile,
+        ).toHaveBeenCalledTimes(1);
+      });
+      expect(
+        Engine.context.ProfileController.fetchAndUpdateProfile,
+      ).toHaveBeenCalledTimes(2);
+    });
+
+    it('shows the save error instead of creating a profile when the check before creating fails', async () => {
+      jest
+        .mocked(Engine.context.ProfileController.fetchAndUpdateProfile)
+        .mockRejectedValue(new Error('network'));
+      await renderOnboarding([{ name: Routes.HOME_TABS }]);
+
+      await reachReadyStep();
+
+      expect(
+        await screen.findByText(
+          "Couldn't create your profile. Check your connection and try again.",
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

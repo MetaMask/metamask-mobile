@@ -421,12 +421,16 @@ const SocialProfileOnboardingView: React.FC = () => {
   const previousStepRef = useRef(step);
   const createProfileRef = useRef(createProfile);
   const updateProfileRef = useRef(updateProfile);
+  const fetchAndUpdateProfileRef = useRef(fetchAndUpdateProfile);
+  const existingProfileLookupResultRef = useRef(existingProfileLookupResult);
   const trackInteractionRef = useRef(trackInteraction);
   draftRef.current = draft;
   accountsRef.current = accounts;
   stepRef.current = step;
   createProfileRef.current = createProfile;
   updateProfileRef.current = updateProfile;
+  fetchAndUpdateProfileRef.current = fetchAndUpdateProfile;
+  existingProfileLookupResultRef.current = existingProfileLookupResult;
   trackInteractionRef.current = trackInteraction;
 
   const clearUsernameCheckTimer = useCallback(() => {
@@ -450,6 +454,14 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   // An existing profile skips creation. An older accepted terms version still
   // has to be accepted again, so that case keeps only the terms sheet.
+  const openExistingProfile = useCallback(() => {
+    if (hasAcceptedSocialTerms()) {
+      finishProfileOnboardingToSocialTab(navigation);
+      return;
+    }
+    setPendingTermsOnly(true);
+  }, [navigation]);
+
   useEffect(() => {
     if (
       existingProfileLookupResult !== 'found' ||
@@ -457,12 +469,8 @@ const SocialProfileOnboardingView: React.FC = () => {
     ) {
       return;
     }
-    if (hasAcceptedSocialTerms()) {
-      finishProfileOnboardingToSocialTab(navigation);
-      return;
-    }
-    setPendingTermsOnly(true);
-  }, [existingProfileLookupResult, navigation]);
+    openExistingProfile();
+  }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -868,7 +876,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     );
   };
 
-  const writeOnboardingProfile = async (current: ProfileOnboardingDraft) => {
+  /**
+   * @returns `existing` when the session already owns a profile, so nothing
+   * was written.
+   */
+  const writeOnboardingProfile = async (
+    current: ProfileOnboardingDraft,
+  ): Promise<'saved' | 'existing'> => {
     const linkedAccount = accountsRef.current.find(
       (account) => account.id === current.linkedAccountId,
     );
@@ -893,9 +907,22 @@ const SocialProfileOnboardingView: React.FC = () => {
         avatar_url: params.avatar_url,
         trading_privacy: params.trading_privacy,
       });
-      return;
+      return 'saved';
+    }
+    // The check on open ends without an answer when sign-in or the profile
+    // read fails. Ask again now that there is a profile id, so a profile that
+    // already exists is never replaced.
+    if (
+      existingProfileLookupResultRef.current !== 'not-found' &&
+      (await lookUpExistingSocialProfile(
+        profileId,
+        fetchAndUpdateProfileRef.current,
+      )) === 'found'
+    ) {
+      return 'existing';
     }
     await createProfileRef.current(params);
+    return 'saved';
   };
 
   const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
@@ -922,8 +949,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       setFinishError(null);
       setIsSubmitting(true);
       const hadProfile = serverProfileFingerprintRef.current !== null;
+      let writeResult: 'saved' | 'existing';
       try {
-        await writeOnboardingProfile(currentDraft);
+        writeResult = await writeOnboardingProfile(currentDraft);
       } catch {
         if (stepRef.current === 'ready') {
           setFinishError(
@@ -931,6 +959,13 @@ const SocialProfileOnboardingView: React.FC = () => {
           );
         }
         setIsSubmitting(false);
+        return;
+      }
+      if (writeResult === 'existing') {
+        setIsSubmitting(false);
+        if (navigation.isFocused()) {
+          openExistingProfile();
+        }
         return;
       }
       serverProfileFingerprintRef.current = fingerprint;
