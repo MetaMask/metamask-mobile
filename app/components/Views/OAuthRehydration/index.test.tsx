@@ -1639,9 +1639,7 @@ describe('OAuthRehydration', () => {
       fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD));
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
 
       const backHandlerCalls = addEventListenerSpy.mock.calls.filter(
@@ -1676,9 +1674,7 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
       expect(mockVerifySocialLoginWhileLocked).toHaveBeenCalled();
     });
@@ -1695,9 +1691,7 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
     });
 
@@ -1762,9 +1756,7 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
     });
 
@@ -1897,9 +1889,7 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
       jest.useRealTimers();
     });
@@ -1925,18 +1915,16 @@ describe('OAuthRehydration', () => {
 
       await waitFor(() => {
         expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_INPUT),
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
         ).toBeOnTheScreen();
       });
 
       fireEvent.changeText(
-        getByTestId(WalletRecoverySelectorsIDs.PASSWORD_INPUT),
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
         'validPassword123',
       );
       await act(async () => {
-        fireEvent.press(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_CONTINUE),
-        );
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
       });
 
       await waitFor(() => {
@@ -1957,9 +1945,7 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
 
       const backHandlerCallback = addEventListenerSpy.mock.calls
@@ -2012,9 +1998,7 @@ describe('OAuthRehydration', () => {
           expect.anything(),
           'email_otp',
         );
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.CONTAINER)).toBeOnTheScreen();
       });
     });
 
@@ -2037,12 +2021,10 @@ describe('OAuthRehydration', () => {
       });
 
       await waitFor(() => {
-        expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_FORGOT),
-        ).toBeOnTheScreen();
+        expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
       });
 
-      fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.PASSWORD_FORGOT));
+      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({

@@ -120,7 +120,6 @@ import type {
 import type { OAuthRehydrationRouteParams } from './OAuthRehydration.types';
 import {
   WalletRecoveryLoading,
-  WalletRecoveryPassword,
   WalletRecoveryVerify,
   type WalletRecoveryMethod,
 } from './WalletRecovery';
@@ -1073,7 +1072,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         <Button
           variant={ButtonVariant.Tertiary}
           size={ctaSize}
-          onPress={handleUseOtherMethod}
+          onPress={
+            // From MFA fallback, tertiary back returns to verify; otherwise leave social login.
+            passwordFromVerify ? handlePasswordBack : handleUseOtherMethod
+          }
           isDisabled={finalLoading}
           testID={LoginViewSelectors.OTHER_METHODS_BUTTON}
           isFullWidth
@@ -1111,20 +1113,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         />
       );
     }
-    return (
-      <WalletRecoveryPassword
-        password={password}
-        error={error}
-        isBusy={finalLoading}
-        isDisabled={disabledInput}
-        themeAppearance={themeAppearance}
-        showForgotPassword={!!isSeedlessPasswordOutdated}
-        onBack={handlePasswordBack}
-        onChangePassword={handlePasswordChange}
-        onContinue={handleLogin}
-        onForgotPassword={toggleWarningModal}
-      />
-    );
+    // Reuse the existing OAuth unlock canvas (same as main), not a new password screen.
+    return renderLegacyUnlock();
   };
 
   return (
