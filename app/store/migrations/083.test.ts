@@ -116,7 +116,6 @@ const createMonadTestnetConfiguration = (): NetworkConfiguration => ({
       networkClientId: 'monad-testnet',
       url: 'https://testnet-rpc.monad.xyz',
       type: RpcEndpointType.Custom,
-      failoverUrls: [],
     },
   ],
   defaultRpcEndpointIndex: 0,

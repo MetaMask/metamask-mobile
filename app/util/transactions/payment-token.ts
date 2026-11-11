@@ -104,7 +104,7 @@ export function getNonEvmPaymentToken(
  * Get the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
  * state, which identifies the payment token in `updatePaymentToken`.
  *
- * A native token is the chain's sole asset of type `native`, since natives are
+ * A native token is the chain's asset of type `native`, since natives are
  * keyed as `slip44` assets. An ERC-20 key is matched case-insensitively,
  * preferring a checksummed key over a lowercase duplicate. A token absent from
  * state falls back to its derived asset ID.

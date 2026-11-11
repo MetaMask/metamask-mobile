@@ -54,11 +54,15 @@ on:
 jobs:
   push-update:
     name: Push EAS Update (${{ inputs.platform }})
+    # job.priority is inline on the profile label. A lower number starts first, and
+    # any priority beats jobs that set none, but only while Namespace is at its
+    # concurrency limit. A job that is already running is not preempted.
+    # https://namespace.so/docs/solutions/github-actions/runner-controls/job-ordering
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux;job.priority=1' || 'ubuntu-latest'
       }}
     environment: ${{ inputs.github_environment }}
     env:
@@ -203,7 +207,6 @@ jobs:
 
       - name: Diagnose - expo export in isolation
         env:
-          SKIP_TRANSFORM_LINT: 'true'
           NODE_OPTIONS: '--max_old_space_size=8192'
           EXPO_DEBUG: '1'
         run: |
@@ -222,7 +225,6 @@ jobs:
 
       - name: Build & Push EAS Update via build.sh
         env:
-          SKIP_TRANSFORM_LINT: 'true'
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
           EXPO_DEBUG: '1'

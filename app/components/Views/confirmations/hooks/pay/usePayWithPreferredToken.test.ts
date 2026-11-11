@@ -16,7 +16,7 @@ jest.mock('./usePayTokenAccountBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 const TOKEN_MOCK: EvmPaymentToken = {
-  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678' as const,
+  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
   address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
@@ -28,7 +28,7 @@ const TOKEN_MOCK: EvmPaymentToken = {
 };
 
 const OTHER_TOKEN_MOCK: EvmPaymentToken = {
-  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as const,
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
   balanceFiat: '$20.00',
   balanceHuman: '20',

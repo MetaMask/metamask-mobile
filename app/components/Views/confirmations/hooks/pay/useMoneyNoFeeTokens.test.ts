@@ -21,8 +21,8 @@ const mockUseTransactionMetadataRequest =
   >;
 
 const PAY_TOKEN = {
-  address: '0xabc' as Hex,
   assetId: 'eip155:1/erc20:0xabc' as const,
+  address: '0xabc' as Hex,
   balanceHuman: '10',
   balanceFiat: '10',
   balanceRaw: '10000',

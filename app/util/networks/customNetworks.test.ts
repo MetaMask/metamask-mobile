@@ -2,10 +2,64 @@ import {
   PopularList,
   getNonEvmNetworkImageSourceByChainId,
   getFilteredPopularNetworks,
+  getFailoverUrlsByChainId,
+  getFailoverUrlsForChainId,
+  getFailoverUrlsForEndpoint,
 } from './customNetworks';
 import { toHex } from '@metamask/controller-utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
+
+describe('getFailoverUrlsByChainId', () => {
+  const originalEnv = process.env;
+
+  beforeEach(() => {
+    process.env = {
+      ...originalEnv,
+      QUICKNODE_MAINNET_URL: 'https://mainnet.quicknode.example',
+      QUICKNODE_ROBINHOOD_URL: 'https://robinhood.quicknode.example',
+    };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
+  });
+
+  it('keys failover URLs by chain ID, including chains outside the ChainId enum', () => {
+    const failoverUrls = getFailoverUrlsByChainId();
+
+    expect(failoverUrls['0x1']).toStrictEqual([
+      'https://mainnet.quicknode.example',
+    ]);
+    expect(failoverUrls[toHex(4663)]).toStrictEqual([
+      'https://robinhood.quicknode.example',
+    ]);
+    expect(failoverUrls[toHex(999)]).toStrictEqual([]);
+    expect(failoverUrls[toHex(5042)]).toStrictEqual([]);
+  });
+
+  it('getFailoverUrlsForChainId returns the URLs for a chain or an empty array', () => {
+    expect(getFailoverUrlsForChainId('0x1')).toStrictEqual([
+      'https://mainnet.quicknode.example',
+    ]);
+    expect(getFailoverUrlsForChainId('0xdeadbeef')).toStrictEqual([]);
+    expect(getFailoverUrlsForChainId(undefined)).toStrictEqual([]);
+  });
+
+  it('getFailoverUrlsForEndpoint only returns URLs for infura.io endpoints', () => {
+    expect(
+      getFailoverUrlsForEndpoint('0x1', 'https://mainnet.infura.io/v3/key'),
+    ).toStrictEqual(['https://mainnet.quicknode.example']);
+    expect(
+      getFailoverUrlsForEndpoint('0x1', 'https://rpc.example.com'),
+    ).toStrictEqual([]);
+    expect(
+      getFailoverUrlsForEndpoint('0x1', 'https://infura.io.evil.example'),
+    ).toStrictEqual([]);
+    expect(getFailoverUrlsForEndpoint('0x1', 'not a url')).toStrictEqual([]);
+    expect(getFailoverUrlsForEndpoint('0x1', undefined)).toStrictEqual([]);
+  });
+});
 
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {

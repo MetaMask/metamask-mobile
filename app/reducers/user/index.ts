@@ -38,6 +38,7 @@ export const userInitialState: UserState = {
   onboardingStepperProgress: {},
   appInstallEventFired: false,
   pendingAppInstall: null,
+  bridgeLimitTabSeen: false,
 };
 
 /**
@@ -220,6 +221,11 @@ const userReducer = (
       return state.pendingAppInstall === null
         ? state
         : { ...state, pendingAppInstall: null };
+    case UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN:
+      return {
+        ...state,
+        bridgeLimitTabSeen: true,
+      };
     default:
       return state;
   }

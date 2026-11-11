@@ -1,7 +1,7 @@
 import { Easing, type WithSpringConfig } from 'react-native-reanimated';
 
-/** The rail's left inset. A selected chip docks here. */
-export const DOCK_LEFT = 16;
+/** The rail's left inset, matching the 8px gap between chips. A selected chip docks here. */
+export const DOCK_LEFT = 8;
 
 /** The close icon's slot: a 4px lead plus the 16px icon. */
 export const CLOSE_SLOT_WIDTH = 20;
@@ -60,16 +60,6 @@ export const DOCK_EXIT = {
   easing: Easing.bezier(0.4, 0, 1, 1),
 };
 
-/**
- * Marquee speed eases toward its target: it brakes quickly when a chip is
- * selected and picks back up gently when the filter clears.
- */
-const MARQUEE_BRAKE_RATE = 10;
-const MARQUEE_ACCELERATE_RATE = 2;
-
-/** Below this, a braking marquee counts as stopped. */
-const MARQUEE_STOP_SPEED = 0.05;
-
 /** Keeps the marquee offset within one track width. */
 export const wrapOffset = (x: number, width: number): number => {
   'worklet';
@@ -78,50 +68,6 @@ export const wrapOffset = (x: number, width: number): number => {
   }
   const wrapped = x % width;
   return wrapped < 0 ? wrapped + width : wrapped;
-};
-
-/** The marquee's next speed after `dtSeconds`, easing toward `target`. */
-export const stepMarqueeSpeed = (
-  speed: number,
-  target: number,
-  dtSeconds: number,
-): number => {
-  'worklet';
-  const rate = target < speed ? MARQUEE_BRAKE_RATE : MARQUEE_ACCELERATE_RATE;
-  const next = speed + (target - speed) * (1 - Math.exp(-dtSeconds * rate));
-  return target === 0 && next < MARQUEE_STOP_SPEED ? 0 : next;
-};
-
-/** Longest frame gap the marquee steps over, so a stall does not jump it. */
-const MARQUEE_MAX_STEP_SECONDS = 0.05;
-
-/**
- * One marquee frame. A track that fits the viewport stays put; otherwise the
- * speed eases toward `target` and the offset wraps within the track.
- */
-export const advanceMarquee = (
-  offset: number,
-  speed: number,
-  target: number,
-  frameMs: number,
-  trackWidth: number,
-  viewportWidth: number,
-): { offset: number; speed: number } => {
-  'worklet';
-  if (
-    frameMs <= 0 ||
-    trackWidth <= 0 ||
-    viewportWidth <= 0 ||
-    trackWidth <= viewportWidth
-  ) {
-    return { offset, speed };
-  }
-  const dt = Math.min(frameMs / 1000, MARQUEE_MAX_STEP_SECONDS);
-  const nextSpeed = stepMarqueeSpeed(speed, target, dt);
-  return {
-    offset: wrapOffset(offset + nextSpeed * dt, trackWidth),
-    speed: nextSpeed,
-  };
 };
 
 export const isPillOnScreen = (

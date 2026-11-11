@@ -11,7 +11,6 @@ import ReduxService from '../../../../redux';
 import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
-import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 
 /**
@@ -97,15 +96,6 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   if (!selectedAccount || !isEvmAccountType(selectedAccount.type)) {
     return;
-  }
-
-  if (isMoneyAccountWithdraw(transaction)) {
-    replaceAccountInNestedTransactions({
-      transactionId: transaction.id,
-      nestedTransactions: transaction.nestedTransactions,
-      oldAddress: transaction.txParams?.from,
-      newAddress: selectedAccount.address,
-    });
   }
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {

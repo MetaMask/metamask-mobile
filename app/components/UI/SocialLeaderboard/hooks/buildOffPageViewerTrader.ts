@@ -6,6 +6,7 @@ import type {
 } from '../../../Views/SocialLeaderboard/components/Filters';
 import { toFoxiconAvatarUrl } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import { getTraderMetricDisplay } from '../../../Views/SocialLeaderboard/TopTradersView/traderMetric';
+import { readXHandle } from '../../SocialFeed/utils/xHandle';
 import type { RankedTrader } from '../types';
 
 /**
@@ -150,6 +151,7 @@ export const buildOffPageViewerTrader = ({
       (is30d ? breakdown.perChainPnl : breakdown.perChainPnl7d) ?? {},
     followerCount: live.followerCount,
     isFollowing: false,
+    xHandle: readXHandle(live.socialHandles),
   };
 
   return {

@@ -41,6 +41,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
   analyticsSource?: SocialEventSource;
+  /** Disables post interaction analytics for read-only profile surfaces. */
+  analyticsEnabled?: boolean;
   /**
    * Shows the invented values posts still carry. Omitted keeps the outer
    * surface's choice.
@@ -73,6 +75,14 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
 
 export interface SocialFeedContentProps extends SocialFeedBaseProps {
   scrollMode?: 'content';
+  /** Streams matching posts directly into the host scroll. */
+  realtime?: boolean;
+  /** Lets a host refresh the feed from its own pull-to-refresh control. */
+  refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+}
+
+export interface SocialFeedRefreshHandle {
+  refresh: () => Promise<void>;
 }
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
@@ -84,6 +94,11 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
+  /**
+   * Reorders the loaded posts, ties keeping the feed's order. Omitted keeps
+   * the feed's newest-first order. Memoize it.
+   */
+  comparePosts?: (left: SocialV1FeedPost, right: SocialV1FeedPost) => number;
   /**
    * Host rows between posts, hidden while the first page loads. With no
    * posts they follow the empty state. Memoize the array.

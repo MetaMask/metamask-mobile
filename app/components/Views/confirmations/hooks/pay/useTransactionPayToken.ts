@@ -4,10 +4,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import { useCallback, useMemo } from 'react';
@@ -24,6 +21,7 @@ import {
   getEvmPaymentTokenAssetId,
   getNonEvmPaymentToken,
 } from '../../../../../util/transactions/payment-token';
+import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import Logger from '../../../../../util/Logger';
@@ -74,9 +72,8 @@ export function useTransactionPayToken(): {
   const transactionMeta = useTransactionMetadataRequest();
   const { id: transactionId } = transactionMeta || { id: '' };
 
-  const paymentToken: TransactionPaymentToken | undefined = useSelector(
-    (state: RootState) =>
-      selectTransactionPaymentTokenByTransactionId(state, transactionId),
+  const paymentToken = useSelector((state: RootState) =>
+    selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
 
   const nonEvmPayToken = useMemo(
@@ -130,6 +127,8 @@ export function useTransactionPayToken(): {
             AssetsController.state.assetsInfo,
           ),
         });
+
+        syncMoneyAccountWithdrawTransfer(transactionMeta, newPayToken);
       } catch (error) {
         Logger.error(error as Error, 'Error updating payment token');
       }

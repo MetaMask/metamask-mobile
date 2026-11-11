@@ -193,6 +193,8 @@ export interface CardAuthResult {
 
 // -- Auth Flow --
 
+export type CardOtpMode = 'SMS' | 'TOTP';
+
 export type CardMfaMethod = 'phone' | 'email';
 
 export interface CardMfaOption {
@@ -203,7 +205,7 @@ export interface CardMfaOption {
 
 export type CardAuthStep =
   | { type: 'email_password' }
-  | { type: 'otp'; destination: string }
+  | { type: 'otp'; destination: string; mode?: CardOtpMode }
   | { type: 'siwe'; message: string }
   | { type: 'mfa_select'; options: CardMfaOption[] }
   | {
@@ -226,6 +228,12 @@ export type CardCredentials =
       type: 'email_password';
       email: string;
       password: string;
+      otpCode?: string;
+    }
+  | {
+      type: 'email_code';
+      email: string;
+      code: string;
       otpCode?: string;
     }
   | { type: 'siwe'; signature: string }
@@ -257,6 +265,19 @@ export interface CardProviderCapabilities {
   supportsTransactionHistory: boolean;
   supportsContactDetails: boolean;
   supportsMoneyAccountLinking: boolean;
+  /**
+   * True when linking a Money account spends the Veda token described by
+   * persisted delegation settings. Baanx refetches those settings when the
+   * token is missing. Providers that ignore them leave this false so a
+   * home-data fetch cannot block the link.
+   */
+  usesMoneyAccountDelegationSettings: boolean;
+  /**
+   * True when card home data includes a Baanx-style `verificationStatus`.
+   * Providers that verify through their own flow (Immersve spending
+   * prerequisites) leave this false.
+   */
+  reportsVerificationStatus: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -428,6 +449,42 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
+/**
+ * Provider-specific bag carried from {@link ICardProvider.prepareMoneyAccountLink}
+ * to {@link ICardProvider.completeMoneyAccountLink}. When `signatureMessage`
+ * is set, the controller SIWE-signs it before the approve and passes `sigHash`
+ * back on completion.
+ */
+export interface MoneyAccountLinkContext {
+  signatureMessage?: string;
+  delegationToken?: string;
+  network?: string;
+  currency?: string;
+  fundingSourceId?: string;
+}
+
+export interface MoneyAccountLinkPreparation {
+  tokenAddress: string;
+  spender: string;
+  decimals: number;
+  caipChainId: CaipChainId;
+  context: MoneyAccountLinkContext;
+}
+
+export interface PrepareMoneyAccountLinkParams {
+  moneyAccountAddress: string;
+  amountHuman: string;
+  delegationSettings?: DelegationSettingsResponse | null;
+}
+
+export interface CompleteMoneyAccountLinkParams {
+  moneyAccountAddress: string;
+  amountHuman: string;
+  txHash: string;
+  sigHash?: string;
+  context: MoneyAccountLinkContext;
+}
+
 // -- Cashback --
 
 export type CashbackWalletResponse = RedeemWalletResponse;
@@ -507,6 +564,8 @@ export interface CardFundingSourceResult {
   balance?: string;
   balanceCurrency?: string;
   fundingChannelId?: string;
+  /** On-chain address Immersve debits, when the provider reports one. */
+  fundingAddress?: string;
 }
 
 export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
@@ -679,6 +738,7 @@ export interface ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult>;
+  requestEmailLoginCode?(email: string): Promise<void>;
   executeStepAction?(session: CardAuthSession): Promise<void>;
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
@@ -727,6 +787,19 @@ export interface ICardProvider {
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
   ): Promise<void>;
+  /**
+   * Resolves the token, spender, and chain for a Money account card link,
+   * plus any provider work that must happen before the sponsored approve.
+   */
+  prepareMoneyAccountLink?(
+    params: PrepareMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<MoneyAccountLinkPreparation>;
+  /** Registers the confirmed approve with the provider (and creates a card when ready). */
+  completeMoneyAccountLink?(
+    params: CompleteMoneyAccountLinkParams,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
 
   getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;
   getCashbackWithdrawEstimation?(
@@ -761,6 +834,14 @@ export interface ICardProvider {
   ): Promise<RegistrationStatus>;
   submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
 
+  /**
+   * Finds or creates the funding source for a Money account address on the
+   * provider's current channel.
+   */
+  resolveMoneyAccountFundingSource?(
+    moneyAccountAddress: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult>;
   createFundingSource?(
     tokens: CardAuthTokens,
   ): Promise<CardFundingSourceResult>;

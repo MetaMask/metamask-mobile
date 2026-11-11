@@ -14,7 +14,7 @@ const AUTOMATIC_TOKEN_MOCK = {
 };
 
 const SELECTED_PAY_TOKEN_MOCK: EvmPaymentToken = {
-  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as const,
+  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
   address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
   balanceFiat: '$20.00',
   balanceHuman: '20',
@@ -26,7 +26,7 @@ const SELECTED_PAY_TOKEN_MOCK: EvmPaymentToken = {
 };
 
 const MATCHING_PAY_TOKEN_MOCK: EvmPaymentToken = {
-  assetId: `eip155:${parseInt(AUTOMATIC_TOKEN_MOCK.chainId, 16)}/erc20:${AUTOMATIC_TOKEN_MOCK.address}`,
+  assetId: `eip155:1/erc20:${AUTOMATIC_TOKEN_MOCK.address}`,
   address: AUTOMATIC_TOKEN_MOCK.address,
   balanceFiat: '$12.34',
   balanceHuman: '12.34',

@@ -81,6 +81,14 @@ describe('usePositionSheetData', () => {
   describe('spot', () => {
     const prices = hourlyPrices(NOW_MS - 6 * DAY_MS, NOW_MS, [90, 100, 120]);
 
+    it('titles a spot token by its name', () => {
+      mockUseTraderPositionData.mockReturnValue(baseData({ symbol: 'PEPE' }));
+
+      const { result } = renderData(buildPosition());
+
+      expect(result.current.assetName).toBe('Pepe');
+    });
+
     it('labels values in market cap when one is known', () => {
       mockUseTraderPositionData.mockReturnValue(
         baseData({
@@ -166,8 +174,8 @@ describe('usePositionSheetData', () => {
       );
 
       expect(result.current.summaryTitle).toBe('7 PEPE');
-      expect(result.current.summarySubtitle).toBe('Sold · 2 d ago');
-      expect(result.current.summaryTagLabel).toBeUndefined();
+      expect(result.current.summarySubtitle).toBe('2d ago');
+      expect(result.current.summaryTagLabel).toBe('Sold');
     });
 
     it('ages an open position from firstTradeAt', () => {
@@ -179,7 +187,8 @@ describe('usePositionSheetData', () => {
         }),
       );
 
-      expect(result.current.summarySubtitle).toBe('Opened · 5 hr ago');
+      expect(result.current.summarySubtitle).toBe('5h ago');
+      expect(result.current.summaryTagLabel).toBeUndefined();
     });
 
     it('leaves the caption empty when a closed position has no trades', () => {
@@ -233,11 +242,39 @@ describe('usePositionSheetData', () => {
       expect(result.current.perpTradeSymbol).toBe('BTC');
       expect(result.current.summaryTitle).toBe('2 BTC');
       expect(result.current.summaryTagLabel).toBe('40x Short');
-      expect(result.current.summarySubtitle).toBe('Opened · 2 hr ago');
+      expect(result.current.summarySubtitle).toBe('2h ago');
       expect(result.current.markers[0].tooltipLabel).toMatch(
         /^Opened short @ \$107,469/,
       );
     });
+
+    it.each([
+      {
+        symbol: 'BTC',
+        tokenSymbol: 'BTC',
+        tokenName: 'BTC',
+        label: 'BTC-USD perp',
+      },
+      {
+        symbol: 'CL',
+        tokenSymbol: 'xyz:CL',
+        tokenName: 'CL-USDC',
+        label: 'CL-USD perp',
+      },
+    ])(
+      'titles the $tokenSymbol perp as $label',
+      ({ symbol, tokenSymbol, tokenName, label }) => {
+        mockUseTraderPositionData.mockReturnValue(
+          baseData({ isPerp: true, symbol }),
+        );
+
+        const { result } = renderData(
+          buildPerpPosition({ tokenSymbol, tokenName }),
+        );
+
+        expect(result.current.assetName).toBe(label);
+      },
+    );
 
     it('sizes an open perp from the leveraged amount', () => {
       mockUseTraderPositionData.mockReturnValue(
@@ -273,8 +310,8 @@ describe('usePositionSheetData', () => {
         true,
       );
 
-      expect(result.current.summarySubtitle).toBe('Closed · 3 d ago');
-      expect(result.current.summaryTagLabel).toBe('40x Short');
+      expect(result.current.summarySubtitle).toBe('3d ago');
+      expect(result.current.summaryTagLabel).toBe('Closed 40x Short');
     });
 
     it('skips the candle request offline', () => {
