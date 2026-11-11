@@ -44,6 +44,7 @@ describe('TabViewBar', () => {
     const { getByTestId } = renderBar();
 
     expect(getByTestId('tabs-tab-0')).toBeOnTheScreen();
+    expect(getByTestId('tabs-tab-0-label')).toBeOnTheScreen();
     expect(getByTestId('tabs-tab-1-label')).toBeOnTheScreen();
   });
 
