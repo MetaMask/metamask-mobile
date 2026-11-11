@@ -5,7 +5,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { Position } from '@metamask/social-controllers';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   FilterButton,
@@ -28,6 +27,9 @@ import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import HiddenPositionInfo from './HiddenPositionInfo';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const styles = StyleSheet.create({
@@ -49,6 +51,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
   onSelect,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   const [isHiddenPositionInfoOpen, setIsHiddenPositionInfoOpen] =
@@ -201,14 +204,15 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
               onClose={handleClose}
               testID={AddPositionBottomSheetSelectorsIDs.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={handleClose}
                 closeButtonProps={{
                   testID: AddPositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
                 {strings('social_leaderboard.composer.add_position_title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
               <Box twClassName="px-4 pb-3">
                 <FilterButtonGroup
                   value={tab}
