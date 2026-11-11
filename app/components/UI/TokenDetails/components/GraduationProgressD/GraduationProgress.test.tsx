@@ -132,7 +132,29 @@ describe('GraduationProgress', () => {
     );
     expect(queryByTestId(TokenDetailsIds.graduation.cells)).toBeNull();
     expect(getByTestId(TokenDetailsIds.graduation.moneyRow)).toHaveTextContent(
-      'to graduation',
+      '$52.4K to graduation',
+    );
+  });
+
+  it('renders the new stage like the created state', () => {
+    const { getByTestId, queryByTestId } = render(
+      <GraduationProgress
+        asset={asset({
+          graduationStage: 'new',
+          graduationPercent: 24,
+        })}
+      />,
+    );
+
+    expect(getByTestId(TokenDetailsIds.graduation.stageTag)).toHaveTextContent(
+      'New',
+    );
+    expect(getByTestId(TokenDetailsIds.graduation.percent)).toHaveTextContent(
+      '24%',
+    );
+    expect(queryByTestId(TokenDetailsIds.graduation.cells)).toBeNull();
+    expect(getByTestId(TokenDetailsIds.graduation.moneyRow)).toHaveTextContent(
+      '$52.4K to graduation',
     );
   });
 

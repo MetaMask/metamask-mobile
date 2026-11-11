@@ -6390,7 +6390,6 @@
       },
       "raised": "{{amount}} raised",
       "to_graduation": "{{amount}} to graduation",
-      "to_graduation_compact": "to graduation",
       "accessibility": {
         "bonding": "Bonding curve progress. {{percent}} percent bonded. {{raised}} raised. {{remaining}} to graduation.",
         "new": "Graduation progress. {{percent}} percent to graduation."

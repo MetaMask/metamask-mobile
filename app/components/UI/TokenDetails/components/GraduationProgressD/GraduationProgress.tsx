@@ -293,11 +293,20 @@ const GraduationProgressModule = ({
     ? strings('token_details_v1.graduation.accessibility.bonding', {
         percent: viewModel.displayPercent,
         raised: viewModel.raisedLabel ?? '',
-        remaining: viewModel.remainingLabel ?? '',
+        remaining: viewModel.remainingLabel,
       })
     : strings('token_details_v1.graduation.accessibility.new', {
         percent: viewModel.displayPercent,
       });
+  const remainingText = strings('token_details_v1.graduation.to_graduation', {
+    amount: viewModel.remainingLabel,
+  });
+  const moneyRowText =
+    viewModel.raisedLabel != null
+      ? `${strings('token_details_v1.graduation.raised', {
+          amount: viewModel.raisedLabel,
+        })} · ${remainingText}`
+      : remainingText;
 
   return (
     <Box
@@ -342,16 +351,10 @@ const GraduationProgressModule = ({
       ) : null}
       <Text
         variant={TextVariant.BodySm}
-        color={TextColor.TextMuted}
+        color={TextColor.TextAlternative}
         testID={TokenDetailsIds.graduation.moneyRow}
       >
-        {viewModel.raisedLabel != null && viewModel.remainingLabel != null
-          ? `${strings('token_details_v1.graduation.raised', {
-              amount: viewModel.raisedLabel,
-            })} · ${strings('token_details_v1.graduation.to_graduation', {
-              amount: viewModel.remainingLabel,
-            })}`
-          : strings('token_details_v1.graduation.to_graduation_compact')}
+        {moneyRowText}
       </Text>
     </Box>
   );

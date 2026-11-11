@@ -13,7 +13,7 @@ export interface GraduationProgressViewModel {
   percent: number;
   displayPercent: number;
   raisedLabel: string | null;
-  remainingLabel: string | null;
+  remainingLabel: string;
   isAlmostGraduated: boolean;
 }
 
@@ -48,10 +48,12 @@ export const getGraduationProgressViewModel = (
   if (percent == null) {
     return null;
   }
-  const stage = launchpadData.graduationStage;
-  if (stage !== 'created' && stage !== 'bonding') {
+  const rawStage = launchpadData.graduationStage;
+  if (rawStage !== 'created' && rawStage !== 'new' && rawStage !== 'bonding') {
     return null;
   }
+  const stage: GraduationProgressStage =
+    rawStage === 'bonding' ? 'bonding' : 'created';
   if (stage === 'bonding' && percent >= 100) {
     return null;
   }
@@ -66,8 +68,7 @@ export const getGraduationProgressViewModel = (
     displayPercent: Math.floor(percent),
     raisedLabel:
       stage === 'bonding' ? formatCompactFiat(raisedUsd, 'usd') : null,
-    remainingLabel:
-      stage === 'bonding' ? formatCompactFiat(remainingUsd, 'usd') : null,
+    remainingLabel: formatCompactFiat(remainingUsd, 'usd') ?? '',
     isAlmostGraduated: percent >= ALMOST_GRADUATED_PERCENT,
   };
 };

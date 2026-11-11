@@ -137,7 +137,7 @@ describe('getGraduationProgressViewModel', () => {
     expect(viewModel?.displayPercent).toBe(0);
   });
 
-  it('collapses a created token to percent-only copy with no money labels', () => {
+  it('shows only the remaining amount for a created token', () => {
     expect(
       getGraduationProgressViewModel(
         launchpadData({ graduationStage: 'created', graduationPercent: 24 }),
@@ -148,9 +148,23 @@ describe('getGraduationProgressViewModel', () => {
       percent: 24,
       displayPercent: 24,
       raisedLabel: null,
-      remainingLabel: null,
+      remainingLabel: '$52.4K',
       isAlmostGraduated: false,
     });
+  });
+
+  it('maps the new stage onto the created view', () => {
+    expect(
+      getGraduationProgressViewModel(
+        launchpadData({ graduationStage: 'new', graduationPercent: 24 }),
+        'pumpfun',
+      ),
+    ).toStrictEqual(
+      getGraduationProgressViewModel(
+        launchpadData({ graduationStage: 'created', graduationPercent: 24 }),
+        'pumpfun',
+      ),
+    );
   });
 
   it('keeps a created token visible at 100 percent, per the visibility rule', () => {
