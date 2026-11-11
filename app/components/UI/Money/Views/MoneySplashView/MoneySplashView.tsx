@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -129,6 +129,8 @@ const MoneySplashView = () => {
   });
   useMountEffect(trackScreenViewed);
 
+  const depositStartedRef = useRef(false);
+
   const goToMoneyHome = useCallback(() => {
     navigateToMoneyHome({
       skipOnboardingRedirect: true,
@@ -137,19 +139,30 @@ const MoneySplashView = () => {
   }, [analyticsContext, navigateToMoneyHome]);
 
   const handleStartEarning = useCallback(() => {
+    const isDepositRedirect =
+      postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT;
+
+    if (isDepositRedirect && depositStartedRef.current) {
+      return;
+    }
+
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      button_intent: isDepositRedirect
+        ? MONEY_BUTTON_INTENTS.ADD_MONEY
+        : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
       label_key: 'money.splash.cta',
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target: isDepositRedirect
+        ? SCREEN_NAMES.MONEY_DEPOSIT
+        : SCREEN_NAMES.MONEY_HOME,
     });
 
-    if (
-      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
-    ) {
+    if (!isDepositRedirect) {
       goToMoneyHome();
       return;
     }
+
+    depositStartedRef.current = true;
 
     initiateDeposit({
       preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
