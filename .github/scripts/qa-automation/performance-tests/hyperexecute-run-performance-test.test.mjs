@@ -80,7 +80,7 @@ test('unfiltered HyperExecute tasks retain strict no-tests failure behavior', ()
 test('dev onboarding specs use the dev onboarding TestMu project', () => {
   const args = runWithFakeYarn(
     '',
-    'tests/performance/dev-onboarding/create-wallet.spec.ts',
+    'tests/performance/dev-onboarding/social-onboarding.spec.ts',
     'dev-onboarding',
   );
 

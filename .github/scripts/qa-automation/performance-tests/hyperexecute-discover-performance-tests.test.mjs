@@ -104,7 +104,7 @@ test('dev-onboarding discovery includes only the dev onboarding spec', () => {
 
   assert.equal(status, 0);
   assert.deepEqual(specs, [
-    'tests/performance/dev-onboarding/create-wallet.spec.ts',
+    'tests/performance/dev-onboarding/social-onboarding.spec.ts',
   ]);
 });
 
@@ -112,7 +112,7 @@ test('onboarding discovery does not include the dev onboarding spec', () => {
   const { specs } = discover('onboarding');
 
   assert.equal(
-    specs.includes('tests/performance/dev-onboarding/create-wallet.spec.ts'),
+    specs.includes('tests/performance/dev-onboarding/social-onboarding.spec.ts'),
     false,
   );
 });
