@@ -138,6 +138,19 @@ export function useImmersveCardProvisioning(
     handled.current = true;
     let cancelled = false;
     const existingId = reduxFundingSourceIdRef.current;
+    // Shared by the funding-still-pending path and a failed recheck. A throw
+    // used to leave "Card being created" with nothing scheduled to try again.
+    const scheduleSettlingRecheck = () => {
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+      }
+      settleTimerRef.current = setTimeout(() => {
+        settleTimerRef.current = null;
+        if (!cancelled) {
+          setRecheckCount((count) => count + 1);
+        }
+      }, POLL_INTERVAL_MS);
+    };
 
     (async () => {
       try {
@@ -180,17 +193,6 @@ export function useImmersveCardProvisioning(
           }
           isFundingSettlingRef.current = false;
           dispatch(setImmersveFundingSettling(false));
-        };
-        const scheduleSettlingRecheck = () => {
-          if (settleTimerRef.current) {
-            clearTimeout(settleTimerRef.current);
-          }
-          settleTimerRef.current = setTimeout(() => {
-            settleTimerRef.current = null;
-            if (!cancelled) {
-              setRecheckCount((count) => count + 1);
-            }
-          }, POLL_INTERVAL_MS);
         };
         if (action.type === 'active') {
           clearFundingSettling();
@@ -303,6 +305,9 @@ export function useImmersveCardProvisioning(
           return;
         }
         handled.current = false;
+        if (isFundingSettlingRef.current) {
+          scheduleSettlingRecheck();
+        }
         trackEventRef.current(
           createEventBuilderRef
             .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)

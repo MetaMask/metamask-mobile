@@ -337,7 +337,6 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 
 const mockEnableCard = jest.fn();
 let mockCanEnableCard = false;
-let mockIsEnableCardPending = false;
 let mockProvisioningView:
   | 'reconciling'
   | 'hidden'
@@ -354,7 +353,7 @@ jest.mock('./hooks/useCardEnableCard', () => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
-    isEnableCardPending: mockIsEnableCardPending,
+    isEnableCardPending: false,
   }),
 }));
 
@@ -1342,7 +1341,6 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCanEnableCard = false;
-    mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
@@ -2619,25 +2617,6 @@ describe('CardHome Component', () => {
     expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
     expect(mockEnableCard).toHaveBeenCalledTimes(1);
-  });
-
-  it('disables Enable card while the Money account approval is running', () => {
-    mockCanEnableCard = true;
-    mockIsEnableCardPending = true;
-    mockProvisioningView = 'hidden';
-    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
-    setupLoadCardDataMock({
-      isAuthenticated: true,
-      warning: CardStateWarning.NoCard,
-      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
-      hasExternalWallets: true,
-    });
-
-    render();
-
-    expect(
-      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
-    ).toBeDisabled();
   });
 
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {

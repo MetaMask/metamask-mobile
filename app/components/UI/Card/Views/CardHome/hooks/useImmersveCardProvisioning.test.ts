@@ -502,6 +502,39 @@ describe('useImmersveCardProvisioning', () => {
       expect(controller.createCard).not.toHaveBeenCalled();
     });
 
+    it('retries a failed recheck while the approval is settling', async () => {
+      jest.useFakeTimers();
+      mockFundingSettling = true;
+      controller.getSpendingPrerequisites
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValue({ prerequisites: [] });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+      expect(result.current.pendingAction).toBeNull();
+      expect(controller.createCard).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+      expect(controller.createCard).toHaveBeenCalledWith('fs-1');
+      jest.useRealTimers();
+    });
+
     it('hides the funding action and rechecks while the approval is settling', async () => {
       jest.useFakeTimers();
       mockFundingSettling = true;
