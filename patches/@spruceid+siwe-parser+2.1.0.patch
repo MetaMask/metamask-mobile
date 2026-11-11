@@ -1,0 +1,28 @@
+diff --git a/node_modules/@spruceid/siwe-parser/dist/abnf.js b/node_modules/@spruceid/siwe-parser/dist/abnf.js
+index 15caf98..0eeac1e 100644
+--- a/node_modules/@spruceid/siwe-parser/dist/abnf.js
++++ b/node_modules/@spruceid/siwe-parser/dist/abnf.js
+@@ -290,9 +290,6 @@ class ParsedMessage {
+         if (this.domain.length === 0) {
+             throw new Error("Domain cannot be empty.");
+         }
+-        if (!(0, utils_1.isEIP55Address)(this.address)) {
+-            throw new Error("Address not conformant to EIP-55.");
+-        }
+     }
+ }
+ exports.ParsedMessage = ParsedMessage;
+diff --git a/node_modules/@spruceid/siwe-parser/dist/regex.js b/node_modules/@spruceid/siwe-parser/dist/regex.js
+index 4740a7c..f1d880d 100644
+--- a/node_modules/@spruceid/siwe-parser/dist/regex.js
++++ b/node_modules/@spruceid/siwe-parser/dist/regex.js
+@@ -55,9 +55,6 @@ class ParsedMessage {
+             throw new Error("Domain cannot be empty.");
+         }
+         this.address = (_b = match === null || match === void 0 ? void 0 : match.groups) === null || _b === void 0 ? void 0 : _b.address;
+-        if (!(0, utils_1.isEIP55Address)(this.address)) {
+-            throw new Error("Address not conformant to EIP-55.");
+-        }
+         this.statement = (_c = match === null || match === void 0 ? void 0 : match.groups) === null || _c === void 0 ? void 0 : _c.statement;
+         this.uri = (_d = match === null || match === void 0 ? void 0 : match.groups) === null || _d === void 0 ? void 0 : _d.uri;
+         if (!uri.isUri(this.uri)) {
