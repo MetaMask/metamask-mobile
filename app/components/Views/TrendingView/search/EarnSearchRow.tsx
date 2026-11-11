@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import EarnMoneyAccountRow from '../feeds/earn/EarnMoneyAccountRow';
 import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
-import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../UI/Money/hooks/useMoneyHomeNavigation';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
@@ -45,7 +45,7 @@ const EarnSearchRow = ({
   position: number;
   resultCount?: number;
 }) => {
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const moneyEntryContext = useSelector(selectMoneyEntryContext);
   const isMoneyOnboardingRedirectNeeded =
     getMoneyEntryDecision('home', moneyEntryContext).destination ===

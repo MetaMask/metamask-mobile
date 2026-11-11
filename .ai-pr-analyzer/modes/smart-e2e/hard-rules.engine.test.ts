@@ -26,7 +26,10 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
     baseBranch: 'origin/main',
   };
 
-  function evaluate(changedFiles: string[]) {
+  function evaluate(
+    changedFiles: string[],
+    contextOverride: Partial<typeof context> = {},
+  ) {
     writeSmartE2eCatalog();
     const { evaluateHardRules, loadMode } = loadAnalyzer();
     const mode = loadMode('smart-e2e', join(repoRoot, '.ai-pr-analyzer'));
@@ -34,7 +37,7 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
       mode.hardRules,
       changedFiles,
       [],
-      context,
+      { ...context, ...contextOverride },
       mode.fallback.conservative,
       mode.catalog ?? {},
       {
@@ -137,22 +140,38 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
     assert.match(String(result.reasoning), /test-shared-infra-impact/);
   });
 
-  it('runs all E2E tags when locales/languages/en.json changes', () => {
-    const result = resultOf(evaluate(['locales/languages/en.json']));
-    assert.match(String(result.reasoning), /en-locale-change/);
-    assert.deepEqual(result.selected_tags, ['ALL']);
-    assert.equal(result.confidence, 100);
+  // Base pinned to HEAD so en.json has no key diff regardless of the PR
+  // running these tests; key-level behaviour is in locale-key-impact.test.ts.
+  const unchangedLocale = { baseBranch: 'HEAD' };
+
+  it('does not force ALL when en.json has no modified or removed keys', () => {
+    const evaluation = evaluate(['locales/languages/en.json'], unchangedLocale);
+    assert.equal(evaluation, null);
   });
 
-  it('runs all E2E tags when en.json is among other changed files', () => {
+  it('keeps targeted tags when en.json changes alongside a page object', () => {
     const result = resultOf(
-      evaluate([
-        'locales/languages/en.json',
-        'app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.test.tsx',
-      ]),
+      evaluate(
+        [
+          'locales/languages/en.json',
+          'tests/page-objects/wallet/AccountListBottomSheet.ts',
+        ],
+        unchangedLocale,
+      ),
     );
-    assert.match(String(result.reasoning), /en-locale-change/);
+    assert.ok((result.selected_tags as string[]).includes('SmokeAccounts'));
+    assert.ok(!(result.selected_tags as string[]).includes('ALL'));
+  });
+
+  it('still runs ALL when en.json changes alongside global infrastructure', () => {
+    const result = resultOf(
+      evaluate(
+        ['locales/languages/en.json', 'app/store/index.ts'],
+        unchangedLocale,
+      ),
+    );
     assert.deepEqual(result.selected_tags, ['ALL']);
+    assert.match(String(result.reasoning), /global-infrastructure-change/);
   });
 
   it('applies shared infra rule when page-object changes alongside ignorable workflow files', () => {
