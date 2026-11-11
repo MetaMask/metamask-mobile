@@ -115,15 +115,6 @@ describe('Settings', () => {
     expect(advancedSettings).toBeDefined();
   });
 
-  it('renders updated security and advanced descriptions', () => {
-    const { getByText } = renderWithProvider(<Settings />, {
-      state: initialState,
-    });
-
-    expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
-    expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
-  });
-
   it('renders settings group headings', () => {
     const { getByTestId } = renderWithProvider(<Settings />, {
       state: initialState,

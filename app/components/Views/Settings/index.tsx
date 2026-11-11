@@ -158,14 +158,12 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.GROUP_GENERAL}
         />
         <SettingsDrawer
-          description={strings('app_settings.general_desc')}
           onPress={onPressGeneral}
           title={strings('app_settings.general_title')}
           testID={SettingsViewSelectorsIDs.GENERAL}
         />
         {isNotificationsFeatureEnabled() && (
           <SettingsDrawer
-            description={strings('app_settings.notifications_desc')}
             onPress={onPressNotifications}
             title={strings('app_settings.notifications_title')}
             testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
@@ -177,7 +175,6 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY}
         />
         <SettingsDrawer
-          description={strings('app_settings.security_desc')}
           onPress={onPressSecurity}
           title={strings('app_settings.security_title')}
           warning={
@@ -188,7 +185,6 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.SECURITY}
         />
         <SettingsDrawer
-          description={strings('backupAndSync.description')}
           onPress={onPressBackupAndSync}
           title={strings('backupAndSync.title')}
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
@@ -200,7 +196,6 @@ const Settings = () => {
         />
         <SettingsDrawer
           title={strings('app_settings.fiat_on_ramp.title')}
-          description={strings('app_settings.fiat_on_ramp.description')}
           onPress={onPressOnRamp}
           testID={SettingsViewSelectorsIDs.ON_RAMP}
         />
@@ -210,7 +205,6 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.GROUP_MORE}
         />
         <SettingsDrawer
-          description={strings('app_settings.advanced_desc')}
           onPress={onPressAdvanced}
           title={strings('app_settings.advanced_title')}
           testID={SettingsViewSelectorsIDs.ADVANCED}
@@ -218,14 +212,12 @@ const Settings = () => {
         {CAN_INSTALL_THIRD_PARTY_SNAPS && (
           <SettingsDrawer
             title={strings('app_settings.snaps.title')}
-            description={strings('app_settings.snaps.description')}
             onPress={onPressSnaps}
             testID={SettingsViewSelectorsIDs.SNAPS}
           />
         )}
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
-          description={strings('app_settings.experimental_desc')}
           onPress={onPressExperimental}
           testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
         />
@@ -239,9 +231,6 @@ const Settings = () => {
           isTestEnvironment && (
             <SettingsDrawer
               title={strings('app_settings.aes_crypto_test_form_title')}
-              description={strings(
-                'app_settings.aes_crypto_test_form_description',
-              )}
               onPress={onPressAesCryptoTestForm}
               testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
             />
@@ -256,9 +245,6 @@ const Settings = () => {
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (
           <SettingsDrawer
             title={strings('app_settings.feature_flag_override.title')}
-            description={strings(
-              'app_settings.feature_flag_override.description',
-            )}
             onPress={onPressFeatureFlagOverride}
           />
         )}
