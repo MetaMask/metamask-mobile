@@ -5,7 +5,7 @@ import {
   TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifiers';
+import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   getMfaRecoveryStatus,
   type MfaRecoverySeedless,

@@ -8,13 +8,14 @@ import { isMfaRecoveryConfigured } from './config';
 import {
   AuthenticationRecoveryAuthProvider,
   type AuthenticationRecoveryAuthProviderMessenger,
-} from './auth-provider';
+} from './auth/auth-provider';
+import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
 import { MfaRecoveryControllerError } from './errors';
 import {
   createMfaRecoveryController,
   type CreateMfaRecoveryControllerOptions,
 } from './create-mfa-recovery-controller';
-import type { SignPersonalMessage } from './identifiers';
+import type { SignPersonalMessage } from './auth/identifiers';
 import type { MessengerClientInitFunction } from '../../types';
 import type { MfaRecoveryControllerInitMessenger } from '../../messengers/mfa-recovery-controller-messenger';
 import Logger from '../../../../util/Logger';
@@ -83,6 +84,7 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
       await initMessenger.call('AuthenticationController:getBearerToken'),
     getAddress,
     signPersonalMessage,
+    getPasskeyAssertion: mobilePasskeyAdapter.get,
     exportEncryptionKey,
     isEnabled,
   });

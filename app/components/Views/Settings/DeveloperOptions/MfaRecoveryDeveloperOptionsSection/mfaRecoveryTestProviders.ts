@@ -6,7 +6,7 @@ import type {
 import {
   PASSKEY_ORIGIN,
   PASSKEY_RP_ID,
-} from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifier-auth-provider';
+} from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
 import { SoftwarePasskey, base64Url } from './softwarePasskey';
 
 type KeyBoundIdentifierToken = Awaited<

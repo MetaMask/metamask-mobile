@@ -8,6 +8,7 @@ import {
   TOPRF_RECOVERY_AUTH_CONNECTION_ID,
   TOPRF_RECOVERY_GROUPED_AUTH_CONNECTION_ID,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
+import { MfaRecoveryControllerError } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
 import {
   prepareRecoveryRun,
   type MfaRecoveryTestDependencies,
@@ -57,6 +58,52 @@ export function getMfaRecoveryStatus(
   return state.envelope === undefined ? 'NotEnabled' : 'Enabled';
 }
 
+/** The pair of identifier types to register. */
+export type MfaRecoveryIdentifierCombination =
+  | 'siwe_passkey'
+  | 'siwe_social'
+  | 'passkey_social';
+
+const COMBINATION_TYPES: Record<
+  MfaRecoveryIdentifierCombination,
+  readonly ['siwe' | 'passkey', 'passkey' | 'social']
+> = {
+  siwe_passkey: ['siwe', 'passkey'],
+  siwe_social: ['siwe', 'social'],
+  passkey_social: ['passkey', 'social'],
+};
+
+/**
+ * Returns the identifiers to register for a combination. SIWE is the primary
+ * account's identifier, which the controller proves with a wallet signature.
+ *
+ * The controller and escrow only accept non-SIWE identifiers exactly as Auth
+ * approved them, so passkey and social identifiers come from Auth as-is.
+ *
+ * @throws If Auth approved no identifier of a requested non-SIWE type.
+ */
+export function getRegistrationIdentifiers(
+  authIdentifiers: readonly Identifier[],
+  siweIdentifier: Identifier,
+  combination: MfaRecoveryIdentifierCombination,
+): Identifier[] {
+  return COMBINATION_TYPES[combination].map((type) => {
+    if (type === 'siwe') {
+      return siweIdentifier;
+    }
+    const approved = authIdentifiers.find(
+      (identifier) => identifier.type === type,
+    );
+    if (approved === undefined) {
+      throw new MfaRecoveryControllerError(
+        `Auth has no approved ${type} identifier for this profile`,
+        'identifier_not_approved',
+      );
+    }
+    return approved;
+  });
+}
+
 /**
  * Runs ADR flow 1 against the live escrow and TOPRF nodes: registers a fresh
  * recovery secret with the escrow, authenticates at aal2, then migrates the
@@ -65,21 +112,27 @@ export function getMfaRecoveryStatus(
 export async function runMfaRecoverySetup(
   dependencies: MfaRecoverySetupDependencies,
   onStep: (step: MfaRecoverySetupStep) => void = () => undefined,
+  combination: MfaRecoveryIdentifierCombination = 'siwe_passkey',
 ): Promise<MfaRecoverySetupResult> {
-  const { controller } = await prepareRecoveryRun(dependencies, onStep);
+  const { controller, identifiers } = await prepareRecoveryRun(
+    dependencies,
+    onStep,
+  );
   const { seedless } = dependencies;
 
   onStep('checking_recovery_status');
   const before = getMfaRecoveryStatus(seedless.state);
 
   onStep('registering_recovery_secret');
-  // The controller rejects payload identifiers missing from the approval, so
-  // register with Auth's identifiers unchanged and in Auth's order.
-  const authIdentifiers = await dependencies.getAuthIdentifiers();
+  const registrationIdentifiers = getRegistrationIdentifiers(
+    await dependencies.getAuthIdentifiers(),
+    identifiers.siweIdentifier,
+    combination,
+  );
   const recoverySecret = new Uint8Array(
     dependencies.randomBytes(RECOVERY_SECRET_LENGTH),
   );
-  await controller.register(recoverySecret, authIdentifiers);
+  await controller.register(recoverySecret, registrationIdentifiers);
 
   onStep('minting_aal2_token');
   const aal2Token = await dependencies.mintAal2Token();

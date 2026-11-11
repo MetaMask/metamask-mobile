@@ -5,6 +5,7 @@ import {
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import {
   getMfaRecoveryStatus,
+  getRegistrationIdentifiers,
   runMfaRecoverySetup,
   type MfaRecoverySetupDependencies,
 } from './runMfaRecoverySetup';
@@ -22,6 +23,11 @@ const AUTH_PASSKEY_IDENTIFIER = {
   value: 'auth-cred',
 } as Identifier;
 const AUTH_SIWE_IDENTIFIER = { type: 'siwe', value: '0xdef' } as Identifier;
+const AUTH_SOCIAL_IDENTIFIER: Identifier = {
+  type: 'social',
+  namespace: 'https://accounts.google.com',
+  value: 'auth-social',
+};
 const RECOVERY_SECRET = new Uint8Array(32).fill(7);
 
 function createController() {
@@ -74,6 +80,37 @@ describe('getMfaRecoveryStatus', () => {
   });
 });
 
+describe('getRegistrationIdentifiers', () => {
+  const authIdentifiers = [
+    AUTH_SIWE_IDENTIFIER,
+    AUTH_PASSKEY_IDENTIFIER,
+    AUTH_SOCIAL_IDENTIFIER,
+  ];
+
+  it.each([
+    ['siwe_passkey', [SIWE_IDENTIFIER, AUTH_PASSKEY_IDENTIFIER]],
+    ['siwe_social', [SIWE_IDENTIFIER, AUTH_SOCIAL_IDENTIFIER]],
+    ['passkey_social', [AUTH_PASSKEY_IDENTIFIER, AUTH_SOCIAL_IDENTIFIER]],
+  ] as const)('returns the %s identifiers', (combination, expected) => {
+    expect(
+      getRegistrationIdentifiers(authIdentifiers, SIWE_IDENTIFIER, combination),
+    ).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['siwe_social', [AUTH_PASSKEY_IDENTIFIER]],
+    ['passkey_social', [AUTH_PASSKEY_IDENTIFIER]],
+    ['siwe_passkey', [AUTH_SOCIAL_IDENTIFIER]],
+  ] as const)(
+    'throws identifier_not_approved for %s when Auth lacks a type',
+    (combination, approved) => {
+      expect(() =>
+        getRegistrationIdentifiers(approved, SIWE_IDENTIFIER, combination),
+      ).toThrow(expect.objectContaining({ code: 'identifier_not_approved' }));
+    },
+  );
+});
+
 describe('runMfaRecoverySetup', () => {
   let controller: ReturnType<typeof createController>;
   let seedless: ReturnType<typeof createSeedless>;
@@ -91,13 +128,41 @@ describe('runMfaRecoverySetup', () => {
     });
   });
 
-  it('registers a fresh recovery secret with the identifiers from Auth unchanged', async () => {
+  it('registers a fresh recovery secret with SIWE and the Auth passkey by default', async () => {
     await runMfaRecoverySetup(createDependencies(seedless));
 
     expect(controller.register).toHaveBeenCalledWith(RECOVERY_SECRET, [
-      AUTH_SIWE_IDENTIFIER,
+      SIWE_IDENTIFIER,
       AUTH_PASSKEY_IDENTIFIER,
     ]);
+  });
+
+  it('registers the requested identifier combination', async () => {
+    await runMfaRecoverySetup(
+      createDependencies(seedless, {
+        getAuthIdentifiers: jest
+          .fn()
+          .mockResolvedValue([AUTH_PASSKEY_IDENTIFIER, AUTH_SOCIAL_IDENTIFIER]),
+      }),
+      undefined,
+      'passkey_social',
+    );
+
+    expect(controller.register).toHaveBeenCalledWith(RECOVERY_SECRET, [
+      AUTH_PASSKEY_IDENTIFIER,
+      AUTH_SOCIAL_IDENTIFIER,
+    ]);
+  });
+
+  it('does not register when Auth approved no identifier of a requested type', async () => {
+    await expect(
+      runMfaRecoverySetup(
+        createDependencies(seedless),
+        undefined,
+        'siwe_social',
+      ),
+    ).rejects.toMatchObject({ code: 'identifier_not_approved' });
+    expect(controller.register).not.toHaveBeenCalled();
   });
 
   it('authenticates the aal2 token for recovery', async () => {

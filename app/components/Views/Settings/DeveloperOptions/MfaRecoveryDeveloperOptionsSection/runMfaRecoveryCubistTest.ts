@@ -4,8 +4,8 @@ import {
 } from '@metamask/mfa-recovery-controller';
 import { bytesToHex, sha256 } from '@metamask/utils';
 import { RECOVERY_SECRET_LENGTH } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
-import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifier-auth-provider';
-import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifiers';
+import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
+import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
@@ -140,18 +140,43 @@ export async function runMfaRecoveryCubistTest(
   return result;
 }
 
-/** Runs recovery without overwriting the previously registered secret. */
+/** The identifier type used to authenticate a secret read. */
+export type RecoveryReadIdentifierType = 'siwe' | 'passkey' | 'social';
+
+/**
+ * Runs recovery without overwriting the previously registered secret, proving
+ * the read with the chosen identifier type. The social identifier comes from
+ * seedless state, so the caller passes it in.
+ */
 export async function runMfaRecoveryCubistRecover(
   dependencies: MfaRecoveryTestDependencies,
   onStep: (step: MfaRecoveryTestStep) => void = () => undefined,
+  identifierType: RecoveryReadIdentifierType = 'siwe',
+  socialIdentifier?: Identifier,
 ): Promise<MfaRecoveryRecoverResult> {
   const { controller, identifiers } = await prepareRecoveryRun(
     dependencies,
     onStep,
   );
+  const readIdentifier = (() => {
+    switch (identifierType) {
+      case 'passkey':
+        return identifiers.passkeyIdentifier;
+      case 'social':
+        if (socialIdentifier === undefined) {
+          throw new MfaRecoveryControllerError(
+            'Seedless onboarding has no social login',
+            'social_login_unavailable',
+          );
+        }
+        return socialIdentifier;
+      default:
+        return identifiers.siweIdentifier;
+    }
+  })();
   const recovered = await readRecoverySecret(
     controller,
-    identifiers.siweIdentifier,
+    readIdentifier,
     onStep,
   );
   const matches =

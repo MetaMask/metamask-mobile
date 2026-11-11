@@ -2,8 +2,8 @@ import type {
   Identifier,
   MfaRecoveryController,
 } from '@metamask/mfa-recovery-controller';
-import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifier-auth-provider';
-import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifiers';
+import { RecoveryIdentifierRouter } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifier-auth-provider';
+import { createSiweIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   runMfaRecoveryCubistTest,
   type MfaRecoveryTestDependencies,

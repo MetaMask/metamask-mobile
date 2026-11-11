@@ -8,9 +8,19 @@ import {
   PASSKEY_RP_ID,
   SIWE_CHAIN_ID,
   SIWE_DOMAIN,
-} from './constants';
-import { MfaRecoveryControllerError } from './errors';
+} from '../constants';
+import { MfaRecoveryControllerError } from '../errors';
 import type { SignPersonalMessage } from './identifiers';
+import {
+  PlatformPasskeyIdentifierAuthProvider,
+  unavailablePasskeyAssertionGetter,
+  type PasskeyAssertionGetter,
+} from './passkey-identifier-auth-provider';
+import {
+  SocialIdentifierAuthProvider,
+  unavailableSocialIdTokenProvider,
+  type SocialIdTokenProvider,
+} from './social-identifier-auth-provider';
 
 export { PASSKEY_ORIGIN, PASSKEY_RP_ID };
 
@@ -83,6 +93,14 @@ export class SiweIdentifierAuthProvider
   }
 }
 
+export interface RecoveryIdentifierRouterOptions
+  extends SiweIdentifierAuthProviderOptions {
+  /** Issues social ID tokens bound to a nonce. */
+  getSocialIdToken?: SocialIdTokenProvider;
+  /** Runs the platform passkey assertion ceremony. */
+  getPasskeyAssertion?: PasskeyAssertionGetter;
+}
+
 /**
  * Routes recovery identifier proofs to providers registered for each type.
  */
@@ -91,8 +109,20 @@ export class RecoveryIdentifierRouter
 {
   readonly #providers = new Map<string, RecoveryIdentifierAuthProvider>();
 
-  constructor(options: SiweIdentifierAuthProviderOptions) {
-    this.registerProvider('siwe', new SiweIdentifierAuthProvider(options));
+  constructor({
+    getSocialIdToken = unavailableSocialIdTokenProvider,
+    getPasskeyAssertion = unavailablePasskeyAssertionGetter,
+    ...siweOptions
+  }: RecoveryIdentifierRouterOptions) {
+    this.registerProvider('siwe', new SiweIdentifierAuthProvider(siweOptions));
+    this.registerProvider(
+      'social',
+      new SocialIdentifierAuthProvider({ getIdToken: getSocialIdToken }),
+    );
+    this.registerProvider(
+      'passkey',
+      new PlatformPasskeyIdentifierAuthProvider({ get: getPasskeyAssertion }),
+    );
   }
 
   registerProvider(

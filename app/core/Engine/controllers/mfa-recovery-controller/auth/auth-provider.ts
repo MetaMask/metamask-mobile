@@ -7,7 +7,7 @@ import type {
   AuthenticationControllerRefreshCanonicalProfileIdAction,
   AuthenticationControllerRequestMfaApprovalAction,
 } from '@metamask/profile-sync-controller/auth';
-import type { CubistSessionTokenProvider } from './cubist-escrow-provider';
+import type { CubistSessionTokenProvider } from '../cubist-escrow-provider';
 
 export type AuthenticationRecoveryAuthProviderMessenger = Messenger<
   'AuthApiRecoveryAuthProvider',
@@ -58,6 +58,9 @@ export class AuthenticationRecoveryAuthProvider
         requestHash: params.requestHash,
         audiences: params.audiences,
         requireVerification: params.requireTwoFactor === true,
+        // Mutations are validated against the approval's identifiers and its
+        // identifiers_hash, which the server only returns when asked.
+        includeIdentifiers: true,
         reason: { operation: 'mfa_recovery' },
       },
     );

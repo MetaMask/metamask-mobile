@@ -79,9 +79,15 @@ describe('createMfaRecoveryController', () => {
       expect.objectContaining({
         messenger,
         state: { pendingOperation: null },
-        pendingOperationEncryptor,
+        pendingOperationEncryptor: {
+          encrypt: expect.any(Function),
+          decrypt: expect.any(Function),
+        },
         escrows: [expect.objectContaining({ id: 'cubist' })],
-        authProvider,
+        authProvider: {
+          getAuthenticatedProfileId: expect.any(Function),
+          authorizeRecoveryRequest: expect.any(Function),
+        },
         identifierAuthProvider: result.identifierRouter,
       }),
     );

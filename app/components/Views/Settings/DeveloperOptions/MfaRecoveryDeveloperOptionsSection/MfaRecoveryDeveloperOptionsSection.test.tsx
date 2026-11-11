@@ -27,7 +27,9 @@ jest.mock('../../../../../core/Engine', () => ({
           mockRequestMfaApproval(request),
       },
       MfaRecoveryController: {},
-      SeedlessOnboardingController: {},
+      SeedlessOnboardingController: {
+        state: { authConnection: 'google', userId: 'google-user' },
+      },
     },
   },
 }));
@@ -64,14 +66,23 @@ jest.mock('./runMfaRecoveryCubistTest', () => ({
   runMfaRecoveryCubistRecover: (
     dependencies: unknown,
     onStep: (step: string) => void,
-  ) => mockRunMfaRecoveryCubistRecover(dependencies, onStep),
+    identifierType: string,
+    socialIdentifier: unknown,
+  ) =>
+    mockRunMfaRecoveryCubistRecover(
+      dependencies,
+      onStep,
+      identifierType,
+      socialIdentifier,
+    ),
 }));
 
 jest.mock('./runMfaRecoverySetup', () => ({
   runMfaRecoverySetup: (
     dependencies: unknown,
     onStep: (step: string) => void,
-  ) => mockRunMfaRecoverySetup(dependencies, onStep),
+    combination: string,
+  ) => mockRunMfaRecoverySetup(dependencies, onStep, combination),
 }));
 
 jest.mock('./runToprfRecoverySecretTest', () => ({
@@ -82,8 +93,10 @@ jest.mock('./runToprfRecoverySecretTest', () => ({
 }));
 
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
-const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
-const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
+const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button-siwe';
+const RECOVER_BUTTON_TEST_ID_PREFIX = 'mfa-recovery-dev-recover-secret-button';
+const SETUP_BUTTON_TEST_ID_PREFIX = 'mfa-recovery-dev-setup-recovery-button';
+const SETUP_BUTTON_TEST_ID = `${SETUP_BUTTON_TEST_ID_PREFIX}-siwe_passkey`;
 const TOPRF_TEST_BUTTON_TEST_ID =
   'mfa-recovery-dev-toprf-recovery-secret-button';
 
@@ -141,8 +154,40 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     expect(getByText('MFA recovery')).toBeOnTheScreen();
     expect(getByTestId(RUN_BUTTON_TEST_ID)).toBeOnTheScreen();
     expect(getByTestId(RECOVER_BUTTON_TEST_ID)).toBeOnTheScreen();
+    expect(
+      getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-passkey`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-social`),
+    ).toBeOnTheScreen();
     expect(getByTestId(SETUP_BUTTON_TEST_ID)).toBeOnTheScreen();
   });
+
+  it.each([
+    ['siwe_passkey', 'Set up recovery: SIWE + passkey'],
+    ['siwe_social', 'Set up recovery: SIWE + social'],
+    ['passkey_social', 'Set up recovery: passkey + social'],
+  ])(
+    'runs recovery setup with the %s identifiers',
+    async (combination, label) => {
+      const { getByTestId, getByText } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      expect(getByText(label)).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(`${SETUP_BUTTON_TEST_ID_PREFIX}-${combination}`),
+      );
+
+      await waitFor(() => {
+        expect(mockRunMfaRecoverySetup).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Function),
+          combination,
+        );
+      });
+    },
+  );
 
   it('runs recovery setup and displays the status before and after', async () => {
     const { getByTestId, getByText } = renderWithProvider(
@@ -213,6 +258,45 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
     await waitFor(() => {
       expect(mockRunMfaRecoveryCubistTest).toHaveBeenCalledTimes(1);
       expect(getByText(/Recovery test passed/)).toBeOnTheScreen();
+    });
+  });
+
+  it.each(['siwe', 'passkey'] as const)(
+    'runs getRecoverySecret with the %s identifier',
+    async (identifierType) => {
+      const { getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      fireEvent.press(
+        getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-${identifierType}`),
+      );
+
+      await waitFor(() => {
+        expect(mockRunMfaRecoveryCubistRecover).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.any(Function),
+          identifierType,
+          undefined,
+        );
+      });
+    },
+  );
+
+  it('runs getRecoverySecret with the social identifier', async () => {
+    const { getByTestId } = renderWithProvider(
+      <MfaRecoveryDeveloperOptionsSection />,
+    );
+
+    fireEvent.press(getByTestId(`${RECOVER_BUTTON_TEST_ID_PREFIX}-social`));
+
+    await waitFor(() => {
+      expect(mockRunMfaRecoveryCubistRecover).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.any(Function),
+        'social',
+        expect.objectContaining({ type: 'social' }),
+      );
     });
   });
 

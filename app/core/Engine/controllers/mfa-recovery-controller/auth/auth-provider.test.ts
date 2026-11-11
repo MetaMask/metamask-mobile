@@ -39,6 +39,7 @@ describe('AuthenticationRecoveryAuthProvider', () => {
         requestHash: '0x' + 'a'.repeat(64),
         audiences: ['escrow-audience'],
         requireVerification: true,
+        includeIdentifiers: true,
         reason: { operation: 'mfa_recovery' },
       },
     );

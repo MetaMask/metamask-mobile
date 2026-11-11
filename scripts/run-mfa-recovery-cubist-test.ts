@@ -22,7 +22,7 @@ import {
 } from '../app/components/Views/Settings/DeveloperOptions/MfaRecoveryDeveloperOptionsSection/runMfaRecoveryCubistTest';
 import { MfaRecoveryControllerError } from '../app/core/Engine/controllers/mfa-recovery-controller/errors';
 import { createMfaRecoveryController } from '../app/core/Engine/controllers/mfa-recovery-controller/create-mfa-recovery-controller';
-import { getJwtSubject } from '../app/core/Engine/controllers/mfa-recovery-controller/identifiers';
+import { getJwtSubject } from '../app/core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   MOCK_ANY_NAMESPACE,
   Messenger,

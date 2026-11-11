@@ -25,17 +25,22 @@ import {
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/constants';
 import { selectMfaRecoveryEnabled } from '../../../../../selectors/featureFlagController/mfaRecovery';
 import { useMfa } from '../../../../../util/identity/mfa/useMfa';
-import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/clear-pending-operation';
+import { clearPendingOperationForDev } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/clear-pending-operation';
+import { getLastApplyMutationFailure } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/apply-mutation-diagnostics';
+import { createSocialIdentifier } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
+import { getLastApprovalDiagnostic } from '../../../../../core/Engine/controllers/mfa-recovery-controller/dev/pending-operation-diagnostics';
 import {
   getMfaRecoveryErrorCode,
   getMfaRecoveryErrorDetail,
   runMfaRecoveryCubistRecover,
   runMfaRecoveryCubistTest,
+  type RecoveryReadIdentifierType,
   type MfaRecoveryRecoverResult,
   type MfaRecoveryTestResult,
 } from './runMfaRecoveryCubistTest';
 import {
   runMfaRecoverySetup,
+  type MfaRecoveryIdentifierCombination,
   type MfaRecoverySetupDependencies,
   type MfaRecoverySetupResult,
   type MfaRecoverySetupStep,
@@ -47,7 +52,41 @@ import {
 } from './runToprfRecoverySecretTest';
 const RUN_BUTTON_TEST_ID = 'mfa-recovery-dev-run-cubist-test-button';
 const RECOVER_BUTTON_TEST_ID = 'mfa-recovery-dev-recover-secret-button';
+const RECOVER_BUTTONS: readonly {
+  identifierType: RecoveryReadIdentifierType;
+  labelKey: string;
+}[] = [
+  {
+    identifierType: 'siwe',
+    labelKey:
+      'app_settings.developer_options.mfa_recovery.recover_secret_button_siwe',
+  },
+  {
+    identifierType: 'passkey',
+    labelKey:
+      'app_settings.developer_options.mfa_recovery.recover_secret_button_passkey',
+  },
+  {
+    identifierType: 'social',
+    labelKey:
+      'app_settings.developer_options.mfa_recovery.recover_secret_button_social',
+  },
+];
 const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
+const SETUP_BUTTON_LABEL_KEYS: Record<
+  MfaRecoveryIdentifierCombination,
+  string
+> = {
+  siwe_passkey:
+    'app_settings.developer_options.mfa_recovery.setup_recovery_button_siwe_passkey',
+  siwe_social:
+    'app_settings.developer_options.mfa_recovery.setup_recovery_button_siwe_social',
+  passkey_social:
+    'app_settings.developer_options.mfa_recovery.setup_recovery_button_passkey_social',
+};
+const SETUP_COMBINATIONS = Object.keys(
+  SETUP_BUTTON_LABEL_KEYS,
+) as MfaRecoveryIdentifierCombination[];
 const TOPRF_TEST_BUTTON_TEST_ID =
   'mfa-recovery-dev-toprf-recovery-secret-button';
 const RESET_PENDING_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-pending-button';
@@ -67,6 +106,21 @@ type MfaRecoveryRunner = (
   onStep: (step: MfaRecoveryStep) => void,
 ) => Promise<MfaRecoveryRunResult>;
 type MfaRecoveryResultFormatter = (result: MfaRecoveryRunResult) => string;
+
+function formatFailureCode(runError: unknown): string {
+  const code = getMfaRecoveryErrorCode(runError);
+  const detail = getMfaRecoveryErrorDetail(runError);
+  const escrowFailure =
+    code === 'incomplete_mutation' ? getLastApplyMutationFailure() : undefined;
+  const approvalCheck =
+    code === 'invalid_pending_operation'
+      ? getLastApprovalDiagnostic()
+      : undefined;
+  return [code, detail, escrowFailure, approvalCheck]
+    .filter((part) => part !== undefined)
+    .map((part, index) => (index === 0 ? part : `(${part})`))
+    .join(' ');
+}
 
 const MfaRecoveryDeveloperOptionsSection = () => {
   const isMfaRecoveryEnabled = useSelector(selectMfaRecoveryEnabled);
@@ -174,7 +228,7 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         });
         setError(
           strings('app_settings.developer_options.mfa_recovery.failure', {
-            code: detail === undefined ? code : `${code} (${detail})`,
+            code: formatFailureCode(runError),
           }),
         );
       } finally {
@@ -200,11 +254,9 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         }
         await refreshPhase();
       } catch (runError) {
-        const code = getMfaRecoveryErrorCode(runError);
-        const detail = getMfaRecoveryErrorDetail(runError);
         setError(
           strings('app_settings.developer_options.mfa_recovery.failure', {
-            code: detail === undefined ? code : `${code} (${detail})`,
+            code: formatFailureCode(runError),
           }),
         );
       }
@@ -237,17 +289,24 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     });
   }, [handleRun]);
 
-  const handleSetupRecovery = useCallback(() => {
-    handleRun(runMfaRecoverySetup, (recoveryResult) => {
-      if (!('after' in recoveryResult) || 'fingerprint' in recoveryResult) {
-        throw new Error('Unexpected recovery result');
-      }
-      return strings(
-        'app_settings.developer_options.mfa_recovery.setup_success',
-        { before: recoveryResult.before, after: recoveryResult.after },
+  const handleSetupRecovery = useCallback(
+    (combination: MfaRecoveryIdentifierCombination) => {
+      handleRun(
+        (dependencies, onStep) =>
+          runMfaRecoverySetup(dependencies, onStep, combination),
+        (recoveryResult) => {
+          if (!('after' in recoveryResult) || 'fingerprint' in recoveryResult) {
+            throw new Error('Unexpected recovery result');
+          }
+          return strings(
+            'app_settings.developer_options.mfa_recovery.setup_success',
+            { before: recoveryResult.before, after: recoveryResult.after },
+          );
+        },
       );
-    });
-  }, [handleRun]);
+    },
+    [handleRun],
+  );
 
   const handleToprfRecoverySecretTest = useCallback(() => {
     handleRun(
@@ -282,29 +341,48 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     );
   }, [handleRun]);
 
-  const handleRecoverSecret = useCallback(() => {
-    handleRun(runMfaRecoveryCubistRecover, (recoveryResult) => {
-      if (!('fingerprint' in recoveryResult) || !('epoch' in recoveryResult)) {
-        throw new Error('Unexpected recovery result');
-      }
-      if (recoveryResult.matches === undefined) {
-        return strings(
-          'app_settings.developer_options.mfa_recovery.recover_success_no_reference',
-          {
-            epoch: recoveryResult.epoch,
-            fingerprint: recoveryResult.fingerprint,
-          },
-        );
-      }
-      return strings(
-        'app_settings.developer_options.mfa_recovery.recover_success',
-        {
-          epoch: recoveryResult.epoch,
-          matches: recoveryResult.matches ? 'yes' : 'no',
+  const handleRecoverSecret = useCallback(
+    (identifierType: RecoveryReadIdentifierType) => {
+      handleRun(
+        (dependencies, onStep) =>
+          runMfaRecoveryCubistRecover(
+            dependencies,
+            onStep,
+            identifierType,
+            identifierType === 'social'
+              ? createSocialIdentifier(
+                  Engine.context.SeedlessOnboardingController.state,
+                )
+              : undefined,
+          ),
+        (recoveryResult) => {
+          if (
+            !('fingerprint' in recoveryResult) ||
+            !('epoch' in recoveryResult)
+          ) {
+            throw new Error('Unexpected recovery result');
+          }
+          if (recoveryResult.matches === undefined) {
+            return strings(
+              'app_settings.developer_options.mfa_recovery.recover_success_no_reference',
+              {
+                epoch: recoveryResult.epoch,
+                fingerprint: recoveryResult.fingerprint,
+              },
+            );
+          }
+          return strings(
+            'app_settings.developer_options.mfa_recovery.recover_success',
+            {
+              epoch: recoveryResult.epoch,
+              matches: recoveryResult.matches ? 'yes' : 'no',
+            },
+          );
         },
       );
-    });
-  }, [handleRun]);
+    },
+    [handleRun],
+  );
 
   return (
     <>
@@ -346,32 +424,34 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           'app_settings.developer_options.mfa_recovery.run_cubist_test_button',
         )}
       </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={handleRecoverSecret}
-        isDisabled={isRunning || !isMfaRecoveryAvailable}
-        isFullWidth
-        style={styles.accessory}
-        testID={RECOVER_BUTTON_TEST_ID}
-      >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.recover_secret_button',
-        )}
-      </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={handleSetupRecovery}
-        isDisabled={isRunning || !isMfaRecoveryAvailable}
-        isFullWidth
-        style={styles.accessory}
-        testID={SETUP_BUTTON_TEST_ID}
-      >
-        {strings(
-          'app_settings.developer_options.mfa_recovery.setup_recovery_button',
-        )}
-      </Button>
+      {RECOVER_BUTTONS.map(({ identifierType, labelKey }) => (
+        <Button
+          key={identifierType}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={() => handleRecoverSecret(identifierType)}
+          isDisabled={isRunning || !isMfaRecoveryAvailable}
+          isFullWidth
+          style={styles.accessory}
+          testID={`${RECOVER_BUTTON_TEST_ID}-${identifierType}`}
+        >
+          {strings(labelKey)}
+        </Button>
+      ))}
+      {SETUP_COMBINATIONS.map((combination) => (
+        <Button
+          key={combination}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={() => handleSetupRecovery(combination)}
+          isDisabled={isRunning || !isMfaRecoveryAvailable}
+          isFullWidth
+          style={styles.accessory}
+          testID={`${SETUP_BUTTON_TEST_ID}-${combination}`}
+        >
+          {strings(SETUP_BUTTON_LABEL_KEYS[combination])}
+        </Button>
+      ))}
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

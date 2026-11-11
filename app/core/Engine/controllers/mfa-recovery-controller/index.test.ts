@@ -1,6 +1,6 @@
 import { getRootExtendedMessenger } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
-import { AuthenticationRecoveryAuthProvider } from './auth-provider';
+import { AuthenticationRecoveryAuthProvider } from './auth/auth-provider';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 import {
   getMfaRecoveryIdentifierRouter,

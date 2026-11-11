@@ -10,7 +10,7 @@ import {
   getMfaRecoveryErrorCode,
   MfaRecoveryControllerError,
 } from '../../../../../core/Engine/controllers/mfa-recovery-controller/errors';
-import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/identifiers';
+import type { SignPersonalMessage } from '../../../../../core/Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
   deriveTestRecoverySecret,
   runToprfRecoverySecretTest,
