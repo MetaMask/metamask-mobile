@@ -157,6 +157,7 @@ jest.mock('../../Money/selectors/visibility', () => ({
 }));
 
 const mockUseSelector = useSelector as unknown as jest.Mock;
+const mockToast = jest.mocked(toast);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockResolveMoneyAccountCardToken =
   resolveMoneyAccountCardToken as jest.Mock;
@@ -786,7 +787,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(toast).toHaveBeenCalledTimes(1);
-      expect(toast.mock.calls[0][0]).toMatchObject({
+      expect(mockToast.mock.calls[0][0]).toMatchObject({
         title: 'Something went wrong linking your card',
       });
     });
@@ -1556,7 +1557,7 @@ describe('useMoneyAccountCardLinkage', () => {
         linkPromise = result.current.confirmLinkInBackground();
       });
 
-      const pendingCall = toast.mock.calls[0]?.[0];
+      const pendingCall = mockToast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
         title: 'Linking your card',
@@ -1568,7 +1569,7 @@ describe('useMoneyAccountCardLinkage', () => {
         await linkPromise;
       });
 
-      const successCall = toast.mock.calls[1]?.[0];
+      const successCall = mockToast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
         title: 'Your card is ready to use',
         hasNoTimeout: false,
@@ -1635,7 +1636,7 @@ describe('useMoneyAccountCardLinkage', () => {
         is_revoke: false,
       });
 
-      const errorCall = toast.mock.calls.at(-1)?.[0];
+      const errorCall = mockToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
         title: 'Something went wrong linking your card',
         hasNoTimeout: false,
@@ -1669,7 +1670,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
 
       // Only the pending toast should have fired — no error toast.
-      const lastCall = toast.mock.calls.at(-1)?.[0];
+      const lastCall = mockToast.mock.calls.at(-1)?.[0];
       expect(lastCall).toMatchObject({ hasNoTimeout: true });
       expect(Logger.error).not.toHaveBeenCalled();
     });
@@ -1699,7 +1700,7 @@ describe('useMoneyAccountCardLinkage', () => {
         is_revoke: false,
       });
       expect(toast).toHaveBeenCalledTimes(1);
-      expect(toast.mock.calls[0][0]).toMatchObject({
+      expect(mockToast.mock.calls[0][0]).toMatchObject({
         title: 'Something went wrong linking your card',
       });
     });
@@ -1745,7 +1746,7 @@ describe('useMoneyAccountCardLinkage', () => {
         is_revoke: true,
       });
       expect(toast).toHaveBeenCalledTimes(1);
-      expect(toast.mock.calls[0][0]).toMatchObject({
+      expect(mockToast.mock.calls[0][0]).toMatchObject({
         title: 'Something went wrong unlinking your card',
       });
     });
@@ -1972,7 +1973,7 @@ describe('useMoneyAccountCardLinkage', () => {
       // UI side-effect ran. But the in-progress catch branch must NOT
       // surface a success or error toast.
       expect(toast).toHaveBeenCalledTimes(1);
-      const onlyToast = toast.mock.calls[0]?.[0];
+      const onlyToast = mockToast.mock.calls[0]?.[0];
       expect(onlyToast).toMatchObject({ hasNoTimeout: true });
       // Not an error: must not be logged or transitioned to error state.
       expect(Logger.error).not.toHaveBeenCalled();

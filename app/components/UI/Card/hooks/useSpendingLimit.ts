@@ -1,10 +1,4 @@
-import {
-  useState,
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-} from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   useFocusEffect,
   useNavigation,
