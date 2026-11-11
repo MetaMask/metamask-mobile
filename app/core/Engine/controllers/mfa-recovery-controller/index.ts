@@ -65,6 +65,13 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
       await initMessenger.call('AuthenticationController:getBearerToken'),
     getAddress,
     signPersonalMessage,
+    getSocialIdToken: async (nonce) => {
+      // Dynamic import: OAuthService imports Engine, which imports this module.
+      const { default: OAuthService } = await import(
+        '../../../OAuthService/OAuthService'
+      );
+      return await OAuthService.getSocialIdTokenForNonce(nonce);
+    },
     getPasskeyAssertion: mobilePasskeyAdapter.get,
     isEnabled,
   });

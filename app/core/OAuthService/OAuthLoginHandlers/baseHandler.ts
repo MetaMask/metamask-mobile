@@ -15,6 +15,7 @@ import {
   toBase64UrlSafe,
 } from './utils';
 import Logger from '../../../util/Logger';
+import { MfaRecoveryControllerError } from '../../Engine/controllers/mfa-recovery-controller/errors';
 import { bytesToString } from '@metamask/utils';
 import { toByteArray, fromByteArray } from 'react-native-quick-base64';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -65,6 +66,8 @@ export interface BaseHandlerOptions {
   authServerUrl: string;
   clientId: string;
   web3AuthNetwork: string;
+  /** Optional caller-supplied nonce. Defaults to a random UUID when omitted. */
+  nonce?: string;
 }
 
 /**
@@ -91,7 +94,24 @@ export abstract class BaseLoginHandler {
 
   constructor(options: BaseHandlerOptions) {
     this.options = options;
-    this.nonce = this.generateNonce();
+    this.nonce = options.nonce ?? this.generateNonce();
+  }
+
+  /**
+   * Get the provider-issued ID token (Google or Apple) bound to this handler's nonce.
+   *
+   * Unlike login(), this does not exchange the token with the auth server and
+   * does not touch any seedless or OAuth state. Handlers that support it override this.
+   *
+   * @returns The provider ID token.
+   */
+  getProviderIdToken(): Promise<string> {
+    return Promise.reject(
+      new MfaRecoveryControllerError(
+        `${this.authConnection}: provider ID token is not supported on this platform`,
+        'social_sign_in_unavailable',
+      ),
+    );
   }
 
   /**

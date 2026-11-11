@@ -61,6 +61,7 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
       authServerUrl: params.authServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
+      nonce: params.nonce,
     });
     this.clientId = params.clientId;
     this.redirectUri = params.redirectUri;

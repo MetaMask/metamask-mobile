@@ -239,7 +239,10 @@ export async function prepareRecoveryRun(
       siweIdentifier:
         authIdentifiers.find((identifier) => identifier.type === 'siwe') ??
         createSiweIdentifier(dependencies.address),
-      passkeyIdentifier: findAuthIdentifier(authIdentifiers, 'passkey'),
+      // Lazy: a run that uses SIWE must not fail when no passkey is approved.
+      get passkeyIdentifier() {
+        return findAuthIdentifier(authIdentifiers, 'passkey');
+      },
     },
   };
 }

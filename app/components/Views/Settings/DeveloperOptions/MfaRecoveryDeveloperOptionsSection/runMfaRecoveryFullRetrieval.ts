@@ -1,4 +1,3 @@
-import type { Identifier } from '@metamask/mfa-recovery-controller';
 import {
   SecretType,
   type SeedlessOnboardingController,
@@ -26,14 +25,19 @@ export interface MfaRecoveryFullRetrievalDependencies
   /** Mints an approval for the TOPRF nodes; needs a verification session. */
   mintAal2Token: () => Promise<string>;
   seedless: MfaRecoveryFullRetrievalSeedless;
-  /** The social identifier the Recovery Secret is read with. */
-  socialIdentifier: Identifier;
+  /** The identifier the user chose to prove the Recovery Secret read with. */
+  identifierType: MfaRecoveryFullRetrievalIdentifierType;
+  /** Authenticates the seedless controller with the social login held in memory. */
+  authenticateSeedless: () => Promise<void>;
 }
+
+export type MfaRecoveryFullRetrievalIdentifierType = 'siwe' | 'passkey';
 
 export type MfaRecoveryFullRetrievalStep =
   | MfaRecoveryTestStep
   | 'fetching_srps'
   | 'minting_aal2_token'
+  | 'authenticating_seedless'
   | 'authenticating_aal2'
   | 'recovering_vault'
   | 'checking_srps';
@@ -69,9 +73,11 @@ async function srpFingerprints(
 }
 
 /**
- * Full retrieval of the final bucket: reads the Recovery Secret from Cubist
- * with the social identifier, recovers the vault from TOPRF with that secret, then checks that
- * every SRP the vault held before is back in the seedless controller.
+ * Full retrieval of the final bucket: snapshots the SRPs, mints one aal2 token,
+ * reads the Recovery Secret from Cubist with the chosen identifier, authenticates
+ * the seedless controller with the in-memory social login, recovers the vault from
+ * TOPRF with the aal2 token and that secret, then checks that every SRP the vault
+ * held before is back in the seedless controller.
  *
  * Recovering does not create a local vault or need a password. The recovered
  * vault keys stay in memory until a local password is set.
@@ -80,26 +86,35 @@ export async function runMfaRecoveryFullRetrieval(
   dependencies: MfaRecoveryFullRetrievalDependencies,
   onStep: (step: MfaRecoveryFullRetrievalStep) => void = () => undefined,
 ): Promise<MfaRecoveryFullRetrievalResult> {
-  const { controller } = await prepareRecoveryRun(dependencies, onStep);
-  const { seedless } = dependencies;
-
-  // 1) Cubist: the Recovery Secret, read with the social identifier.
-  const recovered = await readRecoverySecret(
-    controller,
-    dependencies.socialIdentifier,
+  const { controller, identifiers } = await prepareRecoveryRun(
+    dependencies,
     onStep,
   );
-  const recoverySecret = new Uint8Array(recovered.recoverySecret);
+  const { seedless } = dependencies;
 
-  // 2) Snapshot the SRPs in the current vault, to compare against.
+  // 1) Snapshot the SRPs in the current vault, to compare against.
   onStep('fetching_srps');
   const expectedFingerprints = await srpFingerprints(
     await seedless.fetchAllSecretData(),
   );
 
-  // 3) TOPRF: authenticate at aal2, then recover the vault with the secret.
+  // 2) Mint the aal2 token once; the TOPRF steps below reuse it.
   onStep('minting_aal2_token');
   const aal2Token = await dependencies.mintAal2Token();
+
+  // 3) Cubist: the Recovery Secret, read with the identifier the user chose.
+  const identifier =
+    dependencies.identifierType === 'passkey'
+      ? identifiers.passkeyIdentifier
+      : identifiers.siweIdentifier;
+  const recovered = await readRecoverySecret(controller, identifier, onStep);
+  const recoverySecret = new Uint8Array(recovered.recoverySecret);
+
+  // 4) Seedless: the social session held in memory.
+  onStep('authenticating_seedless');
+  await dependencies.authenticateSeedless();
+
+  // 5) TOPRF: authenticate at aal2, then recover the vault with the secret.
   onStep('authenticating_aal2');
   await seedless.authenticateForRecovery({
     aal2Token,

@@ -1,6 +1,7 @@
 import { getRootExtendedMessenger } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
+import OAuthService from '../../../OAuthService/OAuthService';
 import {
   getMfaRecoveryIdentifierRouter,
   mfaRecoveryControllerInit,
@@ -12,6 +13,13 @@ jest.mock('./create-mfa-recovery-controller', () => ({
 
 jest.mock('./config', () => ({
   isMfaRecoveryConfigured: jest.fn(() => true),
+}));
+
+jest.mock('../../../OAuthService/OAuthService', () => ({
+  __esModule: true,
+  default: {
+    getSocialIdTokenForNonce: jest.fn().mockResolvedValue('provider-token'),
+  },
 }));
 
 jest.mock('../../../../selectors/featureFlagController/mfaRecovery', () => ({
@@ -72,6 +80,7 @@ describe('mfaRecoveryControllerInit', () => {
         getAddress: expect.any(Function),
         signPersonalMessage: expect.any(Function),
         isEnabled: expect.any(Function),
+        getSocialIdToken: expect.any(Function),
       }),
     );
     expect(subscribe).toHaveBeenCalledWith(
@@ -79,6 +88,15 @@ describe('mfaRecoveryControllerInit', () => {
       expect.any(Function),
     );
     expect(getMfaRecoveryIdentifierRouter()).toBe(mockIdentifierRouter);
+
+    const { getSocialIdToken } =
+      mockCreateMfaRecoveryController.mock.calls[0][0];
+    await expect(getSocialIdToken?.('nonce-value')).resolves.toBe(
+      'provider-token',
+    );
+    expect(OAuthService.getSocialIdTokenForNonce).toHaveBeenCalledWith(
+      'nonce-value',
+    );
 
     mockController.getPhase.mockResolvedValue('authorizing');
     subscribe.mock.calls[0][1]();

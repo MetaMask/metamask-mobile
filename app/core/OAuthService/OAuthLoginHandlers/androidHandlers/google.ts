@@ -164,6 +164,16 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   }
 
   /**
+   * Returns the Google ID token issued by Credential Manager for this handler's nonce.
+   *
+   * @returns The Google ID token.
+   */
+  async getProviderIdToken(): Promise<string> {
+    const result = await this.login();
+    return result.idToken;
+  }
+
+  /**
    * This constructor is used to initialize the clientId.
    *
    * @param params.clientId - The web clientId for the Google login.

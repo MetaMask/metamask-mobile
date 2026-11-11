@@ -125,6 +125,24 @@ jest.mock('./runToprfRecoverySecretTest', () => ({
 }));
 
 const mockRunMfaRecoveryFullRetrieval = jest.fn();
+const mockLoginForRecovery = jest.fn();
+const mockAuthenticateSeedlessForRecovery = jest.fn();
+
+jest.mock('../../../../../core/OAuthService/OAuthService', () => ({
+  __esModule: true,
+  default: {
+    loginForRecovery: () => mockLoginForRecovery(),
+    authenticateSeedlessForRecovery: (login: unknown) =>
+      mockAuthenticateSeedlessForRecovery(login),
+  },
+}));
+
+const SOCIAL_LOGIN = {
+  authConnection: 'google',
+  clientId: 'client-id',
+  data: {},
+  userId: 'google-user',
+};
 
 jest.mock('./runMfaRecoveryFullRetrieval', () => ({
   runMfaRecoveryFullRetrieval: (
@@ -134,6 +152,8 @@ jest.mock('./runMfaRecoveryFullRetrieval', () => ({
 }));
 
 const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
+const FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX =
+  'mfa-recovery-dev-full-retrieval-option';
 const SET_LOCAL_PASSWORD_BUTTON_TEST_ID =
   'mfa-recovery-dev-set-local-password-button';
 const RESET_PASSWORD_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-password-button';
@@ -652,8 +672,29 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       allSrpsRecovered: true,
     };
 
-    const runFullRetrieval = async (getByTestId: (id: string) => unknown) => {
+    beforeEach(() => {
+      mockLoginForRecovery.mockResolvedValue(SOCIAL_LOGIN);
+      mockAuthenticateSeedlessForRecovery.mockResolvedValue(undefined);
+    });
+
+    // Social login first, then the sheet picks SIWE or passkey to run the retrieval.
+    const runFullRetrieval = async (
+      getByTestId: (id: string) => unknown,
+      identifierType = 'siwe',
+    ) => {
       fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID) as never);
+      await waitFor(() => {
+        expect(
+          getByTestId(
+            `${FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}-${identifierType}`,
+          ),
+        ).toBeTruthy();
+      });
+      fireEvent.press(
+        getByTestId(
+          `${FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}-${identifierType}`,
+        ) as never,
+      );
       await waitFor(() => {
         expect(mockRunMfaRecoveryFullRetrieval).toHaveBeenCalledTimes(1);
       });
@@ -668,6 +709,10 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
       expect(queryByTestId(SET_LOCAL_PASSWORD_BUTTON_TEST_ID)).toBeNull();
       await runFullRetrieval(getByTestId);
 
+      expect(mockLoginForRecovery).toHaveBeenCalledTimes(1);
+      expect(mockRunMfaRecoveryFullRetrieval.mock.calls[0][0]).toMatchObject({
+        identifierType: 'siwe',
+      });
       expect(
         mockRunMfaRecoveryFullRetrieval.mock.calls[0][0],
       ).not.toHaveProperty('password');
@@ -678,6 +723,76 @@ describe('MfaRecoveryDeveloperOptionsSection', () => {
           ),
         ).toBeOnTheScreen();
       });
+    });
+
+    it('continues the retrieval with passkey when the user picks passkey', async () => {
+      mockRunMfaRecoveryFullRetrieval.mockResolvedValue(SUCCESSFUL_RETRIEVAL);
+      const { getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      await runFullRetrieval(getByTestId, 'passkey');
+
+      expect(mockRunMfaRecoveryFullRetrieval.mock.calls[0][0]).toMatchObject({
+        identifierType: 'passkey',
+      });
+    });
+
+    it('runs nothing before the user picks an identifier', async () => {
+      const { getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID) as never);
+      await waitFor(() => {
+        expect(mockLoginForRecovery).toHaveBeenCalledTimes(1);
+      });
+
+      expect(mockRunMfaRecoveryFullRetrieval).not.toHaveBeenCalled();
+    });
+
+    it('does not open the sheet when the social login fails', async () => {
+      mockLoginForRecovery.mockRejectedValueOnce(new Error('cancelled'));
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+
+      fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID) as never);
+      await waitFor(() => {
+        expect(mockLoginForRecovery).toHaveBeenCalledTimes(1);
+      });
+
+      expect(
+        queryByTestId(`${FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}-siwe`),
+      ).toBeNull();
+      expect(mockRunMfaRecoveryFullRetrieval).not.toHaveBeenCalled();
+    });
+
+    it('keeps the passkey row disabled when Cubist has no passkey', async () => {
+      mockGetIdentifiers.mockResolvedValue({
+        identifiers: [
+          { type: 'siwe', namespace: 'metamask.io:1', value: '0xabc' },
+        ],
+        epoch: 1,
+        authIdentifiers: [],
+      });
+      const { getByTestId } = renderWithProvider(
+        <MfaRecoveryDeveloperOptionsSection />,
+      );
+      await waitFor(() => {
+        expect(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID)).not.toBeDisabled();
+      });
+
+      fireEvent.press(getByTestId(FULL_RETRIEVAL_BUTTON_TEST_ID) as never);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}-passkey`),
+        ).toBeDisabled();
+      });
+      expect(
+        getByTestId(`${FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}-siwe`),
+      ).not.toBeDisabled();
     });
 
     it('shows set and reset password buttons after a successful retrieval', async () => {

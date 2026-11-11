@@ -18,10 +18,6 @@ jest.mock('./runMfaRecoveryCubistTest', () => ({
 }));
 
 const SIWE_IDENTIFIER = { type: 'siwe', value: '0xabc' } as Identifier;
-const SOCIAL_IDENTIFIER = {
-  type: 'social',
-  value: 'google-user',
-} as Identifier;
 const RECOVERY_SECRET = new Uint8Array(32).fill(9);
 const SRP_ONE = new TextEncoder().encode('seed phrase one');
 const SRP_TWO = new TextEncoder().encode('seed phrase two');
@@ -48,6 +44,12 @@ function createSeedless(options: {
 
 function createDependencies(
   seedless: ReturnType<typeof createSeedless>,
+  overrides: Partial<
+    Pick<
+      MfaRecoveryFullRetrievalDependencies,
+      'identifierType' | 'authenticateSeedless' | 'mintAal2Token'
+    >
+  > = {},
 ): MfaRecoveryFullRetrievalDependencies {
   return {
     controller: {} as MfaRecoveryFullRetrievalDependencies['controller'],
@@ -60,7 +62,9 @@ function createDependencies(
     mintAal2Token: jest.fn().mockResolvedValue('aal2-token'),
     seedless:
       seedless as unknown as MfaRecoveryFullRetrievalDependencies['seedless'],
-    socialIdentifier: SOCIAL_IDENTIFIER,
+    identifierType: 'siwe',
+    authenticateSeedless: jest.fn().mockResolvedValue(undefined),
+    ...overrides,
   };
 }
 
@@ -80,7 +84,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
     });
   });
 
-  it('reads the recovery secret with the social identifier and recovers the vault keys with it, without a password', async () => {
+  it('reads the recovery secret with the SIWE identifier and recovers the vault keys with it, without a password', async () => {
     const seedless = createSeedless({
       before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
       recovered: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
@@ -91,7 +95,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
 
     expect(mockReadRecoverySecret).toHaveBeenCalledWith(
       expect.anything(),
-      SOCIAL_IDENTIFIER,
+      SIWE_IDENTIFIER,
       expect.any(Function),
     );
     expect(seedless.authenticateForRecovery).toHaveBeenCalledWith({
@@ -104,7 +108,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
     });
   });
 
-  it('snapshots the SRPs before recovering the vault', async () => {
+  it('snapshots the SRPs, authenticates seedless and aal2, then recovers the vault', async () => {
     const order: string[] = [];
     const seedless = createSeedless({
       before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
@@ -112,9 +116,81 @@ describe('runMfaRecoveryFullRetrieval', () => {
       order,
     });
 
-    await runMfaRecoveryFullRetrieval(createDependencies(seedless));
+    await runMfaRecoveryFullRetrieval(
+      createDependencies(seedless, {
+        authenticateSeedless: jest.fn(async () => {
+          order.push('seedless');
+        }),
+      }),
+    );
 
-    expect(order).toStrictEqual(['fetch', 'authenticate', 'recover']);
+    expect(order).toStrictEqual([
+      'fetch',
+      'seedless',
+      'authenticate',
+      'recover',
+    ]);
+  });
+
+  it('mints one aal2 token and passes that same token to authenticateForRecovery', async () => {
+    const seedless = createSeedless({
+      before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
+      recovered: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
+    });
+    const dependencies = createDependencies(seedless);
+
+    await runMfaRecoveryFullRetrieval(dependencies);
+
+    expect(dependencies.mintAal2Token).toHaveBeenCalledTimes(1);
+    expect(seedless.authenticateForRecovery).toHaveBeenCalledWith(
+      expect.objectContaining({ aal2Token: 'aal2-token' }),
+    );
+  });
+
+  it('reads the recovery secret with the passkey identifier when the user chose passkey', async () => {
+    const passkeyIdentifier = {
+      type: 'passkey',
+      value: 'cred',
+    } as Identifier;
+    mockPrepareRecoveryRun.mockResolvedValue({
+      controller: {},
+      identifiers: { siweIdentifier: SIWE_IDENTIFIER, passkeyIdentifier },
+    });
+    const seedless = createSeedless({
+      before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
+      recovered: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
+    });
+
+    await runMfaRecoveryFullRetrieval(
+      createDependencies(seedless, { identifierType: 'passkey' }),
+    );
+
+    expect(mockReadRecoverySecret).toHaveBeenCalledWith(
+      expect.anything(),
+      passkeyIdentifier,
+      expect.any(Function),
+    );
+  });
+
+  it('reports the seedless social authentication step', async () => {
+    const seedless = createSeedless({
+      before: [],
+      recovered: [],
+    });
+    const steps: string[] = [];
+    const authenticateSeedless = jest.fn().mockRejectedValue(new Error('x'));
+
+    await expect(
+      runMfaRecoveryFullRetrieval(
+        createDependencies(seedless, { authenticateSeedless }),
+        (step) => steps.push(step),
+      ),
+    ).rejects.toThrow('x');
+
+    expect(authenticateSeedless).toHaveBeenCalledTimes(1);
+    expect(steps).toContain('authenticating_seedless');
+    expect(seedless.authenticateForRecovery).not.toHaveBeenCalled();
+    expect(seedless.recoverWithRecoverySecret).not.toHaveBeenCalled();
   });
 
   it('reports all SRPs recovered when every pre-recovery SRP comes back', async () => {

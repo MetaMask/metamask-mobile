@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
   Identifier,
   RecoveryIdentifiers,
@@ -64,9 +70,13 @@ import {
 } from './runMfaRecoverySetup';
 import {
   runMfaRecoveryFullRetrieval,
+  type MfaRecoveryFullRetrievalIdentifierType,
   type MfaRecoveryFullRetrievalResult,
   type MfaRecoveryFullRetrievalStep,
 } from './runMfaRecoveryFullRetrieval';
+import OAuthService, {
+  type SocialRecoveryLogin,
+} from '../../../../../core/OAuthService/OAuthService';
 import {
   runResetPassword,
   runSetLocalPassword,
@@ -124,6 +134,25 @@ const SETUP_SHEET_OPTIONS: readonly MfaRecoveryOption<MfaRecoveryIdentifierCombi
 const TOPRF_TEST_BUTTON_TEST_ID =
   'mfa-recovery-dev-toprf-recovery-secret-button';
 const FULL_RETRIEVAL_BUTTON_TEST_ID = 'mfa-recovery-dev-full-retrieval-button';
+const FULL_RETRIEVAL_SHEET_TEST_ID = 'mfa-recovery-dev-full-retrieval-sheet';
+const FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX =
+  'mfa-recovery-dev-full-retrieval-option';
+/** Identifiers the user can continue the full retrieval with after social login. */
+const FULL_RETRIEVAL_OPTIONS: readonly {
+  identifierType: MfaRecoveryFullRetrievalIdentifierType;
+  labelKey: string;
+}[] = [
+  {
+    identifierType: 'siwe',
+    labelKey:
+      'app_settings.developer_options.mfa_recovery.recover_secret_button_siwe',
+  },
+  {
+    identifierType: 'passkey',
+    labelKey:
+      'app_settings.developer_options.mfa_recovery.recover_secret_button_passkey',
+  },
+];
 const SET_LOCAL_PASSWORD_BUTTON_TEST_ID =
   'mfa-recovery-dev-set-local-password-button';
 const RESET_PASSWORD_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-password-button';
@@ -142,10 +171,17 @@ const ABORT_BUTTON_TEST_ID = 'mfa-recovery-dev-abort-button';
 const AAL2_APPROVAL_OPERATION = 'mfaRecovery.devOptions';
 const AAL2_APPROVAL_AUDIENCES = [TOPRF_AAL2_AUDIENCE];
 
+/** The social login step of the full retrieval: provider sign-in, kept in memory. */
+type MfaRecoverySocialLoginStep = 'social_login';
+interface MfaRecoverySocialLoginResult {
+  socialLoginSucceeded: true;
+}
+
 type MfaRecoveryStep =
   | MfaRecoverySetupStep
   | ToprfRecoverySecretTestStep
   | MfaRecoveryFullRetrievalStep
+  | MfaRecoverySocialLoginStep
   | CubistIdentifierStep
   | MfaRecoveryPasswordStep;
 type MfaRecoveryRunResult =
@@ -154,6 +190,7 @@ type MfaRecoveryRunResult =
   | MfaRecoverySetupResult
   | ToprfRecoverySecretTestResult
   | MfaRecoveryFullRetrievalResult
+  | MfaRecoverySocialLoginResult
   | CubistIdentifierChangeResult
   | MfaRecoveryPasswordResult;
 type MfaRecoveryRunner = (
@@ -256,6 +293,11 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   const [isIdentifierSheetOpen, setIsIdentifierSheetOpen] = useState(false);
   const [isSetupSheetOpen, setIsSetupSheetOpen] = useState(false);
   const [isRecoverSheetOpen, setIsRecoverSheetOpen] = useState(false);
+  const [isFullRetrievalSheetOpen, setIsFullRetrievalSheetOpen] =
+    useState(false);
+  // The social login from the full retrieval's first step. Memory only:
+  // cleared when the sheet closes or the retrieval finishes.
+  const socialLoginRef = useRef<SocialRecoveryLogin | null>(null);
 
   const refreshCubistIdentifiers = useCallback(async () => {
     try {
@@ -336,6 +378,17 @@ const MfaRecoveryDeveloperOptionsSection = () => {
 
   const recoverSheetOptions: readonly MfaRecoveryOption<RecoveryReadIdentifierType>[] =
     RECOVER_BUTTONS.map(({ identifierType, labelKey }) => ({
+      id: identifierType,
+      labelKey,
+      isDisabled:
+        cubistIdentifiers !== null &&
+        !cubistIdentifiers.identifiers.some(
+          (identifier) => identifier.type === identifierType,
+        ),
+    }));
+
+  const fullRetrievalSheetOptions: readonly MfaRecoveryOption<MfaRecoveryFullRetrievalIdentifierType>[] =
+    FULL_RETRIEVAL_OPTIONS.map(({ identifierType, labelKey }) => ({
       id: identifierType,
       labelKey,
       isDisabled:
@@ -666,38 +719,76 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     );
   }, [handleRun]);
 
+  // Step 1 of the full retrieval: provider login, kept in memory. On success,
+  // the sheet asks for the identifier to read the Recovery Secret with.
   const handleFullRetrieval = useCallback(async () => {
-    const succeeded = await handleRun(
-      (dependencies, onStep) =>
-        runMfaRecoveryFullRetrieval(
-          {
-            ...dependencies,
-            seedless: Engine.context.SeedlessOnboardingController,
-            socialIdentifier: createSocialIdentifier(
-              Engine.context.SeedlessOnboardingController.state,
-            ),
-          },
-          onStep,
-        ),
-      (recoveryResult) => {
-        if (!('allSrpsRecovered' in recoveryResult)) {
-          throw new Error('Unexpected recovery result');
-        }
-        return strings(
-          'app_settings.developer_options.mfa_recovery.full_retrieval_success',
-          {
-            expected: recoveryResult.expectedSrpCount,
-            recovered: recoveryResult.recoveredSrpCount,
-            matched: recoveryResult.matchedSrpCount,
-            allRecovered: recoveryResult.allSrpsRecovered ? 'yes' : 'no',
-          },
-        );
+    const loggedIn = await handleRun(
+      async (_dependencies, onStep) => {
+        onStep('social_login');
+        socialLoginRef.current = await OAuthService.loginForRecovery();
+        return { socialLoginSucceeded: true };
       },
+      () =>
+        strings(
+          'app_settings.developer_options.mfa_recovery.full_retrieval_social_login_success',
+        ),
     );
-    if (succeeded) {
-      setRecoveredVaultStage('recovered');
+    if (loggedIn) {
+      setIsFullRetrievalSheetOpen(true);
     }
   }, [handleRun]);
+
+  // Steps 2-4: read the Recovery Secret with the chosen identifier, then
+  // authenticate seedless with the in-memory social login and recover TOPRF.
+  const handleFullRetrievalIdentifier = useCallback(
+    async (identifierType: MfaRecoveryFullRetrievalIdentifierType) => {
+      setIsFullRetrievalSheetOpen(false);
+      const login = socialLoginRef.current;
+      if (login === null) {
+        return;
+      }
+      try {
+        const succeeded = await handleRun(
+          (dependencies, onStep) =>
+            runMfaRecoveryFullRetrieval(
+              {
+                ...dependencies,
+                seedless: Engine.context.SeedlessOnboardingController,
+                identifierType,
+                authenticateSeedless: () =>
+                  OAuthService.authenticateSeedlessForRecovery(login),
+              },
+              onStep,
+            ),
+          (recoveryResult) => {
+            if (!('allSrpsRecovered' in recoveryResult)) {
+              throw new Error('Unexpected recovery result');
+            }
+            return strings(
+              'app_settings.developer_options.mfa_recovery.full_retrieval_success',
+              {
+                expected: recoveryResult.expectedSrpCount,
+                recovered: recoveryResult.recoveredSrpCount,
+                matched: recoveryResult.matchedSrpCount,
+                allRecovered: recoveryResult.allSrpsRecovered ? 'yes' : 'no',
+              },
+            );
+          },
+        );
+        if (succeeded) {
+          setRecoveredVaultStage('recovered');
+        }
+      } finally {
+        socialLoginRef.current = null;
+      }
+    },
+    [handleRun],
+  );
+
+  const handleFullRetrievalSheetClose = useCallback(() => {
+    setIsFullRetrievalSheetOpen(false);
+    socialLoginRef.current = null;
+  }, []);
 
   const handleSetLocalPassword = useCallback(
     async (password: string) => {
@@ -930,6 +1021,16 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           'app_settings.developer_options.mfa_recovery.full_retrieval_button',
         )}
       </Button>
+      {isFullRetrievalSheetOpen && (
+        <MfaRecoveryOptionsBottomSheet
+          testID={FULL_RETRIEVAL_SHEET_TEST_ID}
+          optionTestIdPrefix={FULL_RETRIEVAL_OPTION_TEST_ID_PREFIX}
+          titleKey="app_settings.developer_options.mfa_recovery.full_retrieval_sheet_title"
+          options={fullRetrievalSheetOptions}
+          onSelect={handleFullRetrievalIdentifier}
+          onClose={handleFullRetrievalSheetClose}
+        />
+      )}
       {recoveredVaultStage !== 'none' && (
         <>
           <Button

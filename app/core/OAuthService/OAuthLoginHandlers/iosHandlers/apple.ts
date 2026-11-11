@@ -49,8 +49,29 @@ export class IosAppleLoginHandler extends BaseLoginHandler {
       authServerUrl: params.authServerUrl,
       clientId: params.clientId,
       web3AuthNetwork: params.web3AuthNetwork,
+      nonce: params.nonce,
     });
     this.clientId = params.clientId;
+  }
+
+  /**
+   * Returns the Apple identity token whose nonce claim is this handler's nonce.
+   * Uses its own sign-in call so the normal login() request is unchanged.
+   *
+   * @returns The Apple identity token.
+   */
+  async getProviderIdToken(): Promise<string> {
+    const credential = await signInAsync({
+      requestedScopes: this.#scope,
+      nonce: this.nonce,
+    });
+    if (!credential.identityToken) {
+      throw new OAuthError(
+        'handleIosAppleLogin: Missing identity token',
+        OAuthErrorType.AppleLoginError,
+      );
+    }
+    return credential.identityToken;
   }
 
   /**

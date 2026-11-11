@@ -28,7 +28,7 @@ export interface CreateMfaRecoveryControllerOptions {
   signPersonalMessage: SignPersonalMessage;
   pendingOperationEncryptor?: MobilePendingOperationEncryptor;
   isEnabled?: () => boolean;
-  /** Issues social ID tokens bound to a nonce; unavailable until sign-in supports it. */
+  /** Issues provider ID tokens bound to a nonce; omitted means social proofs are unavailable. */
   getSocialIdToken?: SocialIdTokenProvider;
   /** Runs the platform passkey assertion ceremony for passkey identifiers. */
   getPasskeyAssertion?: PasskeyAssertionGetter;

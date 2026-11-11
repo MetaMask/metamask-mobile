@@ -37,6 +37,8 @@ import {
   isSocialLoginAuthSessionDismissed,
 } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
+import { createLoginHandler } from './OAuthLoginHandlers';
+import { MfaRecoveryControllerError } from '../Engine/controllers/mfa-recovery-controller/errors';
 import { Platform } from 'react-native';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import {
@@ -91,6 +93,15 @@ const getAuthConnectionIdFromClientId = (params: {
   }
   return authConnectionConfig[SupportedPlatforms.IOS][authConnection];
 };
+
+/** A social login result kept in memory for the dev recovery flow. Never persisted. */
+export interface SocialRecoveryLogin {
+  authConnection: AuthConnection;
+  clientId: string;
+  data: AuthResponse;
+  userId: string;
+  accountName?: string;
+}
 
 interface OAuthServiceLocalState {
   userId?: string;
@@ -150,9 +161,34 @@ export class OAuthService {
     authConnection: AuthConnection,
     clientId: string,
   ): Promise<HandleOAuthLoginResult> => {
-    try {
-      const { userId, accountName } = this.localState;
+    const { userId, accountName } = this.localState;
+    return await this.#authenticateSeedless({
+      data,
+      authConnection,
+      clientId,
+      userId,
+      accountName,
+    });
+  };
 
+  /**
+   * Authenticates the seedless controller with the given login result. It does
+   * not read or write localState, so callers can pass in-memory values.
+   */
+  #authenticateSeedless = async ({
+    data,
+    authConnection,
+    clientId,
+    userId,
+    accountName,
+  }: {
+    data: AuthResponse;
+    authConnection: AuthConnection;
+    clientId: string;
+    userId?: string;
+    accountName?: string;
+  }): Promise<HandleOAuthLoginResult> => {
+    try {
       if (!userId) {
         throw new Error('No user id found');
       }
@@ -582,6 +618,118 @@ export class OAuthService {
     authConnectionConfig: this.config.authConnectionConfig,
     userId: this.localState.userId,
   });
+
+  /**
+   * Dev-only: runs the persisted social provider's login and auth-server token
+   * exchange, and returns the result to the caller. It does not authenticate
+   * seedless and does not touch localState, Redux, or analytics.
+   *
+   * @returns The login result, to pass to authenticateSeedlessForRecovery.
+   */
+  loginForRecovery = async (): Promise<SocialRecoveryLogin> => {
+    await whenEngineReady();
+    const authConnection: string | undefined =
+      Engine.context.SeedlessOnboardingController.state.authConnection;
+
+    if (
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Apple
+    ) {
+      throw new MfaRecoveryControllerError(
+        `Unsupported social login provider: ${String(authConnection)}`,
+        'unsupported_social_login',
+      );
+    }
+
+    const loginHandler = createLoginHandler(Platform.OS, authConnection, false);
+    const loginResult = await loginHandler.login();
+    if (!loginResult) {
+      throw new OAuthError(
+        'Login handler return empty result',
+        OAuthErrorType.LoginError,
+      );
+    }
+
+    const data = await loginHandler.getAuthTokens(
+      { ...loginResult, web3AuthNetwork: this.config.web3AuthNetwork },
+      this.config.authServerUrl,
+    );
+    const { userId, accountName } = loginHandler.getUserInfo(data);
+
+    return {
+      authConnection,
+      clientId: loginResult.clientId,
+      data,
+      userId,
+      accountName,
+    };
+  };
+
+  /**
+   * Dev-only: authenticates the seedless controller with a login result from
+   * loginForRecovery. Pass the result in memory; nothing is read from localState.
+   *
+   * @param login - The login result from loginForRecovery.
+   */
+  authenticateSeedlessForRecovery = async (
+    login: SocialRecoveryLogin,
+  ): Promise<void> => {
+    await this.#authenticateSeedless({
+      data: login.data,
+      authConnection: login.authConnection,
+      clientId: login.clientId,
+      userId: login.userId,
+      accountName: login.accountName,
+    });
+  };
+
+  /**
+   * Returns the provider-issued ID token (Google or Apple) bound to the given nonce.
+   *
+   * The connection comes from the persisted seedless state, so it survives restarts.
+   * This runs no seedless or OAuth state transitions: it skips handleSeedlessAuthenticate,
+   * does not change localState, and does not track analytics or log the token.
+   *
+   * @param nonce - The nonce the provider must embed in the returned ID token.
+   * @returns The provider ID token.
+   */
+  getSocialIdTokenForNonce = async (nonce: string): Promise<string> => {
+    await whenEngineReady();
+    const authConnection: string | undefined =
+      Engine.context.SeedlessOnboardingController.state.authConnection;
+
+    if (
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Apple
+    ) {
+      throw new MfaRecoveryControllerError(
+        `Unsupported social login provider: ${String(authConnection)}`,
+        'unsupported_social_login',
+      );
+    }
+
+    const loginHandler = createLoginHandler(
+      Platform.OS,
+      authConnection,
+      false,
+      {
+        nonce,
+      },
+    );
+    const idToken = await loginHandler.getProviderIdToken();
+
+    const payload = JSON.parse(loginHandler.decodeIdToken(idToken)) as {
+      nonce?: unknown;
+    };
+    if (payload.nonce !== nonce) {
+      throw new MfaRecoveryControllerError(
+        'Provider ID token nonce does not match the requested nonce',
+        'social_nonce_mismatch',
+      );
+    }
+
+    return idToken;
+  };
 
   clearAuthDetails = () => {
     this.updateLocalState({
