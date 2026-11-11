@@ -4,7 +4,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   Text,
@@ -12,6 +11,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_INFO_SHEET_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-info-sheet-modal',
@@ -40,6 +42,7 @@ interface RewardsInfoSheetModalProps {
 const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
   route,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { title, description } = route.params;
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -52,7 +55,8 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
       onClose={handleClose}
       testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.CLOSE,
@@ -63,7 +67,7 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
         testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         <Text
           variant={TextVariant.BodyMd}
