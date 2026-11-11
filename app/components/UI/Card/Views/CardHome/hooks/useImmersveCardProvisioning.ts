@@ -7,7 +7,13 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
 } from '../../../../../../selectors/cardController';
-import { selectCardImmersveConfig } from '../../../../../../selectors/featureFlagController/card';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+import { safeToChecksumAddress } from '../../../../../../util/address';
+import {
+  isMoneyAccountFundingChannel,
+  selectCardImmersveConfig,
+} from '../../../../../../selectors/featureFlagController/card';
+import { useImmersveFundingChannel } from '../../../hooks/useImmersveFundingChannel';
 import {
   selectImmersveFundingSourceId,
   setImmersveFundingSourceId,
@@ -43,9 +49,15 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(
-    selectCardImmersveConfig,
-  ).fundingChannelId;
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const fundingChannel = useImmersveFundingChannel(kycRegion);
+  const isMoneyAccountChannel = isMoneyAccountFundingChannel(fundingChannel);
+  const fundingChannelId =
+    fundingChannel?.fundingChannelId || immersveConfig.fundingChannelId;
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const moneyAccountAddress = isMoneyAccountChannel
+    ? safeToChecksumAddress(primaryMoneyAccount?.address)
+    : undefined;
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -101,12 +113,30 @@ export function useImmersveCardProvisioning(
     (async () => {
       try {
         const controller = Engine.context.CardController;
+        if (isMoneyAccountChannel && !moneyAccountAddress) {
+          Logger.error(
+            new Error(
+              'useImmersveCardProvisioning: Money account address is missing',
+            ),
+            {
+              tags: { feature: 'card', provider: 'immersve' },
+              context: {
+                name: 'useImmersveCardProvisioning',
+                data: { method: 'reconcile' },
+              },
+            },
+          );
+          return;
+        }
         const id = await resolveImmersveFundingSourceId({
           fundingChannelId,
-          existingId,
+          existingId: isMoneyAccountChannel ? undefined : existingId,
+          moneyAccountAddress,
         });
         if (cancelled) return;
-        if (!existingId) {
+        // A Money account reconcile ignores the stored wallet source, so the
+        // resolved id can differ from the one already in Redux.
+        if (id !== existingId) {
           dispatch(setImmersveFundingSourceId(id));
         }
         const { prerequisites } = await controller.getSpendingPrerequisites(
@@ -248,7 +278,14 @@ export function useImmersveCardProvisioning(
       cancelled = true;
       handled.current = false;
     };
-  }, [isProvisioning, kycRegion, fundingChannelId, dispatch]);
+  }, [
+    isProvisioning,
+    kycRegion,
+    fundingChannelId,
+    isMoneyAccountChannel,
+    moneyAccountAddress,
+    dispatch,
+  ]);
 
   const resumePendingAction = useCallback(() => {
     if (!pendingAction) return;

@@ -61,7 +61,7 @@ import {
   SOCIAL_V1_EXPOSURE_METADATA,
   SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
-import EmptyShellTabPage from '../shell/EmptyShellTabPage';
+import FollowingView from '../FollowingView';
 import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
   SOCIAL_V1_TAB_ORDER,
@@ -89,7 +89,7 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
-import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import { toSpotCopyTradeTarget } from '../../../UI/SocialFeed/utils/copyTrade';
 import {
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
@@ -102,6 +102,7 @@ import {
   PostTradeShareOwner,
   usePostTradeShareReopen,
 } from '../PostTradeShareBottomSheet';
+import { useQuoteTokensQuery } from '../PostTradeShareBottomSheet/useQuoteTokensQuery';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -210,6 +211,7 @@ const SocialV1ViewContent: React.FC = () => {
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  useQuoteTokensQuery(isSocialV1Treatment);
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const [hardwareTier] = useState(() => getHardwareTier());
@@ -469,6 +471,15 @@ const SocialV1ViewContent: React.FC = () => {
   // *downward*, so it re-tracks the bounce through this derived value while the
   // list content springs back natively — the two desync and the return motion
   // looks erratic. Pinning the block lets only the content bounce.
+  // A hairline along the bottom of the pinned tabs, shown only once the
+  // active page has scrolled. It is absolutely positioned so it does not
+  // change the pager height — an in-flow line left the feed unable to return
+  // to offset 0, which kept this border on. It sits 1px up so the active tab
+  // underline paints on top of it.
+  const tabsScrollDividerStyle = useAnimatedStyle(() => ({
+    opacity: scrollY.value > 0 ? 1 : 0,
+  }));
+
   const collapsingBlockStyle = useAnimatedStyle(() => {
     const maxShift = titleHeightSv.value;
     const shift =
@@ -537,23 +548,13 @@ const SocialV1ViewContent: React.FC = () => {
       commentId: string | undefined,
       source: QuickBuySheetSource,
     ) => {
-      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
-        return;
-      }
-
-      const chain = chainNameToId(item.asset.avatar.chain);
-      const tokenAddress = item.asset.avatar.tokenAddress.trim();
-      if (!chain || !tokenAddress) {
+      const target = toSpotCopyTradeTarget(item);
+      if (!target) {
         return;
       }
 
       openQuickBuy(
-        {
-          tokenAddress,
-          tokenSymbol: item.asset.symbol,
-          tokenName: item.asset.name ?? item.asset.symbol,
-          chain,
-        },
+        target,
         commentId ? { commentId } : undefined,
         'buy',
         source,
@@ -573,16 +574,11 @@ const SocialV1ViewContent: React.FC = () => {
     },
     [handleCopyTrade],
   );
-  const openFollowingQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      openQuickBuy(
-        target,
-        copyTradeOrigin,
-        'buy',
-        SocialEvent.Source.SOCIAL_FOLLOWING,
-      );
+  const handleFollowingCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      handleCopyTrade(item, commentId, SocialEvent.Source.SOCIAL_FOLLOWING);
     },
-    [openQuickBuy],
+    [handleCopyTrade],
   );
 
   useEffect(() => {
@@ -793,12 +789,23 @@ const SocialV1ViewContent: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <Box twClassName="bg-default mt-4">
+            <Box twClassName="relative bg-default mt-4">
+              <Animated.View
+                pointerEvents="none"
+                testID={SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER}
+                style={[
+                  tw.style(
+                    'absolute bottom-0 left-0 right-0 z-0 h-px bg-border-muted',
+                  ),
+                  tabsScrollDividerStyle,
+                ]}
+              />
               <TabsBar
                 tabs={tabs}
                 activeIndex={activeIndex}
                 onTabPress={handleTabPress}
                 testID={SocialV1ViewSelectorsIDs.TABS}
+                twClassName="z-10"
               />
             </Box>
 
@@ -875,22 +882,21 @@ const SocialV1ViewContent: React.FC = () => {
                           scrollTestID={testIds.scroll}
                         />
                       ) : (
-                        <EmptyShellTabPage
-                          tab={tab}
-                          source={analyticsSource}
-                          performance={socialPerformanceByTab[tab]}
+                        <FollowingView
                           isActive={activeIndex === followingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.following}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
-                          containerTestID={testIds.container}
-                          scrollTestID={testIds.scroll}
+                          onCopyTrade={handleFollowingCopyTrade}
                           onOpenFilters={handleOpenFollowingFilters}
                           isFilterActive={hasActiveFilters('following')}
                           onClearFilters={() =>
                             clearAppliedFilters('following')
                           }
                           appliedFilters={applied.following}
-                          onQuickBuy={openFollowingQuickBuy}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
                         />
                       )}
                     </SocialFeedPageProviders>

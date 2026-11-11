@@ -17,6 +17,8 @@ const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
 
 export interface UseTraderPositionsOptions {
+  /** Defaults to true. */
+  enabled?: boolean;
   refetchInterval?: number;
 }
 
@@ -37,6 +39,8 @@ export const useTraderPositions = (
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const enabled =
+    Boolean(addressOrId) && isUnlocked && (options?.enabled ?? true);
 
   const {
     data: openData,
@@ -45,7 +49,7 @@ export const useTraderPositions = (
     refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
     queryKey: buildOpenPositionsQueryKey(addressOrId),
-    enabled: Boolean(addressOrId) && isUnlocked,
+    enabled,
     refetchInterval: options?.refetchInterval,
     refetchOnMount: 'always',
   });
@@ -57,7 +61,7 @@ export const useTraderPositions = (
     refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
     queryKey: buildClosedPositionsQueryKey(addressOrId),
-    enabled: Boolean(addressOrId) && isUnlocked,
+    enabled,
     refetchInterval: options?.refetchInterval,
     refetchOnMount: 'always',
   });

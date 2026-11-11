@@ -23,7 +23,6 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
-import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
 import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
@@ -144,20 +143,17 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -563,7 +559,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -583,7 +578,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -709,18 +703,12 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
     </NativeStack.Navigator>
   );
 };
@@ -1234,13 +1222,6 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {isSocialV1Enabled && (
-          <NativeStack.Screen
-            name={Routes.SOCIAL_PROFILE.DRAWER}
-            component={ProfileDrawer}
-            options={slideFromLeftNativeOptions}
-          />
-        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
@@ -1551,6 +1532,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}

@@ -202,7 +202,11 @@ const renderShell = (
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Feed surface. Sets the Perps order source for that tab. */
-    location?: 'social_trending' | 'social_following' | 'social_live';
+    location?:
+      | 'social_trending'
+      | 'social_following'
+      | 'social_live'
+      | 'my_profile';
     /** Turns on `aiSocialCommentTranslation` for this render. */
     translationEnabled?: boolean;
   },
@@ -612,6 +616,20 @@ describe('SocialFeedPostShell', () => {
       expect(screen.getByTestId(copiesTestId)).toHaveTextContent('0');
     });
 
+    it('hides the engagement row on the live tab', () => {
+      renderShell(basePost({ copyCount: 3 }), { location: 'social_live' });
+
+      expect(screen.queryByTestId(copiesTestId)).toBeNull();
+      expect(
+        screen.queryByTestId(
+          `${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`,
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId('social-feed-position-card-item-1'),
+      ).toBeOnTheScreen();
+    });
+
     it('shows the new count when the copy count changes', () => {
       const { rerenderWithPost } = renderShell(basePost({ copyCount: 3 }));
 
@@ -831,6 +849,31 @@ describe('SocialFeedPostShell', () => {
           }),
         );
       });
+    });
+
+    it('opens a profile perps order with the trader feed source, not the spot handler', async () => {
+      const onCopyTrade = jest.fn();
+      renderShell(basePost(), { location: 'my_profile', onCopyTrade });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+            params: expect.objectContaining({
+              source: 'trader_feed',
+              useBottomSheet: true,
+              stayOnCurrentScreen: true,
+              copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+            }),
+          }),
+        );
+      });
+      expect(onCopyTrade).not.toHaveBeenCalled();
     });
 
     it('opens the perps order redirect as a bottom sheet for an open perp', async () => {

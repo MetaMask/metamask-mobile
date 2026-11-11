@@ -1154,66 +1154,10 @@
       "powered_by": "Impulsado por",
       "button": "Obtener datos de la cuenta"
     },
-    "verify_identity": {
-      "title": "Verifica tu identidad",
-      "description": "Esto suele tardar solo unos minutos. Deberás tener a mano un documento de identidad oficial con fotografía que esté vigente.",
-      "step_photograph_id": "Toma una foto de tu documento de identidad",
-      "step_take_selfie": "Tomarte una selfie",
-      "step_confirm_details": "Confirma tus datos",
-      "step_answer_questions": "Responde algunas preguntas",
-      "footer": "Tu información está cifrada y se comparte de forma segura con nuestros proveedores de verificación. Podrás revisar los detalles antes de continuar.",
-      "powered_by": "Impulsado por",
-      "disclaimers_error": "No se pudieron cargar los términos y condiciones.",
-      "disclaimers_retry": "Inténtalo de nuevo",
-      "button": "Continuar",
-      "terms_sheet_title": "Datos y privacidad",
-      "terms_sheet_description": "Para verificar tu identidad, tu información se compartirá de forma segura con los proveedores que se indican a continuación. Revisa sus políticas y términos antes de continuar.",
-      "metamask_privacy_policy": "Política de privacidad de MetaMask",
-      "metamask_terms": "Términos y condiciones de MetaMask",
-      "terms_sheet_button": "Aceptar e iniciar la verificación"
-    },
-    "kyc_email": {
-      "error_title": "No se pudo iniciar la verificación",
-      "error_description": "Se produjo un error al abrir la verificación por correo electrónico. Inténtalo de nuevo."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Necesitamos un poco más de información",
-      "more_info_description": "A veces necesitamos información adicional para completar la verificación. Revisa a continuación lo que se necesita para continuar.",
-      "more_info_item_title": "Comprobante de domicilio",
-      "more_info_item_description": "Carga un documento reciente que muestre tu nombre y domicilio actual",
-      "more_info_button": "Continuar",
-      "more_info_help": "¿Necesitas ayuda con la verificación?",
-      "error_title": "No se pudo iniciar la verificación",
-      "error_description": "Se produjo un error al abrir la verificación de identidad. Inténtalo de nuevo.",
-      "retry": "Inténtalo de nuevo"
-    },
-    "kyc_taking_longer": {
-      "title": "Verificando tu identidad",
-      "description": "La mayoría de las verificaciones tardan alrededor de 10 segundos. Puedes volver más tarde; te avisaremos cuando tu verificación haya finalizado.",
-      "button": "Vuelve más tarde"
-    },
-    "identity_verified": {
-      "title": "Identidad verificada",
-      "description": "La verificación de identidad ha finalizado.",
-      "button": "Continuar"
-    },
     "creating_account": {
       "title": "Creating your account...",
       "description": "Most accounts are created instantly.",
       "awaiting_provider": "Esperando a que MoonPay apruebe tu cuenta"
-    },
-    "kyc_rejected": {
-      "title": "No pudimos verificar tu identidad",
-      "description": "Debes revisar algunos datos. Revisa cada punto a continuación y luego comunícate con soporte.",
-      "retry_description": "Debes revisar algunos datos. Revisa cada punto a continuación y vuelve a intentarlo.",
-      "identity_document_title": "Revisa tu documento de identidad",
-      "identity_document_description": "Asegúrate de que sea válido, claro y totalmente visible",
-      "selfie_title": "Vuelve a tomarte una selfie",
-      "selfie_description": "Usa buena iluminación y muestra tu rostro con claridad",
-      "details_title": "Revisa tus datos",
-      "details_description": "Asegúrate de que tu información coincida con la de tus documentos",
-      "button": "Contactar a soporte",
-      "retry_button": "Inténtalo de nuevo"
     },
     "account_provisioning_error": {
       "title": "No se pudo crear tu cuenta",
@@ -1271,6 +1215,64 @@
       "load_error": "No se pudo actualizar el depósito. Volveremos a intentarlo.",
       "setup_error": "No se pudo crear tu cuenta.",
       "retry": "Inténtalo de nuevo"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Verifica tu identidad",
+      "description": "Esto suele tardar solo unos minutos. Deberás tener a mano un documento de identidad oficial con fotografía que esté vigente.",
+      "step_photograph_id": "Toma una foto de tu documento de identidad",
+      "step_take_selfie": "Tomarte una selfie",
+      "step_confirm_details": "Confirma tus datos",
+      "step_answer_questions": "Responde algunas preguntas",
+      "footer": "Tu información está cifrada y se comparte de forma segura con nuestros proveedores de verificación. Podrás revisar los detalles antes de continuar.",
+      "powered_by": "Impulsado por",
+      "disclaimers_error": "No se pudieron cargar los términos y condiciones.",
+      "disclaimers_retry": "Inténtalo de nuevo",
+      "button": "Continuar",
+      "terms_sheet_title": "Datos y privacidad",
+      "terms_sheet_description": "Para verificar tu identidad, tu información se compartirá de forma segura con los proveedores que se indican a continuación. Revisa sus políticas y términos antes de continuar.",
+      "metamask_privacy_policy": "Política de privacidad de MetaMask",
+      "metamask_terms": "Términos y condiciones de MetaMask",
+      "terms_sheet_button": "Aceptar e iniciar la verificación"
+    },
+    "kyc_email": {
+      "error_title": "No se pudo iniciar la verificación",
+      "error_description": "Se produjo un error al abrir la verificación por correo electrónico. Inténtalo de nuevo."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Necesitamos un poco más de información",
+      "more_info_description": "A veces necesitamos información adicional para completar la verificación. Revisa a continuación lo que se necesita para continuar.",
+      "more_info_item_title": "Comprobante de domicilio",
+      "more_info_item_description": "Carga un documento reciente que muestre tu nombre y domicilio actual",
+      "more_info_button": "Continuar",
+      "more_info_help": "¿Necesitas ayuda con la verificación?",
+      "error_title": "No se pudo iniciar la verificación",
+      "error_description": "Se produjo un error al abrir la verificación de identidad. Inténtalo de nuevo.",
+      "retry": "Inténtalo de nuevo"
+    },
+    "kyc_taking_longer": {
+      "title": "Verificando tu identidad",
+      "description": "La mayoría de las verificaciones tardan alrededor de 10 segundos. Puedes volver más tarde; te avisaremos cuando tu verificación haya finalizado.",
+      "button": "Vuelve más tarde"
+    },
+    "identity_verified": {
+      "title": "Identidad verificada",
+      "description": "La verificación de identidad ha finalizado.",
+      "button": "Continuar"
+    },
+    "kyc_rejected": {
+      "title": "No pudimos verificar tu identidad",
+      "description": "Debes revisar algunos datos. Revisa cada punto a continuación y luego comunícate con soporte.",
+      "retry_description": "Debes revisar algunos datos. Revisa cada punto a continuación y vuelve a intentarlo.",
+      "identity_document_title": "Revisa tu documento de identidad",
+      "identity_document_description": "Asegúrate de que sea válido, claro y totalmente visible",
+      "selfie_title": "Vuelve a tomarte una selfie",
+      "selfie_description": "Usa buena iluminación y muestra tu rostro con claridad",
+      "details_title": "Revisa tus datos",
+      "details_description": "Asegúrate de que tu información coincida con la de tus documentos",
+      "button": "Contactar a soporte",
+      "retry_button": "Inténtalo de nuevo"
     }
   },
   "social": {
@@ -11910,7 +11912,6 @@
       "email_label": "Correo electrónico",
       "password_label": "Contraseña",
       "login_button": "Iniciar sesión",
-      "siwe_button": "Iniciar sesión con Ethereum",
       "continue_button": "Continuar",
       "uk_login_button": "Iniciar sesión con esta cuenta",
       "signup_button": "Inscribirse",

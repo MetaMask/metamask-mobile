@@ -24,6 +24,7 @@ import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
@@ -138,6 +139,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -155,6 +157,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
@@ -218,19 +221,18 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [isEntryHidden, posts],
-  );
+  const visiblePosts = useMemo(() => {
+    const shown = posts.filter(
+      (post) =>
+        !isEntryHidden({
+          postId: post.id,
+          authorId: post.item.author.id,
+          authorHandle: post.authorHandle,
+          commentId: post.commentId,
+        }),
+    );
+    return comparePosts ? shown.sort(comparePosts) : shown;
+  }, [comparePosts, isEntryHidden, posts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -375,6 +377,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               now={clock}
+              viewerProfileId={viewerProfileId}
             />
           );
         case 'inline':
@@ -405,6 +408,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       requireSocialProfile,
       scheduleEntryDelay,
       state,
+      viewerProfileId,
     ],
   );
 

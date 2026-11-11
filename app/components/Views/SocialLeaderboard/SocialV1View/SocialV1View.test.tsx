@@ -13,10 +13,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import {
-  MOCK_SOCIAL_V1_FEED_ITEMS,
-  mockOpenPerpsFeedItem,
-} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   addPendingPost,
@@ -71,19 +68,17 @@ jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
 }));
 
+const mockUseQuoteTokensQuery = jest.fn();
+jest.mock('../PostTradeShareBottomSheet/useQuoteTokensQuery', () => ({
+  useQuoteTokensQuery: (enabled: boolean) => mockUseQuoteTokensQuery(enabled),
+}));
+
 jest.mock('../utils/socialTabVisit', () => ({
   markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
-// React Query. This suite covers the V1 chrome, so stand in for both data
-// sources while still driving the real pending-post store the pinning tests
-// depend on.
-jest.mock('./feed/hooks/useSocialV1Feed', () => ({
-  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
-    .mockUseSocialV1Feed,
-}));
-
+// React Query. This suite covers the V1 chrome, so stand in for it.
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -100,7 +95,7 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
-  const { View } = jest.requireActual(
+  const { View, ScrollView } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
@@ -115,6 +110,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
   }
 
   return {
@@ -134,7 +130,10 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
           },
           props.renderHeader?.(),
         ),
-        ReactActual.createElement(View, { testID: props.scrollTestID }),
+        ReactActual.createElement(ScrollView, {
+          testID: props.scrollTestID,
+          onScroll: props.onScroll,
+        }),
       );
     },
   };
@@ -293,6 +292,34 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    // The stock mock resets shared values every render, freezes derived
+    // values, and ignores scroll handlers, so a scrolled tab could never
+    // reach the divider's visible branch.
+    useSharedValue: (init: unknown) => {
+      const ReactActual = jest.requireActual('react') as typeof import('react');
+      const ref = ReactActual.useRef<{ value: unknown } | null>(null);
+      if (!ref.current) {
+        ref.current = { value: init };
+      }
+      return ref.current;
+    },
+    useDerivedValue: (processor: () => unknown) => ({
+      get value() {
+        return processor();
+      },
+    }),
+    useAnimatedScrollHandler:
+      (
+        handlers:
+          | ((event: { contentOffset: { y: number } }) => void)
+          | { onScroll?: (event: { contentOffset: { y: number } }) => void },
+      ) =>
+      (event: { nativeEvent?: { contentOffset: { y: number } } }) => {
+        const scrollEvent = event.nativeEvent ?? event;
+        const onScroll =
+          typeof handlers === 'function' ? handlers : handlers.onScroll;
+        onScroll?.(scrollEvent as { contentOffset: { y: number } });
+      },
   };
 });
 
@@ -364,6 +391,31 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
+  });
+
+  it('loads the quote-token list for Social V1', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
+  });
+
+  it('shows the tab divider only after the feed is scrolled', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const divider = screen.getByTestId(
+      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
+    );
+
+    expect(divider).toHaveStyle({ opacity: 0 });
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
+    ).toHaveStyle({ opacity: 1 });
   });
 
   it('omits tab sub-navigation pills', () => {
@@ -842,20 +894,32 @@ describe('SocialV1View', () => {
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
-  it('renders the mocked feed on Following after that tab is opened', () => {
+  it('renders Following through the shared virtualized feed once that tab is opened', () => {
     renderWithProvider(<SocialV1View />);
+    const followingFeedProps = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_following')
+        .pop();
+    const beforeOpening = followingFeedProps();
 
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
 
-    expect(
-      within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getByTestId(
-        getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
-      ),
-    ).toBeOnTheScreen();
+    expect(beforeOpening).toBeUndefined();
+    expect(followingFeedProps()).toEqual(
+      expect.objectContaining({
+        scope: 'following_v1',
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'following' }),
+      }),
+    );
+    expect(followingFeedProps()).not.toHaveProperty('realtime');
   });
 
   it('insets the header avatar so it shares the 16px tab padding', () => {

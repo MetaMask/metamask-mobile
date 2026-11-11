@@ -11,6 +11,7 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import ImmersveKYCProcessing from '../components/Onboarding/ImmersveKYCProcessing';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ImmersveFundingApproval from '../components/Onboarding/ImmersveFundingApproval';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import KYCPending from '../components/Onboarding/KYCPending';
@@ -23,8 +24,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
-import { ActivityIndicator } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, IconSize, Spinner } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
@@ -201,7 +201,10 @@ const OnboardingNavigator: React.FC = () => {
   if ((isLoading || isFetchingUserData) && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
-        <ActivityIndicator testID="activity-indicator" size="large" />
+        <Spinner
+          testID="activity-indicator"
+          spinnerIconProps={{ size: IconSize.Xl }}
+        />
       </Box>
     );
   }
@@ -255,6 +258,11 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PROCESSING}
         component={ImmersveKYCProcessing}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.IMMERSVE_KYC}
+        component={ImmersveKYCModal}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.FUNDING_APPROVAL}

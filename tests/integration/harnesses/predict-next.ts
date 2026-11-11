@@ -2,8 +2,8 @@ import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { ConstantBackoff } from '@metamask/controller-utils';
 import {
   GeolocationApiService,
+  GeolocationController,
   type GeolocationApiServiceMessenger,
-  type GeolocationController,
   type GeolocationControllerMessenger,
 } from '@metamask/geolocation-controller';
 import {
@@ -63,9 +63,7 @@ import {
   type PredictVenueControllerMessenger,
   type PredictVenueControllerState,
 } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
-import { geolocationControllerInit } from '../../../app/core/Engine/controllers/geolocation-controller';
-import { getGeolocationApiServiceMessenger } from '../../../app/core/Engine/messengers/geolocation-api-service-messenger';
-import { getGeolocationControllerMessenger } from '../../../app/core/Engine/messengers/geolocation-controller-messenger';
+import { fetchInitialGeolocation } from '../../../app/core/Engine/wallet-init/listeners/geolocation-controller';
 import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/messengers/predict-device-auth-service-messenger';
 import { getPredictVenueControllerMessenger } from '../../../app/core/Engine/messengers/predict-venue-controller-messenger';
 
@@ -539,23 +537,28 @@ export const buildPredictVenueIntegrationHarness = ({
         settle = resolve;
       }),
   ) as unknown as jest.MockedFunction<typeof fetch>;
+  // Mirrors the GeolocationApiService and GeolocationController messengers
+  // that @metamask/wallet builds.
+  const geolocationApiServiceMessenger: GeolocationApiServiceMessenger =
+    new Messenger({ namespace: 'GeolocationApiService', parent: messenger });
   // Registers the fetch action the controller calls; nothing else holds it.
   // eslint-disable-next-line no-new
   new GeolocationApiService({
-    messenger:
-      getGeolocationApiServiceMessenger(
-        rootFor<typeof getGeolocationApiServiceMessenger>(),
-      ),
+    messenger: geolocationApiServiceMessenger,
     fetch: geolocationFetchMock,
     policyOptions: { maxRetries: 0 },
   });
-  const { controller: geolocationController } = geolocationControllerInit({
-    controllerMessenger:
-      getGeolocationControllerMessenger(
-        rootFor<typeof getGeolocationControllerMessenger>(),
-      ),
-    persistedState: {},
-  } as unknown as Parameters<typeof geolocationControllerInit>[0]);
+  const geolocationControllerMessenger: GeolocationControllerMessenger =
+    new Messenger({ namespace: 'GeolocationController', parent: messenger });
+  messenger.delegate({
+    messenger: geolocationControllerMessenger,
+    actions: ['GeolocationApiService:fetchGeolocationData'],
+  });
+  const geolocationController = new GeolocationController({
+    messenger: geolocationControllerMessenger,
+  });
+  // Mirrors the eager Engine-start fetch in initializeWallet.
+  fetchInitialGeolocation(geolocationController);
 
   // Mirrors predictVenueControllerInit, minus its Redux subscription.
   const venueController = new PredictVenueController({
