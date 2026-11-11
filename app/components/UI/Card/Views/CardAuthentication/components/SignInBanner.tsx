@@ -1,9 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  FontWeight,
-  Text,
+  TextButton,
   TextVariant,
   BannerAlert,
   BannerAlertSeverity,
@@ -90,45 +88,39 @@ const SignInBanner = ({
       testID={CardAuthenticationSelectors.BANNER}
     >
       {(banner === 'account_missing' || banner === 'no_card') && (
-        <Box twClassName="gap-1 mt-1">
-          <TouchableOpacity onPress={onChooseAccount}>
-            <Text
+        <Box twClassName="items-start">
+          <TextButton
+            variant={TextVariant.BodyMd}
+            onPress={onChooseAccount}
+            twClassName="py-2"
+          >
+            {strings(
+              banner === 'account_missing'
+                ? 'card.card_authentication.banner_account_missing_choose'
+                : 'card.card_authentication.banner_no_card_choose',
+            )}
+          </TextButton>
+          {banner === 'account_missing' && (
+            <TextButton
               variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              twClassName="text-primary-default py-2"
+              onPress={onImportSrp}
+              twClassName="py-2"
             >
               {strings(
-                banner === 'account_missing'
-                  ? 'card.card_authentication.banner_account_missing_choose'
-                  : 'card.card_authentication.banner_no_card_choose',
+                'card.card_authentication.banner_account_missing_import',
               )}
-            </Text>
-          </TouchableOpacity>
-          {banner === 'account_missing' && (
-            <TouchableOpacity onPress={onImportSrp}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                twClassName="text-primary-default py-2"
-              >
-                {strings(
-                  'card.card_authentication.banner_account_missing_import',
-                )}
-              </Text>
-            </TouchableOpacity>
+            </TextButton>
           )}
         </Box>
       )}
       {banner === 'moved' && showMovedAction && (
-        <TouchableOpacity onPress={onMovedAction}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-primary-default py-2"
-          >
-            {strings('card.card_authentication.banner_moved_action')}
-          </Text>
-        </TouchableOpacity>
+        <TextButton
+          variant={TextVariant.BodyMd}
+          onPress={onMovedAction}
+          twClassName="py-2"
+        >
+          {strings('card.card_authentication.banner_moved_action')}
+        </TextButton>
       )}
     </BannerAlert>
   );

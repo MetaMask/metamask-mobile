@@ -1,14 +1,12 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  AccessibilityInfo,
-  Platform,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { AccessibilityInfo, Platform, TextInput } from 'react-native';
 import {
   Box,
-  FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
   TextField,
 } from '@metamask/design-system-react-native';
@@ -73,42 +71,40 @@ const SignInOtpFields = ({
   }, [otpError]);
 
   return (
-    <>
-      <Box>
-        <TextField
-          inputRef={codeInputRef}
-          onChangeText={onChangeCode}
-          value={confirmCode}
-          isError={!!error}
-          inputProps={{
-            autoCapitalize: 'none',
-            numberOfLines: 1,
-            keyboardType: 'number-pad',
-            textContentType: 'oneTimeCode',
-            autoComplete,
-            maxLength: CODE_LENGTH,
-            accessibilityLabel: strings(
-              'card.card_otp_authentication.confirm_code_label',
-            ),
-            testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
-          }}
-        />
-        {error && (
-          <Text
-            testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
-            accessibilityLiveRegion="polite"
-          >
-            {error}
-          </Text>
-        )}
-      </Box>
+    <Box gap={2}>
+      <TextField
+        inputRef={codeInputRef}
+        onChangeText={onChangeCode}
+        value={confirmCode}
+        isError={!!error}
+        inputProps={{
+          autoCapitalize: 'none',
+          numberOfLines: 1,
+          keyboardType: 'number-pad',
+          textContentType: 'oneTimeCode',
+          autoComplete,
+          maxLength: CODE_LENGTH,
+          accessibilityLabel: strings(
+            'card.card_otp_authentication.confirm_code_label',
+          ),
+          testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
+        }}
+      />
+      {error && (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
+        >
+          {error}
+        </HelpText>
+      )}
       {showResend && (
-        <Box twClassName="mt-2">
+        <>
           <Text
             variant={TextVariant.BodySm}
-            twClassName="text-text-alternative"
+            color={TextColor.TextAlternative}
             testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
           >
             {resendCooldown > 0 ? (
@@ -118,30 +114,29 @@ const SignInOtpFields = ({
             ) : (
               <>
                 {strings('card.card_otp_authentication.didnt_receive_code')}
-                <Text
+                <TextButton
                   variant={TextVariant.BodySm}
-                  twClassName="text-text-alternative underline"
                   onPress={resendCooldown > 0 ? undefined : onResend}
                   disabled={resendCooldown > 0 || otpLoading}
                 >
                   {resendLabel}
-                </Text>
+                </TextButton>
               </>
             )}
           </Text>
           {otpError && (
-            <Text
-              testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
-              variant={TextVariant.BodySm}
-              twClassName="text-error-default"
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              accessibilityRole="alert"
               accessibilityLiveRegion="polite"
+              testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
             >
               {otpError}
-            </Text>
+            </HelpText>
           )}
-        </Box>
+        </>
       )}
-    </>
+    </Box>
   );
 };
 

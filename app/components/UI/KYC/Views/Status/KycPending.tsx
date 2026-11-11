@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -13,8 +12,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import KycIllustration, {
@@ -27,22 +24,13 @@ export const KycPendingSelectorsIDs = {
   COME_BACK_LATER_BUTTON: 'kyc-pending-come-back-later-button',
 } as const;
 
-const KycPending = ({ onLeave }: { onLeave?: () => void }) => {
+const KycPending = ({ onLeave }: { onLeave: () => void }) => {
   useTrackKycResultViewed('pending');
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleComeBackLater = useCallback(() => {
-    onLeave?.();
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation, onLeave]);
+    onLeave();
+  }, [onLeave]);
 
   return (
     <SafeAreaView
