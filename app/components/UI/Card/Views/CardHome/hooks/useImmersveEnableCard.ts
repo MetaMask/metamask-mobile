@@ -11,12 +11,13 @@ import {
   selectCardActiveProviderId,
   selectCardSelectedCountry,
   selectImmersveMoneyAccountMode,
-  selectIsMoneyAccountCardLinkInProgress,
 } from '../../../../../../selectors/cardController';
+import { selectImmersveFundingSettling } from '../../../../../../core/redux/slices/card';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { BAANX_MAX_LIMIT } from '../../../constants';
 import { useMoneyAccountCardLinkage } from '../../../hooks/useMoneyAccountCardLinkage';
+import { useImmersveMoneyAccountFundingApproval } from '../../../hooks/useImmersveMoneyAccountFundingApproval';
 import {
   CardActions,
   CardEntryPoint,
@@ -61,8 +62,12 @@ export function useImmersveEnableCard(
   const providerId = useSelector(selectCardActiveProviderId);
   const isImmersve = providerId === CardProviderIds.Immersve;
   const isMoneyAccountMode = useSelector(selectImmersveMoneyAccountMode);
-  const isApproving = useSelector(selectIsMoneyAccountCardLinkInProgress);
-  const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
+  const isFundingSettling = useSelector(selectImmersveFundingSettling);
+  const { confirmLinkInBackground } = useMoneyAccountCardLinkage({
+    consumesPendingLink: false,
+  });
+  const { approveFunding, isApproving } =
+    useImmersveMoneyAccountFundingApproval();
 
   const {
     isReconciling,
@@ -131,11 +136,38 @@ export function useImmersveEnableCard(
       });
       return;
     }
+    if (isMoneyAccountMode && pendingAction?.type === 'funding') {
+      // A focus recheck keeps the funding step visible. Ignore the press until
+      // it finishes so a second approval cannot start underneath it.
+      if (isReconciling) {
+        return;
+      }
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.IMMERSVE_PROVISIONING_RESUME,
+              next_action: pendingAction.type,
+            }),
+          )
+          .build(),
+      );
+      approveFunding(
+        options?.navigateFromOutsideCard
+          ? CardEntryPoint.MONEY_HOME_METAMASK_CARD
+          : CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      ).catch(() => undefined);
+      return;
+    }
     resumePendingAction();
   }, [
     isAllowanceRevoked,
     isMoneyAccountMode,
+    isReconciling,
     confirmLinkInBackground,
+    pendingAction,
+    approveFunding,
+    options?.navigateFromOutsideCard,
     trackEvent,
     createEventBuilder,
     navigation,
@@ -152,7 +184,14 @@ export function useImmersveEnableCard(
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
     setupStep,
-    isEnableCardPending: Boolean(isMoneyAccountMode && isApproving),
+    // The link flag clears before the effect drops this funding step. Keep the
+    // button disabled through that commit so a second press cannot submit
+    // another allowance.
+    isEnableCardPending: Boolean(
+      isMoneyAccountMode &&
+        (isApproving ||
+          (isFundingSettling && pendingAction?.type === 'funding')),
+    ),
     markCardFlowOpened,
   };
 }

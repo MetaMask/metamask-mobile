@@ -64,6 +64,17 @@ export interface UseSocialFeedRealtimeOptions {
   /** Holds new posts behind the pill even at the top. */
   holdNewPosts: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  /**
+   * Keeps posts the list does not show yet to the streamed request's slice,
+   * since the channel carries its whole scope. Posts already shown take every
+   * revision. Memoize it.
+   */
+  matchesItem?: ((item: CoreFeedItem) => boolean) | null;
+  /**
+   * Identifies the request being streamed. A change on the same channel drops
+   * what the previous request streamed, then catches up.
+   */
+  streamKey?: string;
 }
 
 export interface UseSocialFeedRealtimeResult {
@@ -83,7 +94,10 @@ interface RealtimeStore {
   evicted: Map<string, number>;
 }
 
-type RealtimeView = Omit<RealtimeStore, 'evicted'>;
+type RealtimeView = Omit<RealtimeStore, 'evicted'> & {
+  /** The request the rows were streamed for. */
+  stream: string | null;
+};
 
 interface CachedFeedPost {
   core: CoreFeedItem;
@@ -100,6 +114,12 @@ const createStore = (): RealtimeStore => ({
 });
 
 const EMPTY_POSTS: SocialV1FeedPost[] = [];
+const EMPTY_VIEW: RealtimeView = {
+  socketRows: [],
+  revisedRows: new Map(),
+  pending: new Map(),
+  stream: null,
+};
 const EMPTY_ROWS_BY_ID: ReadonlyMap<string, TraderFeedRow> = new Map();
 const noop = () => undefined;
 
@@ -123,15 +143,25 @@ export const useSocialFeedRealtime = (
     nearTop,
     holdNewPosts,
     filterPost,
+    matchesItem,
+    streamKey = '',
   }: UseSocialFeedRealtimeOptions,
 ): UseSocialFeedRealtimeResult | null => {
   const isLive = realtimeScope !== null && active;
+  const stream =
+    realtimeScope === null ? null : `${realtimeScope}:${streamKey}`;
+  const streamRef = useRef(stream);
+  streamRef.current = stream;
   const storeRef = useRef<RealtimeStore>(createStore());
-  const [view, setView] = useState<RealtimeView>(() => ({
+  const [publishedView, setView] = useState<RealtimeView>(() => ({
     socketRows: [],
     revisedRows: new Map(),
     pending: new Map(),
+    stream,
   }));
+  // The store resets after the render that changes the request, so that
+  // render must not show what was streamed for the previous one.
+  const view = publishedView.stream === stream ? publishedView : EMPTY_VIEW;
   const [drainVersion, setDrainVersion] = useState(0);
   const [revealRequested, setRevealRequested] = useState(false);
   const [catchUpVersion, setCatchUpVersion] = useState(0);
@@ -158,12 +188,19 @@ export const useSocialFeedRealtime = (
   holdNewPostsRef.current = holdNewPosts;
   const filterPostRef = useRef(filterPost);
   filterPostRef.current = filterPost;
+  const matchesItemRef = useRef(matchesItem);
+  matchesItemRef.current = matchesItem;
   const dataUpdatedAtRef = useRef(dataUpdatedAt);
   dataUpdatedAtRef.current = dataUpdatedAt;
 
   const publish = useCallback(() => {
     const { socketRows, revisedRows, pending } = storeRef.current;
-    setView({ socketRows, revisedRows, pending: new Map(pending) });
+    setView({
+      socketRows,
+      revisedRows,
+      pending: new Map(pending),
+      stream: streamRef.current,
+    });
   }, []);
 
   const catchUpPendingRef = useRef(false);
@@ -315,6 +352,11 @@ export const useSocialFeedRealtime = (
         return;
       }
 
+      const matches = matchesItemRef.current;
+      if (!isKnown && matches && !matches(event.data)) {
+        return;
+      }
+
       const filter = filterPostRef.current;
       if (!isKnown && filter) {
         const post = toRealtimeEventPost(
@@ -344,20 +386,23 @@ export const useSocialFeedRealtime = (
     [applyEvent, publish, queuePending],
   );
 
-  const lastScopeRef = useRef<SocialFeedRealtimeScope | null>(null);
+  // Socket rows and held events belong to the request that streamed them. A
+  // cached page of the next request is never stale-refetched while streaming,
+  // so it catches up on what the socket brought while it was not shown.
+  const lastStreamRef = useRef<string | null>(null);
   useEffect(() => {
-    if (realtimeScope === null) {
+    if (stream === null) {
       return;
     }
-    if (
-      lastScopeRef.current !== null &&
-      lastScopeRef.current !== realtimeScope
-    ) {
+    if (lastStreamRef.current !== null && lastStreamRef.current !== stream) {
       storeRef.current = createStore();
       publish();
+      if (dataUpdatedAtRef.current !== undefined) {
+        markCatchUp();
+      }
     }
-    lastScopeRef.current = realtimeScope;
-  }, [publish, realtimeScope]);
+    lastStreamRef.current = stream;
+  }, [markCatchUp, publish, stream]);
 
   useEffect(() => {
     if (!realtimeScope || !active) {

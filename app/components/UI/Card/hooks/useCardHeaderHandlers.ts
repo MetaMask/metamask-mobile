@@ -37,6 +37,28 @@ export type CardHeaderMode =
   | 'close-reset-home'
   | 'none';
 
+/**
+ * "Exit card setup?" alert shared by the onboarding close button and the
+ * Immersve KYC webview. The caller decides what Exit does.
+ */
+export const showCardExitConfirmation = (onExit: () => void) => {
+  Alert.alert(
+    strings('card.card_onboarding.exit_confirmation.title'),
+    strings('card.card_onboarding.exit_confirmation.message'),
+    [
+      {
+        text: strings('card.card_onboarding.exit_confirmation.cancel_button'),
+        style: 'cancel',
+      },
+      {
+        text: strings('card.card_onboarding.exit_confirmation.exit_button'),
+        onPress: onExit,
+        style: 'destructive',
+      },
+    ],
+  );
+};
+
 export const useCardHeaderHandlers = (mode: CardHeaderMode = 'none') => {
   const navigation = useNavigation<AppNavigationProp>();
   const exitCardFlow = useExitCardFlow();
@@ -57,21 +79,7 @@ export const useCardHeaderHandlers = (mode: CardHeaderMode = 'none') => {
   }, [navigation]);
 
   const handleCloseWithConfirmation = useCallback(() => {
-    Alert.alert(
-      strings('card.card_onboarding.exit_confirmation.title'),
-      strings('card.card_onboarding.exit_confirmation.message'),
-      [
-        {
-          text: strings('card.card_onboarding.exit_confirmation.cancel_button'),
-          style: 'cancel',
-        },
-        {
-          text: strings('card.card_onboarding.exit_confirmation.exit_button'),
-          onPress: () => exitCardFlow(),
-          style: 'destructive',
-        },
-      ],
-    );
+    showCardExitConfirmation(exitCardFlow);
   }, [exitCardFlow]);
 
   switch (mode) {

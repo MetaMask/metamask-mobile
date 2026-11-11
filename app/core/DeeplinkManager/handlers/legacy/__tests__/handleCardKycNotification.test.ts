@@ -183,17 +183,15 @@ describe('handleCardKycNotification', () => {
         });
       });
 
-      it('navigates to KYCPending', async () => {
+      it('navigates to CardHome in its pending state', async () => {
         await handleCardKycNotification();
         jest.runAllTimers();
 
         expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
           params: {
-            screen: Routes.CARD.ONBOARDING.ROOT,
-            params: {
-              screen: Routes.CARD.ONBOARDING.KYC_PENDING,
-            },
+            screen: Routes.CARD.HOME,
+            params: { fromKycPending: true },
           },
         });
       });

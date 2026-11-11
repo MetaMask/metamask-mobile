@@ -11,9 +11,9 @@ import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
 import ImmersveKYCProcessing from '../components/Onboarding/ImmersveKYCProcessing';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
 import ImmersveFundingApproval from '../components/Onboarding/ImmersveFundingApproval';
 import KYCFailed from '../components/Onboarding/KYCFailed';
-import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
 import PhysicalAddress from '../components/Onboarding/PhysicalAddress';
 import { selectOnboardingId } from '../../../../core/redux/slices/card';
@@ -254,12 +254,13 @@ const OnboardingNavigator: React.FC = () => {
         component={KYCFailed}
       />
       <Stack.Screen
-        name={Routes.CARD.ONBOARDING.KYC_PENDING}
-        component={KYCPending}
-      />
-      <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PROCESSING}
         component={ImmersveKYCProcessing}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.IMMERSVE_KYC}
+        component={ImmersveKYCModal}
+        options={{ animation: 'none' }}
       />
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.FUNDING_APPROVAL}

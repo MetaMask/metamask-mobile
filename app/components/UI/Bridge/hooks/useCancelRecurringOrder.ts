@@ -11,8 +11,9 @@ import type { InfiniteData } from '@tanstack/query-core';
 import Engine from '../../../../core/Engine';
 import {
   RecurringOrderState,
+  type CancelRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
-  type GetRecurringOrdersResponse,
+  type ListRecurringOrdersResponse,
   type RecurringOrder,
 } from '../api/recurringOrders.types';
 import {
@@ -78,20 +79,16 @@ function isRecurringOrdersQueryKey(
  */
 function updateRecurringOrdersCaches(
   queryClient: ReturnType<typeof useQueryClient>,
-  order: RecurringOrder,
+  cancelledOrder: RecurringOrder,
 ): void {
-  const cancelledOrder = {
-    ...order,
-    state: RecurringOrderState.Cancelled,
-  };
-  const sourceAssetId = order.src.asset.assetId;
-  const destinationAssetId = order.dest.asset.assetId;
+  const sourceAssetId = cancelledOrder.src.asset.assetId;
+  const destinationAssetId = cancelledOrder.dest.asset.assetId;
   const sourceChainId = isCaipAssetType(sourceAssetId)
     ? parseCaipAssetType(sourceAssetId).chainId
     : undefined;
-  const orderWalletAddress = isCaipAccountId(order.account)
-    ? parseCaipAccountId(order.account).address
-    : order.account;
+  const orderWalletAddress = isCaipAccountId(cancelledOrder.accountAddress)
+    ? parseCaipAccountId(cancelledOrder.accountAddress).address
+    : cancelledOrder.accountAddress;
 
   queryClient
     .getQueryCache()
@@ -102,7 +99,7 @@ function updateRecurringOrdersCaches(
       }
 
       const params = query.queryKey[1];
-      queryClient.setQueryData<InfiniteData<GetRecurringOrdersResponse>>(
+      queryClient.setQueryData<InfiniteData<ListRecurringOrdersResponse>>(
         query.queryKey,
         (data) => {
           if (!data) {
@@ -112,7 +109,7 @@ function updateRecurringOrdersCaches(
           // Remove stale copies from every loaded page, including Open Orders.
           const pages = data.pages.map((page) => ({
             ...page,
-            orders: page.orders.filter(({ id }) => id !== order.id),
+            orders: page.orders.filter(({ id }) => id !== cancelledOrder.id),
           }));
 
           // Reinsert only into compatible History caches for this wallet and chain.
@@ -164,25 +161,29 @@ function updateRecurringOrdersCaches(
   queryClient.setQueriesData<GetRecurringOrdersByAssetResponse>(
     { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
     (data) => {
-      if (!data?.some(({ id }) => id === order.id)) {
+      if (!data?.some(({ id }) => id === cancelledOrder.id)) {
         return data;
       }
 
-      return data.filter(({ id }) => id !== order.id);
+      return data.filter(({ id }) => id !== cancelledOrder.id);
     },
   );
 }
 
 export function useCancelRecurringOrder() {
   const queryClient = useQueryClient();
-  const mutation = useMutation<void, Error, RecurringOrder>({
+  const mutation = useMutation<
+    CancelRecurringOrderResponse,
+    Error,
+    RecurringOrder
+  >({
     mutationFn: (order) =>
       Engine.controllerMessenger.call(
         'RecurringOrdersDataService:cancelRecurringOrder',
         order.id,
-        order.account,
+        order.accountAddress,
       ),
-    onSuccess: async (_data, order) => {
+    onSuccess: async ({ order }) => {
       updateRecurringOrdersCaches(queryClient, order);
 
       await Promise.all(
