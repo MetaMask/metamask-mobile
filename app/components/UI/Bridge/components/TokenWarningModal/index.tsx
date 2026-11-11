@@ -51,7 +51,7 @@ export interface TokenWarningModalParams {
    * Execution mode only: runs on Proceed instead of the Bridge confirm, for
    * flows that submit outside the Bridge screens (e.g. Quick Buy).
    */
-  onProceed?: () => void;
+  onProceed?: () => Promise<void>;
 }
 
 export const getTokenWarningContent = (

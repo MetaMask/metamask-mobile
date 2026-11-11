@@ -367,7 +367,7 @@ describe('TokenWarningModal', () => {
 
   describe('handleProceed', () => {
     it('calls onProceed instead of the Bridge quote checks and confirm when provided', async () => {
-      const onProceed = jest.fn();
+      const onProceed = jest.fn().mockResolvedValue(undefined);
       mockUseParams.mockReturnValue({ ...defaultWarningParams, onProceed });
 
       const { getByTestId } = renderModal();
