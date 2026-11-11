@@ -13,7 +13,6 @@ import {
   mapNonEvmTransactions,
   mergeTransactionsByTime,
   selectApiEvmTransactions,
-  shouldSkipTransaction,
   shouldSkipUnrelatedTransaction,
 } from './transformations';
 
@@ -91,53 +90,6 @@ const buildV5Data = (
   }) as InfiniteData<V5MultiAccountTransactionsResponse>;
 
 describe('ActivityList transformations', () => {
-  describe('shouldSkipTransaction', () => {
-    it('skips excluded hashes, unrelated transactions, and empty self transfers', () => {
-      expect(
-        shouldSkipTransaction(address, buildTransaction(), new Set(['0xhash'])),
-      ).toBe(true);
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({ from: otherAddress, to: otherAddress }),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({
-            from: address,
-            methodId: '0x',
-            to: address,
-            value: '0',
-            valueTransfers: [],
-          }),
-        ),
-      ).toBe(true);
-    });
-
-    it('keeps incoming token transfers where the address is a direct recipient', () => {
-      const directTokenReceive = buildTransaction({
-        from: otherAddress,
-        to: address,
-        valueTransfers: [
-          {
-            amount: '1000000',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 6,
-            from: otherAddress,
-            name: 'USD Coin',
-            symbol: 'USDC',
-            to: address,
-            transferType: 'ERC20',
-          },
-        ],
-      });
-
-      expect(shouldSkipTransaction(address, directTokenReceive)).toBe(false);
-    });
-  });
-
   describe('shouldSkipUnrelatedTransaction', () => {
     it('keeps direct receives that the list gate drops via their value transfers', () => {
       const tokenReceive = buildTransaction({
@@ -350,25 +302,9 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
-    it('drops legacy v4 records instead of failing the activity query', () => {
-      const legacyRecord = {
-        hash: '0xlegacy',
-        from: address,
-        to: otherAddress,
-        value: '0',
-        valueTransfers: [],
-      };
-
-      const result = selectApiEvmTransactions({ address })(
-        buildV5Data([legacyRecord as unknown as V5TransactionRecord]),
-      );
-
-      expect(result.pages[0].data).toEqual([]);
-    });
-
-    it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {
-      const outgoingTokenTransfer = buildV5Transaction({
-        id: '0xoutgoing-token',
+    it('keeps rows where the subject only appears in value transfers', () => {
+      const relayedTransfer = buildV5Transaction({
+        id: '0xrelayed',
         from: otherAddress,
         to: otherAddress,
         valueTransfers: [
@@ -386,10 +322,20 @@ describe('ActivityList transformations', () => {
       });
 
       const result = selectApiEvmTransactions({ address })(
-        buildV5Data([outgoingTokenTransfer]),
+        buildV5Data([relayedTransfer]),
       );
 
-      expect(result.pages[0].data).toHaveLength(0);
+      expect(result.pages[0].data).toHaveLength(1);
+    });
+
+    it('drops zero-value self-sends', () => {
+      const selfSend = buildV5Transaction({ to: address, methodId: '0x' });
+
+      const result = selectApiEvmTransactions({ address })(
+        buildV5Data([selfSend]),
+      );
+
+      expect(result.pages[0].data).toEqual([]);
     });
 
     it('classifies pooled-staking calls instead of leaving them as contract interactions', () => {
@@ -413,6 +359,10 @@ describe('ActivityList transformations', () => {
       });
       stakeDeposit.tx.chainId = 'eip155:1';
       stakeDeposit.accountId = `eip155:1:${address}`;
+      stakeDeposit.fee = {
+        payer: `eip155:1:${address}`,
+        asset: { assetId: 'eip155:1/slip44:60', amount: '21000', decimals: 18 },
+      };
 
       const result = selectApiEvmTransactions({ address })(
         buildV5Data([stakeDeposit]),
@@ -429,6 +379,7 @@ describe('ActivityList transformations', () => {
             direction: 'out',
             symbol: 'ETH',
           },
+          fees: [expect.objectContaining({ amount: '21000' })],
         },
       });
     });

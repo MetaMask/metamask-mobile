@@ -25,10 +25,6 @@ import {
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
-import {
-  getPooledStakingFieldsFromV5Transaction,
-  shouldSkipV5Transaction,
-} from './v5-transaction-filters';
 
 export type { ActivityListItem };
 
@@ -85,48 +81,45 @@ export function shouldSkipUnrelatedTransaction(
   );
 }
 
-/**
- * List gate. Drops excluded hashes, transactions the subject does not take
- * part in at the top level, and no-op self transfers.
- *
- * Details must not reuse this gate: the by-hash request always asks for
- * `includeValueTransfers`, so a plain receive the user explicitly opened would
- * be filtered out and render as not-found.
- */
-export function shouldSkipTransaction(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-  excludedTxHashes?: Set<string>,
+/** Matches the extension: a zero-value call to yourself that moves nothing. */
+export function isZeroValueSelfSend(
+  transaction: V5TransactionRecord,
+  subjectAddress: string,
 ) {
-  return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
+  const { tx, valueTransfers } = transaction;
+
+  return (
+    equalsIgnoreCase(tx.from, subjectAddress) &&
+    equalsIgnoreCase(tx.to ?? '', subjectAddress) &&
+    tx.value === '0' &&
+    !valueTransfers.length &&
+    (!tx.methodId || tx.methodId === '0x')
+  );
 }
 
-function transformV5ApiTransactions(
-  address: string,
-  transactions: V5TransactionRecord[],
-  excludedTxHashes?: Set<string>,
-): ActivityListItem[] {
-  const items: ActivityListItem[] = [];
-  const subjectAddress = address.toLowerCase();
+export function isExcludedTransactionHash(
+  transaction: V5TransactionRecord,
+  txHashes?: Set<string>,
+) {
+  return Boolean(
+    transaction.tx.id && txHashes?.has(transaction.tx.id.toLowerCase()),
+  );
+}
 
-  for (const transaction of transactions) {
-    if (
-      shouldSkipV5Transaction(subjectAddress, transaction, excludedTxHashes)
-    ) {
-      continue;
-    }
-    const activity = mapV5ApiTransaction({
-      transaction,
-    }) as ActivityListItem;
-    items.push(
-      classifyPooledStakingActivity(
-        getPooledStakingFieldsFromV5Transaction(transaction),
-        activity,
-      ),
-    );
-  }
+/**
+ * Maps a v5 record, then applies the mobile-only pooled staking
+ * classification that client-utils leaves as a contract interaction.
+ */
+export function mapV5ActivityItem(
+  transaction: V5TransactionRecord,
+): ActivityListItem {
+  const activity = mapV5ApiTransaction({ transaction }) as ActivityListItem;
+  const { chainId, to, methodId } = transaction.tx;
 
-  return items;
+  return classifyPooledStakingActivity(
+    { chainId: Number(chainId.split(':')[1]), to, methodId },
+    activity,
+  );
 }
 
 export function selectApiEvmTransactions({
@@ -140,7 +133,13 @@ export function selectApiEvmTransactions({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformV5ApiTransactions(address, page.data, excludedTxHashes),
+      data: page.data
+        .filter(
+          (transaction) =>
+            !isZeroValueSelfSend(transaction, address) &&
+            !isExcludedTransactionHash(transaction, excludedTxHashes),
+        )
+        .map(mapV5ActivityItem),
     })),
   });
 }
