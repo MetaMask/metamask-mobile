@@ -15,7 +15,12 @@ import {
 import PagerView from 'react-native-pager-view';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  Box,
+  IconName,
+} from '@metamask/design-system-react-native';
 import {
   TabsBar,
   type TabItem,
@@ -65,6 +70,8 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { selectBridgeLimitTabSeen } from '../../../../../reducers/user/selectors';
+import { setBridgeLimitTabSeen } from '../../../../../actions/user';
 
 const BridgeView = () => {
   const tw = useTailwind();
@@ -96,6 +103,8 @@ const BridgeView = () => {
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
+  const hasSeenLimitTab = useSelector(selectBridgeLimitTabSeen);
+  const showLimitTabNewDot = isLimitOrderTabEnabled && !hasSeenLimitTab;
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
@@ -103,6 +112,10 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const tokenInitializationKey =
+    route.params?.sourcePage === 'deeplink'
+      ? route.params.swapViewTraceId
+      : undefined;
   const initialLimitOrderExpirationMinutes =
     route.params?.initialLimitOrderExpirationMinutes;
   const initialLimitOrderPriceTolerance =
@@ -113,8 +126,16 @@ const BridgeView = () => {
   const location =
     route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  useInitialSourceToken(
+    initialSourceToken,
+    initialSourceAmount,
+    tokenInitializationKey,
+  );
+  useInitialDestToken(
+    initialSourceToken,
+    initialDestToken,
+    tokenInitializationKey,
+  );
   useReconcileInputsForNonMarketSwapTab({
     renderedTab,
     sourceToken,
@@ -254,6 +275,16 @@ const BridgeView = () => {
     [renderedTab, handleSlippageSettingsPress],
   );
 
+  useEffect(() => {
+    if (
+      isLimitOrderTabEnabled &&
+      renderedTab === BridgeTabKey.Limit &&
+      !hasSeenLimitTab
+    ) {
+      dispatch(setBridgeLimitTabSeen());
+    }
+  }, [dispatch, hasSeenLimitTab, isLimitOrderTabEnabled, renderedTab]);
+
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
   // disabled, only Market remains and the tabs bar is hidden entirely below.
@@ -273,6 +304,16 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+        // Same discovery dot as the Social nav item. Absolute so it sits just
+        // past the label's top-right corner and does not widen the underline.
+        endAccessory: showLimitTabNewDot ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Active}
+            twClassName="absolute top-0.5 -right-3"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT}
+            accessibilityLabel={strings('bridge.tabs.new_badge')}
+          />
+        ) : undefined,
       });
     }
 
@@ -286,7 +327,7 @@ const BridgeView = () => {
     }
 
     return visibleTabs;
-  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled]);
+  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled, showLimitTabNewDot]);
 
   const showTabsBar = tabs.length > 1;
 

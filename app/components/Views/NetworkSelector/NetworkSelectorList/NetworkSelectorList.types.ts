@@ -37,12 +37,10 @@ export type NetworkSelectorListItem =
 
 export interface NetworkSelectorListProps {
   networkConfigurations: Record<Hex, NetworkConfiguration>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   nonEvmNetworkConfigurations: Record<
     CaipChainId,
     NonEvmNetworkListConfiguration
   >;
-  ///: END:ONLY_INCLUDE_IF
   searchString: string;
   showTestNetworks: boolean;
   isSendFlow: boolean;
@@ -59,9 +57,7 @@ export interface NetworkSelectorListProps {
   isNetworkSelected: (chainId: Hex | CaipChainId) => boolean;
   onSetRpcTarget: (networkConfiguration: NetworkConfiguration) => Promise<void>;
   onNetworkChange: (networkType: InfuraNetworkType) => Promise<void>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
-  ///: END:ONLY_INCLUDE_IF
   openModal: (
     chainId: Hex,
     displayEdit: boolean,
