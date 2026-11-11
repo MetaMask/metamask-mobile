@@ -48,6 +48,7 @@ import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   SEED_PHRASE_HINTS,
@@ -565,6 +566,11 @@ const ChoosePassword = () => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       dispatch(setDataCollectionForMarketing(isMarketingOptedIn));
+      OAuthLoginService.updateMarketingOptInStatus(isMarketingOptedIn).catch(
+        (err) => {
+          Logger.error(err);
+        },
+      );
 
       const oauthProvider = route.params?.provider;
       const socialAccountType =

@@ -2,7 +2,10 @@ import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
+import OAuthService from '../../../core/OAuthService/OAuthService';
+import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { analytics } from '../../analytics/analytics';
@@ -18,6 +21,9 @@ export function useEnableMarketingConsent({
   const dispatch = useDispatch();
   const hasMarketingConsent = useSelector(
     selectDataCollectionForMarketingEnabled,
+  );
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
   );
   const accountType = useSelector(selectOnboardingAccountType);
 
@@ -50,7 +56,22 @@ export function useEnableMarketingConsent({
         })
         .build(),
     );
-  }, [accountType, dispatch, hasMarketingConsent, metricsOptInLocation]);
+
+    if (isSeedlessOnboardingLoginFlow) {
+      // Social-login wallets also store marketing opt-in server-side so the
+      // auth service can create the HubSpot contact for email marketing.
+      // A failed sync keeps the local decision; only reads are dropped.
+      OAuthService.updateMarketingOptInStatus(true).catch((error) => {
+        Logger.error(error as Error);
+      });
+    }
+  }, [
+    accountType,
+    dispatch,
+    hasMarketingConsent,
+    isSeedlessOnboardingLoginFlow,
+    metricsOptInLocation,
+  ]);
 
   return { enableMarketingConsent };
 }

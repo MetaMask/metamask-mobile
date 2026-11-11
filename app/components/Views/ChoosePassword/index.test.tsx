@@ -1539,9 +1539,9 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(
-        OAuthLoginService.updateMarketingOptInStatus,
-      ).not.toHaveBeenCalled();
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1599,9 +1599,9 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(
-        OAuthLoginService.updateMarketingOptInStatus,
-      ).not.toHaveBeenCalled();
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1641,9 +1641,9 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(
-        OAuthLoginService.updateMarketingOptInStatus,
-      ).not.toHaveBeenCalled();
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1679,9 +1679,9 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(
-        OAuthLoginService.updateMarketingOptInStatus,
-      ).not.toHaveBeenCalled();
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        false,
+      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(false),
       );
