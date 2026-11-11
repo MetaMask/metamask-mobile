@@ -1,7 +1,10 @@
 import type { Json } from '@metamask/utils';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import type { WalletOptions } from '@metamask/wallet';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
+import {
+  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+  Encryptor,
+} from '../../../Encryptor';
 import type {
   EncryptionKey,
   KeyDerivationOptions,
@@ -26,7 +29,7 @@ interface ControllerEncryptionResult {
 }
 
 const encryptor = new Encryptor({
-  keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
+  keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
 });
 
 /**
