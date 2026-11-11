@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,12 @@ import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -30,6 +36,24 @@ const createStyles = (colors: Colors) =>
       zIndex: 99999999999999,
     },
   });
+
+const SettingsGroupHeader = ({
+  title,
+  testID,
+}: {
+  title: string;
+  testID?: string;
+}) => {
+  const tw = useTailwind();
+
+  return (
+    <View style={tw.style('px-4 py-3')} testID={testID}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {title}
+      </Text>
+    </View>
+  );
+};
 
 const Settings = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -129,11 +153,28 @@ const Settings = () => {
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
+        <SettingsGroupHeader
+          title={strings('app_settings.groups.general')}
+          testID={SettingsViewSelectorsIDs.GROUP_GENERAL}
+        />
         <SettingsDrawer
           description={strings('app_settings.general_desc')}
           onPress={onPressGeneral}
           title={strings('app_settings.general_title')}
           testID={SettingsViewSelectorsIDs.GENERAL}
+        />
+        {isNotificationsFeatureEnabled() && (
+          <SettingsDrawer
+            description={strings('app_settings.notifications_desc')}
+            onPress={onPressNotifications}
+            title={strings('app_settings.notifications_title')}
+            testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+          />
+        )}
+
+        <SettingsGroupHeader
+          title={strings('app_settings.groups.security_and_privacy')}
+          testID={SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY}
         />
         <SettingsDrawer
           description={strings('app_settings.security_desc')}
@@ -147,25 +188,33 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.SECURITY}
         />
         <SettingsDrawer
-          description={strings('app_settings.advanced_desc')}
-          onPress={onPressAdvanced}
-          title={strings('app_settings.advanced_title')}
-          testID={SettingsViewSelectorsIDs.ADVANCED}
-        />
-        <SettingsDrawer
           description={strings('backupAndSync.description')}
           onPress={onPressBackupAndSync}
           title={strings('backupAndSync.title')}
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
-        {isNotificationsFeatureEnabled() && (
-          <SettingsDrawer
-            description={strings('app_settings.notifications_desc')}
-            onPress={onPressNotifications}
-            title={strings('app_settings.notifications_title')}
-            testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
-          />
-        )}
+
+        <SettingsGroupHeader
+          title={strings('app_settings.groups.transactions_and_assets')}
+          testID={SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS}
+        />
+        <SettingsDrawer
+          title={strings('app_settings.fiat_on_ramp.title')}
+          description={strings('app_settings.fiat_on_ramp.description')}
+          onPress={onPressOnRamp}
+          testID={SettingsViewSelectorsIDs.ON_RAMP}
+        />
+
+        <SettingsGroupHeader
+          title={strings('app_settings.groups.more')}
+          testID={SettingsViewSelectorsIDs.GROUP_MORE}
+        />
+        <SettingsDrawer
+          description={strings('app_settings.advanced_desc')}
+          onPress={onPressAdvanced}
+          title={strings('app_settings.advanced_title')}
+          testID={SettingsViewSelectorsIDs.ADVANCED}
+        />
         {CAN_INSTALL_THIRD_PARTY_SNAPS && (
           <SettingsDrawer
             title={strings('app_settings.snaps.title')}
@@ -174,12 +223,6 @@ const Settings = () => {
             testID={SettingsViewSelectorsIDs.SNAPS}
           />
         )}
-        <SettingsDrawer
-          title={strings('app_settings.fiat_on_ramp.title')}
-          description={strings('app_settings.fiat_on_ramp.description')}
-          onPress={onPressOnRamp}
-          testID={SettingsViewSelectorsIDs.ON_RAMP}
-        />
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
           description={strings('app_settings.experimental_desc')}

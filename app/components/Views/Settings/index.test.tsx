@@ -123,6 +123,21 @@ describe('Settings', () => {
     expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
     expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
   });
+
+  it('renders settings group headings', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+
+    expect(getByTestId(SettingsViewSelectorsIDs.GROUP_GENERAL)).toBeOnTheScreen();
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS),
+    ).toBeOnTheScreen();
+    expect(getByTestId(SettingsViewSelectorsIDs.GROUP_MORE)).toBeOnTheScreen();
+  });
   it('does not render contacts (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
       state: initialState,
