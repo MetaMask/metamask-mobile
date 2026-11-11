@@ -1,34 +1,30 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Box,
-  Button,
-  ButtonSize,
-  ButtonVariant,
+  Card,
+  HelpText,
+  HelpTextSeverity,
+  KeyValueRow,
   Text,
+  TextColor,
   TextVariant,
-  Icon,
-  IconName,
   IconSize,
-  IconColor,
   AvatarAccount,
   AvatarToken,
   AvatarBaseSize,
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeNetwork,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useTheme } from '../../../../../util/theme';
-import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { type CardHeaderMode } from '../../hooks/useCardHeaderHandlers';
+import OnboardingStep from './OnboardingStep';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import {
@@ -73,8 +69,6 @@ import {
 } from '../../constants';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
-import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type FundingApprovalMode = 'onboarding' | 'reapprove';
 
@@ -134,33 +128,23 @@ const ReadOnlyAccountRow = ({
   avatarAccountType: AvatarAccountType;
   accountGroupName: string | null;
 }) => (
-  <Box
-    twClassName="flex-row items-center p-4"
-    testID="immersve-funding-approval-account-row"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="flex-1 text-text-alternative"
-    >
-      {strings('card.card_spending_limit.account_label')}
-    </Text>
-    {selectedAccount && (
-      <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+  <KeyValueRow
+    keyLabel={strings('card.card_spending_limit.account_label')}
+    value={
+      selectedAccount ? (accountGroupName ?? selectedAccount.metadata.name) : ''
+    }
+    valueStartAccessory={
+      selectedAccount ? (
         <AvatarAccount
           address={selectedAccount.address}
           variant={getAvatarAccountVariant(avatarAccountType)}
           size={AvatarBaseSize.Sm}
         />
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="text-text-default font-medium self-center shrink"
-          numberOfLines={1}
-        >
-          {accountGroupName ?? selectedAccount.metadata.name}
-        </Text>
-      </Box>
-    )}
-  </Box>
+      ) : undefined
+    }
+    twClassName="p-4 h-auto"
+    testID="immersve-funding-approval-account-row"
+  />
 );
 
 const useMoneyAccountFundingApprove = ({
@@ -220,17 +204,12 @@ const useMoneyAccountFundingApprove = ({
 };
 
 const ReadOnlyTokenRow = () => (
-  <Box
-    twClassName="flex-row items-center p-4"
-    testID="immersve-funding-approval-token-row"
-  >
-    <Text
-      variant={TextVariant.BodyMd}
-      twClassName="flex-1 text-text-alternative"
-    >
-      {strings('card.card_spending_limit.token_label')}
-    </Text>
-    <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
+  <KeyValueRow
+    keyLabel={strings('card.card_spending_limit.token_label')}
+    value={strings(
+      'card.card_onboarding.immersve_funding_approval.token_value',
+    )}
+    valueStartAccessory={
       <BadgeWrapper
         position={BadgeWrapperPosition.BottomRight}
         badge={
@@ -243,15 +222,10 @@ const ReadOnlyTokenRow = () => (
           size={AvatarBaseSize.Sm}
         />
       </BadgeWrapper>
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-text-default font-medium self-center shrink"
-        numberOfLines={1}
-      >
-        USDC on Base
-      </Text>
-    </Box>
-  </Box>
+    }
+    twClassName="p-4 h-auto"
+    testID="immersve-funding-approval-token-row"
+  />
 );
 
 /**
@@ -266,8 +240,6 @@ const ReadOnlyTokenRow = () => (
  */
 const ImmersveFundingApproval = () => {
   const navigation = useNavigation();
-  const tw = useTailwind();
-  const theme = useTheme();
   const {
     countryKey,
     mode = 'onboarding',
@@ -278,10 +250,7 @@ const ImmersveFundingApproval = () => {
     fundingAddress?: string;
   }>();
   const isReapprove = mode === 'reapprove';
-  const headerHandlers = useCardHeaderHandlers(
-    isReapprove ? 'back' : 'close-direct',
-  );
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerMode: CardHeaderMode = isReapprove ? 'back' : 'close-direct';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedCountry = useSelector(selectCardSelectedCountry);
   const fundingCountry = countryKey ?? selectedCountry;
@@ -542,165 +511,124 @@ const ImmersveFundingApproval = () => {
     ? 'card.card_onboarding.immersve_funding_approval.reapprove.confirm_button'
     : 'card.card_onboarding.immersve_funding_approval.confirm_button';
 
-  if (!isReapprove && !nextAction && isLoading) {
+  const isInitialLoading = !isReapprove && !nextAction && isLoading;
+  const initialError = !isReapprove && !nextAction && !isLoading ? error : null;
+
+  if (isInitialLoading) {
     return (
-      <SafeAreaView
-        style={tw.style('flex-1 bg-background-default')}
-        edges={['bottom']}
-      >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-        <Box twClassName="flex-1 justify-center items-center px-4">
-          <ActivityIndicator
-            testID="immersve-funding-approval-spinner"
-            size="large"
-            color={theme.colors.primary.default}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="mt-4 text-text-alternative text-center"
+      <OnboardingStep
+        title={strings(titleKey)}
+        description={strings(descriptionKey)}
+        headerMode={headerMode}
+        formFields={
+          <Box
+            twClassName="flex-1 justify-center items-center gap-4"
+            testID="immersve-funding-approval-loading"
           >
-            {strings(
-              'card.card_onboarding.immersve_funding_approval.helper_text',
-            )}
-          </Text>
-        </Box>
-      </SafeAreaView>
+            <Spinner
+              testID="immersve-funding-approval-spinner"
+              spinnerIconProps={{ size: IconSize.Xl }}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings(
+                'card.card_onboarding.immersve_funding_approval.helper_text',
+              )}
+            </Text>
+          </Box>
+        }
+        primaryButtonProps={{
+          children: strings(confirmButtonKey),
+          isDisabled: true,
+          isLoading: true,
+          testID: 'immersve-funding-approval-confirm-button',
+        }}
+      />
     );
   }
 
-  if (!isReapprove && !nextAction && error) {
+  if (initialError) {
     return (
-      <SafeAreaView
-        style={tw.style('flex-1 bg-background-default')}
-        edges={['bottom']}
-      >
-        <HeaderStandardGlass
-          isGlass={isGlassHeader}
-          isFloating={false}
-          includesTopInset
-          twClassName="bg-background-default"
-          {...headerHandlers}
-        />
-        <Box twClassName="flex-1 justify-center items-center px-4">
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Xl}
-            color={IconColor.ErrorDefault}
-          />
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="mt-4 mb-6 text-text-alternative text-center"
+      <OnboardingStep
+        title={strings(titleKey)}
+        description={strings(descriptionKey)}
+        headerMode={headerMode}
+        formFields={
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID="immersve-funding-approval-error"
           >
-            {error}
-          </Text>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Md}
-            onPress={() => refresh().catch(() => undefined)}
-            isFullWidth
-            testID="immersve-funding-approval-retry-button"
-          >
-            {strings(
-              'card.card_onboarding.immersve_funding_approval.retry_button',
-            )}
-          </Button>
-        </Box>
-      </SafeAreaView>
+            {initialError}
+          </HelpText>
+        }
+        primaryButtonProps={{
+          children: strings(
+            'card.card_onboarding.immersve_funding_approval.retry_button',
+          ),
+          onPress: () => {
+            refresh().catch(() => undefined);
+          },
+          testID: 'immersve-funding-approval-retry-button',
+        }}
+      />
     );
   }
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
-    >
-      <HeaderStandardGlass
-        isGlass={isGlassHeader}
-        isFloating={false}
-        includesTopInset
-        twClassName="bg-background-default"
-        {...headerHandlers}
-      />
-      <KeyboardAwareScrollView
-        style={tw.style('flex-1 px-4')}
-        showsVerticalScrollIndicator={false}
-        alwaysBounceVertical={false}
-        enableOnAndroid
-        enableAutomaticScroll
-        contentContainerStyle={tw.style('flex-grow pb-4')}
-      >
-        <Box twClassName="mb-6">
-          <Text
-            variant={TextVariant.HeadingLg}
-            twClassName="text-text-default py-4"
+    <OnboardingStep
+      title={strings(titleKey)}
+      description={strings(descriptionKey)}
+      headerMode={headerMode}
+      formFields={
+        <>
+          <Card
+            testID="immersve-funding-approval-summary"
+            twClassName="p-0 overflow-hidden"
           >
-            {strings(titleKey)}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-text-alternative"
-          >
-            {strings(descriptionKey)}
-          </Text>
-        </Box>
-
-        <Box twClassName="bg-background-muted rounded-2xl overflow-hidden mb-6">
-          {isMoneyAccountMode ? (
-            <MoneyAccountRow testID="immersve-funding-approval-account-row" />
-          ) : (
-            <>
-              <ReadOnlyAccountRow
-                selectedAccount={displayAccount}
-                avatarAccountType={avatarAccountType}
-                accountGroupName={accountGroupName}
-              />
-              <ReadOnlyTokenRow />
-            </>
-          )}
-        </Box>
-
-        {displayError && (
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-center text-error-default px-4 mb-4"
-            testID="immersve-funding-approval-error"
-          >
-            {displayError}
-          </Text>
-        )}
-
-        <Box twClassName="flex-1" />
-
-        <Box twClassName="gap-3 mt-6">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            isDisabled={busy}
-            isLoading={busy}
-            onPress={displayError ? handleRetry : handleApprove}
-            testID={
-              displayError
-                ? 'immersve-funding-approval-retry-button'
-                : 'immersve-funding-approval-confirm-button'
-            }
-          >
-            {strings(
-              displayError
-                ? 'card.card_onboarding.immersve_funding_approval.retry_button'
-                : confirmButtonKey,
+            {isMoneyAccountMode ? (
+              <MoneyAccountRow testID="immersve-funding-approval-account-row" />
+            ) : (
+              <Box>
+                <ReadOnlyAccountRow
+                  selectedAccount={displayAccount}
+                  avatarAccountType={avatarAccountType}
+                  accountGroupName={accountGroupName}
+                />
+                <ReadOnlyTokenRow />
+              </Box>
             )}
-          </Button>
-        </Box>
-      </KeyboardAwareScrollView>
-    </SafeAreaView>
+          </Card>
+          {displayError ? (
+            <HelpText
+              severity={HelpTextSeverity.Danger}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+              testID="immersve-funding-approval-error"
+            >
+              {displayError}
+            </HelpText>
+          ) : null}
+        </>
+      }
+      primaryButtonProps={{
+        children: strings(
+          displayError
+            ? 'card.card_onboarding.immersve_funding_approval.retry_button'
+            : confirmButtonKey,
+        ),
+        onPress: displayError ? handleRetry : handleApprove,
+        isDisabled: busy,
+        isLoading: busy,
+        testID: displayError
+          ? 'immersve-funding-approval-retry-button'
+          : 'immersve-funding-approval-confirm-button',
+      }}
+    />
   );
 };
 

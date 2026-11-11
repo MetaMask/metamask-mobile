@@ -22,9 +22,8 @@ import VbaDetails, {
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
 import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
 import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
+import { VbaIdentityVerifiedAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 
 const Onboarding = createNativeStackNavigator();
 const Root = createNativeStackNavigator();
@@ -39,7 +38,7 @@ const OnboardingNavigator = () => (
   >
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={VbaIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <Onboarding.Screen
       name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
@@ -86,7 +85,7 @@ const engineContext = Engine.context as unknown as {
 };
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
-describeForPlatforms('VbaIdentityVerified view', () => {
+describeForPlatforms('KycIdentityVerified view', () => {
   afterEach(() => {
     netInfoMock.__resetMockNetInfo();
   });
@@ -145,7 +144,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(
@@ -184,7 +183,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     const { findByTestId, findByText, getByTestId } = render(VbaDetails);
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(
@@ -213,7 +212,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     });
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
 
     expect(
@@ -249,7 +248,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     });
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
     fireEvent.press(
       await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
@@ -272,14 +271,14 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
 
     fireEvent.press(
-      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      getByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     );
     fireEvent.press(
       await findByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON),
     );
 
     expect(
-      await findByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      await findByTestId(KycIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
     ).toBeOnTheScreen();
   });
 
@@ -288,7 +287,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       Probe(Routes.RAMP.VBA_DETAILS),
     );
 
-    fireEvent.press(getByTestId(VbaIdentityVerifiedSelectorsIDs.BACK_BUTTON));
+    fireEvent.press(getByTestId(KycIdentityVerifiedSelectorsIDs.BACK_BUTTON));
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MONEY.HOME)),

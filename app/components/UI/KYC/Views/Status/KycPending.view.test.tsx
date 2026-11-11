@@ -15,19 +15,20 @@ import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
-import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
+import {
+  VbaIdentityVerifiedAdapter,
+  VbaKycPendingAdapter,
+} from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
-import { VbaKycPendingSelectorsIDs } from './KycPending';
-import VbaIdentityVerified, {
-  VbaIdentityVerifiedSelectorsIDs,
-} from './IdentityVerified';
+import { KycPendingSelectorsIDs } from './KycPending';
+import { KycIdentityVerifiedSelectorsIDs } from './IdentityVerified';
 
-const VbaKycPendingViewSelectorsIDs = {
-  OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',
+const KycPendingViewSelectorsIDs = {
+  OPEN_PENDING: 'kyc-pending-open-from-previous-screen',
 } as const;
 
 // The redirect resumes the KYC session, hydrates, runs the funnel, and resets
@@ -59,7 +60,7 @@ const PreviousScreen = () => {
   return (
     <Pressable
       accessibilityRole="button"
-      testID={VbaKycPendingViewSelectorsIDs.OPEN_PENDING}
+      testID={KycPendingViewSelectorsIDs.OPEN_PENDING}
       onPress={() =>
         navigation.dispatch(
           CommonActions.navigate(VbaOnboardingRoutes.KYC_PENDING),
@@ -86,7 +87,7 @@ const OnboardingNavigator = () => (
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
-      component={VbaIdentityVerified}
+      component={VbaIdentityVerifiedAdapter}
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
@@ -227,7 +228,7 @@ const renderKycScreen = (ui: React.ReactElement, session: KycSession) => {
   });
 };
 
-describeForPlatforms('VbaKycPending', () => {
+describeForPlatforms('KycPending', () => {
   let previousStore: ReduxStore | undefined;
   let hadStore = false;
   let storeReady = false;
@@ -269,32 +270,22 @@ describeForPlatforms('VbaKycPending', () => {
       { finalStatus: 'pending', kycStatus: 'pending' },
     );
 
-    fireEvent.press(getByTestId(VbaKycPendingViewSelectorsIDs.OPEN_PENDING));
+    fireEvent.press(getByTestId(KycPendingViewSelectorsIDs.OPEN_PENDING));
 
+    expect(getByTestId(KycPendingSelectorsIDs.ILLUSTRATION)).toBeOnTheScreen();
+    expect(getByText(strings('kyc.kyc_taking_longer.title'))).toBeOnTheScreen();
     expect(
-      getByTestId(VbaKycPendingSelectorsIDs.ILLUSTRATION),
+      getByText(strings('kyc.kyc_taking_longer.description_few_minutes')),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings(
-          'virtual_bank_account.kyc_taking_longer.description_few_minutes',
-        ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.done_button')),
+      getByText(strings('kyc.kyc_taking_longer.done_button')),
     ).toBeOnTheScreen();
     expect(queryByLabelText('Back')).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      getByTestId(VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON),
-    );
+    fireEvent.press(getByTestId(KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON));
 
     expect(
-      getByTestId(VbaKycPendingViewSelectorsIDs.OPEN_PENDING),
+      getByTestId(KycPendingViewSelectorsIDs.OPEN_PENDING),
     ).toBeOnTheScreen();
   });
 
@@ -304,9 +295,7 @@ describeForPlatforms('VbaKycPending', () => {
       kycStatus: 'pending',
     });
 
-    fireEvent.press(
-      getByTestId(VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON),
-    );
+    fireEvent.press(getByTestId(KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON));
 
     expect(
       await findByTestId(getRouteProbeTestId(Routes.MONEY.HOME)),
@@ -355,7 +344,7 @@ describeForPlatforms('VbaKycPending', () => {
 
     expect(
       await findByTestId(
-        VbaIdentityVerifiedSelectorsIDs.CONTAINER,
+        KycIdentityVerifiedSelectorsIDs.CONTAINER,
         {},
         { timeout: REDIRECT_TIMEOUT_MS },
       ),

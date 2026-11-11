@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Carregando",
     "create_virtual_bank_account": {
       "navbar_title": "Conta bancária",
       "title": "Adicione fundos diretamente do seu banco",
@@ -1155,6 +1156,72 @@
       "powered_by": "Com tecnologia da",
       "button": "Obter dados da conta"
     },
+    "creating_account": {
+      "title": "Creating your account...",
+      "description": "Most accounts are created instantly.",
+      "awaiting_provider": "Aguardando a aprovação da sua conta pela MoonPay"
+    },
+    "account_provisioning_error": {
+      "title": "Não foi possível criar sua conta",
+      "description": "Sua identidade foi verificada, mas não foi possível concluir a criação da sua conta.",
+      "button": "Tentar novamente"
+    },
+    "account_create_error": {
+      "details": {
+        "title": "Não foi possível verificar seus dados",
+        "description": "Entre em contato com o suporte para concluir a configuração de transferências bancárias.",
+        "primary": "Falar com o suporte",
+        "secondary": "Concluído"
+      },
+      "generic": {
+        "title": "Ocorreu algum erro",
+        "description": "Não foi possível concluir a configuração das transferências bancárias para você. Tente novamente em alguns minutos.",
+        "primary": "Tentar novamente",
+        "secondary": "Concluído"
+      }
+    },
+    "error": {
+      "title": "Não foi possível abrir sua conta",
+      "description": "Não foi possível carregar os dados da sua conta bancária.",
+      "button": "Tentar novamente"
+    },
+    "choose_currency": {
+      "title": "Escolha sua moeda",
+      "description": "Escolha a moeda que seu banco enviará. Mostraremos os dados da conta para a qual transferir.",
+      "footnote": "Todos os fundos são convertidos em mUSD quando chegam à sua Money Account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Real brasileiro",
+        "usd": "Dólar americano",
+        "eur": "Euro"
+      }
+    },
+    "vba_details": {
+      "title": "Adicionar dinheiro com Pix",
+      "description": "Adicione fundos diretamente da sua conta bancária. Os fundos geralmente chegam à sua conta Money em poucos minutos.",
+      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure_link": "Saiba mais.",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Chave Pix",
+      "bank_transfer_title": "Adicionar dinheiro por transferência bancária",
+      "bank_transfer_description": "Use estes dados para enviar dinheiro da sua conta bancária para o MetaMask Money.",
+      "account_holder_label": "Titular da conta",
+      "routing_number_label": "Número de roteamento",
+      "account_number_label": "Número da conta",
+      "bank_name_label": "Nome do banco",
+      "copy_label": "Copiar {{field}}",
+      "copied_label": "Copiado {{field}}",
+      "copy_all_button": "Copiar todos os detalhes",
+      "copied_all_label": "Dados bancários copiados",
+      "button": "Concluído",
+      "waiting_for_details": "Os dados da sua conta aparecerão aqui em breve.",
+      "loading_details": "Carregando dados da conta",
+      "load_error": "Não foi possível atualizar o depósito. Vamos tentar novamente.",
+      "setup_error": "Não foi possível criar sua conta.",
+      "retry": "Tentar novamente"
+    }
+  },
+  "kyc": {
     "verify_identity": {
       "title": "Confirme sua identidade",
       "subtitle": "Isso geralmente leva alguns minutos. Você precisará de um documento de identidade emitido pelo governo.",
@@ -1214,11 +1281,6 @@
       "description": "A verificação da sua identidade foi concluída.",
       "button": "Continuar"
     },
-    "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
-      "awaiting_provider": "Aguardando a aprovação da sua conta pela MoonPay"
-    },
     "kyc_rejected": {
       "title": "Não foi possível verificar sua identidade",
       "description": "Alguns detalhes precisam da sua atenção. Confira cada item abaixo e depois entre em contato com o suporte.",
@@ -1231,63 +1293,6 @@
       "details_description": "Certifique-se de que suas informações coincidam com seus documentos",
       "button": "Falar com o suporte",
       "retry_button": "Tentar novamente"
-    },
-    "account_provisioning_error": {
-      "title": "Não foi possível criar sua conta",
-      "description": "Sua identidade foi verificada, mas não foi possível concluir a criação da sua conta.",
-      "button": "Tentar novamente"
-    },
-    "account_create_error": {
-      "details": {
-        "title": "Não foi possível verificar seus dados",
-        "description": "Entre em contato com o suporte para concluir a configuração de transferências bancárias.",
-        "primary": "Falar com o suporte",
-        "secondary": "Concluído"
-      },
-      "generic": {
-        "title": "Ocorreu algum erro",
-        "description": "Não foi possível concluir a configuração das transferências bancárias para você. Tente novamente em alguns minutos.",
-        "primary": "Tentar novamente",
-        "secondary": "Concluído"
-      }
-    },
-    "error": {
-      "title": "Não foi possível abrir sua conta",
-      "description": "Não foi possível carregar os dados da sua conta bancária.",
-      "button": "Tentar novamente"
-    },
-    "choose_currency": {
-      "title": "Escolha sua moeda",
-      "description": "Escolha a moeda que seu banco enviará. Mostraremos os dados da conta para a qual transferir.",
-      "footnote": "Todos os fundos são convertidos em mUSD quando chegam à sua Money Account.",
-      "row_label": "{{name}}, {{code}}",
-      "currencies": {
-        "brl": "Real brasileiro",
-        "usd": "Dólar americano",
-        "eur": "Euro"
-      }
-    },
-    "vba_details": {
-      "title": "Adicionar dinheiro com Pix",
-      "description": "Adicione fundos diretamente da sua conta bancária. Os fundos geralmente chegam à sua conta Money em poucos minutos.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
-      "provider_disclosure_link": "Saiba mais.",
-      "copia_cola_label": "Pix Copia e Cola",
-      "pix_key_label": "Chave Pix",
-      "bank_transfer_title": "Adicionar dinheiro por transferência bancária",
-      "bank_transfer_description": "Use estes dados para enviar dinheiro da sua conta bancária para o MetaMask Money.",
-      "account_holder_label": "Titular da conta",
-      "routing_number_label": "Número de roteamento",
-      "account_number_label": "Número da conta",
-      "bank_name_label": "Nome do banco",
-      "copy_label": "Copiar {{field}}",
-      "copied_label": "Copiado {{field}}",
-      "button": "Concluído",
-      "waiting_for_details": "Os dados da sua conta aparecerão aqui em breve.",
-      "loading_details": "Carregando dados da conta",
-      "load_error": "Não foi possível atualizar o depósito. Vamos tentar novamente.",
-      "setup_error": "Não foi possível criar sua conta.",
-      "retry": "Tentar novamente"
     }
   },
   "social": {

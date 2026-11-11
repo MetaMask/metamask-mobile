@@ -5,7 +5,6 @@ import ImmersveFundingApproval from './ImmersveFundingApproval';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Engine from '../../../../../core/Engine';
-import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
@@ -180,6 +179,53 @@ jest.mock('../../util/metrics', () => ({
   }),
 }));
 
+const mockOnboardingStepHeaderMode = jest.fn();
+jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+
+  return ({
+    title,
+    description,
+    formFields,
+    headerMode,
+    ...footerProps
+  }: {
+    title: string;
+    description: string;
+    formFields: React.ReactNode;
+    headerMode?: string;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
+  }) => {
+    mockOnboardingStepHeaderMode(headerMode);
+    return React.createElement(
+      View,
+      { testID: 'onboarding-step' },
+      React.createElement(Text, { testID: 'onboarding-step-title' }, title),
+      React.createElement(
+        Text,
+        { testID: 'onboarding-step-description' },
+        description,
+      ),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-form-fields' },
+        formFields,
+      ),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
+    );
+  };
+});
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -213,12 +259,36 @@ jest.mock('@metamask/design-system-react-native', () => {
         },
         children,
       ),
+    Card: ({ children, ...p }: React.PropsWithChildren<object>) =>
+      ReactActual.createElement(View, p, children),
+    KeyValueRow: ({
+      keyLabel,
+      value,
+      valueStartAccessory,
+      ...p
+    }: {
+      keyLabel: React.ReactNode;
+      value: React.ReactNode;
+      valueStartAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        View,
+        p,
+        ReactActual.createElement(Text, null, keyLabel),
+        valueStartAccessory ?? null,
+        ReactActual.createElement(Text, null, value),
+      ),
+    HelpText: ({ children, ...p }: React.PropsWithChildren<object>) =>
+      ReactActual.createElement(Text, p, children),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: { TextAlternative: 'TextAlternative' },
     AvatarAccount: () => null,
     AvatarToken: () => null,
     BadgeWrapper: ({ children }: React.PropsWithChildren<object>) => children,
     BadgeNetwork: () => null,
     HeaderStandard: () => null,
     Icon: () => null,
+    Spinner: (p: object) => ReactActual.createElement(View, p),
     AvatarAccountVariant: {
       Jazzicon: 'Jazzicon',
       Blockies: 'Blockies',
@@ -320,11 +390,20 @@ describe('ImmersveFundingApproval', () => {
     const { getByTestId } = render(<ImmersveFundingApproval />);
     expect(mockRefresh).toHaveBeenCalled();
     expect(getByTestId('immersve-funding-approval-spinner')).toBeTruthy();
+    // The loading state keeps the step frame and a pinned, loading CTA.
+    expect(mockOnboardingStepHeaderMode).toHaveBeenCalledWith('close-direct');
+    const button = getByTestId('immersve-funding-approval-confirm-button');
+    expect(button.props.accessibilityState.disabled).toBe(true);
   });
 
   it('shows a full-screen error with retry when the first poll fails', () => {
     setNextAction(null, 'Something went wrong');
     const { getByTestId } = render(<ImmersveFundingApproval />);
+
+    const errorText = getByTestId('immersve-funding-approval-error');
+    expect(errorText).toHaveTextContent('Something went wrong');
+    expect(errorText).toHaveProp('accessibilityRole', 'alert');
+    expect(mockOnboardingStepHeaderMode).toHaveBeenCalledWith('close-direct');
 
     fireEvent.press(getByTestId('immersve-funding-approval-retry-button'));
     expect(mockRefresh).toHaveBeenCalledTimes(2); // mount + retry
@@ -448,7 +527,7 @@ describe('ImmersveFundingApproval', () => {
     setNextAction({ type: 'funding', write: WRITE });
     const { getByTestId } = render(<ImmersveFundingApproval />);
 
-    expect(useCardHeaderHandlers).toHaveBeenCalledWith('close-direct');
+    expect(mockOnboardingStepHeaderMode).toHaveBeenCalledWith('close-direct');
     expect(getByTestId('immersve-funding-approval-account-row')).toBeTruthy();
     expect(getByTestId('immersve-funding-approval-token-row')).toBeTruthy();
     const button = getByTestId('immersve-funding-approval-confirm-button');
@@ -752,7 +831,7 @@ describe('ImmersveFundingApproval', () => {
       const { getByText, getByTestId } = render(<ImmersveFundingApproval />);
 
       expect(mockRefresh).not.toHaveBeenCalled();
-      expect(useCardHeaderHandlers).toHaveBeenCalledWith('back');
+      expect(mockOnboardingStepHeaderMode).toHaveBeenCalledWith('back');
       expect(
         getByText(
           'card.card_onboarding.immersve_funding_approval.reapprove.title',

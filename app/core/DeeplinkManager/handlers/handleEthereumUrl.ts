@@ -1,4 +1,7 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { toHex } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -8,14 +11,73 @@ import { NetworkSwitchErrorType } from '../../../constants/error';
 import { getDecimalChainId } from '../../../util/networks';
 import { MAINNET } from '../../../constants/network';
 import Engine from '../../Engine';
+import ReduxService from '../../redux';
 import Routes from '../../../constants/navigation/Routes';
 import {
   addTransactionForDeeplink,
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
+import { handleSendPageNavigation } from '../../../components/Views/confirmations/utils/send';
+import { derivePredefinedRecipientParams } from '../../../components/Views/confirmations/utils/address';
+import { AssetType } from '../../../components/Views/confirmations/types/token';
+import { selectAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
 import NavigationService from '../../NavigationService';
 import handleApproveUrl from './legacy/handleApproveUrl';
+import { mapDeeplinkOriginToInitSendLocation } from './handleSolanaUrl';
 import switchNetwork from '../../../util/networks/switchNetwork';
+
+/**
+ * ERC-681: "With no indicated amount, the user should be prompted to enter the
+ * amount to be paid." Covers plain sends without `value` and ERC-20 transfers
+ * without `uint256`; other function calls keep their existing handling.
+ */
+const isAmountlessSendUrl = ({ function_name, parameters }: ParseOutput) => {
+  if (function_name === ETH_ACTIONS.TRANSFER) {
+    return !parameters?.uint256;
+  }
+  return !function_name && !parameters?.value;
+};
+
+/**
+ * Opens the Send flow with the recipient prefilled and the amount left for the
+ * user, mirroring how `handleSolanaUrl` treats Solana Pay URIs without an amount.
+ * The asset is preselected when the selected account group holds it; otherwise
+ * the flow starts at asset selection.
+ */
+const navigateToAmountlessSend = (ethUrl: ParseOutput, origin: string) => {
+  // Deeplinks fall back to mainnet rather than the selected network
+  const chainId: Hex = ethUrl.chain_id
+    ? toHex(ethUrl.chain_id)
+    : CHAIN_IDS.MAINNET;
+
+  const { NetworkController } = Engine.context;
+  if (!NetworkController.findNetworkClientIdByChainId(chainId)) {
+    throw new Error(`Unable to find network with chain id ${chainId}`);
+  }
+
+  const isErc20Transfer = ethUrl.function_name === ETH_ACTIONS.TRANSFER;
+  const assetAddress = isErc20Transfer
+    ? ethUrl.target_address
+    : getNativeTokenAddress(chainId);
+  const recipient = isErc20Transfer
+    ? ethUrl.parameters?.address
+    : ethUrl.target_address;
+
+  const ownedAssets = selectAssetsBySelectedAccountGroup(
+    ReduxService.store.getState(),
+  );
+  const asset = ownedAssets[chainId]?.find(
+    ({ assetId }) => assetId.toLowerCase() === assetAddress.toLowerCase(),
+  ) as AssetType | undefined;
+
+  handleSendPageNavigation(NavigationService.navigation.navigate, {
+    location: mapDeeplinkOriginToInitSendLocation(origin),
+    asset,
+    predefinedRecipient: recipient
+      ? derivePredefinedRecipientParams(recipient)
+      : undefined,
+  });
+};
 
 async function handleEthereumUrl({
   url,
@@ -56,6 +118,11 @@ async function handleEthereumUrl({
       ethUrl.parameters.uint256 = formattedDeeplinkParsedValue(
         ethUrl.parameters.uint256,
       );
+    }
+
+    if (isAmountlessSendUrl(ethUrl)) {
+      navigateToAmountlessSend(ethUrl, origin);
+      return;
     }
 
     if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {

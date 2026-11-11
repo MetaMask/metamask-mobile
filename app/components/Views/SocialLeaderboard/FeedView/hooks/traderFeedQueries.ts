@@ -9,8 +9,10 @@ import {
   FEED_PAGE_LIMIT,
   SOCIAL_FEED_INFINITE_QUERY_KIND,
 } from '../../../../UI/SocialFeed/data/socialFeedQueries';
-import type { FeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 import type { FeedAudience } from '../../../../UI/SocialFeed/types';
+
+/** The scopes V0 reads, as the installed `fetchFeed` types them. */
+type FeedScope = NonNullable<FetchFeedOptions['scope']>;
 
 /** The feed scope V0's All / Following toggle reads. */
 export const toFeedScope = (audience: FeedAudience): FeedScope =>

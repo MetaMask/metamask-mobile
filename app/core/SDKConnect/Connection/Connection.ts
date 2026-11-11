@@ -90,6 +90,11 @@ export class Connection extends EventEmitter2 {
   lastAuthorized?: number;
 
   /**
+   * Timestamp after which the session no longer carries channel authority.
+   */
+  validUntil?: number;
+
+  /**
    * Prevent double sending 'authorized' message.
    */
   authorizedSent = false;
@@ -140,6 +145,7 @@ export class Connection extends EventEmitter2 {
     navigation,
     hideReturnToApp,
     lastAuthorized,
+    validUntil,
     approveHost,
     getApprovedHosts,
     disapprove,
@@ -170,6 +176,7 @@ export class Connection extends EventEmitter2 {
     this.navigation = navigation;
     this.hideReturnToApp = hideReturnToApp;
     this.lastAuthorized = lastAuthorized;
+    this.validUntil = validUntil;
     this.reconnect = reconnect || false;
     this.isResumed = false;
     this.originatorInfo = originatorInfo;
