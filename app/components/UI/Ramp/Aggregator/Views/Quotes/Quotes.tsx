@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -64,6 +63,8 @@ import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from './Quotes.testIds';
 import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 import { endTrace, TraceName } from '../../../../../../util/trace';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface QuotesParams {
   amount: number | string;
@@ -76,6 +77,7 @@ export const createQuotesNavDetails = createNavigationDetails<QuotesParams>(
 );
 
 function Quotes() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
@@ -821,7 +823,11 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
         <ErrorViewWithReporting error={sdkError} location={'Quotes Screen'} />
       </BottomSheet>
     );
@@ -843,7 +849,11 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
         <ErrorView
           description={ErrorFetchingQuotes}
           ctaOnPress={handleFetchQuotes}
@@ -871,7 +881,11 @@ function Quotes() {
     }
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
         <ErrorView
           icon="expired"
           title={strings('fiat_on_ramp_aggregator.quotes_timeout')}
@@ -900,7 +914,11 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
         <LoadingAnimation
           title={strings('fiat_on_ramp_aggregator.fetching_quotes')}
           finish={shouldFinishAnimation}
@@ -936,7 +954,11 @@ function Quotes() {
 
     return (
       <BottomSheet isFullscreen isInteractable={false} ref={bottomSheetRef}>
-        <HeaderStandard onClose={() => handleClosePress(bottomSheetRef)} />
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
+          onClose={() => handleClosePress(bottomSheetRef)}
+        />
         <ScreenLayout>
           <ErrorView
             title={strings('fiat_on_ramp_aggregator.no_providers_available')}
@@ -956,7 +978,9 @@ function Quotes() {
   if (!isExpanded) {
     return (
       <BottomSheet ref={bottomSheetRef}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
           title={strings('fiat_on_ramp_aggregator.recommended_quote')}
           onClose={() => handleClosePress(bottomSheetRef)}
           closeButtonProps={{ testID: QuoteSelectors.CLOSE_BUTTON }}
@@ -1067,7 +1091,9 @@ function Quotes() {
 
   return (
     <BottomSheet isInteractable={false} isFullscreen ref={bottomSheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('fiat_on_ramp_aggregator.select_a_quote')}
         onClose={() => handleClosePress(bottomSheetRef)}
       />
