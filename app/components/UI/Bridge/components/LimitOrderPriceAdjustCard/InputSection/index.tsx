@@ -160,9 +160,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
     const amountLineHeight = Math.round(fontSize * 1.25);
     const amountTopInset = Math.round(fontSize * AMOUNT_TOP_INSET_RATIO);
     const amountBottomInset = Math.round(fontSize * AMOUNT_BOTTOM_INSET_RATIO);
-    const amountTextStyle = tw.style({
+    const amountTextStyle = tw.style('font-default-medium', {
       fontSize,
-      fontFamily: 'Inter-Medium',
       lineHeight: amountLineHeight,
       height: amountLineHeight,
       marginTop: -amountTopInset,
@@ -319,9 +318,9 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           // A single paragraph of nested spans, so a label that doesn't fit
           // wraps back to the start of the row instead of under itself.
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="mb-4 leading-[16px]"
+            twClassName="mb-4"
           >
             {shouldShowAmountTypeToggle ? (
               <Text
@@ -330,9 +329,8 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 }
                 onPress={handleAmountTypeTogglePress}
                 suppressHighlighting
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
-                twClassName="leading-[16px]"
               >
                 {secondaryValue ? (
                   <Text
@@ -341,7 +339,6 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                     }
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="leading-[16px]"
                   >
                     ≈ {secondaryValue}
                   </Text>
@@ -373,7 +370,6 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
                 variant={TextVariant.BodySm}
                 color={marketComparisonColor}
                 fontWeight={FontWeight.Medium}
-                twClassName="leading-[16px]"
               >
                 {marketComparison.label}
               </Text>
