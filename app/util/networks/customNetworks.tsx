@@ -329,7 +329,7 @@ export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
     case TrxScope.Shasta:
       return require('../../images/tron.png');
     case XlmScope.Pubnet:
-      return require('../../images/xlm.svg');
+      return require('../../images/xlm.png');
     default:
       return undefined;
   }
