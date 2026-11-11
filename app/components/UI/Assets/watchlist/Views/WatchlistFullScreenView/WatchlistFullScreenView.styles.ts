@@ -10,19 +10,12 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     titleContainer: {
       paddingHorizontal: 16,
-      paddingTop: 8,
-      paddingBottom: 8,
-    },
-    tabContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: 16,
       paddingTop: 12,
-      paddingBottom: 12,
+      paddingBottom: 8,
     },
     listContainer: {
       flex: 1,
       paddingHorizontal: 16,
-      paddingTop: 8,
     },
     listContainerEditMode: {
       paddingRight: 8,
@@ -62,11 +55,6 @@ const styleSheet = (params: { theme: Theme }) => {
     editControlHidden: {
       width: 0,
       overflow: 'hidden',
-    },
-    headerEndActions: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 16,
     },
   });
 };

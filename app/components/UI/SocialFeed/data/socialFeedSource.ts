@@ -18,8 +18,13 @@ import {
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
-/** The feed `SocialService:fetchFeed` serves: `following`, `leaderboard`, `all`, or `trending`. */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']>;
+/**
+ * The feed `SocialService:fetchFeed` serves: `following`, `following_v1`,
+ * `leaderboard`, `all`, or `trending`. `following_v1` is the following feed in
+ * the shape of `all`: one item per post, ordered by `occurredAt`. The installed
+ * `@metamask/social-controllers` does not list it yet.
+ */
+export type FeedScope = NonNullable<FetchFeedOptions['scope']> | 'following_v1';
 
 /**
  * A slice of the social feed, as `SocialService:fetchFeed` filters it. Plain
@@ -73,8 +78,10 @@ type Paged = 'limit' | 'olderThan' | 'newerThan';
 export type SocialFeedRequest =
   | {
       action: 'SocialService:fetchFeed';
-      options: Required<Pick<FetchFeedOptions, 'scope'>> &
-        Pick<FetchFeedOptions, 'profileId' | 'commentedOnly'> & {
+      options: { scope: FeedScope } & Pick<
+        FetchFeedOptions,
+        'profileId' | 'commentedOnly'
+      > & {
           chains: readonly CaipChainId[];
           assetIds?: readonly CaipAssetType[];
         };

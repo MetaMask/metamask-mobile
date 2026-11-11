@@ -10,7 +10,7 @@ import {
   resetFollowingSyncForTests,
   syncFollowingState,
 } from '../../util/social/followingSync';
-import { FOLLOWING_FEED_QUERY_KEY_PREFIX } from '../UI/SocialFeed/data/socialFeedQueries';
+import { FOLLOWING_FEED_QUERY_KEY_PREFIXES } from '../UI/SocialFeed/data/socialFeedQueries';
 import {
   resetFollowToggleSharedStateForTests,
   useFollowToggle,
@@ -209,9 +209,9 @@ describe('useFollowToggle', () => {
         await result.current.toggleFollow();
       });
 
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
-      });
+      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
+      );
     });
 
     it('invalidates the following feed after a successful unfollow', async () => {
@@ -222,14 +222,14 @@ describe('useFollowToggle', () => {
         await result.current.toggleFollow();
       });
 
-      expect(mockInvalidateQueries).toHaveBeenCalledWith({
-        queryKey: FOLLOWING_FEED_QUERY_KEY_PREFIX,
-      });
+      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
+      );
     });
 
     it('keeps the follow and reports the failure when the following feed invalidation rejects', async () => {
       mockInvalidateQueries.mockImplementation(({ queryKey }) =>
-        queryKey === FOLLOWING_FEED_QUERY_KEY_PREFIX
+        FOLLOWING_FEED_QUERY_KEY_PREFIXES.includes(queryKey)
           ? Promise.reject(new Error('feed boom'))
           : Promise.resolve(),
       );
