@@ -18,6 +18,10 @@ jest.mock('./runMfaRecoveryCubistTest', () => ({
 }));
 
 const SIWE_IDENTIFIER = { type: 'siwe', value: '0xabc' } as Identifier;
+const SOCIAL_IDENTIFIER = {
+  type: 'social',
+  value: 'google-user',
+} as Identifier;
 const RECOVERY_SECRET = new Uint8Array(32).fill(9);
 const SRP_ONE = new TextEncoder().encode('seed phrase one');
 const SRP_TWO = new TextEncoder().encode('seed phrase two');
@@ -56,6 +60,7 @@ function createDependencies(
     mintAal2Token: jest.fn().mockResolvedValue('aal2-token'),
     seedless:
       seedless as unknown as MfaRecoveryFullRetrievalDependencies['seedless'],
+    socialIdentifier: SOCIAL_IDENTIFIER,
   };
 }
 
@@ -75,7 +80,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
     });
   });
 
-  it('reads the recovery secret with SIWE and recovers the vault keys with it, without a password', async () => {
+  it('reads the recovery secret with the social identifier and recovers the vault keys with it, without a password', async () => {
     const seedless = createSeedless({
       before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
       recovered: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
@@ -86,7 +91,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
 
     expect(mockReadRecoverySecret).toHaveBeenCalledWith(
       expect.anything(),
-      SIWE_IDENTIFIER,
+      SOCIAL_IDENTIFIER,
       expect.any(Function),
     );
     expect(seedless.authenticateForRecovery).toHaveBeenCalledWith({

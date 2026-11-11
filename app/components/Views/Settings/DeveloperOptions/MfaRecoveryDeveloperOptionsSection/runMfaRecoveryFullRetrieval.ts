@@ -1,3 +1,4 @@
+import type { Identifier } from '@metamask/mfa-recovery-controller';
 import {
   SecretType,
   type SeedlessOnboardingController,
@@ -25,6 +26,8 @@ export interface MfaRecoveryFullRetrievalDependencies
   /** Mints an approval for the TOPRF nodes; needs a verification session. */
   mintAal2Token: () => Promise<string>;
   seedless: MfaRecoveryFullRetrievalSeedless;
+  /** The social identifier the Recovery Secret is read with. */
+  socialIdentifier: Identifier;
 }
 
 export type MfaRecoveryFullRetrievalStep =
@@ -67,7 +70,7 @@ async function srpFingerprints(
 
 /**
  * Full retrieval of the final bucket: reads the Recovery Secret from Cubist
- * with SIWE, recovers the vault from TOPRF with that secret, then checks that
+ * with the social identifier, recovers the vault from TOPRF with that secret, then checks that
  * every SRP the vault held before is back in the seedless controller.
  *
  * Recovering does not create a local vault or need a password. The recovered
@@ -77,16 +80,13 @@ export async function runMfaRecoveryFullRetrieval(
   dependencies: MfaRecoveryFullRetrievalDependencies,
   onStep: (step: MfaRecoveryFullRetrievalStep) => void = () => undefined,
 ): Promise<MfaRecoveryFullRetrievalResult> {
-  const { controller, identifiers } = await prepareRecoveryRun(
-    dependencies,
-    onStep,
-  );
+  const { controller } = await prepareRecoveryRun(dependencies, onStep);
   const { seedless } = dependencies;
 
-  // 1) Cubist: the Recovery Secret, read with SIWE.
+  // 1) Cubist: the Recovery Secret, read with the social identifier.
   const recovered = await readRecoverySecret(
     controller,
-    identifiers.siweIdentifier,
+    dependencies.socialIdentifier,
     onStep,
   );
   const recoverySecret = new Uint8Array(recovered.recoverySecret);

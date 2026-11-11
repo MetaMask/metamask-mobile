@@ -13,7 +13,6 @@ import {
   ButtonVariant,
   Text,
   TextColor,
-  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -674,6 +673,9 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           {
             ...dependencies,
             seedless: Engine.context.SeedlessOnboardingController,
+            socialIdentifier: createSocialIdentifier(
+              Engine.context.SeedlessOnboardingController.state,
+            ),
           },
           onStep,
         ),
