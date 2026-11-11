@@ -12,7 +12,7 @@
       "type": "tap",
       "locator": {
         "strategy": "testID",
-        "value": "homepage-section-title-predictions"
+        "value": "perf-heal-test-does-not-exist"
       }
     }
   ]
