@@ -1,0 +1,164 @@
+# AI analyzer mode evals (manual).
+#
+# Runs MetaMask/ai-analyzer's eval framework against the fixtures under
+# .ai-pr-analyzer/modes/<mode>/evals/fixtures/ (old PRs pinned to SHAs, with
+# the expected answer). Use it to measure a prompt/mode change, a model change,
+# or an ai-analyzer upgrade before shipping it. See
+# https://github.com/MetaMask/ai-analyzer/blob/main/docs/evaluating-modes.md
+#
+# - Mode change: dispatch on your branch with mode_refs=main. The report
+#   compares your branch's .ai-pr-analyzer/ with main's, side by side.
+# - Model change: models=modelA,modelB.
+# - ai-analyzer upgrade: baseline_analyzer_ref=<current pin>,
+#   analyzer_ref=<new ref>. Both engines run on the same mobile commit and the
+#   report shows pass-rate deltas and output drift.
+#
+# Nothing runs automatically: every run costs LLM tokens.
+
+name: AI analyzer eval
+
+on:
+  workflow_dispatch:
+    inputs:
+      modes:
+        description: 'Comma-separated mode ids (empty = every mode with fixtures)'
+        required: false
+        default: 'smart-e2e'
+      models:
+        description: "Comma-separated LiteLLM model ids (empty = the mode's configured model)"
+        required: false
+        default: ''
+      repeat:
+        description: 'Runs per fixture (pass rate is scored across them)'
+        required: false
+        default: '3'
+      fixture_filter:
+        description: 'Fixture id glob, e.g. pr-374*'
+        required: false
+        default: ''
+      mode_refs:
+        description: 'Comma-separated extra mode-definition refs to compare, e.g. main'
+        required: false
+        default: ''
+      analyzer_ref:
+        description: 'ai-analyzer ref to evaluate (empty = .github/actions/smart-e2e-selection/analyzer-ref.txt; must include the eval framework)'
+        required: false
+        default: ''
+      baseline_analyzer_ref:
+        description: 'Optional ai-analyzer ref to compare against (runs first on the same mobile commit; must include the eval framework)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  id-token: write # required by MetaMask/github-tools/.github/actions/get-token
+
+jobs:
+  eval:
+    name: Evaluate AI analyzer modes
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          # --mode-ref needs history; `main` resolves as origin/main.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve analyzer refs
+        id: refs
+        env:
+          INPUT_ANALYZER_REF: ${{ inputs.analyzer_ref }}
+        run: |
+          ref="$INPUT_ANALYZER_REF"
+          if [ -z "$ref" ]; then ref="$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)"; fi
+          echo "current=$ref" >> "$GITHUB_OUTPUT"
+
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
+
+      - name: Checkout AI Analyzer (evaluated ref)
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: ${{ steps.refs.outputs.current }}
+          path: .analyzer-current
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Checkout AI Analyzer (baseline ref)
+        if: ${{ inputs.baseline_analyzer_ref != '' }}
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: ${{ inputs.baseline_analyzer_ref }}
+          path: .analyzer-baseline
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install AI Analyzer dependencies
+        run: |
+          (cd .analyzer-current && npm ci)
+          if [ -d .analyzer-baseline ]; then (cd .analyzer-baseline && npm ci); fi
+
+      # catalog.json is generated and gitignored. --mode-ref copies of
+      # .ai-pr-analyzer/ get this working-tree copy (git archive omits it).
+      - name: Generate smart-e2e catalog from tags
+        env:
+          NODE_PATH: ${{ github.workspace }}/.analyzer-current/node_modules
+        run: node -r esbuild-register .ai-pr-analyzer/modes/smart-e2e/generate-catalog.ts
+
+      - name: Run eval
+        env:
+          LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          GH_TOKEN: ${{ github.token }}
+          CI: 'true'
+          INPUT_MODES: ${{ inputs.modes }}
+          INPUT_MODELS: ${{ inputs.models }}
+          INPUT_REPEAT: ${{ inputs.repeat }}
+          INPUT_FIXTURE_FILTER: ${{ inputs.fixture_filter }}
+          INPUT_MODE_REFS: ${{ inputs.mode_refs }}
+          INPUT_BASELINE_REF: ${{ inputs.baseline_analyzer_ref }}
+          RESULTS_DIR: ${{ runner.temp }}/eval-results
+        run: |
+          mkdir -p "$RESULTS_DIR"
+          args=(--config-dir .ai-pr-analyzer --repeat "$INPUT_REPEAT")
+          IFS=',' read -r -a l <<< "$INPUT_MODES";     for v in "${l[@]}"; do v="${v// /}"; [ -n "$v" ] && args+=(--mode "$v"); done
+          IFS=',' read -r -a l <<< "$INPUT_MODELS";    for v in "${l[@]}"; do v="${v// /}"; [ -n "$v" ] && args+=(--model "$v"); done
+          IFS=',' read -r -a l <<< "$INPUT_MODE_REFS"; for v in "${l[@]}"; do v="${v// /}"; [ -n "$v" ] && args+=(--mode-ref "$v"); done
+          if [ -n "$INPUT_FIXTURE_FILTER" ]; then args+=(--fixture "$INPUT_FIXTURE_FILTER"); fi
+
+          if [ -n "$INPUT_BASELINE_REF" ]; then
+            # Old engine first, same mobile commit. Exit 1 with a written summary
+            # (some cases failed) is still a usable baseline; exit 2 is a usage error.
+            status=0
+            GITHUB_STEP_SUMMARY='' node -r ./.analyzer-baseline/node_modules/esbuild-register/register.js \
+              .analyzer-baseline/src/index.ts eval "${args[@]}" \
+              --output "$RESULTS_DIR/baseline.json" || status=$?
+            if [ "$status" -ge 2 ] || [ ! -f "$RESULTS_DIR/baseline.json" ]; then exit "${status/#0/1}"; fi
+            args+=(--baseline "$RESULTS_DIR/baseline.json")
+          fi
+          # The report (pass rates, deltas, drift) is appended to the job summary.
+          node -r ./.analyzer-current/node_modules/esbuild-register/register.js \
+            .analyzer-current/src/index.ts eval "${args[@]}" \
+            --output "$RESULTS_DIR/current.json"
+
+      - name: Upload eval results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ai-analyzer-eval-results
+          path: ${{ runner.temp }}/eval-results
+          if-no-files-found: ignore

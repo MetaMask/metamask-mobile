@@ -1,0 +1,28 @@
+# Captured by `ai-pr-analyzer eval capture --mode smart-e2e --pr 36481`.
+id: pr-36481
+description: 'feat(settings): add contacts empty state matching permissions'
+pr:
+  repo: MetaMask/metamask-mobile
+  number: 36481
+  base: 49dd8fa13fa6d3c44fa0be541b1a3e62c3cb9c8a
+  head: c02ed666662122d4dcf6cd0f489a1f10497eb965
+comments: []
+expected:
+  selected_tags:
+    must_include: [SmokeAccounts]
+    must_exclude:
+      [
+        SmokeSwap,
+        SmokePerps,
+        SmokePredictions,
+        SmokeMoney,
+        SmokeStake,
+        SmokeBrowser,
+        SmokeSnaps,
+      ]
+behaviour:
+  no_fallback: true
+  max_iterations: 20
+labels:
+  source: manual
+  note: 'Contacts / address book belongs to SmokeAccounts (contact sync, contact creation).'

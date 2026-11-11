@@ -1,0 +1,28 @@
+# Captured by `ai-pr-analyzer eval capture --mode smart-e2e --pr 37451`.
+id: pr-37451
+description: 'fix: re-order notification settings sections [GE-549]'
+pr:
+  repo: MetaMask/metamask-mobile
+  number: 37451
+  base: 9fc7961f59ff02385f73882c7bc866b8aceda6c0
+  head: 24c4c62ffd51f705fcdac48f9e7fa6205ebfe43f
+comments: []
+expected:
+  selected_tags:
+    must_include: [SmokeNetworkAbstractions]
+    must_exclude:
+      [
+        SmokeSwap,
+        SmokePerps,
+        SmokePredictions,
+        SmokeMoney,
+        SmokeStake,
+        SmokeBrowser,
+        SmokeSnaps,
+      ]
+behaviour:
+  no_fallback: true
+  max_iterations: 20
+labels:
+  source: manual
+  note: 'Notification settings sections live under SmokeNetworkAbstractions (it also covers notification settings flows).'
