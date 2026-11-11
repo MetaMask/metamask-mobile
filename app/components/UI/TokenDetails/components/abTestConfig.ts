@@ -1,6 +1,7 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 import { COMPONENT_NAMES } from '../../Money/constants/moneyEventLocations';
+import { STABLECOIN_TOKEN_SYMBOLS } from '../../Money/constants/moneyTokens';
 
 // --- Ambient Price Color A/B Test ---
 
@@ -69,15 +70,6 @@ export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADA
         'Stablecoin footer CTA shown',
     },
   };
-
-export const STABLECOIN_TOKEN_SYMBOLS = [
-  'USDC',
-  'USDT',
-  'DAI',
-  'mUSD',
-  'MUSD',
-  'PYUSD',
-] as const;
 
 export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {

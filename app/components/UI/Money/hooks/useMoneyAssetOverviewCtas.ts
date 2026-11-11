@@ -1,11 +1,7 @@
 import { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 import BigNumber from 'bignumber.js';
-import type { Hex } from '@metamask/utils';
-import { earnSelectors } from '../../../../selectors/earnController/earn';
 import type { TokenI } from '../../Tokens/types';
-import type { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
 import {
@@ -19,13 +15,13 @@ import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
 import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
-import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA,
   EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../../TokenDetails/components/abTestConfig';
+import { STABLECOIN_TOKEN_SYMBOLS } from '../constants/moneyTokens';
 
 const FOOTER_LABEL_KEY = 'money.asset_overview.cta.earn_apy';
 const BALANCE_BUTTON_LABEL_KEY = 'money.asset_overview.cta.start_earning';
@@ -46,20 +42,8 @@ export const useMoneyAssetOverviewCtas = ({
   balanceFiatUsd,
   hasBalance,
 }: UseMoneyAssetOverviewCtasArgs) => {
-  const assetId = useMemo(() => {
-    if (!asset.address || !asset.chainId) {
-      return undefined;
-    }
-
-    try {
-      return buildEvmCaip19AssetId(asset.address, asset.chainId as Hex);
-    } catch {
-      return undefined;
-    }
-  }, [asset.address, asset.chainId]);
-
-  const isAaveOutputToken = useSelector((state: RootState) =>
-    earnSelectors.selectIsAaveOutputToken(state, assetId),
+  const isStablecoin = STABLECOIN_TOKEN_SYMBOLS.some(
+    (symbol) => symbol === asset.symbol,
   );
 
   const {
@@ -68,7 +52,7 @@ export const useMoneyAssetOverviewCtas = ({
   } = useMoneyAssetOverviewCtaVisibility(asset, hasBalance, balanceFiatUsd);
 
   const isStablecoinFooterCtaEligible =
-    isFooterCtaEligibleFromVisibility && !isAaveOutputToken;
+    isFooterCtaEligibleFromVisibility && isStablecoin;
 
   const { variant: stablecoinFooterCtaVariant } = useABTest(
     EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
@@ -83,7 +67,7 @@ export const useMoneyAssetOverviewCtas = ({
     stablecoinFooterCtaVariant.showMoneyDepositFooterCta;
 
   const isATokenFooterCtaEligible =
-    isFooterCtaEligibleFromVisibility && isAaveOutputToken;
+    isFooterCtaEligibleFromVisibility && !isStablecoin;
 
   const isFooterCtaEligible =
     isStablecoinFooterCtaEnabled || isATokenFooterCtaEligible;
