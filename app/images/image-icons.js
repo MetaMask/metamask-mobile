@@ -67,7 +67,7 @@ import GNOSIS_NATIVE from './gnosis-native-token-logo.png';
 import ZERO_G_NATIVE from './0g-native-logo.png';
 import SOMNIA_NATIVE from './somnia.png';
 import TRON from './tron-logo.png';
-import STELLAR from './xlm.png';
+import STELLAR from './xlm.svg';
 
 export default {
   PALM,
