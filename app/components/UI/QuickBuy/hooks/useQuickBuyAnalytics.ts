@@ -3,12 +3,8 @@ import { useDispatch, useStore } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
+  type BridgeState,
   resetBridgeState,
-  selectDestToken,
-  selectIsDestTokenManuallySet,
-  selectIsMaxSourceAmount,
-  selectSourceAmount,
-  selectSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   setSourceAmount,
@@ -29,6 +25,29 @@ type QuickBuyDismissStage =
 
 type AmountSelectionMethod =
   (typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD)[keyof typeof QuickBuyEventValues.AMOUNT_SELECTION_METHOD];
+
+function restoreBridgeInputs(
+  dispatch: ReturnType<typeof useDispatch>,
+  prior: BridgeState,
+) {
+  const {
+    sourceToken,
+    destToken,
+    sourceAmount,
+    isMaxSourceAmount,
+    isDestTokenManuallySet,
+  } = prior;
+  if (sourceToken) dispatch(setSourceToken(sourceToken));
+  if (destToken) dispatch(setDestToken(destToken));
+  if (sourceAmount) {
+    dispatch(
+      isMaxSourceAmount
+        ? setSourceAmountAsMax(sourceAmount)
+        : setSourceAmount(sourceAmount),
+    );
+  }
+  if (isDestTokenManuallySet) dispatch(setIsDestTokenManuallySet(true));
+}
 
 export interface QuickBuyAnalyticsRefs {
   dismissStageRef: React.MutableRefObject<QuickBuyDismissStage>;
@@ -81,16 +100,7 @@ export function useQuickBuyAnalytics(
   // capture its inputs before QuickBuy overwrites them so dismiss can restore them.
   // Read once without subscribing: QuickBuy dispatches these on every amount change.
   const store = useStore<RootState>();
-  const [priorBridgeInputs] = useState(() => {
-    const state = store.getState();
-    return {
-      sourceToken: selectSourceToken(state),
-      destToken: selectDestToken(state),
-      sourceAmount: selectSourceAmount(state),
-      isMaxSourceAmount: selectIsMaxSourceAmount(state),
-      isDestTokenManuallySet: selectIsDestTokenManuallySet(state),
-    };
-  });
+  const [priorBridgeState] = useState(() => store.getState().bridge);
 
   const resolvedTraderAddress =
     analyticsContext?.traderAddress ?? traderAddress;
@@ -124,25 +134,7 @@ export function useQuickBuyAnalytics(
         if (Engine.context.BridgeController?.resetState) {
           Engine.context.BridgeController.resetState();
         }
-        const {
-          sourceToken,
-          destToken,
-          sourceAmount,
-          isMaxSourceAmount,
-          isDestTokenManuallySet,
-        } = priorBridgeInputs;
-        if (sourceToken) dispatch(setSourceToken(sourceToken));
-        if (destToken) dispatch(setDestToken(destToken));
-        if (sourceAmount) {
-          dispatch(
-            isMaxSourceAmount
-              ? setSourceAmountAsMax(sourceAmount)
-              : setSourceAmount(sourceAmount),
-          );
-        }
-        if (isDestTokenManuallySet) {
-          dispatch(setIsDestTokenManuallySet(true));
-        }
+        restoreBridgeInputs(dispatch, priorBridgeState);
       }
       if (!tradeSubmittedRef.current && resolvedTraderAddress && caip19) {
         const numeric = Number(lastTrackedAmountRef.current);
@@ -156,7 +148,7 @@ export function useQuickBuyAnalytics(
         });
       }
     },
-    [dispatch, priorBridgeInputs, resolvedTraderAddress, caip19, track],
+    [dispatch, priorBridgeState, resolvedTraderAddress, caip19, track],
   );
 
   const trackAmountSelected = useCallback(

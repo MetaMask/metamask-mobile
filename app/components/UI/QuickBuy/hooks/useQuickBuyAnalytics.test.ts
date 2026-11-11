@@ -78,13 +78,6 @@ jest.mock('../../../../core/Analytics', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   resetBridgeState: () => mockResetBridgeState(),
-  selectSourceToken: (state: Record<string, unknown>) => state.sourceToken,
-  selectDestToken: (state: Record<string, unknown>) => state.destToken,
-  selectSourceAmount: (state: Record<string, unknown>) => state.sourceAmount,
-  selectIsMaxSourceAmount: (state: Record<string, unknown>) =>
-    state.isMaxSourceAmount,
-  selectIsDestTokenManuallySet: (state: Record<string, unknown>) =>
-    state.isDestTokenManuallySet,
   setSourceToken: (payload: unknown) => ({
     type: 'bridge/setSourceToken',
     payload,
@@ -126,7 +119,9 @@ describe('useQuickBuyAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-    (useStore as jest.Mock).mockReturnValue({ getState: () => ({}) });
+    (useStore as jest.Mock).mockReturnValue({
+      getState: () => ({ bridge: {} }),
+    });
   });
 
   describe('trackAmountSelected', () => {
@@ -542,7 +537,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     const mockPriorBridgeInputs = (inputs: Record<string, unknown>) =>
-      (useStore as jest.Mock).mockReturnValue({ getState: () => inputs });
+      (useStore as jest.Mock).mockReturnValue({
+        getState: () => ({ bridge: inputs }),
+      });
 
     it('restores pre-existing bridge inputs after the reset on unmount', () => {
       const sourceToken = { address: '0xsrc', chainId: '0x1' };
