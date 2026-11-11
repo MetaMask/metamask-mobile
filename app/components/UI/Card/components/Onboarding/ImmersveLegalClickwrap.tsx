@@ -1,6 +1,18 @@
 import React from 'react';
-import { ActivityIndicator, Linking, TouchableOpacity } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { Linking } from 'react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  HelpText,
+  HelpTextSeverity,
+  Spinner,
+  Text,
+  TextButton,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { ImmersveLegalDocumentLink } from '../../util/immersveLegalDocuments';
 
@@ -40,24 +52,23 @@ function getSeparator(index: number, total: number): string {
 
 function LegalDocsError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Box
-      twClassName="items-center gap-1 py-2"
-      testID="signup-immersve-legal-error"
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        twClassName="text-error-default text-center"
+    <Box twClassName="items-center gap-2" testID="signup-immersve-legal-error">
+      <HelpText
+        severity={HelpTextSeverity.Danger}
+        accessibilityRole="alert"
+        accessibilityLiveRegion="polite"
+        twClassName="text-center"
       >
         {strings('card.card_onboarding.sign_up.legal_docs_error')}
-      </Text>
-      <TouchableOpacity onPress={onRetry} testID="signup-immersve-legal-retry">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-primary-default text-center"
-        >
-          {strings('card.card_onboarding.retry_button')}
-        </Text>
-      </TouchableOpacity>
+      </HelpText>
+      <Button
+        variant={ButtonVariant.Tertiary}
+        size={ButtonSize.Md}
+        onPress={onRetry}
+        testID="signup-immersve-legal-retry"
+      >
+        {strings('card.card_onboarding.retry_button')}
+      </Button>
     </Box>
   );
 }
@@ -80,7 +91,7 @@ const ImmersveLegalClickwrap = ({
         twClassName="items-center py-2"
         testID="signup-immersve-legal-loading"
       >
-        <ActivityIndicator />
+        <Spinner />
       </Box>
     );
   }
@@ -96,21 +107,21 @@ const ImmersveLegalClickwrap = ({
   return (
     <Text
       variant={TextVariant.BodySm}
-      twClassName="text-text-alternative text-center"
+      color={TextColor.TextAlternative}
+      twClassName="text-center"
       testID="signup-immersve-legal-clickwrap"
     >
       {strings('card.card_onboarding.sign_up.clickwrap_prefix')}
       {documents.map((legalDocument, index) => (
         <React.Fragment key={legalDocument.id}>
           {getSeparator(index, documents.length)}
-          <Text
+          <TextButton
             variant={TextVariant.BodySm}
-            twClassName="text-text-alternative underline"
             onPress={() => openDocument(legalDocument.url)}
             testID={`signup-immersve-legal-link-${legalDocument.id}`}
           >
             {legalDocument.title}
-          </Text>
+          </TextButton>
         </React.Fragment>
       ))}
       {suffix}

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   useFocusEffect,
   useNavigation,
@@ -24,6 +18,8 @@ import {
   IconName,
   Text,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
@@ -39,10 +35,7 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import { strings } from '../../../../../locales/i18n';
 import NotifCard from '../../../UI/Notification/NotifCard';
 import Logger from '../../../../util/Logger';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
+import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
 
 export interface FeatureNotificationsGateSheetParams {
   feature: FeatureNotificationsGateFeature;
@@ -68,7 +61,7 @@ type FeatureNotificationsGateSheetRouteProp = RouteProp<
  *
  * Layout mirrors the push-onboarding notification sheets: preview image,
  * centered title/subhead, and a single primary CTA that enables notifications
- * with sensible defaults (master + push + in-app for the gated feature).
+ * with in-app enabled and push enabled when OS permission is granted.
  */
 export const FeatureNotificationsGateSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -80,14 +73,13 @@ export const FeatureNotificationsGateSheet = () => {
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
   const { enableNotifications } = useEnableNotifications({
-    nudgeEnablePush: true,
+    nudgeEnablePush: false,
     throwOnError: true,
   });
   const { refetch, updatePreferencesSection } =
     useNotificationStoragePreferences();
   const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
     useFeatureNotificationsStatus(feature);
-  const { toastRef } = useContext(ToastContext);
 
   const isGateSatisfied = isMasterEnabled && (isPushEnabled || isInAppEnabled);
 
@@ -120,17 +112,12 @@ export const FeatureNotificationsGateSheet = () => {
   };
 
   const showEnableErrorToast = useCallback(() => {
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
-      labelOptions: [
-        {
-          label: strings('notifications.feature_gate.error'),
-          isBold: true,
-        },
-      ],
-      hasNoTimeout: false,
+    toast({
+      severity: ToastSeverity.Danger,
+      title: strings('notifications.feature_gate.error'),
+      showCloseButton: false,
     });
-  }, [toastRef]);
+  }, []);
 
   const handleTurnOn = useCallback(async () => {
     if (!basicFunctionalityEnabled) {
@@ -145,6 +132,13 @@ export const FeatureNotificationsGateSheet = () => {
 
     setIsEnabling(true);
     try {
+      const isPushGranted = await promptOsPushPermissionIfNeeded();
+      // Read before enableNotifications: first-time setup seeds every feature
+      // with push on, which would hide whether the user had already chosen it.
+      // A denied OS prompt must not clear a push preference that is shared
+      // with the user's other devices.
+      const nextPushEnabled = isPushGranted || isPushEnabled;
+
       if (!isMasterEnabled) {
         await enableNotifications();
       }
@@ -159,15 +153,18 @@ export const FeatureNotificationsGateSheet = () => {
       }
 
       if (
-        !refreshedFeaturePreferences.pushNotificationsEnabled ||
+        refreshedFeaturePreferences.pushNotificationsEnabled !==
+          nextPushEnabled ||
         !refreshedFeaturePreferences.inAppNotificationsEnabled
       ) {
         await updatePreferencesSection(feature, (section) => ({
           ...section,
-          pushNotificationsEnabled: true,
+          pushNotificationsEnabled: nextPushEnabled,
           inAppNotificationsEnabled: true,
         }));
       }
+
+      sheetRef.current?.onCloseBottomSheet();
     } catch (error) {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         message:
@@ -183,6 +180,7 @@ export const FeatureNotificationsGateSheet = () => {
     basicFunctionalityEnabled,
     feature,
     isMasterEnabled,
+    isPushEnabled,
     navigation,
     refetch,
     showEnableErrorToast,

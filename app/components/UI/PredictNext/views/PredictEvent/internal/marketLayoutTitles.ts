@@ -4,6 +4,8 @@ import { strings } from '../../../../../../../locales/i18n';
 const KNOWN_TITLES: ReadonlyMap<string, string> = new Map(
   Object.entries({
     game_lines: 'predict_next.event.game_lines',
+    outcomes: 'predict_next.event.outcomes',
+    markets: 'predict_next.event.market_layout.markets',
     moneyline: 'predict_next.event.market_layout.moneyline',
     spread: 'predict_next.event.market_layout.spread',
     total_points: 'predict_next.event.market_layout.total_points',

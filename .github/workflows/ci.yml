@@ -362,6 +362,7 @@ jobs:
     needs:
       - get_requirements
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       # `include` with no base axis yields exactly these combinations, and `name`
       # already interpolates a matrix value, so the rendered job names stay
       # `Run <script>` and the required status checks keep reporting (MCWP-813).
@@ -433,11 +434,10 @@ jobs:
           fi
 
   # Same files, rules, and exit semantics as `yarn lint`, split by file size.
-  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
-  # file set and bin-packs by size. Per-file cache stays off the persisted
-  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
-  # 8x16, not 16x32: ESLint 8 lints on one thread, and the heaviest shard
-  # peaks at 10.8 GB RSS.
+  # ESLint 9 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set from eslint.config.mjs and bin-packs by size. Per-file cache
+  # stays off the persisted paths: #33370 reverted it because cross-file and
+  # type-aware rules go stale.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
     permissions:
@@ -458,7 +458,7 @@ jobs:
     needs:
       - get_requirements
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4]
     steps:
@@ -1192,7 +1192,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
-      fail-fast: false
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1492,6 +1492,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
         # The shard list length must match the denominator in --shard below.
@@ -1571,6 +1572,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: ${{ github.event_name == 'merge_group' }}
       matrix:
         include:
           # Shard 1 peaks at 9.3 GB — above the 8 GB line, so it keeps 8x16.

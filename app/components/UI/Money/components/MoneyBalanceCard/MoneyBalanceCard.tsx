@@ -27,9 +27,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
@@ -37,18 +37,19 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import {
-  BOTTOM_SHEET_NAMES,
+  useMoneyNavigation,
+  useMoneyDepositNavigation,
+} from '../../hooks/useMoneyNavigation';
+import {
+  MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import { useMoneyAddMoney } from '../../hooks/useMoneyAddMoney';
 
 export interface MoneyBalanceCardProps {
   isGlass?: boolean;
@@ -69,10 +70,6 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const isOnboardingEnabled = useSelector(
-    selectMoneyOnboardingStepperAnimationEnabled,
-  );
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectHasWalletFundingPrimaryCta,
   );
@@ -90,9 +87,26 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
   });
-  const { handleAddPress } = useMoneyAddMoney({
-    trackButtonClicked,
-  });
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const handleAddPress = useCallback(async () => {
+    try {
+      await navigateToMoneyDeposit({
+        track: ({ button_intent, redirect_target }) => {
+          trackButtonClicked({
+            button_type: MONEY_BUTTON_TYPES.TEXT,
+            button_intent,
+            label_key: 'money.balance_card.add',
+            redirect_target,
+          });
+        },
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[MoneyBalanceCard] Failed to initiate deposit',
+      );
+    }
+  }, [navigateToMoneyDeposit, trackButtonClicked]);
 
   const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
 
@@ -157,35 +171,13 @@ const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
     trackComponentViewed();
   }, [shouldRenderCard, trackComponentViewed]);
 
-  const navigateToGeoBlockSheet = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
-    });
-  }, [navigation]);
-
   const handleCardPress = useCallback(() => {
-    trackSurfaceClicked({
-      redirect_target: !isMoneyAccountGeoEligible
-        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
-        : hasSeenMoneyOnboarding || !isOnboardingEnabled
-          ? SCREEN_NAMES.MONEY_HOME
-          : SCREEN_NAMES.MONEY_ONBOARDING,
+    navigateToMoneyHome({
+      track: ({ redirect_target }) => {
+        trackSurfaceClicked({ redirect_target });
+      },
     });
-
-    if (!isMoneyAccountGeoEligible) {
-      navigateToGeoBlockSheet();
-      return;
-    }
-
-    navigateToMoneyHome();
-  }, [
-    hasSeenMoneyOnboarding,
-    isMoneyAccountGeoEligible,
-    isOnboardingEnabled,
-    navigateToGeoBlockSheet,
-    navigateToMoneyHome,
-    trackSurfaceClicked,
-  ]);
+  }, [navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleInfoPress = useCallback(() => {
     trackTooltipClicked({

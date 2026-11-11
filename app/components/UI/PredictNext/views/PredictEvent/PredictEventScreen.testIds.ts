@@ -2,7 +2,7 @@ export const PredictEventScreenTestIds = {
   VIEW: 'predict-next-event',
   BACK: 'predict-next-event-back',
   TITLE: 'predict-next-event-title',
-  SUBTITLE: 'predict-next-event-subtitle',
+  CATEGORY: 'predict-next-event-category',
   LOADING: 'predict-next-event-loading',
   ERROR: 'predict-next-event-error',
   ERROR_MESSAGE: 'predict-next-event-error-message',

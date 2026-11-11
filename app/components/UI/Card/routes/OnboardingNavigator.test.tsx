@@ -96,6 +96,10 @@ jest.mock(
   () => 'ImmersveKYCProcessing',
 );
 jest.mock(
+  '../components/ImmersveKYCModal/ImmersveKYCModal',
+  () => 'ImmersveKYCModal',
+);
+jest.mock(
   '../components/Onboarding/ImmersveFundingApproval',
   () => 'ImmersveFundingApproval',
 );
@@ -130,6 +134,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     }: React.PropsWithChildren<Record<string, unknown>>) => (
       <View {...props}>{children}</View>
     ),
+    Spinner: (props: Record<string, unknown>) => <View {...props} />,
+    IconSize: { Xl: 'Xl' },
   };
 });
 

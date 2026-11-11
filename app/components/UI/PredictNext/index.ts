@@ -32,15 +32,18 @@ export {
   type PredictCampaign,
 } from './campaigns';
 export {
-  createLegacyPredictEventRef,
   createPredictCampaignEventRef,
   openPredict,
+  parsePredictLink,
+  resolvePredictLinkFromStore,
   usePredictEntryActions,
   type PredictEntryActions,
   type PredictEntryPoint,
   type PredictEventRef,
   type PredictFeedCategory,
   type PredictIntent,
+  type PredictLink,
+  type PredictLinkResolution,
 } from './navigation/entry';
 export type { PredictAppRouteParamList } from './navigation/appRoutes';
 export {
@@ -58,5 +61,13 @@ export {
   usePredictTrendingSupported,
   type PredictSportsMarketsFeed,
   type PredictTrendingMarket,
+  type PredictTrendingTab,
   type PredictTrendingVariant,
 } from './trending';
+export {
+  PredictSearchResultRow,
+  usePredictSearchResults,
+  type PredictSearchResult,
+  type PredictSearchResultRowProps,
+  type PredictSearchResults,
+} from './searchResults';

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
@@ -15,17 +15,17 @@ import {
   getSupportedXyzPerpMarketSymbol,
   type PerpDirection,
 } from '../../../../UI/SocialFeed/utils/perp';
+import { PERPS_COLLATERAL_SYMBOL } from '../../../../UI/Perps/constants/perpsConfig';
 import { toUnitPrice } from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
 import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import { useTraderPositionData } from '../../TraderPositionView/useTraderPositionData';
 import { mapTradesToMarkers } from '../../TraderPositionView/utils/tradeMarkers';
 import {
   buildTimeAxisLabels,
+  chartWindowForPeriod,
   deriveDailyChangePercent,
-  getFirstTradeMs,
-  resolveChartWindow,
-  resolveSpotPeriod,
   sliceToWindow,
+  type ChartPeriod,
 } from '../utils/chartWindow';
 import { formatTradeTooltipLabel } from '../utils/tradeTooltipLabel';
 import { usePerpsSheetPrices } from './usePerpsSheetPrices';
@@ -51,6 +51,7 @@ export interface PositionSheetData {
   isClosed: boolean;
   /** Display ticker (`BTC`, `PEPE`), HIP-3 prefix stripped. */
   symbol: string;
+  /** Header title: the token name for spot, `BTC-USD perp` for perps. */
   assetName: string;
   leverage: number | undefined;
   perpDirection: PerpDirection | null;
@@ -70,9 +71,17 @@ export interface PositionSheetData {
   dailyChangePercent: number | undefined;
   marketCap: number | undefined;
 
+  /** Selected chart range. `1D` until the user picks another. */
+  chartPeriod: ChartPeriod;
+  setChartPeriod: (period: ChartPeriod) => void;
+
   summaryTitle: string;
-  /** `40x Short` on a perp. Absent on spot. */
+  /**
+   * `40x Short` on an open perp, `Closed 40x Short` on a closed perp, `Sold`
+   * on closed spot. Absent on open spot.
+   */
   summaryTagLabel: string | undefined;
+  /** Relative age only. The open or closed word lives on the tag. */
   summarySubtitle: string;
   pnlPercentLabel: string;
   pnlValueLabel: string;
@@ -108,11 +117,19 @@ const statusAtMs = (
   return times.length > 0 ? Math.min(...times) : undefined;
 };
 
-const AGE_CAPTION_KEYS = {
-  opened: 'social_leaderboard.feed.position_card.opened_ago',
-  closed: 'social_leaderboard.feed.position_card.closed_ago',
-  sold: 'social_leaderboard.feed.position_card.sold_ago',
-} as const;
+/** `40x Short`, or undefined when the position has neither. */
+const sideTagLabel = (
+  leverage: number | undefined,
+  perpDirection: PerpDirection | null,
+): string | undefined => {
+  const label = [
+    leverage ? `${leverage}x` : undefined,
+    perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return label || undefined;
+};
 
 /**
  * Everything the position sheet renders, derived from one `Position`.
@@ -134,24 +151,32 @@ export function usePositionSheetData(
     setAnchor({ positionKey, nowMs: Date.now() });
   }
   const { nowMs } = anchor;
+  const [chartPeriod, setChartPeriodState] = useState<ChartPeriod>('1D');
+  const [periodPositionKey, setPeriodPositionKey] = useState(positionKey);
+  if (periodPositionKey !== positionKey) {
+    setPeriodPositionKey(positionKey);
+    setChartPeriodState('1D');
+  }
+  const setChartPeriod = useCallback((period: ChartPeriod) => {
+    setChartPeriodState(period);
+  }, []);
   const chartWindow = useMemo(
-    () => resolveChartWindow(position?.trades, nowMs),
-    [position?.trades, nowMs],
+    () => chartWindowForPeriod(chartPeriod, nowMs),
+    [chartPeriod, nowMs],
   );
 
   const base = useTraderPositionData(position, undefined, isClosedOverride);
   const { isPerp, setActiveTimePeriod, activeTimePeriod } = base;
 
-  const spotPeriod = resolveSpotPeriod(chartWindow);
   useEffect(() => {
-    if (!isPerp && activeTimePeriod !== spotPeriod) {
-      setActiveTimePeriod(spotPeriod);
+    if (!isPerp && activeTimePeriod !== chartPeriod) {
+      setActiveTimePeriod(chartPeriod);
     }
-  }, [isPerp, activeTimePeriod, spotPeriod, setActiveTimePeriod]);
+  }, [isPerp, activeTimePeriod, chartPeriod, setActiveTimePeriod]);
 
   const perps = usePerpsSheetPrices({
     symbol: position?.tokenSymbol,
-    earliestTradeMs: getFirstTradeMs(position?.trades),
+    period: chartPeriod,
     nowMs,
     enabled: isPerp && isNetworkAvailable,
   });
@@ -165,7 +190,7 @@ export function usePositionSheetData(
     isNetworkAvailable &&
     (isPerp
       ? perps.isLoading
-      : base.isPricesLoading || activeTimePeriod !== spotPeriod);
+      : base.isPricesLoading || activeTimePeriod !== chartPeriod);
 
   const currentPrice = isPerp
     ? prices.at(-1)?.[1]
@@ -189,6 +214,10 @@ export function usePositionSheetData(
   const markers = useMemo((): PositionSheetMarker[] => {
     if (!position) return [];
     return (position.trades ?? []).flatMap((trade, tradeIndex) => {
+      const tradeMs = tradeTimestampToMs(trade.timestamp);
+      if (tradeMs < chartWindow.startMs || tradeMs > chartWindow.endMs) {
+        return [];
+      }
       const [marker] = mapTradesToMarkers([trade], prices);
       if (!marker) return [];
       const unitPrice = toUnitPrice(trade);
@@ -215,6 +244,8 @@ export function usePositionSheetData(
   }, [
     position,
     prices,
+    chartWindow.startMs,
+    chartWindow.endMs,
     isMarketCapMode,
     base.tradeActions,
     isPerp,
@@ -222,8 +253,12 @@ export function usePositionSheetData(
   ]);
 
   const symbol = base.symbol;
-  const assetName =
-    position?.tokenName && position.tokenName !== position.tokenSymbol
+  const assetName = isPerp
+    ? strings('perps.market_details.perp_pair', {
+        ticker: symbol,
+        collateral: PERPS_COLLATERAL_SYMBOL,
+      })
+    : position?.tokenName && position.tokenName !== position.tokenSymbol
       ? position.tokenName
       : symbol;
 
@@ -240,24 +275,22 @@ export function usePositionSheetData(
   }, [position, isPerp, symbol, base.isClosed]);
 
   const summaryTagLabel = useMemo(() => {
-    if (!isPerp) return undefined;
-    const label = [
-      leverage ? `${leverage}x` : undefined,
-      perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
-    ]
+    if (base.isClosed && !isPerp) {
+      return strings('social_leaderboard.feed.position_card.sold');
+    }
+    const side = isPerp ? sideTagLabel(leverage, perpDirection) : undefined;
+    if (!base.isClosed) return side;
+    return [strings('social_leaderboard.feed.position_card.closed'), side]
       .filter(Boolean)
       .join(' ');
-    return label || undefined;
-  }, [isPerp, leverage, perpDirection]);
+  }, [base.isClosed, isPerp, leverage, perpDirection]);
 
   const summarySubtitle = useMemo(() => {
     if (!position) return '';
     const atMs = statusAtMs(position, base.isClosed);
     if (atMs == null) return '';
-    const age = formatFeedPostAge(atMs, nowMs);
-    const caption = !base.isClosed ? 'opened' : isPerp ? 'closed' : 'sold';
-    return strings(AGE_CAPTION_KEYS[caption], { age });
-  }, [position, base.isClosed, isPerp, nowMs]);
+    return formatFeedPostAge(atMs, nowMs);
+  }, [position, base.isClosed, nowMs]);
   const firstChartPrice = prices.at(0)?.[1];
   const lastChartPrice = prices.at(-1)?.[1];
   const isTrendPositive =
@@ -279,7 +312,11 @@ export function usePositionSheetData(
         : undefined,
     prices,
     isPricesLoading,
-    timeAxisLabels: buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT),
+    timeAxisLabels: buildTimeAxisLabels(
+      chartWindow,
+      TIME_AXIS_LABEL_COUNT,
+      chartPeriod,
+    ),
     isTrendPositive,
     markers,
     isMarketCapMode,
@@ -287,6 +324,8 @@ export function usePositionSheetData(
     currentPrice,
     dailyChangePercent: deriveDailyChangePercent(prices, nowMs),
     marketCap,
+    chartPeriod,
+    setChartPeriod,
     summaryTitle,
     summaryTagLabel,
     summarySubtitle,
