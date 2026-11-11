@@ -123,6 +123,10 @@ export function initializeWallet({
     getAnalyticsControllerInitMessenger(messenger),
   );
 
+  // `wallet.init()` also runs `NetworkEnablementController.init()`, which
+  // reads `MultichainNetworkController:getState`. Mobile registers that
+  // controller after the wallet, so Engine calls
+  // `NetworkEnablementController.init()` again once it exists.
   wallet.init().catch((error: unknown) => console.error(error));
 
   fetchInitialGeolocation(wallet.getInstance('GeolocationController'));

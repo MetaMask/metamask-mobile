@@ -36,6 +36,7 @@ import {
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import MyProfileView from '../../../app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
 import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
@@ -63,6 +64,23 @@ function SocialV1ViewWithCompliance() {
 export interface RenderSocialLeaderboardOptions {
   presetOptions?: SocialLeaderboardPresetOptions;
   overrides?: DeepPartial<RootState>;
+}
+
+/** Renders the owner profile with the shared linked-profile Redux preset. */
+export function renderMyProfileView(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const builder = initialStateSocialLeaderboard({
+    ...options.presetOptions,
+    linkedSocialProfile: true,
+  });
+  if (options.overrides) builder.withOverrides(options.overrides);
+
+  return renderComponentViewScreen(
+    MyProfileView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.MY_PROFILE },
+    { state: builder.build() },
+  );
 }
 
 // ---------------------------------------------------------------------------

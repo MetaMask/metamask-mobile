@@ -15,6 +15,7 @@ const PROFILE: Profile = {
   avatarUrl: '',
   tradingPrivacy: 'public',
   connectedToX: true,
+  verified: false,
   createdAt: '',
   updatedAt: '',
 };

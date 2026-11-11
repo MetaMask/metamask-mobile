@@ -8,8 +8,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import MoneyTabPressTracker from './MoneyTabPressTracker';
-import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyEntryContext } from '../../selectors/entry';
 
 jest.mock('../../../../../core/AppConstants', () => ({
   __esModule: true,
@@ -35,16 +34,9 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
-jest.mock('../../../../../reducers/user', () => ({
-  selectMoneyOnboardingSeen: jest.fn(),
+jest.mock('../../selectors/entry', () => ({
+  selectMoneyEntryContext: jest.fn(),
 }));
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    selectMoneyOnboardingStepperAnimationEnabled: jest.fn(),
-  }),
-);
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -57,9 +49,12 @@ describe('MoneyTabPressTracker', () => {
       trackButtonClicked: mockTrackButtonClicked,
     });
     mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectMoneyOnboardingSeen) return true;
-      if (selector === selectMoneyOnboardingStepperAnimationEnabled)
-        return true;
+      if (selector === selectMoneyEntryContext) {
+        return {
+          accessBlockReason: undefined,
+          isOnboardingRedirectNeeded: false,
+        };
+      }
       return undefined;
     });
   });
@@ -114,9 +109,12 @@ describe('MoneyTabPressTracker', () => {
   describe('when onboarding has not been seen', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectMoneyOnboardingSeen) return false;
-        if (selector === selectMoneyOnboardingStepperAnimationEnabled)
-          return true;
+        if (selector === selectMoneyEntryContext) {
+          return {
+            accessBlockReason: undefined,
+            isOnboardingRedirectNeeded: true,
+          };
+        }
         return undefined;
       });
     });
@@ -142,9 +140,12 @@ describe('MoneyTabPressTracker', () => {
   describe('when onboarding flag is disabled', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectMoneyOnboardingSeen) return false;
-        if (selector === selectMoneyOnboardingStepperAnimationEnabled)
-          return false;
+        if (selector === selectMoneyEntryContext) {
+          return {
+            accessBlockReason: undefined,
+            isOnboardingRedirectNeeded: false,
+          };
+        }
         return undefined;
       });
     });

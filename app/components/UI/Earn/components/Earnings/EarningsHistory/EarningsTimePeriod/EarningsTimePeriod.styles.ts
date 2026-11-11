@@ -24,7 +24,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginRight: 8,
       borderRadius: 32,
       paddingHorizontal: 14,
-      paddingVertical: 7,
+      paddingVertical: 8,
     },
     selectedButton: {
       backgroundColor: colors.background.muted,
