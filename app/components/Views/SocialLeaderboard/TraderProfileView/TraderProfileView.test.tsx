@@ -961,6 +961,7 @@ describe('TraderProfileView', () => {
         realtime: true,
       }),
     );
+    expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
   });
 
   it('renders trader posts by default', () => {

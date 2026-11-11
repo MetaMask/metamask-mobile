@@ -85,10 +85,7 @@ import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
-import type {
-  SocialV1FeedAuthor,
-  SocialV1FeedPost,
-} from '../../../UI/SocialFeed/types';
+import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
@@ -109,7 +106,7 @@ import { traderProfileResponseToMySocialProfile } from './utils/traderProfileRes
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
-  matchesProfileAssetFilter,
+  profileAssetFilterChains,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
 import {
@@ -662,13 +659,7 @@ const MyProfileView: React.FC = () => {
     setIsAssetFilterOpen(false);
   }, []);
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
-  const filterProfilePost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === displayProfile?.profileId &&
-      Boolean(post.commentId) &&
-      matchesProfileAssetFilter(post.position, assetFilter),
-    [assetFilter, displayProfile?.profileId],
-  );
+  const postsChains = profileAssetFilterChains(assetFilter);
   const postsEmptyMessage =
     assetFilter !== 'all'
       ? strings(filteredPostsEmptyKey(assetFilter))
@@ -1112,13 +1103,13 @@ const MyProfileView: React.FC = () => {
                   <Box paddingTop={4}>
                     <SocialFeed
                       scope="all"
+                      chains={postsChains}
                       profileId={displayProfile.profileId}
                       commentedOnly
                       location="my_profile"
                       analyticsEnabled={isOwner}
                       realtime
                       refreshRef={postsFeedRef}
-                      filterPost={filterProfilePost}
                       onCopyTrade={handleSpotCopyTrade}
                       emptyState={
                         <ProfilePostsEmptyState message={postsEmptyMessage} />

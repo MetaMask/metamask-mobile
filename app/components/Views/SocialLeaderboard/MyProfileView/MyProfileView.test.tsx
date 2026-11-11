@@ -25,6 +25,10 @@ import {
   mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
+import {
+  FEED_CAIP2_CHAINS,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
+} from '../../../UI/SocialFeed/data/feed-constants';
 import type { SocialFeedState } from '../../../UI/SocialFeed/data/useSocialFeed';
 import type {
   UseTraderPositionsOptions,
@@ -269,7 +273,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     profileId?: string;
     analyticsEnabled?: boolean;
     emptyState?: React.ReactNode;
-    filterPost?: (post: SocialV1FeedPost) => boolean;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
     refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
     testID?: string;
@@ -279,7 +282,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     ReactActual.useImperativeHandle(props.refreshRef, () => ({
       refresh: result.refresh,
     }));
-    const matchingPosts = result.posts.map((post) => ({
+    const posts = result.posts.map((post) => ({
       ...post,
       commentId: post.commentId ?? 'comment-1',
       item: {
@@ -290,9 +293,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
         },
       },
     }));
-    const posts = props.filterPost
-      ? matchingPosts.filter(props.filterPost)
-      : matchingPosts;
 
     return (
       <View testID={props.testID}>
@@ -2114,63 +2114,50 @@ describe('MyProfileView', () => {
     expect(screen.queryByTestId('position-row-BTC')).toBeNull();
   });
 
-  it('applies the same Tokens filter on Posts', () => {
-    const spotPosition: Position = {
-      positionId: 'eth-spot',
-      tokenSymbol: 'ETH',
-      tokenName: 'Ethereum',
-      tokenAddress: '0xeth',
-      chain: 'ethereum',
-      positionAmount: 1,
-      boughtUsd: 100,
-      soldUsd: 0,
-      realizedPnl: 0,
-      costBasis: 100,
-      trades: [],
-      lastTradeAt: 1,
-    };
-    setMockSocialFeedState({
-      posts: [
-        mockMyProfilePost({ id: 'spot-post', position: spotPosition }),
-        mockMyProfilePost({
-          id: 'perp-post',
-          position: {
-            ...spotPosition,
-            positionId: 'btc-perp',
-            tokenSymbol: 'BTC',
-            chain: 'hyperliquid',
-            perpPositionType: 'long',
-          },
-        }),
-      ],
-      rows: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: false,
-      loadMore: jest.fn(),
-      error: null,
-      refresh: jest.fn().mockResolvedValue(undefined),
-    });
-
+  it('requests every feed chain on Posts while the filter is All', () => {
     renderWithProvider(<MyProfileView />);
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
-    );
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
-    );
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
 
-    expect(screen.getByTestId('my-profile-post-spot-post')).toBeOnTheScreen();
-    expect(screen.queryByTestId('my-profile-post-perp-post')).toBeNull();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
-    ).toBeOnTheScreen();
+    expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ chains: undefined }),
+    );
   });
 
-  it('shows the posts error when a filter hides every loaded post', () => {
+  it.each([
+    [
+      'Tokens',
+      MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS,
+      FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2_CHAIN_ID),
+    ],
+    [
+      'Perps',
+      MyProfileViewSelectorsIDs.ASSET_FILTER_PERPS,
+      [HYPERLIQUID_CAIP2_CHAIN_ID],
+    ],
+  ])(
+    'asks the Posts feed for the %s chains',
+    (_label, filterTestId, expectedChains) => {
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+      );
+      fireEvent.press(screen.getByTestId(filterTestId));
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+      expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          chains: expectedChains,
+          profileId: 'current-user',
+          commentedOnly: true,
+        }),
+      );
+      expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
+    },
+  );
+
+  it('shows the posts error when the filtered feed fails', () => {
     setMockSocialFeedState({
-      posts: [mockMyProfilePost()],
+      posts: [],
       rows: [],
       isLoading: false,
       isFetchingNextPage: false,

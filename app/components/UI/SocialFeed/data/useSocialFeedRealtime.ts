@@ -64,6 +64,17 @@ export interface UseSocialFeedRealtimeOptions {
   /** Holds new posts behind the pill even at the top. */
   holdNewPosts: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  /**
+   * Keeps posts the list does not show yet to the streamed request's slice,
+   * since the channel carries its whole scope. Posts already shown take every
+   * revision. Memoize it.
+   */
+  matchesItem?: ((item: CoreFeedItem) => boolean) | null;
+  /**
+   * Identifies the request being streamed. A change on the same channel drops
+   * what the previous request streamed, then catches up.
+   */
+  streamKey?: string;
 }
 
 export interface UseSocialFeedRealtimeResult {
@@ -123,6 +134,8 @@ export const useSocialFeedRealtime = (
     nearTop,
     holdNewPosts,
     filterPost,
+    matchesItem,
+    streamKey = '',
   }: UseSocialFeedRealtimeOptions,
 ): UseSocialFeedRealtimeResult | null => {
   const isLive = realtimeScope !== null && active;
@@ -158,6 +171,8 @@ export const useSocialFeedRealtime = (
   holdNewPostsRef.current = holdNewPosts;
   const filterPostRef = useRef(filterPost);
   filterPostRef.current = filterPost;
+  const matchesItemRef = useRef(matchesItem);
+  matchesItemRef.current = matchesItem;
   const dataUpdatedAtRef = useRef(dataUpdatedAt);
   dataUpdatedAtRef.current = dataUpdatedAt;
 
@@ -315,6 +330,11 @@ export const useSocialFeedRealtime = (
         return;
       }
 
+      const matches = matchesItemRef.current;
+      if (!isKnown && matches && !matches(event.data)) {
+        return;
+      }
+
       const filter = filterPostRef.current;
       if (!isKnown && filter) {
         const post = toRealtimeEventPost(
@@ -344,20 +364,24 @@ export const useSocialFeedRealtime = (
     [applyEvent, publish, queuePending],
   );
 
-  const lastScopeRef = useRef<SocialFeedRealtimeScope | null>(null);
+  // Socket rows and held events belong to the request that streamed them. A
+  // cached page of the next request is never stale-refetched while streaming,
+  // so it catches up on what the socket brought while it was not shown.
+  const lastStreamRef = useRef<string | null>(null);
   useEffect(() => {
     if (realtimeScope === null) {
       return;
     }
-    if (
-      lastScopeRef.current !== null &&
-      lastScopeRef.current !== realtimeScope
-    ) {
+    const stream = `${realtimeScope}:${streamKey}`;
+    if (lastStreamRef.current !== null && lastStreamRef.current !== stream) {
       storeRef.current = createStore();
       publish();
+      if (dataUpdatedAtRef.current !== undefined) {
+        markCatchUp();
+      }
     }
-    lastScopeRef.current = realtimeScope;
-  }, [publish, realtimeScope]);
+    lastStreamRef.current = stream;
+  }, [markCatchUp, publish, realtimeScope, streamKey]);
 
   useEffect(() => {
     if (!realtimeScope || !active) {

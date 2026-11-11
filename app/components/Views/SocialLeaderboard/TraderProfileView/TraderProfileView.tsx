@@ -76,7 +76,6 @@ import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmpt
 import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -397,13 +396,6 @@ const TraderProfileView = () => {
         : sortPositions(positions, currentSortKey, activeTab),
     [activeTab, positions, currentSortKey],
   );
-  const filterProfilePost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === profile?.profile.profileId &&
-      Boolean(post.commentId),
-    [profile?.profile.profileId],
-  );
-
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
     playSelection().catch(() => undefined);
@@ -615,7 +607,6 @@ const TraderProfileView = () => {
                         location="trader_profile"
                         realtime
                         refreshRef={postsFeedRef}
-                        filterPost={filterProfilePost}
                         emptyState={<ProfilePostsEmptyState />}
                       />
                     </Box>
