@@ -425,28 +425,30 @@ let mockPostsResult = {
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
+  const MockSocialFeed = (props: {
+    emptyState?: React.ReactNode;
+    refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
+  }) => {
+    mockSocialFeedProps(props);
+    ReactActual.useImperativeHandle(props.refreshRef, () => ({
+      refresh: mockPostsResult.refresh,
+    }));
+    return (
+      <View>
+        {mockPostsResult.posts.length > 0
+          ? mockPostsResult.posts.map((post) => (
+              <View key={post.id} testID={`trader-profile-post-${post.id}`}>
+                <Text>{post.id}</Text>
+              </View>
+            ))
+          : props.emptyState}
+      </View>
+    );
+  };
+
   return {
     __esModule: true,
-    default: (props: {
-      emptyState?: React.ReactNode;
-      refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
-    }) => {
-      mockSocialFeedProps(props);
-      ReactActual.useImperativeHandle(props.refreshRef, () => ({
-        refresh: mockPostsResult.refresh,
-      }));
-      return (
-        <View>
-          {mockPostsResult.posts.length > 0
-            ? mockPostsResult.posts.map((post) => (
-                <View key={post.id} testID={`trader-profile-post-${post.id}`}>
-                  <Text>{post.id}</Text>
-                </View>
-              ))
-            : props.emptyState}
-        </View>
-      );
-    },
+    default: MockSocialFeed,
   };
 });
 

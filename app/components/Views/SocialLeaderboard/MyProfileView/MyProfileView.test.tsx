@@ -254,62 +254,64 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react');
   const { Text, View } = jest.requireActual('react-native');
 
+  const MockSocialFeed = (props: {
+    profileId?: string;
+    analyticsEnabled?: boolean;
+    emptyState?: React.ReactNode;
+    filterPost?: (post: SocialV1FeedPost) => boolean;
+    refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
+    testID?: string;
+  }) => {
+    mockSocialFeedProps(props);
+    const result = mockSocialFeedState;
+    ReactActual.useImperativeHandle(props.refreshRef, () => ({
+      refresh: result.refresh,
+    }));
+    const matchingPosts = result.posts.map((post) => ({
+      ...post,
+      commentId: post.commentId ?? 'comment-1',
+      item: {
+        ...post.item,
+        author: {
+          ...post.item.author,
+          id: props.profileId ?? post.item.author.id,
+        },
+      },
+    }));
+    const posts = props.filterPost
+      ? matchingPosts.filter(props.filterPost)
+      : matchingPosts;
+
+    return (
+      <View testID={props.testID}>
+        {result.error && posts.length === 0 ? (
+          <View testID="social-v1-feed-error">
+            <Text>{"The feed didn't load"}</Text>
+          </View>
+        ) : posts.length > 0 ? (
+          posts.map((post) => (
+            <View key={post.id} testID={`my-profile-post-${post.id}`}>
+              <Text>{post.id}</Text>
+              {!props.analyticsEnabled ? (
+                <Text testID={`my-profile-post-copy-trade-${post.id}`}>
+                  Copy trade
+                </Text>
+              ) : null}
+            </View>
+          ))
+        ) : (
+          props.emptyState
+        )}
+        {result.isFetchingNextPage ? (
+          <View testID="social-feed-next-page" />
+        ) : null}
+      </View>
+    );
+  };
+
   return {
     __esModule: true,
-    default: (props: {
-      profileId?: string;
-      analyticsEnabled?: boolean;
-      emptyState?: React.ReactNode;
-      filterPost?: (post: SocialV1FeedPost) => boolean;
-      refreshRef?: React.Ref<{ refresh: () => Promise<void> }>;
-      testID?: string;
-    }) => {
-      mockSocialFeedProps(props);
-      const result = mockSocialFeedState;
-      ReactActual.useImperativeHandle(props.refreshRef, () => ({
-        refresh: result.refresh,
-      }));
-      const matchingPosts = result.posts.map((post) => ({
-        ...post,
-        commentId: post.commentId ?? 'comment-1',
-        item: {
-          ...post.item,
-          author: {
-            ...post.item.author,
-            id: props.profileId ?? post.item.author.id,
-          },
-        },
-      }));
-      const posts = props.filterPost
-        ? matchingPosts.filter(props.filterPost)
-        : matchingPosts;
-
-      return (
-        <View testID={props.testID}>
-          {result.error && posts.length === 0 ? (
-            <View testID="social-v1-feed-error">
-              <Text>{"The feed didn't load"}</Text>
-            </View>
-          ) : posts.length > 0 ? (
-            posts.map((post) => (
-              <View key={post.id} testID={`my-profile-post-${post.id}`}>
-                <Text>{post.id}</Text>
-                {!props.analyticsEnabled ? (
-                  <Text testID={`my-profile-post-copy-trade-${post.id}`}>
-                    Copy trade
-                  </Text>
-                ) : null}
-              </View>
-            ))
-          ) : (
-            props.emptyState
-          )}
-          {result.isFetchingNextPage ? (
-            <View testID="social-feed-next-page" />
-          ) : null}
-        </View>
-      );
-    },
+    default: MockSocialFeed,
   };
 });
 
