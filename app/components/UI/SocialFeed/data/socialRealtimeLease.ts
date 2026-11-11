@@ -8,13 +8,23 @@ export type ReleaseSocialRealtime = () => void;
 
 const leaseCounts = new Map<SocialFeedRealtimeScope, number>();
 let syncQueue: Promise<void> = Promise.resolve();
+/** The scope set last applied to the service, or `null` when unknown. */
+let appliedScopesKey: string | null = null;
 
 const noop = () => undefined;
+
+const toScopesKey = (scopes: readonly SocialFeedRealtimeScope[]): string =>
+  [...scopes].sort().join(',');
 
 /**
  * Applies the scopes every open lease holds. Runs one at a time and reads the
  * counts when it runs, so overlapping acquire and release calls settle on the
  * latest set instead of racing each other.
+ *
+ * `setScopes` resubscribes even to the scopes already subscribed, and the
+ * gateway answers a repeat subscribe with the same subscription id, so the
+ * service then unsubscribes the subscription it just made. It only runs when
+ * the set changes.
  */
 const syncService = (): Promise<boolean> => {
   const run = syncQueue.then(async () => {
@@ -27,7 +37,12 @@ const syncService = (): Promise<boolean> => {
       await service.setActive(false);
       return;
     }
-    await service.setScopes(scopes);
+    const scopesKey = toScopesKey(scopes);
+    if (scopesKey !== appliedScopesKey) {
+      appliedScopesKey = null;
+      await service.setScopes(scopes);
+      appliedScopesKey = scopesKey;
+    }
     await service.setActive(true);
   });
   syncQueue = run.catch(noop);
@@ -84,4 +99,5 @@ export const acquireSocialRealtime = (
 export const resetSocialRealtimeLeases = (): void => {
   leaseCounts.clear();
   syncQueue = Promise.resolve();
+  appliedScopesKey = null;
 };
