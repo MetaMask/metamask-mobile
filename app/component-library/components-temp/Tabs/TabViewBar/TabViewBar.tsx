@@ -48,7 +48,9 @@ const TabLabel: React.FC<{
   const [boldWidth, setBoldWidth] = useState(0);
   const [regularWidth, setRegularWidth] = useState(0);
   const letterSpacing =
-    boldWidth > regularWidth ? (boldWidth - regularWidth) / title.length : 0;
+    regularWidth > 0 && boldWidth > regularWidth
+      ? (boldWidth - regularWidth) / title.length
+      : 0;
 
   const measure = (setWidth: (width: number) => void) => (e: TextLayoutEvent) =>
     setWidth(e.nativeEvent.lines[0]?.width ?? 0);
