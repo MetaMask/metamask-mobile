@@ -65,6 +65,7 @@ import {
   HomeFeedReads,
   type HomeFeedRead,
 } from './internal/HomeFeedReads';
+import { HomeGamesError } from './internal/HomeGamesError';
 import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { HomeSportsSection } from './internal/HomeSportsSection';
 import { HomeTrendingSection } from './internal/HomeTrendingSection';
@@ -125,10 +126,31 @@ const PredictHomeView = ({
   } = useVisibleSections({ keys: HOME_ROW_KEYS, scrollY });
   const balanceQuery = useBalance(venueId);
   const canBuy = canPerformVenueAction(capabilities, 'buy');
-  const rows = useMemo(
-    () => selectHomeFeedRows(reads, CATEGORIES_INDEX),
-    [reads],
+  // The game Feed reads behind the Trending and Sports rows. An unsupported
+  // read never loads or fails, so it neither holds nor errors a row.
+  const rowReads = useMemo(() => reads.slice(0, CATEGORIES_INDEX), [reads]);
+  // Trending ranks the Games of every row read, and Sports shows the NFL
+  // Games Trending leaves, so both rows wait for every row read and for
+  // nothing else: a pending Politics read never holds them.
+  const isRowsLoading = rowReads.some((read) => read.isLoading);
+  // A row read that failed with no Events to show. A refetch that fails over
+  // cached Events keeps those Events and shows no error.
+  const failedRowReads = useMemo(
+    () => rowReads.filter((read) => read.isError && read.events.length === 0),
+    [rowReads],
   );
+  const retryFailedRowReads = useCallback(
+    () => failedRowReads.forEach((read) => read.refetch()),
+    [failedRowReads],
+  );
+  // Rows are chosen once per Feed read, so their order is the reads'
+  // snapshot: a Game that goes live through streamed data keeps its place
+  // until the next Feed read (see selectHomeFeedRows). Rows still loading
+  // show skeletons, so their partial picks are neither shown nor watched.
+  const rows = useMemo(() => {
+    const selected = selectHomeFeedRows(reads, CATEGORIES_INDEX);
+    return isRowsLoading ? { ...selected, trending: [], sports: [] } : selected;
+  }, [reads, isRowsLoading]);
   // Only the Events Home shows are watched. A read can hold more, such as
   // the NCAAF Games Trending leaves out.
   const shownEvents = useMemo(
@@ -174,11 +196,6 @@ const PredictHomeView = ({
       sections,
     };
   }, [rows, liveEvents]);
-  // Trending ranks Games across every read, so it waits for all of them.
-  const isTrendingLoading = reads.some((read) => read.isLoading);
-  const isSportsLoading =
-    reads.find((read) => read.sectionId === NFL_FEED_SCREEN_ID)?.isLoading ??
-    false;
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
@@ -386,7 +403,7 @@ const PredictHomeView = ({
           <PortfolioActions onPositionsPress={openPortfolio} />
           <HomeTrendingSection
             events={liveRows.trending}
-            isLoading={isTrendingLoading}
+            isLoading={isRowsLoading}
             onOpen={canOpenTrending ? openTrending : undefined}
             onOpenEvent={openEvent}
             onOrder={canBuy ? openOrder : undefined}
@@ -394,12 +411,15 @@ const PredictHomeView = ({
           />
           <HomeSportsSection
             events={liveRows.sports}
-            isLoading={isSportsLoading}
+            isLoading={isRowsLoading}
             onOpen={openSports}
             onOpenEvent={openEvent}
             onOrder={canBuy ? openOrder : undefined}
             onLayout={onSectionLayout(SPORTS_ROW)}
           />
+          {failedRowReads.length > 0 ? (
+            <HomeGamesError onRetry={retryFailedRowReads} />
+          ) : null}
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={sectionCount > 0}

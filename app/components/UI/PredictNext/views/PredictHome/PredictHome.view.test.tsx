@@ -32,7 +32,6 @@ import {
   POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
-  answerPredictNextCatalog,
   configurePredictNextCatalog,
   configurePredictNextFeeds,
   expectPredictNextGameCard,
@@ -606,14 +605,10 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps the Trending header a plain title when the Venue cannot back a Trending screen', async () => {
-      // Politics only: a Game in its read fills Trending, but neither Games
-      // Feed a Trending tab needs exists.
-      configurePredictNextFeeds({
-        politics: [
-          makePredictNextGameEvent('politics-game', 'Owls', 'Hawks', 'NFL'),
-        ],
-      });
+    it('omits both rows on a Venue with neither Games Feed, before and after Politics loads', async () => {
+      // A Game in the Politics read stays in Politics: the rows take Games
+      // from the Games Feeds only.
+      let resolvePolitics: (value: unknown) => void = () => undefined;
       configurePredictNextCatalog({
         ...KALSHI_STATIC_VENUE_CATALOG,
         feeds: {
@@ -622,30 +617,55 @@ describe('PredictHome', () => {
         },
         categories: ['politics'],
       });
+      mockPredictNextMessenger((action: string, _venueId: string) => {
+        if (action !== 'PredictMarketDataService:getFeed') {
+          return Promise.resolve(undefined);
+        }
+        return new Promise((resolve) => {
+          resolvePolitics = resolve;
+        });
+      });
       const view = renderPredictNext();
 
-      const trending = await view.findByTestId(
-        PredictHomeTestIds.HOME_TRENDING,
-      );
-      await within(trending).findByTestId(
-        PredictHomeTestIds.event('kalshi', 'politics-game'),
-      );
       expect(
-        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING_CHEVRON),
+        await view.findByTestId(
+          PredictHomeTestIds.sectionLoading(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
       ).not.toBeOnTheScreen();
       expect(
-        view.queryByRole('button', { name: 'Trending' }),
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
       ).not.toBeOnTheScreen();
 
-      fireEvent.press(
-        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
-      );
+      await act(async () => {
+        resolvePolitics({
+          venueId: 'kalshi',
+          id: POLITICS_TRUMP_FEED_ID,
+          title: 'Trump',
+          events: [
+            makePredictNextGameEvent('politics-game', 'Owls', 'Hawks', 'NFL'),
+          ],
+        });
+      });
 
+      const politics = view.getByTestId(
+        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+      );
       expect(
-        view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+        await within(politics).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-game'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
       ).not.toBeOnTheScreen();
       expect(
-        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
       ).not.toBeOnTheScreen();
     });
 
@@ -716,6 +736,10 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      // A successfully empty read is not a failure.
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
       ).not.toBeOnTheScreen();
     });
   });
@@ -941,7 +965,7 @@ describe('PredictHome', () => {
     expect(
       view.getAllByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON).length,
     ).toBeGreaterThan(0);
-    // Trending ranks Games across every read, so it waits for all of them.
+    // Trending ranks Games across both Games reads, so it waits for both.
     expect(
       view.queryByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
     ).not.toBeOnTheScreen();
@@ -982,6 +1006,9 @@ describe('PredictHome', () => {
     expect(
       view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
     ).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+    ).toBeOnTheScreen();
 
     configurePredictNextFeeds();
     await act(async () => {
@@ -1018,6 +1045,251 @@ describe('PredictHome', () => {
         PredictHomeTestIds.event('kalshi', 'nfl-1'),
       ),
     ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
+  describe('row loading and failures', () => {
+    /**
+     * Holds every read of `feedId` until the returned release runs; every
+     * other call keeps the configured answers.
+     */
+    const holdFeedRead = (feedId: PredictFeedId) => {
+      const configured = messengerCall.getMockImplementation();
+      let release: () => void = () => undefined;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      messengerCall.mockImplementation(
+        (action: string, ...params: unknown[]) =>
+          action === 'PredictMarketDataService:getFeed' && params[1] === feedId
+            ? held.then(() => configured?.(action, ...params))
+            : configured?.(action, ...params),
+      );
+      return () =>
+        act(async () => {
+          release();
+        });
+    };
+    const feedReadCount = (feedId: PredictFeedId) =>
+      messengerCall.mock.calls.filter(
+        ([action, , id]) =>
+          action === 'PredictMarketDataService:getFeed' && id === feedId,
+      ).length;
+    const watchedEventIds = () =>
+      messengerCall.mock.calls
+        .filter(([action]) => action === 'PredictLiveDataService:watchEvents')
+        .flatMap(([, , ids]: [string, string, PredictEntityId[]]) => ids);
+
+    it('shows the Trending Games while the Politics read is still pending', async () => {
+      // Two NFL and two NCAAF Games: Trending shows all four, Sports none.
+      const releasePolitics = holdFeedRead(POLITICS_TRUMP_FEED_ID);
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'ncaa-2'),
+      );
+      expect(rowEventIds(trending)).toEqual([
+        'nfl-1',
+        'nfl-2',
+        'ncaa-1',
+        'ncaa-2',
+      ]);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictHomeTestIds.sectionLoading(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toBeOnTheScreen();
+
+      await releasePolitics();
+
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(['nfl-1', 'nfl-2', 'ncaa-1', 'ncaa-2']);
+    });
+
+    it('holds Sports on skeletons, and watches no row Event, until both Games reads settle', async () => {
+      configureFullHomeFeeds();
+      const releaseNcaa = holdFeedRead(NCAA_GAMES_FEED_ID);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON).length,
+      ).toBeGreaterThan(0);
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON).length,
+      ).toBeGreaterThan(0);
+      // With the NFL read alone, Trending would pick nfl-1 to nfl-5 and
+      // Sports would show nfl-6. Neither row paints those partial picks.
+      expect(
+        view.queryAllByTestId(/^predict-next-event-kalshi-nfl-/),
+      ).toHaveLength(0);
+      expect(watchedEventIds()).toEqual(eventIdsOf(politicsEvents));
+
+      await releaseNcaa();
+
+      const sports = view.getByTestId(PredictHomeTestIds.HOME_SPORTS);
+      await within(sports).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(TRENDING_EVENT_IDS);
+    });
+
+    it('shows one Retry when both Games reads fail and recovers both rows in place', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: new Error('NCAAF failed'),
+      });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).toBeOnTheScreen();
+      expect(view.getByText('Games couldn’t be loaded.')).toBeOnTheScreen();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_GAMES_RETRY),
+      ).toHaveLength(1);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+
+      configureFullHomeFeeds();
+      messengerCall.mockClear();
+      // Retry alone recovers: Home stays focused and in the foreground.
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_GAMES_RETRY));
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-3'),
+      );
+      expect(rowEventIds(trending)).toEqual(TRENDING_EVENT_IDS);
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_SPORTS)),
+      ).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+      // Retry reads the two failed Feeds again, and only those.
+      expect(feedReadCount(NFL_GAMES_FEED_ID)).toBe(1);
+      expect(feedReadCount(NCAA_GAMES_FEED_ID)).toBe(1);
+      expect(feedReadCount(POLITICS_TRUMP_FEED_ID)).toBe(0);
+    });
+
+    it('offers Retry when the NFL read alone fails and rereads only that read', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: [...ncaaEvents, ...MORE_NCAA_EVENTS],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      expect(
+        view.getByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+
+      configureFullHomeFeeds();
+      messengerCall.mockClear();
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_GAMES_RETRY));
+
+      const sports = await view.findByTestId(PredictHomeTestIds.HOME_SPORTS);
+      await within(sports).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(feedReadCount(NFL_GAMES_FEED_ID)).toBe(1);
+      expect(feedReadCount(NCAA_GAMES_FEED_ID)).toBe(0);
+    });
+  });
+
+  it('keeps a Game that goes live in its Trending place until the Feed is read again', async () => {
+    const nfl = [
+      scheduledGame('nfl-1', 'Bills', 'Rams', 'NFL'),
+      scheduledGame('nfl-2', 'Chiefs', 'Broncos', 'NFL'),
+      scheduledGame('nfl-3', 'Bears', 'Lions', 'NFL'),
+    ];
+    const ncaa = [
+      scheduledGame('ncaa-1', 'Clemson', 'Duke', 'NCAAF'),
+      scheduledGame('ncaa-2', 'Georgia', 'Florida', 'NCAAF'),
+    ];
+    configurePredictNextFeeds({ nfl, ncaa });
+    const view = renderPredictNext();
+    const trending = await view.findByTestId(PredictHomeTestIds.HOME_TRENDING);
+    await within(trending).findByTestId(
+      PredictHomeTestIds.event('kalshi', 'nfl-3'),
+    );
+    const snapshotOrder = ['nfl-1', 'nfl-2', 'nfl-3', 'ncaa-1', 'ncaa-2'];
+    expect(rowEventIds(trending)).toEqual(snapshotOrder);
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: 'nfl-3' as PredictEntityId,
+        type: 'football_game',
+        status: 'in_progress',
+        score: { away: '0', home: '0' },
+        period: 'Q1',
+        clock: '14:00',
+        observedAt: '2026-11-15T18:05:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    // The card shows the live status, but the carousel keeps its snapshot.
+    expect(
+      within(
+        view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3')),
+      ).getByText('Q1 · 14:00'),
+    ).toBeOnTheScreen();
+    expect(
+      rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+    ).toEqual(snapshotOrder);
+
+    // The next Feed read returns the Game live, and ranks it first.
+    configurePredictNextFeeds({
+      nfl: [
+        nfl[0],
+        nfl[1],
+        makePredictNextGameEvent('nfl-3', 'Bears', 'Lions', 'NFL'),
+      ],
+      ncaa,
+    });
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(['nfl-3', 'nfl-1', 'nfl-2', 'ncaa-1', 'ncaa-2']),
+    );
   });
 
   it('hides the Sports row when the NFL read has no Games', async () => {

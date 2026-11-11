@@ -24,6 +24,8 @@ export const PredictHomeTestIds = {
   HOME_SPORTS_CHEVRON: 'predict-next-home-sports-chevron',
   HOME_SPORTS_ROW: 'predict-next-home-sports-row',
   HOME_SPORTS_SKELETON: 'predict-next-home-sports-skeleton',
+  HOME_GAMES_ERROR: 'predict-next-home-games-error',
+  HOME_GAMES_RETRY: 'predict-next-home-games-retry',
   GET_STARTED_BANNER: 'predict-next-home-get-started-banner',
   GET_STARTED_BANNER_IMAGE: 'predict-next-home-get-started-banner-image',
   GET_STARTED_BANNER_DISMISS: 'predict-next-home-get-started-banner-dismiss',

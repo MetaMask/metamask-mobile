@@ -197,6 +197,21 @@ describe('selectHomeFeedRows', () => {
     });
 
     it('drops an Event a row above already shows', () => {
+      const shared = game('shared');
+
+      const rows = selectHomeFeedRows(
+        homeReads({ nfl: [shared], politics: [shared, ...politics] }),
+        SECTIONS_FROM,
+      );
+
+      expect(ids(rows.trending)).toEqual(['shared']);
+      expect(ids(rows.sections[0].events)).toEqual([
+        'politics-1',
+        'politics-2',
+      ]);
+    });
+
+    it('keeps a section Game in its section and out of Trending', () => {
       const politicsGame = game('politics-game');
 
       const rows = selectHomeFeedRows(
@@ -204,8 +219,9 @@ describe('selectHomeFeedRows', () => {
         SECTIONS_FROM,
       );
 
-      expect(ids(rows.trending)).toEqual(['politics-game']);
+      expect(rows.trending).toEqual([]);
       expect(ids(rows.sections[0].events)).toEqual([
+        'politics-game',
         'politics-1',
         'politics-2',
       ]);

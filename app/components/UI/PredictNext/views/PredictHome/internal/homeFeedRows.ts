@@ -31,11 +31,16 @@ const isLiveGame = (event: PredictEvent) =>
   getEventGame(event)?.status === 'in_progress';
 
 /**
- * Trending takes game Events only, from every read. Live Games rank first,
+ * Trending takes game Events only, from the row reads. Live Games rank first,
  * then read order: read by read, each in backend order. Each read fills at
  * most two cards, then the best of the rest fill the carousel to five, so
  * one league cannot take every card while another has Games. The carousel
  * shows its Events in rank order.
+ *
+ * The ranking is a snapshot of the reads: it uses each Game's status as the
+ * Feed returned it. A Game that goes live through streamed data keeps its
+ * place, and shows its live status, until the next Feed read ranks it again.
+ * Home neither re-ranks on live updates nor refetches to pick them up.
  */
 const selectTrendingEvents = (
   reads: readonly HomeFeedReadEvents[],
@@ -74,17 +79,18 @@ const selectTrendingEvents = (
 };
 
 /**
- * Chooses the Events of Home's rows from its Feed reads. Trending ranks game
- * Events from every read (see {@link selectTrendingEvents}). Sports shows the
- * NFL read's game Events that Trending does not, up to six. The reads from
- * `sectionsFrom` on stay sections of their own. No Event shows twice: each
- * row drops the Events a row above it shows.
+ * Chooses the Events of Home's rows from its Feed reads. The reads before
+ * `sectionsFrom` are the row reads (the game Feeds): Trending ranks their game
+ * Events (see {@link selectTrendingEvents}), and Sports shows the NFL read's
+ * game Events that Trending does not, up to six. The reads from
+ * `sectionsFrom` on stay sections of their own and never feed a row. No Event
+ * shows twice: each row drops the Events a row above it shows.
  */
 export const selectHomeFeedRows = <TRead extends HomeFeedReadEvents>(
   reads: readonly TRead[],
   sectionsFrom: number,
 ): HomeFeedRows<TRead> => {
-  const trending = selectTrendingEvents(reads);
+  const trending = selectTrendingEvents(reads.slice(0, sectionsFrom));
   const shown = new Set(trending.map(({ id }) => id));
   const takeUnshown = (
     events: readonly PredictEvent[],

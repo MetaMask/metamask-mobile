@@ -3863,7 +3863,9 @@
     },
     "home_feed": {
       "trending": "Trending",
-      "sports": "Sports"
+      "sports": "Sports",
+      "games_error": "Games couldn’t be loaded.",
+      "retry": "Retry"
     },
     "get_started_banner": {
       "title": "Get started in a few steps",
