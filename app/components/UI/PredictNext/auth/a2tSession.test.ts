@@ -322,10 +322,6 @@ describe('A2tSession', () => {
       { access_token: issuedToken, expires_in: 0, token_type: 'bearer' },
     ],
     ['a missing token type', { access_token: issuedToken, expires_in: 900 }],
-    [
-      'a token type other than bearer',
-      { access_token: issuedToken, expires_in: 900, token_type: 'Bearer' },
-    ],
   ])('rejects %s', async (_label, body) => {
     const harness = createHarness();
     harness.fetchMock.mockResolvedValueOnce(jsonResponse(200, body));
@@ -334,6 +330,18 @@ describe('A2tSession', () => {
       'A2T response was malformed',
     );
   });
+
+  it.each(['bearer', 'Bearer', 'BEARER'])(
+    'accepts the case-insensitive token type %s',
+    async (tokenType) => {
+      const harness = createHarness();
+      harness.fetchMock.mockResolvedValueOnce(
+        jsonResponse(200, { ...issuedBody, token_type: tokenType }),
+      );
+
+      await expect(harness.session.ensureA2T()).resolves.toBe(issuedToken);
+    },
+  );
 
   it('rejects an empty token response', async () => {
     const harness = createHarness();

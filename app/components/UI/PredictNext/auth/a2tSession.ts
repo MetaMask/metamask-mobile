@@ -45,7 +45,7 @@ interface A2tIssued {
   expiresIn: number;
 }
 
-interface A2tTokenResponse {
+interface A2tTokenRequest {
   device_public_key: string;
   salt: string;
 }
@@ -83,7 +83,8 @@ const parseIssued = (value: unknown): A2tIssued => {
   if (
     typeof body.access_token !== 'string' ||
     body.access_token.length === 0 ||
-    body.token_type !== 'bearer' ||
+    typeof body.token_type !== 'string' ||
+    body.token_type.toLowerCase() !== 'bearer' ||
     typeof body.expires_in !== 'number' ||
     !Number.isFinite(body.expires_in) ||
     body.expires_in <= 0
@@ -260,7 +261,7 @@ export class A2tSession {
   async #postToken(
     tokenUrl: string,
     accessToken: string,
-    body: A2tTokenResponse,
+    body: A2tTokenRequest,
   ): Promise<unknown> {
     const response = await this.#deps.fetch(tokenUrl, {
       method: 'POST',
