@@ -8,7 +8,25 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { PredictEventCard } from './PredictEventCard';
+import { EventCardGame } from './EventCardGame';
+import { EventCardStandard } from './EventCardStandard';
+import {
+  PredictEventCard,
+  type PredictEventCardVariant,
+} from './PredictEventCard';
+
+// Spy on the child cards while keeping their real rendering.
+jest.mock('./EventCardGame', () => {
+  const actual = jest.requireActual('./EventCardGame');
+  return { ...actual, EventCardGame: jest.fn(actual.EventCardGame) };
+});
+jest.mock('./EventCardStandard', () => {
+  const actual = jest.requireActual('./EventCardStandard');
+  return { ...actual, EventCardStandard: jest.fn(actual.EventCardStandard) };
+});
+
+const mockEventCardGame = jest.mocked(EventCardGame);
+const mockEventCardStandard = jest.mocked(EventCardStandard);
 
 const gameEvent = (
   sportId: string,
@@ -202,4 +220,57 @@ describe('PredictEventCard', () => {
       ).not.toBeOnTheScreen();
     },
   );
+
+  describe('variant mapping', () => {
+    beforeEach(() => {
+      mockEventCardGame.mockClear();
+      mockEventCardStandard.mockClear();
+    });
+
+    it.each<[PredictEventCardVariant | undefined, string]>([
+      [undefined, 'compact'],
+      ['compact', 'compact'],
+      ['small', 'small'],
+      ['featured', 'featured'],
+      ['trending', 'featured'],
+    ])(
+      'renders a game Event with %s as the %s game card',
+      (variant, expected) => {
+        render(
+          <PredictEventCard
+            event={gameEvent('basketball')}
+            variant={variant}
+            onPress={jest.fn()}
+          />,
+        );
+
+        expect(mockEventCardGame).toHaveBeenCalledTimes(1);
+        expect(mockEventCardGame.mock.calls[0][0].variant).toBe(expected);
+        expect(mockEventCardStandard).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each<[PredictEventCardVariant | undefined, string]>([
+      [undefined, 'default'],
+      ['compact', 'default'],
+      ['small', 'default'],
+      ['featured', 'default'],
+      ['trending', 'trending'],
+    ])(
+      'renders a non-game Event with %s as the %s standard card',
+      (variant, expected) => {
+        render(
+          <PredictEventCard
+            event={standardEvent()}
+            variant={variant}
+            onPress={jest.fn()}
+          />,
+        );
+
+        expect(mockEventCardStandard).toHaveBeenCalledTimes(1);
+        expect(mockEventCardStandard.mock.calls[0][0].variant).toBe(expected);
+        expect(mockEventCardGame).not.toHaveBeenCalled();
+      },
+    );
+  });
 });

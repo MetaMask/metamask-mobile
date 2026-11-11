@@ -2,16 +2,36 @@ import React from 'react';
 import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
 import { getEventGame } from '../game';
 import { EventCardGame, type EventCardGameVariant } from './EventCardGame';
-import { EventCardStandard } from './EventCardStandard';
+import {
+  EventCardStandard,
+  type EventCardStandardVariant,
+} from './EventCardStandard';
 
 /**
  * The card's presentation. 'compact', 'featured' and 'small' style game
- * Events only; a non-game Event renders its default feed card for them.
- * 'trending' is the Trending carousel card for both: the featured game card
- * for a game Event, and the Category header, LIVE marker and two compact rows
- * for a non-game Event.
+ * Events only. 'trending' is the Trending carousel card for both kinds of
+ * Event. The two tables below say what each value renders.
  */
 export type PredictEventCardVariant = EventCardGameVariant | 'trending';
+
+/** The game card each variant renders. */
+const GAME_VARIANT: Record<PredictEventCardVariant, EventCardGameVariant> = {
+  compact: 'compact',
+  small: 'small',
+  featured: 'featured',
+  trending: 'featured',
+};
+
+/** The standard card each variant renders for a non-game Event. */
+const STANDARD_VARIANT: Record<
+  PredictEventCardVariant,
+  EventCardStandardVariant
+> = {
+  compact: 'default',
+  small: 'default',
+  featured: 'default',
+  trending: 'trending',
+};
 
 export interface PredictEventCardProps {
   event: PredictEvent;
@@ -32,21 +52,21 @@ export interface PredictEventCardProps {
  */
 export const PredictEventCard = ({
   event,
-  variant,
+  variant = 'compact',
   onPress,
   onOrder,
 }: PredictEventCardProps) =>
   getEventGame(event) ? (
     <EventCardGame
       event={event}
-      variant={variant === 'trending' ? 'featured' : variant}
+      variant={GAME_VARIANT[variant]}
       onPress={onPress}
       onOrder={onOrder}
     />
   ) : (
     <EventCardStandard
       event={event}
-      variant={variant === 'trending' ? 'trending' : 'default'}
+      variant={STANDARD_VARIANT[variant]}
       onPress={onPress}
       onOrder={onOrder}
     />
