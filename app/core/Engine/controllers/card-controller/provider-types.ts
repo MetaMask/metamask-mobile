@@ -1,4 +1,5 @@
 import type { CaipChainId, Json } from '@metamask/utils';
+import type { ImmersveFundingSourceType } from '../../../../selectors/featureFlagController/card/types';
 import {
   CardStatus,
   CardType,
@@ -296,6 +297,11 @@ export interface CardFundingAsset {
   externalId?: number;
   delegationContract?: string;
   assumeUsdParity?: boolean;
+  /**
+   * Immersve funding channel source. Set only by ImmersveProvider, from the
+   * channel that matches the funding source's own id.
+   */
+  fundingSourceType?: ImmersveFundingSourceType;
 }
 
 // -- Card Details --

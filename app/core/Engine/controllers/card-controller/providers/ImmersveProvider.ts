@@ -1434,11 +1434,10 @@ export class ImmersveProvider implements ICardProvider {
         actions,
       };
     } catch (error) {
-      if (isCardAuthTokenError(error)) {
-        throw error;
+      if (!isCardAuthTokenError(error)) {
+        Logger.error(error as Error, getErrorContext('getCardHomeData'));
       }
-      Logger.error(error as Error, getErrorContext('getCardHomeData'));
-      return emptyCardHomeData();
+      throw error;
     }
   }
 
@@ -1747,19 +1746,20 @@ export class ImmersveProvider implements ICardProvider {
         this.service
           .get<ImmersveFundingSourceDetail>(`/api/funding-source/${id}`, tokens)
           .catch((error) => {
-            if (isCardAuthTokenError(error)) throw error;
-            Logger.error(
-              error as Error,
-              getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
-            );
-            return null;
+            if (!isCardAuthTokenError(error)) {
+              Logger.error(
+                error as Error,
+                getErrorContext('fetchFundingAssets', { fundingSourceId: id }),
+              );
+            }
+            throw error;
           }),
       ),
     );
 
     const assets = await Promise.all(
       details.map((detail) =>
-        detail ? this.mapFundingSource(detail, tokens) : Promise.resolve(null),
+        detail ? this.mapFundingSource(detail) : Promise.resolve(null),
       ),
     );
 
@@ -1768,7 +1768,6 @@ export class ImmersveProvider implements ICardProvider {
 
   private async mapFundingSource(
     fundingSource: ImmersveFundingSourceDetail,
-    tokens: CardAuthTokens,
   ): Promise<CardFundingAsset | null> {
     const channel = fundingSource.fundingChannelId
       ? this.findFundingChannelById(fundingSource.fundingChannelId)
@@ -1792,24 +1791,19 @@ export class ImmersveProvider implements ICardProvider {
     }
 
     const symbol = channel?.symbol ?? fundingSource.balanceCurrency ?? 'USDC';
-    // Money account allowance lives on the funding address, not the SIWE wallet.
-    // Immersve returns that address as externalId.
-    let walletAddress: string;
-    if (isMoneyAccountFundingChannel(channel)) {
-      walletAddress =
-        fundingSource.fundingAddress ?? fundingSource.externalId ?? '';
-      if (!walletAddress) {
-        Logger.error(
-          new Error(
-            'mapFundingSource: Money account funding source has no funding address',
-          ),
-          getErrorContext('mapFundingSource', {
-            fundingSourceId: fundingSource.id,
-          }),
-        );
-      }
-    } else {
-      walletAddress = tokens.accountAddress ?? fundingSource.externalId ?? '';
+    // The allowance lives on the registered funding address. Immersve returns
+    // it as fundingAddress, or as externalId when the detail omits it.
+    const walletAddress =
+      fundingSource.fundingAddress ?? fundingSource.externalId ?? '';
+    if (isMoneyAccountFundingChannel(channel) && !walletAddress) {
+      Logger.error(
+        new Error(
+          'mapFundingSource: Money account funding source has no funding address',
+        ),
+        getErrorContext('mapFundingSource', {
+          fundingSourceId: fundingSource.id,
+        }),
+      );
     }
 
     const { spendableBalance, spendingCap } =
@@ -1832,6 +1826,7 @@ export class ImmersveProvider implements ICardProvider {
       priority: 0,
       status: FundingAssetStatus.Active,
       assumeUsdParity: isUsdStablecoin(symbol),
+      ...(channel ? { fundingSourceType: channel.source } : {}),
     };
   }
 
@@ -1844,7 +1839,18 @@ export class ImmersveProvider implements ICardProvider {
     const empty = { spendableBalance: '', spendingCap: '' };
     const spender =
       channel?.spenderAddress ?? this.programConfig.spenderAddress;
-    if (!spender || !walletAddress || !ethers.utils.isAddress(walletAddress)) {
+    if (!spender) {
+      Logger.error(
+        new Error(
+          'resolveOnChainSpendableBalance: funding channel is missing a spender',
+        ),
+        getErrorContext('resolveOnChainSpendableBalance', {
+          fundingChannelId: channel?.fundingChannelId,
+        }),
+      );
+      return empty;
+    }
+    if (!walletAddress || !ethers.utils.isAddress(walletAddress)) {
       return empty;
     }
 
