@@ -296,7 +296,10 @@ export const TokenDetailsInlineHeader = ({
 
     const graduationDetail = graduationViewModel ? (
       <Box key="graduation" twClassName="min-w-0 shrink">
-        <GraduationProgressDetail viewModel={graduationViewModel} />
+        <GraduationProgressDetail
+          compact={Boolean(description)}
+          viewModel={graduationViewModel}
+        />
       </Box>
     ) : null;
 

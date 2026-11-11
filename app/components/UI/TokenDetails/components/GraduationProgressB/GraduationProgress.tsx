@@ -376,23 +376,32 @@ const GraduationCountUp = ({ template, target }: GraduationCountUpProps) => {
 
 interface GraduationProgressDetailProps {
   viewModel: GraduationProgressViewModel;
+  /**
+   * Drops the words and keeps the bare percent, for the scrolled header row
+   * where the live price leaves no room ("$0.0003 · 50%").
+   */
+  compact?: boolean;
 }
 
 /**
- * The graduation microcopy for the header subtitle: "24% to graduation" for
- * new tokens, "50% bonded" while bonding. The full raised/remaining amounts
- * live in the progressbar's accessibility label. The percent counts up on
- * mount (800 ms, tabular numerals) and renders statically under reduced
- * motion.
+ * The graduation microcopy for the header subtitle: "24% to grad." for new
+ * tokens, "50% bonded" while bonding, and just the percent when `compact`.
+ * The full raised/remaining amounts live in the progressbar's accessibility
+ * label. The percent counts up on mount (800 ms, tabular numerals) and
+ * renders statically under reduced motion.
  */
 export const GraduationProgressDetail = ({
   viewModel,
+  compact = false,
 }: GraduationProgressDetailProps) => {
   const reduceMotion = useReducedMotion() ?? false;
   const { stage, percent } = viewModel;
   const displayPercent = getGraduationDisplayPercent(percent);
-  const template =
-    stage === 'bonding'
+  const template = compact
+    ? strings('token_details_v1.graduation.detail_compact', {
+        percent: PERCENT_PLACEHOLDER,
+      })
+    : stage === 'bonding'
       ? strings('token_details_v1.graduation.bonding_detail', {
           percent: PERCENT_PLACEHOLDER,
         })

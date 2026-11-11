@@ -6498,8 +6498,9 @@
       }
     },
     "graduation": {
-      "new_detail": "{{percent}}% to graduation",
+      "new_detail": "{{percent}}% to grad.",
       "bonding_detail": "{{percent}}% bonded",
+      "detail_compact": "{{percent}}%",
       "new_accessibility": "{{percent}}% to graduation",
       "bonding_accessibility": "{{percent}}% bonded, {{raised}} raised, {{remaining}} to graduation"
     },

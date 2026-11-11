@@ -225,7 +225,23 @@ describe('GraduationProgressDetail', () => {
         detail.findByProps({ testID: GraduationProgressSelectors.COUNT_UP })
           .props.children,
       ),
-    ).toMatch(/^\d+% to graduation$/);
+    ).toMatch(/^\d+% to grad\.$/);
+  });
+
+  it('collapses to the bare percent beside the live price', () => {
+    const { getByTestId } = render(
+      <GraduationProgressDetail compact viewModel={BONDING} />,
+    );
+
+    const detail = getByTestId(GraduationProgressSelectors.DETAIL, {
+      includeHiddenElements: true,
+    });
+    expect(
+      String(
+        detail.findByProps({ testID: GraduationProgressSelectors.COUNT_UP })
+          .props.children,
+      ),
+    ).toMatch(/^\d+%$/);
   });
 
   it('shows the settled percent immediately under reduced motion', () => {
@@ -242,5 +258,18 @@ describe('GraduationProgressDetail', () => {
     expect(() =>
       detail.findByProps({ testID: GraduationProgressSelectors.COUNT_UP }),
     ).toThrow();
+  });
+
+  it('shows the settled bare percent under reduced motion', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+
+    const { getByTestId } = render(
+      <GraduationProgressDetail compact viewModel={BONDING} />,
+    );
+
+    const detail = getByTestId(GraduationProgressSelectors.DETAIL, {
+      includeHiddenElements: true,
+    });
+    expect(detail.props.children).toStrictEqual('94%');
   });
 });
