@@ -440,7 +440,6 @@ builds:
       DISABLE_NOTIFICATION_PROMPT: 'true'
       IS_PERFORMANCE_TEST: 'true'
     secrets: *secrets
-    code_fencing: *code_fencing_main
 
   # Local development / Expo development build (Runway .app for simulator)
   # Dev release build (Ex. For sideloading via Build Mobile App workflow)
