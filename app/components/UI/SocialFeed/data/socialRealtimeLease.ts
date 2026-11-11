@@ -14,7 +14,7 @@ let appliedScopesKey: string | null = null;
 const noop = () => undefined;
 
 const toScopesKey = (scopes: readonly SocialFeedRealtimeScope[]): string =>
-  [...scopes].sort().join(',');
+  [...scopes].sort((left, right) => left.localeCompare(right)).join(',');
 
 /**
  * Applies the scopes every open lease holds. Runs one at a time and reads the
