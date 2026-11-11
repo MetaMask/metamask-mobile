@@ -17,6 +17,7 @@ import {
 import {
   buildScenarioOutcome,
   OUTCOME_FILE_PREFIX,
+  type ScenarioOutcome,
 } from '../../../framework/scenario-agent/heal';
 import QualityGatesValidator from '../../../framework/quality-gates/QualityGatesValidator';
 import {
@@ -89,6 +90,15 @@ const REPO_ROOT = path.resolve(__dirname, '../../../..');
 /** Uploaded by HyperExecute with the performance reports. */
 const OUTCOME_DIR = path.resolve(__dirname, '../../../reporters/reports');
 
+/** The outcome an earlier attempt of this job wrote, or null. */
+const readOutcome = (outcomePath: string): ScenarioOutcome | null => {
+  try {
+    return JSON.parse(fs.readFileSync(outcomePath, 'utf8')) as ScenarioOutcome;
+  } catch {
+    return null;
+  }
+};
+
 const readCache = (cachePath: string): StepCache | null =>
   fs.existsSync(cachePath)
     ? (JSON.parse(fs.readFileSync(cachePath, 'utf8')) as StepCache)
@@ -141,6 +151,16 @@ export function scenarioTest(
 
         const cachePath = scenarioPath.replace(/\.md$/, '.cache.json');
         const cacheBefore = readCache(cachePath);
+        const outcomePath = path.join(
+          OUTCOME_DIR,
+          `${OUTCOME_FILE_PREFIX}${path.basename(scenarioPath, '.scenario.md')}.json`,
+        );
+        // A retry replays the cache the failed attempt already healed, so it
+        // would report no drift. Keep the cache from before the first attempt.
+        const cacheBaseline =
+          testInfo.retry > 0
+            ? (readOutcome(outcomePath)?.cacheBaseline ?? cacheBefore)
+            : cacheBefore;
         const result = await new ScenarioAgent({
           scenario,
           platform: currentDeviceDetails.platform,
@@ -235,17 +255,13 @@ export function scenarioTest(
           scenarioPath: path.relative(REPO_ROOT, scenarioPath),
           result,
           cacheBefore,
+          cacheBaseline,
+          attempt: testInfo.retry,
           cacheAfter: readCache(cachePath),
           thresholdViolations: gates.violations.map((v) => v.message),
         });
         fs.mkdirSync(OUTCOME_DIR, { recursive: true });
-        fs.writeFileSync(
-          path.join(
-            OUTCOME_DIR,
-            `${OUTCOME_FILE_PREFIX}${path.basename(scenarioPath, '.scenario.md')}.json`,
-          ),
-          `${JSON.stringify(outcome, null, 2)}\n`,
-        );
+        fs.writeFileSync(outcomePath, `${JSON.stringify(outcome, null, 2)}\n`);
         if (result.status !== 'PASS') {
           throw new Error(
             `Scenario ${result.status}: ${JSON.stringify(

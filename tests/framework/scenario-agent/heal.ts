@@ -36,11 +36,56 @@ export interface ScenarioOutcome {
   rewordings: { number: number; from: string; to: string }[];
   /** The cache the agent saved after the run; null when it saved none. */
   healedCache: StepCache | null;
+  /** Playwright retry index of the attempt that wrote this file (0 = first). */
+  attempt?: number;
+  /**
+   * The cache as it was before the FIRST attempt of this job. A retry replays
+   * the cache the failed attempt healed, so without this the drift of the
+   * first attempt would be lost.
+   */
+  cacheBaseline?: StepCache | null;
+  /**
+   * Cached steps whose resolution changed between the baseline and the saved
+   * cache: what the agent had to re-resolve at runtime (cache drift).
+   */
+  cacheDrift?: CacheDriftEntry[];
   failureScreen?: string;
   modelCalls: number;
 }
 
+export interface CacheDriftEntry {
+  number: number | null;
+  text: string;
+  before: AgentAction[];
+  after: AgentAction[];
+}
+
 export const OUTCOME_FILE_PREFIX = 'scenario-outcome-';
+
+/** Existing cache entries that now resolve differently. New entries are not drift. */
+export function computeCacheDrift(
+  scenario: Scenario,
+  baseline: StepCache | null,
+  after: StepCache | null,
+): CacheDriftEntry[] {
+  if (!baseline || !after) return [];
+  const numberOf = new Map<string, number>();
+  for (const step of scenario.steps) {
+    if (!numberOf.has(step.text)) numberOf.set(step.text, step.number);
+  }
+  return Object.entries(after)
+    .filter(
+      ([text, actions]) =>
+        text in baseline &&
+        JSON.stringify(baseline[text]) !== JSON.stringify(actions),
+    )
+    .map(([text, actions]) => ({
+      number: numberOf.get(text) ?? null,
+      text,
+      before: baseline[text],
+      after: actions,
+    }));
+}
 
 export function buildScenarioOutcome(input: {
   scenario: Scenario;
@@ -49,8 +94,12 @@ export function buildScenarioOutcome(input: {
   cacheBefore: StepCache | null;
   cacheAfter: StepCache | null;
   thresholdViolations: string[];
+  /** Cache before the first attempt; defaults to `cacheBefore`. */
+  cacheBaseline?: StepCache | null;
+  attempt?: number;
 }): ScenarioOutcome {
   const { scenario, result, cacheBefore, cacheAfter } = input;
+  const cacheBaseline = input.cacheBaseline ?? cacheBefore;
   const stepByNumber = new Map(scenario.steps.map((s) => [s.number, s]));
   const failed = result.steps.find((s) => s.error);
   const changedSteps = [...new Set(result.changedSteps)].map((number) => {
@@ -91,6 +140,9 @@ export function buildScenarioOutcome(input: {
       to: r.text,
     })),
     healedCache: cacheAfter,
+    attempt: input.attempt ?? 0,
+    cacheBaseline,
+    cacheDrift: computeCacheDrift(scenario, cacheBaseline, cacheAfter),
     ...(result.failureScreen ? { failureScreen: result.failureScreen } : {}),
     modelCalls: result.modelCalls,
   };
@@ -99,6 +151,7 @@ export function buildScenarioOutcome(input: {
 export type OutcomeCategory =
   | 'passed'
   | 'repairable'
+  | 'cache-drift'
   | 'pinned-check'
   | 'threshold'
   | 'submit-guard'
@@ -123,7 +176,11 @@ const FAIL_PATTERNS: [OutcomeCategory, RegExp][] = [
   ],
   // FAIL with "end element ... did not appear" only comes from a pinned end
   // (an App-started timer); a model-chosen end becomes INVALID_MEASUREMENT.
-  ['pinned-check', /the scenario's check failed|end element .* did not appear/],
+  [
+    'pinned-check',
+    // runExpect on a pinned step: "expectation not met: <text> (testID=...)".
+    /the scenario's check failed|end element .* did not appear|expectation not met: .* \((?:gone |any of )?(?:testID|label|text|code)[=:]/,
+  ],
   ['blocked', /blocked on screen|the app shows "/],
   [
     'no-path',
@@ -134,6 +191,25 @@ const FAIL_PATTERNS: [OutcomeCategory, RegExp][] = [
     /timeout|timed out|session|ECONNRESET|socket hang up|crash|terminated|has been closed/i,
   ],
 ];
+
+/** Re-resolved cached steps: carried drift plus this attempt's changed ones. */
+export function driftEntries(outcome: ScenarioOutcome): CacheDriftEntry[] {
+  const entries = new Map<string, CacheDriftEntry>();
+  for (const entry of outcome.cacheDrift ?? []) entries.set(entry.text, entry);
+  for (const step of outcome.changedSteps) {
+    if (step.before && !entries.has(step.text)) {
+      entries.set(step.text, {
+        number: step.number,
+        text: step.text,
+        before: step.before,
+        after: step.after,
+      });
+    }
+  }
+  return [...entries.values()].sort(
+    (a, b) => (a.number ?? 1e9) - (b.number ?? 1e9),
+  );
+}
 
 /**
  * Repairable means only the learned data is stale: every step ran, so all
@@ -151,6 +227,19 @@ export function classifyOutcome(outcome: ScenarioOutcome): Classification {
     };
   }
   if (outcome.status === 'PASS') {
+    // A valid measurement, but cached steps had to be re-resolved at runtime
+    // (possibly by a failed first attempt that a retry then replayed).
+    const drift = driftEntries(outcome);
+    if (drift.length > 0 && outcome.healedCache) {
+      return {
+        category: 'cache-drift',
+        repairable: true,
+        step: drift[0].number,
+        reason: `re-resolved ${drift.length} cached step${drift.length === 1 ? '' : 's'}: ${drift
+          .map((d) => `${d.number ?? '?'}. ${d.text}`)
+          .join('; ')}`,
+      };
+    }
     return { category: 'passed', repairable: false, step: null, reason: '' };
   }
   if (outcome.status === 'FAIL') {
@@ -295,6 +384,9 @@ export function buildHealChanges(
   const changes: FileChange[] = [];
   const mdPath = outcome.scenarioPath;
   const cachePath = mdPath.replace(/\.md$/, '.cache.json');
+  if (outcome.status === 'PASS') {
+    return buildDriftChanges(outcome, cachePath, readFile);
+  }
   const mdBefore = readFile(mdPath);
   if (mdBefore === null) {
     return {
@@ -330,6 +422,53 @@ export function buildHealChanges(
     }
   }
   return { changes, notes };
+}
+
+/**
+ * Cache drift on a passing run: only the re-resolved entries are written onto
+ * the cache committed on the branch. The Markdown (wording, pins, timers) and
+ * every other cache entry stay as they are.
+ */
+function buildDriftChanges(
+  outcome: ScenarioOutcome,
+  cachePath: string,
+  readFile: (repoPath: string) => string | null,
+): { changes: FileChange[]; notes: string[] } {
+  const notes: string[] = [];
+  const cacheBefore = readFile(cachePath);
+  if (cacheBefore === null) {
+    return {
+      changes: [],
+      notes: [`${cachePath} does not exist on the base branch`],
+    };
+  }
+  let base: StepCache;
+  try {
+    base = JSON.parse(cacheBefore) as StepCache;
+  } catch {
+    return {
+      changes: [],
+      notes: [`${cachePath} is not valid JSON on the base branch`],
+    };
+  }
+  const next: StepCache = { ...base };
+  for (const entry of driftEntries(outcome)) {
+    if (!(entry.text in base)) {
+      notes.push(
+        `step ${entry.number ?? '?'}: no cached entry on the base branch`,
+      );
+      continue;
+    }
+    next[entry.text] = outcome.healedCache?.[entry.text] ?? entry.after;
+  }
+  const cacheAfter = `${JSON.stringify(next, null, 2)}\n`;
+  return {
+    changes:
+      cacheAfter === cacheBefore
+        ? []
+        : [{ path: cachePath, before: cacheBefore, after: cacheAfter }],
+    notes,
+  };
 }
 
 const ACTION_TYPES = new Set([
@@ -499,6 +638,61 @@ export const HEAL_MARKER = 'perf-scenario-heal';
 export const healKey = (outcome: ScenarioOutcome, step: number | null) =>
   `${outcome.scenarioPath}#${step ?? 0}`;
 
+/** Every step a heal PR for this outcome proposes (one marker each). */
+export function healKeys(
+  outcome: ScenarioOutcome,
+  classification: Classification,
+): string[] {
+  const steps = new Set<number | null>([classification.step]);
+  for (const entry of driftEntries(outcome)) steps.add(entry.number);
+  return [...steps].map((step) => healKey(outcome, step));
+}
+
+/** Rows for the PR table: this attempt's changes plus carried cache drift. */
+export function healRows(outcome: ScenarioOutcome): {
+  number: number | null;
+  text: string;
+  before: AgentAction[] | null;
+  after: AgentAction[];
+}[] {
+  const rows = new Map<
+    string,
+    {
+      number: number | null;
+      text: string;
+      before: AgentAction[] | null;
+      after: AgentAction[];
+    }
+  >();
+  if (outcome.status !== 'PASS') {
+    for (const step of outcome.changedSteps) rows.set(step.text, step);
+  }
+  for (const entry of driftEntries(outcome)) {
+    // The first attempt's resolution is the real "old" one.
+    rows.set(entry.text, entry);
+  }
+  return [...rows.values()].sort(
+    (a, b) => (a.number ?? 1e9) - (b.number ?? 1e9),
+  );
+}
+
+/** `cache-drift` is listed with `repairable` when a failed run also drifted. */
+export function healCategories(
+  outcome: ScenarioOutcome,
+  classification: Classification,
+): string[] {
+  const categories: string[] = [classification.category];
+  if (
+    classification.category === 'repairable' &&
+    driftEntries(outcome).some(
+      (d) => !outcome.changedSteps.some((c) => c.text === d.text),
+    )
+  ) {
+    categories.push('cache-drift');
+  }
+  return categories;
+}
+
 const marker = (key: string) => `<!-- ${HEAL_MARKER}: ${key} -->`;
 
 /** Keys already proposed by an open heal PR. */
@@ -533,6 +727,8 @@ export function indexHealPrs(
 /** One repairable scenario to announce in #mm-qa-legends-ai-alerts. */
 export interface SlackHealNotice {
   scenario: string;
+  /** `cache-drift` posts as a drift notice; anything else as repairable. */
+  category?: OutcomeCategory;
   step: number | null;
   reason: string;
   runUrl: string;
@@ -572,8 +768,8 @@ export function renderHealSlackMessage(notices: SlackHealNotice[]): string {
   return notices
     .map((notice) =>
       [
-        `Repairable performance scenario: ${notice.scenario}`,
-        `Failed step: ${notice.step ?? 'n/a'}`,
+        `${notice.category === 'cache-drift' ? 'Cache drift in performance scenario (run passed, cache was stale)' : 'Repairable performance scenario'}: ${notice.scenario}`,
+        `${notice.category === 'cache-drift' ? 'First re-resolved step' : 'Failed step'}: ${notice.step ?? 'n/a'}`,
         `Reason: ${notice.reason}`,
         `Run: ${notice.runUrl || 'n/a'}`,
         notice.heJobUrls.length
@@ -619,7 +815,9 @@ export function renderHealPr(
   const lines = [
     `Automated heal of agent-driven performance scenarios after [this run](${links.runUrl}).`,
     '',
-    `Base: \`${links.baseRef}\`. Only \`*.scenario.cache.json\` files and step wording in \`*.scenario.md\` change; pins, timers and thresholds are untouched (enforced in code).`,
+    healed.every((h) => h.outcome.status === 'PASS')
+      ? `Base: \`${links.baseRef}\`. Cache drift only: the runs passed, and only \`*.scenario.cache.json\` changes. Step wording, pins, timers and thresholds are untouched (enforced in code).`
+      : `Base: \`${links.baseRef}\`. Only \`*.scenario.cache.json\` files and step wording in \`*.scenario.md\` change; pins, timers and thresholds are untouched (enforced in code).`,
     '',
   ];
   for (const { outcome, classification, changes, notes } of healed) {
@@ -627,21 +825,29 @@ export function renderHealPr(
       `### ${outcome.title}`,
       '',
       `- Scenario: \`${outcome.scenarioPath}\``,
-      `- Failed step: ${classification.step ?? 'n/a'}`,
+      `- Category: \`${healCategories(outcome, classification).join(' + ')}\``,
+      `- ${classification.category === 'cache-drift' ? 'First re-resolved step' : 'Failed step'}: ${classification.step ?? 'n/a'}`,
       `- Reason: ${classification.reason}`,
+      ...(classification.category === 'cache-drift'
+        ? [
+            `- Run status: ${outcome.status} (valid measurement; the run passed${outcome.attempt ? ` on retry ${outcome.attempt}` : ''}, so the committed cache is stale)`,
+          ]
+        : []),
       '',
       '| Step | Old action | New action |',
       '| --- | --- | --- |',
-      ...outcome.changedSteps.map(
+      ...healRows(outcome).map(
         (s) =>
-          `| ${s.number}. ${cell(s.text)} | ${cell(summarizeActions(s.before))} | ${cell(summarizeActions(s.after))} |`,
+          `| ${s.number ?? '?'}. ${cell(s.text)} | ${cell(summarizeActions(s.before))} | ${cell(summarizeActions(s.after))} |`,
       ),
-      ...outcome.rewordings.map(
-        (r) => `- Step ${r.number} wording: "${r.from}" → "${r.to}"`,
-      ),
+      ...(outcome.status === 'PASS'
+        ? []
+        : outcome.rewordings.map(
+            (r) => `- Step ${r.number} wording: "${r.from}" → "${r.to}"`,
+          )),
       ...notes.map((n) => `- Not applied: ${n}`),
       `- Files: ${changes.map((c) => `\`${c.path}\``).join(', ')}`,
-      marker(healKey(outcome, classification.step)),
+      ...healKeys(outcome, classification).map(marker),
       '',
     );
   }
@@ -659,6 +865,7 @@ export function renderHealPr(
 const ACTION_BY_CATEGORY: Record<OutcomeCategory, string> = {
   passed: 'none',
   repairable: 'heal PR',
+  'cache-drift': 'heal PR (cache drift: run passed, cache was stale)',
   'pinned-check': 'report only: a pinned check failed (possible app bug)',
   threshold: 'report only: threshold exceeded',
   'submit-guard': 'report only: the submit guard stopped the run',
