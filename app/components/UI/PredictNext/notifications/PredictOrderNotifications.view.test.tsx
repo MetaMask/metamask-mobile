@@ -111,7 +111,7 @@ const jsonResponse = (body: unknown) =>
 const stubOrderRoutes = () => {
   const commits: ((body: unknown) => void)[] = [];
   fetchMock.mockImplementation(async (url) => {
-    if (String(url).endsWith('/orders/commit')) {
+    if (/\/orders\/[^/]+\/commit$/u.test(String(url))) {
       return new Promise<Response>((resolve) => {
         commits.push((body) => resolve(jsonResponse(body)));
       });
@@ -122,7 +122,7 @@ const stubOrderRoutes = () => {
     answerCommit: (body: unknown) => commits.shift()?.(body),
     commitCount: () =>
       fetchMock.mock.calls.filter(([url]) =>
-        String(url).endsWith('/orders/commit'),
+        /\/orders\/[^/]+\/commit$/u.test(String(url)),
       ).length,
   };
 };

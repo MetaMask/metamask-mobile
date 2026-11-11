@@ -1097,7 +1097,7 @@ describe('PredictPortfolioScreen', () => {
      * given receipt overrides. */
     const stubCashOutFetch = (receiptOverrides: Record<string, unknown>) => {
       fetchMock.mockImplementation(async (url, init) => {
-        const isCommit = String(url).endsWith('/orders/commit');
+        const isCommit = /\/orders\/[^/]+\/commit$/u.test(String(url));
         if (isCommit) {
           return {
             ok: true,
@@ -1282,7 +1282,7 @@ describe('PredictPortfolioScreen', () => {
         totalValue: '168.12',
       });
       fetchMock.mockImplementation(async (url, init) => {
-        if (String(url).endsWith('/orders/commit')) {
+        if (/\/orders\/[^/]+\/commit$/u.test(String(url))) {
           return {
             ok: true,
             status: 200,
@@ -1442,9 +1442,11 @@ describe('PredictPortfolioScreen', () => {
               positionsValue: '0',
               totalValue: balance,
             })
-          : String(url).includes('/positions')
-            ? { venueId: 'kalshi', positions: [] }
-            : { venueId: 'kalshi', activity: [] };
+          : String(url).includes('/balance')
+            ? { venueId: 'kalshi', currency: 'USD', available: balance }
+            : String(url).includes('/positions')
+              ? { venueId: 'kalshi', positions: [] }
+              : { venueId: 'kalshi', activity: [] };
         return {
           ok: true,
           status: 200,

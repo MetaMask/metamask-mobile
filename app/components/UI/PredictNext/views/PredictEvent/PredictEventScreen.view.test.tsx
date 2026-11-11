@@ -2785,7 +2785,7 @@ describe('PredictEventScreen', () => {
         ],
       };
       fetchMock.mockImplementation(async (url, init) => {
-        if (String(url).endsWith('/orders/commit')) {
+        if (/\/orders\/[^/]+\/commit$/u.test(String(url))) {
           return {
             ok: true,
             status: 200,

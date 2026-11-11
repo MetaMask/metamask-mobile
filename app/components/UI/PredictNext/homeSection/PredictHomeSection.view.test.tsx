@@ -708,7 +708,7 @@ describe('PredictHomeSection', () => {
               }),
           } as Response;
         }
-        if (path.endsWith('/orders/commit')) {
+        if (/\/orders\/[^/]+\/commit$/u.test(path)) {
           return {
             ok: true,
             status: 200,
@@ -723,6 +723,19 @@ describe('PredictHomeSection', () => {
             ok: true,
             status: 200,
             json: async () => positionsBody,
+          } as Response;
+        }
+        // The Summary's available balance is the Balance route's value.
+        if (path.includes('/venues/kalshi/balance')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              venueId: 'kalshi',
+              currency: 'USD',
+              available: (summaryBody as { availableBalance: string })
+                .availableBalance,
+            }),
           } as Response;
         }
         if (path.includes('/venues/kalshi/portfolio/summary')) {

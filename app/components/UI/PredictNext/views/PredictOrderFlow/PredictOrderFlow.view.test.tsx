@@ -94,6 +94,11 @@ const pressKeypadKey = (key: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)));
 };
 
+/** `POST /v1/venues/:venueId/orders/:previewId/commit`. */
+const COMMIT_URL = /\/orders\/[^/]+\/commit$/u;
+/** `GET /v1/venues/:venueId/orders/:previewId`: observing the operation. */
+const OBSERVE_URL = /\/orders\/[0-9a-f-]{36}$/u;
+
 const stubFetch = (
   reply: (url: string, init?: RequestInit) => FetchReply,
   {
@@ -102,9 +107,12 @@ const stubFetch = (
   }: { commitDelayMs?: number; commit?: () => FetchReply } = {},
 ) => {
   fetchMock.mockImplementation(async (url, init) => {
-    // The commit route returns the canonical Order Receipt; previews are
-    // quoted by the preview route only.
-    const isCommit = String(url).endsWith('/orders/commit');
+    // The commit route returns the canonical Order Receipt, and so does the
+    // observation read of the same operation; previews are quoted by the
+    // preview route only.
+    const isCommit =
+      COMMIT_URL.test(String(url)) ||
+      (OBSERVE_URL.test(String(url)) && init?.method === 'GET');
     if (isCommit && commitDelayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, commitDelayMs));
     }
@@ -125,11 +133,19 @@ const stubFetch = (
 
 const commitCalls = (): { url: string; body: unknown }[] =>
   fetchMock.mock.calls
-    .filter(([url]) => String(url).endsWith('/orders/commit'))
+    .filter(([url]) => COMMIT_URL.test(String(url)))
     .map(([url, init]) => ({
       url: String(url),
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
+
+/** Reads of the operation's receipt: observation never signs a Commit. */
+const observeCalls = (): string[] =>
+  fetchMock.mock.calls
+    .filter(
+      ([url, init]) => OBSERVE_URL.test(String(url)) && init?.method === 'GET',
+    )
+    .map(([url]) => String(url));
 
 const previewCalls = (): { url: string; body: unknown }[] =>
   fetchMock.mock.calls
@@ -761,11 +777,12 @@ describe('PredictOrderFlow', () => {
     );
     expect(commitCalls()).toEqual([
       {
-        url: expect.stringContaining('/orders/commit'),
+        url: expect.stringContaining(
+          '/orders/b3c2a1d0-1111-4222-8333-444455556666/commit',
+        ),
         // The device signs the venue `create_order` payload and sends those
-        // exact bytes with the approved Preview reference merged in.
+        // exact bytes; the Preview reference rides in the path.
         body: {
-          previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
           ticker: 'KXTEST-26-A',
           client_order_id: expect.any(String),
           side: 'bid',
@@ -895,7 +912,7 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
   }, 30000);
 
-  it('keeps checking a reconciliation-required receipt by re-committing until it resolves', async () => {
+  it('keeps checking a reconciliation-required receipt by reading it until it resolves', async () => {
     let commits = 0;
     stubFetch(() => ({ body: makePreview() }), {
       commit: () => {
@@ -926,7 +943,9 @@ describe('PredictOrderFlow', () => {
         screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
       ).toBeOnTheScreen(),
     );
-    expect(commitCalls()).toHaveLength(2);
+    // One signed Commit; the check reads the receipt.
+    expect(commitCalls()).toHaveLength(1);
+    expect(observeCalls().length).toBeGreaterThan(0);
   }, 30000);
 
   it('renders a failed commit on the approval step with re-approval that re-POSTs the same previewId', async () => {
@@ -1134,9 +1153,10 @@ describe('PredictOrderFlow', () => {
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REFRESH)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    // `venue_unavailable` proves no operation exists, so the re-approval
+    // signs the same create_order again for the same Preview.
     await waitFor(() => expect(commitCalls()).toHaveLength(2));
     expect(commitCalls()[0]?.body).toEqual({
-      previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
       ticker: 'KXTEST-26-A',
       client_order_id: expect.any(String),
       side: 'bid',
@@ -1461,7 +1481,7 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
     });
 
-    it('presents the sell approval with Net Proceeds emphasized and no payout, profit, or debit rows', async () => {
+    it('presents the sell approval with the signed minimum proceeds emphasized and no payout, profit, or debit rows', async () => {
       stubFetch(() => ({ body: makePredictNextSellPreview() }));
 
       await reviewSellOrder();
@@ -1478,9 +1498,12 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PROCEEDS),
       ).toHaveTextContent('$33.60');
+      // The emphasized total is the bound the phone signs: all 75 offered
+      // contracts at the 40¢ limit less the 2¢ fee ceiling, not the quote's
+      // $33.26 estimate.
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
-      ).toHaveTextContent('$33.26');
+      ).toHaveTextContent('$28.50');
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
       ).toBeNull();
@@ -1610,7 +1633,7 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
     }, 30000);
 
-    it('keeps checking an unresolved sell receipt by re-committing the same preview', async () => {
+    it('keeps checking an unresolved sell receipt by reading the same preview', async () => {
       let commits = 0;
       stubFetch(() => ({ body: makePredictNextSellPreview() }), {
         commit: () => {
@@ -1638,8 +1661,11 @@ describe('PredictOrderFlow', () => {
           screen.getByTestId(PredictOrderFlowTestIds.RECEIPT_FILLED),
         ).toBeOnTheScreen(),
       );
-      expect(commitCalls()).toHaveLength(2);
-      expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
+      // One signed Commit; checking again reads the same Preview's receipt.
+      expect(commitCalls()).toHaveLength(1);
+      expect(observeCalls()).toContainEqual(
+        expect.stringContaining('/orders/b3c2a1d0-1111-4222-8333-444455556666'),
+      );
     }, 30000);
   });
 });

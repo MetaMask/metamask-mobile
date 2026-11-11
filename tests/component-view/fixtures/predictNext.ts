@@ -694,6 +694,56 @@ const signRead: SignRead = async ({ method, path, query }) => ({
   value: JSON.stringify({ method, path, query }),
 });
 
+/** Renders one intent from the bundled profile exactly as the Engine
+ * signer does, invariant included. */
+const renderIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  return renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+  );
+};
+
+/**
+ * Installs the Engine's `PredictDeviceAuthService.previewOperation` the order
+ * sheet calls for its signed figures: the bundled profile's real invariant,
+ * with no device key. Call it in `beforeEach` of any view test that approves
+ * an order.
+ */
+export const installPredictNextPreviewOperation = (): void => {
+  (
+    Engine.context as unknown as Record<string, unknown>
+  ).PredictDeviceAuthService = {
+    previewOperation: async (
+      operation: string,
+      input?: Parameters<SignOperation>[1],
+    ) => (await renderIntent(operation, input)).display,
+  };
+};
+
 const signOperation: SignOperation = async (operation, input) => {
   const profile = await loadVenueProfile();
   const intent = profile?.intents.find(({ id }) => id === operation);
@@ -738,6 +788,8 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  // The order sheet asks the Engine for the signed figures before Approve.
+  installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -769,6 +821,7 @@ export const composePredictNextOrderService = (
  * by delegating its messenger adapter to the returned root.
  */
 export const composePredictNextPortfolioTrading = () => {
+  installPredictNextPreviewOperation();
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });

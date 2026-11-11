@@ -9,7 +9,7 @@ import type { VenueIntentName } from './venueSigningProfiles';
  * signed. Throws `TemplateError` when the profile refuses the request.
  * Undefined when no profile is active or the payload has no invariant.
  */
-export const previewOperation = (
+export const previewOperation = async (
   intent: VenueIntentName,
   input: SignOperationInput,
 ): Promise<InvariantDisplay | undefined> =>
