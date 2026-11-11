@@ -901,7 +901,7 @@
       "campaignsFetching": false,
       "campaignsHasLoaded": false,
       "campaignsLoading": false,
-      "candidateSubscriptionId": "pending",
+      "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
