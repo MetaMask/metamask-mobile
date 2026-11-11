@@ -1,9 +1,17 @@
 import { useCallback, useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useStore } from 'react-redux';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
+import type { RootState } from '../../../../reducers';
+import { selectCardSelectedCountry } from '../../../../selectors/cardController';
+import {
+  immersveFundingChannelForCountry,
+  isMoneyAccountFundingChannel,
+  selectCardImmersveCountryFunding,
+} from '../../../../selectors/featureFlagController/card';
 import {
   ToastContext,
   ToastVariants,
@@ -32,9 +40,21 @@ interface RouteContext {
   fundingAddress?: string;
 }
 
+function isMoneyAccountFundingCountry(
+  state: RootState,
+  country: string | null | undefined,
+): boolean {
+  return isMoneyAccountFundingChannel(
+    immersveFundingChannelForCountry(
+      selectCardImmersveCountryFunding(state),
+      country,
+    ),
+  );
+}
+
 function destinationForAction(
   action: ImmersveNextAction,
-  hasExistingCard?: boolean,
+  skipFundingApproval?: boolean,
 ): string {
   switch (action.type) {
     case 'contact':
@@ -44,7 +64,7 @@ function destinationForAction(
     case 'expected_spend':
       return Routes.CARD.ONBOARDING.KYC_PROCESSING;
     case 'funding':
-      return hasExistingCard
+      return skipFundingApproval
         ? Routes.CARD.HOME
         : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
@@ -66,12 +86,13 @@ function destinationForAction(
  * (open the webview / keep polling); it must not pass those here or it would
  * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
  *
- * Returning users with an existing card and a `funding` next-action are sent
- * to Card Home so Enable card / transaction history remain available; first-time
- * funding still opens FUNDING_APPROVAL.
+ * Returning users with an existing card, and Money account countries, skip
+ * the funding approval screen and land on Card Home. USDC on Base still
+ * opens FUNDING_APPROVAL.
  */
 export const useImmersveOnboardingRouter = () => {
   const navigation = useNavigation();
+  const store = useStore<RootState>();
   const { toastRef } = useContext(ToastContext);
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -85,6 +106,13 @@ export const useImmersveOnboardingRouter = () => {
         hasExistingCard,
         fundingAddress,
       } = ctx;
+      // Read at call time. Resume sets the selected country and then routes
+      // in the same tick, before a selector captured at render would update.
+      const state = store.getState();
+      const country = countryKey ?? selectCardSelectedCountry(state);
+      const skipFundingApproval =
+        Boolean(hasExistingCard) ||
+        isMoneyAccountFundingCountry(state, country);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -92,7 +120,7 @@ export const useImmersveOnboardingRouter = () => {
             withCardProvider(CardProviderIds.Immersve, {
               action: CardActions.IMMERSVE_ONBOARDING_ROUTED,
               next_action: action.type,
-              destination: destinationForAction(action, hasExistingCard),
+              destination: destinationForAction(action, skipFundingApproval),
             }),
           )
           .build(),
@@ -131,7 +159,7 @@ export const useImmersveOnboardingRouter = () => {
           break;
         case 'funding':
           Engine.context.CardController.setSignInLinkStage('spending');
-          if (hasExistingCard) {
+          if (skipFundingApproval) {
             goToCardHome();
             break;
           }
@@ -181,6 +209,6 @@ export const useImmersveOnboardingRouter = () => {
           break;
       }
     },
-    [navigation, toastRef, colors, trackEvent, createEventBuilder],
+    [navigation, store, toastRef, colors, trackEvent, createEventBuilder],
   );
 };
