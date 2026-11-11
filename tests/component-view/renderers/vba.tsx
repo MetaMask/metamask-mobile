@@ -53,11 +53,9 @@ const bindVbaReduxServiceStore = (store: ReduxStore) => {
   };
 };
 
-interface RenderVbaOptions {
-  location?: string;
-  flagEnabled?: boolean;
+type RenderVbaOptions = NonNullable<Parameters<typeof initialStateVba>[0]> & {
   overrides?: DeepPartial<RootState>;
-}
+};
 
 const VbaTermsCaller = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -88,12 +86,8 @@ const VbaMoneyCaller = () => {
   );
 };
 
-const buildVbaState = ({
-  location,
-  flagEnabled,
-  overrides,
-}: RenderVbaOptions) => {
-  const builder = initialStateVba({ location, flagEnabled });
+const buildVbaState = ({ overrides, ...presetOptions }: RenderVbaOptions) => {
+  const builder = initialStateVba(presetOptions);
   if (overrides) {
     builder.withOverrides(overrides);
   }

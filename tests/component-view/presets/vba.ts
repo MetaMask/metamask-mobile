@@ -5,12 +5,24 @@ import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../app/lib/Money/fea
 import {
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
 } from '../../../app/selectors/featureFlagController/moneyAccount';
 import { initialStateWallet } from './wallet';
+
+/**
+ * Per-currency rollout flags. BRL lists `BR` and defaults to `flagEnabled`.
+ * USD lists `US` and is unset unless given.
+ */
+export interface VbaMarketsOption {
+  brl?: boolean;
+  usd?: boolean;
+}
 
 interface InitialStateVbaOptions {
   location?: string;
   flagEnabled?: boolean;
+  markets?: VbaMarketsOption;
+  legacyFlagEnabled?: boolean;
 }
 
 /** Primary HD keyring id paired with {@link VBA_TEST_MONEY_ADDRESS}. */
@@ -32,6 +44,8 @@ export const VBA_TEST_MONEY_ADDRESS =
 export const initialStateVba = ({
   location = 'BR',
   flagEnabled = true,
+  markets = {},
+  legacyFlagEnabled = flagEnabled,
 }: InitialStateVbaOptions = {}) =>
   initialStateWallet()
     .withRemoteFeatureFlags({
@@ -40,16 +54,26 @@ export const initialStateVba = ({
         minimumVersion: '0.0.0',
       },
       [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-        enabled: flagEnabled,
+        enabled: legacyFlagEnabled,
         minimumVersion: '0.0.0',
       },
       [MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY]: {
-        enabled: flagEnabled,
+        enabled: markets.brl ?? flagEnabled,
         minimumVersion: '0.0.0',
         currency: 'BRL',
         regions: ['BR'],
         layout: 'Pix',
       },
+      ...(markets.usd === undefined
+        ? {}
+        : {
+            [MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY]: {
+              enabled: markets.usd,
+              minimumVersion: '0.0.0',
+              currency: 'USD',
+              regions: ['US'],
+            },
+          }),
     })
     .withOverrides({
       engine: {
