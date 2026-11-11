@@ -3861,6 +3861,9 @@
       "politics": "Politics",
       "sports": "Sports"
     },
+    "home_feed": {
+      "trending": "Trending"
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
