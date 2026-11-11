@@ -1329,7 +1329,7 @@ const MyProfileView: React.FC = () => {
                     twClassName="px-4"
                     testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
                   >
-                    <ActivityIndicator size="small" />
+                    <Spinner />
                   </Box>
                 ) : null}
               </>
