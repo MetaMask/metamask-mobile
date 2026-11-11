@@ -5,6 +5,7 @@ import {
   type PublishBatchHookRequest,
   type PublishBatchHookResult,
   type PublishBatchHookTransaction,
+  type PublishHookResult,
   type TransactionController,
   type TransactionControllerOptions,
   type TransactionMeta,
@@ -111,7 +112,7 @@ function publishHook({
   return async (
     transactionMeta: TransactionMeta,
     signedTransactionInHex: Hex,
-  ): Promise<{ transactionHash?: string }> => {
+  ): Promise<PublishHookResult> => {
     const { transactionHash: predictTransactionHash } =
       await initMessenger.call('PredictController:publish', {
         transactionMeta,
@@ -136,7 +137,7 @@ function publishHook({
       messenger: initMessenger as TransactionPayControllerMessenger,
     }).getHook()(transactionMeta, signedTransactionInHex);
 
-    if (payResult?.transactionHash) {
+    if (payResult?.transactionHash || payResult?.externallyHandled) {
       return payResult;
     }
 

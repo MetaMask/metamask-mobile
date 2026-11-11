@@ -10335,6 +10335,12 @@
       "money_account": "Money account",
       "no_deposit_fee": "No deposit fee"
     },
+    "solana_pay": {
+      "refunded": "Refunded",
+      "source_account": "Source account",
+      "source_transaction": "Source transaction",
+      "status_unavailable": "Transaction status unavailable"
+    },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
       "terms_of_use": "Terms of Use",
