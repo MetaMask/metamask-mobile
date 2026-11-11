@@ -1,4 +1,4 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -105,7 +105,7 @@ describe('ExperienceEnhancerModal', () => {
     expect(updateMarketingOptInStatusMock).not.toHaveBeenCalled();
   });
 
-  it('keeps the local decision when the auth server sync fails', () => {
+  it('keeps the local decision when the auth server sync fails', async () => {
     useSelectorMock.mockReturnValue(true);
     updateMarketingOptInStatusMock.mockRejectedValue(new Error('sync failed'));
     const { getByTestId } = render(<ExperienceEnhancerModal />);
@@ -114,8 +114,16 @@ describe('ExperienceEnhancerModal', () => {
       getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON),
     );
 
+    // Flush the rejected sync before asserting no revert happened.
+    await act(async () => {
+      await Promise.resolve();
+    });
+
     expect(dispatchMock).toHaveBeenCalledWith(
       setDataCollectionForMarketing(false),
+    );
+    expect(dispatchMock).not.toHaveBeenCalledWith(
+      setDataCollectionForMarketing(true),
     );
   });
 
