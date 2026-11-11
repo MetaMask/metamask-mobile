@@ -19,7 +19,7 @@ import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
@@ -34,7 +34,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock('./useMoneyVaultApy');
 jest.mock('./useMoneyAnalytics');
 jest.mock('./useMoneyCtaVisibility');
-jest.mock('./useMoneyNavigation');
+jest.mock('./useMoneyDepositNavigation');
 jest.mock('react-redux');
 
 const mockInitiateDeposit = jest.fn();
