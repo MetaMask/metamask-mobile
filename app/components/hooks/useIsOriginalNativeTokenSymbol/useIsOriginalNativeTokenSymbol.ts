@@ -7,7 +7,6 @@ import { useSafeChains, type SafeChain } from '../useSafeChains';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import type { Hex } from '@metamask/utils';
 
-// Helpers below are extracted because React Compiler (BuildHIR) cannot lower value blocks (||, ?., ??, ternary) written inside a try/catch.
 const isNonEvmOrUnconfiguredChain = (
   chainId: string,
   evmNetworkConfigurationsByChainId: ReturnType<
