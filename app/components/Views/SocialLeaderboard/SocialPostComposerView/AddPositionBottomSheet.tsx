@@ -255,7 +255,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                 ) : isLoading && positions.length === 0 ? (
                   SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
                 ) : positions.length === 0 ? (
-                  <Box twClassName="items-center px-4 py-8">
+                  <Box twClassName="items-center px-4 pt-8">
                     <TabEmptyState
                       description={
                         showPostEmptyCopy
