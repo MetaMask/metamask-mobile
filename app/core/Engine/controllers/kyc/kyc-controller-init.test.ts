@@ -99,6 +99,8 @@ describe('kycControllerInit', () => {
           providerDisclaimersAccepted: null,
           idosDisclaimersAccepted: null,
           credentialReusabilityConsentGiven: null,
+          nextStep: null,
+          vendorAccount: null,
         },
       },
     };

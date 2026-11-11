@@ -1,6 +1,7 @@
 import type { VbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import {
   applyVbaDevOverrides,
+  applyVbaDevStepOverride,
   getVbaKycStatusOverride,
 } from './vbaDevOverrides';
 import { readVbaKycStatusOverrideEnv } from './vbaDevOverrides.env';
@@ -66,5 +67,29 @@ describe('vbaDevOverrides', () => {
 
     expect(getVbaKycStatusOverride()).toBeNull();
     expect(applyVbaDevOverrides(baseSnapshot)).toBe(baseSnapshot);
+  });
+
+  it.each([
+    ['retry', 'kyc_retry'],
+    ['pending', 'kyc_pending'],
+    ['approved', 'approved'],
+    ['rejected', 'kyc_rejected'],
+  ] as const)('maps a forced %s status to the %s step', (status, step) => {
+    mockReadEnv.mockReturnValue(status);
+
+    expect(applyVbaDevStepOverride('vendor_terms')).toBe(step);
+  });
+
+  it.each(['none', 'new'] as const)(
+    'keeps the kyc-api step for a forced %s status',
+    (status) => {
+      mockReadEnv.mockReturnValue(status);
+
+      expect(applyVbaDevStepOverride('verify_email')).toBe('verify_email');
+    },
+  );
+
+  it('keeps the kyc-api step without an override', () => {
+    expect(applyVbaDevStepOverride('kyc_pending')).toBe('kyc_pending');
   });
 });

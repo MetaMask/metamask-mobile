@@ -69,7 +69,12 @@ const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
 
 const resolvedTo = (
   destinationId: VbaOnboardingDestinationId,
-): ResolvedVbaOnboarding => ({ status: 'ready', destinationId, snapshot });
+): ResolvedVbaOnboarding => ({
+  status: 'ready',
+  destinationId,
+  snapshot,
+  step: 'kyc_pending',
+});
 
 const setSessionStatus = (sessionStatus: MockSessionStatus | null) => {
   mockRootState = {

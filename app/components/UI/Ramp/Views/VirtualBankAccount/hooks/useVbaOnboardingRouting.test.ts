@@ -74,25 +74,11 @@ const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 const mockGetState = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
+const mockRefreshStep = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
-interface MockVendorAcceptance {
-  disclaimerIds: string[];
-  acceptedAt: string | null;
-  submitted: boolean;
-}
-const mockKycState: {
-  sessions: {
-    iron?: { vendorDisclaimersAccepted: MockVendorAcceptance | null };
-  };
-} = { sessions: {} };
-/** Stores (or clears) Iron terms acceptance on the mocked KYC controller. */
-const setIronAcceptance = (acceptance: MockVendorAcceptance | null) => {
-  mockKycState.sessions = acceptance
-    ? { iron: { vendorDisclaimersAccepted: acceptance } }
-    : {};
-};
+const mockKycState: { sessions: Record<string, unknown> } = { sessions: {} };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
 } = { autoramps: [] };
@@ -118,6 +104,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       startSession: (...args: unknown[]) => mockStartSession(...args),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
+      refreshStep: (...args: unknown[]) => mockRefreshStep(...args),
     },
   },
 }));
@@ -160,8 +147,9 @@ describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetState.mockReturnValue({ address: '0xabc' });
-    setIronAcceptance(null);
+    mockKycState.sessions = {};
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockRefreshStep.mockResolvedValue('vendor_terms');
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
@@ -187,6 +175,7 @@ describe('useOpenVbaOnboarding', () => {
       refreshAutoramps: true,
     });
     expect(mockStartSession).not.toHaveBeenCalled();
+    expect(mockRefreshStep).toHaveBeenCalledWith({ vendor: VBA_KYC_VENDOR });
     expectResetTo({ name: VbaOnboardingRoutes.VENDOR_TERMS });
   });
 
@@ -202,12 +191,8 @@ describe('useOpenVbaOnboarding', () => {
     expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
-  it('opens at email when vendor terms are accepted locally', async () => {
-    setIronAcceptance({
-      disclaimerIds: ['terms'],
-      acceptedAt: null,
-      submitted: false,
-    });
+  it('opens at email when kyc-api returns the verify_email step', async () => {
+    mockRefreshStep.mockResolvedValue('verify_email');
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
@@ -217,6 +202,7 @@ describe('useOpenVbaOnboarding', () => {
 
   it('reattaches a remote KYC session after reinstall and opens the existing account', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockRefreshStep.mockResolvedValue('approved');
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -249,6 +235,7 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('navigates to the VBA details screen when the autoramp is ready', async () => {
+    mockRefreshStep.mockResolvedValue('approved');
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -276,31 +263,24 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens identity verification when a session exists without recorded vendor disclaimers', async () => {
+  it('opens identity verification on the identity_verification step without re-sending terms', async () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
     });
-    setIronAcceptance({
-      disclaimerIds: ['privacy', 'terms'],
-      acceptedAt: null,
-      submitted: false,
-    });
+    mockRefreshStep.mockResolvedValue('identity_verification');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
 
-    expect(mockRecordVendorDisclaimers).toHaveBeenCalledWith({
-      vendor: 'iron',
-    });
+    expect(mockRecordVendorDisclaimers).not.toHaveBeenCalled();
     expectResetTo({
       name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
       params: {
         snapshot: {
           ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
           sessionExists: true,
-          vendorTermsAcceptedLocally: true,
         },
       },
     });
@@ -313,6 +293,7 @@ describe('useOpenVbaOnboarding', () => {
       vendorDisclaimersComplete: true,
       kycStatus: 'pending',
     });
+    mockRefreshStep.mockResolvedValue('identity_verification');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
@@ -325,7 +306,6 @@ describe('useOpenVbaOnboarding', () => {
           ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
           sessionExists: true,
           vendorDisclaimersComplete: true,
-          vendorTermsAcceptedLocally: true,
           kycStatus: 'pending',
         },
       },
@@ -341,6 +321,7 @@ describe('useOpenVbaOnboarding', () => {
       providerFlowStatus: 'submitted',
       kycStatus: 'pending',
     });
+    mockRefreshStep.mockResolvedValue('kyc_pending');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
@@ -354,6 +335,7 @@ describe('useOpenVbaOnboarding', () => {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       kycStatus: 'rejected',
     });
+    mockRefreshStep.mockResolvedValue('kyc_rejected');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
@@ -370,6 +352,7 @@ describe('useOpenVbaOnboarding', () => {
       sessionDisclaimersComplete: true,
       kycStatus: 'rejected',
     });
+    mockRefreshStep.mockResolvedValue('kyc_rejected');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
@@ -381,7 +364,7 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens identity verification when retrying a KYC session whose status is retry', async () => {
+  it('opens identity verification when retrying on the kyc_retry step', async () => {
     const retrySnapshot = {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -390,18 +373,15 @@ describe('useOpenVbaOnboarding', () => {
       kycStatus: 'retry' as const,
     };
     mockHydrate.mockResolvedValue(retrySnapshot);
+    mockRefreshStep.mockResolvedValue('kyc_retry');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current({ retryRejectedKyc: true });
 
-    const snapshot = {
-      ...retrySnapshot,
-      vendorTermsAcceptedLocally: true,
-    };
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
-        snapshot,
+        snapshot: retrySnapshot,
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
@@ -411,6 +391,7 @@ describe('useOpenVbaOnboarding', () => {
     mockRampsState.autoramps = [
       { id: 'ar-1', walletAddress: '0xabc', status: 'Pending' },
     ];
+    mockRefreshStep.mockResolvedValue('kyc_retry');
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -430,30 +411,34 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
-    const retrySnapshot = {
+  it('does not re-enter SumSub when kyc-api does not return the kyc_retry step', async () => {
+    mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
-      vendorDisclaimersComplete: true,
-      sessionDisclaimersComplete: true,
-      providerFlowStatus: 'submitted' as const,
-      kycStatus: 'retry' as const,
-    };
-    mockHydrate.mockResolvedValue(retrySnapshot);
+      providerFlowStatus: 'submitted',
+      kycStatus: 'retry',
+    });
+    // kyc-api returns pending once the retry was resubmitted.
+    mockRefreshStep.mockResolvedValue('kyc_pending');
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current({ retryRejectedKyc: true });
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('opens the error screen when the step cannot be fetched', async () => {
+    mockRefreshStep.mockRejectedValue(new Error('kyc-api down'));
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
     await result.current();
 
-    expectResetTo({
-      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-      params: {
-        snapshot: {
-          ...retrySnapshot,
-          vendorTermsAcceptedLocally: true,
-        },
-      },
-    });
+    expectResetTo({ name: VbaOnboardingRoutes.ERROR });
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
@@ -465,6 +450,7 @@ describe('useOpenVbaOnboarding', () => {
       kycStatus: 'approved',
       autorampStatus: 'needs_wallet_registration',
     });
+    mockRefreshStep.mockResolvedValue('approved');
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
@@ -903,8 +889,9 @@ describe('resolveVbaOnboarding', () => {
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
-    setIronAcceptance(null);
+    mockKycState.sessions = {};
     mockRecordVendorDisclaimers.mockResolvedValue([]);
+    mockRefreshStep.mockResolvedValue('vendor_terms');
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
@@ -927,23 +914,16 @@ describe('resolveVbaOnboarding', () => {
   });
 
   it.each([
-    ['rejected', 'not_started', 'kycRejected'],
-    ['retry', 'not_started', 'kycRejected'],
-    ['pending', 'submitted', 'kycPending'],
+    ['kyc_rejected', 'kycRejected'],
+    ['kyc_retry', 'kycRejected'],
+    ['kyc_pending', 'kycPending'],
   ] as const)(
     'keeps the %s KYC destination for an existing autoramp',
-    async (kycStatus, providerFlowStatus, destinationId) => {
+    async (step, destinationId) => {
       mockRampsState.autoramps = [
         { id: 'ar-1', walletAddress: '0xabc', status: 'Pending' },
       ];
-      mockHydrate.mockResolvedValue({
-        ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
-        sessionExists: true,
-        vendorDisclaimersComplete: true,
-        sessionDisclaimersComplete: true,
-        providerFlowStatus,
-        kycStatus,
-      });
+      mockRefreshStep.mockResolvedValue(step);
 
       const resolved = await resolveVbaOnboarding('money-home-card');
 
@@ -1082,6 +1062,7 @@ describe('resolveVbaOnboarding', () => {
 
   it('reattaches the latest vendor session before hydrate when nothing is persisted', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockRefreshStep.mockResolvedValue('approved');
     const calls: string[] = [];
     mockStartSession.mockImplementation(async () => {
       calls.push('start');
@@ -1110,6 +1091,8 @@ describe('resolveVbaOnboarding', () => {
 
   it('keeps a reattached provider-pending session out of SumSub after reinstall', async () => {
     mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    // kyc-api applies the reinstall rule: pending at the provider is pending.
+    mockRefreshStep.mockResolvedValue('kyc_pending');
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -1177,6 +1160,7 @@ describe('resolveVbaOnboarding', () => {
     ).resolves.toEqual({
       status: 'ready',
       destinationId: 'kycRejected',
+      step: 'kyc_rejected',
       snapshot: expect.objectContaining({
         kycStatus: 'rejected',
         sessionExists: true,

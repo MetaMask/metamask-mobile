@@ -71,10 +71,7 @@ describe('VbaStatusAdapters', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     mockAdvance.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockAdvance);
-    mockUseSelector.mockReturnValue({
-      finalStatus: 'rejected',
-      kycStatus: 'rejected',
-    });
+    mockUseSelector.mockReturnValue('kyc_rejected');
     mockVbaOnboardingStub.mockImplementation(() => <></>);
     mockKycPending.mockImplementation(() => <></>);
     mockKycRejected.mockImplementation(() => <></>);
@@ -124,7 +121,7 @@ describe('VbaStatusAdapters', () => {
     expect(trackKycVerificationUpdated).not.toHaveBeenCalled();
   });
 
-  it('opens support when no KYC session is stored', () => {
+  it('opens support when no step is stored', () => {
     mockUseSelector.mockReturnValue(null);
 
     render(<VbaKycRejectedAdapter />);
@@ -134,11 +131,8 @@ describe('VbaStatusAdapters', () => {
     expect(mockUseOpenVbaOnboarding).not.toHaveBeenCalled();
   });
 
-  it('opens support when kycStatus is rejected even if finalStatus is retry', () => {
-    mockUseSelector.mockReturnValue({
-      finalStatus: 'retry',
-      kycStatus: 'rejected',
-    });
+  it('opens support for any step other than kyc_retry', () => {
+    mockUseSelector.mockReturnValue('kyc_pending');
 
     render(<VbaKycRejectedAdapter />);
     const rejectedProps = mockKycRejected.mock.calls[0][0];
@@ -148,11 +142,8 @@ describe('VbaStatusAdapters', () => {
     expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
   });
 
-  it('reopens identity verification when KYC status is retry', async () => {
-    mockUseSelector.mockReturnValue({
-      finalStatus: 'pending',
-      kycStatus: 'retry',
-    });
+  it('reopens identity verification on the kyc_retry step', async () => {
+    mockUseSelector.mockReturnValue('kyc_retry');
 
     render(<VbaKycRejectedAdapter />);
     const rejectedProps = mockKycRejected.mock.calls[0][0];
@@ -166,10 +157,7 @@ describe('VbaStatusAdapters', () => {
   });
 
   it('tracks retry_started with the kyc_rejected source before reopening a retryable session', async () => {
-    mockUseSelector.mockReturnValue({
-      finalStatus: 'pending',
-      kycStatus: 'retry',
-    });
+    mockUseSelector.mockReturnValue('kyc_retry');
 
     render(<VbaKycRejectedAdapter />);
     const rejectedProps = mockKycRejected.mock.calls[0][0];
@@ -183,5 +171,25 @@ describe('VbaStatusAdapters', () => {
     expect(
       jest.mocked(trackKycVerificationUpdated).mock.invocationCallOrder[0],
     ).toBeLessThan(mockAdvance.mock.invocationCallOrder[0]);
+  });
+
+  it('reads the step kyc-api stored for the VBA vendor', () => {
+    render(<VbaKycRejectedAdapter />);
+    const selector = mockUseSelector.mock.calls[0][0] as (
+      state: unknown,
+    ) => unknown;
+
+    expect(
+      selector({
+        engine: {
+          backgroundState: {
+            KycController: { sessions: { iron: { nextStep: 'kyc_retry' } } },
+          },
+        },
+      }),
+    ).toBe('kyc_retry');
+    expect(
+      selector({ engine: { backgroundState: { KycController: undefined } } }),
+    ).toBeNull();
   });
 });

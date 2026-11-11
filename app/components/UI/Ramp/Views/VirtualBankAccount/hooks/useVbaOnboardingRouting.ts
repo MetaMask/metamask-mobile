@@ -16,8 +16,9 @@ import {
 } from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
+import type { KycStep } from '@metamask/kyc-controller';
 import {
-  getVbaDestinationForSnapshot,
+  getVbaDestinationForStep,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
@@ -34,6 +35,7 @@ import {
 } from '../accountCreateError';
 import {
   applyVbaDevOverrides,
+  applyVbaDevStepOverride,
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
@@ -386,6 +388,8 @@ export type ResolvedVbaOnboarding =
       status: 'ready';
       destinationId: VbaOnboardingDestinationId;
       snapshot: VbaOnboardingSnapshot;
+      /** The KYC step kyc-api returned for `iron`. */
+      step: KycStep;
     }
   | { status: 'error' };
 
@@ -412,48 +416,22 @@ export const resolveVbaOnboarding = async (
 
     await resumePersistedKycSession();
 
-    const accountSnapshot = applyVbaDevOverrides(
+    const snapshot: VbaOnboardingSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
         walletAddress,
         refreshKyc: true,
         refreshAutoramps: true,
       }),
     );
-    if (
-      accountSnapshot.sessionExists &&
-      !accountSnapshot.vendorDisclaimersComplete
-    ) {
-      try {
-        const accepted =
-          Engine.context.KycController.state.sessions[VBA_KYC_VENDOR]
-            ?.vendorDisclaimersAccepted;
-        if (accepted?.disclaimerIds.length && !accepted.submitted) {
-          await Engine.context.KycController.recordVendorDisclaimers({
-            vendor: VBA_KYC_VENDOR,
-          });
-        }
-      } catch (error) {
-        Logger.error(error as Error, {
-          tags: { feature: 'vba-onboarding' },
-          context: {
-            name: 'useOpenVbaOnboarding',
-            data: { source, step: 'recordVendorDisclaimers' },
-          },
-        });
-      }
-    }
-    const snapshot: VbaOnboardingSnapshot = {
-      ...accountSnapshot,
-      vendorTermsAcceptedLocally:
-        accountSnapshot.vendorDisclaimersComplete ||
-        Boolean(
-          Engine.context.KycController.state.sessions[VBA_KYC_VENDOR]
-            ?.vendorDisclaimersAccepted?.disclaimerIds.length,
-        ),
-    };
+    // kyc-api decides the KYC step. Hydrate is still read for the account.
+    const step = applyVbaDevStepOverride(
+      await Engine.context.KycController.refreshStep({
+        vendor: VBA_KYC_VENDOR,
+      }),
+    );
     recordVbaOnboardingSnapshot(snapshot);
     endVbaCufChildTrace(hydrateTraceId, true);
-    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    const funnelDestination = getVbaDestinationForStep(step, snapshot);
     // An existing autoramp opens the account only when the funnel would send
     // the user back to vendor terms or email, as it does with no KYC session.
     const hasExistingAccount =
@@ -469,6 +447,7 @@ export const resolveVbaOnboarding = async (
       status: 'ready',
       destinationId: hasExistingAccount ? 'complete' : funnelDestination,
       snapshot,
+      step,
     };
   } catch (error) {
     endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
@@ -512,7 +491,7 @@ export const useOpenVbaOnboarding = (
 
       try {
         const canReenterSumSub =
-          retryRejectedKyc && resolved.snapshot.kycStatus === 'retry';
+          retryRejectedKyc && resolved.step === 'kyc_retry';
         const destinationId =
           canReenterSumSub && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
@@ -520,6 +499,7 @@ export const useOpenVbaOnboarding = (
         Logger.log('[vba-onboarding] resume', {
           source,
           snapshot: resolved.snapshot,
+          step: resolved.step,
           destinationId,
         });
         if (canReenterSumSub && destinationId === 'identityVerification') {
