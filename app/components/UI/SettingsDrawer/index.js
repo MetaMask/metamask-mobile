@@ -53,10 +53,6 @@ const createStyles = (colors) =>
 const propTypes = {
   title: PropTypes.string,
   /**
-   * Additional descriptive text about this option
-   */
-  description: PropTypes.string,
-  /**
    * Handler called when this drawer is pressed
    */
   onPress: PropTypes.func,
@@ -81,7 +77,6 @@ const propTypes = {
 /**
  * @param {object} props
  * @param {any} props.title
- * @param {any} [props.description]
  * @param {() => void} props.onPress
  * @param {string} [props.warning]
  * @param {boolean} [props.renderArrowRight]
@@ -90,7 +85,6 @@ const propTypes = {
  */
 const SettingsDrawer = ({
   title,
-  description,
   onPress,
   warning,
   renderArrowRight = true,
@@ -110,15 +104,6 @@ const SettingsDrawer = ({
           >
             {title}
           </Text>
-          {description && (
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {description}
-            </Text>
-          )}
           {warning && (
             <View style={styles.warningTag}>
               <Icon
