@@ -120,7 +120,9 @@ describe('Settings', () => {
       state: initialState,
     });
 
-    expect(getByTestId(SettingsViewSelectorsIDs.GROUP_GENERAL)).toBeOnTheScreen();
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_GENERAL),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY),
     ).toBeOnTheScreen();
