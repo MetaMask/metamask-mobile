@@ -291,22 +291,6 @@ const CardHome = () => {
     return [{ type: 'kyc_pending', dismissable: false }, ...dataAlerts];
   }, [data?.alerts, isSignedOutKycPending]);
 
-  // Still in identity review with no signed-in Card account: show the pending
-  // banner and the waiting layout (no Add funds or card management).
-  const isSignedOutKycPending = useSignedOutKycPending(
-    route.params?.fromKycPending,
-  );
-  const alerts = useMemo<CardAlert[]>(() => {
-    const dataAlerts = data?.alerts ?? [];
-    if (
-      !isSignedOutKycPending ||
-      dataAlerts.some((a) => a.type === 'kyc_pending')
-    ) {
-      return dataAlerts;
-    }
-    return [{ type: 'kyc_pending', dismissable: false }, ...dataAlerts];
-  }, [data?.alerts, isSignedOutKycPending]);
-
   const effectiveActions = useMemo<CardAction[]>(() => {
     if (isSignedOutKycPending) {
       return [];
