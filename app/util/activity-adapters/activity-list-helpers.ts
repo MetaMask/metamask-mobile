@@ -1,4 +1,3 @@
-import { KnownCaipNamespace } from '@metamask/utils';
 import { strings } from '../../../locales/i18n';
 import { mergeActivityItemSponsoredFees } from './fees';
 import type { ActivityListItem, TokenAmount } from './types';
@@ -210,13 +209,7 @@ export function enrichTokenFromApi(
     return token;
   }
   const symbol = token.symbol ?? listToken.symbol;
-  // Keyring (non-EVM) amounts are already human-readable. Filling API decimals
-  // would treat "1" SOL as 1 lamport and collapse fiat totals to $0.00.
-  const isEvmAsset = token.assetId
-    .toLowerCase()
-    .startsWith(`${KnownCaipNamespace.Eip155}:`);
-  const decimals =
-    token.decimals ?? (isEvmAsset ? listToken.decimals : undefined);
+  const decimals = token.decimals ?? listToken.decimals;
   return {
     ...token,
     ...(symbol ? { symbol } : {}),
