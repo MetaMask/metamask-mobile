@@ -19,7 +19,7 @@ import { calculateProjectedEarnings } from '../utils/projections';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from './useMoneyNavigation';
+import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 

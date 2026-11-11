@@ -6,7 +6,7 @@ import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
 import { useOnboardingStep } from '../../hooks/useOnboardingStep';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
@@ -65,7 +65,7 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
