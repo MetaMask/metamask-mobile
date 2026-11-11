@@ -550,6 +550,12 @@ const validateSource = (value: unknown): boolean => {
   return false;
 };
 
+/** The invariants this build implements (`profileTemplates.ts`). Declared
+ * ahead of the validators that read it: trusting a profile's invariant list
+ * is what makes an unknown one a load-time refusal rather than a signing-time
+ * surprise. */
+const KNOWN_INVARIANTS: readonly string[] = ['binary-limit-order-v1'];
+
 const PATH_PATTERN = /^\/[a-z0-9/{}_-]+$/iu;
 
 const validateHttpRfc9421Payload = (
@@ -624,9 +630,6 @@ const validateHttpRfc9421Payload = (
   }
   return true;
 };
-
-/** The invariants this build implements (`profileTemplates.ts`). */
-const KNOWN_INVARIANTS: readonly string[] = ['binary-limit-order-v1'];
 
 const validatePayload = (value: unknown): boolean => {
   if (!isRecord(value)) {
