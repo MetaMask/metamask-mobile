@@ -54,6 +54,7 @@ describe('useCopyClipboard', () => {
       expect.objectContaining({
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       }),
     );
   });

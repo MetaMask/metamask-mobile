@@ -28,6 +28,7 @@ function useCopyClipboard() {
         title: alertText ?? CopyClipboardAlertMessage.default(),
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
       setTimeout(() => handleProtectWalletModalVisible(), 2000);
     },
