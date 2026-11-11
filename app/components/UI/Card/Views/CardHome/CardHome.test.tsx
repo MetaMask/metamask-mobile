@@ -342,11 +342,18 @@ let mockProvisioningView:
   | 'hidden'
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
+let mockIsSignedOutKycPending = false;
+jest.mock('./hooks/useSignedOutKycPending', () => ({
+  __esModule: true,
+  default: () => mockIsSignedOutKycPending,
+}));
+
 jest.mock('./hooks/useCardEnableCard', () => ({
   useCardEnableCard: () => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
+    isEnableCardPending: false,
   }),
 }));
 
@@ -1334,6 +1341,7 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCanEnableCard = false;
+    mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
     jest.clearAllMocks();
@@ -4669,6 +4677,54 @@ describe('CardHome Component', () => {
         expect(
           screen.getByText('card.card_home.warnings.kyc_pending.title'),
         ).toBeOnTheScreen();
+      });
+    });
+
+    describe('Signed out while identity is in review', () => {
+      it('shows the pending banner and the waiting layout', () => {
+        // Given: still in onboarding, no signed-in Card account
+        mockIsSignedOutKycPending = true;
+        setupMockSelectors({ isAuthenticated: false });
+
+        // When: component renders
+        render();
+
+        // Then: the pending banner shows and nothing card-ready does
+        expect(
+          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+        // The card art is muted to 50% opacity
+        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
+          opacity: 0.5,
+        });
+      });
+
+      it('does not show the pending banner when signed out and not in review', () => {
+        // Given: signed out, nothing pending
+        setupMockSelectors({ isAuthenticated: false });
+
+        // When: component renders
+        render();
+
+        // Then: no pending banner
+        expect(
+          screen.queryByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeNull();
+        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).not.toHaveStyle({
+          opacity: 0.5,
+        });
       });
     });
 

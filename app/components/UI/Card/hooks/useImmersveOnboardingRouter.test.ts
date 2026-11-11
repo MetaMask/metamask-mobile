@@ -5,8 +5,37 @@ import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
 import Routes from '../../../../constants/navigation/Routes';
 import type { ImmersveNextAction } from '../util/immersvePrerequisites';
 
+let mockSelectedCountry: string | null = null;
+let mockCountryFunding: Record<string, { source: string }> = {};
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useStore: () => ({
+    getState: () => ({}),
+  }),
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectCardSelectedCountry: () => mockSelectedCountry,
+}));
+
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  selectCardImmersveCountryFunding: () => mockCountryFunding,
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, { source?: string }> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return countryFunding[country.toUpperCase()] ?? null;
+  },
+  isMoneyAccountFundingChannel: (
+    channel: { source?: string } | null | undefined,
+  ) => channel?.source === 'moneyAccount',
 }));
 
 jest.mock('react', () => ({
@@ -22,11 +51,12 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockAddProperties = jest.fn(() => ({ build: jest.fn() }));
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnValue({ build: jest.fn() }),
+      addProperties: mockAddProperties,
     })),
   }),
 }));
@@ -60,6 +90,8 @@ const getRoute = () => {
 describe('useImmersveOnboardingRouter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedCountry = null;
+    mockCountryFunding = {};
     mockRecordCardActivated.mockResolvedValue(undefined);
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
@@ -130,6 +162,59 @@ describe('useImmersveOnboardingRouter', () => {
       Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
       { countryKey: 'GB', fundingAddress: '0xFunding' },
     );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        destination: Routes.CARD.ONBOARDING.FUNDING_APPROVAL,
+      }),
+    );
+  });
+
+  it('routes Money account funding to Card Home', () => {
+    mockCountryFunding = { NZ: { source: 'moneyAccount' } };
+
+    getRoute()(
+      {
+        type: 'funding',
+        write: {
+          abi: [],
+          contractAddress: '0x',
+          method: 'approve',
+          params: {},
+        },
+      },
+      { countryKey: 'NZ' },
+    );
+
+    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('spending');
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ destination: Routes.CARD.HOME }),
+    );
+  });
+
+  it('uses the selected country when funding has no countryKey', () => {
+    mockSelectedCountry = 'NZ';
+    mockCountryFunding = { NZ: { source: 'moneyAccount' } };
+
+    getRoute()({
+      type: 'funding',
+      write: {
+        abi: [],
+        contractAddress: '0x',
+        method: 'approve',
+        params: {},
+      },
+    });
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('resets to Card Home for funding when the user already has a card', () => {

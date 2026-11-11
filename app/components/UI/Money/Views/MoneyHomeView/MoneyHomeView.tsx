@@ -92,6 +92,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
@@ -127,7 +128,7 @@ import {
 } from '../../../Card/util/metrics';
 
 import { TraceName } from '../../../../../util/trace';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   useMoneyHomePerformance,
@@ -927,22 +928,30 @@ const MoneyHomeView = () => {
 
   const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // Money Account entries are already valued in USD. Other Card tokens report
+  const isCardBalanceLoading =
+    cardPrimaryToken?.balanceFiat === TOKEN_BALANCE_LOADING;
+  // Money Account entries are already valued in USD. USD-pegged tokens use
+  // their token amount, which is already dollars. Other Card tokens report
   // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const rawFiat = cardPrimaryToken?.rawFiatNumber;
-    const usd = cardPrimaryToken?.isMoneyAccountEntry
-      ? rawFiat
-      : convertSelectedFiatToUsd(rawFiat, currencyRates);
-    return usd === undefined
-      ? formattedZero
+    if (!cardPrimaryToken || cardPrimaryToken.isUnavailable) {
+      return '—';
+    }
+    let usd: number | undefined;
+    if (cardPrimaryToken.isMoneyAccountEntry) {
+      usd = cardPrimaryToken.rawFiatNumber;
+    } else if (cardPrimaryToken.assumeUsdParity) {
+      usd = cardPrimaryToken.rawTokenBalance;
+    } else {
+      usd = convertSelectedFiatToUsd(
+        cardPrimaryToken.rawFiatNumber,
+        currencyRates,
+      );
+    }
+    return usd === undefined || Number.isNaN(usd)
+      ? '—'
       : moneyFormatUsd(new BigNumber(usd));
-  }, [
-    cardPrimaryToken?.isMoneyAccountEntry,
-    cardPrimaryToken?.rawFiatNumber,
-    currencyRates,
-    formattedZero,
-  ]);
+  }, [cardPrimaryToken, currencyRates]);
 
   const cardState = deriveCardState({
     isCardholder,
@@ -970,7 +979,8 @@ const MoneyHomeView = () => {
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
-            isBalanceStale={showBalanceUnavailableBanner}
+            isBalanceLoading={isCardBalanceLoading}
+            isBalanceStale={cardHomeDataStatus === 'error'}
             privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}

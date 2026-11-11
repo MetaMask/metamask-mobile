@@ -36,6 +36,7 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { strings } from '../../../../../../locales/i18n';
+import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -43,7 +44,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useActiveGroupCryptoPresence } from '../../hooks/useActiveGroupCryptoPresence';
 import {
   getMoneyHomeCardDevOverrideById,
@@ -463,7 +464,7 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
@@ -4249,7 +4250,7 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('$100.00');
     });
 
-    it('falls back to formatted zero when card home data has no primary token', () => {
+    it('shows a dash when card home data has no primary token', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
       mockUseCardHomeData.mockReturnValue({
@@ -4261,7 +4262,101 @@ describe('MoneyHomeView', () => {
 
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
-      ).toHaveTextContent('$0.00');
+      ).toHaveTextContent('—');
+    });
+
+    it('shows a dash when the card balance is unavailable', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '',
+          rawFiatNumber: undefined,
+          isMoneyAccountEntry: true,
+          isUnavailable: true,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />, {
+        state: eurCurrencyRatesState,
+      });
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('—');
+    });
+
+    it('shows a skeleton while the Money account card balance is still loading', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: TOKEN_BALANCE_LOADING,
+          rawFiatNumber: undefined,
+          isMoneyAccountEntry: true,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('uses the token amount for a USD-pegged card balance before rates are ready', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '',
+          rawFiatNumber: undefined,
+          rawTokenBalance: 25,
+          assumeUsdParity: true,
+          isMoneyAccountEntry: false,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$25.00');
+    });
+
+    it('marks the card balance stale only when card home data failed', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '$100.00',
+          rawFiatNumber: 100,
+          isMoneyAccountEntry: true,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+      mockSelectCardHomeDataStatus.mockReturnValue('success');
+
+      const ready = renderWithProvider(<MoneyHomeView />);
+      const readyStyle = JSON.stringify(
+        ready.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
+      );
+
+      mockSelectCardHomeDataStatus.mockReturnValue('error');
+      const failed = renderWithProvider(<MoneyHomeView />);
+      const failedStyle = JSON.stringify(
+        failed.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE).props.style,
+      );
+
+      expect(failedStyle).not.toBe(readyStyle);
     });
 
     it('renders the Money Account USD balance when currency rates are unavailable', () => {

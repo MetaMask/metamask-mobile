@@ -14,6 +14,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Skeleton,
   Spinner,
   Text,
   TextColor,
@@ -60,6 +61,11 @@ interface MoneyMetaMaskCardProps {
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /**
+   * When true, the spendable amount is still being read. Manage mode shows a
+   * skeleton instead of a balance.
+   */
+  isBalanceLoading?: boolean;
   /** Whether the available card balance should be masked (manage mode only). */
   privacyMode?: boolean;
   /**
@@ -218,11 +224,13 @@ const LinkContent = ({
 
 const ManageContent = ({
   cardBalance,
+  isBalanceLoading,
   isBalanceStale,
   showMetalCard,
   privacyMode,
 }: {
   cardBalance: string;
+  isBalanceLoading: boolean;
   isBalanceStale: boolean;
   showMetalCard: boolean;
   privacyMode: boolean;
@@ -237,18 +245,26 @@ const ManageContent = ({
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={
-            isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
-        >
-          {cardBalance}
-        </SensitiveText>
+        {isBalanceLoading ? (
+          <Skeleton
+            height={24}
+            width={100}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON}
+          />
+        ) : (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
+            }
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+          >
+            {cardBalance}
+          </SensitiveText>
+        )}
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -280,6 +296,7 @@ const MoneyMetaMaskCard = ({
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
+  isBalanceLoading = false,
   isBalanceStale = false,
   privacyMode = false,
   apy,
@@ -425,6 +442,7 @@ const MoneyMetaMaskCard = ({
     content = (
       <ManageContent
         cardBalance={cardBalance ?? ''}
+        isBalanceLoading={isBalanceLoading}
         isBalanceStale={isBalanceStale}
         showMetalCard={showMetalCard}
         privacyMode={privacyMode}

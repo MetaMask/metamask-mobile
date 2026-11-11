@@ -231,6 +231,24 @@ describe('MoneyMetaMaskCard', () => {
     expect(onLinkPress).not.toHaveBeenCalled();
   });
 
+  it('shows a skeleton instead of the manage balance while it is loading', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+        isBalanceLoading
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders manage balance and cashback', () => {
     render(
       <MoneyMetaMaskCard
