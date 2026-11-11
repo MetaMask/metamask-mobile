@@ -557,9 +557,7 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rpcMethods: any = {
+    const rpcMethods: Record<string, () => unknown> = {
       wallet_revokePermissions: async () =>
         await methodHandlers[MethodNames.RevokePermissions].implementation(
           req,
@@ -587,9 +585,7 @@ export const getRpcMethodMiddleware = ({
           },
         ),
       wallet_getPermissions: async () =>
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        new Promise<any>((resolve) => {
+        new Promise<void>((resolve) => {
           const handle = methodHandlers[
             MethodNames.GetPermissions
           ].implementation(
@@ -613,9 +609,7 @@ export const getRpcMethodMiddleware = ({
           });
         }),
       wallet_requestPermissions: async () =>
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        new Promise<any>((resolve, reject) => {
+        new Promise<void>((resolve, reject) => {
           methodHandlers[MethodNames.RequestPermissions]
             .implementation(
               req,
