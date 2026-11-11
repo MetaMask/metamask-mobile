@@ -71,6 +71,7 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
 import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
@@ -233,6 +234,8 @@ const MyProfileView: React.FC = () => {
       postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
       isActive: isFocused && !isOwner,
     });
+  const { onPositionPress: handlePostPositionPress } =
+    useSocialFeedPostNavigation('my_profile');
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -1120,6 +1123,7 @@ const MyProfileView: React.FC = () => {
                       refreshRef={postsFeedRef}
                       filterPost={filterProfilePost}
                       onCopyTrade={handleSpotCopyTrade}
+                      onPositionPress={handlePostPositionPress}
                       emptyState={
                         <ProfilePostsEmptyState message={postsEmptyMessage} />
                       }
