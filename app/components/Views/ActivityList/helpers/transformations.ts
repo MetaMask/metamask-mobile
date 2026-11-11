@@ -4,7 +4,6 @@
  * Local EVM transactions are handled separately by useLocalActivityItems.
  */
 import {
-  mapApiTransaction,
   mapKeyringTransaction,
   mapV5ApiTransaction,
 } from '@metamask/client-utils';

@@ -28,7 +28,6 @@ function transactionsResponse(
   v4Handler: () => { statusCode: number; json: object },
 ) {
   const target = proxiedUrl(request.url) || request.url;
-  // Activity's v5 select reads transaction.tx. A v4 body throws and errors the query.
   if (target.includes('/v5/')) {
     return {
       statusCode: 200,

@@ -1200,11 +1200,6 @@ export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   pageInfo: { hasNextPage: false, cursor: null, count: 34 },
 };
 
-/**
- * Empty page for GET /v5/multiaccount/transactions.
- * Activity reads EVM history from v5. Tests that need rows supply their own
- * mock; every other test only needs a valid page so the request is not live.
- */
 export const ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE = {
   data: [],
   pageInfo: { count: 0, hasNextPage: false },
