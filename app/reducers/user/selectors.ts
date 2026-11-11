@@ -67,6 +67,9 @@ export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
 export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
+export const selectMoneySplashSeen = (state: RootState) =>
+  state.user?.moneySplashSeen ?? false;
+
 /**
  * Selects the moneyEarnBannerDismissedTokens state
  */
