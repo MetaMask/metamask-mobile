@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonsAlignment,
   Checkbox,
   Text,
@@ -21,6 +20,8 @@ import {
   setDataSharingPreference,
   setShouldShowConsentSheet,
 } from '../../../actions/security';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface SupportConsentSheetParams {
   onConfirm: () => void;
@@ -34,6 +35,7 @@ export interface SupportConsentSheetParams {
  * Settings > Security & privacy > "Remember my support preference".
  */
 const SupportConsentSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<ParamListBase, string>>();
@@ -70,12 +72,13 @@ const SupportConsentSheet = () => {
 
   return (
     <BottomSheet goBack={navigation.goBack} testID="support-consent-sheet">
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleDismiss}
         closeButtonProps={{ testID: 'support-consent-sheet-close-button' }}
       >
         {strings('support_consent.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Text variant={TextVariant.BodyMd} twClassName="px-4 pb-4">
         {strings('support_consent.description')}
       </Text>

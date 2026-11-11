@@ -1,6 +1,5 @@
 import {
   Box,
-  BottomSheetHeader,
   Button,
   ButtonVariant,
   Text,
@@ -12,6 +11,9 @@ import { strings } from '../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface RemoveTokenBottomSheetProps {
   isVisible: boolean;
@@ -24,6 +26,7 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
   onClose,
   onRemove,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleSheetClose = useCallback(() => {
@@ -49,11 +52,14 @@ const RemoveTokenBottomSheet: React.FC<RemoveTokenBottomSheetProps> = ({
           ref={sheetRef}
           onClose={onClose}
         >
-          <BottomSheetHeader onClose={handleSheetClose}>
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
+            onClose={handleSheetClose}
+          >
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.remove_token_title')}
             </Text>
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
 
           <Box twClassName="pt-4 mx-4 flex gap-4">
             <Button

@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -18,6 +17,9 @@ import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { getBetaSupportUrl } from '../../utils';
 import { TAX_FORM_CONTACT_US_SHEET_TEST_IDS } from './TaxFormContactUsSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TaxFormContactUsSheetParams {
   title: string;
@@ -26,6 +28,7 @@ export interface TaxFormContactUsSheetParams {
 }
 
 const TaxFormContactUsSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const params = route.params as TaxFormContactUsSheetParams;
@@ -59,12 +62,13 @@ const TaxFormContactUsSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={TAX_FORM_CONTACT_US_SHEET_TEST_IDS.TITLE}
       >
         {params.title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}

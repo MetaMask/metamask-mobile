@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import { Modal } from 'react-native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
 } from '@metamask/design-system-react-native';
@@ -14,8 +13,12 @@ import { strings } from '../../../../../../../locales/i18n';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { GasFeeTokenListItem } from '../gas-fee-token-list-item';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const transactionMeta = useTransactionMetadataRequest();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -69,12 +72,13 @@ export function GasFeeTokenModal({ onClose }: { onClose?: () => void }) {
         keyboardAvoidingViewEnabled={false}
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleRequestClose}
           closeButtonProps={{ testID: 'close-button' }}
         >
           {strings('gas_fee_token_modal.title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box twClassName="flex flex-col">
           {gasFeeTokenAddresses.map((tokenAddress: Hex) => (
             <GasFeeTokenListItem

@@ -11,7 +11,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
@@ -28,6 +27,8 @@ import { CaipChainId } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { isTestNet } from '../../../../../util/networks';
 import { MultichainAddressRow } from '../../../../../component-library/components-temp/MultichainAccounts';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RouteParams {
   accountGroupId: AccountGroupId;
@@ -50,6 +51,7 @@ interface FlattenedAddressItem {
 }
 
 const RewardOptInAccountGroupModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
@@ -374,7 +376,9 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       onClose={handleDismiss}
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
-        <HeaderStandard
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
           title={accountGroupContext?.metadata.name}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: 'header-close-button' }}

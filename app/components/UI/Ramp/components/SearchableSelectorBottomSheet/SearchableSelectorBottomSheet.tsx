@@ -14,13 +14,15 @@ import {
   BottomSheet,
   BottomSheetRef,
   FontWeight,
-  HeaderStandard,
   Text,
   TextFieldSearch,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './SearchableSelectorBottomSheet.styles';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface SearchableSelectorBottomSheetProps<T> {
   /**
@@ -42,7 +44,9 @@ export interface SearchableSelectorBottomSheetProps<T> {
   renderItem: ListRenderItem<T>;
   keyExtractor: (item: T) => string;
   extraData?: unknown;
-  closeButtonProps?: ComponentProps<typeof HeaderStandard>['closeButtonProps'];
+  closeButtonProps?: ComponentProps<
+    typeof HeaderStandardGlass
+  >['closeButtonProps'];
 }
 
 function SearchableSelectorBottomSheet<T>({
@@ -56,6 +60,7 @@ function SearchableSelectorBottomSheet<T>({
   extraData,
   closeButtonProps,
 }: Readonly<SearchableSelectorBottomSheetProps<T>>) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const listRef = useRef<FlatList<T>>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const [searchString, setSearchString] = useState('');
@@ -97,7 +102,9 @@ function SearchableSelectorBottomSheet<T>({
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={closeButtonProps}

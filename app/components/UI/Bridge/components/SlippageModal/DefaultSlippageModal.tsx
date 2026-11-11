@@ -8,7 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
 } from '@metamask/design-system-react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
@@ -18,6 +17,9 @@ import { AUTO_SLIPPAGE_VALUE } from './constants';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
 import { CaipChainId, Hex } from '@metamask/utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface DefaultSlippageModalContentProps {
   initialSlippage?: SlippageType;
@@ -34,6 +36,7 @@ export const DefaultSlippageModalContent = ({
   onSubmitSlippage,
   onOpenCustomSlippage,
 }: DefaultSlippageModalContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
   const [selectedSlippage, setSelectedSlippage] = useState<
@@ -82,7 +85,9 @@ export const DefaultSlippageModalContent = ({
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('bridge.slippage')}
         onClose={handleClose}
         closeButtonProps={{

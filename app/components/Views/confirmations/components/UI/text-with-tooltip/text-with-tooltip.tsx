@@ -10,13 +10,15 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
   TextProps,
 } from '@metamask/design-system-react-native';
 import styleSheet from './text-with-tooltip.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;
@@ -36,6 +38,7 @@ const TextWithTooltip = ({
   tooltip,
   tooltipTestId,
 }: TextWithTooltipProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isTooltipVisible, setTooltipVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -72,14 +75,15 @@ const TextWithTooltip = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={handleRequestClose}
               closeButtonProps={{
                 testID: tooltipTestId ?? 'tooltipTestId',
               }}
             >
               {label}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box twClassName="flex flex-col">
               <View style={styles.tooltipContext}>
                 <Text style={styles.text}>{tooltip}</Text>

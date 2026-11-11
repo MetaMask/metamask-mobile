@@ -8,7 +8,6 @@ import React, {
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
-  HeaderStandard,
   IconName,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -35,6 +34,9 @@ import {
   resetProviderToken,
 } from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Transak native provider code. Provider ids are canonical (non-prefixed), so
@@ -52,6 +54,7 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 );
 
 function SettingsModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
@@ -199,7 +202,9 @@ function SettingsModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}
       />

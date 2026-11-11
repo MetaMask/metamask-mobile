@@ -10,7 +10,6 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './ConnectionDetails.styles';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Text,
   TextVariant,
@@ -18,6 +17,9 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface ConnectionDetailsProps {
   route: {
@@ -28,6 +30,7 @@ interface ConnectionDetailsProps {
 }
 
 const ConnectionDetails = (props: ConnectionDetailsProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { connectionDateTime = 123456789 } = props.route.params;
 
   const { styles } = useStyles(styleSheet, {});
@@ -53,9 +56,9 @@ const ConnectionDetails = (props: ConnectionDetailsProps) => {
   return (
     <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.container}>
-        <BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('permissions.connection_details_title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View style={styles.descriptionContainer}>
           <Text variant={TextVariant.BodyMd}>
             {strings('permissions.connection_details_description', {

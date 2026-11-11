@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ButtonSemantic,
   ButtonSemanticSeverity,
@@ -13,6 +12,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ProfileOptionsSheetSelectorsIDs } from './ProfileOptionsSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ProfileOptionsSheetProps {
   /** Trader display name, shown as `@name` on the Block button. */
@@ -27,6 +29,7 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
   onBlock,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const dismiss = useCallback(() => {
@@ -45,14 +48,15 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
       onClose={onClose}
       testID={ProfileOptionsSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={dismiss}
         closeButtonProps={{
           testID: ProfileOptionsSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('social_leaderboard.trader_profile.profile_options')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-4" gap={4}>
         <Text
           variant={TextVariant.BodyMd}

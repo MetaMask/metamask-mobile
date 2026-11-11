@@ -22,6 +22,11 @@ const API_SHARE_URL = 'https://link.metamask.io/home?ref=VANITY';
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 // The design-system sheet is mocked globally without forwarding its props, so
@@ -75,7 +80,12 @@ jest.mock('@metamask/design-system-react-native', () => {
   );
   BottomSheet.displayName = 'BottomSheet';
 
-  return { ...actual, BottomSheet };
+  return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
+    ...actual,
+    BottomSheet,
+  };
 });
 
 jest.mock('react-native-qrcode-svg', () => {

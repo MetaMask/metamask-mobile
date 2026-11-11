@@ -1,7 +1,6 @@
 import {
   ActionListItem,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -40,6 +39,9 @@ import {
   getSocialEntryReportReasonTestId,
   SocialEntryOptionsBottomSheetSelectorsIDs,
 } from './SocialEntryOptionsBottomSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export enum SocialEntryReportReason {
   Spam = 'spam',
@@ -90,6 +92,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
   canReport = true,
   canBlockUser = true,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const [showReportReasons, setShowReportReasons] = useState(false);
@@ -138,7 +141,8 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                 : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
             }
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={onClose}
               closeButtonProps={{
                 testID: showReportReasons
@@ -151,7 +155,7 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
                   ? 'social_leaderboard.entry_options.report_reason_title'
                   : 'social_leaderboard.entry_options.title',
               )}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             {showReportReasons ? (
               <Box twClassName="px-4 pb-10">
                 <Text

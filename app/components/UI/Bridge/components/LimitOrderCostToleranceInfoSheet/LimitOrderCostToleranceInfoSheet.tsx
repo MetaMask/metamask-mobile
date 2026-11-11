@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Text,
   TextColor,
@@ -11,10 +10,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { LimitOrderCostToleranceInfoSheetSelectorsIDs } from './LimitOrderCostToleranceInfoSheet.testIds';
 import type { LimitOrderCostToleranceInfoSheetProps } from './LimitOrderCostToleranceInfoSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const LimitOrderCostToleranceInfoSheet = ({
   goBack,
 }: LimitOrderCostToleranceInfoSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -27,14 +30,15 @@ const LimitOrderCostToleranceInfoSheet = ({
       testID={LimitOrderCostToleranceInfoSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: LimitOrderCostToleranceInfoSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.cost_tolerance')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text
           variant={TextVariant.BodyMd}

@@ -8,7 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { CaipChainId, Hex } from '@metamask/utils';
 import Keypad from '../../../../Base/Keypad';
@@ -18,6 +17,9 @@ import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
 import { useCustomSlippageCursor } from './useCustomSlippageCursor';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CustomSlippageModalContentProps {
   initialSlippage?: string;
@@ -32,6 +34,7 @@ export const CustomSlippageModalContent = ({
   destChainId,
   onConfirmSlippage,
 }: CustomSlippageModalContentProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
   const [inputAmount, setInputAmount] = useState(initialSlippage ?? '0');
@@ -99,7 +102,9 @@ export const CustomSlippageModalContent = ({
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('bridge.slippage')}
         onClose={handleClose}
         closeButtonProps={{

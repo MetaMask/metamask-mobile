@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -9,7 +9,6 @@ import {
   AvatarIconSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -75,6 +74,8 @@ import {
   getPostTradeSharedAnalyticsProperties,
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -140,6 +141,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 };
 
 export const PostTradeBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -427,13 +429,14 @@ export const PostTradeBottomSheet = () => {
       goBack={() => navigation.goBack()}
       onClose={handleDismiss}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
         twClassName="pt-4 h-auto"
       >
         <StatusIcon status={status} />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box style={styles.content}>
         <Text variant={TextVariant.HeadingLg} style={styles.title}>
           {strings(`bridge.post_trade_modal.${titleType}_${status}`)}

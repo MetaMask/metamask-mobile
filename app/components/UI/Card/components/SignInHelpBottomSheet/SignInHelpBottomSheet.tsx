@@ -9,7 +9,6 @@ import {
   ButtonVariant,
   ButtonSize,
   BottomSheet,
-  BottomSheetHeader,
   Icon,
   IconName,
   IconSize,
@@ -18,6 +17,9 @@ import {
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createSignInHelpNavigationDetails = createNavigationDetails(
   Routes.CARD.MODALS.ID,
@@ -25,6 +27,7 @@ export const createSignInHelpNavigationDetails = createNavigationDetails(
 );
 
 const SignInHelpBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
 
@@ -43,11 +46,11 @@ const SignInHelpBottomSheet = () => {
       keyboardAvoidingViewEnabled={false}
       testID="card-sign-in-help-sheet"
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>
           {strings('card.card_authentication.sign_in_help_title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-8 gap-5">
         <Box twClassName="flex-row gap-3">

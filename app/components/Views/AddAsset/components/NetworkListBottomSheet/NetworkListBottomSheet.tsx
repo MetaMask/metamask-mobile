@@ -8,7 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
   CellVariant,
@@ -25,6 +25,8 @@ import {
 } from '@metamask/multichain-network-controller';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
@@ -77,6 +79,7 @@ export default function NetworkListBottomSheet({
   sheetRef: React.RefObject<BottomSheetRef | null>;
   displayEvmNetworksOnly?: boolean;
 }) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
@@ -139,7 +142,9 @@ export default function NetworkListBottomSheet({
       onClose={() => setOpenNetworkSelector(false)}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {

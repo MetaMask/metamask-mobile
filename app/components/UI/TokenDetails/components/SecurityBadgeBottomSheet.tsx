@@ -10,7 +10,6 @@ import {
   Button,
   ButtonVariant,
   ButtonIconSize,
-  BottomSheetHeader,
   FontWeight,
   Text as DSText,
   TextVariant as DSTextVariant,
@@ -32,6 +31,9 @@ import type { TokenSecurityFeature } from '../../SecurityTrust/types';
 import { SecurityBanner } from './SecurityBanner';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export interface SecurityBadgeBottomSheetParams {
   icon: IconName;
@@ -59,6 +61,7 @@ type SecurityBadgeBottomSheetRouteProp = RouteProp<
 >;
 
 const SecurityBadgeBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<SecurityBadgeBottomSheetRouteProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -171,7 +174,8 @@ const SecurityBadgeBottomSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ size: ButtonIconSize.Sm }}
       />

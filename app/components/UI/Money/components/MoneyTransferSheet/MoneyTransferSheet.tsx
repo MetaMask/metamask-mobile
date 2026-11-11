@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   IconName,
   Text,
   TextVariant,
@@ -39,10 +38,13 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type TransferAction = 'withdraw' | 'perps' | 'predict' | 'rescueSend';
 
 const MoneyTransferSheetContent = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -266,11 +268,14 @@ const MoneyTransferSheetContent = () => {
       testID={MoneyTransferSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.transfer_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>

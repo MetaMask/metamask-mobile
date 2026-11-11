@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FontWeight,
@@ -13,6 +12,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface UncountedPositionsSheetProps {
   onClose: () => void;
@@ -52,6 +54,7 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
   onClose,
   isOwner = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const insiderBodyKey = isOwner
     ? 'social_leaderboard.my_profile.not_counted_sheet_insider_body_owner'
     : 'social_leaderboard.my_profile.not_counted_sheet_insider_body';
@@ -70,14 +73,15 @@ const UncountedPositionsSheet: React.FC<UncountedPositionsSheetProps> = ({
       onClose={onClose}
       testID={MyProfileViewSelectorsIDs.UNCOUNTED_SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleDismiss}
         closeButtonProps={{
           testID: MyProfileViewSelectorsIDs.UNCOUNTED_SHEET_CLOSE,
         }}
       >
         {strings('social_leaderboard.my_profile.not_counted_sheet_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 gap-4 pb-6">
         <Explanation
           label={strings(

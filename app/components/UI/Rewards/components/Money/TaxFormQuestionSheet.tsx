@@ -3,7 +3,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -16,6 +15,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { selectSessionProfileId } from '../../../../../selectors/identity';
 import { useTaxDocumentation } from '../../hooks/useTaxDocumentation';
 import { TAX_FORM_QUESTION_SHEET_TEST_IDS } from './TaxFormQuestionSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TaxFormQuestionSheetParams {
   question: 'attestation' | 'us_activity';
@@ -27,6 +28,7 @@ export interface TaxFormQuestionSheetParams {
 }
 
 const TaxFormQuestionSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const params = route.params as TaxFormQuestionSheetParams;
@@ -57,12 +59,13 @@ const TaxFormQuestionSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={TAX_FORM_QUESTION_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE}
       >
         {params.title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}

@@ -3,7 +3,6 @@ import { AccessibilityInfo, Modal, StyleSheet } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonsAlignment,
   Text,
@@ -14,6 +13,9 @@ import {
 
 import { strings } from '../../../../../locales/i18n';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   sheetContent: {
@@ -40,6 +42,7 @@ const DisconnectXAccountSheet = ({
   onClose,
   onConfirm,
 }: DisconnectXAccountSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const dismiss = useCallback(() => {
@@ -92,9 +95,9 @@ const DisconnectXAccountSheet = ({
         goBack={onClose}
         testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET}
       >
-        <BottomSheetHeader onClose={dismiss}>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={dismiss}>
           {strings('manage_profile.x_account_disconnect_sheet_title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box twClassName="px-4 pb-4" gap={2} style={styles.sheetContent}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {body}

@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -12,6 +11,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RecurringOrderCancelSheetProps {
   isVisible: boolean;
@@ -28,6 +30,7 @@ export function RecurringOrderCancelSheet({
   onSuccess,
   isSubmitting,
 }: RecurringOrderCancelSheetProps) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -62,7 +65,8 @@ export function RecurringOrderCancelSheet({
       isInteractable={!isSubmitting}
       testID={RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID:
@@ -70,7 +74,7 @@ export function RecurringOrderCancelSheet({
         }}
       >
         {strings('bridge.recurring.cancel_confirmation_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text
           variant={TextVariant.BodySm}

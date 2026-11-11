@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   Text,
@@ -12,6 +11,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { HiddenPositionInfoSelectorsIDs } from './HiddenPositionInfo.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export interface HiddenPositionInfoProps {
   /** Called after the sheet finishes its close transition. */
@@ -21,6 +23,7 @@ export interface HiddenPositionInfoProps {
 const HiddenPositionInfo: React.FC<HiddenPositionInfoProps> = ({
   onDismiss,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const requestDismiss = useCallback(() => {
@@ -33,7 +36,8 @@ const HiddenPositionInfo: React.FC<HiddenPositionInfoProps> = ({
       onClose={onDismiss}
       testID={HiddenPositionInfoSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={requestDismiss}
         backButtonProps={{
           accessibilityLabel: strings('navigation.back'),
@@ -41,7 +45,7 @@ const HiddenPositionInfo: React.FC<HiddenPositionInfoProps> = ({
         }}
       >
         {strings('social_leaderboard.composer.empty_help')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pt-2 pb-4">
         <Text
           variant={TextVariant.BodySm}
