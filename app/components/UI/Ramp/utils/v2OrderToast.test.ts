@@ -57,6 +57,7 @@ describe('v2OrderToast', () => {
       );
       expect(result?.actionButtonLabel).toBe('Track');
       expect(result?.actionButtonOnPress).toBeDefined();
+      expect(result?.showCloseButton).toBe(false);
     });
 
     it('navigates to order details when Track button is pressed', () => {
@@ -101,6 +102,7 @@ describe('v2OrderToast', () => {
       expect(result?.title).toBe('Your purchase of 100.5 USDC was successful');
       expect(result?.description).toBe('Your USDC is now available');
       expect(result?.actionButtonLabel).toBeUndefined();
+      expect(result?.showCloseButton).toBe(false);
     });
 
     it('returns toast options for Failed status with danger severity', () => {
@@ -121,6 +123,7 @@ describe('v2OrderToast', () => {
       expect(result?.hasNoTimeout).toBe(false);
       expect(result?.title).toBe('Purchase of BTC failed');
       expect(result?.description).toBe('Please try again momentarily');
+      expect(result?.showCloseButton).toBe(false);
     });
 
     it('returns toast options for Cancelled status with warning severity', () => {
@@ -143,6 +146,7 @@ describe('v2OrderToast', () => {
       expect(result?.description).toBe(
         'Your purchase of DAI has been cancelled',
       );
+      expect(result?.showCloseButton).toBe(false);
     });
 
     it('returns null for Created status', () => {
@@ -194,6 +198,7 @@ describe('v2OrderToast', () => {
       const callArg = jest.mocked(toast).mock.calls[0][0];
       expect(callArg.severity).toBe(ToastSeverity.Success);
       expect(callArg.title).toBe('Your purchase of 1.5 ETH was successful');
+      expect(callArg.showCloseButton).toBe(false);
     });
 
     it('does not call toast for Created status', () => {

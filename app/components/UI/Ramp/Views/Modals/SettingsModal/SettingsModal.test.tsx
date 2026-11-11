@@ -290,6 +290,7 @@ describe('SettingsModal', () => {
         title: 'Successfully logged out',
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
@@ -312,6 +313,7 @@ describe('SettingsModal', () => {
         title: 'Error logging out',
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 

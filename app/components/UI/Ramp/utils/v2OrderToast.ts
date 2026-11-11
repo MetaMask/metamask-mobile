@@ -40,6 +40,7 @@ export function buildV2OrderToastOptions(
     case RampsOrderStatus.Pending: {
       return {
         hasNoTimeout: false,
+        showCloseButton: false,
         startAccessory: React.createElement(Spinner, {
           spinnerIconProps: { size: DsIconSize.Lg },
         }),
@@ -67,6 +68,7 @@ export function buildV2OrderToastOptions(
       return {
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
         title: strings('ramps_v2.notifications.purchase_completed_title', {
           amount: formattedAmount,
           cryptocurrency,
@@ -84,6 +86,7 @@ export function buildV2OrderToastOptions(
       return {
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
         title: strings('ramps_v2.notifications.purchase_failed_title', {
           cryptocurrency,
         }),
@@ -97,6 +100,7 @@ export function buildV2OrderToastOptions(
       return {
         severity: ToastSeverity.Warning,
         hasNoTimeout: false,
+        showCloseButton: false,
         title: strings('ramps_v2.notifications.purchase_cancelled_title'),
         description: strings(
           'ramps_v2.notifications.purchase_cancelled_description',

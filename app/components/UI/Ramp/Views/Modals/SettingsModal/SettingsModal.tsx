@@ -154,6 +154,7 @@ function SettingsModal() {
         ),
         severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     } catch (error) {
       Logger.error(error as Error, 'Error logging out from provider:');
@@ -163,6 +164,7 @@ function SettingsModal() {
         ),
         severity: ToastSeverity.Danger,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     }
   }, [setSelectedProvider, trackEvent, createEventBuilder]);
