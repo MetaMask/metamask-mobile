@@ -653,7 +653,8 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         'after' in recoveryResult ||
         'allSrpsRecovered' in recoveryResult ||
         'identifierType' in recoveryResult ||
-        'action' in recoveryResult
+        'action' in recoveryResult ||
+        'socialLoginSucceeded' in recoveryResult
       ) {
         throw new Error('Unexpected recovery result');
       }
