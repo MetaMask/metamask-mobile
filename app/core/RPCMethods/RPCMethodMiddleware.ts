@@ -7,14 +7,11 @@ import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
-import {
-  getPermissionsHandler,
-  requestPermissionsHandler,
-  revokePermissionsHandler,
-} from '@metamask/eip1193-permission-middleware';
+import { methodHandlers } from '@metamask/eip1193-permission-middleware';
 import RPCMethods from './index.js';
 import { toHex } from '@metamask/controller-utils';
 import {
+  MethodNames,
   PermissionController,
   PermissionDoesNotExistError,
   RequestedPermissions,
@@ -564,7 +561,7 @@ export const getRpcMethodMiddleware = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
       wallet_revokePermissions: async () =>
-        await revokePermissionsHandler.implementation(
+        await methodHandlers[MethodNames.RevokePermissions].implementation(
           req,
           res,
           next,
@@ -593,7 +590,9 @@ export const getRpcMethodMiddleware = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve) => {
-          const handle = getPermissionsHandler.implementation(
+          const handle = methodHandlers[
+            MethodNames.GetPermissions
+          ].implementation(
             req,
             res,
             next,
@@ -617,7 +616,7 @@ export const getRpcMethodMiddleware = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
-          requestPermissionsHandler
+          methodHandlers[MethodNames.RequestPermissions]
             .implementation(
               req,
               res,
