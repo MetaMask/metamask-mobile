@@ -67,11 +67,13 @@ import {
   formatSignedAbbreviatedUsd,
 } from '../../../SocialFeed/utils/formatters';
 import {
+  getPerpsCrossMarginTagSelector,
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
+  PerpsAdjustMarginActionSheetSelectorsIDs,
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
@@ -2180,5 +2182,144 @@ describe('PerpsMarketDetailsView', () => {
         screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`),
       ).toBeOnTheScreen();
     });
+  });
+});
+
+describe('Perps market details margin mode', () => {
+  const eligible = {
+    engine: {
+      backgroundState: {
+        PerpsController: { isEligible: true },
+      },
+    },
+  };
+
+  const ethPosition = (type: 'cross' | 'isolated'): Position =>
+    createLongPositionForViews({
+      symbol: 'ETH',
+      leverage: { value: 3, type },
+      liquidationPrice: type === 'cross' ? null : '1800',
+    });
+
+  it('labels a cross margin row and keeps it from opening adjust margin', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('cross')] },
+    });
+
+    const margin = await screen.findByTestId(
+      PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+    );
+
+    expect(
+      within(margin).getByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    expect(
+      screen.queryByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE),
+    ).toHaveTextContent(strings('perps.cross_position.no_liquidation_price'));
+
+    fireEvent.press(margin);
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByLabelText(strings('perps.cross_position.liquidation_info')),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_no_liquidation_price.content'),
+    );
+  });
+
+  it('shows a cross liquidation price and explains that it moves with other positions', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: {
+        positions: [
+          createLongPositionForViews({
+            symbol: 'ETH',
+            leverage: { value: 3, type: 'cross' },
+            liquidationPrice: '1800',
+          }),
+        ],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsPositionCardSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent('$1,800');
+
+    fireEvent.press(
+      screen.getByLabelText(strings('perps.cross_position.liquidation_info')),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_liquidation_price.content'),
+    );
+  });
+
+  it('opens adjust margin from an isolated row and shows its mode', async () => {
+    renderPerpsMarketDetailsView({
+      crossMarginEnabled: true,
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('isolated')] },
+    });
+
+    const margin = await screen.findByTestId(
+      PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER,
+    );
+
+    expect(
+      within(margin).getByTestId(
+        PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG,
+      ),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+
+    fireEvent.press(margin);
+
+    expect(
+      await screen.findByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('restores margin editing for a cross position when the flag is off', async () => {
+    renderPerpsMarketDetailsView({
+      overrides: eligible,
+      streamOverrides: { positions: [ethPosition('cross')] },
+    });
+
+    expect(
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CHEVRON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getPerpsCrossMarginTagSelector('lite', 'ETH')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsAdjustMarginActionSheetSelectorsIDs.ADD_MARGIN_OPTION,
+      ),
+    ).toBeOnTheScreen();
   });
 });

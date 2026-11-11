@@ -941,6 +941,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
     includeToasts?: boolean;
+    crossMarginEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -950,6 +951,7 @@ export function renderPerpsMarketDetailsView(
     extraRoutes,
     socialEnabled,
     includeToasts,
+    crossMarginEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
@@ -961,6 +963,7 @@ export function renderPerpsMarketDetailsView(
       extraRoutes,
       socialEnabled,
       includeToasts,
+      crossMarginEnabled,
     },
   );
 }

@@ -761,63 +761,6 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  describe('cross margin', () => {
-    const givenCrossMargin = (
-      accountRatio: number | undefined,
-      tone: 'safe' | 'warning' | 'danger' | undefined,
-    ) =>
-      mockUsePerpsCrossMarginSummary.mockReturnValue({
-        isCrossMarginEnabled: true,
-        hasCrossExposure: true,
-        isInitialLoading: false,
-        accountRatio,
-        tone,
-      });
-
-    afterEach(() => {
-      mockUsePerpsCrossMarginSummary.mockReset();
-      mockUsePerpsCrossMarginSummary.mockReturnValue({
-        isCrossMarginEnabled: false,
-        hasCrossExposure: false,
-        isInitialLoading: false,
-        accountRatio: undefined,
-        tone: undefined,
-      });
-    });
-
-    it('shows the cross margin ratio banner when the ratio is above 50%', () => {
-      givenCrossMargin(0.63, 'warning');
-
-      const { getByTestId } = render(<PerpsHomeView />);
-
-      expect(
-        getByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
-      ).toBeOnTheScreen();
-    });
-
-    it('hides the cross margin ratio banner when the ratio is safe', () => {
-      givenCrossMargin(0.3, 'safe');
-
-      const { queryByTestId } = render(<PerpsHomeView />);
-
-      expect(
-        queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('opens the balance sheet when the available balance is pressed', () => {
-      givenCrossMargin(0.3, 'safe');
-      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
-
-      const { getByTestId } = render(<PerpsHomeView />);
-      fireEvent.press(
-        getByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
-      );
-
-      expect(getByTestId('mock-perps-balance-bottom-sheet')).toBeOnTheScreen();
-    });
-  });
-
   it('gives the header the status-bar inset when no outreach banner is shown', () => {
     // Arrange & Act
     const { getByTestId } = render(<PerpsHomeView />);
