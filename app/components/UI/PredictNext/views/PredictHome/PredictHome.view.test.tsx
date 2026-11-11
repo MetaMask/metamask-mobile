@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatGameStartShort } from '../../events/game';
@@ -1156,12 +1157,17 @@ describe('PredictHome', () => {
         nfl: new Error('NFL failed'),
         ncaa: new Error('NCAAF failed'),
       });
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
       const view = renderPredictNext();
 
       expect(
         await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
       ).toBeOnTheScreen();
       expect(view.getByText('Games couldn’t be loaded.')).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith('Games couldn’t be loaded.');
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
       expect(
         view.getAllByTestId(PredictHomeTestIds.HOME_GAMES_RETRY),
