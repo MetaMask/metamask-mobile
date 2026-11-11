@@ -378,6 +378,14 @@ describe('PriceAdvanced', () => {
     expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
   });
 
+  it('asks AdvancedChart for the candle skeleton', () => {
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(getByTestId('mock-advanced-chart').props.skeletonVariant).toBe(
+      'candles',
+    );
+  });
+
   it('renders TimeRangeSelector when chart has data', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();

@@ -343,6 +343,7 @@ export const PriceChartSection = ({
                 ? !hasChartBeenRevealed && chartLoading
                 : chartLoading
             }
+            skeletonVariant="candles"
             ohlcvPagination={ohlcvPagination}
             visibleFromMs={visibleFromMs}
             visibleToMs={visibleToMs}

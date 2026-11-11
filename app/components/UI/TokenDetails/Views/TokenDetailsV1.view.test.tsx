@@ -379,6 +379,18 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(queryByTestId(TokenDetailsIds.header.copyAddressButton)).toBeNull();
   });
 
+  it('shows price and chart skeletons, not a grey box, while the page variant is pending', async () => {
+    const { getByTestId, findByTestId } = renderTokenDetailsV1View();
+
+    const pending = within(getByTestId(TOKEN_DETAILS_PAGE_PENDING_TEST_ID));
+
+    expect(pending.getByTestId('loading-price-diff')).toBeOnTheScreen();
+    expect(pending.getByTestId('chart-line-skeleton')).toBeOnTheScreen();
+    expect(
+      await findByTestId(TOKEN_DETAILS_V1_TEST_ID, {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
+  });
+
   it('stays on the legacy page when the asset has no launchpad data', async () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false });
     const { findByTestId, queryByTestId } = renderTokenDetailsV1View();
