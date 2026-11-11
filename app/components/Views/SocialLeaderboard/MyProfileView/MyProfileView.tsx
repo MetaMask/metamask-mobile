@@ -36,6 +36,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
 import {
   AccessibilityInfo,
   findNodeHandle,
@@ -45,7 +46,6 @@ import {
   type NativeSyntheticEvent,
   type View,
 } from 'react-native';
-import { useSelector } from 'react-redux';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
@@ -65,6 +65,9 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
@@ -124,9 +127,14 @@ import { traderProfileResponseToMySocialProfile } from './utils/traderProfileRes
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
+  filterPositionsByAsset,
   matchesProfileAssetFilter,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
+import {
+  getPositionsRefreshIntervalMs,
+  POSITIONS_REFRESH_INTERVAL_MS,
+} from './utils/positionsRefreshInterval';
 import {
   SocialEvent,
   useSocialAnalytics,
@@ -145,6 +153,7 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const SCROLL_OFFSET_EPSILON_PX = 2;
 const UNCOUNTED_FOCUS_FALLBACK_MS = 400;
+const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 const NO_POSITIONS: Position[] = [];
 
@@ -372,6 +381,13 @@ const MyProfileView: React.FC = () => {
       }
     }, [isOwner]),
   );
+  const isSocialV1 = useSelector(selectIsSocialV1Enabled);
+  const networkTier = useNetworkTier();
+  // Read once per mount, as SocialV1View does. Only the SocialV1 poll uses it.
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const positionsRefreshIntervalMs = isSocialV1
+    ? getPositionsRefreshIntervalMs({ hardwareTier, networkTier })
+    : POSITIONS_REFRESH_INTERVAL_MS;
   const {
     openPositions: fetchedOpenPositions,
     closedPositions: fetchedClosedPositions,
@@ -380,15 +396,39 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
     refetch: refetchPositions,
+    hasMoreOpen: hasMoreOpenPositionsFetched,
+    hasMoreClosed: hasMoreClosedPositionsFetched,
+    isFetchingMoreOpen: isFetchingMoreOpenPositions,
+    isFetchingMoreClosed: isFetchingMoreClosedPositions,
+    loadMoreOpen,
+    loadMoreClosed,
   } = useTraderPositions(addressOrId ?? '', {
     enabled: !isContentHidden,
-    refetchInterval: 30_000,
+    paginated: isSocialV1,
+    refetchInterval: positionsRefreshIntervalMs,
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
   const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
   const closedPositions = isContentHidden
     ? NO_POSITIONS
     : fetchedClosedPositions;
+  const isClosedPositionsTab = activeTab === 'closed';
+  const positionsHasMore =
+    !isContentHidden &&
+    Boolean(
+      isClosedPositionsTab
+        ? hasMoreClosedPositionsFetched
+        : hasMoreOpenPositionsFetched,
+    );
+  const isFetchingMorePositions = Boolean(
+    isClosedPositionsTab
+      ? isFetchingMoreClosedPositions
+      : isFetchingMoreOpenPositions,
+  );
+  const loadMorePositions = useCallback(() => {
+    const loadMoreForTab = isClosedPositionsTab ? loadMoreClosed : loadMoreOpen;
+    loadMoreForTab?.();
+  }, [isClosedPositionsTab, loadMoreClosed, loadMoreOpen]);
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const uncountedTarget = useMemo(
     () =>
@@ -802,17 +842,36 @@ const MyProfileView: React.FC = () => {
     },
     [focusUncountedHeader],
   );
+  // Positions only: the Posts tab pages inside SocialFeed. Scroll-end pages in
+  // the open or closed tab when more rows exist.
+  const handleScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (activeTab === 'posts' || !positionsHasMore) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMorePositions();
+      }
+    },
+    [activeTab, loadMorePositions, positionsHasMore],
+  );
   const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       finishUncountedHeaderFocus(event, false);
+      handleScrollSettled(event);
     },
-    [finishUncountedHeaderFocus],
+    [finishUncountedHeaderFocus, handleScrollSettled],
   );
   const handleMomentumScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       finishUncountedHeaderFocus(event, true);
+      handleScrollSettled(event);
     },
-    [finishUncountedHeaderFocus],
+    [finishUncountedHeaderFocus, handleScrollSettled],
   );
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
   const filterProfilePost = useCallback(
@@ -835,6 +894,20 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
   });
+  // Same as posts: a Tokens or Perps filter only sees loaded rows, so keep
+  // paging until one matches, the list ends, or a page fails.
+  const showFilteredPositionLoading =
+    activeTab !== 'posts' &&
+    isAssetFilterActive &&
+    positionsHasMore &&
+    !positionTab.error &&
+    filterPositionsByAsset(positionTab.positions, assetFilter).length === 0;
+  useEffect(() => {
+    if (!showFilteredPositionLoading || isFetchingMorePositions) {
+      return;
+    }
+    loadMorePositions();
+  }, [isFetchingMorePositions, loadMorePositions, showFilteredPositionLoading]);
 
   return (
     <SocialFeedSurfaceProvider
@@ -1304,6 +1377,15 @@ const MyProfileView: React.FC = () => {
                     />
                   </Box>
                 )}
+                {activeTab !== 'posts' && isFetchingMorePositions ? (
+                  <Box
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="px-4"
+                    testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
+                  >
+                    <Spinner />
+                  </Box>
+                ) : null}
               </>
             )}
           </Animated.ScrollView>
