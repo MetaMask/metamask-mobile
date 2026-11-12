@@ -241,7 +241,11 @@
           "upgradedAccounts": {}
         },
         "MoneyAccountLifecycleController": {
-          "moneyAccounts": {},
+          "moneyAccounts": {
+            "0x2405b71767278066a1f2e3fadc12973f47e366ee": {
+              "type": "notInIdentity"
+            }
+          },
           "addressRegistrations": {}
         },
         "MultichainNetworkController": {
