@@ -39,8 +39,9 @@ export function getFailoverUrlsForInfuraNetwork(
 /**
  * Failover URLs for each chain that has them configured, keyed by chain ID.
  * This is the single source of truth for RPC failover: it is passed to
- * `NetworkController` as the `failoverUrls` constructor option (which applies
- * it to every RPC endpoint of the chain) and read by the network details UI.
+ * `NetworkController` as the `failoverUrls` constructor option (core applies
+ * those URLs only to endpoints whose hostname ends with `.infura.io`) and read
+ * by the network details UI.
  *
  * @returns Failover URLs keyed by chain ID.
  */

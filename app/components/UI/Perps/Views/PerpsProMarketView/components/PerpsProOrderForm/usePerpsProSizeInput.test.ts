@@ -196,6 +196,21 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
   });
 
+  it('shows the asset ticker without a HIP-3 dex prefix', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ assetSymbol: 'xyz:NVDA' })),
+    );
+
+    act(() => {
+      result.current.sizeInput.onToggleDenomination();
+    });
+
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'NVDA',
+    });
+  });
+
   it('keeps coin denomination on the next form instance', () => {
     const { result, unmount } = renderHook(() =>
       usePerpsProSizeInput(createParams()),

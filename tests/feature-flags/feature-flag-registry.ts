@@ -4935,6 +4935,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyEnableHistoricalVaultShareValuations: {
+    name: 'moneyEnableHistoricalVaultShareValuations',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,

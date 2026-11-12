@@ -1538,7 +1538,8 @@
       "post_failed": "Couldn't create post. Try again.",
       "linked_account_missing": "Your linked Social account isn't in this wallet.",
       "showing_linked_account": "Showing positions from {{account}}",
-      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed.",
+      "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
       "swap_in_progress": "Swap in progress",
@@ -9814,6 +9815,15 @@
     "metamask_card": {
       "title": "Card",
       "upsell_title": "Get card",
+      "setup": {
+        "finish_kyc_title": "Finish verifying your identity",
+        "finish_kyc_description": "Pick up where you left off to get your card.",
+        "reviewing_title": "Verifying your identity",
+        "reviewing_description": "Most applications are reviewed within a few hours.",
+        "creating_title": "Creating your card",
+        "creating_description": "This may take a few moments.",
+        "continue": "Continue"
+      },
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
@@ -10020,6 +10030,7 @@
       "date": "Date",
       "paid_with": "Paid with",
       "you_deposited": "You deposited",
+      "amount_unavailable": "Amount unavailable",
       "transaction_fees": "Transaction fees",
       "paid_by_metamask": "Paid by MetaMask",
       "total": "Total",
@@ -11594,16 +11605,20 @@
         "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Do not close the app.",
+        "loading_label": "Loading",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
         "info_needed_title": "Additional information needed",
         "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
         "info_needed_button": "Continue verification",
-        "expiring_error": "Your verification session expired. Contact support to continue."
+        "expiring_error": "Your verification session expired. Contact support to continue.",
+        "error_title": "Something went wrong",
+        "try_again_button": "Try again",
+        "expired_title": "Verification session expired",
+        "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
         "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
@@ -11644,6 +11659,19 @@
         "title": "You're not eligible for MetaMask Card right now",
         "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Back to home"
+      },
+      "kyc_rejected": {
+        "retry_title": "We couldn't verify your identity",
+        "reasons": {
+          "id_document": "Your ID document couldn't be verified. Try again with a different document.",
+          "document_photo": "The photo of your document wasn't clear enough. Try again in better light.",
+          "personal_details": "Your name, date of birth, or address couldn't be verified.",
+          "proof_of_address": "Your proof of address couldn't be verified.",
+          "biometrics": "The face scan didn't match. Try again.",
+          "ineligible": "You're not eligible for MetaMask Card right now.",
+          "generic": "Try verification again. Contact support if it keeps failing.",
+          "generic_permanent": "We can't complete verification for this account."
+        }
       },
       "personal_details": {
         "title": "Add your info",
@@ -11692,7 +11720,9 @@
       "complete": {
         "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
-        "confirm_button": "Finish setup"
+        "confirm_button": "Finish setup",
+        "money_account_description": "We're getting your card ready. It'll be on your Card home in a moment.",
+        "money_account_confirm_button": "Continue"
       },
       "account_exists": {
         "title": "You already have an account",
@@ -11801,6 +11831,17 @@
         "card_provisioning": {
           "title": "Card being created",
           "description": "Your card is being created. This may take a few moments."
+        },
+        "setup_incomplete": {
+          "title": "Finish setting up your card",
+          "descriptions": {
+            "contact": "Add your contact details to continue.",
+            "kyc": "Verify your identity to continue.",
+            "expected_spend": "Tell us how you plan to use your card to continue.",
+            "funding": "Approve funding so you can start spending.",
+            "rejected": "We couldn't verify your identity. Try again to continue."
+          },
+          "confirm_button_label": "Continue"
         }
       },
       "kyc_status": {
@@ -13165,7 +13206,7 @@
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
-    "macro_stocks_commodity_perps": "Perps",
+    "perps_trending_lists": "Trending lists",
     "crypto_perps_section": "Perps",
     "predictions": "Predictions",
     "no_results": "No results found",
@@ -13194,7 +13235,7 @@
     },
     "tabs": {
       "now": "Now",
-      "macro": "Macro",
+      "perps": "Perps",
       "rwas": "RWAs",
       "crypto": "Crypto",
       "sports": "Sports",

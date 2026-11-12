@@ -508,4 +508,50 @@ describe('usePerpAlertSaveFlow', () => {
       expect.objectContaining({ severity: ToastSeverity.Danger }),
     );
   });
+
+  it('skips cache, analytics, and navigation when an edit submit rejects', async () => {
+    const failingSubmit = jest.fn().mockRejectedValue(new Error('network'));
+    const { result } = renderFlow(true);
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: failingSubmit,
+        editingAlert,
+        patch: { threshold: 60000 },
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: ToastSeverity.Danger }),
+    );
+    expect(mockSetQueryData).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockPop).not.toHaveBeenCalled();
+  });
+
+  it('shows an error toast and skips navigation when analytics throws after submit', async () => {
+    mockTrackEvent.mockImplementationOnce(() => {
+      throw new Error('analytics');
+    });
+    const { result } = renderFlow(false);
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert: undefined,
+        patch: undefined,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ severity: ToastSeverity.Danger }),
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockPop).not.toHaveBeenCalled();
+  });
 });
