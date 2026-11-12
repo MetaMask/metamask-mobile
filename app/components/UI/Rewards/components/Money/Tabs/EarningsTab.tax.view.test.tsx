@@ -1182,12 +1182,16 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('claims and shows the renewal question when the answer is about to expire', async () => {
+  it('shows the renewal question without dropping open routes', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '2000000',
+      cashbackClaimable: '1000000',
+      followTradeClaimable: '1000000',
+    });
     const { findByTestId, findByText, engine } = renderEarningsTab({
       persona: 'referee',
-      summary: CASHBACK_AND_HELD,
+      summary,
       claimReady: true,
-      initiateClaim: 'hang',
       handlers: {
         'RewardsMoneyController:getTaxMe': () =>
           Promise.resolve(
@@ -1198,9 +1202,16 @@ describe('EarningsTab tax documentation', () => {
               cleared: true,
             }),
           ),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
       },
     });
 
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
@@ -1210,8 +1221,10 @@ describe('EarningsTab tax documentation', () => {
     ).toBeOnTheScreen();
     await waitFor(() => {
       expect(
-        callsFor(engine, 'RewardsMoneyController:initiateClaim'),
-      ).toHaveLength(1);
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
     });
   });
 

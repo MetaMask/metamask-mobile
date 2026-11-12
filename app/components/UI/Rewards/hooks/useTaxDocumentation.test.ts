@@ -453,7 +453,7 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledWith({ cashbackOnly: true });
     });
 
-    it('submits every route and skips the attestation when the payee is cleared', async () => {
+    it('claims without a route filter when the payee is cleared', async () => {
       mockTaxRead(taxMe(clearedTaxMe));
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();
@@ -482,7 +482,7 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledWith({ cashbackOnly: true });
     });
 
-    it('opens the attestation and still claims when the payee is not cleared', async () => {
+    it('opens the attestation and omits income when cashback is below the minimum', async () => {
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();
 
@@ -593,6 +593,23 @@ describe('useTaxDocumentation', () => {
 
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(claim).not.toHaveBeenCalled();
+    });
+
+    it('submits cashback only when an unauthorized tax read still has cashback', async () => {
+      mockCall.mockRejectedValue(
+        new RewardsMoneyAuthorizationError('signed out'),
+      );
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(cashbackAndIncomeSummary, claim);
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ cashbackOnly: true });
     });
 
     it('ignores a second press while the first tax read is in flight', async () => {

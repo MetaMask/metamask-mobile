@@ -196,6 +196,11 @@ describe('cashbackMeetsClaimMinimum', () => {
       cashbackMeetsClaimMinimum(summary({ claimable: '0', cashback: '0' })),
     ).toBe(false);
   });
+
+  it('is false when the summary is missing', () => {
+    expect(cashbackMeetsClaimMinimum(null)).toBe(false);
+    expect(cashbackMeetsClaimMinimum(undefined)).toBe(false);
+  });
 });
 
 describe('selectClaimRoutes', () => {
@@ -219,6 +224,14 @@ describe('selectClaimRoutes', () => {
     expect(selectClaimRoutes([...routes], { omitIncome: true })).toEqual([
       'referral-trade-fee-cashback',
     ]);
+  });
+
+  it('returns no routes when income is omitted from an income-only list', () => {
+    expect(
+      selectClaimRoutes(['referral-rev-share', 'social-follow-trade'], {
+        omitIncome: true,
+      }),
+    ).toEqual([]);
   });
 
   it('cashback-only wins when both flags are set', () => {
