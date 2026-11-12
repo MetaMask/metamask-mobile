@@ -75,14 +75,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       <Box twClassName="pt-4 pb-6 flex-col gap-4">
         <Box twClassName="py-1">
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center gap-1">
-              <Skeleton width={52} height={16} style={tw.style('my-1')} />
-              <Skeleton
-                width={16}
-                height={16}
-                style={tw.style('rounded-full')}
-              />
-            </Box>
+            <Skeleton width={52} height={16} style={tw.style('my-1')} />
             <Skeleton width={60} height={16} style={tw.style('my-1')} />
           </Box>
         </Box>
