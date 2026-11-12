@@ -4,9 +4,8 @@ import {
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
-  Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonsAlignment,
   Text,
   TextVariant,
   type BottomSheetRef,
@@ -115,24 +114,25 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       </Box>
 
       <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        // The footer lays the secondary action out first. Reverse it so the
+        // primary pill stays above "Not now".
+        twClassName="flex-col-reverse gap-4"
         primaryButtonProps={{
           children: yesLabel,
           size: ButtonSize.Lg,
           onPress: handleYes,
           testID: NewUserSheetSelectorsIDs.BUTTON_YES,
         }}
+        secondaryButtonProps={{
+          children: strings(
+            'notifications.push_onboarding.new_user.button_not_now',
+          ),
+          size: ButtonSize.Lg,
+          onPress: handleNotNow,
+          testID: NewUserSheetSelectorsIDs.BUTTON_NOT_NOW,
+        }}
       />
-      <Box twClassName="px-4 pt-3">
-        <Button
-          variant={ButtonVariant.Tertiary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleNotNow}
-          testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
-        >
-          {strings('notifications.push_onboarding.new_user.button_not_now')}
-        </Button>
-      </Box>
     </BottomSheet>
   );
 };
