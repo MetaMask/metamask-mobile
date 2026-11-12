@@ -733,7 +733,7 @@ describe('TrendingView', () => {
           properties: {
             interaction_type: 'tab_switched',
             tab_name: 'Sites',
-            previous_tab: 'Sites',
+            previous_tab: 'Now',
             source: 'deeplink',
           },
         }),
@@ -759,7 +759,7 @@ describe('TrendingView', () => {
           properties: {
             interaction_type: 'tab_switched',
             tab_name: 'Perps',
-            previous_tab: 'Perps',
+            previous_tab: 'Now',
             source: 'deeplink',
           },
         }),
@@ -781,6 +781,13 @@ describe('TrendingView', () => {
 
       expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
       expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Perps',
+            previous_tab: 'Now',
+          },
+        }),
         expect.objectContaining({
           properties: {
             interaction_type: 'tab_switched',

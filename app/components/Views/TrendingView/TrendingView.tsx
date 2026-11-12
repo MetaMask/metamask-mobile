@@ -119,6 +119,9 @@ const useExploreTabs = (
   initialIndex: number,
 ) => {
   const [activeIndex, setActiveIndex] = useState<number>(initialIndex);
+  const [reportedIndex, setReportedIndex] = useState<number>(
+    EXPLORE_TAB_INDEX.NOW,
+  );
   const { pageActiveIndex, activate, onPagerRest } =
     usePageActivation(initialIndex);
   const tabBarPressRef = useRef(false);
@@ -133,20 +136,21 @@ const useExploreTabs = (
   const goToTabIndex = useCallback(
     (index: number, source?: string) => {
       const destinationTab = TAB_NAMES[index];
-      if (!destinationTab || (index === activeIndex && !source)) return;
+      if (!destinationTab || (index === reportedIndex && !source)) return;
       trackExploreInteracted({
         interaction_type: 'tab_switched',
         tab_name: destinationTab,
-        previous_tab: TAB_NAMES[activeIndex],
+        previous_tab: TAB_NAMES[reportedIndex],
         ...(source ? { source } : {}),
       });
+      setReportedIndex(index);
       if (index === activeIndex) return;
       const isTap = tabBarPressRef.current;
       tabBarPressRef.current = false;
       setActiveIndex(index);
       activate(index, isTap);
     },
-    [activeIndex, activate],
+    [activeIndex, activate, reportedIndex],
   );
 
   useImperativeHandle(ref, () => ({ goToTabIndex }), [goToTabIndex]);
@@ -161,13 +165,20 @@ const useExploreTabs = (
 };
 
 interface ExploreTabsProps {
-  initialIndex: number;
   scenes: Record<ExploreTabKey, React.ReactElement>;
 }
 
 const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
-  ({ initialIndex, scenes }, ref) => {
+  ({ scenes }, ref) => {
     const tw = useTailwind();
+    const route =
+      useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
+    const [initialIndex] = useState(
+      () =>
+        Object.values(EXPLORE_TAB_INDEX).find(
+          (tab) => tab === route.params?.initialTab,
+        ) ?? EXPLORE_TAB_INDEX.NOW,
+    );
     const {
       activeIndex,
       activeTab,
@@ -234,14 +245,6 @@ export const ExploreFeed: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
-  const route =
-    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
-  const [landingTabIndex] = useState(
-    () =>
-      Object.values(EXPLORE_TAB_INDEX).find(
-        (tab) => tab === route.params?.initialTab,
-      ) ?? EXPLORE_TAB_INDEX.NOW,
-  );
   const tabsListRef = useRef<ExploreTabsHandle>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -358,11 +361,7 @@ export const ExploreFeed: React.FC = () => {
         {!isBasicFunctionalityEnabled ? (
           <BasicFunctionalityEmptyState />
         ) : (
-          <ExploreTabs
-            ref={tabsListRef}
-            initialIndex={landingTabIndex}
-            scenes={scenes}
-          />
+          <ExploreTabs ref={tabsListRef} scenes={scenes} />
         )}
       </Box>
     </Box>
