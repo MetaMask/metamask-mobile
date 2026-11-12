@@ -355,19 +355,16 @@ const BridgeView = () => {
     mountTransitionPages: !isLowHardware,
   });
 
-  const handleSwipeToNextPage = useCallback(
-    () => handleTabPress(1),
-    [handleTabPress],
-  );
-
-  const { gesture: firstPageSwipeGesture, isPagerScrollEnabled } =
-    useFirstPageSwipeGesture({
-      isOnFirstPage: renderedIndex === 0,
-      hasMultiplePages: showTabsBar,
-      onSwipeBack: handleBack,
-      onSwipeToNextPage: handleSwipeToNextPage,
-      testID: BridgeViewSelectorsIDs.FIRST_PAGE_SWIPE_GESTURE,
-    });
+  const {
+    gesture: firstPageSwipeGesture,
+    isPagerScrollEnabled,
+    isBackGestureEdgeVisible,
+  } = useFirstPageSwipeGesture({
+    isOnFirstPage: renderedIndex === 0,
+    hasMultiplePages: showTabsBar,
+    onSwipeBack: handleBack,
+    testID: BridgeViewSelectorsIDs.FIRST_PAGE_SWIPE_GESTURE,
+  });
 
   // A tab can disappear if its feature flag flips off while it's active
   // (e.g. remote flag update). Fall back to Market rather than rendering
@@ -450,6 +447,12 @@ const BridgeView = () => {
               />
             ))}
           </PagerView>
+          {isBackGestureEdgeVisible ? (
+            <View
+              style={tw.style('absolute left-0 top-0 bottom-0 w-6')}
+              testID={BridgeViewSelectorsIDs.BACK_GESTURE_EDGE}
+            />
+          ) : null}
         </View>
       </GestureDetector>
     </Box>

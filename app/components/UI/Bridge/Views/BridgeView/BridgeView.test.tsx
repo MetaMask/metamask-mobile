@@ -3277,6 +3277,42 @@ describe('BridgeView', () => {
       });
     });
 
+    it('mounts the Limit page on a Limit tab press and keeps the Market quote state until the pager settles', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      const resetState = jest.mocked(
+        Engine.context.BridgeController.resetState,
+      );
+      resetState.mockClear();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${BridgeViewSelectorsIDs.TAB_PAGE_SKELETON}-${BridgeTabKey.Limit}`,
+        ),
+      ).toBeNull();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(resetState).not.toHaveBeenCalled();
+
+      await settlePager(getByTestId);
+
+      await waitFor(() => {
+        expect(resetState).toHaveBeenCalled();
+      });
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
     it('shows the previous tab once a right swipe settles', async () => {
       const { getByTestId, queryByTestId } = renderScreen(
         BridgeView,
@@ -3310,7 +3346,7 @@ describe('BridgeView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('leaves right swipes on the Market tab to the native back gesture on iOS', async () => {
+    it('keeps the pager scrollable on the Market tab and leaves right swipes to the native back gesture on iOS', async () => {
       const { getByTestId } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
@@ -3321,41 +3357,59 @@ describe('BridgeView', () => {
 
       expect(
         getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT).props.scrollEnabled,
-      ).toBe(false);
+      ).toBe(true);
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.BACK_GESTURE_EDGE),
+      ).toBeOnTheScreen();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('shows the Limit tab on a left swipe on the Market tab on iOS', async () => {
+    it('shows the Limit tab once a drag from the Market tab settles on iOS', async () => {
       const { getByTestId } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: stateWithTabsEnabled() },
       );
 
-      await swipe(-80, -600);
+      await firePagerEvent(getByTestId, 'pageScrollStateChanged', {
+        pageScrollState: 'dragging',
+      });
+      await firePagerEvent(getByTestId, 'pageSelected', { position: 1 });
+      await settlePager(getByTestId);
 
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
         ).toBeOnTheScreen();
       });
-      expect(
-        getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT).props.scrollEnabled,
-      ).toBe(true);
     });
 
-    it('stays on the Market tab after a short left swipe on iOS', async () => {
-      const { queryByTestId } = renderScreen(
+    it('shows the back gesture edge only once the pager settles on the Market tab on iOS', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: stateWithTabsEnabled() },
       );
-
-      await swipe(-30, -100);
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
 
       expect(
-        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        queryByTestId(BridgeViewSelectorsIDs.BACK_GESTURE_EDGE),
       ).toBeNull();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.BACK_GESTURE_EDGE),
+      ).toBeNull();
+
+      await settlePager(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.BACK_GESTURE_EDGE),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('navigates back on a right swipe on the Market tab on Android', async () => {

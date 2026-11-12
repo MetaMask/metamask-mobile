@@ -29,7 +29,6 @@ const renderHarness = (
     isOnFirstPage: true,
     hasMultiplePages: true,
     onSwipeBack: jest.fn(),
-    onSwipeToNextPage: jest.fn(),
     testID: GESTURE_TEST_ID,
     ...overrides,
   };
@@ -52,56 +51,50 @@ describe('useFirstPageSwipeGesture', () => {
   });
 
   describe('on iOS', () => {
-    it('disables pager scrolling on the first page', () => {
+    it('keeps pager scrolling enabled and shows the back gesture edge on the first page', () => {
       const { result } = renderHook(() =>
         useFirstPageSwipeGesture({
           isOnFirstPage: true,
           hasMultiplePages: true,
           onSwipeBack: jest.fn(),
-          onSwipeToNextPage: jest.fn(),
         }),
       );
 
-      expect(result.current.isPagerScrollEnabled).toBe(false);
+      expect(result.current.isPagerScrollEnabled).toBe(true);
+      expect(result.current.isBackGestureEdgeVisible).toBe(true);
     });
 
-    it('enables pager scrolling past the first page', () => {
+    it('hides the back gesture edge past the first page', () => {
       const { result } = renderHook(() =>
         useFirstPageSwipeGesture({
           isOnFirstPage: false,
           hasMultiplePages: true,
           onSwipeBack: jest.fn(),
-          onSwipeToNextPage: jest.fn(),
         }),
       );
 
       expect(result.current.isPagerScrollEnabled).toBe(true);
+      expect(result.current.isBackGestureEdgeVisible).toBe(false);
     });
 
-    it('moves to the next page on a left swipe', async () => {
-      const { onSwipeToNextPage, onSwipeBack } = renderHarness();
+    it('hides the back gesture edge when there is a single page', () => {
+      const { result } = renderHook(() =>
+        useFirstPageSwipeGesture({
+          isOnFirstPage: true,
+          hasMultiplePages: false,
+          onSwipeBack: jest.fn(),
+        }),
+      );
 
-      await swipe(-80, -600);
-
-      expect(onSwipeToNextPage).toHaveBeenCalledTimes(1);
-      expect(onSwipeBack).not.toHaveBeenCalled();
-    });
-
-    it('ignores a short, slow left swipe', async () => {
-      const { onSwipeToNextPage } = renderHarness();
-
-      await swipe(-30, -100);
-
-      expect(onSwipeToNextPage).not.toHaveBeenCalled();
+      expect(result.current.isBackGestureEdgeVisible).toBe(false);
     });
 
     it('leaves right swipes to the native back gesture', async () => {
-      const { onSwipeToNextPage, onSwipeBack } = renderHarness();
+      const { onSwipeBack } = renderHarness();
 
       await swipe(80, 600);
 
       expect(onSwipeBack).not.toHaveBeenCalled();
-      expect(onSwipeToNextPage).not.toHaveBeenCalled();
     });
   });
 
@@ -110,26 +103,41 @@ describe('useFirstPageSwipeGesture', () => {
       jest.replaceProperty(Platform, 'OS', 'android');
     });
 
-    it('keeps pager scrolling enabled on the first page', () => {
+    it('keeps pager scrolling enabled without a back gesture edge on the first page', () => {
       const { result } = renderHook(() =>
         useFirstPageSwipeGesture({
           isOnFirstPage: true,
           hasMultiplePages: true,
           onSwipeBack: jest.fn(),
-          onSwipeToNextPage: jest.fn(),
         }),
       );
 
       expect(result.current.isPagerScrollEnabled).toBe(true);
+      expect(result.current.isBackGestureEdgeVisible).toBe(false);
     });
 
     it('swipes back on a right swipe', async () => {
-      const { onSwipeBack, onSwipeToNextPage } = renderHarness();
+      const { onSwipeBack } = renderHarness();
 
       await swipe(80, 600);
 
       expect(onSwipeBack).toHaveBeenCalledTimes(1);
-      expect(onSwipeToNextPage).not.toHaveBeenCalled();
+    });
+
+    it('ignores a short, slow right swipe', async () => {
+      const { onSwipeBack } = renderHarness();
+
+      await swipe(30, 100);
+
+      expect(onSwipeBack).not.toHaveBeenCalled();
+    });
+
+    it('does not swipe back past the first page', async () => {
+      const { onSwipeBack } = renderHarness({ isOnFirstPage: false });
+
+      await swipe(80, 600);
+
+      expect(onSwipeBack).not.toHaveBeenCalled();
     });
 
     it('swipes back on a right swipe when there is a single page', async () => {
@@ -141,12 +149,11 @@ describe('useFirstPageSwipeGesture', () => {
     });
 
     it('leaves left swipes to the pager', async () => {
-      const { onSwipeBack, onSwipeToNextPage } = renderHarness();
+      const { onSwipeBack } = renderHarness();
 
       await swipe(-80, -600);
 
       expect(onSwipeBack).not.toHaveBeenCalled();
-      expect(onSwipeToNextPage).not.toHaveBeenCalled();
     });
   });
 
@@ -156,7 +163,6 @@ describe('useFirstPageSwipeGesture', () => {
         isOnFirstPage: true,
         hasMultiplePages: false,
         onSwipeBack: jest.fn(),
-        onSwipeToNextPage: jest.fn(),
       }),
     );
 

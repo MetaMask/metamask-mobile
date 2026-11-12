@@ -5,7 +5,7 @@ import type {
   PagerViewOnPageSelectedEvent,
   PageScrollStateChangedNativeEvent,
 } from 'react-native-pager-view';
-import { useTabPager } from './index';
+import { TAB_PRESS_COMMIT_FALLBACK_MS, useTabPager } from './index';
 
 type Tab = 'a' | 'b' | 'c';
 
@@ -31,6 +31,12 @@ const renderTabPager = (
     setPage: jest.fn(),
     setPageWithoutAnimation: jest.fn(),
   };
+  // `result.current` only updates after effects run, so this records the
+  // latest rendered value for assertions made from inside an effect.
+  const lastRender = {
+    selectedTab: initialTab,
+    mountedTabs: new Set<Tab>([initialTab]),
+  };
   const hook = renderHook(
     ({ tabKeys, pendingTab, mountTransitionPages = true }: HarnessProps) => {
       const [selectedTab, setSelectedTab] = useState<Tab>(initialTab);
@@ -44,13 +50,19 @@ const renderTabPager = (
         pendingTab,
         mountTransitionPages,
       });
+      lastRender.selectedTab = selectedTab;
+      lastRender.mountedTabs = result.mountedTabs;
       (result.pagerRef as { current: unknown }).current = pager;
       return { ...result, selectedTab, renderedTab, setSelectedTab };
     },
     { initialProps },
   );
   pager.setPageWithoutAnimation.mockClear();
-  return { ...hook, pager: pager as unknown as jest.Mocked<PagerView> };
+  return {
+    ...hook,
+    lastRender,
+    pager: pager as unknown as jest.Mocked<PagerView>,
+  };
 };
 
 const TABS: readonly Tab[] = ['a', 'b', 'c'];
@@ -76,7 +88,7 @@ describe('useTabPager', () => {
     expect(result.current.activeIndex).toBe(0);
   });
 
-  it('keeps the outgoing page mounted until the pager settles after a tab press', () => {
+  it('mounts the pressed page on a tab press and commits it once idle', () => {
     const { result, pager } = renderTabPager({ tabKeys: TABS });
 
     act(() => result.current.handleTabPress(2));
@@ -84,23 +96,112 @@ describe('useTabPager', () => {
     expect(pager.setPage).toHaveBeenCalledWith(2);
     expect(pager.setPageWithoutAnimation).not.toHaveBeenCalled();
     expect(result.current.selectedTab).toBe('c');
-    expect(result.current.renderedTab).toBe('c');
-    expect([...result.current.mountedTabs].sort()).toEqual(['a', 'c']);
+    expect(result.current.renderedTab).toBe('a');
+    expect([...result.current.mountedTabs]).toEqual(['a', 'c']);
 
     act(() => result.current.handlePageScrollStateChanged(scrollState('idle')));
 
+    expect(result.current.renderedTab).toBe('c');
     expect([...result.current.mountedTabs]).toEqual(['c']);
   });
 
-  it('mounts only the rendered page on a tab press when transition pages are off', () => {
+  it('does not mount the pressed page when transition pages are off', () => {
     const { result } = renderTabPager({
       tabKeys: TABS,
       mountTransitionPages: false,
     });
 
+    act(() => result.current.handleTabPress(2));
+
+    expect([...result.current.mountedTabs]).toEqual(['a']);
+  });
+
+  describe('when the pager never reports idle after a tab press', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('commits the pressed tab after the fallback delay', () => {
+      const { result } = renderTabPager({ tabKeys: TABS });
+
+      act(() => result.current.handleTabPress(1));
+      act(() => {
+        jest.advanceTimersByTime(TAB_PRESS_COMMIT_FALLBACK_MS - 1);
+      });
+
+      expect(result.current.renderedTab).toBe('a');
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(result.current.renderedTab).toBe('b');
+      expect([...result.current.mountedTabs]).toEqual(['b']);
+    });
+
+    it('commits only the last pressed tab', () => {
+      const { result } = renderTabPager({ tabKeys: TABS });
+
+      act(() => result.current.handleTabPress(1));
+      act(() => result.current.handleTabPress(2));
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.renderedTab).toBe('c');
+    });
+
+    it('leaves the commit to the drag that takes over the pager', () => {
+      const { result } = renderTabPager({ tabKeys: TABS });
+
+      act(() => result.current.handleTabPress(1));
+      act(() =>
+        result.current.handlePageScrollStateChanged(scrollState('dragging')),
+      );
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.renderedTab).toBe('a');
+
+      act(() => result.current.handlePageSelected(pageSelected(2)));
+      act(() =>
+        result.current.handlePageScrollStateChanged(scrollState('idle')),
+      );
+
+      expect(result.current.renderedTab).toBe('c');
+    });
+
+    it('does not commit after the pager unmounts', () => {
+      const { result, unmount } = renderTabPager({ tabKeys: TABS });
+
+      act(() => result.current.handleTabPress(1));
+      unmount();
+
+      expect(jest.getTimerCount()).toBe(0);
+    });
+  });
+
+  it('animates the pager only after the pressed page is mounted', () => {
+    const { result, pager, lastRender } = renderTabPager({ tabKeys: TABS });
+    const renderAtSetPage: { selectedTab: Tab; mountedTabs: Tab[] }[] = [];
+    pager.setPage.mockImplementation(() => {
+      renderAtSetPage.push({
+        selectedTab: lastRender.selectedTab,
+        mountedTabs: [...lastRender.mountedTabs],
+      });
+    });
+
     act(() => result.current.handleTabPress(1));
 
-    expect([...result.current.mountedTabs]).toEqual(['b']);
+    expect(pager.setPage).toHaveBeenCalledTimes(1);
+    expect(renderAtSetPage).toEqual([
+      { selectedTab: 'b', mountedTabs: ['a', 'b'] },
+    ]);
   });
 
   it('ignores a press on the selected tab or an unknown index', () => {
@@ -168,7 +269,7 @@ describe('useTabPager', () => {
     expect(pager.setPageWithoutAnimation).toHaveBeenCalledWith(2);
   });
 
-  it('changes the pager key and drops transition pages when the tab set changes', () => {
+  it('changes the pager key and commits a pressed tab when the tab set changes before idle', () => {
     const { result, rerender } = renderTabPager({ tabKeys: TABS });
     const initialKey = result.current.pagerKey;
     act(() => result.current.handleTabPress(1));
@@ -176,6 +277,19 @@ describe('useTabPager', () => {
     rerender({ tabKeys: ['a', 'b'] });
 
     expect(result.current.pagerKey).not.toBe(initialKey);
+    expect(result.current.renderedTab).toBe('b');
+    expect([...result.current.mountedTabs]).toEqual(['b']);
+  });
+
+  it('drops drag neighbours when the tab set changes before idle', () => {
+    const { result, rerender } = renderTabPager({ tabKeys: TABS }, 'b');
+    act(() =>
+      result.current.handlePageScrollStateChanged(scrollState('dragging')),
+    );
+
+    rerender({ tabKeys: ['a', 'b'] });
+
+    expect(result.current.renderedTab).toBe('b');
     expect([...result.current.mountedTabs]).toEqual(['b']);
   });
 });
