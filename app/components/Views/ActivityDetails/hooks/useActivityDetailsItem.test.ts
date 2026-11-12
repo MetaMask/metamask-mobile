@@ -646,7 +646,8 @@ describe('useActivityDetailsItem', () => {
             assetClass: 'ft',
             from: counterparty,
             to: subject,
-            assetId: 'eip155:1/erc20:0x3333333333333333333333333333333333333333',
+            assetId:
+              'eip155:1/erc20:0x3333333333333333333333333333333333333333',
             amount: '1000000',
             decimal: 6,
             symbol: 'USDC',
