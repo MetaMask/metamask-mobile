@@ -1144,6 +1144,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 const TRON_ACCOUNT_ID = '3f1e2d0c-8b7a-4c99-9d61-5a2c4f8e7b10';
 const TRON_NATIVE_ASSET_ID = `${TrxScope.Mainnet}/slip44:195`;
 const TRON_LEGACY_STAKED_ASSET_ID = `${TrxScope.Mainnet}/slip44:195-staked-for-energy`;
+const TRON_LEGACY_BANDWIDTH_STAKED_ASSET_ID = `${TrxScope.Mainnet}/slip44:195-staked-for-bandwidth`;
 
 interface TronStakeStateOptions {
   stakingMetadata?: {
@@ -1151,6 +1152,7 @@ interface TronStakeStateOptions {
     bandwidth?: string | null;
   } | null;
   legacyStakedBalance?: string;
+  legacyBandwidthStakedBalance?: string;
   nileStakingEnergy?: string;
   secondTronAccountStakingMetadata?: { energy?: string | null };
   trxPrice?: number;
@@ -1161,6 +1163,7 @@ interface TronStakeStateOptions {
 const createTronStakeState = ({
   stakingMetadata = { energy: '7000000' },
   legacyStakedBalance,
+  legacyBandwidthStakedBalance,
   nileStakingEnergy,
   secondTronAccountStakingMetadata,
   trxPrice,
@@ -1178,6 +1181,13 @@ const createTronStakeState = ({
   const tronAccountBalances = {
     ...(legacyStakedBalance
       ? { [TRON_LEGACY_STAKED_ASSET_ID]: { amount: legacyStakedBalance } }
+      : {}),
+    ...(legacyBandwidthStakedBalance
+      ? {
+          [TRON_LEGACY_BANDWIDTH_STAKED_ASSET_ID]: {
+            amount: legacyBandwidthStakedBalance,
+          },
+        }
       : {}),
     [TRON_NATIVE_ASSET_ID]: {
       amount: '0',
@@ -1370,6 +1380,22 @@ describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
     );
 
     expect(stakedRows).toHaveLength(1);
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      }),
+    ).toEqual(expect.objectContaining({ balance: '10', balanceFiat: '$1.20' }));
+  });
+
+  it('prices the full stake when one component falls back to an unpriced legacy asset', () => {
+    const state = createTronStakeState({
+      stakingMetadata: { energy: '7000000' },
+      legacyBandwidthStakedBalance: '3',
+      trxPrice: 0.12,
+    });
+
     expect(
       selectAsset(state, {
         address: TRON_NATIVE_ASSET_ID,

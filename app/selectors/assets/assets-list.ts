@@ -1043,11 +1043,6 @@ const getTronSpecialAssetsByChain = (
       assetsPrice,
       selectedCurrency,
     );
-    specialAssetsMap.totalStakedTrx = new BigNumber(
-      specialAssetsMap.stakedTrxForEnergy?.balance ?? 0,
-    )
-      .plus(specialAssetsMap.stakedTrxForBandwidth?.balance ?? 0)
-      .toNumber();
   }
 
   return specialAssetsByChain;
@@ -1240,6 +1235,7 @@ export const selectTronStakedAssetsBySelectedAccountGroup =
         for (const [chainId, specialAssetsMap] of specialAssetsByChain) {
           let balance = new BigNumber(0);
           let fiat: { balance: number; currency: string } | undefined;
+          let hasUnpricedComponent = false;
 
           for (const entry of [
             specialAssetsMap.stakedTrxForEnergy,
@@ -1260,6 +1256,8 @@ export const selectTronStakedAssetsBySelectedAccountGroup =
                 balance: (fiat?.balance ?? 0) + entry.fiat.balance,
                 currency: entry.fiat.currency,
               };
+            } else {
+              hasUnpricedComponent = true;
             }
           }
 
@@ -1267,15 +1265,16 @@ export const selectTronStakedAssetsBySelectedAccountGroup =
             continue;
           }
 
-          if (!fiat) {
+          if (!fiat || hasUnpricedComponent) {
             const trxPrice =
               assetsPrice[`${chainId}/slip44:195` as CaipAssetType]?.price;
-            if (trxPrice !== undefined) {
-              fiat = {
-                balance: balance.multipliedBy(trxPrice).toNumber(),
-                currency: selectedCurrency,
-              };
-            }
+            fiat =
+              trxPrice === undefined
+                ? undefined
+                : {
+                    balance: balance.multipliedBy(trxPrice).toNumber(),
+                    currency: selectedCurrency,
+                  };
           }
 
           stakedAssets.push({

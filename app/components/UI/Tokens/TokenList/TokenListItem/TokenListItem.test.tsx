@@ -24,6 +24,12 @@ import {
 
 import { useQuery } from '@tanstack/react-query';
 import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/featureFlagController/tokenListSecurityBadges';
+import { selectAsset } from '../../../../../selectors/assets/assets-list';
+
+jest.mock('../../../../../selectors/assets/assets-list', () => ({
+  ...jest.requireActual('../../../../../selectors/assets/assets-list'),
+  selectAsset: jest.fn(),
+}));
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
@@ -955,12 +961,23 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     } as TokenI;
 
+    afterEach(() => {
+      jest.mocked(selectAsset).mockReset();
+    });
+
+    // shortcut: component-view has no non-EVM staked fixture yet; move to
+    // TokenListItem.view.test.tsx once one exists.
     it('navigates to the liquid TRX token detail when the staked TRX row is pressed', () => {
       prepareMocks({ asset: stakedTrxAsset });
       const defaultImplementation = mockUseSelector.getMockImplementation();
+      jest
+        .mocked(selectAsset)
+        .mockImplementation((_state, params) =>
+          params.isStaked ? stakedTrxAsset : liquidTrxAsset,
+        );
       mockUseSelector.mockImplementation((selector) =>
-        selector.toString().includes('isStaked: false')
-          ? liquidTrxAsset
+        selector.toString().includes('selectAsset')
+          ? selector({})
           : defaultImplementation?.(selector),
       );
 
