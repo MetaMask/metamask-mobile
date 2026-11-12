@@ -10,6 +10,8 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
 import {
   Box,
   BoxAlignItems,
@@ -33,6 +35,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
  */
 const KYCFailed = () => {
   const exitCardFlow = useExitCardFlow();
+  const { notifyKycRejected } = useImmersveKycOutcome();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -73,8 +76,16 @@ const KYCFailed = () => {
   }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
+    // The screen is the explanation. Signing out stops a later Link card
+    // from treating this Immersve session as ready. Baanx keeps its session.
+    if (activeProviderId === CardProviderIds.Immersve) {
+      notifyKycRejected(
+        { type: 'rejected', canRetry: false, reasons: [] },
+        { source: 'kyc_failed', toast: false },
+      ).catch(() => undefined);
+    }
     exitCardFlow();
-  }, [exitCardFlow]);
+  }, [activeProviderId, exitCardFlow, notifyKycRejected]);
 
   return (
     <SafeAreaView
