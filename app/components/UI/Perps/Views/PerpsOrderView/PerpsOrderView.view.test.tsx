@@ -1342,8 +1342,7 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  // TAT-4608: Done on the amount keypad was dropping the typed size back to $0
-  // and snapping the slider to 0%.
+  // Typed amount stays after Done; a pre-layout 0% slider commit must not reset it.
   describe('amount keypad commit', () => {
     const SHORT_BALANCE = '13.67';
     const SHORT_PRICE = '941.95';
