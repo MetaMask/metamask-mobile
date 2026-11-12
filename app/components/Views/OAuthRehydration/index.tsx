@@ -6,7 +6,7 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import { BackHandler, TouchableOpacity, Alert } from 'react-native';
+import { BackHandler, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -102,8 +102,16 @@ import { getSocialAccountType } from '../../../constants/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { analytics } from '../../../util/analytics/analytics';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingUserId,
+} from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
+import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import { buildOidcIdentifier } from '../../../core/MfaRecovery';
+import Engine from '../../../core/Engine';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
@@ -121,6 +129,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const dispatch = useDispatch();
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
+  const seedlessUserId = useSelector(selectSeedlessOnboardingUserId);
+  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
   const analyticsId = useSelector(selectAnalyticsId);
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);
@@ -816,6 +826,63 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPassword('');
   };
 
+  /**
+   * Local-only: validate left-hand MFA recovery on the locked rehydrate screen
+   * (where seedless userId already exists). Not for production.
+   */
+  const handleDevMfaSocialUnlock = useCallback(async () => {
+    if (!__DEV__) {
+      return;
+    }
+
+    const hasMfaRecoveryController = Boolean(
+      (Engine.context as { MfaRecoveryController?: unknown })
+        .MfaRecoveryController,
+    );
+    const provider = authConnection as AuthConnection;
+
+    if (!hasMfaRecoveryController) {
+      Alert.alert('DEV MFA', 'MfaRecoveryController is not on Engine.context');
+      return;
+    }
+    if (!provider || !seedlessUserId) {
+      Alert.alert(
+        'DEV MFA',
+        'Missing seedless authConnection or userId on this device',
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const loginHandler = createLoginHandler(Platform.OS, provider, false, {
+        telegramLoginEnabled: isTelegramLoginEnabled,
+      });
+
+      await OAuthService.handleMfaSeedlessPasswordUnlock(
+        {
+          identifier: buildOidcIdentifier({ authConnection: provider }),
+          expectedSeedlessUserId: seedlessUserId,
+          authConnection: provider,
+          clientId: loginHandler.options.clientId,
+        },
+        true,
+      );
+
+      Alert.alert(
+        'DEV MFA OK',
+        'MfaRecoveryController path succeeded. Enter password to unlock the vault.',
+      );
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+      Alert.alert('DEV MFA failed', message);
+    } finally {
+      setLoading(false);
+    }
+  }, [authConnection, seedlessUserId, isTelegramLoginEnabled]);
+
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
 
@@ -914,6 +981,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             {strings('login.other_methods')}
           </Button>
         )}
+        {__DEV__ ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ctaSize}
+            onPress={handleDevMfaSocialUnlock}
+            isDisabled={finalLoading}
+            isLoading={loading}
+            isFullWidth
+            testID="dev-mfa-social-unlock-button"
+          >
+            DEV: MFA social unlock
+          </Button>
+        ) : null}
       </OnboardingLoginCanvas>
     </ErrorBoundary>
   );

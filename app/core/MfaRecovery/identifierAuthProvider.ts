@@ -13,10 +13,13 @@ import {
   AuthServerUrl,
   web3AuthNetwork,
 } from '../OAuthService/OAuthLoginHandlers/constants';
-import { fromBase64UrlSafe } from '../OAuthService/OAuthLoginHandlers/utils';
+import {
+  fromBase64UrlSafe,
+  toBase64UrlSafe,
+} from '../OAuthService/OAuthLoginHandlers/utils';
 import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 import { getAuthConnectionIdFromClientId } from '../OAuthService/OAuthService';
-import { toByteArray } from 'react-native-quick-base64';
+import { fromByteArray, toByteArray } from 'react-native-quick-base64';
 import ReduxService from '../redux';
 import { selectTelegramLoginEnabled } from '../../selectors/featureFlagController/seedlessTelegramLogin';
 import type {
@@ -274,6 +277,57 @@ const assertEnabledAndResolveConnection = (
 };
 
 /**
+ * Candidate Apple ID-token `nonce` encodings for a caller-bound raw nonce.
+ *
+ * Apple always SHA-256-hashes the authorize nonce before writing the claim.
+ * Some stacks (iOS ASAuthorization / auth-server) pre-hash before Apple hashes
+ * again — accept both single and double hex digests. Also accept base64url of
+ * the single digest bytes (seen in some OIDC Apple integrations).
+ */
+export const appleNonceClaimCandidates = (nonce: string): string[] => {
+  const once = sha256(stringToBytes(nonce));
+  const onceHex = bytesToHex(once);
+  const onceHexNoPrefix = onceHex.slice(2);
+  const twiceHex = bytesToHex(sha256(stringToBytes(onceHexNoPrefix)));
+  const twiceHexNoPrefix = twiceHex.slice(2);
+  // Pre-hash with 0x prefix (if a layer hashed the full `0x…` string).
+  const twiceFromPrefixed = bytesToHex(sha256(stringToBytes(onceHex)));
+  const onceBase64Url = toBase64UrlSafe(fromByteArray(once));
+  return [
+    onceHex,
+    onceHexNoPrefix,
+    twiceHex,
+    twiceHexNoPrefix,
+    twiceFromPrefixed,
+    twiceFromPrefixed.slice(2),
+    onceBase64Url,
+  ];
+};
+
+/**
+ * Apple hashes the authorize/request nonce with SHA-256 before writing it into
+ * the ID token `nonce` claim (expo-apple-authentication does the same). Google
+ * and Telegram echo the raw nonce. Accept Apple encodings so MFA key-binding
+ * works once auth-server returns a real Apple ID token.
+ */
+const isMatchingProviderNonce = (
+  claimNonce: unknown,
+  nonce: string,
+  issuer: string,
+): boolean => {
+  if (typeof claimNonce === 'string' && claimNonce === nonce) {
+    return true;
+  }
+  if (OIDC_ISSUERS[issuer] !== AuthConnection.Apple) {
+    return false;
+  }
+  if (typeof claimNonce !== 'string' || !claimNonce) {
+    return false;
+  }
+  return appleNonceClaimCandidates(nonce).includes(claimNonce);
+};
+
+/**
  * Validates nonce/issuer and resolves the OIDC subject from the provider ID
  * token. When `identifier.value` is set, it must match `claims.sub`. When it is
  * empty (password-unlock rehydration), the subject is discovered from the token
@@ -286,7 +340,7 @@ const validateProviderIdToken = (
 ): string => {
   const issuer = trimTrailingSlash(identifier.namespace);
   const claims = decodeJwtPayload(idToken);
-  if (claims.nonce !== nonce) {
+  if (!isMatchingProviderNonce(claims.nonce, nonce, issuer)) {
     throw new Error('MFA recovery: ID token nonce does not match the request');
   }
   if (typeof claims.sub !== 'string' || !claims.sub) {

@@ -33,7 +33,6 @@ export type {
 } from './seedlessPasswordUnlockViaMfa';
 
 export type {
-  AuthenticateIdentifierResult,
   Identifier,
   IdentifierSession,
   KeyBoundIdentifierLogin,

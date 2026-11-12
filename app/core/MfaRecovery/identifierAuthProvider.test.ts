@@ -5,6 +5,7 @@ import { AuthConnection } from '../OAuthService/OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../OAuthService/error';
 import { createLoginHandler } from '../OAuthService/OAuthLoginHandlers';
 import {
+  appleNonceClaimCandidates,
   computeKeyBoundNonce,
   createOidcIdentifierAuthProvider,
   loginWithNonceAndSeedlessAuthViaHandlers,
@@ -685,6 +686,90 @@ describe('createOidcIdentifierAuthProvider', () => {
       authConnection: AuthConnection.Apple,
       nonce: expectedNonce,
     });
+  });
+
+  it('accepts Apple ID tokens whose nonce claim is SHA-256 of the request nonce', async () => {
+    const appleHashedNonce = bytesToHex(
+      sha256(stringToBytes(expectedNonce)),
+    ).slice(2);
+    const providerIdToken = tokenFor(appleHashedNonce, {
+      iss: 'https://appleid.apple.com',
+      sub: 'apple-sub-1',
+    });
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(providerIdToken, {
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+      }),
+    });
+
+    const login = await provider.getKeyBoundIdentifierLogin({
+      identifier: {
+        type: 'social',
+        namespace: 'https://appleid.apple.com',
+        value: 'apple-sub-1',
+        verifier: { auds: ['client-id'] },
+      },
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(login.token.providerAssertion).toBe(providerIdToken);
+    expect(login.token.identifier.value).toBe('apple-sub-1');
+  });
+
+  it('accepts Apple ID tokens with a double-hashed nonce claim', async () => {
+    const onceHex = bytesToHex(sha256(stringToBytes(expectedNonce))).slice(2);
+    const doubleHashed = bytesToHex(sha256(stringToBytes(onceHex))).slice(2);
+    expect(appleNonceClaimCandidates(expectedNonce)).toContain(doubleHashed);
+
+    const providerIdToken = tokenFor(doubleHashed, {
+      iss: 'https://appleid.apple.com',
+      sub: 'apple-sub-1',
+    });
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(providerIdToken, {
+        authConnection: AuthConnection.Apple,
+        authConnectionId: 'ios-apple',
+      }),
+    });
+
+    const login = await provider.getKeyBoundIdentifierLogin({
+      identifier: {
+        type: 'social',
+        namespace: 'https://appleid.apple.com',
+        value: 'apple-sub-1',
+        verifier: { auds: ['client-id'] },
+      },
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(login.token.identifier.value).toBe('apple-sub-1');
+  });
+
+  it('rejects Google ID tokens that only match Apple hashed-nonce encoding', async () => {
+    const appleHashedNonce = bytesToHex(
+      sha256(stringToBytes(expectedNonce)),
+    ).slice(2);
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(
+        tokenFor(appleHashedNonce),
+      ),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierLogin({
+        identifier: googleIdentifier,
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow(
+      'MFA recovery: ID token nonce does not match the request',
+    );
   });
 
   it('rejects when MFA recovery is disabled', async () => {

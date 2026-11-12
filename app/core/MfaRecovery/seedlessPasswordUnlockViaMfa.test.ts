@@ -58,6 +58,22 @@ const seedlessAuthData = {
   socialLoginEmail: 'a@b.com',
 };
 
+const keyBoundSessionFields = {
+  token: {},
+  proofPrivateKey: new Uint8Array(32),
+  requestId: 'req',
+  ephemeralPrivateKey: new Uint8Array(32),
+  pkE: new Uint8Array(32),
+};
+
+/** Core tip `701acab40`: seedlessAuthData lives on the IdentifierSession. */
+const sessionWithSeedless = (
+  data: typeof seedlessAuthData | object = seedlessAuthData,
+) => ({
+  ...keyBoundSessionFields,
+  seedlessAuthData: data,
+});
+
 describe('buildOidcIdentifier', () => {
   it('maps auth connection to OIDC issuer namespace', () => {
     expect(
@@ -99,17 +115,9 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('calls authenticateIdentifier then OAuthService.handleSeedlessAuthenticate', async () => {
-    const session = {
-      token: {},
-      proofPrivateKey: new Uint8Array(32),
-      requestId: 'req',
-      ephemeralPrivateKey: new Uint8Array(32),
-      pkE: new Uint8Array(32),
-    };
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session,
-      seedlessAuthData,
-    });
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless(),
+    );
     (
       OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
     ).mockResolvedValue({
@@ -152,14 +160,15 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
       existingUser: true,
       accountName: 'a@b.com',
     });
-    expect(result.session).toBe(session);
+    // Seedless tokens are stripped before the session is retained.
+    expect(result.session).toEqual(keyBoundSessionFields);
+    expect(result.session).not.toHaveProperty('seedlessAuthData');
   });
 
   it('does not mark success when seedless authenticate throws', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData,
-    });
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless(),
+    );
     (
       OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
     ).mockRejectedValue(new Error('seedless failed'));
@@ -179,8 +188,7 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
 
   it('fails when seedlessAuthData is missing', async () => {
     getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData: undefined,
+      ...keyBoundSessionFields,
     });
 
     await expect(
@@ -191,13 +199,12 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('fails when seedless userId does not match the expected account', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData: {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless({
         ...seedlessAuthData,
         userId: 'other-auth-sub',
-      },
-    });
+      }),
+    );
 
     await expect(
       authenticateSeedlessViaMfaIdentifier(identifier, {
@@ -231,13 +238,12 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('throws when seedlessAuthData is missing idTokens', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData: {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless({
         ...seedlessAuthData,
         idTokens: [],
-      },
-    });
+      }),
+    );
 
     await expect(
       authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
@@ -245,9 +251,8 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('throws when seedlessAuthData is missing revokeToken', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData: {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless({
         idTokens: ['auth-jwt'],
         accessToken: 'access',
         metadataAccessToken: 'metadata',
@@ -255,8 +260,8 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
         authConnection: AuthConnection.Apple,
         authConnectionId: 'ios-apple',
         userId: 'auth-sub',
-      },
-    });
+      }),
+    );
 
     await expect(
       authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
@@ -264,10 +269,9 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('throws when handleSeedlessAuthenticate returns an error result', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData,
-    });
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless(),
+    );
     (
       OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
     ).mockResolvedValue({
@@ -282,9 +286,8 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
   });
 
   it('omits account_name when socialLoginEmail is absent', async () => {
-    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue({
-      session: {},
-      seedlessAuthData: {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless({
         idTokens: ['auth-jwt'],
         accessToken: 'access',
         metadataAccessToken: 'metadata',
@@ -293,8 +296,8 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
         authConnection: AuthConnection.Apple,
         authConnectionId: 'ios-apple',
         userId: 'auth-sub',
-      },
-    });
+      }),
+    );
     (
       OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
     ).mockResolvedValue({

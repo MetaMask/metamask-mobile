@@ -92,8 +92,11 @@ export async function authenticateSeedlessViaMfaIdentifier(
 ): Promise<SeedlessPasswordUnlockResult> {
   const MfaRecoveryController = getMfaRecoveryController();
 
-  const { session, seedlessAuthData } =
+  // Core #11224 (`701acab40`): authenticateIdentifier returns IdentifierSession
+  // with optional seedlessAuthData on the session (not beside it).
+  const session =
     await MfaRecoveryController.authenticateIdentifier(identifier);
+  const { seedlessAuthData, ...recoverySession } = session;
 
   if (!seedlessAuthData) {
     throw new Error(
@@ -135,7 +138,8 @@ export async function authenticateSeedlessViaMfaIdentifier(
     type: 'success',
     existingUser: result.existingUser,
     accountName: socialLoginEmail,
-    session,
+    // Drop seedless tokens before retaining the session for getRecoverySecret.
+    session: recoverySession,
   };
 }
 

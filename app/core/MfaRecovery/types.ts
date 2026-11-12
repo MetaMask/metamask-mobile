@@ -3,9 +3,9 @@
  * seedless-unlock types. Keep the PR free of the unpublished preview package
  * (CI). Swap to package imports once it is published.
  *
- * Matches Core MFA recovery after Himanshu’s review on #11224:
+ * Matches Core MFA recovery after #11224 tip (`701acab40`):
  * one provider method (`getKeyBoundIdentifierLogin`); `authenticateIdentifier`
- * returns `{ session, seedlessAuthData? }` with no options flag.
+ * returns an `IdentifierSession` that may include `seedlessAuthData`.
  */
 
 export type SeedlessAuthConnection = 'google' | 'apple' | 'telegram';
@@ -64,18 +64,23 @@ export interface RecoveryIdentifierAuthProvider {
 }
 
 /**
- * Ephemeral session for a later `getRecoverySecret`. Shape is owned by Core;
- * Mobile only retains the object.
+ * Result of `authenticateIdentifier` / input to `getRecoverySecret`.
+ *
+ * `seedlessAuthData` is present for seedless social logins. Callers that need
+ * it for `SeedlessOnboardingController.authenticate` should drop it before
+ * holding the session for a later recovery read.
+ *
+ * Key-bound credential fields are owned by Core; Mobile only retains the
+ * object (or a stripped copy).
  */
-export type IdentifierSession = object;
-
-/**
- * Result of `MfaRecoveryController.authenticateIdentifier` — `seedlessAuthData`
- * is beside `session`, not on it.
- */
-export interface AuthenticateIdentifierResult {
-  session: IdentifierSession;
+export interface IdentifierSession {
+  token?: KeyBoundIdentifierToken;
+  proofPrivateKey?: Uint8Array;
+  requestId?: string;
+  ephemeralPrivateKey?: Uint8Array;
+  pkE?: Uint8Array;
   seedlessAuthData?: SeedlessAuthData;
+  [key: string]: unknown;
 }
 
 /**
@@ -86,5 +91,5 @@ export interface AuthenticateIdentifierResult {
 export interface MfaRecoveryControllerLike {
   authenticateIdentifier: (
     identifier: Identifier,
-  ) => Promise<AuthenticateIdentifierResult>;
+  ) => Promise<IdentifierSession>;
 }
