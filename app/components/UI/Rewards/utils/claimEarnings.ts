@@ -202,6 +202,43 @@ export function claimRouteOptions(
 }
 
 /**
+ * True when cashback's own claimable balance meets the summary minimum.
+ * A closed cashback mechanism is not in `claimable`, so it fails this check.
+ * There is no cashback `claim_open` flag.
+ */
+export function cashbackMeetsClaimMinimum(
+  summary: EarningsSummaryDto | null | undefined,
+): boolean {
+  return meetsClaimMinimum(
+    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
+      ?.claimable,
+    summary?.minimum_musd_base_units,
+  );
+}
+
+const INCOME_CLAIM_ROUTES = new Set<ClaimRouteSlug>([
+  'referral-rev-share',
+  'social-follow-trade',
+]);
+
+/**
+ * Applies a Claim press's tax decision to the open routes. Cashback-only
+ * drops income. An open tax sheet drops income and leaves cashback.
+ */
+export function selectClaimRoutes(
+  routes: ClaimRouteSlug[],
+  options?: { cashbackOnly?: boolean; omitIncome?: boolean },
+): ClaimRouteSlug[] {
+  if (options?.cashbackOnly) {
+    return routes.filter((route) => route === 'referral-trade-fee-cashback');
+  }
+  if (options?.omitIncome) {
+    return routes.filter((route) => !INCOME_CLAIM_ROUTES.has(route));
+  }
+  return routes;
+}
+
+/**
  * Cashback when that family meets the minimum, then revenue share and
  * follow-trade when those routes are included. Each family must reach
  * `minimum_musd_base_units` on its own. A closed route stays off no matter
@@ -213,10 +250,7 @@ export function claimRoutesForSummary(
 ): ClaimRouteSlug[] {
   const minimum = summary?.minimum_musd_base_units;
   const routes: ClaimRouteSlug[] = [];
-  const cashback =
-    summary?.self_earned?.by_claim_family?.REFERRAL_TRADE_FEE_CASHBACK
-      ?.claimable;
-  if (meetsClaimMinimum(cashback, minimum)) {
+  if (cashbackMeetsClaimMinimum(summary)) {
     routes.push('referral-trade-fee-cashback');
   }
   const revShare =

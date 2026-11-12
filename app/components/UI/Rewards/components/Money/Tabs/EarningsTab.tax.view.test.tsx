@@ -1,5 +1,7 @@
 /**
- * Tax documentation opens from Claim. Cashback still submits. Income does not.
+ * Tax documentation opens from Claim only when cashback cannot be claimed.
+ * A cleared payee claims every open route. An uncleared payee with cashback
+ * at the minimum claims cashback alone.
  *
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tax.view.test.tsx --runInBand --coverage=false
  */
@@ -356,8 +358,8 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(0);
   });
 
-  it('shows the attestation and still submits cashback, not income', async () => {
-    const { findByTestId, engine } = renderEarningsTab({
+  it('submits cashback without the tax sheet when income is held', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
@@ -371,15 +373,15 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(
-      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveTextContent(COPY.taxAttestationTitle);
     await waitFor(() => {
       const claims = callsFor(engine, 'RewardsMoneyController:initiateClaim');
       expect(claims.map((call) => call[1])).toEqual([
         'referral-trade-fee-cashback',
       ]);
     });
+    expect(
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens one tax sheet and does not submit follow-trade on its own', async () => {
@@ -414,13 +416,13 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(0);
   });
 
-  it('opens one tax sheet and submits cashback without follow-trade', async () => {
+  it('submits cashback without the tax sheet when copy trading is also claimable', async () => {
     const summary = earningsSummaryFixture({
       claimable: '2000000',
       cashbackClaimable: '1000000',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, findAllByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -436,9 +438,6 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(
-      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveTextContent(COPY.taxAttestationTitle);
     await waitFor(() => {
       expect(
         callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
@@ -447,8 +446,8 @@ describe('EarningsTab tax documentation', () => {
       ).toEqual(['referral-trade-fee-cashback']);
     });
     expect(
-      await findAllByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveLength(1);
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the form after Yes', async () => {
@@ -896,27 +895,28 @@ describe('EarningsTab tax documentation', () => {
       pending: '0',
       claimed: '0',
     };
-    const { findByTestId, getByTestId, engine } = renderEarningsTab({
-      persona: 'referee',
-      summary,
-      claimReady: true,
-      handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
-        'RewardsMoneyController:getCommissions': () =>
-          Promise.resolve({
-            results: [],
-            mechanisms: {
-              REFERRAL_REV_SHARE: {
-                claim_open: false,
-                reason: 'MECHANISM_NOT_CLAIMABLE',
+    const { findByTestId, getByTestId, queryByTestId, engine } =
+      renderEarningsTab({
+        persona: 'referee',
+        summary,
+        claimReady: true,
+        handlers: {
+          'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
+          'RewardsMoneyController:getCommissions': () =>
+            Promise.resolve({
+              results: [],
+              mechanisms: {
+                REFERRAL_REV_SHARE: {
+                  claim_open: false,
+                  reason: 'MECHANISM_NOT_CLAIMABLE',
+                },
+                SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
               },
-              SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
-            },
-            has_more: false,
-            cursor: null,
-          }),
-      },
-    });
+              has_more: false,
+              cursor: null,
+            }),
+        },
+      });
 
     await waitFor(() => {
       expect(
@@ -934,6 +934,9 @@ describe('EarningsTab tax documentation', () => {
         ),
       ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
     });
+    expect(
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the determination sheet for a provider 503 and does not retry', async () => {

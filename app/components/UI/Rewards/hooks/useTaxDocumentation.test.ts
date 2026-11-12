@@ -120,6 +120,24 @@ const localizedText = {
 
 const summary = {} as unknown as EarningsSummaryDto;
 
+const ONE_DOLLAR = '1000000';
+
+/** Cashback and income both meet the minimum. Tax decides which routes post. */
+const cashbackAndIncomeSummary = {
+  minimum_musd_base_units: ONE_DOLLAR,
+  self_earned: {
+    by_claim_family: {
+      REFERRAL_TRADE_FEE_CASHBACK: { claimable: ONE_DOLLAR },
+    },
+  },
+  earned_by_others: {
+    by_claim_family: {
+      REFERRAL_REV_SHARE: { claimable: ONE_DOLLAR },
+      SOCIAL_FOLLOW_TRADE: { claimable: ONE_DOLLAR },
+    },
+  },
+} as unknown as EarningsSummaryDto;
+
 const taxHeldSummary = {
   earned_by_others: {
     by_claim_family: {
@@ -318,7 +336,7 @@ describe('useTaxDocumentation', () => {
           title: localizedText.taxAttestationTitle,
         }),
       );
-      expect(claim).toHaveBeenCalledWith({ omitFollowTrade: true });
+      expect(claim).toHaveBeenCalledWith({ omitIncome: true });
       expect(mockFetchEarningsSummary).not.toHaveBeenCalled();
     });
 
@@ -422,6 +440,48 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
+    it('submits cashback only and skips the tax sheet when cashback meets the minimum', async () => {
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(cashbackAndIncomeSummary, claim);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ cashbackOnly: true });
+    });
+
+    it('submits every route and skips the attestation when the payee is cleared', async () => {
+      mockTaxRead(taxMe(clearedTaxMe));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(cashbackAndIncomeSummary, claim);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith();
+    });
+
+    it('submits cashback only when the tax read fails and cashback meets the minimum', async () => {
+      mockCall.mockRejectedValue(new Error('offline'));
+      const claim = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderTaxHook();
+
+      await act(async () => {
+        await result.current.onClaimPress(cashbackAndIncomeSummary, claim);
+      });
+
+      expect(mockErrorToast).toHaveBeenCalledWith(localizedText.taxErrorToast);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).toHaveBeenCalledWith({ cashbackOnly: true });
+    });
+
     it('opens the attestation and still claims when the payee is not cleared', async () => {
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();
@@ -438,7 +498,7 @@ describe('useTaxDocumentation', () => {
           profileId: PROFILE,
         }),
       );
-      expect(claim).toHaveBeenCalledWith({ omitFollowTrade: true });
+      expect(claim).toHaveBeenCalledWith({ omitIncome: true });
     });
 
     it('does not open a second sheet when that claim is refused for tax', async () => {
@@ -506,7 +566,7 @@ describe('useTaxDocumentation', () => {
       expect(claim).toHaveBeenCalledTimes(1);
     });
 
-    it('shows the error toast and still claims when the tax read fails', async () => {
+    it('shows the error toast and does not claim income when the tax read fails', async () => {
       mockCall.mockRejectedValue(new Error('offline'));
       const claim = jest.fn().mockResolvedValue(undefined);
       const { result } = renderTaxHook();
@@ -517,10 +577,10 @@ describe('useTaxDocumentation', () => {
 
       expect(mockErrorToast).toHaveBeenCalledWith(localizedText.taxErrorToast);
       expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).not.toHaveBeenCalled();
     });
 
-    it('stays silent and still claims when the tax read is unauthorized', async () => {
+    it('stays silent and does not claim income when the tax read is unauthorized', async () => {
       mockCall.mockRejectedValue(
         new RewardsMoneyAuthorizationError('signed out'),
       );
@@ -532,7 +592,7 @@ describe('useTaxDocumentation', () => {
       });
 
       expect(mockShowToast).not.toHaveBeenCalled();
-      expect(claim).toHaveBeenCalledTimes(1);
+      expect(claim).not.toHaveBeenCalled();
     });
 
     it('ignores a second press while the first tax read is in flight', async () => {

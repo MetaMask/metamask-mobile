@@ -26,9 +26,11 @@ import {
 import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
+  cashbackMeetsClaimMinimum,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
+  selectClaimRoutes,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
@@ -171,6 +173,60 @@ function summary(options: {
     },
   };
 }
+
+describe('cashbackMeetsClaimMinimum', () => {
+  it('is true at the summary minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: ONE_DOLLAR, cashback: ONE_DOLLAR }),
+      ),
+    ).toBe(true);
+  });
+
+  it('is false below the minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: UNDER_DOLLAR, cashback: UNDER_DOLLAR }),
+      ),
+    ).toBe(false);
+  });
+
+  it('is false when cashback is absent', () => {
+    expect(
+      cashbackMeetsClaimMinimum(summary({ claimable: '0', cashback: '0' })),
+    ).toBe(false);
+  });
+});
+
+describe('selectClaimRoutes', () => {
+  const routes = [
+    'referral-trade-fee-cashback',
+    'referral-rev-share',
+    'social-follow-trade',
+  ] as const;
+
+  it('keeps every route when tax does not narrow the press', () => {
+    expect(selectClaimRoutes([...routes])).toEqual([...routes]);
+  });
+
+  it('keeps cashback only', () => {
+    expect(selectClaimRoutes([...routes], { cashbackOnly: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('drops revenue share and follow-trade when income is omitted', () => {
+    expect(selectClaimRoutes([...routes], { omitIncome: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('cashback-only wins when both flags are set', () => {
+    expect(
+      selectClaimRoutes([...routes], { cashbackOnly: true, omitIncome: true }),
+    ).toEqual(['referral-trade-fee-cashback']);
+  });
+});
 
 describe('claimRoutesForSummary', () => {
   it('posts cashback only when that family is at least $1', () => {
