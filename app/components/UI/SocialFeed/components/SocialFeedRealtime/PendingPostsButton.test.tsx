@@ -8,6 +8,7 @@ import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '#app/components/UI/SocialFeed/
 import PendingPostsButton, {
   getPendingPostsAccessibilityLabel,
   getPendingPostsLabelParts,
+  PENDING_POSTS_PILL_TEST_ID,
   PENDING_POSTS_SLOTS_PROBE_TEST_ID,
 } from './PendingPostsButton';
 
@@ -25,11 +26,16 @@ jest.mock('#app/component-library/hooks/useLiquidGlass', () => ({
 }));
 
 const mockGlassView = jest.fn();
+const mockGlassMount = jest.fn();
 jest.mock('expo-glass-effect', () => {
+  const { useEffect } = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     GlassView: (props: { children?: React.ReactNode; testID?: string }) => {
       mockGlassView(props);
+      useEffect(() => {
+        mockGlassMount();
+      }, []);
       return <View testID={props.testID}>{props.children}</View>;
     },
   };
@@ -115,6 +121,33 @@ describe('PendingPostsButton', () => {
       }),
     );
     expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
+  });
+
+  it('remounts the glass when the pill is laid out at a new size', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isGlassEnabled: true,
+      glassColorScheme: 'dark',
+    });
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={9} onPress={jest.fn()} />,
+    );
+    const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID);
+
+    fireEvent(pill, 'layout', {
+      nativeEvent: { layout: { width: 80, height: 32 } },
+    });
+    fireEvent(pill, 'layout', {
+      nativeEvent: { layout: { width: 80, height: 32 } },
+    });
+
+    expect(mockGlassMount).toHaveBeenCalledTimes(2);
+
+    fireEvent(pill, 'layout', {
+      nativeEvent: { layout: { width: 96, height: 32 } },
+    });
+
+    expect(mockGlassMount).toHaveBeenCalledTimes(3);
   });
 
   it('renders the pill without Liquid Glass when glass is unavailable', () => {
