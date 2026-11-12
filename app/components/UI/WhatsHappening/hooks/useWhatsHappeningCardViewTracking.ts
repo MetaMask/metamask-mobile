@@ -114,10 +114,17 @@ export const useWhatsHappeningCardViewTracking = ({
 
   const onCarouselLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      viewportWidthRef.current = event.nativeEvent.layout.width;
+      const width = event.nativeEvent.layout.width;
+      if (width > 0) {
+        viewportWidthRef.current = width;
+      }
       onVerticalLayout();
+      // The vertical hook reports visibility once. A nested ScrollView can
+      // lay out at width 0 first, so a later layout with a real width must
+      // count the cards already on screen.
+      reportVisibleCards();
     },
-    [onVerticalLayout],
+    [onVerticalLayout, reportVisibleCards],
   );
 
   const onCarouselScroll = useCallback(

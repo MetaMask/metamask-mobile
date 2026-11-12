@@ -27,6 +27,7 @@ const mockCreateEventBuilder = jest.fn(
 );
 let mockNotifySectionVisible: (() => void) | null = null;
 let mockHoldSectionBelowFold = false;
+let mockSectionVisibilityConsumed = false;
 const mockUseViewportTracking = jest.fn();
 
 jest.mock('../MarketInsights/hooks/useViewportTracking', () => ({
@@ -40,9 +41,11 @@ jest.mock('../MarketInsights/hooks/useViewportTracking', () => ({
     return {
       ref: { current: null },
       onLayout: (): void => {
-        if (!mockHoldSectionBelowFold) {
-          onVisible();
+        if (mockHoldSectionBelowFold || mockSectionVisibilityConsumed) {
+          return;
         }
+        mockSectionVisibilityConsumed = true;
+        onVisible();
       },
     };
   },
@@ -117,6 +120,7 @@ describe('WhatsHappeningSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHoldSectionBelowFold = false;
+    mockSectionVisibilityConsumed = false;
     mockNotifySectionVisible = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -599,6 +603,21 @@ describe('WhatsHappeningSection', () => {
       );
 
       expect(scrolledToViewEvents()).toHaveLength(1);
+    });
+
+    it('fires rest-state view events when a zero-width layout is followed by the real width', () => {
+      renderLoadedCarousel();
+
+      layoutCarousel(0);
+
+      expect(scrolledToViewEvents()).toHaveLength(0);
+
+      layoutCarousel(viewportShowingFirstTwoCards);
+
+      expect(scrolledToViewEvents().map((event) => event.properties)).toEqual([
+        expect.objectContaining({ trend_id: 'trend-0', card_index: 0 }),
+        expect.objectContaining({ trend_id: 'trend-1', card_index: 1 }),
+      ]);
     });
 
     it('does not fire view events while the section is below the fold, then fires only the horizontally visible cards', () => {
