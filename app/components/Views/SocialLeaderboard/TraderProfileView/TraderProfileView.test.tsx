@@ -536,8 +536,6 @@ describe('TraderProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
@@ -617,21 +615,21 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays compact win rate and 7D PnL in the nav header', () => {
+  it('omits win rate and PnL from the compact nav header', () => {
     renderWithProvider(<TraderProfileView />);
 
     const header = screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER);
 
     expect(
-      within(header).getByTestId(
+      within(header).queryByTestId(
         TraderProfileViewSelectorsIDs.HEADER_COMPACT_WIN_RATE,
       ),
-    ).toHaveTextContent('92%');
+    ).toBeNull();
     expect(
-      within(header).getByTestId(
+      within(header).queryByTestId(
         TraderProfileViewSelectorsIDs.HEADER_COMPACT_PNL,
       ),
-    ).toHaveTextContent('+$20,610');
+    ).toBeNull();
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -961,6 +959,7 @@ describe('TraderProfileView', () => {
         realtime: true,
       }),
     );
+    expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
   });
 
   it('renders trader posts by default', () => {

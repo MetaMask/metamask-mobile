@@ -5,6 +5,7 @@ export enum SCREEN_NAMES {
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
+  MONEY_SPLASH = 'money_splash',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
   // Used for Money account withdrawals
