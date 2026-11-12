@@ -145,7 +145,7 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
           accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
           keyLabel={rowLabel}
           onPress={() => setIsSheetVisible(true)}
-          selectButtonProps={{}}
+          selectButtonProps={{ placeholder: selectedLabel }}
           testID={PerpsReceiveToSelectorsIDs.ROW}
           value={selectedLabel}
           valueStartAccessory={
