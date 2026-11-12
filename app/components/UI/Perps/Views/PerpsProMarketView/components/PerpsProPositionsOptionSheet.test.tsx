@@ -9,6 +9,11 @@ import {
   playSelection,
 } from '../../../../../../util/haptics';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
