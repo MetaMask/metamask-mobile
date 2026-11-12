@@ -76,17 +76,18 @@ export const isHomeUnobstructedState = (
 export const useIsHomeUnobstructed = (): boolean => {
   const navigation = useNavigation();
   const [isUnobstructed, setIsUnobstructed] = useState(() =>
-    isHomeUnobstructedState(navigation.getRootState()),
+    isHomeUnobstructedState(navigation.getState()),
   );
 
   useEffect(() => {
     const apply = () => {
-      setIsUnobstructed(isHomeUnobstructedState(navigation.getRootState()));
+      setIsUnobstructed(isHomeUnobstructedState(navigation.getState()));
     };
     // The state may have changed between the initial render and subscribing.
     apply();
     // The event's state drops the innermost route, so the listener reads the
-    // hydrated root instead.
+    // hydrated navigator state instead. This hook runs on the HomeNav screen,
+    // so that state is the app stack the check reads.
     return navigation.addListener('state', apply);
   }, [navigation]);
 

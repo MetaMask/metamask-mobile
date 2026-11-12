@@ -7,11 +7,11 @@ import {
   useIsHomeUnobstructed,
 } from './useIsHomeUnobstructed';
 
-const mockGetRootState = jest.fn();
+const mockGetState = jest.fn();
 const mockAddListener = jest.fn();
 const mockUnsubscribe = jest.fn();
 const mockNavigation = {
-  getRootState: (...args: unknown[]) => mockGetRootState(...args),
+  getState: (...args: unknown[]) => mockGetState(...args),
   addListener: (...args: unknown[]) => mockAddListener(...args),
 };
 
@@ -180,15 +180,15 @@ describe('useIsHomeUnobstructed', () => {
   });
 
   it('reads the focused state on mount', () => {
-    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
+    mockGetState.mockReturnValue(homeRoot(walletTab()));
 
     const { result } = renderHook(() => useIsHomeUnobstructed());
 
     expect(result.current).toBe(true);
   });
 
-  it('follows getRootState when navigation changes', () => {
-    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
+  it('follows getState when navigation changes', () => {
+    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab())));
     const { result } = renderHook(() => useIsHomeUnobstructed());
     const listener = mockAddListener.mock.calls[0][1];
 
@@ -196,7 +196,7 @@ describe('useIsHomeUnobstructed', () => {
       { name: Routes.WALLET_VIEW },
       { name: 'RevealPrivateCredential' },
     ]);
-    mockGetRootState.mockReturnValue(
+    mockGetState.mockReturnValue(
       wrapped(homeRoot(walletTab(pushedWallet))),
     );
     act(() => {
@@ -207,15 +207,15 @@ describe('useIsHomeUnobstructed', () => {
     });
     expect(result.current).toBe(false);
 
-    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
+    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab())));
     act(() => {
       listener({ data: { state: stack([{ name: 'OnboardingSuccess' }]) } });
     });
     expect(result.current).toBe(true);
   });
 
-  it('subscribes to the container state event', () => {
-    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
+  it('subscribes to the navigator state event', () => {
+    mockGetState.mockReturnValue(homeRoot(walletTab()));
 
     renderHook(() => useIsHomeUnobstructed());
 
@@ -223,7 +223,7 @@ describe('useIsHomeUnobstructed', () => {
   });
 
   it('unsubscribes on unmount', () => {
-    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
+    mockGetState.mockReturnValue(homeRoot(walletTab()));
     const { unmount } = renderHook(() => useIsHomeUnobstructed());
 
     unmount();
