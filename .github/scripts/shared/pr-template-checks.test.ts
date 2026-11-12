@@ -276,7 +276,7 @@ Feature: my feature name
     expect(shippedManualTestingSection).toContain('[first concrete action]');
     // Guidance lives in an HTML comment and must not itself be the failure.
     expect(shippedManualTestingSection).not.toContain(
-      'one behavior per Scenario',
+      'One behavior per Scenario',
     );
     expect(hasRealManualTesting(shippedManualTestingSection).ok).toBe(false);
   });
