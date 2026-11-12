@@ -6,7 +6,6 @@ import {
   Button,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSize,
   ButtonVariant,
   FontWeight,
   Icon,
@@ -24,7 +23,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
-  useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -38,7 +37,6 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  ActivityIndicator,
   RefreshControl,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -63,6 +61,9 @@ import {
   playSelection,
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { buildSocialProfileOgImageRequest } from '../navigation/socialOgImageCards';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
@@ -83,26 +84,27 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
+import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
+import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
-import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderBlock,
   useTraderPositions,
   useTraderProfile,
 } from '../TraderProfileView/hooks';
 import ProfileOptionsSheet from '../TraderProfileView/components/ProfileOptionsSheet';
-import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
-import type {
-  SocialV1FeedAuthor,
-  SocialV1FeedPost,
-} from '../../../UI/SocialFeed/types';
+import SocialFeed, {
+  type SocialFeedRefreshHandle,
+} from '../../../UI/SocialFeed/components/SocialFeed';
+import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
+import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
-import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
-import MyProfileCompactStats from './components/MyProfileCompactStats';
 import MyProfilePerformanceStats from './components/MyProfilePerformanceStats';
 import ProfilePostsEmptyState from './components/ProfilePostsEmptyState';
 import ProfilePositionsTab from './components/ProfilePositionsTab';
@@ -111,15 +113,20 @@ import ProfileAvatar from './components/ProfileAvatar';
 
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
-import { useMyProfile, useMyProfileAddress, useMyProfilePosts } from './hooks';
+import { useMyProfile, useMyProfileAddress } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
-  matchesProfileAssetFilter,
+  filterPositionsByAsset,
+  profileAssetFilterChains,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
+import {
+  getPositionsRefreshIntervalMs,
+  POSITIONS_REFRESH_INTERVAL_MS,
+} from './utils/positionsRefreshInterval';
 import {
   SocialEvent,
   useSocialAnalytics,
@@ -133,13 +140,12 @@ const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
-const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
+const PROFILE_CONTENT_TABS = ['posts', 'open', 'closed'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 const NO_POSITIONS: Position[] = [];
-const NO_POSTS: SocialV1FeedPost[] = [];
 
 const linkedAddressesMatch = (
   traderAddress: string | null | undefined,
@@ -203,84 +209,6 @@ const positionSheetAuthor = (
   xHandle: profile.xHandle ?? null,
 });
 
-interface ProfilePostsContentProps {
-  showInitialPostSkeletons: boolean;
-  showPostsEmptyState: boolean;
-  postsEmptyMessage?: string;
-  postsError: string | null;
-  visiblePosts: SocialV1FeedPost[];
-  onRetry: () => void;
-  showCopyTrade: boolean;
-}
-
-const ProfilePostsContent = ({
-  showInitialPostSkeletons,
-  showPostsEmptyState,
-  postsEmptyMessage,
-  postsError,
-  visiblePosts,
-  onRetry,
-  showCopyTrade,
-}: ProfilePostsContentProps) => {
-  if (showInitialPostSkeletons) {
-    return <ProfilePostsLoadingState />;
-  }
-  if (showPostsEmptyState) {
-    return <ProfilePostsEmptyState message={postsEmptyMessage} />;
-  }
-  if (postsError && visiblePosts.length === 0) {
-    return (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full px-4 py-16 gap-3"
-        testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.feed.error.title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.feed.error.description')}
-        </Text>
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={onRetry}
-          twClassName="self-center"
-          testID={MyProfileViewSelectorsIDs.POSTS_RETRY_BUTTON}
-        >
-          {strings('social_leaderboard.feed.error.retry')}
-        </Button>
-      </Box>
-    );
-  }
-
-  return (
-    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
-      <SocialV1FeedPostList
-        posts={visiblePosts}
-        dividerKeyPrefix="my-profile"
-        renderPost={(post) => (
-          <SocialFeedPostShell
-            post={post}
-            requireSocialTerms
-            showCopyTrade={showCopyTrade}
-          />
-        )}
-      />
-    </Box>
-  );
-};
-
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
@@ -314,6 +242,15 @@ const MyProfileView: React.FC = () => {
     requireSocialProfile: true,
   });
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
+  const isFocused = useIsFocused();
+  const { onCopyTrade: handleSpotCopyTrade, quickBuySheet } =
+    useSpotCopyTradeQuickBuy({
+      source: SocialEvent.Source.TRADER_FEED,
+      postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
+      isActive: isFocused && !isOwner,
+    });
+  const { onPositionPress: handlePostPositionPress } =
+    useSocialFeedPostNavigation('my_profile');
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -389,9 +326,15 @@ const MyProfileView: React.FC = () => {
     },
   );
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const profileTabs = useMemo<TabItem[]>(
     () => [
+      {
+        key: 'posts',
+        label: strings('social_leaderboard.my_profile.posts'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
+      },
       {
         key: 'open',
         label: strings('social_leaderboard.trader_profile.open'),
@@ -403,12 +346,6 @@ const MyProfileView: React.FC = () => {
         label: strings('social_leaderboard.trader_profile.closed'),
         content: null,
         testID: MyProfileViewSelectorsIDs.CLOSED_TAB,
-      },
-      {
-        key: 'posts',
-        label: strings('social_leaderboard.my_profile.posts'),
-        content: null,
-        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
       },
     ],
     [],
@@ -425,27 +362,14 @@ const MyProfileView: React.FC = () => {
     [activeTab],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
-  useFocusEffect(
-    useCallback(() => {
-      // Every new post lands here, pinned at the top of the Posts tab.
-      if (isOwner && consumePostsTabFocus()) {
-        setActiveTab('posts');
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-      }
-    }, [isOwner]),
-  );
-  const {
-    posts: fetchedPosts,
-    isLoading: isPostsLoading,
-    isFetchingNextPage,
-    hasNextPage: hasNextFetchedPage,
-    loadMore,
-    error: postsError,
-    refresh: refreshPosts,
-  } = useMyProfilePosts(addressOrId, {
-    ownerProfileId: isOwner ? myProfile?.profileId : undefined,
-    isActive: activeTab === 'posts' && !isContentHidden,
-  });
+  const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
+  const isSocialV1 = useSelector(selectIsSocialV1Enabled);
+  const networkTier = useNetworkTier();
+  // Read once per mount, as SocialV1View does. Only the SocialV1 poll uses it.
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const positionsRefreshIntervalMs = isSocialV1
+    ? getPositionsRefreshIntervalMs({ hardwareTier, networkTier })
+    : POSITIONS_REFRESH_INTERVAL_MS;
   const {
     openPositions: fetchedOpenPositions,
     closedPositions: fetchedClosedPositions,
@@ -454,17 +378,39 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
     refetch: refetchPositions,
+    hasMoreOpen: hasMoreOpenPositionsFetched,
+    hasMoreClosed: hasMoreClosedPositionsFetched,
+    isFetchingMoreOpen: isFetchingMoreOpenPositions,
+    isFetchingMoreClosed: isFetchingMoreClosedPositions,
+    loadMoreOpen,
+    loadMoreClosed,
   } = useTraderPositions(addressOrId ?? '', {
     enabled: !isContentHidden,
-    refetchInterval: 30_000,
+    paginated: isSocialV1,
+    refetchInterval: positionsRefreshIntervalMs,
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
-  const posts = isContentHidden ? NO_POSTS : fetchedPosts;
-  const hasNextPage = !isContentHidden && hasNextFetchedPage;
   const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
   const closedPositions = isContentHidden
     ? NO_POSITIONS
     : fetchedClosedPositions;
+  const isClosedPositionsTab = activeTab === 'closed';
+  const positionsHasMore =
+    !isContentHidden &&
+    Boolean(
+      isClosedPositionsTab
+        ? hasMoreClosedPositionsFetched
+        : hasMoreOpenPositionsFetched,
+    );
+  const isFetchingMorePositions = Boolean(
+    isClosedPositionsTab
+      ? isFetchingMoreClosedPositions
+      : isFetchingMoreOpenPositions,
+  );
+  const loadMorePositions = useCallback(() => {
+    const loadMoreForTab = isClosedPositionsTab ? loadMoreClosed : loadMoreOpen;
+    loadMoreForTab?.();
+  }, [isClosedPositionsTab, loadMoreClosed, loadMoreOpen]);
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
@@ -570,7 +516,6 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
-    playSelection().catch(() => undefined);
     runShare(() =>
       shareSocialProfile(
         traderId,
@@ -613,7 +558,6 @@ const MyProfileView: React.FC = () => {
     if (!profileId) {
       return;
     }
-    playSelection().catch(() => undefined);
     const displayName = myProfile?.displayName;
     const handle = myProfile?.handle;
     runShare(() =>
@@ -652,26 +596,44 @@ const MyProfileView: React.FC = () => {
     traderAddress,
   ]);
 
+  const blockAndUnfollow = useCallback(
+    async (reason?: string) => {
+      const wasFollowing = isFollowing;
+      const didBlock =
+        reason === undefined ? await block() : await block(reason);
+      if (didBlock && wasFollowing) {
+        await toggleFollow({
+          source: 'trader_profile',
+          traderAddress:
+            traderAddress || liveProfile.profile?.profile.address || '',
+          traderUsername: displayProfile?.displayName,
+          traderAvatarUri: displayProfile?.imageUrl,
+        });
+      }
+    },
+    [
+      block,
+      displayProfile,
+      isFollowing,
+      liveProfile.profile,
+      toggleFollow,
+      traderAddress,
+    ],
+  );
+
   const handleBlock = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const didBlock = await block();
-    if (didBlock && wasFollowing) {
-      await toggleFollow({
-        source: 'trader_profile',
-        traderAddress:
-          traderAddress || liveProfile.profile?.profile.address || '',
-        traderUsername: displayProfile?.displayName,
-        traderAvatarUri: displayProfile?.imageUrl,
-      });
-    }
-  }, [
-    block,
-    displayProfile,
-    isFollowing,
-    liveProfile.profile,
-    toggleFollow,
-    traderAddress,
-  ]);
+    await blockAndUnfollow();
+  }, [blockAndUnfollow]);
+
+  const handleReport = useCallback(
+    async (reason: SocialEntryReportReason) => {
+      if (reason === SocialEntryReportReason.Impersonation) {
+        return;
+      }
+      await blockAndUnfollow(reason);
+    },
+    [blockAndUnfollow],
+  );
 
   const handleUnblock = useCallback(async () => {
     await unblock();
@@ -691,13 +653,15 @@ const MyProfileView: React.FC = () => {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
       );
+      const postsRefresh = postsFeedRef.current?.refresh();
       // refreshLiveProfile rethrows after logging; allSettled keeps one
       // failure from aborting the others and from becoming unhandled.
       // refetch() ignores `enabled`, so hidden content must not be refetched.
       await Promise.allSettled([
         refresh(),
         refreshLiveProfile(),
-        ...(isContentHidden ? [] : [refreshPosts(), refetchPositions()]),
+        ...(isContentHidden ? [] : [refetchPositions()]),
+        ...(postsRefresh ? [postsRefresh] : []),
         minDuration,
       ]);
     } finally {
@@ -707,7 +671,6 @@ const MyProfileView: React.FC = () => {
     isContentHidden,
     refresh,
     refreshLiveProfile,
-    refreshPosts,
     refetchPositions,
     trackInteraction,
   ]);
@@ -717,11 +680,9 @@ const MyProfileView: React.FC = () => {
       () => undefined,
     );
   }, [privacyLoadError, refetchPositions, refreshLiveProfile]);
-  const handlePostsRetry = useCallback(() => {
-    (privacyLoadError ? refreshLiveProfile() : refreshPosts()).catch(
-      () => undefined,
-    );
-  }, [privacyLoadError, refreshLiveProfile, refreshPosts]);
+  const handlePrivacyRetry = useCallback(() => {
+    refreshLiveProfile().catch(() => undefined);
+  }, [refreshLiveProfile]);
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -752,6 +713,7 @@ const MyProfileView: React.FC = () => {
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
           analyticsSource: SocialEvent.Source.TRADER_PROFILE,
+          shareSource: SocialEvent.Source.PROFILE_POSITION,
         });
         return;
       }
@@ -790,17 +752,11 @@ const MyProfileView: React.FC = () => {
   const handleCloseAssetFilter = useCallback(() => {
     setIsAssetFilterOpen(false);
   }, []);
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter((post) =>
-        matchesProfileAssetFilter(post.position, assetFilter),
-      ),
-    [assetFilter, posts],
-  );
-
+  // Positions only: the Posts tab pages inside SocialFeed. Scroll-end pages in
+  // the open or closed tab when more rows exist.
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (activeTab !== 'posts' || !hasNextPage) {
+      if (activeTab === 'posts' || !positionsHasMore) {
         return;
       }
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -808,40 +764,15 @@ const MyProfileView: React.FC = () => {
       const distanceFromEnd =
         contentSize.height - (contentOffset.y + layoutMeasurement.height);
       if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
-        loadMore();
+        loadMorePositions();
       }
     },
-    [activeTab, hasNextPage, loadMore],
+    [activeTab, loadMorePositions, positionsHasMore],
   );
-
-  // A Tokens or Perps filter only sees posts already loaded. Keep paging
-  // until a match shows up, the feed ends, or the request fails.
-  const showFilteredPostLoading =
-    assetFilter !== 'all' &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    (isPostsLoading || isFetchingNextPage || hasNextPage);
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
-  const showInitialPostSkeletons =
-    (isPostsLoading && posts.length === 0) ||
-    showFilteredPostLoading ||
-    isAwaitingPrivacy;
-  const showPostsEmptyState =
-    !isAwaitingPrivacy &&
-    !privacyLoadError &&
-    !isPostsLoading &&
-    !isFetchingNextPage &&
-    visiblePosts.length === 0 &&
-    !postsError &&
-    !showFilteredPostLoading;
-  useEffect(() => {
-    if (!showFilteredPostLoading || isPostsLoading || isFetchingNextPage) {
-      return;
-    }
-    loadMore();
-  }, [isFetchingNextPage, isPostsLoading, loadMore, showFilteredPostLoading]);
+  const postsChains = profileAssetFilterChains(assetFilter);
   const postsEmptyMessage =
-    posts.length > 0 && assetFilter !== 'all'
+    assetFilter !== 'all'
       ? strings(filteredPostsEmptyKey(assetFilter))
       : undefined;
   const positionTab = profilePositionTab({
@@ -853,6 +784,20 @@ const MyProfileView: React.FC = () => {
     openError: openPositionsError,
     closedError: closedPositionsError,
   });
+  // Same as posts: a Tokens or Perps filter only sees loaded rows, so keep
+  // paging until one matches, the list ends, or a page fails.
+  const showFilteredPositionLoading =
+    activeTab !== 'posts' &&
+    isAssetFilterActive &&
+    positionsHasMore &&
+    !positionTab.error &&
+    filterPositionsByAsset(positionTab.positions, assetFilter).length === 0;
+  useEffect(() => {
+    if (!showFilteredPositionLoading || isFetchingMorePositions) {
+      return;
+    }
+    loadMorePositions();
+  }, [isFetchingMorePositions, loadMorePositions, showFilteredPositionLoading]);
 
   return (
     <SocialFeedSurfaceProvider
@@ -890,17 +835,6 @@ const MyProfileView: React.FC = () => {
                 }
                 variant="compact"
                 testID={MyProfileViewSelectorsIDs.HEADER_COMPACT_IDENTITY}
-              />
-            ) : undefined
-          }
-          subtitle={
-            overlayedStats && !isContentHidden ? (
-              <MyProfileCompactStats
-                winRateLabel={overlayedStats.winRateLabel}
-                isWinRatePositive={overlayedStats.isWinRatePositive}
-                pnlLabel={overlayedStats.pnlLabel}
-                hasPnl={overlayedStats.hasPnl}
-                isPnlPositive={overlayedStats.isPnlPositive}
               />
             ) : undefined
           }
@@ -1276,26 +1210,37 @@ const MyProfileView: React.FC = () => {
                     showFlaggedState={!isOwner}
                     onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
+                ) : isAwaitingPrivacy ? (
+                  <ProfilePostsLoadingState />
+                ) : privacyLoadError ? (
+                  <SocialFeedError onRetry={handlePrivacyRetry} />
                 ) : (
-                  <ProfilePostsContent
-                    showInitialPostSkeletons={showInitialPostSkeletons}
-                    showPostsEmptyState={showPostsEmptyState}
-                    postsEmptyMessage={postsEmptyMessage}
-                    postsError={privacyLoadError ?? postsError}
-                    visiblePosts={visiblePosts}
-                    onRetry={handlePostsRetry}
-                    showCopyTrade={!isOwner}
-                  />
+                  <Box paddingTop={4}>
+                    <SocialFeed
+                      scope="all"
+                      chains={postsChains}
+                      profileId={displayProfile.profileId}
+                      commentedOnly
+                      location="my_profile"
+                      analyticsEnabled={isOwner}
+                      realtime
+                      refreshRef={postsFeedRef}
+                      onCopyTrade={handleSpotCopyTrade}
+                      onPositionPress={handlePostPositionPress}
+                      emptyState={
+                        <ProfilePostsEmptyState message={postsEmptyMessage} />
+                      }
+                      testID={MyProfileViewSelectorsIDs.POSTS_LIST}
+                    />
+                  </Box>
                 )}
-                {activeTab === 'posts' &&
-                isFetchingNextPage &&
-                visiblePosts.length > 0 ? (
+                {activeTab !== 'posts' && isFetchingMorePositions ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
                     twClassName="px-4"
-                    testID={MyProfileViewSelectorsIDs.POSTS_FOOTER_LOADING}
+                    testID={MyProfileViewSelectorsIDs.POSITIONS_FOOTER_LOADING}
                   >
-                    <ActivityIndicator size="small" />
+                    <Spinner />
                   </Box>
                 ) : null}
               </>
@@ -1345,6 +1290,7 @@ const MyProfileView: React.FC = () => {
           <ProfileOptionsSheet
             traderName={displayProfile.handle}
             onBlock={handleBlock}
+            onReport={handleReport}
             onClose={handleCloseProfileOptions}
           />
         ) : null}
@@ -1354,6 +1300,7 @@ const MyProfileView: React.FC = () => {
             onClose={handleCloseUncountedSheet}
           />
         ) : null}
+        {quickBuySheet}
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );

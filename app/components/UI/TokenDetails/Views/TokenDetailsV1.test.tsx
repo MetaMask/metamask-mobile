@@ -466,7 +466,12 @@ jest.mock(
   }),
 );
 
-const mockStickyFooterProps: Record<string, unknown>[] = [];
+const mockStickyFooterProps: {
+  onFooterLayout?: (height: number) => void;
+  [key: string]: unknown;
+}[] = [];
+const getLastStickyFooterProps = () =>
+  mockStickyFooterProps[mockStickyFooterProps.length - 1];
 
 jest.mock('../components/TokenDetailsStickyFooter', () => {
   const { View } = jest.requireActual('react-native');
@@ -639,9 +644,7 @@ describe('TokenDetailsV1', () => {
       expect(
         getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
           .contentContainerStyle,
-      ).toEqual(
-        expect.arrayContaining([expect.objectContaining({ paddingTop: 120 })]),
-      );
+      ).toStrictEqual({ paddingBottom: 0, paddingTop: 120 });
       expect(getPinnedTabBarProps()?.topInset).toBe(120);
 
       fireEvent.scroll(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), {
@@ -972,10 +975,7 @@ describe('TokenDetailsV1', () => {
     });
   });
 
-  it('keeps room at the end of the page for the sticky footer', () => {
-    // The footer is an absolutely positioned BottomSheetDialog, so it covers
-    // the end of the scroll. Without this padding a short tab -- a token with
-    // two holders -- has no scroll range to lift its rows clear of it.
+  it('reserves the measured sticky footer height at the end of the page', () => {
     const { getByTestId } = render(
       <TokenDetailsV1
         token={baseToken}
@@ -983,16 +983,32 @@ describe('TokenDetailsV1', () => {
       />,
     );
 
-    const { contentContainerStyle } = getByTestId(
-      TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID,
-    ).props;
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(132);
+    });
 
-    expect(contentContainerStyle).toEqual(
-      expect.objectContaining({
-        paddingBottom: expect.any(Number) as unknown as number,
-      }),
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+        .contentContainerStyle,
+    ).toStrictEqual({ paddingBottom: 132 });
+  });
+
+  it('reserves no space at the end of the page when the footer renders in flow', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
     );
-    expect(contentContainerStyle.paddingBottom).toBeGreaterThan(0);
+
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(0);
+    });
+
+    expect(
+      getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID).props
+        .contentContainerStyle,
+    ).toStrictEqual({ paddingBottom: 0 });
   });
 
   it('renders a stacked tab content container where only the active page is laid out', () => {
@@ -1573,6 +1589,7 @@ describe('TokenDetailsV1', () => {
         initialTradeMode: 'buy',
         analyticsContext: {
           source: 'trader_feed',
+          isCopyTrade: true,
           traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
         },
         postTradeShare: true,
@@ -1603,6 +1620,7 @@ describe('TokenDetailsV1', () => {
         target,
         tradeMode: 'sell',
         copyTradeOrigin,
+        traderAddress: '0xretrytrader',
         owner: PostTradeShareOwner.tokenDetails,
         preview: {
           tokenSymbol: 'RETRY',
@@ -1620,6 +1638,10 @@ describe('TokenDetailsV1', () => {
         target,
         copyTradeOrigin,
         initialTradeMode: 'sell',
+        analyticsContext: expect.objectContaining({
+          isCopyTrade: true,
+          traderAddress: '0xretrytrader',
+        }),
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
@@ -1708,9 +1730,12 @@ describe('TokenDetailsV1', () => {
       nativeEvent: { layout: { y: 400, height: 48 } },
     });
 
-    // Viewport, less the tab bar and the room kept for the sticky footer.
+    act(() => {
+      getLastStickyFooterProps().onFooterLayout?.(132);
+    });
+
     expect(getByTestId(TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID)).toHaveStyle({
-      minHeight: 900 - 48 - 190,
+      minHeight: 900 - 48 - 132,
     });
   });
 

@@ -64,6 +64,7 @@ export const useSocialFeedPostNavigation = (
         isSnapshotLive: context?.isSnapshotLive === true,
         ...(orderSource ? { orderSource } : {}),
         ...(analyticsSource ? { analyticsSource } : {}),
+        shareSource: orderSource ?? 'trader_feed',
       });
     },
     [analyticsSource, navigation, orderSource],

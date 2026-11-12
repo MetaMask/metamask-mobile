@@ -61,6 +61,7 @@ let mockSheetData: PositionSheetData;
 let mockProfile: { profileId: string; linkedAccountAddress?: string } | null;
 let mockIsFollowing = false;
 let mockHeldBalance: object | undefined;
+let mockIsMemeToken: { isMeme: boolean; isLoading: boolean };
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -68,6 +69,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackInteraction = jest.fn();
+const mockTrackSocialPost = jest.fn();
 const mockUseSocialScreenAnalytics = jest.fn(
   (..._args: unknown[]) => mockTrackInteraction,
 );
@@ -76,6 +78,7 @@ jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialScreenAnalytics: (...args: unknown[]) =>
     mockUseSocialScreenAnalytics(...args),
+  useSocialAnalytics: () => ({ trackInteraction: mockTrackSocialPost }),
 }));
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -132,6 +135,12 @@ jest.mock('../navigation/navigateToSocialV1Profile', () => ({
   navigateToSocialV1Profile: jest.fn(),
 }));
 
+const mockShareSocialTraderPosition = jest.fn();
+jest.mock('../navigation/socialTraderDeeplink', () => ({
+  shareSocialTraderPosition: (...args: unknown[]) =>
+    mockShareSocialTraderPosition(...args),
+}));
+
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
     ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
@@ -155,15 +164,18 @@ jest.mock('../../../UI/QuickBuy', () => {
     default: ({
       isVisible,
       initialTradeMode,
+      isCopyTrade,
       onClose,
     }: {
       isVisible: boolean;
       initialTradeMode?: string;
+      isCopyTrade?: boolean;
       onClose: () => void;
     }) =>
       isVisible ? (
         <Text testID="quick-buy-sheet" onPress={onClose}>
           {initialTradeMode}
+          {isCopyTrade ? <Text testID="quick-buy-copy-trade" /> : null}
         </Text>
       ) : null,
     positionToQuickBuyTarget: () => ({ tokenAddress: '0xpepe' }),
@@ -176,6 +188,11 @@ jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
 
 jest.mock('../../../UI/QuickBuy/hooks/usePositionTokenBalance', () => ({
   usePositionTokenBalance: () => mockHeldBalance,
+}));
+
+const mockUseIsMemeToken = jest.fn();
+jest.mock('../../../UI/TokenDetails/hooks/useIsMemeToken', () => ({
+  useIsMemeToken: (options: unknown) => mockUseIsMemeToken(options),
 }));
 
 jest.mock('./components/PositionSheetChart', () => {
@@ -240,6 +257,9 @@ const buildSheetData = (
   pnlPercentLabel: '+20.00%',
   pnlValueLabel: '+$40.00',
   isPnlPositive: true,
+  pnlValue: 40,
+  pnlPercent: 20,
+  tokenImageUrl: undefined,
   ...overrides,
 });
 
@@ -298,6 +318,8 @@ describe('PositionDetailsSheet', () => {
     mockHeldBalance = undefined;
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
+    mockIsMemeToken = { isMeme: false, isLoading: false };
+    mockUseIsMemeToken.mockImplementation(() => mockIsMemeToken);
   });
 
   it('titles the sheet with the trader and shows the current price', () => {
@@ -309,6 +331,109 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
     ).toHaveTextContent('$120');
+  });
+
+  it('opens a meme coin on market cap', () => {
+    mockIsMemeToken = { isMeme: true, isLoading: false };
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$1.2M');
+    expect(screen.getByText('(MC)')).toBeOnTheScreen();
+  });
+
+  it('stays on price until the meme check returns, then switches', () => {
+    mockIsMemeToken = { isMeme: false, isLoading: true };
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    const view = render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$120');
+
+    mockIsMemeToken = { isMeme: true, isLoading: false };
+    view.rerender(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$1.2M');
+  });
+
+  it('keeps a meme coin on price after the viewer picks price', () => {
+    mockIsMemeToken = { isMeme: true, isLoading: false };
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.VALUE_TOGGLE_PRICE),
+    );
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$120');
+  });
+
+  it('opens on price when the token is not a meme coin', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({
+        trades: [
+          buildTrade({ marketCap: 1_000_000, tokenAmount: 2, usdCost: 200 }),
+        ],
+      }),
+    };
+    mockSheetData = buildSheetData({
+      marketCap: 1_200_000,
+      currentPrice: 120,
+    });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE),
+    ).toHaveTextContent('$120');
+  });
+
+  it('looks up a spot token and skips perps', () => {
+    const tokenAddress = '0x6982508145454Ce325dDbE47a25d4ec3d2311933';
+    mockParams = {
+      ...mockParams,
+      position: buildPosition({ tokenAddress }),
+    };
+
+    const { unmount } = render(<PositionDetailsSheet />);
+
+    expect(mockUseIsMemeToken).toHaveBeenCalledWith({
+      assetId: `eip155:1/erc20:${tokenAddress.toLowerCase()}`,
+      enabled: true,
+    });
+
+    unmount();
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = perpData();
+    render(<PositionDetailsSheet />);
+
+    expect(mockUseIsMemeToken).toHaveBeenLastCalledWith({
+      assetId: null,
+      enabled: false,
+    });
   });
 
   it('opens on price when the spot card has no market cap on its fills', () => {
@@ -667,16 +792,27 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toBe('BTC, $120, +3.49%, Today');
-    expect(
-      within(
-        screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER),
-      ).queryByText('40x'),
-    ).toBeNull();
+    ).toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
     ).toBe('Opens market details');
+  });
+
+  it('omits the leverage tag when a perp has none', () => {
+    mockParams = {
+      ...mockParams,
+      position: buildPerpPosition(),
+    };
+    mockSheetData = perpData({ leverage: undefined });
+
+    render(<PositionDetailsSheet />);
+
+    expect(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
+        .accessibilityLabel,
+    ).toBe('BTC, $120, +3.49%, Today');
+    expect(screen.queryByText(/\dx/)).toBeNull();
   });
 
   it('keeps the sheet open when a perp has no trade symbol', () => {
@@ -756,6 +892,115 @@ describe('PositionDetailsSheet', () => {
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.FOLLOW_BUTTON),
       ).toBeNull();
+    });
+  });
+
+  describe('share button', () => {
+    beforeEach(() => {
+      // Stays pending so the spinner does not settle outside `act`.
+      mockShareSocialTraderPosition.mockReturnValue(
+        new Promise<void>(() => undefined),
+      );
+    });
+
+    it('is hidden without a share source', () => {
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+    });
+
+    it.each(['profile_position', 'deep_link'] as const)(
+      'shares the position link when opened from %s',
+      (shareSource) => {
+        mockParams = { ...mockParams, shareSource };
+        render(<PositionDetailsSheet />);
+
+        fireEvent.press(
+          screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+        );
+
+        expect(mockShareSocialTraderPosition).toHaveBeenCalledWith(
+          'position-1',
+          'trader-1',
+          expect.any(Function),
+          expect.objectContaining({ title: expect.stringContaining('PEPE') }),
+          expect.any(Function),
+        );
+        const onShared = mockShareSocialTraderPosition.mock
+          .calls[0][2] as () => void;
+        onShared();
+        expect(mockTrackSocialPost).toHaveBeenCalledWith({
+          interaction_type: 'post_shared',
+          screen_name: 'share_position_sheet',
+          share_destination: 'external',
+          source: shareSource,
+        });
+      },
+    );
+
+    it('shows a spinner while the link is created and ignores repeat taps', async () => {
+      let finishShare: () => void = () => undefined;
+      mockShareSocialTraderPosition.mockReturnValue(
+        new Promise<void>((resolve) => {
+          finishShare = resolve;
+        }),
+      );
+      mockParams = { ...mockParams, shareSource: 'profile_position' };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_SPINNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+
+      await act(async () => {
+        finishShare();
+      });
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(mockShareSocialTraderPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('builds the trade card from the sheet figures', async () => {
+      mockSheetData = buildSheetData({
+        prices: [
+          ['1', 100],
+          ['2', 120],
+        ],
+      });
+      mockParams = { ...mockParams, shareSource: 'profile_position' };
+      render(<PositionDetailsSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      );
+      const buildOgImageRequest = mockShareSocialTraderPosition.mock
+        .calls[0][4] as () => Promise<unknown>;
+      const request = await buildOgImageRequest();
+
+      expect(request).toEqual(
+        expect.objectContaining({
+          kind: 'trade',
+          traderId: 'trader-1',
+          positionId: 'position-1',
+          trade: expect.objectContaining({
+            market: 'PEPE',
+            status: 'open',
+            pnlUsd: 40,
+            pnlPct: 20,
+          }),
+        }),
+      );
     });
   });
 
@@ -1126,6 +1371,7 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('buy');
+      expect(screen.getByTestId('quick-buy-copy-trade')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
       ).toBeNull();
@@ -1254,6 +1500,7 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('sell');
+      expect(screen.queryByTestId('quick-buy-copy-trade')).toBeNull();
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
       ).toBeNull();

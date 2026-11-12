@@ -440,28 +440,43 @@ describe('formatFeedPostAge', () => {
 
   it('switches from "Just now" to minutes at the one-minute boundary', () => {
     expect(formatFeedPostAge(now - 59 * SECOND, now)).toBe('Just now');
-    expect(formatFeedPostAge(now - MINUTE, now)).toBe('1 min ago');
+    expect(formatFeedPostAge(now - MINUTE, now)).toBe('1m ago');
   });
 
-  it('spells out minutes within the last hour', () => {
-    expect(formatFeedPostAge(now - 40 * MINUTE, now)).toBe('40 min ago');
+  it('counts minutes within the last hour', () => {
+    expect(formatFeedPostAge(now - 40 * MINUTE, now)).toBe('40m ago');
   });
 
   it('switches to hours at the one-hour boundary', () => {
-    expect(formatFeedPostAge(now - 59 * MINUTE, now)).toBe('59 min ago');
-    expect(formatFeedPostAge(now - HOUR, now)).toBe('1 hr ago');
+    expect(formatFeedPostAge(now - 59 * MINUTE, now)).toBe('59m ago');
+    expect(formatFeedPostAge(now - HOUR, now)).toBe('1h ago');
   });
 
-  it('spells out hours within the last day', () => {
-    expect(formatFeedPostAge(now - 3 * HOUR, now)).toBe('3 hr ago');
+  it('counts hours within the last day', () => {
+    expect(formatFeedPostAge(now - 3 * HOUR, now)).toBe('3h ago');
   });
 
-  // Unlike the compact V0 row, posts a day or more old stay relative rather
-  // than collapsing to a clock time.
-  it('switches to days at the one-day boundary', () => {
-    expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23 hr ago');
-    expect(formatFeedPostAge(now - DAY, now)).toBe('1 d ago');
-    expect(formatFeedPostAge(now - 9 * DAY, now)).toBe('9 d ago');
+  it('switches to days at the one-day boundary and stays in days under 60', () => {
+    expect(formatFeedPostAge(now - 23 * HOUR, now)).toBe('23h ago');
+    expect(formatFeedPostAge(now - DAY, now)).toBe('1d ago');
+    expect(formatFeedPostAge(now - 11 * DAY, now)).toBe('11d ago');
+    expect(formatFeedPostAge(now - 33 * DAY, now)).toBe('33d ago');
+    expect(formatFeedPostAge(now - 59 * DAY, now)).toBe('59d ago');
+  });
+
+  it('switches to weeks at 60 days and stays in weeks under 90', () => {
+    expect(formatFeedPostAge(now - 60 * DAY, now)).toBe('8w ago');
+    expect(formatFeedPostAge(now - 89 * DAY, now)).toBe('12w ago');
+  });
+
+  it('switches to 30-day months at 90 days and stays in months under 365', () => {
+    expect(formatFeedPostAge(now - 90 * DAY, now)).toBe('3mo ago');
+    expect(formatFeedPostAge(now - 364 * DAY, now)).toBe('12mo ago');
+  });
+
+  it('switches to 365-day years at 365 days', () => {
+    expect(formatFeedPostAge(now - 365 * DAY, now)).toBe('1y ago');
+    expect(formatFeedPostAge(now - 730 * DAY, now)).toBe('2y ago');
   });
 
   it('absorbs clock skew as "Just now"', () => {
@@ -470,7 +485,7 @@ describe('formatFeedPostAge', () => {
 
   it('accepts second-precision timestamps', () => {
     expect(formatFeedPostAge(Math.floor((now - 40 * MINUTE) / 1000), now)).toBe(
-      '40 min ago',
+      '40m ago',
     );
   });
 });

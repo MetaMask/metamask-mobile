@@ -3789,6 +3789,27 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('marks a copy trade when the sheet was opened from Copy trade without a comment', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(createTarget(), jest.fn(), {
+            source: 'trader_feed',
+            traderAddress: '0xTRADER',
+            isCopyTrade: true,
+          });
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+        });
+
         it('reports submit execution time from the start timestamp', async () => {
           mockSuccessfulSubmit();
           const submitStartedAtRef = { current: null as number | null };
@@ -4218,6 +4239,53 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('formats the share pair label with swap sheet decimals and grouping', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote(),
+              destTokenAmount: '1234.5678912345',
+            }),
+          );
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          // The test i18n mock returns keys, so spy on the interpolation the
+          // pair label is built from. Restore in `finally` because the suite's
+          // `resetAllMocks` would otherwise leave the spy returning undefined.
+          const i18nMock = jest.requireMock('../../../../../locales/i18n');
+          const stringsSpy = jest.spyOn(i18nMock, 'strings');
+          try {
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              true,
+            );
+
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+
+            expect(stringsSpy).toHaveBeenCalledWith(
+              'bridge.post_trade_modal.trade_subtitle',
+              {
+                sourceAmount: '0.01',
+                sourceSymbol: 'ETH',
+                destAmount: '1,234.56789',
+                destSymbol: 'TARGET',
+              },
+            );
+          } finally {
+            stringsSpy.mockRestore();
+          }
+        });
+
         it('stores the copy-trade origin on the post-trade share session', async () => {
           mockUsableQuote();
           (
@@ -4230,7 +4298,7 @@ export const runQuickBuyControllerCases = ({
           const { result } = renderHook(
             createTarget(),
             jest.fn(),
-            undefined,
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
             undefined,
             'buy',
             true,
@@ -4250,6 +4318,7 @@ export const runQuickBuyControllerCases = ({
             throw new Error('post-trade share session is not a spot session');
           }
           expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.traderAddress).toBe('0xTRADER');
           expect(session.owner).toBe('social-v1-feed');
         });
 

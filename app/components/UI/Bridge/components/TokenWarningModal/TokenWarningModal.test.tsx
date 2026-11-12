@@ -366,6 +366,21 @@ describe('TokenWarningModal', () => {
   });
 
   describe('handleProceed', () => {
+    it('calls onProceed instead of the Bridge quote checks and confirm when provided', async () => {
+      const onProceed = jest.fn().mockResolvedValue(undefined);
+      mockUseParams.mockReturnValue({ ...defaultWarningParams, onProceed });
+
+      const { getByTestId } = renderModal();
+      fireEvent.press(getByTestId('footer-secondary-button'));
+
+      await waitFor(() => {
+        expect(onProceed).toHaveBeenCalledTimes(1);
+      });
+      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockUseBridgeQuoteData).not.toHaveBeenCalled();
+      expect(mockUseBridgeConfirm).not.toHaveBeenCalled();
+    });
+
     it('calls confirmBridge when price impact is below threshold', async () => {
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
