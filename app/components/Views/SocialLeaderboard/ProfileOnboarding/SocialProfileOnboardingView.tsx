@@ -90,6 +90,7 @@ import {
   type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getDisplayNameError } from './utils/getDisplayNameError';
 import { getUsernameLocalError } from './utils/getUsernameLocalError';
 import { getUsernameFeedback } from './utils/getUsernameFeedback';
 import UsernameStatusLine from './UsernameStatusLine';
@@ -817,43 +818,16 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const checkDisplayName = useCallback(
     async (displayName: string): Promise<boolean> => {
-      const trimmed = displayName.trim();
       const requestId = ++displayNameCheckId.current;
-      if (trimmed.length > MAX_DISPLAY_NAME_LENGTH) {
-        setDisplayNameError(
-          strings(
-            'social_leaderboard.profile_onboarding.display_name_too_long',
-            { max: MAX_DISPLAY_NAME_LENGTH },
-          ),
-        );
+      const error = await getDisplayNameError(
+        displayName,
+        checkDisplayNameValidity,
+      );
+      if (requestId !== displayNameCheckId.current) {
         return false;
       }
-      try {
-        const validity = await checkDisplayNameValidity(trimmed);
-        if (requestId !== displayNameCheckId.current) {
-          return false;
-        }
-        if (!validity.valid) {
-          setDisplayNameError(
-            strings(
-              'social_leaderboard.profile_onboarding.display_name_invalid',
-            ),
-          );
-          return false;
-        }
-        setDisplayNameError(null);
-        return true;
-      } catch {
-        if (requestId !== displayNameCheckId.current) {
-          return false;
-        }
-        setDisplayNameError(
-          strings(
-            'social_leaderboard.profile_onboarding.display_name_check_error',
-          ),
-        );
-        return false;
-      }
+      setDisplayNameError(error);
+      return error === null;
     },
     [checkDisplayNameValidity],
   );

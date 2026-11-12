@@ -1,4 +1,3 @@
-import type { FieldValidityResponse } from '@metamask/profile-controller';
 import {
   type NavigationProp,
   type RouteProp,
@@ -16,10 +15,8 @@ import {
 } from './handleAvailabilityError';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { getProfileSaveError } from './saveProfileError';
-import {
-  MAX_DISPLAY_NAME_LENGTH,
-  normalizeUsername,
-} from '../../ProfileOnboarding/profileOnboardingDraft';
+import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
+import { getDisplayNameError } from '../../ProfileOnboarding/utils/getDisplayNameError';
 import { useProfileController } from '../hooks/useProfileController';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
@@ -52,32 +49,12 @@ const ManageProfileTextEditorView: React.FC = () => {
         switch (route.params.field) {
           case 'displayName': {
             const displayName = value.trim();
-            if (displayName.length > MAX_DISPLAY_NAME_LENGTH) {
-              setErrorMessage(
-                strings(
-                  'social_leaderboard.manage_profile.display_name_too_long',
-                  { max: MAX_DISPLAY_NAME_LENGTH },
-                ),
-              );
-              return;
-            }
-            let validity: FieldValidityResponse;
-            try {
-              validity = await checkDisplayNameValidity(displayName);
-            } catch {
-              setErrorMessage(
-                strings(
-                  'social_leaderboard.manage_profile.display_name_check_error',
-                ),
-              );
-              return;
-            }
-            if (!validity.valid) {
-              setErrorMessage(
-                strings(
-                  'social_leaderboard.profile_onboarding.display_name_invalid',
-                ),
-              );
+            const displayNameError = await getDisplayNameError(
+              displayName,
+              checkDisplayNameValidity,
+            );
+            if (displayNameError) {
+              setErrorMessage(displayNameError);
               return;
             }
             await updateProfile({ display_name: displayName });

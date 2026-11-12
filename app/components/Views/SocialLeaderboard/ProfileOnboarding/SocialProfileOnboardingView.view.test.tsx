@@ -1026,12 +1026,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('checks the display name only when continue is pressed', async () => {
-    await renderOnboarding();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
+    await openManualUsernameStep();
     fireEvent.changeText(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
@@ -1061,7 +1056,7 @@ describe('SocialProfileOnboardingView', () => {
       );
 
       const invalidDisplayName = strings(
-        'social_leaderboard.profile_onboarding.display_name_invalid',
+        'social_leaderboard.errors.display_name_invalid',
       );
       const displayNameError = await screen.findByText(invalidDisplayName);
       expect(displayNameError).toBeOnTheScreen();
@@ -1094,7 +1089,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        strings('social_leaderboard.profile_onboarding.display_name_too_long', {
+        strings('social_leaderboard.errors.display_name_too_long', {
           max: MAX_DISPLAY_NAME_LENGTH,
         }),
       ),
@@ -1125,14 +1120,12 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        strings(
-          'social_leaderboard.profile_onboarding.display_name_check_error',
-        ),
+        strings('social_leaderboard.errors.display_name_check_error'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+        strings('social_leaderboard.errors.display_name_invalid'),
       ),
     ).not.toBeOnTheScreen();
     expect(
@@ -1185,7 +1178,7 @@ describe('SocialProfileOnboardingView', () => {
     );
     expect(
       await screen.findByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+        strings('social_leaderboard.errors.display_name_invalid'),
       ),
     ).toBeOnTheScreen();
 
@@ -1198,7 +1191,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+        strings('social_leaderboard.errors.display_name_invalid'),
       ),
     ).not.toBeOnTheScreen();
     expect(
@@ -1247,7 +1240,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+        strings('social_leaderboard.errors.display_name_invalid'),
       ),
     ).not.toBeOnTheScreen();
     expect(
@@ -1622,14 +1615,14 @@ describe('SocialProfileOnboardingView', () => {
     ).not.toHaveBeenCalled();
     expect(
       screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.display_name_too_long', {
+        strings('social_leaderboard.errors.display_name_too_long', {
           max: MAX_DISPLAY_NAME_LENGTH,
         }),
       ),
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+        strings('social_leaderboard.errors.display_name_invalid'),
       ),
     ).not.toBeOnTheScreen();
   });

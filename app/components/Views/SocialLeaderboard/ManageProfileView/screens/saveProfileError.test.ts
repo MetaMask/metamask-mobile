@@ -5,7 +5,7 @@ const BIO_PROHIBITED = strings(
   'social_leaderboard.manage_profile.bio_prohibited',
 );
 const DISPLAY_NAME_INVALID = strings(
-  'social_leaderboard.profile_onboarding.display_name_invalid',
+  'social_leaderboard.errors.display_name_invalid',
 );
 
 /** The shape `HttpError` from @metamask/controller-utils carries. */
