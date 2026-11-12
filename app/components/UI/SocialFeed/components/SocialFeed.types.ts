@@ -130,6 +130,12 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   refreshProgressViewOffset?: number;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
+  /**
+   * Rendered after the posts and the page footer, scrolling with the list.
+   * Hosts that use this list as the screen scroller put trailing chrome here
+   * so it stays below the feed.
+   */
+  renderFooter?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;
   scrollTestID?: string;
 }

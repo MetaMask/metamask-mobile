@@ -2051,6 +2051,41 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }
 
   const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
+  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  // Feed posts are rows after this header. On Feed the disclaimer has to
+  // follow those rows, so it moves to the list footer (TAT-4616).
+  const showRiskDisclaimerBelowFeed =
+    isFeedScroller && activeSocialTab === 'feed';
+
+  const riskDisclaimer = (
+    <>
+      <View
+        style={styles.chromeBlock}
+        testID={PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER}
+      >
+        <Text
+          style={styles.riskDisclaimer}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+        >
+          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            onPress={handleTradingViewPress}
+          >
+            TradingView.
+          </Text>
+        </Text>
+      </View>
+      {edgeInsets && !hasActionsFooter && (
+        <View
+          style={{ height: edgeInsets.bottom }}
+          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+        />
+      )}
+    </>
+  );
 
   // Built once per render of this view and returned unchanged by
   // `renderScreenContent`, so the list's own re-renders (page loads, age tick)
@@ -2233,32 +2268,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </>
       )}
 
-      <View style={styles.chromeBlock}>
-        <Text
-          style={styles.riskDisclaimer}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-        >
-          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            onPress={handleTradingViewPress}
-          >
-            TradingView.
-          </Text>
-        </Text>
-      </View>
-      {edgeInsets && !hasActionsFooter && (
-        <View
-          style={{ height: edgeInsets.bottom }}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
-        />
-      )}
+      {showRiskDisclaimerBelowFeed ? null : riskDisclaimer}
     </>
   );
-  const renderScreenContent = () => screenContent;
-  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  const renderScreenContent = (): React.ReactNode => screenContent;
+  const renderFeedFooter = (): React.ReactNode => riskDisclaimer;
 
   return (
     <View
@@ -2313,6 +2327,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               location="perps_market_details"
               analyticsSource={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
               renderHeader={renderScreenContent}
+              renderFooter={
+                showRiskDisclaimerBelowFeed ? renderFeedFooter : undefined
+              }
               onScroll={scrollHandler}
               onRefresh={handleRefresh}
               pageRef={feedPageRef}

@@ -297,6 +297,29 @@ describe('SocialFeedVirtualized', () => {
     jest.restoreAllMocks();
   });
 
+  it('renders a host footer after the posts', () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderFeed({ renderFooter: () => <Text>disclaimer</Text> });
+
+    expect([...new Set(renderedRowTexts(/^(one|disclaimer)$/))]).toEqual([
+      'one',
+      'disclaimer',
+    ]);
+  });
+
+  it('keeps a host footer when the feed is off', () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+    renderFeed({
+      enabled: false,
+      renderFooter: () => <Text>disclaimer</Text>,
+    });
+
+    expect(screen.queryByText('one')).toBeNull();
+    expect(screen.getByText('disclaimer')).toBeOnTheScreen();
+  });
+
   it('renders posts with a divider below every post but the last', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({ posts: [post('one'), post('two')] }),
