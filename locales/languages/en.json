@@ -9896,7 +9896,7 @@
       "title_withdraw": "Withdraw to",
       "title_move_to_wallet": "Move funds to",
       "between_accounts": "Another account",
-      "your_wallet": "Your wallet",
+      "wallet": "Wallet",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",

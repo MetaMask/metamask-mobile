@@ -39,7 +39,7 @@ interface MoneyHomeSendActionVariantConfig {
    */
   destinationLabelKey:
     | 'money.transfer_sheet.between_accounts'
-    | 'money.transfer_sheet.your_wallet';
+    | 'money.transfer_sheet.wallet';
 }
 
 export const MONEY_HOME_SEND_ACTION_VARIANTS: Record<
@@ -54,12 +54,12 @@ export const MONEY_HOME_SEND_ACTION_VARIANTS: Record<
   [MoneyHomeSendActionVariant.Withdraw]: {
     labelKey: 'money.action.withdraw',
     sheetTitleKey: 'money.transfer_sheet.title_withdraw',
-    destinationLabelKey: 'money.transfer_sheet.your_wallet',
+    destinationLabelKey: 'money.transfer_sheet.wallet',
   },
   [MoneyHomeSendActionVariant.MoveToWallet]: {
     labelKey: 'money.action.move_to_wallet',
     sheetTitleKey: 'money.transfer_sheet.title_move_to_wallet',
-    destinationLabelKey: 'money.transfer_sheet.your_wallet',
+    destinationLabelKey: 'money.transfer_sheet.wallet',
   },
 };
 

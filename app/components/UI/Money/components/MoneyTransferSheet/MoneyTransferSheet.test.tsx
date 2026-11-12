@@ -624,9 +624,7 @@ describe('MoneyTransferSheet', () => {
       expect(
         getByText(strings('money.transfer_sheet.between_accounts')),
       ).toBeOnTheScreen();
-      expect(
-        queryByText(strings('money.transfer_sheet.your_wallet')),
-      ).toBeNull();
+      expect(queryByText(strings('money.transfer_sheet.wallet'))).toBeNull();
     });
 
     it.each([
@@ -639,7 +637,7 @@ describe('MoneyTransferSheet', () => {
         titleKey: 'money.transfer_sheet.title_move_to_wallet' as const,
       },
     ])(
-      'leads with Your wallet for the $variantName variant',
+      'leads with Wallet for the $variantName variant',
       ({ variantName, titleKey }) => {
         mockUseABTest.mockReturnValue({
           variant: MONEY_HOME_SEND_ACTION_VARIANTS[variantName],
@@ -653,7 +651,7 @@ describe('MoneyTransferSheet', () => {
 
         expect(getByText(strings(titleKey))).toBeOnTheScreen();
         expect(
-          getByText(strings('money.transfer_sheet.your_wallet')),
+          getByText(strings('money.transfer_sheet.wallet')),
         ).toBeOnTheScreen();
         expect(
           queryByText(strings('money.transfer_sheet.between_accounts')),
