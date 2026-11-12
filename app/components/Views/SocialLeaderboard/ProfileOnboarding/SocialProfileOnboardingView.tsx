@@ -1072,7 +1072,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
-      if (!(await checkDisplayName(draft.displayName))) {
+      if (step === 'username' && !(await checkDisplayName(draft.displayName))) {
         return;
       }
       setStep(step === 'x-identity' ? 'account' : 'avatar');
@@ -1428,7 +1428,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <XProfileIdentityStep
                   draft={draft}
                   usernameFeedback={usernameFeedback}
-                  displayNameError={displayNameError}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}

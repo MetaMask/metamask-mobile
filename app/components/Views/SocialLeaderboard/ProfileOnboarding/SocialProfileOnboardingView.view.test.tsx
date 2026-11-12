@@ -36,7 +36,10 @@ import {
   getLocalSocialProfileSnapshot,
   clearLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
-import { displayNameFromUsername } from './profileOnboardingDraft';
+import {
+  displayNameFromUsername,
+  MAX_DISPLAY_NAME_LENGTH,
+} from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { strings } from '../../../../../locales/i18n';
 import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
@@ -1024,7 +1027,7 @@ describe('SocialProfileOnboardingView', () => {
 
     await act(async () => {
       await new Promise((resolve) => {
-        setTimeout(resolve, 500);
+        setTimeout(resolve, 0);
       });
     });
 
@@ -1370,6 +1373,52 @@ describe('SocialProfileOnboardingView', () => {
           'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
       }),
     );
+  });
+
+  it('continues from X identity when the imported display name would fail the name check', async () => {
+    jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
+      xUserId: 'x-user-1',
+      xProfileUrl: 'https://x.com/degangirl',
+      username: 'degangirl',
+      displayName: 'A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1),
+      avatarUrl: '',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    jest
+      .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+      .mockResolvedValue({ valid: false });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.checkDisplayNameValidity,
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.display_name_too_long', {
+          max: MAX_DISPLAY_NAME_LENGTH,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not announce a kept X handle as available before the server answers', async () => {

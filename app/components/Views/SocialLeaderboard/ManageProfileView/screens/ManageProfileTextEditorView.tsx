@@ -75,7 +75,7 @@ const ManageProfileTextEditorView: React.FC = () => {
             if (!validity.valid) {
               setErrorMessage(
                 strings(
-                  'social_leaderboard.manage_profile.display_name_unavailable',
+                  'social_leaderboard.profile_onboarding.display_name_invalid',
                 ),
               );
               return;

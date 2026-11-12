@@ -43,8 +43,6 @@ interface XProfileIdentityStepProps {
   draft: ProfileOnboardingDraft;
   /** The one line under the username field, already resolved. */
   usernameFeedback: UsernameFeedback | null;
-  /** Shown when the display name fails the profile API check. */
-  displayNameError: string | null;
   onToggleUsername: (enabled: boolean) => void;
   onToggleAvatar: (enabled: boolean) => void;
   onUsernameChange: (value: string) => void;
@@ -208,7 +206,6 @@ const CrossDissolve: React.FC<{
 const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
   draft,
   usernameFeedback,
-  displayNameError,
   onToggleUsername,
   onToggleAvatar,
   onUsernameChange,
@@ -342,11 +339,6 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
             </Box>
           }
         />
-        {displayNameError ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-            {displayNameError}
-          </Text>
-        ) : null}
       </Box>
 
       <Box twClassName="mt-auto w-full pt-10 pb-4" gap={5}>

@@ -171,7 +171,7 @@ describe('ManageProfileTextEditorView', () => {
     expect(updateProfile).not.toHaveBeenCalled();
     expect(
       screen.getByText(
-        strings('social_leaderboard.manage_profile.display_name_unavailable'),
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
       ),
     ).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
@@ -197,6 +197,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
+      checkDisplayNameValidity: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
 
@@ -237,6 +238,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
+      checkDisplayNameValidity: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
 
@@ -281,6 +283,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
+      checkDisplayNameValidity: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
 
@@ -324,6 +327,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
+      checkDisplayNameValidity: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
 
@@ -370,6 +374,7 @@ describe('ManageProfileTextEditorView', () => {
       disconnectX: jest.fn(),
       getXAuthorizationUrl: jest.fn(),
       checkUsernameAvailability,
+      checkDisplayNameValidity: jest.fn(),
     });
     mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
 
@@ -477,7 +482,7 @@ describe('ManageProfileTextEditorView', () => {
 
     expect(
       screen.getByText(
-        strings('social_leaderboard.manage_profile.display_name_unavailable'),
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
       ),
     ).toBeOnTheScreen();
     // Neither the connection copy nor the bio's copy would explain a name.
