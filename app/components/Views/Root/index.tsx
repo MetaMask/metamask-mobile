@@ -19,6 +19,7 @@ import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTestEnvironment } from '../../../util/test/utils';
 import ScreenTtcProbeHost from '../../../hooks/performance/ScreenTtcProbeHost';
+import LatencyDebugSquare from './LatencyDebugSquare';
 import { FeatureFlagOverrideProvider } from '../../../contexts/FeatureFlagOverrideContext';
 import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
@@ -132,6 +133,7 @@ const Root = ({ foxCode }: RootProps) => {
                                 />
                                 <App />
                                 <ScreenTtcProbeHost />
+                                <LatencyDebugSquare enabled />
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
                           </UIMessengerProvider>

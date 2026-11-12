@@ -3,7 +3,10 @@ import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
-import { computeLatencyBucket } from './computeLatencyBucket';
+import {
+  computeLatencyBucket,
+  summarizeLatencySamples,
+} from './computeLatencyBucket';
 import {
   computeNetworkTier,
   readCellularGeneration,
@@ -20,8 +23,10 @@ import type {
 // Module memory only: samples are never dispatched to Redux or persisted.
 let samples: LatencySample[] = [];
 let bucket: LatencyBucket = 'UNKNOWN';
+let hardwareRow: HardwareTier = 'MID';
 let thresholds: LatencyThresholds = latencyThresholdsFor(null);
 let isTransportNone = false;
+let transportLabel = '-';
 let isMonitoring = false;
 // Bumped on every clear. A fetch keeps the value from before its await.
 let sampleEpoch = 0;
@@ -91,6 +96,32 @@ export function isLatencyTransportNone(): boolean {
   return isTransportNone;
 }
 
+export interface LatencyDebugSnapshot {
+  bucket: LatencyBucket;
+  hardwareRow: HardwareTier;
+  medianMs: number | null;
+  hungCount: number;
+  sampleCount: number;
+  /** NetInfo type, or the cellular generation (`2g`, `5g`) when that is known. */
+  transportLabel: string;
+}
+
+/** Debug overlay only. Never read by product code. */
+export function getLatencyDebugSnapshot(): LatencyDebugSnapshot {
+  const { recent, hungCount, medianMs } = summarizeLatencySamples({
+    samples,
+    thresholds,
+  });
+  return {
+    bucket,
+    hardwareRow,
+    medianMs,
+    hungCount,
+    sampleCount: recent.length,
+    transportLabel,
+  };
+}
+
 /**
  * Selects the thresholds row and starts the reset listeners: AppState
  * `background` to `active`, and NetInfo `type` / `cellularGeneration` /
@@ -99,6 +130,7 @@ export function isLatencyTransportNone(): boolean {
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
 ): void {
+  hardwareRow = hardwareTier ?? 'MID';
   thresholds = latencyThresholdsFor(hardwareTier);
   if (isMonitoring) {
     return;
@@ -107,6 +139,10 @@ export function startLatencyMonitoring(
 
   let previousNetInfoKey: string | undefined;
   addNetInfoEventListener((state: NetInfoState) => {
+    transportLabel =
+      state.type === 'cellular'
+        ? (readCellularGeneration(state.details) ?? 'cellular')
+        : (state.type ?? 'unknown');
     const input = {
       type: state.type,
       cellularGeneration: readCellularGeneration(state.details),
