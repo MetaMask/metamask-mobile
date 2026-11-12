@@ -11,7 +11,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { MarketListTestIds } from './MarketList.testIds';
 
 const MarketSeparator = () => (
-  <Box twClassName="h-4" testID={MarketListTestIds.SEPARATOR} />
+  <Box twClassName="h-3" testID={MarketListTestIds.SEPARATOR} />
 );
 
 export interface MarketListProps<T>
@@ -30,7 +30,7 @@ export interface MarketListProps<T>
   extraData?: unknown;
   testID?: string;
   contentContainerStyle?: StyleProp<ViewStyle>;
-  /** Whether two adjacent rows get the 16px gap; every pair by default. */
+  /** Whether two adjacent rows get the 12px gap; every pair by default. */
   isSeparated?: (leadingItem: T, trailingItem: T) => boolean;
 }
 
