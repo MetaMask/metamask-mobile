@@ -10,6 +10,8 @@ jest.mock('@metamask/perps-controller', () => {
       CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
       CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
       PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+      PROVIDER_ROUTE_REQUIRED: 'PROVIDER_ROUTE_REQUIRED',
+      TPSL_LEG_REPLACE_UNSUPPORTED: 'TPSL_LEG_REPLACE_UNSUPPORTED',
       TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
       BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
       WITHDRAW_FAILED: 'WITHDRAW_FAILED',
@@ -46,6 +48,7 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 import { strings } from '../../../../../locales/i18n';
+import english from '../../../../../locales/languages/en.json';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import {
   translatePerpsError,
@@ -108,6 +111,22 @@ describe('translatePerpsError', () => {
         'perps.errors.providerNotAvailable',
         {},
       );
+    });
+
+    it.each([
+      [PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED, 'providerRouteRequired'],
+      [
+        PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED,
+        'tpslLegReplaceUnsupported',
+      ],
+    ])('translates %s into recoverable exchange copy', (error, key) => {
+      const expectedKey = `perps.errors.${key}`;
+
+      const result = translatePerpsError(error);
+
+      expect(result).toBe(expectedKey);
+      expect(strings).toHaveBeenCalledWith(expectedKey, {});
+      expect(english.perps.errors).toHaveProperty(key, expect.any(String));
     });
 
     it('translates TOKEN_NOT_SUPPORTED error code with data', () => {

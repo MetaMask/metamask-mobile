@@ -434,7 +434,7 @@
     "@metamask/network-enablement-controller": "^7.1.0",
     "@metamask/notification-services-controller": "^29.0.3",
     "@metamask/permission-controller": "^14.0.0",
-    "@metamask/perps-controller": "^22.3.0",
+    "@metamask/perps-controller": "npm:@metamask-previews/perps-controller@23.0.0-preview-d853a918a",
     "@metamask/phishing-controller": "^18.2.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
