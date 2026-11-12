@@ -2446,6 +2446,23 @@ describe('PredictEventScreen', () => {
     /** Engine boundary restorations registered by a test. */
     const testRestores: (() => void)[] = [];
 
+    /** Cursors of the Positions pages walked after the initial read. */
+    const walkedPositionCursors = (): unknown[] =>
+      messengerCall.mock.calls
+        .filter(
+          ([action, , , cursor]) =>
+            action === 'PredictPortfolioService:getPositions' &&
+            cursor !== undefined,
+        )
+        .map(([, , , cursor]) => cursor);
+
+    /** Lets a walk that has already stopped settle, so an extra page request
+     * would be observed before asserting the walk did not continue. */
+    const settleAfterWalk = (): Promise<void> =>
+      act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
     beforeEach(() => {
       // Positions discovery is skipped while the device reports offline.
       netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
@@ -2715,19 +2732,24 @@ describe('PredictEventScreen', () => {
 
       const view = renderPredictEventScreen(routeParams);
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
+      // Each walk starts only after the previous page lands and re-renders,
+      // so wait for the whole bounded walk rather than a fixed delay.
+      await waitFor(
+        () =>
+          expect(walkedPositionCursors()).toEqual([
+            'cursor-page-2',
+            'cursor-page-3',
+            'cursor-page-4',
+            'cursor-page-5',
+          ]),
+        { timeout: 5000 },
+      );
+      await settleAfterWalk();
 
       // Five pages in total (the initial read plus four walks) even though
       // the fixture keeps serving cursors: the walk must not exceed its
       // bound, so the sixth page's cursor is never requested.
-      const walkedCalls = messengerCall.mock.calls.filter(
-        ([action, , , cursor]) =>
-          action === 'PredictPortfolioService:getPositions' &&
-          cursor !== undefined,
-      );
-      expect(walkedCalls).toHaveLength(4);
+      expect(walkedPositionCursors()).toHaveLength(4);
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).not.toBeOnTheScreen();
@@ -2747,17 +2769,14 @@ describe('PredictEventScreen', () => {
 
       const view = renderPredictEventScreen(routeParams);
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
+      await waitFor(
+        () => expect(walkedPositionCursors()).toEqual(['cursor-page-2']),
+        { timeout: 5000 },
+      );
+      await settleAfterWalk();
 
       // Exactly one walk attempt: the failed page is never retried mid-visit.
-      const walkedCalls = messengerCall.mock.calls.filter(
-        ([action, , , cursor]) =>
-          action === 'PredictPortfolioService:getPositions' &&
-          cursor !== undefined,
-      );
-      expect(walkedCalls).toHaveLength(1);
+      expect(walkedPositionCursors()).toHaveLength(1);
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).not.toBeOnTheScreen();
