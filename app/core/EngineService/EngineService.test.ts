@@ -494,11 +494,12 @@ describe('EngineService', () => {
     });
 
     it.each([
-      ['treatment', true],
-      ['control', false],
+      [1, 'treatment', true],
+      [2, 'treatment', false],
+      [1, 'control', false],
     ])(
-      'on the first quote with variant %s, dispatches immediately: %s',
-      async (variant, isImmediate) => {
+      'with %i quotes and variant %s, dispatches immediately: %s',
+      async (quoteCount, variant, isImmediate) => {
         ReduxService.store = {
           ...ReduxService.store,
           getState: () => ({
@@ -517,7 +518,7 @@ describe('EngineService', () => {
         (
           Engine.context as unknown as Record<string, unknown>
         ).BridgeController = {
-          state: { quotes: [{}] },
+          state: { quotes: new Array(quoteCount).fill({}) },
         };
         const [, emitStateChange] = (
           Engine.controllerMessenger.subscribe as unknown as jest.Mock
