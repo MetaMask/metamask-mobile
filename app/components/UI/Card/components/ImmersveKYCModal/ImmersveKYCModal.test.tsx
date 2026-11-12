@@ -19,6 +19,7 @@ import ImmersveKYCModal, {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitCardFlow = jest.fn();
 const mockAddListener = jest.fn(
   (
     _eventName: string,
@@ -170,6 +171,10 @@ jest.mock('../Onboarding/ImmersveVerifyingIdentityAnimation', () => {
 
 jest.mock('../../../Money/hooks/useReduceMotion', () => ({
   useReduceMotion: (): boolean => true,
+}));
+
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: (): jest.Mock => mockExitCardFlow,
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -765,6 +770,84 @@ describe('ImmersveKYCModal', () => {
       });
     });
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('leaves card setup from a permission error instead of returning to processing', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    mockRequestMultiple.mockResolvedValue(deniedStatuses);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it('leaves card setup from a load error instead of returning to processing', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(capturedProps.onHttpError).toBeDefined();
+    });
+
+    await act(async () => {
+      capturedProps.onHttpError?.({ nativeEvent: { statusCode: 502 } });
+    });
+
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it('leaves card setup when back is pressed on a permission error, and ignores the exit pop', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    mockRequestMultiple.mockResolvedValue(deniedStatuses);
+    const { getByTestId } = render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(getByTestId('immersve-kyc-error-container')).toBeTruthy();
+    });
+
+    const preventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+
+    const exitPopPreventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault: exitPopPreventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(exitPopPreventDefault).not.toHaveBeenCalled();
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
   });
 
   it('returns to the processing screen when the close button is pressed', async () => {

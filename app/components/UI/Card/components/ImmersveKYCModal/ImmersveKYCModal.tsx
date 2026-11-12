@@ -43,6 +43,7 @@ import HeaderStandardGlass from '../../../../../component-library/components-tem
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../../../util/theme';
 import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import ImmersveKycIdentityLayout from '../Onboarding/ImmersveKycIdentityLayout';
 import ImmersveLogo from '../../../../../images/immersve-logo.svg';
 
@@ -245,14 +246,16 @@ const resolveIosMediaPermissions = async (
  * The KYC url carries a one-time code. Camera and microphone are resolved
  * before that url loads, on both platforms. Android still prompts first
  * because WebView silently denies getUserMedia until CAMERA and RECORD_AUDIO
- * are granted (CARD-555). A denial after the page has loaded closes back to
- * the processing screen, which polls for a fresh url instead of reloading
- * this one. Both platforms inject a style before first paint that hides
- * Immersve's progress-bar dots, logo, and Close button. Our header shows the
- * logo.
+ * are granted (CARD-555). Try again after the page has loaded asks the
+ * processing screen for a fresh url instead of reloading this one. Closing
+ * from a permission or load error leaves Card setup: going back would only
+ * show the spinner, then "Finish verifying". Both platforms inject a style
+ * before first paint that hides Immersve's progress-bar dots, logo, and
+ * Close button. Our header shows the logo.
  */
 const ImmersveKYCModal: React.FC = () => {
   const { colors } = useTheme();
+  const exitCardFlow = useExitCardFlow();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
@@ -450,14 +453,16 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Every close returns to the processing screen, which re-polls. The header
-  // X and the completion redirect call goBack. Android back and swipe are
-  // already that goBack, so they only notify — a second goBack would also
-  // pop the processing screen.
-  const closeWebview = useCallback(
-    (completed: boolean, options?: ImmersveKycCloseOptions) => {
+  // A close during the session returns to the processing screen, which
+  // re-polls. The header X and the completion redirect call goBack. Android
+  // back is already that goBack, so it only notifies — a second goBack would
+  // also pop the processing screen. An error screen does not return there:
+  // its X and back leave Card setup, and the parent pop that follows must
+  // not be treated as another close.
+  const markClosed = useCallback(
+    (completed: boolean): boolean => {
       if (hasClosed.current) {
-        return;
+        return false;
       }
       hasClosed.current = true;
 
@@ -472,6 +477,16 @@ const ImmersveKYCModal: React.FC = () => {
           )
           .build(),
       );
+      return true;
+    },
+    [trackEvent, createEventBuilder],
+  );
+
+  const closeWebview = useCallback(
+    (completed: boolean, options?: ImmersveKycCloseOptions): void => {
+      if (!markClosed(completed)) {
+        return;
+      }
       // Omit the options argument when there are none, so a plain close stays
       // a single-argument call.
       if (options) {
@@ -480,27 +495,59 @@ const ImmersveKYCModal: React.FC = () => {
         onCloseCallback?.(completed);
       }
     },
-    [trackEvent, createEventBuilder],
+    [markClosed],
   );
 
   const dismissWebview = useCallback(
-    (completed: boolean) => {
+    (completed: boolean): void => {
       closeWebview(completed);
       navigation.goBack();
     },
     [closeWebview, navigation],
   );
 
+  // Leaves the onboarding stack. The processing screen is not told, so it
+  // does not poll on the way out.
+  const exitSetup = useCallback((): void => {
+    if (!markClosed(false)) {
+      return;
+    }
+    exitCardFlow();
+  }, [markClosed, exitCardFlow]);
+
+  const handleClose = useCallback((): void => {
+    if (status === 'error' || status === 'permission-error') {
+      exitSetup();
+      return;
+    }
+    dismissWebview(false);
+  }, [status, exitSetup, dismissWebview]);
+
   useEffect(() => {
-    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
-      const { type } = event.data.action;
-      if (type !== 'GO_BACK' && type !== 'POP') {
-        return;
-      }
-      closeWebview(false);
-    });
+    const unsubscribe = navigation.addListener(
+      'beforeRemove',
+      (event): void => {
+        const { type } = event.data.action;
+        if (type !== 'GO_BACK' && type !== 'POP') {
+          return;
+        }
+        // Already closed, including the parent pop from leaving Card setup.
+        if (hasClosed.current) {
+          return;
+        }
+        const showingError =
+          statusRef.current === 'error' ||
+          statusRef.current === 'permission-error';
+        if (showingError) {
+          event.preventDefault();
+          exitSetup();
+          return;
+        }
+        closeWebview(false);
+      },
+    );
     return unsubscribe;
-  }, [navigation, closeWebview]);
+  }, [navigation, closeWebview, exitSetup]);
 
   const handleOpenSettings = useCallback(() => {
     Linking.openSettings().catch(() => undefined);
@@ -665,7 +712,7 @@ const ImmersveKYCModal: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        onClose={() => dismissWebview(false)}
+        onClose={handleClose}
         closeButtonProps={{ testID: 'immersve-kyc-close-button' }}
         title={
           <ImmersveLogo
