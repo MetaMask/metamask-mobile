@@ -393,18 +393,35 @@ describe('TrendingView', () => {
       expect(queryByText(/^\d+$/)).toBeNull();
     });
 
-    it.each([1, 5, 99])(
-      'displays tab count when %i browser tabs are open',
-      (browserTabsCount) => {
-        mockUseSelector.mockImplementation(
-          createMockSelectorImplementation({ browserTabsCount }),
-        );
+    it('displays tab count when one browser tab is open', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 1 }),
+      );
 
-        const { getByText } = renderTrendingView();
+      const { getByText } = renderTrendingView();
 
-        expect(getByText(`${browserTabsCount}`)).toBeOnTheScreen();
-      },
-    );
+      expect(getByText('1')).toBeOnTheScreen();
+    });
+
+    it('displays tab count when multiple browser tabs are open', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 5 }),
+      );
+
+      const { getByText } = renderTrendingView();
+
+      expect(getByText('5')).toBeOnTheScreen();
+    });
+
+    it('displays tab count when many browser tabs are open', () => {
+      mockUseSelector.mockImplementation(
+        createMockSelectorImplementation({ browserTabsCount: 99 }),
+      );
+
+      const { getByText } = renderTrendingView();
+
+      expect(getByText('99')).toBeOnTheScreen();
+    });
 
     it('opens new tab with portfolio URL when no tabs exist', () => {
       mockUseSelector.mockImplementation(
@@ -716,7 +733,7 @@ describe('TrendingView', () => {
           properties: {
             interaction_type: 'tab_switched',
             tab_name: 'Sites',
-            previous_tab: 'Now',
+            previous_tab: 'Sites',
             source: 'deeplink',
           },
         }),
@@ -742,7 +759,7 @@ describe('TrendingView', () => {
           properties: {
             interaction_type: 'tab_switched',
             tab_name: 'Perps',
-            previous_tab: 'Now',
+            previous_tab: 'Perps',
             source: 'deeplink',
           },
         }),
