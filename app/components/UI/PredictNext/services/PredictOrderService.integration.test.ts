@@ -8,6 +8,7 @@ import { hashKey } from '@tanstack/query-core';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { getPredictOrderServiceMessenger } from '../../../../core/Engine/messengers/predict-order-service-messenger';
 import {
+  MISSING_OPERATION_EXPIRY_GRACE_MS,
   PREDICT_ORDER_SERVICE_NAME,
   PredictOrderService,
 } from '../services/PredictOrderService';
@@ -1071,10 +1072,15 @@ describe('PredictNext Order Preview request', () => {
       let commits = 0;
       let observations = 0;
       let expired = false;
+      const previewTtlMs = 30_000;
+      // Past the Preview expiry, still inside the missing-operation grace.
+      // A GET that starts after expiry plus that grace may resolve not-placed.
+      const beyondExpiryMs =
+        previewTtlMs + Math.floor(MISSING_OPERATION_EXPIRY_GRACE_MS / 2);
       jest
         .spyOn(Date, 'now')
         .mockImplementation(
-          () => new Date().getTime() + (expired ? 60_000 : 0),
+          () => new Date().getTime() + (expired ? beyondExpiryMs : 0),
         );
       // This app targets ES2022, before Promise.withResolvers.
       let releaseObservation!: () => void;
@@ -1087,7 +1093,7 @@ describe('PredictNext Order Preview request', () => {
       });
       const harness = buildPredictNextIntegrationHarness(async (url) => {
         if (String(url).endsWith('/orders/preview')) {
-          return { body: freshPreview(30_000) };
+          return { body: freshPreview(previewTtlMs) };
         }
         if (isCommitUrl(url)) {
           commits += 1;
