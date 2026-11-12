@@ -11,7 +11,7 @@ import {
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import TokenDetailsActionsSection from '../components/sections/TokenDetailsActionsSection';
+import { TokenDetailsActionsSkeleton } from '../components/TokenDetailsActions';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { TokenDetailsIds } from '../testIds';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
@@ -89,10 +89,10 @@ const maLabelFrom = (indicators: string[]): string => {
  * either one here would cause a visible flicker on the transition.
  *
  * The body mirrors the loaded price section. The price stays a skeleton
- * because it is not known yet. Interval, indicator, and action controls are
- * the real buttons, and only the chart is a skeleton. Below the buttons, a
- * body skeleton stands in for the insights card, the balance block, and the
- * position line with its Buy button.
+ * because it is not known yet. The interval controls are the real small
+ * buttons. The action row stays the four-square skeleton from the loading
+ * comp. Below that, a body skeleton stands in for the insights card, the
+ * balance block, and the position line with its Buy button.
  */
 const TokenDetailsPagePending = ({
   token,
@@ -208,10 +208,7 @@ const TokenDetailsPagePending = ({
           </Box>
         </>
       )}
-      <TokenDetailsActionsSection
-        token={token}
-        showSkeletonWhileLoading={false}
-      />
+      <TokenDetailsActionsSkeleton />
       <PendingBodySkeleton />
     </Box>
   );
