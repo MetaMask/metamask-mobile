@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image } from 'react-native';
+import { ActivityIndicator, Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -56,6 +56,26 @@ interface Props {
    * Whether the search results are loading
    */
   isLoading?: boolean;
+  /**
+   * Whether the next page of results is loading
+   */
+  isLoadingMore?: boolean;
+  /**
+   * Whether more results can be loaded
+   */
+  hasNextPage?: boolean;
+  /**
+   * Callback triggered when the results list reaches its end
+   */
+  onEndReached?: () => void;
+  /**
+   * Number of pixels to render ahead of the visible list
+   */
+  drawDistance?: number;
+  /**
+   * How far from the list end the next page starts loading
+   */
+  endReachedThreshold?: number;
 }
 
 interface SearchTokenResultRowProps {
@@ -162,6 +182,11 @@ const SearchTokenResults = ({
   networkName,
   alreadyAddedTokens,
   isLoading = false,
+  isLoadingMore = false,
+  hasNextPage = false,
+  onEndReached,
+  drawDistance,
+  endReachedThreshold = 0.5,
 }: Props) => {
   const tw = useTailwind();
   const tokensImage = useAssetFromTheme(
@@ -236,6 +261,13 @@ const SearchTokenResults = ({
       data={searchResults}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
+      testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULTS_LIST}
+      drawDistance={drawDistance}
+      onEndReached={hasNextPage ? onEndReached : undefined}
+      onEndReachedThreshold={endReachedThreshold}
+      ListFooterComponent={
+        isLoadingMore ? <ActivityIndicator size="small" /> : null
+      }
     />
   );
 };

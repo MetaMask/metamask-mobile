@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './SearchTokenAutocomplete';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -8,6 +8,8 @@ import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
+import { useTokenCatalog } from './useTokenCatalog';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import {
   PriceChangeOption,
   SortDirection,
@@ -91,6 +93,14 @@ jest.mock(
   }),
 );
 
+jest.mock('./useTokenCatalog', () => ({
+  useTokenCatalog: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
+}));
+
 jest.mock('../../utils/utils', () => ({
   convertTrendingAssetsToImporAssets: jest.fn(() => []),
 }));
@@ -101,6 +111,8 @@ const mockIsNonEvmChainId = isNonEvmChainId as jest.MockedFunction<
   typeof isNonEvmChainId
 >;
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
+const mockUseTokenCatalog = jest.mocked(useTokenCatalog);
+const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockConvertTokens = jest.mocked(convertTrendingAssetsToImporAssets);
 const mockToAssetId = jest.mocked(toAssetId);
 
@@ -114,7 +126,6 @@ const mockTrendingResult = {
   marketCap: 0,
   aggregatedUsdVolume: 0,
   price: '0',
-  pricePercentChange1d: '0',
 };
 
 const mockImportAset = {
@@ -199,6 +210,7 @@ describe('SearchTokenAutocomplete', () => {
     });
     mockBuild.mockReturnValue({ event: 'mock-event' });
     mockIsNonEvmChainId.mockReturnValue(false);
+    mockUseNetworkTier.mockReturnValue('WIFI');
     mockSelectInternalAccountByScope.mockReturnValue({
       id: 'evm-account-id',
       address: '0xabc',
@@ -215,6 +227,14 @@ describe('SearchTokenAutocomplete', () => {
       hasNextPage: false,
       totalCount: undefined,
     } as ReturnType<typeof useTrendingSearch>);
+    mockUseTokenCatalog.mockReturnValue({
+      assets: [],
+      isLoading: false,
+      error: null,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+    } as ReturnType<typeof useTokenCatalog>);
     mockConvertTokens.mockReturnValue([]);
     mockAddCustomAsset.mockResolvedValue(undefined);
     (Engine.context.AssetsController.addCustomAsset as jest.Mock) =
@@ -560,10 +580,123 @@ describe('SearchTokenAutocomplete', () => {
       mockConvertTokens.mockReturnValue([mockNonEvmToken as any]);
     });
 
+    it('keeps catalog requests disabled while offline', () => {
+      mockUseNetworkTier.mockReturnValue('NONE');
+
+      renderComponent({ selectedChainId: solanaChainId });
+
+      expect(mockUseTokenCatalog).toHaveBeenCalledWith(solanaChainId, {
+        enabled: false,
+      });
+    });
+
+    it('filters the native TRX asset out of typed search results', () => {
+      const tronChainId = 'tron:728126428' as SupportedCaipChainId;
+      const trxAssetId = `${tronChainId}/slip44:195`;
+
+      mockIsNonEvmChainId.mockReturnValue(true);
+      mockConvertTokens.mockReturnValue([]);
+      mockUseTrendingSearch.mockReturnValue({
+        data: [
+          {
+            assetId: trxAssetId,
+            symbol: 'TRX',
+            name: 'TRON',
+            decimals: 6,
+            marketCap: 0,
+            aggregatedUsdVolume: 0,
+            price: '0',
+          },
+        ],
+        isLoading: false,
+        refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      } as ReturnType<typeof useTrendingSearch>);
+
+      const { getByTestId, queryAllByTestId } = renderComponent({
+        selectedChainId: tronChainId,
+      });
+
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+        'TRX',
+      );
+
+      expect(
+        queryAllByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+      ).toHaveLength(0);
+      expect(mockConvertTokens).toHaveBeenCalledWith([]);
+    });
+
+    it('does not paginate typed search results while offline', () => {
+      const searchLoadMore = jest.fn();
+      mockUseNetworkTier.mockReturnValue('NONE');
+      mockUseTrendingSearch.mockReturnValue({
+        data: [mockTrendingResult],
+        isLoading: false,
+        refetch: jest.fn(),
+        loadMore: searchLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: undefined,
+      } as ReturnType<typeof useTrendingSearch>);
+
+      const { getByTestId } = renderComponent({
+        selectedChainId: solanaChainId,
+      });
+
+      fireEvent.changeText(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+        'SOL',
+      );
+      fireEvent(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULTS_LIST),
+        'onEndReached',
+      );
+
+      expect(searchLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not paginate the catalog while offline', () => {
+      const catalogLoadMore = jest.fn();
+      mockUseNetworkTier.mockReturnValue('NONE');
+      mockUseTokenCatalog.mockReturnValue({
+        assets: [],
+        isLoading: false,
+        error: null,
+        loadMore: catalogLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+      });
+
+      const { getByTestId } = renderComponent({
+        selectedChainId: solanaChainId,
+      });
+
+      fireEvent(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULTS_LIST),
+        'onEndReached',
+      );
+
+      expect(catalogLoadMore).not.toHaveBeenCalled();
+    });
+
     it('does not add token when no account found but still tracks TOKEN_ADDED analytics', async () => {
       mockSelectInternalAccountByScope.mockReturnValue(null);
 
       const utils = renderComponent({ selectedChainId: solanaChainId });
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+        'SOL',
+      );
+      await waitFor(() =>
+        expect(
+          utils.getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+        ).toBeOnTheScreen(),
+      );
       selectTokenAndPressNext(utils);
 
       const [, params] = mockNavigation.navigate.mock.calls[0];
@@ -582,6 +715,15 @@ describe('SearchTokenAutocomplete', () => {
       });
 
       const utils = renderComponent({ selectedChainId: solanaChainId });
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR),
+        'SOL',
+      );
+      await waitFor(() =>
+        expect(
+          utils.getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+        ).toBeOnTheScreen(),
+      );
       selectTokenAndPressNext(utils);
 
       const [, params] = mockNavigation.navigate.mock.calls[0];
@@ -702,6 +844,46 @@ describe('SearchTokenAutocomplete', () => {
         ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
       );
       expect(results).toHaveLength(1);
+    });
+  });
+
+  describe('native asset filtering', () => {
+    it('keeps the native EVM row in trending results', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: [
+          {
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            name: 'Ether',
+            decimals: 18,
+            marketCap: 0,
+            aggregatedUsdVolume: 0,
+            price: '0',
+          },
+        ],
+        isLoading: false,
+        refetch: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      } as ReturnType<typeof useTrendingSearch>);
+      mockConvertTokens.mockReturnValue([
+        {
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          name: 'Ether',
+          decimals: 18,
+          chainId: '0x1' as Hex,
+          image: '',
+        },
+      ]);
+
+      const { getByTestId } = renderComponent({ selectedChainId: '0x1' });
+
+      expect(
+        getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+      ).toBeOnTheScreen();
     });
   });
 });
