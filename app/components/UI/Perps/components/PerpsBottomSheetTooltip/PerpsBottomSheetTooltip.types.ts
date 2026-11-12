@@ -50,6 +50,7 @@ export type PerpsTooltipContentKey =
   | 'liquidation_price'
   | 'cross_liquidation_price'
   | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable'
   | 'liquidation_distance'
   | 'margin'
   | 'fees'

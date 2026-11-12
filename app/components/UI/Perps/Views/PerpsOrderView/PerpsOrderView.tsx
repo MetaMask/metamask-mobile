@@ -2507,14 +2507,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // An order against an open cross position liquidates with the whole
   // account. The isolated formula does not describe it, so the price, the
-  // stop-loss check, and the explainer all stay off that formula.
+  // stop-loss check, and the explainer all stay off that formula. This is an
+  // estimate we chose not to run, not a confirmed absence of a liquidation
+  // price, so the explainer says the estimate is unavailable.
   const withholdsCrossLiquidationPrice =
     isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
   const orderFormLiquidationPrice = withholdsCrossLiquidationPrice
     ? ''
     : liquidationPrice;
   const liquidationInfoContentKey = withholdsCrossLiquidationPrice
-    ? 'cross_no_liquidation_price'
+    ? 'cross_liquidation_estimate_unavailable'
     : 'liquidation_price';
 
   const {

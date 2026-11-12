@@ -1757,6 +1757,9 @@ describe('PerpsOrderView', () => {
         positions: [
           {
             ...defaultPositionForViews,
+            // The venue reports a liquidation price; the order form still
+            // withholds its own isolated estimate.
+            liquidationPrice: '1900',
             leverage: { value: 10, type: 'cross' },
           },
         ],
@@ -1784,8 +1787,13 @@ describe('PerpsOrderView', () => {
     expect(
       await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
     ).toHaveTextContent(
-      strings('perps.tooltips.cross_no_liquidation_price.content'),
+      strings('perps.tooltips.cross_liquidation_estimate_unavailable.content'),
     );
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
     fireEvent.press(
       screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
     );
@@ -1822,6 +1830,7 @@ describe('PerpsOrderView', () => {
         positions: [
           {
             ...defaultPositionForViews,
+            liquidationPrice: '1900',
             leverage: { value: 10, type: 'cross' },
           },
         ],
@@ -1844,9 +1853,16 @@ describe('PerpsOrderView', () => {
     );
     expect(
       await screen.findByText(
-        strings('perps.tooltips.cross_no_liquidation_price.content'),
+        strings(
+          'perps.tooltips.cross_liquidation_estimate_unavailable.content',
+        ),
       ),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
 
     fireEvent.press(
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),

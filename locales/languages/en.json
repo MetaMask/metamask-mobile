@@ -3237,6 +3237,10 @@
         "title": "Liquidation price",
         "content": "This position has no liquidation price at your current account value. It can change with the P&L of your other positions."
       },
+      "cross_liquidation_estimate_unavailable": {
+        "title": "Liquidation price",
+        "content": "We can't estimate a liquidation price for this order. Your cross position's liquidation price depends on the P&L of your other positions."
+      },
       "liquidation_distance": {
         "title": "Liquidation distance",
         "content": "The percentage the price needs to move against your position before liquidation. A higher percentage means more room before liquidation."
