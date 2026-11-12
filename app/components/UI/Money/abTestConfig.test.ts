@@ -22,29 +22,21 @@ describe('Money home send action A/B test', () => {
     );
   });
 
-  it('defines control, withdraw, and move-to-wallet copy', () => {
+  it('defines control and withdraw copy', () => {
     expect(Object.keys(MONEY_HOME_SEND_ACTION_VARIANTS)).toEqual([
       MoneyHomeSendActionVariant.Control,
       MoneyHomeSendActionVariant.Withdraw,
-      MoneyHomeSendActionVariant.MoveToWallet,
     ]);
     expect(MONEY_HOME_SEND_ACTION_VARIANTS.control).toEqual({
       labelKey: 'money.action.transfer',
       sheetTitleKey: 'money.transfer_sheet.title',
       destinationLabelKey: 'money.transfer_sheet.between_accounts',
     });
-    expect(MONEY_HOME_SEND_ACTION_VARIANTS.withdraw.labelKey).toBe(
-      'money.action.withdraw',
-    );
-    expect(MONEY_HOME_SEND_ACTION_VARIANTS.moveToWallet.labelKey).toBe(
-      'money.action.move_to_wallet',
-    );
-    expect(MONEY_HOME_SEND_ACTION_VARIANTS.withdraw.destinationLabelKey).toBe(
-      'money.transfer_sheet.wallet',
-    );
-    expect(
-      MONEY_HOME_SEND_ACTION_VARIANTS.moveToWallet.destinationLabelKey,
-    ).toBe('money.transfer_sheet.wallet');
+    expect(MONEY_HOME_SEND_ACTION_VARIANTS.withdraw).toEqual({
+      labelKey: 'money.action.withdraw',
+      sheetTitleKey: 'money.transfer_sheet.title_withdraw',
+      destinationLabelKey: 'money.transfer_sheet.wallet',
+    });
   });
 
   it('falls back to control when the flag is absent or invalid', () => {
@@ -57,6 +49,14 @@ describe('Money home send action A/B test', () => {
     expect(
       resolveABTestAssignment(
         { [MONEY_HOME_SEND_ACTION_AB_KEY]: 'not-a-variant' },
+        MONEY_HOME_SEND_ACTION_AB_KEY,
+        validVariants,
+      ),
+    ).toEqual({ variantName: 'control', isActive: false });
+
+    expect(
+      resolveABTestAssignment(
+        { [MONEY_HOME_SEND_ACTION_AB_KEY]: 'moveToWallet' },
         MONEY_HOME_SEND_ACTION_AB_KEY,
         validVariants,
       ),
@@ -93,12 +93,9 @@ describe('Money home send action A/B test', () => {
       getMoneyHomeSendActionTransactionActiveAbTests(false, 'withdraw'),
     ).toBeUndefined();
     expect(
-      getMoneyHomeSendActionTransactionActiveAbTests(true, 'moveToWallet'),
+      getMoneyHomeSendActionTransactionActiveAbTests(true, 'withdraw'),
     ).toEqual([
-      createActiveABTestAssignment(
-        MONEY_HOME_SEND_ACTION_AB_KEY,
-        'moveToWallet',
-      ),
+      createActiveABTestAssignment(MONEY_HOME_SEND_ACTION_AB_KEY, 'withdraw'),
     ]);
   });
 });

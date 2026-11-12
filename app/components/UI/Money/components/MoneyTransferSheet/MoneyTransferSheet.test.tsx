@@ -627,57 +627,47 @@ describe('MoneyTransferSheet', () => {
       expect(queryByText(strings('money.transfer_sheet.wallet'))).toBeNull();
     });
 
-    it.each([
-      {
+    it('leads with Wallet for the withdraw variant', () => {
+      mockUseABTest.mockReturnValue({
+        variant: MONEY_HOME_SEND_ACTION_VARIANTS.withdraw,
         variantName: MoneyHomeSendActionVariant.Withdraw,
-        titleKey: 'money.transfer_sheet.title_withdraw' as const,
-      },
-      {
-        variantName: MoneyHomeSendActionVariant.MoveToWallet,
-        titleKey: 'money.transfer_sheet.title_move_to_wallet' as const,
-      },
-    ])(
-      'leads with Wallet for the $variantName variant',
-      ({ variantName, titleKey }) => {
-        mockUseABTest.mockReturnValue({
-          variant: MONEY_HOME_SEND_ACTION_VARIANTS[variantName],
-          variantName,
-          isActive: true,
-        });
+        isActive: true,
+      });
 
-        const { getByText, queryByText, getByTestId } = renderWithProvider(
-          <MoneyTransferSheet />,
-        );
+      const { getByText, queryByText, getByTestId } = renderWithProvider(
+        <MoneyTransferSheet />,
+      );
 
-        expect(getByText(strings(titleKey))).toBeOnTheScreen();
-        expect(
-          getByText(strings('money.transfer_sheet.wallet')),
-        ).toBeOnTheScreen();
-        expect(
-          queryByText(strings('money.transfer_sheet.between_accounts')),
-        ).toBeNull();
-        expect(
-          getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW),
-        ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.transfer_sheet.title_withdraw')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.transfer_sheet.wallet')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('money.transfer_sheet.between_accounts')),
+      ).toBeNull();
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW),
+      ).toBeOnTheScreen();
 
-        fireEvent.press(
-          getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
-        );
+      fireEvent.press(
+        getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+      );
 
-        expect(withPendingTransactionActiveAbTests).toHaveBeenCalledWith(
-          [
-            createActiveABTestAssignment(
-              MONEY_HOME_SEND_ACTION_AB_KEY,
-              variantName,
-            ),
-          ],
-          expect.any(Function),
-        );
-        expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
-      },
-    );
+      expect(withPendingTransactionActiveAbTests).toHaveBeenCalledWith(
+        [
+          createActiveABTestAssignment(
+            MONEY_HOME_SEND_ACTION_AB_KEY,
+            MoneyHomeSendActionVariant.Withdraw,
+          ),
+        ],
+        expect.any(Function),
+      );
+      expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    });
   });
 });

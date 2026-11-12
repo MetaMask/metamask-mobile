@@ -2371,43 +2371,30 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it.each([
-      {
+    it('renders Withdraw and records that label on the tap', () => {
+      const labelKey = 'money.action.withdraw' as const;
+      mockUseABTest.mockReturnValue({
+        variant: MONEY_HOME_SEND_ACTION_VARIANTS.withdraw,
         variantName: MoneyHomeSendActionVariant.Withdraw,
-        labelKey: 'money.action.withdraw' as const,
-      },
-      {
-        variantName: MoneyHomeSendActionVariant.MoveToWallet,
-        labelKey: 'money.action.move_to_wallet' as const,
-      },
-    ])(
-      'renders $variantName and records that label on the tap',
-      ({ variantName, labelKey }) => {
-        mockUseABTest.mockReturnValue({
-          variant: MONEY_HOME_SEND_ACTION_VARIANTS[variantName],
-          variantName,
-          isActive: true,
-        });
+        isActive: true,
+      });
 
-        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-        const transferButton = getByTestId(
-          MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
-        );
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const transferButton = getByTestId(
+        MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+      );
 
-        expect(transferButton).toHaveTextContent(strings(labelKey));
+      expect(transferButton).toHaveTextContent(strings(labelKey));
 
-        fireEvent.press(
-          getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON),
-        );
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
 
-        expect(mockTrackButtonClicked).toHaveBeenCalledWith(
-          expect.objectContaining({
-            button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-            label_key: labelKey,
-          }),
-        );
-      },
-    );
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+          label_key: labelKey,
+        }),
+      );
+    });
   });
 
   describe('transfer button disabled state', () => {

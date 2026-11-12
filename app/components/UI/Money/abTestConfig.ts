@@ -19,20 +19,15 @@ export const MONEY_HOME_SEND_ACTION_AB_KEY =
 export enum MoneyHomeSendActionVariant {
   Control = 'control',
   Withdraw = 'withdraw',
-  MoveToWallet = 'moveToWallet',
 }
 
 interface MoneyHomeSendActionVariantConfig {
   /** i18n key for the Money home action button. */
-  labelKey:
-    | 'money.action.transfer'
-    | 'money.action.withdraw'
-    | 'money.action.move_to_wallet';
+  labelKey: 'money.action.transfer' | 'money.action.withdraw';
   /** i18n key for the transfer sheet title. */
   sheetTitleKey:
     | 'money.transfer_sheet.title'
-    | 'money.transfer_sheet.title_withdraw'
-    | 'money.transfer_sheet.title_move_to_wallet';
+    | 'money.transfer_sheet.title_withdraw';
   /**
    * i18n key for the first destination row. Treatments lead with the user's
    * own wallet; control keeps "Another account".
@@ -56,11 +51,6 @@ export const MONEY_HOME_SEND_ACTION_VARIANTS: Record<
     sheetTitleKey: 'money.transfer_sheet.title_withdraw',
     destinationLabelKey: 'money.transfer_sheet.wallet',
   },
-  [MoneyHomeSendActionVariant.MoveToWallet]: {
-    labelKey: 'money.action.move_to_wallet',
-    sheetTitleKey: 'money.transfer_sheet.title_move_to_wallet',
-    destinationLabelKey: 'money.transfer_sheet.wallet',
-  },
 };
 
 export const MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS = {
@@ -68,7 +58,6 @@ export const MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS = {
   variationNames: {
     control: 'Send',
     withdraw: 'Withdraw',
-    moveToWallet: 'Move to wallet',
   },
 } as const;
 
