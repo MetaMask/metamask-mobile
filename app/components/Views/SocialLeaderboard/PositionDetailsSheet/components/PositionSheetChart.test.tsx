@@ -80,6 +80,19 @@ describe('PositionSheetChart', () => {
     ).toBeUndefined();
   });
 
+  it('shows a retry instead of the skeleton when prices fail', () => {
+    const onRetry = jest.fn();
+    renderChart({ isLoading: true, isError: true, onRetry });
+
+    expect(
+      screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CHART_LOADING),
+    ).toBeNull();
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_RETRY),
+    );
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the skeleton while prices load', () => {
     renderChart({ isLoading: true });
 

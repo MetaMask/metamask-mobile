@@ -9,8 +9,12 @@ import Svg, { Circle, ClipPath, Defs, G, Line, Path } from 'react-native-svg';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -21,6 +25,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
@@ -58,6 +63,8 @@ const rectPath = (fromX: number, toX: number): string =>
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
   isLoading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
   timeAxisLabels: string[];
@@ -74,6 +81,8 @@ export interface PositionSheetChartProps {
 const PositionSheetChart = ({
   prices,
   isLoading,
+  isError = false,
+  onRetry,
   isTrendPositive,
   markers,
   timeAxisLabels,
@@ -233,6 +242,24 @@ const PositionSheetChart = ({
   };
 
   const renderChartBody = () => {
+    if (isError) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          style={{ height: POSITION_SHEET_CHART_HEIGHT }}
+        >
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={onRetry}
+            testID={PositionDetailsSheetSelectorsIDs.CHART_RETRY}
+          >
+            {strings('offline_mode.try_again')}
+          </Button>
+        </Box>
+      );
+    }
     if (isLoading) {
       return (
         <View testID={PositionDetailsSheetSelectorsIDs.CHART_LOADING}>

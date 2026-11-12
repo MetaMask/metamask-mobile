@@ -4,6 +4,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
+import { useIsFocused } from '@react-navigation/native';
 import React, {
   startTransition,
   useCallback,
@@ -343,6 +344,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isActive = true,
 }) => {
   const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
+  const isFocused = useIsFocused();
   const reduceMotion = useReducedMotion();
   // A press moves the rail at once and hands the feed's filter to a
   // transition, so the animation does not wait on the feed re-rendering. The
@@ -433,7 +435,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
 
   // A docked chip holds the crawl where it stopped, so the chips come back
   // where they left.
-  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isSelected;
+  const shouldRun =
+    isActive && isFocused && !isLowHardware && shouldMarquee && !isSelected;
   const { translateX, readOffset, hold, scrubBy, release } = useRailCrawl({
     trackWidth,
     enabled: shouldRun,
@@ -521,6 +524,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       <GestureDetector gesture={pan}>
         <RNAnimated.View
           style={[styles.row, trackStyle]}
+          renderToHardwareTextureAndroid
           testID={SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID}
           pointerEvents={isSelected ? 'none' : 'auto'}
           accessibilityElementsHidden={isSelected}

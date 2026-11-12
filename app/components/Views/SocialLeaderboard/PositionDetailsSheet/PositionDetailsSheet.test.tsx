@@ -243,6 +243,8 @@ const buildSheetData = (
   perpTradeSymbol: undefined,
   prices: [],
   isPricesLoading: false,
+  isPricesError: false,
+  retryPrices: jest.fn(),
   timeAxisLabels: [],
   isTrendPositive: true,
   markers: [],

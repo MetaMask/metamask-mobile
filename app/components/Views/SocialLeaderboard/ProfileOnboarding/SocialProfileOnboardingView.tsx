@@ -18,6 +18,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   StackActions,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -501,6 +502,7 @@ const ReadyCardFallback: React.FC<{
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
@@ -560,6 +562,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
   const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
+  const rivePaused =
+    !isFocused || Boolean(pendingTermsPath || pendingTermsOnly);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -1316,6 +1320,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
                     onStepChange={handleIntroSceneStep}
+                    paused={rivePaused}
                   />
                 }
                 artworkWrapperProps={{
@@ -1544,6 +1549,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
                       isVerified={isProfileCreatedAndVerified}
+                      paused={rivePaused}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}
