@@ -77,6 +77,7 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchOrderPreview: jest.fn(),
   commitOrder: jest.fn(),
   observeOrder: jest.fn(),
+  listUnresolvedOrders: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -346,7 +347,7 @@ describe('KalshiRemoteAdapter', () => {
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.RATE_LIMITED,
-        metadata: { status: 429 },
+        metadata: expect.objectContaining({ status: 429 }),
       }),
     );
   });
@@ -369,21 +370,24 @@ describe('KalshiRemoteAdapter', () => {
       await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.NETWORK_ERROR,
-          metadata: { status },
+          metadata: expect.objectContaining({ status }),
         }),
       );
     },
   );
 
-  it.each([403, 451])(
-    'maps HTTP %s to GEO_BLOCKED with the status',
-    async (status) => {
+  it.each([
+    [403, PredictErrorCode.INVALID_RESPONSE],
+    [451, PredictErrorCode.GEO_BLOCKED],
+  ] as const)(
+    'maps HTTP %s to %s without assuming every forbidden response is geography',
+    async (status, code) => {
       client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
 
       await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
         expect.objectContaining({
-          code: PredictErrorCode.GEO_BLOCKED,
-          metadata: { status },
+          code,
+          metadata: expect.objectContaining({ status }),
         }),
       );
     },
@@ -395,7 +399,7 @@ describe('KalshiRemoteAdapter', () => {
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.INVALID_RESPONSE,
-        metadata: { status: 404 },
+        metadata: expect.objectContaining({ status: 404 }),
       }),
     );
   });
@@ -478,7 +482,7 @@ describe('KalshiRemoteAdapter', () => {
     await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.UNAUTHENTICATED,
-        metadata: { status: 401 },
+        metadata: expect.objectContaining({ status: 401 }),
       }),
     );
   });
@@ -499,7 +503,10 @@ describe('KalshiRemoteAdapter', () => {
     await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.UNAUTHENTICATED,
-        metadata: { status: 403, bodyCode: 'venue_authorization_required' },
+        metadata: expect.objectContaining({
+          status: 403,
+          bodyCode: 'venue_authorization_required',
+        }),
       }),
     );
   });
@@ -937,7 +944,10 @@ describe('KalshiRemoteAdapter', () => {
       await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.MARKET_NOT_FOUND,
-          metadata: { status: 404, bodyCode: 'market_not_found' },
+          metadata: expect.objectContaining({
+            status: 404,
+            bodyCode: 'market_not_found',
+          }),
         }),
       );
     });
@@ -950,7 +960,10 @@ describe('KalshiRemoteAdapter', () => {
       await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.INVALID_RESPONSE,
-          metadata: { status: 400, bodyCode: 'invalid_request' },
+          metadata: expect.objectContaining({
+            status: 400,
+            bodyCode: 'invalid_request',
+          }),
         }),
       );
     });
@@ -1079,7 +1092,7 @@ describe('KalshiRemoteAdapter', () => {
       expect(client.commitOrder).not.toHaveBeenCalled();
     });
 
-    it('maps a missing operation to ORDER_NOT_FOUND', async () => {
+    it('maps a missing operation to ORDER_OUTCOME_UNKNOWN', async () => {
       client.observeOrder.mockRejectedValue(
         new PredictHttpError(404, 'operation_not_found'),
       );
@@ -1087,8 +1100,14 @@ describe('KalshiRemoteAdapter', () => {
       await expect(
         adapter.trading.observeOrder(receiptPayload.previewId),
       ).rejects.toMatchObject({
-        code: PredictErrorCode.ORDER_NOT_FOUND,
-        metadata: { status: 404, bodyCode: 'operation_not_found' },
+        code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        metadata: {
+          status: 404,
+          bodyCode: 'operation_not_found',
+          phase: 'observe',
+          mutationRelay: 'not_a_mutation',
+          operationOutcome: 'unknown',
+        },
       });
     });
 

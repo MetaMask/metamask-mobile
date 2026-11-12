@@ -18,6 +18,10 @@ import {
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
+import {
+  predictErrorEvidence,
+  type PredictErrorPhase,
+} from '../../errors/apiErrorEvidence';
 import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
 import type {
   VenueMarketDataAdapter,
@@ -27,13 +31,12 @@ import type {
 import {
   type PredictApiReadTransport,
   PredictHttpError,
-  PredictRequestNotSentError,
 } from './PredictApiReadClient';
 
-/** Backend canonical trading error codes (preview, commit and observe) →
- * client error codes. */
-const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
-  operation_not_found: PredictErrorCode.ORDER_NOT_FOUND,
+/** Canonical codes win over HTTP status, including authorization 403s. */
+const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> = {
+  operation_not_found: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+  preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
   market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
   market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
   quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
@@ -43,6 +46,25 @@ const TRADING_ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode> = {
   insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
   insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
   position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
+  venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
+  venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+  venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,
+  venue_authorization_invalid: PredictErrorCode.UNAUTHENTICATED,
+  venue_signature_expired: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_step_changed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_account_not_enabled: PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
+  venue_auth_rejected: PredictErrorCode.UNAUTHENTICATED,
+  venue_signing_unavailable: PredictErrorCode.UNAUTHENTICATED,
+  venue_signing_refused: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_read_budget_exhausted: PredictErrorCode.VENUE_UNAVAILABLE,
+  venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
+  venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
+  geo_blocked: PredictErrorCode.GEO_BLOCKED,
+  invalid_request: PredictErrorCode.INVALID_RESPONSE,
+  unauthorized: PredictErrorCode.UNAUTHENTICATED,
+  venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
+  rate_limited: PredictErrorCode.RATE_LIMITED,
 };
 
 const isAbortError = (error: unknown): error is Error =>
@@ -63,15 +85,20 @@ const isSameAmount = (left: string, right: string): boolean =>
  */
 const toHttpErrorMetadata = (
   error: PredictHttpError,
+  phase: PredictErrorPhase,
 ): Record<string, unknown> => ({
   status: error.status,
   ...(error.bodyCode === undefined ? {} : { bodyCode: error.bodyCode }),
-  ...(error instanceof PredictRequestNotSentError
-    ? { requestSent: false }
-    : {}),
+  ...(error.requestSent === undefined
+    ? {}
+    : { requestSent: error.requestSent }),
+  ...predictErrorEvidence(phase, error.bodyCode, error.requestSent),
 });
 
-const mapError = (error: unknown): never => {
+const mapError = (
+  error: unknown,
+  phase: PredictErrorPhase = 'signed_read',
+): never => {
   if (isAbortError(error) || error instanceof PredictError) {
     throw error;
   }
@@ -81,31 +108,19 @@ const mapError = (error: unknown): never => {
   }
 
   if (error instanceof PredictHttpError) {
-    const metadata = toHttpErrorMetadata(error);
+    const metadata = toHttpErrorMetadata(error, phase);
+    const mapped = error.bodyCode
+      ? ERROR_CODE_BY_BACKEND_CODE[error.bodyCode]
+      : undefined;
+    if (mapped) {
+      throw PredictError.from(mapped, { metadata });
+    }
     if (error.status === 401) {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
     }
-    // Venue authentication failures are 403s too, but they are about the
-    // user's Kalshi account or device signature, not their region.
-    if (error.bodyCode === 'venue_authorization_invalid') {
-      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
-    }
-    // The onboarding gate watches for this code and reopens the temporary
-    // demo onboarding.
-    if (error.bodyCode === 'venue_account_not_enabled') {
-      throw PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED, {
-        metadata,
-      });
-    }
-    // The backend refuses an account read it cannot verify against the
-    // device's signature: there is no shared account to fall back on, so
-    // the only fix is an authorized read. Not a region refusal.
-    if (error.bodyCode === 'venue_authorization_required') {
-      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
-    }
-    // A 451, or a 403 from the backend or its edge, refuses the user's
-    // region. Retrying cannot change that.
-    if (error.status === 403 || error.status === 451) {
+    // 403 is also used for authorization and unknown coded failures. Without
+    // explicit geography evidence, do not invent a region restriction.
+    if (error.status === 451) {
       throw PredictError.from(PredictErrorCode.GEO_BLOCKED, { metadata });
     }
     if (error.status === 429) {
@@ -123,20 +138,6 @@ const mapError = (error: unknown): never => {
   }
 
   throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
-};
-
-const mapTradingError = (error: unknown): never => {
-  // The backend reports canonical trading failure codes in the body; they
-  // describe product states the client renders, so they win over status.
-  if (error instanceof PredictHttpError && error.bodyCode) {
-    const mapped = TRADING_ERROR_CODE_BY_BACKEND_CODE[error.bodyCode];
-    if (mapped) {
-      throw PredictError.from(mapped, {
-        metadata: toHttpErrorMetadata(error),
-      });
-    }
-  }
-  return mapError(error);
 };
 
 /** Kalshi's Venue ID. Only Kalshi's adapter and its composition name it;
@@ -206,7 +207,7 @@ export class KalshiRemoteAdapter {
           }
           return result;
         } catch (error) {
-          return mapTradingError(error);
+          return mapError(error, 'preview');
         }
       },
       // One signed submission per invocation; observation is observeOrder.
@@ -227,7 +228,7 @@ export class KalshiRemoteAdapter {
           }
           return result;
         } catch (error) {
-          return mapTradingError(error);
+          return mapError(error, 'commit');
         }
       },
       observeOrder: async (previewId, options) => {
@@ -246,7 +247,7 @@ export class KalshiRemoteAdapter {
           }
           return result;
         } catch (error) {
-          return mapTradingError(error);
+          return mapError(error, 'observe');
         }
       },
     };
