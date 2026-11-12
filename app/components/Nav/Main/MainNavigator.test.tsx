@@ -21,6 +21,12 @@ import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteShe
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
+import Browser from '../../Views/Browser';
+import type { BrowserParams } from '../../Views/Browser/Browser.types';
+import { AssetLoader } from '../../Views/AssetLoader';
+import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
+import { SocialEvent } from '../../Views/SocialLeaderboard/analytics/socialEvents';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -350,9 +356,19 @@ describe('MainNavigator', () => {
       )[0];
       const WalletTabStack = homeTabScreen?.props?.component;
 
-      const { root: walletRoot } = renderWithProvider(<WalletTabStack />, {
-        state: initialRootState,
-      });
+      const { root: walletRoot } = renderWithProvider(
+        <WalletTabStack
+          route={{
+            key: 'wallet-tab',
+            name: Routes.WALLET.HOME,
+            params: {},
+          }}
+          navigation={{ replaceParams: jest.fn() }}
+        />,
+        {
+          state: initialRootState,
+        },
+      );
 
       const stackNavigator = walletRoot.findAll(
         (node: ReactTestInstance) =>
@@ -2174,6 +2190,27 @@ describe('MainNavigator', () => {
       },
     );
 
+    it('forwards the Social V1 source params to JS and native tabs', () => {
+      const state = stateForArm('searchFocused', 'treatment');
+      const container = renderWithProvider(<MainNavigator />, { state });
+      const jsSocial = renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'TabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0];
+
+      mockIsNativeTabBar = true;
+      const nativeSocial = renderHomeTabs(container, state).findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'NativeTabScreen' &&
+          node.props?.name === Routes.SOCIAL.TAB,
+      )[0];
+
+      const expectedParams = { source: SocialEvent.Source.NAV_TAB };
+      expect(jsSocial.props.initialParams).toEqual(expectedParams);
+      expect(nativeSocial.props.initialParams).toEqual(expectedParams);
+    });
+
     it.each(['searchFocused', 'tradeFocused'])(
       'mounts Social V0 as the Social tab in %s when TSA-1122 is control',
       (arm) => {
@@ -2187,17 +2224,31 @@ describe('MainNavigator', () => {
     );
   });
   describe('Inner navigator component rendering', () => {
+    const getScreenRegistration = (
+      root: ReactTestInstance,
+      screenName: string,
+      screenType = 'Screen',
+    ): ReactTestInstance => {
+      const screen = root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === screenType &&
+          node.props?.name === screenName,
+      )[0];
+      if (!screen) {
+        throw new Error(
+          `Screen "${screenName}" (type: ${screenType}) not found`,
+        );
+      }
+      return screen;
+    };
+
     const getScreenComponent = (
       root: ReactTestInstance,
       screenName: string,
       screenType = 'Screen',
     ): React.ComponentType<Record<string, unknown>> => {
-      const nodes = root.findAll(
-        (node: ReactTestInstance) =>
-          node.type?.toString?.() === screenType &&
-          node.props?.name === screenName,
-      );
-      const component = nodes[0]?.props?.component;
+      const component = getScreenRegistration(root, screenName, screenType)
+        .props?.component;
       if (!component) {
         throw new Error(
           `Screen "${screenName}" (type: ${screenType}) not found`,
@@ -2210,9 +2261,79 @@ describe('MainNavigator', () => {
       Component: React.ComponentType<Record<string, unknown>>,
       props: Record<string, unknown> = {},
     ) =>
-      renderWithProvider(<Component route={{ params: {} }} {...props} />, {
-        state: initialRootState,
+      renderWithProvider(
+        <Component
+          route={{ key: 'inner-route', name: 'InnerRoute', params: {} }}
+          navigation={{ replaceParams: jest.fn() }}
+          {...props}
+        />,
+        {
+          state: initialRootState,
+        },
+      );
+
+    const expectBrowserFlowRegistrations = (
+      root: ReactTestInstance,
+      rawHostParams: BrowserParams,
+    ) => {
+      const browserView = getScreenRegistration(root, Routes.BROWSER.VIEW);
+      const assetLoader = getScreenRegistration(
+        root,
+        Routes.BROWSER.ASSET_LOADER,
+      );
+      const assetView = getScreenRegistration(root, Routes.BROWSER.ASSET_VIEW);
+      const navigator = root.findAll(
+        (node: ReactTestInstance) =>
+          node.type?.toString?.() === 'Navigator' &&
+          node.props?.initialRouteName === Routes.BROWSER.VIEW,
+      )[0];
+
+      expect(navigator?.props.initialRouteName).toBe(Routes.BROWSER.VIEW);
+      expect(browserView.props.component).toBe(Browser);
+      expect(browserView.props.options).toEqual({ headerShown: false });
+      expect(assetLoader.props.component).toBe(AssetLoader);
+      expect(assetLoader.props.options).toEqual({
+        headerShown: false,
+        animation: 'none',
+        presentation: 'modal',
       });
+      expect(assetView.props.component).toBe(TokenDetails);
+      expect(assetView.props.initialParams).toBe(rawHostParams);
+      expect(assetView.props.options).toEqual({ presentation: 'modal' });
+    };
+
+    const renderBrowserHostAfterWriteBack = (
+      Component: React.ComponentType<Record<string, unknown>>,
+      routeName: string,
+      rawHostParams: BrowserParams,
+    ): ReactTestInstance => {
+      const replaceParams = jest.fn();
+      const route = {
+        key: `${routeName}-key`,
+        name: routeName,
+        params: rawHostParams,
+      };
+      const rendered = renderInner(Component, {
+        route,
+        navigation: { replaceParams },
+      });
+      const normalizedParams = replaceParams.mock.calls[0]?.[0];
+
+      expect(replaceParams).toHaveBeenCalledWith({
+        screen: Routes.BROWSER_VIEW,
+        params: rawHostParams,
+        pop: true,
+      });
+
+      rendered.rerender(
+        <Component
+          route={{ ...route, params: normalizedParams }}
+          navigation={{ replaceParams }}
+        />,
+      );
+
+      return rendered.root;
+    };
 
     describe('MainNavigator top-level screens', () => {
       it('renders HomeTabs with tab navigation structure', () => {
@@ -2353,6 +2474,44 @@ describe('MainNavigator', () => {
         );
         expect(rewardsFlowScreen?.props?.options).toBeUndefined();
       });
+
+      it('registers the root Browser compatibility host with empty initial params', () => {
+        const { root } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const browser = getScreenRegistration(root, Routes.BROWSER.HOME);
+        const rawHostParams: BrowserParams = {
+          newTabUrl: 'https://root-browser.example',
+          timestamp: 1,
+          fromMoney: true,
+        };
+        const browserHostRoot = renderBrowserHostAfterWriteBack(
+          browser.props.component,
+          Routes.BROWSER.HOME,
+          rawHostParams,
+        );
+        const HomeTabs = getScreenComponent(root, 'Home');
+        const { root: homeTabsRoot } = renderInner(HomeTabs);
+        const wallet = getScreenRegistration(
+          homeTabsRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
+        );
+        const tabBrowser = getScreenRegistration(
+          homeTabsRoot,
+          Routes.BROWSER.HOME,
+          'TabScreen',
+        );
+
+        expect(browser.props.component.name).toBe('BrowserRootHomeHost');
+        expect(browser.props.initialParams).toEqual({});
+        expect(Object.isFrozen(browser.props.initialParams)).toBe(true);
+        expect(browser.props.initialParams).toBe(wallet.props.initialParams);
+        expect(browser.props.initialParams).toBe(
+          tabBrowser.props.initialParams,
+        );
+        expectBrowserFlowRegistrations(browserHostRoot, rawHostParams);
+      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -2375,13 +2534,17 @@ describe('MainNavigator', () => {
         homeTabsRoot = root;
       });
 
-      it('renders WalletTabModalFlow', () => {
-        const Component = getScreenComponent(
+      it('registers the Wallet compatibility host with empty initial params', () => {
+        const wallet = getScreenRegistration(
           homeTabsRoot,
           Routes.WALLET.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+
+        expect(wallet.props.component.name).toBe('WalletTabHomeHost');
+        expect(wallet.props.initialParams).toEqual({});
+        expect(Object.isFrozen(wallet.props.initialParams)).toBe(true);
+        expect(renderInner(wallet.props.component).toJSON()).toBeTruthy();
       });
 
       it('points the TrendingView tab straight at the Explore feed', () => {
@@ -2390,13 +2553,75 @@ describe('MainNavigator', () => {
         ).toBe(ExploreFeed);
       });
 
-      it('renders BrowserFlow', () => {
-        const Component = getScreenComponent(
+      it('registers the tab Browser host outside its unmount wrapper', () => {
+        const browser = getScreenRegistration(
           homeTabsRoot,
           Routes.BROWSER.HOME,
           'TabScreen',
         );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
+        const rawHostParams: BrowserParams = {
+          newTabUrl: 'https://tab-browser.example',
+          timestamp: 2,
+          fromTrending: true,
+        };
+        const browserHostRoot = renderBrowserHostAfterWriteBack(
+          browser.props.component,
+          Routes.BROWSER.HOME,
+          rawHostParams,
+        );
+
+        expect(browser.props.component.name).toBe('BrowserTabHomeHost');
+        expect(browser.props.initialParams).toEqual({});
+        expect(Object.isFrozen(browser.props.initialParams)).toBe(true);
+        expectBrowserFlowRegistrations(browserHostRoot, rawHostParams);
+      });
+
+      it('reuses one frozen empty params object for JS home registrations', () => {
+        const wallet = getScreenRegistration(
+          homeTabsRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
+        );
+        const browser = getScreenRegistration(
+          homeTabsRoot,
+          Routes.BROWSER.HOME,
+          'TabScreen',
+        );
+
+        expect(wallet.props.initialParams).toBe(browser.props.initialParams);
+      });
+
+      it('keeps Trade on the raw WalletTabStackFlow', () => {
+        const trade = getScreenRegistration(
+          homeTabsRoot,
+          Routes.MODAL.TRADE_WALLET_ACTIONS,
+          'TabScreen',
+        );
+
+        expect(trade.props.component.name).toBe('WalletTabStackFlow');
+      });
+
+      it('registers the native Wallet compatibility host with empty initial params', () => {
+        const jsWallet = getScreenRegistration(
+          homeTabsRoot,
+          Routes.WALLET.HOME,
+          'TabScreen',
+        );
+        mockIsNativeTabBar = true;
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const HomeTabs = getScreenComponent(mainRoot, 'Home');
+        const { root: nativeHomeTabsRoot } = renderInner(HomeTabs);
+        const wallet = getScreenRegistration(
+          nativeHomeTabsRoot,
+          Routes.WALLET.HOME,
+          'NativeTabScreen',
+        );
+
+        expect(wallet.props.component).toBe(jsWallet.props.component);
+        expect(wallet.props.initialParams).toBe(jsWallet.props.initialParams);
+        expect(Object.isFrozen(wallet.props.initialParams)).toBe(true);
       });
 
       it('renders TransactionsHome', () => {
@@ -2861,11 +3086,11 @@ describe('MainNavigator', () => {
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        // WalletTabStackFlow now directly contains WalletView (Wallet component)
-        // instead of a nested modal navigator. Verify the screen exists without
-        // rendering Wallet itself (which has many unmocked dependencies).
-        const WalletView = getScreenComponent(walletStackRoot, 'WalletView');
-        expect(WalletView).toBeTruthy();
+        const walletView = getScreenRegistration(walletStackRoot, 'WalletView');
+        expect(walletView.props.component.name).toBe(
+          'RouteMessengerProviderWrapper',
+        );
+        expect(walletView.props.options).toEqual({ animation: 'none' });
       });
 
       it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
@@ -2881,21 +3106,34 @@ describe('MainNavigator', () => {
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
 
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
+        const revealPrivateCredential = getScreenComponent(
           walletStackRoot,
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(revealPrivateCredential).toBe(RevealPrivateCredential);
+      });
+
+      it('renders RevealPrivateCredential inside SettingsFlow', () => {
+        const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
+
+        expect(
+          getScreenComponent(
+            settingsRoot,
+            Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+          ),
+        ).toBe(RevealPrivateCredential);
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
-        // AssetStackFlow sits on the Asset route itself. There is no
-        // intermediate AssetStackFlow route to hop through.
+        // AssetStackFlow sits on the Asset route itself and owns the detail
+        // screens used from that route.
         const AssetStackFlow = getScreenComponent(mainRoot, 'Asset');
         const { root: assetStackRoot } = renderInner(AssetStackFlow);
 

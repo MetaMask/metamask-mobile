@@ -1889,8 +1889,13 @@ describe('useHomeDeepLinkEffects', () => {
     jest.useRealTimers();
   });
 
-  const arrangeMocks = () => {
+  const arrangeMocks = (
+    activeParentRouteName:
+      | typeof Routes.WALLET.HOME
+      | typeof Routes.MODAL.TRADE_WALLET_ACTIONS = Routes.WALLET.HOME,
+  ) => {
     const mockSetParams = jest.fn();
+    const mockReplaceParentParams = jest.fn();
     const mockOnPerpsTabsSelected = jest.fn();
     const mockOnNetworkSelectorSelected = jest.fn();
     const mockUseRoute = jest
@@ -1899,8 +1904,21 @@ describe('useHomeDeepLinkEffects', () => {
     return {
       mockNavigate,
       mockSetParams,
+      mockReplaceParentParams,
       navigation: {
         setParams: mockSetParams,
+        getParent: () => ({
+          getState: () => ({
+            index: 0,
+            routes: [
+              {
+                key: 'wallet-home-key',
+                name: activeParentRouteName,
+              },
+            ],
+          }),
+          replaceParams: mockReplaceParentParams,
+        }),
       } as unknown as NavigationProp<ParamListBase>,
       mockUseRoute,
       mockOnPerpsTabsSelected,
@@ -1986,6 +2004,63 @@ describe('useHomeDeepLinkEffects', () => {
 
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     assertCase(mocks);
+  });
+
+  it('clears consumed leaf params and replaces Wallet-home parent params', () => {
+    const mocks = arrangeMocks();
+    mocks.mockUseRoute.mockReturnValue({
+      key: 'route',
+      name: Routes.WALLET_VIEW,
+      params: {
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      },
+    });
+
+    renderHook(() =>
+      useHomeDeepLinkEffects({
+        isPerpsEnabled: true,
+        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
+        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
+        navigation: mocks.navigation,
+      }),
+    );
+
+    jest.mocked(useFocusEffect).mock.calls[0][0]();
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+    expect(mocks.mockSetParams).toHaveBeenCalledWith({
+      initialTab: null,
+      shouldSelectPerpsTab: null,
+    });
+    expect(mocks.mockReplaceParentParams).toHaveBeenCalledWith({
+      screen: Routes.WALLET_VIEW,
+      pop: true,
+    });
+  });
+
+  it('keeps Trade parent params untouched after Wallet leaf cleanup', () => {
+    const mocks = arrangeMocks(Routes.MODAL.TRADE_WALLET_ACTIONS);
+    mocks.mockUseRoute.mockReturnValue({
+      key: 'route',
+      name: Routes.WALLET_VIEW,
+      params: { initialTab: 'perps' },
+    });
+
+    renderHook(() =>
+      useHomeDeepLinkEffects({
+        isPerpsEnabled: true,
+        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
+        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
+        navigation: mocks.navigation,
+      }),
+    );
+
+    jest.mocked(useFocusEffect).mock.calls[0][0]();
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+    expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
+    expect(mocks.mockReplaceParentParams).not.toHaveBeenCalled();
   });
 });
 
