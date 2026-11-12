@@ -458,10 +458,11 @@ jobs:
             echo
             echo "The \`Get bot token\` step failed (see its log for the exact error). The job continues with \`GITHUB_TOKEN\`:"
             echo
-            echo "- pushing the heal branch and opening the draft PR can fail if the repository does not allow GitHub Actions to create pull requests;"
+            echo "- creating the heal branch and opening the draft PR can fail if the token cannot create a ref, commit, or pull request;"
+            echo "- the branch is created with the GitHub API, not \`git push\`, because \`GITHUB_TOKEN\` has no \`workflows\` scope and \`git push\` is rejected while GitHub checks workflow permissions;"
             echo "- a PR opened with \`GITHUB_TOKEN\` does not start CI workflows."
             echo
-            echo "A failed push or PR step below is shown as a failed step, not skipped."
+            echo "A failed API or PR step below is shown as a failed step, not skipped."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Checkout the branch that ran
@@ -512,32 +513,7 @@ jobs:
           GH_TOKEN: ${{ steps.get-token.outputs.token || github.token }}
           PR_TITLE: ${{ steps.heal.outputs.title }}
           BODY_FILE: ${{ steps.heal.outputs.body_file }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$HEAL_BRANCH"
-          git add -- 'tests/performance/**/*.scenario.cache.json' 'tests/performance/**/*.scenario.md'
-          if [ -n "$(git status --porcelain --untracked-files=no | grep -v '^[AM] ' || true)" ]; then
-            echo "::error::Unexpected changes outside scenario caches and Markdown; not opening a PR."
-            git status --porcelain
-            exit 1
-          fi
-          git commit -m "$PR_TITLE"
-          git push origin "$HEAL_BRANCH"
-          PR_URL="$(gh pr create --repo "$GITHUB_REPOSITORY" --draft \
-            --base "$BASE_REF" --head "$HEAL_BRANCH" \
-            --title "$PR_TITLE" --body-file "$BODY_FILE")"
-          echo "Opened $PR_URL"
-          {
-            echo "pr_url=$PR_URL"
-            echo "commit_sha=$(git rev-parse HEAD)"
-          } >> "$GITHUB_OUTPUT"
-          echo "Heal PR: $PR_URL" >> "$GITHUB_STEP_SUMMARY"
-          for label in team-qa perf-scenario-heal; do
-            gh pr edit "$PR_URL" --add-label "$label" \
-              || echo "::warning::Could not add label $label (does it exist?)"
-          done
+        run: bash .github/scripts/qa-automation/performance-tests/open-heal-pr.sh
 
       # Repairable only. Deduped scenarios keep the existing PR link; a new PR
       # is filled in here. Non-repairable failures are not posted.

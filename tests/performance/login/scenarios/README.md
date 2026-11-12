@@ -121,8 +121,16 @@ resolution changed: step number, text, `before`, `after`). Newly learned or
 pruned entries are not drift.
 
 If the bot token exchange fails (`Get bot token`), the job says so in a
-warning and in the job summary, and continues with `GITHUB_TOKEN`; a failed
-push or PR step then fails visibly.
+warning and in the job summary, and continues with `GITHUB_TOKEN`. That token
+has `contents: write` and `pull-requests: write`, and no `workflows` scope.
+`git push` of the heal branch is rejected while GitHub checks whether the
+push updates a workflow, even when the commit only changes scenario caches.
+The job does not push. It creates `perf-scenario-heal/<run id>` with
+`POST /git/refs` (a 422 "Reference already exists" is reused), then one
+commit through the Git Data API of the changed `*.scenario.cache.json` files
+and any reworded `*.scenario.md`, and opens the draft PR with `gh pr create`.
+A failed API or PR step fails the job visibly. A PR opened with
+`GITHUB_TOKEN` does not start CI workflows.
 
 A heal may only change `*.scenario.cache.json` and the wording of do/expect
 steps in `*.scenario.md`. Pins, `[if:]`, timers, thresholds, tags, Secret/App
