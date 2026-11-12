@@ -112,6 +112,7 @@ interface DeriveViewInput {
   error: string | null;
   promptHint: boolean;
   isExpiring: boolean;
+  reopenPending: boolean;
 }
 
 /**
@@ -133,9 +134,15 @@ export const deriveImmersveKycView = ({
   error,
   promptHint,
   isExpiring,
+  reopenPending,
 }: DeriveViewInput): ImmersveKycView => {
   if (webviewPhase === 'open') {
     return 'blank';
+  }
+  // A fresh KYC url is on its way. The result already on screen is the one
+  // from before the webview, so it must not flash as Finish verifying.
+  if (reopenPending) {
+    return 'loading';
   }
   // The minimum only applies to the close that just happened. A result that
   // arrives later replaces the spinner immediately, because the hold has ended.
@@ -403,6 +410,10 @@ const ImmersveKYCProcessing = () => {
   const [completionBaseline, setCompletionBaseline] =
     useState<ImmersveNextAction | null>(null);
   const [isRetryingPoll, setIsRetryingPoll] = useState(false);
+  // The webview asked for a new KYC url. Stay on the spinner until the poll
+  // that follows the close settles.
+  const [reopenPending, setReopenPending] = useState(false);
+  const reopenBaselineRef = useRef<ImmersveNextAction | null>(null);
   const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextActionRef = useRef<ImmersveNextAction | null>(null);
@@ -462,6 +473,7 @@ const ImmersveKYCProcessing = () => {
     error,
     promptHint,
     isExpiring,
+    reopenPending,
   });
 
   const failureDetail =
@@ -592,10 +604,14 @@ const ImmersveKYCProcessing = () => {
   // tears this screen down before focus returns, so useFocusEffect cannot be
   // the signal — the webview invokes this callback instead.
   const handleWebviewClosed = useCallback(
-    (completed: boolean) => {
+    (completed: boolean, options?: { reopen?: boolean }) => {
       clearDwellTimer();
       setWebviewPhase('closed');
       setHoldVerifying(true);
+      if (options?.reopen) {
+        reopenBaselineRef.current = nextActionRef.current;
+        setReopenPending(true);
+      }
       dwellTimerRef.current = setTimeout(() => {
         dwellTimerRef.current = null;
         setHoldVerifying(false);
@@ -628,6 +644,22 @@ const ImmersveKYCProcessing = () => {
     setImmersveKycOnClose(handleWebviewClosed);
     return () => clearImmersveKycOnClose();
   }, [handleWebviewClosed]);
+
+  // The action already on screen is not the answer: the close poll has not
+  // settled. A new kyc url is opened. Any other settled result is shown as
+  // usual, including a poll error.
+  useEffect(() => {
+    if (!reopenPending || isLoading) {
+      return;
+    }
+    if (nextAction === reopenBaselineRef.current && !error) {
+      return;
+    }
+    setReopenPending(false);
+    if (!error && nextAction?.type === 'kyc' && nextAction.url) {
+      openKycWebview(nextAction.url);
+    }
+  }, [reopenPending, isLoading, nextAction, error, openKycWebview]);
 
   useEffect(() => clearDwellTimer, [clearDwellTimer]);
   useEffect(() => clearCompletionTimer, [clearCompletionTimer]);
