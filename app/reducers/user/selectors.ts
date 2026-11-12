@@ -122,3 +122,9 @@ export const selectPendingAppInstall = (state: RootState) =>
  */
 export const selectBridgeLimitTabSeen = (state: RootState) =>
   state.user?.bridgeLimitTabSeen ?? false;
+
+/**
+ * Selects whether the Swaps Recurring tab has been opened
+ */
+export const selectBridgeRecurringTabSeen = (state: RootState) =>
+  state.user?.bridgeRecurringTabSeen ?? false;

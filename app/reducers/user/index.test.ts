@@ -10,6 +10,7 @@ import {
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetOnboardingStepperStepAction,
   type SetBridgeLimitTabSeenAction,
+  type SetBridgeRecurringTabSeenAction,
 } from '../../actions/user/types';
 import { ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import { DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL } from '../../components/UI/AssetOverview/Price/tokenOverviewChart.constants';
@@ -30,6 +31,10 @@ describe('user reducer', () => {
 
     it('has bridgeLimitTabSeen as false', () => {
       expect(userInitialState.bridgeLimitTabSeen).toBe(false);
+    });
+
+    it('has bridgeRecurringTabSeen as false', () => {
+      expect(userInitialState.bridgeRecurringTabSeen).toBe(false);
     });
 
     it('has onboardingStepperProgress as empty object', () => {
@@ -132,6 +137,18 @@ describe('user reducer', () => {
       const newState = userReducer(userInitialState, action);
 
       expect(newState.bridgeLimitTabSeen).toBe(true);
+    });
+  });
+
+  describe('SET_BRIDGE_RECURRING_TAB_SEEN', () => {
+    it('sets bridgeRecurringTabSeen to true', () => {
+      const action: SetBridgeRecurringTabSeenAction = {
+        type: UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN,
+      };
+
+      const newState = userReducer(userInitialState, action);
+
+      expect(newState.bridgeRecurringTabSeen).toBe(true);
     });
   });
 

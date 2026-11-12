@@ -40,6 +40,7 @@ export const userInitialState: UserState = {
   appInstallEventFired: false,
   pendingAppInstall: null,
   bridgeLimitTabSeen: false,
+  bridgeRecurringTabSeen: false,
 };
 
 /**
@@ -231,6 +232,11 @@ const userReducer = (
       return {
         ...state,
         bridgeLimitTabSeen: true,
+      };
+    case UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN:
+      return {
+        ...state,
+        bridgeRecurringTabSeen: true,
       };
     default:
       return state;

@@ -37,6 +37,7 @@ import {
   type SetPendingAppInstallAction,
   type ClearPendingAppInstallAction,
   type SetBridgeLimitTabSeenAction,
+  type SetBridgeRecurringTabSeenAction,
   UserActionType,
 } from './types';
 import { type PendingAppInstall } from '../../reducers/user/types';
@@ -352,5 +353,14 @@ export function clearPendingAppInstall(): ClearPendingAppInstallAction {
 export function setBridgeLimitTabSeen(): SetBridgeLimitTabSeenAction {
   return {
     type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
+  };
+}
+
+/**
+ * Action to mark the Swaps Recurring tab as opened, dismissing its discovery dot.
+ */
+export function setBridgeRecurringTabSeen(): SetBridgeRecurringTabSeenAction {
+  return {
+    type: UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN,
   };
 }
