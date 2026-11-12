@@ -117,12 +117,14 @@ jest.mock('@react-navigation/native', () => {
 
 let mockPagerProps:
   | {
+      initialPage?: number;
       onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
       onPageScrollStateChanged?: (e: {
         nativeEvent: { pageScrollState: 'idle' | 'dragging' | 'settling' };
       }) => void;
     }
   | undefined;
+let mockPagerInitialPage: number | undefined;
 
 const settlePager = (): void => {
   const onPageScrollStateChanged = mockPagerProps?.onPageScrollStateChanged;
@@ -150,11 +152,6 @@ const swipeToPage = (position: number): void => {
   });
 };
 
-// The tests below drive the real `TabView` through `react-native-pager-view`,
-// so only the native pager is mocked. `settlePager`/`swipeToPage` assume
-// react-native-tab-view 4.3.4's iOS/Android PagerViewAdapter forwards
-// `onPageSelected`/`onPageScrollStateChanged` straight to the pager; a
-// tab-view upgrade that rewires its pager would break these helpers.
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -162,12 +159,14 @@ jest.mock('react-native-pager-view', () => {
     (
       props: {
         children?: React.ReactNode;
+        initialPage?: number;
         onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
         testID?: string;
       },
       _ref: React.Ref<unknown>,
     ) => {
       mockPagerProps = props;
+      mockPagerInitialPage = props.initialPage;
       return <View testID={props.testID}>{props.children}</View>;
     },
   );
@@ -372,6 +371,7 @@ describe('TrendingView', () => {
     mockAddListener.mockReturnValue(jest.fn());
     mockRouteParams = {};
     mockPagerProps = undefined;
+    mockPagerInitialPage = undefined;
     for (const key of Object.keys(mockTabRenderCounts)) {
       delete mockTabRenderCounts[key];
     }
@@ -393,35 +393,18 @@ describe('TrendingView', () => {
       expect(queryByText(/^\d+$/)).toBeNull();
     });
 
-    it('displays tab count when one browser tab is open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 1 }),
-      );
+    it.each([1, 5, 99])(
+      'displays tab count when %i browser tabs are open',
+      (browserTabsCount) => {
+        mockUseSelector.mockImplementation(
+          createMockSelectorImplementation({ browserTabsCount }),
+        );
 
-      const { getByText } = renderTrendingView();
+        const { getByText } = renderTrendingView();
 
-      expect(getByText('1')).toBeOnTheScreen();
-    });
-
-    it('displays tab count when multiple browser tabs are open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 5 }),
-      );
-
-      const { getByText } = renderTrendingView();
-
-      expect(getByText('5')).toBeOnTheScreen();
-    });
-
-    it('displays tab count when many browser tabs are open', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({ browserTabsCount: 99 }),
-      );
-
-      const { getByText } = renderTrendingView();
-
-      expect(getByText('99')).toBeOnTheScreen();
-    });
+        expect(getByText(`${browserTabsCount}`)).toBeOnTheScreen();
+      },
+    );
 
     it('opens new tab with portfolio URL when no tabs exist', () => {
       mockUseSelector.mockImplementation(
@@ -595,9 +578,6 @@ describe('TrendingView', () => {
     });
 
     it('pairs EXPLORE_TAB_DEFINITIONS order with EXPLORE_TAB_INDEX', () => {
-      // Deeplinks and analytics resolve positions against EXPLORE_TAB_INDEX
-      // while the tab bar renders EXPLORE_TAB_DEFINITIONS in array order; a
-      // reorder of the definitions must not pass silently.
       expect(EXPLORE_TAB_DEFINITIONS.map(({ name }) => name)).toEqual([
         'Now',
         'Crypto',
@@ -667,15 +647,12 @@ describe('TrendingView', () => {
     it('activates a first-time tab press immediately and a revisited tap only after the pager settles', async () => {
       const { getByTestId } = renderTrendingView();
 
-      // First visit to Crypto: activation is immediate.
       fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
       await waitFor(() => {
         expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
       });
       expect(lastActiveTabSeenByCrypto()).toBe('Crypto');
 
-      // Tap back to Now (already visited): the pager is still animating, so
-      // the active-tab context must not change until the pager settles.
       fireEvent.press(getByTestId('explore-tabs-bar-tab-0'));
       expect(lastActiveTabSeenByCrypto()).toBe('Crypto');
 
@@ -713,6 +690,18 @@ describe('TrendingView', () => {
   });
 
   describe('deep-linked initial tab', () => {
+    it('seeds the pager on the requested tab instead of jumping after mount', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.PERPS,
+        source: 'deeplink',
+      };
+      renderTrendingView();
+
+      expect(mockPagerInitialPage).toBe(EXPLORE_TAB_INDEX.PERPS);
+      expect(mockTabRenderCounts.Perps).toBeGreaterThanOrEqual(1);
+      expect(mockTabRenderCounts.Now).toBeUndefined();
+    });
+
     it('switches to the requested tab and attributes the switch to the deeplink source', () => {
       mockRouteParams = {
         initialTab: EXPLORE_TAB_INDEX.SITES,
@@ -720,7 +709,6 @@ describe('TrendingView', () => {
       };
       const { getByTestId } = renderTrendingView();
 
-      // The "Sites" tab (index 5) mounts from the deeplink request.
       expect(mockTabRenderCounts.Sites).toBeGreaterThanOrEqual(1);
       expect(getByTestId('explore-tabs-bar-tab-5')).toBeOnTheScreen();
       expect(tabSwitchedEvents()).toEqual([
