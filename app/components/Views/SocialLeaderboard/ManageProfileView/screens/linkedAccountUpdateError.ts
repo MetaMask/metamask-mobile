@@ -22,7 +22,8 @@ const SECONDS_PER_DAY = 86_400;
 /**
  * The cooldown window in days. The message carries the full window; the
  * `RETRY_AFTER` detail carries the remaining time, which is the whole window
- * on the race path where the message has no day count.
+ * on the race path where the message has no day count. Both are read
+ * defensively: an error without either keeps the generic save copy.
  */
 const getCooldownDays = (error: unknown): string | undefined => {
   const serviceError = findProfileServiceError(error);

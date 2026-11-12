@@ -1,4 +1,7 @@
-import { findProfileServiceError } from '@metamask/profile-controller';
+import {
+  findProfileServiceError,
+  type ProfileApiErrorCodeId,
+} from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { extractHttpStatus } from '../../../../../util/social/socialServiceTelemetry';
 import {
@@ -15,6 +18,12 @@ import type { ManageProfileTextEditorField } from './manageProfileTextEditorFiel
  */
 const REJECTED_CONTENT_STATUS = 400;
 
+/** Whether the code names a refusal of some editor field. */
+const isFieldRejectionCode = (code: string): boolean =>
+  Object.values(PROFILE_FIELD_REJECTION_CODES).some((codes) =>
+    codes?.includes(code as ProfileApiErrorCodeId),
+  );
+
 /**
  * The copy for a field the server refused, or null when the error is not a
  * rejection this screen can explain.
@@ -24,27 +33,32 @@ export const getProfileSaveError = (
   field: ManageProfileTextEditorField,
 ): string | null => {
   const code = findProfileServiceError(error)?.code;
+  const fieldMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
 
   if (code) {
     const fieldCodes = PROFILE_FIELD_REJECTION_CODES[field];
-    const fieldMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
 
-    if (
-      fieldCodes?.some((fieldCode) => fieldCode === code) &&
-      fieldMessageKey
-    ) {
-      return strings(fieldMessageKey);
+    if (fieldCodes?.some((fieldCode) => fieldCode === code)) {
+      return fieldMessageKey ? strings(fieldMessageKey) : null;
     }
 
     const messageKey = PROFILE_SAVE_ERROR_MESSAGE_KEYS[code];
-    return messageKey ? strings(messageKey) : null;
+    if (messageKey) {
+      return strings(messageKey);
+    }
+
+    // The code refused a different field, so this editor is not the one to
+    // explain it.
+    if (isFieldRejectionCode(code)) {
+      return null;
+    }
   }
 
-  // Older responses omit the code; keep the existing status-based mapping so
-  // the copy does not regress before the API change ships.
-  const fallbackMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
-  return fallbackMessageKey &&
+  // A 400 still refuses the value in the field when its code has no copy of
+  // its own: older deployments send no code, and newer ones can answer a
+  // field rejection with a generic `VALIDATION_FAILED`.
+  return fieldMessageKey &&
     extractHttpStatus(error) === REJECTED_CONTENT_STATUS
-    ? strings(fallbackMessageKey)
+    ? strings(fieldMessageKey)
     : null;
 };

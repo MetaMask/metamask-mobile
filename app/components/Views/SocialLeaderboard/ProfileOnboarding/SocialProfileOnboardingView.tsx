@@ -52,6 +52,7 @@ import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import { getProfileSaveErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
+import { isReservedHandle } from '../ManageProfileView/screens/handleAvailabilityError';
 import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
@@ -457,13 +458,10 @@ const SocialProfileOnboardingView: React.FC = () => {
           };
         }
         if (!availability.available) {
-          const isReserved = availability.errors.some(
-            (error) => error.code === 'RESERVED',
-          );
           return {
             status: 'taken',
             claimError: strings(
-              isReserved
+              isReservedHandle(availability)
                 ? 'social_leaderboard.profile_onboarding.username_reserved'
                 : 'social_leaderboard.profile_onboarding.username_unavailable',
             ),
@@ -612,8 +610,9 @@ const SocialProfileOnboardingView: React.FC = () => {
           return;
         }
         setConnectXError(
-          (error instanceof XAuthError ? getXConnectError(error) : null) ??
-            strings('social_leaderboard.profile_onboarding.connect_x_error'),
+          error instanceof XAuthError
+            ? getXConnectError(error)
+            : strings('social_leaderboard.profile_onboarding.connect_x_error'),
         );
       } finally {
         if (connectAbortRef.current === controller) {

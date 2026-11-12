@@ -98,6 +98,35 @@ describe('getHandleAvailabilityError', () => {
     ).toBe(RESERVED);
   });
 
+  it('reports a reserved handle from the error-catalogue code', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            { code: 'USERNAME_RESERVED', message: 'This username is reserved' },
+          ],
+        }),
+      ),
+    ).toBe(RESERVED);
+  });
+
+  it('reports the character rule from the error-catalogue code', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            {
+              code: 'USERNAME_INVALID_FORMAT',
+              message: 'This username has invalid characters',
+            },
+          ],
+        }),
+      ),
+    ).toBe(INVALID);
+  });
+
   it('prefers the reserved copy when the server reports reserved and taken', () => {
     expect(
       getHandleAvailabilityError(

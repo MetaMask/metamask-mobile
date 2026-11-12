@@ -73,8 +73,17 @@ describe('getProfileSaveError', () => {
     );
   });
 
-  it('leaves other 400 codes on the generic save error', () => {
+  it('names the field for a 400 whose code has no copy of its own', () => {
     const error = profileApiError('VALIDATION_FAILED');
+
+    expect(getProfileSaveError(error, 'bio')).toBe(BIO_PROHIBITED);
+    expect(getProfileSaveError(error, 'displayName')).toBe(
+      DISPLAY_NAME_UNAVAILABLE,
+    );
+  });
+
+  it('leaves a non-400 code without copy on the generic save error', () => {
+    const error = profileApiError('VALIDATION_FAILED', 409);
 
     expect(getProfileSaveError(error, 'bio')).toBeNull();
     expect(getProfileSaveError(error, 'displayName')).toBeNull();

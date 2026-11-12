@@ -167,6 +167,7 @@ const CREATED_PROFILE: Profile = {
   avatarUrl: '',
   tradingPrivacy: 'public',
   connectedToX: false,
+  verified: false,
   createdAt: '',
   updatedAt: '',
 };
