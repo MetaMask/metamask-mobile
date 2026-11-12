@@ -187,6 +187,15 @@ export const PerpsWatchlistSelectorsIDs = {
   SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
   SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
   SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+  INLINE_ROWS: 'perps-watchlist-inline-rows',
+} as const;
+
+export const PerpsTabSelectorsIDs = {
+  FILTERS: 'perps-tab-filters',
+  LOADING: 'perps-tab-loading',
+  MARKET_LIST: 'perps-tab-market-list',
+  SORT_SHEET: 'perps-tab-sort-sheet',
+  TRENDING_LISTS_HEADER: 'section-header-perps-trending-lists',
 } as const;
 
 // ========================================
@@ -500,7 +509,6 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   MORE_SECTION: 'perps-market-details-more-section',
   SOCIAL_TABS: 'perps-market-details-social-tabs',
-  FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
   TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
@@ -1082,6 +1090,7 @@ export const PerpsOrderViewSelectorsIDs = {
   FOOTER: 'perps-order-view-footer',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
   AMOUNT_SLIDER: 'perps-order-view-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-order-view-amount-slider-layout',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
@@ -1111,6 +1120,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  AMOUNT_SLIDER: 'perps-trade-sheet-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-trade-sheet-amount-slider-layout',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
   LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',

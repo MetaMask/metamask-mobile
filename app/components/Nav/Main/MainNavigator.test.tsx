@@ -223,9 +223,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
-  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {
@@ -575,7 +575,7 @@ describe('MainNavigator', () => {
   });
 
   // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
-  // read once at module-load time (see MainNavigator.js) so that
+  // read once at module-load time (see MainNavigator.tsx) so that
   // `app/features/SampleFeature` is dead-code-eliminated out of builds that
   // don't set the flag. Re-requiring the module with the flag flipped would
   // pull in a second React instance and break context, so only the default
@@ -969,6 +969,7 @@ describe('MainNavigator', () => {
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
+        Routes.MONEY.ACCOUNT_STATUS,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(

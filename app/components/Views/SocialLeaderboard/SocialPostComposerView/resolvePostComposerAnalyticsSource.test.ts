@@ -1,4 +1,7 @@
-import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
+import {
+  resolvePostComposerAnalyticsSource,
+  resolvePostComposerEntry,
+} from './resolvePostComposerAnalyticsSource';
 
 const preview = {
   tokenSymbol: 'ETH',
@@ -63,5 +66,64 @@ describe('resolvePostComposerAnalyticsSource', () => {
         analyticsSource: 'not-a-source' as 'social_trending',
       }),
     ).toBeUndefined();
+  });
+
+  it('maps a blank token-details post to asset_details', () => {
+    expect(
+      resolvePostComposerAnalyticsSource({ composerEntry: 'token_details' }),
+    ).toBe('asset_details');
+  });
+});
+
+describe('resolvePostComposerEntry', () => {
+  it('reads a spot and a perps trade share', () => {
+    expect(
+      resolvePostComposerEntry({
+        tradeInFlight: {
+          transactionHash: '0x1',
+          chain: 'eip155:1',
+          tokenAddress: '0xeth',
+        },
+        preview,
+      }),
+    ).toBe('post_trade_spot');
+    expect(
+      resolvePostComposerEntry({
+        tradeInFlight: {
+          orderId: 'order-1',
+          chain: 'hyperliquid',
+          tokenAddress: 'BTC',
+        },
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'BTC',
+          tradeSymbol: 'BTC',
+          tokenAddress: 'BTC',
+          direction: 'long',
+        },
+      }),
+    ).toBe('post_trade_perps');
+  });
+
+  it('reads a held position from perps or token details', () => {
+    expect(
+      resolvePostComposerEntry({
+        position: { positionId: 'pos-1' } as never,
+        entryPoint: 'perps',
+      }),
+    ).toBe('perps_position');
+    expect(
+      resolvePostComposerEntry({
+        position: { positionId: 'pos-1' } as never,
+        entryPoint: 'token_details',
+      }),
+    ).toBe('token_details');
+  });
+
+  it('keeps a blank post entry and omits an unknown open', () => {
+    expect(resolvePostComposerEntry({ composerEntry: 'my_profile' })).toBe(
+      'my_profile',
+    );
+    expect(resolvePostComposerEntry(undefined)).toBeUndefined();
   });
 });

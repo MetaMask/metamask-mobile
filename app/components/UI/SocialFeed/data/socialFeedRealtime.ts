@@ -323,6 +323,80 @@ export const mergeRealtimeRows = ({
   return [...byId.values()].sort((a, b) => b.sortTimestamp - a.sortTimestamp);
 };
 
+export interface PinnedRealtimeRows {
+  rows: SocialFeedRow[];
+  /** The sort key each row was shown at, by feed item id. */
+  placed: Map<string, number>;
+}
+
+/**
+ * Keeps every row at the sort key it was first shown with, so the list only
+ * grows at the top: socket delivery across replicas can arrive out of order,
+ * and a refresh can return a moved post.
+ *
+ * A row the list did not show yet goes above the newest shown row, in its own
+ * order, when it is a socket row at or above the oldest shown row, or a server
+ * row newer than everything shown. Any other server row (the next page, which
+ * on the global feed can hold events newer than shown rows) goes below the
+ * oldest shown row, in its own order. Socket rows older than everything shown
+ * keep their own key. `placed` keeps only the ids of `rows`.
+ */
+export const pinRealtimeRows = (
+  rows: readonly SocialFeedRow[],
+  placed: ReadonlyMap<string, number>,
+  serverIds: Pick<ReadonlySet<string>, 'has'>,
+): PinnedRealtimeRows => {
+  let top = -Infinity;
+  let bottom = Infinity;
+  rows.forEach((row) => {
+    const key = placed.get(row.feedItemId);
+    if (key !== undefined) {
+      top = Math.max(top, key);
+      bottom = Math.min(bottom, key);
+    }
+  });
+
+  const keys = new Map<string, number>();
+  if (top !== -Infinity) {
+    const shownTop = top;
+    const unplaced = rows.filter((row) => !placed.has(row.feedItemId));
+    const goesOnTop = (row: SocialFeedRow): boolean =>
+      serverIds.has(row.feedItemId)
+        ? row.sortTimestamp > shownTop
+        : row.sortTimestamp >= bottom;
+
+    unplaced
+      .filter(goesOnTop)
+      .sort((a, b) => a.sortTimestamp - b.sortTimestamp)
+      .forEach((row) => {
+        top = Math.max(row.sortTimestamp, top + 1);
+        keys.set(row.feedItemId, top);
+      });
+    unplaced
+      .filter((row) => serverIds.has(row.feedItemId) && !goesOnTop(row))
+      .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
+      .forEach((row) => {
+        bottom = Math.min(row.sortTimestamp, bottom - 1);
+        keys.set(row.feedItemId, bottom);
+      });
+  }
+
+  const nextPlaced = new Map<string, number>();
+  const pinned = rows.map((row) => {
+    const key =
+      placed.get(row.feedItemId) ??
+      keys.get(row.feedItemId) ??
+      row.sortTimestamp;
+    nextPlaced.set(row.feedItemId, key);
+    return key === row.sortTimestamp ? row : { ...row, sortTimestamp: key };
+  });
+
+  return {
+    rows: pinned.sort((a, b) => b.sortTimestamp - a.sortTimestamp),
+    placed: nextPlaced,
+  };
+};
+
 /** Held-back new posts that pass `filterPost`. */
 export const countPendingNewPosts = (
   pending: ReadonlyMap<string, PendingRealtimeEvent>,
