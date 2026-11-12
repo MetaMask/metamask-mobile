@@ -201,8 +201,7 @@ const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
   const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const tabNavigation =
-    useNavigation<BottomTabNavigationProp<ParamListBase>>();
+  const tabNavigation = useNavigation<BottomTabNavigationProp<ParamListBase>>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
@@ -745,7 +744,14 @@ const SocialV1ViewContent: React.FC = () => {
           changeTab(LANDING_INDEX);
         }
       }),
-    [activeIndex, changeTab, isFocused, scrollPageToTop, scrollY, tabNavigation],
+    [
+      activeIndex,
+      changeTab,
+      isFocused,
+      scrollPageToTop,
+      scrollY,
+      tabNavigation,
+    ],
   );
 
   const renderTabBar = useCallback(
