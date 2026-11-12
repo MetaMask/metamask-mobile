@@ -63,6 +63,7 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
+import { PerpsReceiveToRow } from '../../rows/perps-receive-to-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
@@ -543,6 +544,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
+              <PerpsReceiveToRow />
               {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}

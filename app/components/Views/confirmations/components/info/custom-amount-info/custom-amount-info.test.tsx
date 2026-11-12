@@ -120,6 +120,9 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
+jest.mock('../../rows/perps-receive-to-row', () => ({
+  PerpsReceiveToRow: () => null,
+}));
 jest.mock('../../rows/predict-account-picker-row', () => ({
   PredictAccountPickerRow: () => null,
 }));

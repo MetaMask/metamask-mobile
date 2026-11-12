@@ -10404,6 +10404,7 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
+      "receive_to": "Receive to",
       "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
@@ -10448,6 +10449,12 @@
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
       "contract_deployment": "This site wants you to deploy a contract",
       "decrease_allowance": "This site wants decrease the spending cap for your tokens."
+    },
+    "perps_receive_to": {
+      "section": "Perps",
+      "hyperliquid": "Perps - Hyperliquid",
+      "lighter": "Perps - Lighter",
+      "available": "{{amount}} available"
     },
     "tooltip": {
       "perps_deposit": {
