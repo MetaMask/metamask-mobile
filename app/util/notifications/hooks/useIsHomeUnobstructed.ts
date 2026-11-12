@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
+  NavigationContainerRefContext,
   useNavigation,
   type NavigationState,
   type PartialState,
@@ -73,23 +74,36 @@ export const isHomeUnobstructedState = (
  * Tracks whether home is unobstructed, re-evaluated on every navigation state
  * change. Only re-renders when that boolean changes.
  */
+const readNavigationTree = (
+  container: { getRootState(): RouteState | undefined } | undefined,
+  navigation: { getState(): RouteState | undefined },
+): RouteState | undefined =>
+  // A screen's getState stops at its own navigator and can omit the nested
+  // routes this check walks. The container rehydrates every navigator.
+  container?.getRootState() ?? navigation.getState();
+
 export const useIsHomeUnobstructed = (): boolean => {
   const navigation = useNavigation();
+  const container = useContext(NavigationContainerRefContext);
   const [isUnobstructed, setIsUnobstructed] = useState(() =>
-    isHomeUnobstructedState(navigation.getState()),
+    isHomeUnobstructedState(readNavigationTree(container, navigation)),
   );
 
   useEffect(() => {
     const apply = () => {
-      setIsUnobstructed(isHomeUnobstructedState(navigation.getState()));
+      setIsUnobstructed(
+        isHomeUnobstructedState(readNavigationTree(container, navigation)),
+      );
     };
     // The state may have changed between the initial render and subscribing.
     apply();
-    // The event's state drops the innermost route, so the listener reads the
-    // hydrated navigator state instead. This hook runs on the HomeNav screen,
-    // so that state is the app stack the check reads.
+    // The container event's state drops the innermost route, so the listener
+    // reads getRootState instead of the payload.
+    if (container) {
+      return container.addListener('state', apply);
+    }
     return navigation.addListener('state', apply);
-  }, [navigation]);
+  }, [container, navigation]);
 
   return isUnobstructed;
 };

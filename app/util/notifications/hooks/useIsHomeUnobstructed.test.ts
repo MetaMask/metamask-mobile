@@ -1,5 +1,9 @@
+import React from 'react';
 import { act, renderHook } from '@testing-library/react-native';
-import type { NavigationState } from '@react-navigation/native';
+import {
+  NavigationContainerRefContext,
+  type NavigationState,
+} from '@react-navigation/native';
 import { NAVIGATION_CHILDREN_ROUTE } from '../../../components/Nav/NavigationProvider/constants';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -7,13 +11,33 @@ import {
   useIsHomeUnobstructed,
 } from './useIsHomeUnobstructed';
 
+const mockGetRootState = jest.fn();
 const mockGetState = jest.fn();
 const mockAddListener = jest.fn();
 const mockUnsubscribe = jest.fn();
+const mockContainer = {
+  getRootState: (...args: unknown[]) => mockGetRootState(...args),
+  addListener: (...args: unknown[]) => mockAddListener(...args),
+};
 const mockNavigation = {
   getState: (...args: unknown[]) => mockGetState(...args),
   addListener: (...args: unknown[]) => mockAddListener(...args),
 };
+
+const withContainer = ({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.JSX.Element =>
+  React.createElement(
+    NavigationContainerRefContext.Provider,
+    {
+      value: mockContainer as React.ContextType<
+        typeof NavigationContainerRefContext
+      >,
+    },
+    children,
+  );
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -179,24 +203,31 @@ describe('useIsHomeUnobstructed', () => {
     mockAddListener.mockReturnValue(mockUnsubscribe);
   });
 
-  it('reads the focused state on mount', () => {
-    mockGetState.mockReturnValue(homeRoot(walletTab()));
+  it('reads the rehydrated root on mount', () => {
+    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
 
-    const { result } = renderHook(() => useIsHomeUnobstructed());
+    const { result } = renderHook(() => useIsHomeUnobstructed(), {
+      wrapper: withContainer,
+    });
 
     expect(result.current).toBe(true);
+    expect(mockGetState).not.toHaveBeenCalled();
   });
 
-  it('follows getState when navigation changes', () => {
-    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab())));
-    const { result } = renderHook(() => useIsHomeUnobstructed());
+  it('follows getRootState when navigation changes', () => {
+    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
+    const { result } = renderHook(() => useIsHomeUnobstructed(), {
+      wrapper: withContainer,
+    });
     const listener = mockAddListener.mock.calls[0][1];
 
     const pushedWallet = stack([
       { name: Routes.WALLET_VIEW },
       { name: 'RevealPrivateCredential' },
     ]);
-    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab(pushedWallet))));
+    mockGetRootState.mockReturnValue(
+      wrapped(homeRoot(walletTab(pushedWallet))),
+    );
     act(() => {
       // The event payload is one route short of the hydrated root.
       listener({
@@ -205,27 +236,38 @@ describe('useIsHomeUnobstructed', () => {
     });
     expect(result.current).toBe(false);
 
-    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab())));
+    mockGetRootState.mockReturnValue(wrapped(homeRoot(walletTab())));
     act(() => {
       listener({ data: { state: stack([{ name: 'OnboardingSuccess' }]) } });
     });
     expect(result.current).toBe(true);
   });
 
-  it('subscribes to the navigator state event', () => {
-    mockGetState.mockReturnValue(homeRoot(walletTab()));
+  it('subscribes to the container state event', () => {
+    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
 
-    renderHook(() => useIsHomeUnobstructed());
+    renderHook(() => useIsHomeUnobstructed(), { wrapper: withContainer });
 
     expect(mockAddListener).toHaveBeenCalledWith('state', expect.any(Function));
   });
 
   it('unsubscribes on unmount', () => {
-    mockGetState.mockReturnValue(homeRoot(walletTab()));
-    const { unmount } = renderHook(() => useIsHomeUnobstructed());
+    mockGetRootState.mockReturnValue(homeRoot(walletTab()));
+    const { unmount } = renderHook(() => useIsHomeUnobstructed(), {
+      wrapper: withContainer,
+    });
 
     unmount();
 
     expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads the screen state when there is no container', () => {
+    mockGetState.mockReturnValue(homeRoot(walletTab()));
+
+    const { result } = renderHook(() => useIsHomeUnobstructed());
+
+    expect(result.current).toBe(true);
+    expect(mockGetRootState).not.toHaveBeenCalled();
   });
 });
