@@ -1,4 +1,9 @@
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  toCaipChainId,
+} from '@metamask/utils';
 import { createSelector, weakMapMemoize } from 'reselect';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import {
@@ -213,10 +218,12 @@ export const selectAllConfiguredEvmChainIds = createDeepEqualSelector(
  */
 export const selectAllConfiguredEvmCaipNetworks = createDeepEqualSelector(
   selectAllConfiguredEvmChainIds,
-  (chainIds): string[] =>
-    chainIds.map(
-      (chainId) =>
-        `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
+  (chainIds) =>
+    chainIds.map((chainId) =>
+      toCaipChainId(
+        KnownCaipNamespace.Eip155,
+        String(Number.parseInt(chainId, 16)),
+      ),
     ),
 );
 
