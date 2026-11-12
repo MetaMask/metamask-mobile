@@ -429,6 +429,50 @@ describe('AcceptInviteSheet', () => {
     });
   });
 
+  it('does not open the terms link while a registration is in flight', async () => {
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: true,
+      errorMessage: '',
+      refusalReason: null,
+      acceptBlockedUntil: null,
+      clearError: jest.fn(),
+    });
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.TERMS_LINK).props.onPress).toBeUndefined();
+    expect(getByTestId(TEST_IDS.TERMS_LINK).props.accessibilityState).toEqual({
+      disabled: true,
+    });
+
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('does not open the terms link after Accept has started', async () => {
+    let settleAccept: (result: { accepted: boolean }) => void = () => undefined;
+    mockAcceptReferralCode.mockReturnValue(
+      new Promise((resolve) => {
+        settleAccept = resolve;
+      }),
+    );
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      settleAccept({ accepted: true });
+      await Promise.resolve();
+    });
+  });
+
   it('hides the terms link when the terms URL is blank', async () => {
     referralMeEntries = {
       [PROFILE_ID]: {

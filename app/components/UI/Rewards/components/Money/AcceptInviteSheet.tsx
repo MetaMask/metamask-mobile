@@ -443,15 +443,24 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   const termsLink = copy.termsLink;
 
-  const handleOpenTerms = (url: string) => {
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: url,
-        timestamp: Date.now(),
-      },
-    });
-  };
+  const handleOpenTerms = useCallback(
+    (url: string) => {
+      // The in-app browser unmounts this sheet. Its cleanup then clears the
+      // pending code, so the registration is left unattended and the accepted
+      // splash never opens.
+      if (isAccepting || acceptInFlightRef.current) {
+        return;
+      }
+      navigation.navigate(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: url,
+          timestamp: Date.now(),
+        },
+      });
+    },
+    [isAccepting, navigation],
+  );
 
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
@@ -487,8 +496,15 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
                 <Text
                   variant={TextVariant.BodyMd}
                   color={TextColor.PrimaryDefault}
-                  accessibilityRole="link"
-                  onPress={() => handleOpenTerms(termsLink.url)}
+                  accessibilityRole={isAccepting ? undefined : 'link'}
+                  accessibilityState={
+                    isAccepting ? { disabled: true } : undefined
+                  }
+                  onPress={
+                    isAccepting
+                      ? undefined
+                      : () => handleOpenTerms(termsLink.url)
+                  }
                   testID={ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK}
                 >
                   {termsLink.label}
