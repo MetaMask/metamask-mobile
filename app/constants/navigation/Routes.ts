@@ -166,8 +166,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
-  REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
   REWARD_BENEFIT_FULL_VIEW: 'BenefitFullView',
   MODAL: {

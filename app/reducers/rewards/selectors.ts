@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '..';
 import { initialState } from '.';
-import { RewardsTab, OnboardingStep } from './types';
+import { RewardsTab } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import { selectRewardsSubscriptionId } from '../../selectors/rewards';
 import {
@@ -175,9 +175,6 @@ export const selectSeasonWaysToEarn = (
   state: RootState,
 ): RootState['rewards']['seasonWaysToEarn'] =>
   state.rewards.seasonWaysToEarn ?? initialState.seasonWaysToEarn;
-
-export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
-  state.rewards.onboardingActiveStep;
 
 export const selectGeoLocation = (state: RootState) =>
   state.rewards.geoLocation;
