@@ -2715,6 +2715,23 @@ describe('PredictEventScreen', () => {
 
       const view = renderPredictEventScreen(routeParams);
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+      const walkedCalls = () =>
+        messengerCall.mock.calls.filter(
+          ([action, , , cursor]) =>
+            action === 'PredictPortfolioService:getPositions' &&
+            cursor !== undefined,
+        );
+
+      // Each walk waits for the previous page to settle, so a fixed 50ms
+      // budget expired on CI before the bound was reached.
+      await waitFor(
+        () => {
+          expect(walkedCalls()).toHaveLength(4);
+        },
+        { timeout: 5000 },
+      );
+
       await act(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
       });
@@ -2722,12 +2739,7 @@ describe('PredictEventScreen', () => {
       // Five pages in total (the initial read plus four walks) even though
       // the fixture keeps serving cursors: the walk must not exceed its
       // bound, so the sixth page's cursor is never requested.
-      const walkedCalls = messengerCall.mock.calls.filter(
-        ([action, , , cursor]) =>
-          action === 'PredictPortfolioService:getPositions' &&
-          cursor !== undefined,
-      );
-      expect(walkedCalls).toHaveLength(4);
+      expect(walkedCalls()).toHaveLength(4);
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).not.toBeOnTheScreen();
