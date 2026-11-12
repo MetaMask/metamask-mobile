@@ -2,7 +2,7 @@ import Engine from '../../../app/core/Engine';
 import { assetIdsMatch } from '@metamask/bridge-controller';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { MOCK_RECURRING_ORDERS } from '../../../app/components/UI/Bridge/api/recurringOrders.mock';
-// Namespace import is required so the component-view API mock can replace the exported request.
+// CV exception: the API is hard-disabled, so HTTP mocks cannot exercise pending and failed cancellations.
 // eslint-disable-next-line import-x/no-namespace
 import * as recurringOrdersApi from '../../../app/components/UI/Bridge/api/recurringOrders';
 import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from '../../../app/components/UI/Bridge/api/recurringSwaps.mock';
