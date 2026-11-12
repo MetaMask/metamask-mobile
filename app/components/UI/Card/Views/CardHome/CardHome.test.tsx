@@ -808,7 +808,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.metamask_card.link_title': 'Link card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your balance and earn on purchases.',
+        'Spend your balance while it earns, anywhere Mastercard is accepted.',
     };
     const value = strings[key];
     if (value) {
@@ -827,13 +827,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       return value;
     }
     if (key === 'money.metamask_card.link_subtitle') {
-      return 'Spend your balance and earn on purchases.';
-    }
-    if (key === 'money.metamask_card.link_bullet_cashback') {
-      const percentage = (
-        params as { percentage?: number | string } | undefined
-      )?.percentage;
-      return `Get ${percentage}% mUSD back`;
+      return 'Spend your balance while it earns, anywhere Mastercard is accepted.';
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
@@ -7670,9 +7664,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      fireEvent.press(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      );
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
@@ -7688,11 +7680,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
 
     it('hides link-mode content when Money Account linking is unavailable', () => {
@@ -7701,7 +7691,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7719,7 +7709,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7731,7 +7721,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7747,7 +7737,7 @@ describe('CardHome Component', () => {
         render();
 
         expect(
-          screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+          screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
         ).not.toBeOnTheScreen();
       },
     );
@@ -7769,7 +7759,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7780,7 +7770,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
     });
 
@@ -7799,58 +7789,6 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('advertises 1% mUSD back for virtual cardholders', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
-
-      render();
-
-      expect(screen.getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      expect(screen.queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
-    });
-
-    it('advertises 3% mUSD back for metal cardholders', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-      setupLoadCardDataMock();
-      (useCardHomeData as jest.Mock).mockReturnValue({
-        data: {
-          primaryFundingAsset: mockPrimaryFundingAsset,
-          fundingAssets: [mockPrimaryFundingAsset],
-          availableFundingAssets: [mockPrimaryFundingAsset],
-          card: {
-            id: 'card-123',
-            status: 'ACTIVE',
-            lastFour: '1234',
-            type: CardType.METAL,
-          },
-          account: null,
-          alerts: [],
-          actions: [{ type: 'add_funds', enabled: true }],
-        },
-        primaryToken: mockPrimaryAssetWithBalance,
-        availableTokens: [mockPrimaryAssetWithBalance],
-        fundingTokens: [mockPrimaryAssetWithBalance],
-        balanceMap: createMockAssetBalancesMap({
-          balanceFiat: '$1,000.00',
-          asset: { symbol: 'USDC', image: 'usdc-image-url' },
-          balanceFormatted: '1000.000000 USDC',
-          rawTokenBalance: 1000,
-          rawFiatNumber: 1000,
-        }),
-        isLoading: false,
-        isError: false,
-        refetch: mockRefetchAllData,
-      });
-      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
-
-      render();
-
-      expect(screen.getByText('Get 3% mUSD back')).toBeOnTheScreen();
-      expect(screen.queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
-    });
-
     it('renders the no-APY subtitle and omits the APY bullet when apyPercent is undefined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
@@ -7862,6 +7800,7 @@ describe('CardHome Component', () => {
         screen.getByText(strings('money.metamask_card.link_subtitle_no_apy')),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/Earn up to .* APY/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
 
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
@@ -7877,6 +7816,7 @@ describe('CardHome Component', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
   });
 

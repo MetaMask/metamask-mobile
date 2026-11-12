@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import {
+  annotateTraceByRequest,
   endTrace,
   trace,
   TraceName,
@@ -8,11 +9,33 @@ import {
 } from '../../../../util/trace';
 import { swapQuoteFetchTrace } from './swapQuoteFetchTrace';
 import type { BridgeToken } from '../types';
+import ReduxService from '../../../../core/redux';
 
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
+  annotateTraceByRequest: jest.fn(),
+}));
+
+let mockBridgeState: { quotes: unknown[]; quotesLastFetched: number | null };
+let mockStoreListener: () => void;
+const mockUnsubscribe = jest.fn();
+jest.mock('../../../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    get store() {
+      return {
+        getState: () => ({
+          engine: { backgroundState: { BridgeController: mockBridgeState } },
+        }),
+        subscribe: (listener: () => void) => {
+          mockStoreListener = listener;
+          return mockUnsubscribe;
+        },
+      };
+    },
+  },
 }));
 
 jest.mock('uuid', () => ({
@@ -34,6 +57,7 @@ describe('swapQuoteFetchTrace', () => {
     swapQuoteFetchTrace.finish('cancelled');
     jest.clearAllMocks();
     mockUuid.mockReturnValue('quote-trace-id');
+    mockBridgeState = { quotes: [], quotesLastFetched: null };
   });
 
   it('starts a quote trace with request correlation and route data', () => {
@@ -119,4 +143,45 @@ describe('swapQuoteFetchTrace', () => {
       );
     },
   );
+
+  it('records request sent and first quote in state from Redux, ignoring stale quotes', () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
+    mockBridgeState = { quotes: [{}], quotesLastFetched: 500 };
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    const span = { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' };
+
+    mockStoreListener();
+    expect(annotateTraceByRequest).not.toHaveBeenCalled();
+    mockBridgeState = { quotes: [], quotesLastFetched: 1200 };
+    mockStoreListener();
+    mockStoreListener();
+    now.mockReturnValue(1900);
+    mockBridgeState = { quotes: [{}], quotesLastFetched: 1200 };
+    mockStoreListener();
+
+    expect(annotateTraceByRequest).toHaveBeenCalledTimes(2);
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(span, {
+      request_sent_ms: 200,
+    });
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(span, {
+      first_quote_in_state_ms: 900,
+    });
+    expect(mockUnsubscribe).toHaveBeenCalled();
+    now.mockRestore();
+  });
+
+  it('still traces when the Redux store is unavailable', () => {
+    jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => {
+      throw new Error('no store');
+    });
+
+    swapQuoteFetchTrace.start({ isRefresh: false });
+    swapQuoteFetchTrace.finish('success');
+
+    expect(mockTrace).toHaveBeenCalled();
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { result: 'success' } }),
+    );
+    jest.restoreAllMocks();
+  });
 });

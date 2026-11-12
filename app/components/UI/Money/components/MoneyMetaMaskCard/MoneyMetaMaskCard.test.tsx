@@ -82,9 +82,10 @@ describe('MoneyMetaMaskCard', () => {
     expect(
       screen.getByText(strings('money.metamask_card.subtitle')),
     ).toBeOnTheScreen();
+    expect(screen.queryByText(/% mUSD back/)).not.toBeOnTheScreen();
   });
 
-  it('renders virtual-card cashback when showMetalCard is false in link mode', () => {
+  it('does not advertise cashback in link mode', () => {
     render(
       <MoneyMetaMaskCard
         mode="link"
@@ -93,13 +94,10 @@ describe('MoneyMetaMaskCard', () => {
       />,
     );
 
+    expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     expect(
-      screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
-    ).toHaveTextContent(
-      strings('money.metamask_card.link_bullet_cashback', {
-        percentage: '1',
-      }),
-    );
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+    ).not.toBeOnTheScreen();
   });
 
   it('dispatches an upsell content press to onGetNowPress', () => {
@@ -149,13 +147,7 @@ describe('MoneyMetaMaskCard', () => {
     ).toHaveTextContent(
       strings('money.metamask_card.link_subtitle', { apy: 4 }),
     );
-    expect(
-      screen.getByText(
-        strings('money.metamask_card.link_bullet_cashback', {
-          percentage: '3',
-        }),
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     expect(
       screen.getByText(
         strings('money.metamask_card.link_bullet_apy', { apy: 4 }),
@@ -255,7 +247,7 @@ describe('MoneyMetaMaskCard', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders manage balance and cashback', () => {
+  it('renders the manage balance without a cashback rate', () => {
     render(
       <MoneyMetaMaskCard
         mode="manage"
@@ -268,11 +260,7 @@ describe('MoneyMetaMaskCard', () => {
     expect(
       screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
     ).toHaveTextContent('$2,342.86');
-    expect(
-      screen.getByText(
-        strings('money.metamask_card.cashback', { percentage: '3' }),
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
   });
 
   it('masks the manage balance in privacy mode', () => {
@@ -290,7 +278,7 @@ describe('MoneyMetaMaskCard', () => {
     ).toHaveTextContent('•'.repeat(9));
   });
 
-  it('renders virtual-card cashback when showMetalCard is false in manage mode', () => {
+  it('does not advertise cashback in manage mode for a virtual card', () => {
     render(
       <MoneyMetaMaskCard
         mode="manage"
@@ -300,10 +288,9 @@ describe('MoneyMetaMaskCard', () => {
     );
 
     expect(
-      screen.getByText(
-        strings('money.metamask_card.cashback', { percentage: '1' }),
-      ),
+      screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_CONTAINER),
     ).toBeOnTheScreen();
+    expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
   });
 
   it('renders the stale manage balance with alternative text color', () => {

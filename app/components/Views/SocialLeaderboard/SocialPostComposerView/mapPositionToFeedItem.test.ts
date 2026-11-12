@@ -100,8 +100,10 @@ const openPerp: Position = {
   perpLeverage: 40,
   positionAmount: 0.01,
   positionAmountWithLeverage: 0.4,
-  costBasis: 43000,
-  currentValueUSD: 450,
+  // As the API sends a 40x short of 0.4 BTC entered at 45,105 and marked at
+  // 45,000: margin-sized cost basis, equity = margin + unrealized P&L.
+  costBasis: 451.05,
+  currentValueUSD: 493.05,
   pnlPercent: 9.4,
   pnlValueUsd: 42,
 };
@@ -446,7 +448,7 @@ describe('mapPositionToFeedItem', () => {
         key: 'perp:BTC',
         kind: 'perp',
         symbol: 'BTC',
-        positionAmount: 0.01,
+        positionAmount: 0.4,
         direction: -1,
         snapshotPrice: expect.closeTo(45_000),
       }),

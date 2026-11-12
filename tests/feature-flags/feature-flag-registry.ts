@@ -4421,7 +4421,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   earnMoneyVaultApyControl: {
@@ -4932,6 +4932,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.9.0',
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableHistoricalVaultShareValuations: {
+    name: 'moneyEnableHistoricalVaultShareValuations',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -8669,7 +8677,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: [],
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   immersveAppleWalletInAppProvisioningEnabled: {
     name: 'immersveAppleWalletInAppProvisioningEnabled',
