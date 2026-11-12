@@ -3,6 +3,8 @@ import { AccessibilityInfo, StatusBar } from 'react-native';
 import { act, render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveKYCProcessing, {
+  IMMERSVE_KYC_COMPLETION_HOLD_MS,
+  IMMERSVE_KYC_POLL_INTERVAL_MS,
   IMMERSVE_KYC_RESULT_MIN_DWELL_MS,
   POLLING_TIMEOUT_MS,
 } from './ImmersveKYCProcessing';
@@ -41,9 +43,9 @@ jest.mock('react-redux', () => ({
 
 // Capture the onClose callback the screen registers on the KYC modal so tests
 // can simulate the webview being closed.
-let mockCapturedOnClose: (() => void) | null = null;
+let mockCapturedOnClose: ((completed?: boolean) => void) | null = null;
 jest.mock('../ImmersveKYCModal/ImmersveKYCModal', () => ({
-  setImmersveKycOnClose: (cb: () => void) => {
+  setImmersveKycOnClose: (cb: (completed?: boolean) => void) => {
     mockCapturedOnClose = cb;
   },
   clearImmersveKycOnClose: () => {
@@ -265,6 +267,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Lg: 'Lg' },
+    IconSize: { Xl: 'Xl' },
+    Spinner: () => ReactActual.createElement(View),
     TextVariant: { BodyMd: 'BodyMd' },
   };
 });
@@ -296,9 +300,9 @@ const setNextAction = (
   });
 };
 
-const closeWebview = () => {
+const closeWebview = (completed = false) => {
   act(() => {
-    mockCapturedOnClose?.();
+    mockCapturedOnClose?.(completed);
   });
 };
 
@@ -396,12 +400,13 @@ describe('ImmersveKYCProcessing', () => {
 
   it('shows Verifying for a pending resume and does not route', () => {
     setNextAction({ type: 'pending' });
-    const { getByTestId } = render(<ImmersveKYCProcessing />);
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
 
     expect(getByTestId('onboarding-title').props.children).toBe(
       IN_PROGRESS_TITLE,
     );
     expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockExitCardFlow).not.toHaveBeenCalled();
     expect(mockRoute).not.toHaveBeenCalled();
@@ -762,16 +767,15 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockApproveFunding).not.toHaveBeenCalled();
   });
 
-  it('holds Verifying for 2s after the webview closes before a fast approval', () => {
+  it('holds the spinner for 2s after the webview closes before a fast approval', () => {
     setNextAction({ type: 'kyc', url: KYC_URL });
     const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
 
     setNextAction({ type: 'active' });
     closeWebview();
 
-    expect(getByTestId('onboarding-title').props.children).toBe(
-      IN_PROGRESS_TITLE,
-    );
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
     expect(queryByTestId(CompleteSelectors.CONFIRM_BUTTON)).toBeNull();
     expect(mockRoute).not.toHaveBeenCalled();
 
@@ -791,7 +795,7 @@ describe('ImmersveKYCProcessing', () => {
     );
   });
 
-  it('keeps Verifying for the dwell when the close poll already failed', () => {
+  it('keeps the spinner for the dwell when the close poll already failed', () => {
     setNextAction({ type: 'kyc', url: KYC_URL });
     const { getByTestId, queryByTestId, rerender } = render(
       <ImmersveKYCProcessing />,
@@ -801,9 +805,8 @@ describe('ImmersveKYCProcessing', () => {
     rerender(<ImmersveKYCProcessing />);
     closeWebview();
 
-    expect(getByTestId('onboarding-title').props.children).toBe(
-      IN_PROGRESS_TITLE,
-    );
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
     expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
 
     act(() => {
@@ -852,7 +855,69 @@ describe('ImmersveKYCProcessing', () => {
     );
   });
 
-  it('keeps Verifying instead of the reopen prompt while a re-poll is in flight', () => {
+  it('keeps the spinner and re-polls after Sumsub completes while KYC is still outstanding', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+    mockRefresh.mockClear();
+
+    closeWebview(true);
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    const spinner = getByTestId('immersve-kyc-processing-spinner');
+    expect(spinner.props.accessibilityRole).toBe('progressbar');
+    expect(spinner.props.accessibilityLabel).toBe(
+      'card.card_onboarding.immersve_kyc_processing.loading_label',
+    );
+    expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
+    // The close asks once. The hold asks again after that poll settles.
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+
+    setNextAction({ type: 'kyc', url: KYC_URL }, null, true);
+    rerender(<ImmersveKYCProcessing />);
+    mockRefresh.mockClear();
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_POLL_INTERVAL_MS);
+    });
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_COMPLETION_HOLD_MS);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-reopen-button')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+  });
+
+  it('shows the info-needed prompt after the dwell when Sumsub completed', () => {
+    setNextAction({
+      type: 'kyc',
+      url: KYC_URL,
+      ctaHint: 'KYC_INFORMATION_NEEDED',
+    });
+    const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
+
+    closeWebview(true);
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_processing.info_needed_title',
+    );
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+  });
+
+  it('keeps the spinner instead of the reopen prompt while a re-poll is in flight', () => {
     setNextAction({ type: 'kyc', url: KYC_URL });
     const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);
 
@@ -862,13 +927,12 @@ describe('ImmersveKYCProcessing', () => {
       jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
     });
 
-    expect(getByTestId('onboarding-title').props.children).toBe(
-      IN_PROGRESS_TITLE,
-    );
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
     expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
   });
 
-  it('keeps Verifying after the dwell while the close poll has no result yet', () => {
+  it('keeps the spinner after the dwell while the close poll has no result yet', () => {
     mockParams = {
       countryKey: 'GB',
       kycUrl: 'https://verify.immersve.com/xyz',
@@ -885,9 +949,8 @@ describe('ImmersveKYCProcessing', () => {
       jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
     });
 
-    expect(getByTestId('onboarding-title').props.children).toBe(
-      IN_PROGRESS_TITLE,
-    );
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
 
     setNextAction({ type: 'active' });
     rerender(<ImmersveKYCProcessing />);
@@ -921,7 +984,7 @@ describe('ImmersveKYCProcessing', () => {
     });
   });
 
-  it('shows Verifying while Try again is still loading after a poll error', async () => {
+  it('shows the spinner while Try again is still loading after a poll error', async () => {
     let resolveRefresh: (value: null) => void = () => undefined;
     mockRefresh.mockImplementation(
       () =>
@@ -938,9 +1001,8 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction(null, null, true);
     rerender(<ImmersveKYCProcessing />);
 
-    expect(getByTestId('onboarding-title').props.children).toBe(
-      IN_PROGRESS_TITLE,
-    );
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
     expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
 
     await act(async () => {

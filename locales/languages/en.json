@@ -11604,6 +11604,7 @@
         "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
+        "loading_label": "Loading",
         "in_progress_title": "Verifying your identity",
         "in_progress_description": "This usually takes a few seconds. Don't close the app.",
         "incomplete_title": "Finish verifying your identity",

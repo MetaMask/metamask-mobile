@@ -12,6 +12,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  IconSize,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -69,16 +71,26 @@ import KYCFailedContent from './KYCFailedContent';
 export const POLLING_TIMEOUT_MS = 30000;
 
 /**
- * After the webview closes, hold "Verifying your identity" at least this long
- * so a fast poll result doesn't flash past the animation. Cold entries (resume)
- * skip it: only a webview close starts the hold.
+ * After the webview closes, hold the spinner at least this long so a fast poll
+ * result doesn't flash past. Cold entries (resume) skip it: only a webview
+ * close starts the hold.
  */
 export const IMMERSVE_KYC_RESULT_MIN_DWELL_MS = 2000;
+
+/**
+ * After Sumsub redirects back as completed, keep the spinner while Immersve
+ * still reports KYC. A manual close does not start this hold.
+ */
+export const IMMERSVE_KYC_COMPLETION_HOLD_MS = 30000;
+
+/** How often this screen asks Immersve for a new result. */
+export const IMMERSVE_KYC_POLL_INTERVAL_MS = 2000;
 
 type WebviewPhase = 'none' | 'open' | 'closed';
 
 type ImmersveKycView =
   | 'blank'
+  | 'loading'
   | 'verifying'
   | 'verified'
   | 'failed'
@@ -90,6 +102,7 @@ type ImmersveKycView =
 interface DeriveViewInput {
   webviewPhase: WebviewPhase;
   holdVerifying: boolean;
+  holdForCompletion: boolean;
   nextAction: ImmersveNextAction | null;
   isLoading: boolean;
   isRetryingPoll: boolean;
@@ -101,10 +114,15 @@ interface DeriveViewInput {
 /**
  * What the screen shows. The webview covers this screen while it is open, so
  * that phase stays blank — a stale result must not flash as the webview closes.
+ *
+ * `loading` is a bare spinner: the minimum after close, a poll with no result,
+ * and the wait for Immersve to catch up after Sumsub completes. `verifying`
+ * keeps the illustration, and only when Immersve says the check is pending.
  */
 export const deriveImmersveKycView = ({
   webviewPhase,
   holdVerifying,
+  holdForCompletion,
   nextAction,
   isLoading,
   isRetryingPoll,
@@ -116,9 +134,9 @@ export const deriveImmersveKycView = ({
     return 'blank';
   }
   // The minimum only applies to the close that just happened. A result that
-  // arrives later replaces Verifying immediately, because the hold has ended.
+  // arrives later replaces the spinner immediately, because the hold has ended.
   if (webviewPhase === 'closed' && holdVerifying) {
-    return 'verifying';
+    return 'loading';
   }
   if (error) {
     return 'pollError';
@@ -127,11 +145,14 @@ export const deriveImmersveKycView = ({
     return 'expired';
   }
   if (!nextAction) {
-    // Try again, and the poll that follows a webview close, have no result
-    // yet. Keep Verifying for that gap. A first mount with no result, and a
-    // webview that has not opened yet, stay blank.
-    return isRetryingPoll || (webviewPhase === 'closed' && isLoading)
-      ? 'verifying'
+    // Try again, the poll that follows a webview close, and the wait after
+    // Sumsub completes have no result yet. Keep the spinner for that gap. A
+    // first mount with no result, and a webview that has not opened yet, stay
+    // blank.
+    return isRetryingPoll ||
+      holdForCompletion ||
+      (webviewPhase === 'closed' && isLoading)
+      ? 'loading'
       : 'blank';
   }
 
@@ -145,11 +166,17 @@ export const deriveImmersveKycView = ({
     case 'expected_spend':
       return 'verifying';
     case 'kyc':
+      // Sumsub finished, but Immersve still reports KYC. Keep the spinner
+      // until a real result arrives or the completion hold ends. "Additional
+      // information needed" is excluded by the caller: that is a real answer.
+      if (holdForCompletion) {
+        return 'loading';
+      }
       // A re-poll still in flight must not flash "Finish verifying" before the
       // completed result arrives. A cold entry with a backend hint shows the
       // prompt as soon as that poll settles.
       if (webviewPhase === 'closed' && isLoading) {
-        return 'verifying';
+        return 'loading';
       }
       if (webviewPhase === 'closed' || (promptHint && !isLoading)) {
         return 'reopen';
@@ -295,7 +322,8 @@ const KycIdentityLayout = ({
  * One screen for the whole post-webview wait: it opens the hosted KYC webview,
  * then polls spending-prerequisites and swaps the result in place.
  * - before and during the webview → blank
- * - pending / expected_spend, and the minimum after close → Verifying
+ * - no result yet, the minimum after close, and the wait after Sumsub completes → spinner
+ * - pending / expected_spend → Verifying, with the illustration
  * - funding / active → You're verified; Finish setup routes onward
  * - rejected and retryable → retry prompt; permanent → Not eligible, in place
  * - kyc still outstanding → Finish verifying (never auto-reopens)
@@ -349,8 +377,10 @@ const ImmersveKYCProcessing = () => {
   const hasNotifiedRejection = useRef(false);
   const [webviewPhase, setWebviewPhase] = useState<WebviewPhase>('none');
   const [holdVerifying, setHoldVerifying] = useState(false);
+  const [awaitingCompletedResult, setAwaitingCompletedResult] = useState(false);
   const [isRetryingPoll, setIsRetryingPoll] = useState(false);
   const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearDwellTimer = useCallback(() => {
     if (dwellTimerRef.current) {
@@ -359,18 +389,32 @@ const ImmersveKYCProcessing = () => {
     }
   }, []);
 
+  const clearCompletionTimer = useCallback(() => {
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+  }, []);
+
+  const clearCompletionHold = useCallback(() => {
+    clearCompletionTimer();
+    setAwaitingCompletedResult(false);
+  }, [clearCompletionTimer]);
+
   const { nextAction, error, isLoading, refresh } =
     useImmersveSpendingPrerequisites({
       fundingSourceId: fundingSourceId ?? undefined,
       kycRegion: countryKey,
       kycRedirectUrl: KYC_REDIRECT_URL,
-      pollIntervalMs: 2000,
+      pollIntervalMs: IMMERSVE_KYC_POLL_INTERVAL_MS,
     });
 
   const ctaHint = nextAction?.type === 'kyc' ? nextAction.ctaHint : undefined;
   const isInfoNeeded = ctaHint === 'KYC_INFORMATION_NEEDED';
   const promptHint = ctaHint === 'KYC_NOT_COMPLETED' || isInfoNeeded;
   const isExpiring = ctaHint === 'KYC_EXPIRING';
+  // "Additional information needed" is a real answer, so it is not held.
+  const holdForCompletion = awaitingCompletedResult && !isInfoNeeded;
 
   // The url opens the webview in an effect, one commit after this render.
   // Treat that entry as already covered so a rejection cannot flash, or
@@ -381,6 +425,7 @@ const ImmersveKYCProcessing = () => {
   const view = deriveImmersveKycView({
     webviewPhase: webviewCoversScreen ? 'open' : webviewPhase,
     holdVerifying,
+    holdForCompletion,
     nextAction,
     isLoading,
     isRetryingPoll,
@@ -432,10 +477,11 @@ const ImmersveKYCProcessing = () => {
 
   const openKycWebview = useCallback(
     (url: string) => {
-      // A reopen must not let the previous close's dwell reveal a result
-      // underneath the webview that is about to cover the screen.
+      // A reopen must not let the previous close's dwell or completion hold
+      // reveal a result underneath the webview that is about to cover the screen.
       clearDwellTimer();
       setHoldVerifying(false);
+      clearCompletionHold();
       setWebviewPhase('open');
       // A later rejection after this retry must be reported again, including
       // a permanent one that signs the user out.
@@ -445,7 +491,7 @@ const ImmersveKYCProcessing = () => {
         redirectUrl: KYC_REDIRECT_URL,
       });
     },
-    [navigation, clearDwellTimer],
+    [navigation, clearDwellTimer, clearCompletionHold],
   );
 
   const leaveToHome = useCallback(() => {
@@ -488,16 +534,30 @@ const ImmersveKYCProcessing = () => {
   // Re-poll when the webview closes back onto this screen. Exit to the wallet
   // tears this screen down before focus returns, so useFocusEffect cannot be
   // the signal — the webview invokes this callback instead.
-  const handleWebviewClosed = useCallback(() => {
-    clearDwellTimer();
-    setWebviewPhase('closed');
-    setHoldVerifying(true);
-    dwellTimerRef.current = setTimeout(() => {
-      dwellTimerRef.current = null;
-      setHoldVerifying(false);
-    }, IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
-    refresh().catch(() => undefined);
-  }, [clearDwellTimer, refresh]);
+  const handleWebviewClosed = useCallback(
+    (completed: boolean) => {
+      clearDwellTimer();
+      setWebviewPhase('closed');
+      setHoldVerifying(true);
+      dwellTimerRef.current = setTimeout(() => {
+        dwellTimerRef.current = null;
+        setHoldVerifying(false);
+      }, IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+      // A completed Sumsub redirect can return before Immersve has caught up.
+      // A manual close (the X, or back) shows Finish verifying as soon as the
+      // minimum dwell ends.
+      clearCompletionTimer();
+      setAwaitingCompletedResult(completed);
+      if (completed) {
+        completionTimerRef.current = setTimeout(() => {
+          completionTimerRef.current = null;
+          setAwaitingCompletedResult(false);
+        }, IMMERSVE_KYC_COMPLETION_HOLD_MS);
+      }
+      refresh().catch(() => undefined);
+    },
+    [clearDwellTimer, clearCompletionTimer, refresh],
+  );
 
   useEffect(() => {
     setImmersveKycOnClose(handleWebviewClosed);
@@ -505,6 +565,35 @@ const ImmersveKYCProcessing = () => {
   }, [handleWebviewClosed]);
 
   useEffect(() => clearDwellTimer, [clearDwellTimer]);
+  useEffect(() => clearCompletionTimer, [clearCompletionTimer]);
+
+  // A funding, rejection, or review result ends the wait. So does "additional
+  // information needed": that prompt is the answer, not a lagging KYC.
+  useEffect(() => {
+    if (!awaitingCompletedResult || !nextAction) {
+      return;
+    }
+    if (nextAction.type !== 'kyc' || isInfoNeeded) {
+      clearCompletionHold();
+    }
+  }, [awaitingCompletedResult, nextAction, isInfoNeeded, clearCompletionHold]);
+
+  // The prerequisites hook only auto-polls `pending`. After Sumsub completes,
+  // ask again once each poll settles on KYC until the hold ends.
+  useEffect(() => {
+    if (
+      !holdForCompletion ||
+      nextAction?.type !== 'kyc' ||
+      isLoading ||
+      error
+    ) {
+      return undefined;
+    }
+    const id = setTimeout(() => {
+      refresh().catch(() => undefined);
+    }, IMMERSVE_KYC_POLL_INTERVAL_MS);
+    return () => clearTimeout(id);
+  }, [holdForCompletion, nextAction, isLoading, error, refresh]);
 
   useEffect(() => {
     if (
@@ -529,7 +618,7 @@ const ImmersveKYCProcessing = () => {
   }, [view, nextAction, dispatch, notifyKycRejected]);
 
   const viewedScreen =
-    view === 'verifying'
+    view === 'verifying' || view === 'loading'
       ? CardScreens.KYC_PROCESSING
       : view === 'verified'
         ? CardScreens.COMPLETE
@@ -686,6 +775,20 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'blank') {
       return null;
+    }
+    if (view === 'loading') {
+      return (
+        <View
+          style={tw.style('flex-1 items-center justify-center')}
+          accessibilityRole="progressbar"
+          accessibilityLabel={strings(
+            'card.card_onboarding.immersve_kyc_processing.loading_label',
+          )}
+          testID="immersve-kyc-processing-spinner"
+        >
+          <Spinner spinnerIconProps={{ size: IconSize.Xl }} />
+        </View>
+      );
     }
     if (view === 'reopen') {
       return (
