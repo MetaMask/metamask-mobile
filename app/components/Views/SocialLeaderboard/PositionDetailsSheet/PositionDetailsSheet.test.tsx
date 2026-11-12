@@ -901,6 +901,43 @@ describe('PositionDetailsSheet', () => {
       ).toBeNull();
     });
 
+    it('places share to the left of follow at the 40px size', () => {
+      mockParams = { ...mockParams, shareSource: 'profile_position' };
+      render(<PositionDetailsSheet />);
+
+      const header = screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.HEADER,
+      );
+      const testIds: string[] = [];
+      const visit = (node: unknown) => {
+        if (!node || typeof node !== 'object') {
+          return;
+        }
+        if (Array.isArray(node)) {
+          node.forEach(visit);
+          return;
+        }
+        const hostNode = node as {
+          props?: { testID?: string };
+          children?: unknown;
+        };
+        if (hostNode.props?.testID) {
+          testIds.push(hostNode.props.testID);
+        }
+        visit(hostNode.children);
+      };
+      visit(header);
+
+      expect(
+        testIds.indexOf(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toBeLessThan(
+        testIds.indexOf(PositionDetailsSheetSelectorsIDs.FOLLOW_BUTTON),
+      );
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
+      ).toHaveStyle({ height: 40, width: 40 });
+    });
+
     it.each(['profile_position', 'deep_link'] as const)(
       'shares the position link when opened from %s',
       (shareSource) => {
