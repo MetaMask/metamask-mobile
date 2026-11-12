@@ -231,8 +231,6 @@ export interface UseQuickBuyControllerResult {
   isGasless: boolean;
   /** Fiat value of the quoted receive amount; undefined until a quote lands. */
   estimatedReceiveFiat: string | undefined;
-  /** Gasless only: "-$x for gas" label shown beside Est. receive. */
-  gasFeeDeductionLabel: string | undefined;
   discountBadge: ReturnType<typeof useFeeDisclaimer>['discountBadge'];
   baseFeePercentage: string | undefined;
   estimatedReceiveAmount: string | undefined;
@@ -1218,10 +1216,6 @@ export function useQuickBuyController(
   const estimatedReceiveFiat =
     activeQuote && estimatedReceiveAmount
       ? (quoteDestFiat ?? estimatedReceiveFiatValue)
-      : undefined;
-  const gasFeeDeductionLabel =
-    isGasless && formattedNetworkFee !== '-'
-      ? strings('bridge.gas_fee_deduction', { fee: formattedNetworkFee })
       : undefined;
   const { discountBadge, baseFeePercentage } = useFeeDisclaimer({
     activeQuote,
@@ -2253,7 +2247,6 @@ export function useQuickBuyController(
     metamaskFeePercent,
     isGasless,
     estimatedReceiveFiat,
-    gasFeeDeductionLabel,
     discountBadge,
     baseFeePercentage,
     estimatedReceiveAmount,
