@@ -779,16 +779,17 @@ describeForPlatforms('BridgeView', () => {
       const expectedDestToken = store.getState().bridge.destToken;
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await settlePager(getByTestId);
 
       await waitFor(() => {
-        expect(
-          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
-        ).toBeOnTheScreen();
+        expect(store.getState().bridge.destAmount).toBeUndefined();
       });
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).toBeOnTheScreen();
       expect(store.getState().bridge.sourceToken).toEqual(expectedSourceToken);
       expect(store.getState().bridge.destToken).toEqual(expectedDestToken);
       expect(store.getState().bridge.sourceAmount).toBe('1');
-      expect(store.getState().bridge.destAmount).toBeUndefined();
       expect(store.getState().bridge.selectedQuoteRequestId).toBeUndefined();
     });
 
