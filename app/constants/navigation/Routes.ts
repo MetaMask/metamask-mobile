@@ -343,6 +343,8 @@ const Routes = {
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
     WATCHLIST_FULL_VIEW: 'WatchlistFullView',
+    ADD_CUSTOM_TOKEN: 'AddCustomToken',
+    HIDDEN_TOKENS: 'HiddenTokens',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
