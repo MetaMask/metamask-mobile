@@ -320,8 +320,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     (event: LayoutChangeEvent) => {
       const measuredHeight = event.nativeEvent.layout.height;
       if (measuredHeight > 0) {
-        expandedDetailsHeight.value =
-          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING;
+        expandedDetailsHeight.set(
+          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING,
+        );
       }
     },
     [expandedDetailsHeight],
@@ -349,17 +350,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         ])
         .onStart(() => {
           'worklet';
-          gestureStartProgress.value = expandedDetailsProgress.value;
+          gestureStartProgress.set(expandedDetailsProgress.value);
         })
         .onUpdate((event) => {
           'worklet';
           const detailsHeight = Math.max(expandedDetailsHeight.value, 1);
           const nextProgress =
             gestureStartProgress.value - event.translationY / detailsHeight;
-          expandedDetailsProgress.value = Math.max(
-            0,
-            Math.min(1, nextProgress),
-          );
+          expandedDetailsProgress.set(Math.max(0, Math.min(1, nextProgress)));
         })
         .onEnd((event) => {
           'worklet';
@@ -368,19 +366,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             event.velocityY > 800;
           const targetProgress = shouldCollapse ? 0 : 1;
 
-          expandedDetailsProgress.value = withTiming(
-            targetProgress,
-            {
-              duration: 300,
-              easing: Easing.inOut(Easing.cubic),
-            },
-            (finished) => {
-              if (finished) {
-                scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
-              }
-            },
+          expandedDetailsProgress.set(
+            withTiming(
+              targetProgress,
+              {
+                duration: 300,
+                easing: Easing.inOut(Easing.cubic),
+              },
+              (finished) => {
+                if (finished) {
+                  scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
+                }
+              },
+            ),
           );
-        }),
+        })
+        .withTestId('token-details-sticky-footer-sheet-gesture'),
     [
       expandedDetailsHeight,
       expandedDetailsProgress,
