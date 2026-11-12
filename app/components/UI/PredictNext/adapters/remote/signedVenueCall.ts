@@ -36,22 +36,41 @@ export type SignRead = (
   proposed: ProposedRead,
 ) => Promise<DeviceAuthHeader | undefined>;
 
-/** The phone's profile did not allow the request. Nothing was signed. */
+/** The phone's profile refused this proposal, which was not signed. An
+ * earlier call in the same exchange may already have been dispatched. */
 export class VenueSigningRefusedError extends Error {
   readonly rule: TemplateRule;
+  /** Any send in this exchange, including a prior renewal attempt. */
+  readonly requestSent: boolean;
 
-  constructor(rule: TemplateRule) {
+  constructor(rule: TemplateRule, requestSent = false) {
     super(`Venue request was not signed: ${rule}.`);
     this.name = 'VenueSigningRefusedError';
     this.rule = rule;
+    this.requestSent = requestSent;
   }
 }
 
 /** Signing is not available: disabled, locked, signed out, or no A2T. */
 export class VenueSigningUnavailableError extends Error {
-  constructor() {
+  /** Any send in this exchange, including the bearer-only read. */
+  readonly requestSent: boolean;
+
+  constructor(requestSent = false) {
     super('Venue request signing is unavailable.');
     this.name = 'VenueSigningUnavailableError';
+    this.requestSent = requestSent;
+  }
+}
+
+/** Read work paused after the bounded signed calls; server scan progress
+ * remains authoritative and a later observation can continue it. */
+export class VenueReadBudgetExhaustedError extends Error {
+  readonly requestSent = true;
+
+  constructor() {
+    super('Venue read signature budget exhausted; observation is deferred.');
+    this.name = 'VenueReadBudgetExhaustedError';
   }
 }
 
@@ -100,6 +119,8 @@ export const sendSigned = async <Response>(
   send: (signed: SignedOperation) => Promise<Response>,
   readAttempt: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
 ): Promise<Response> => {
+  let requestSent = false;
+
   const sign = async (
     signInput: SignOperationInput | undefined,
   ): Promise<SignedOperation> => {
@@ -109,12 +130,12 @@ export const sendSigned = async <Response>(
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: venue signing refused', error.rule);
-        throw new VenueSigningRefusedError(error.rule);
+        throw new VenueSigningRefusedError(error.rule, requestSent);
       }
       throw error;
     }
     if (!signed) {
-      throw new VenueSigningUnavailableError();
+      throw new VenueSigningUnavailableError(requestSent);
     }
     return signed;
   };
@@ -124,7 +145,9 @@ export const sendSigned = async <Response>(
   const renewed = input && { ...input, confirmed: false };
 
   const attempt = async (retried: boolean): Promise<Response> => {
-    const response = await send(await sign(retried ? renewed : input));
+    const signed = await sign(retried ? renewed : input);
+    requestSent = true;
+    const response = await send(signed);
     if (retried) {
       return response;
     }
@@ -148,10 +171,9 @@ export const sendSigned = async <Response>(
  * envelope and the signed GET's coordinates. Reconciliation proposals may
  * bind a server challenge to persisted scan progress.
  *
- * The signed call can itself answer `sign_required` when the route now
- * expects a different GET (its inputs moved between the calls); that fresh
- * proposal is signed once more. A response that says the signature or the
- * A2T is stale is proposed and signed again once. Anything the proposal
+ * Each attempt permits two signed calls. One explicit signature/A2T
+ * failure may renew the whole attempt once. A further proposal defers the
+ * read without discarding server-owned scan progress. Anything the proposal
  * flow does not describe — an error status, an unexpected body — is
  * returned as-is so the caller treats it like an ordinary response.
  */
@@ -165,6 +187,8 @@ export const sendSignedRead = async <Response>(
   ) => Promise<Response>,
   readAttempt: (response: Response) => Promise<SignedAttempt> | SignedAttempt,
 ): Promise<Response> => {
+  let requestSent = false;
+
   const sign = async (proposed: ProposedRead): Promise<DeviceAuthHeader> => {
     let header: DeviceAuthHeader | undefined;
     try {
@@ -172,12 +196,12 @@ export const sendSignedRead = async <Response>(
     } catch (error) {
       if (error instanceof TemplateError) {
         Logger.log('PredictNext: venue read signing refused', error.rule);
-        throw new VenueSigningRefusedError(error.rule);
+        throw new VenueSigningRefusedError(error.rule, requestSent);
       }
       throw error;
     }
     if (!header) {
-      throw new VenueSigningUnavailableError();
+      throw new VenueSigningUnavailableError(requestSent);
     }
     return header;
   };
@@ -201,6 +225,7 @@ export const sendSignedRead = async <Response>(
 
   const attempt = async (retried: boolean): Promise<Response> => {
     // Phase one: bearer-only. No header, no signature.
+    requestSent = true;
     const first = await send();
     let proposed = await describedProposal(first);
     if (proposed === undefined) {
@@ -232,7 +257,7 @@ export const sendSignedRead = async <Response>(
       'PredictNext: the route kept proposing a different venue read',
       MAX_READ_SIGNATURES,
     );
-    throw new VenueSigningUnavailableError();
+    throw new VenueReadBudgetExhaustedError();
   };
 
   return attempt(false);

@@ -25,6 +25,7 @@ import type {
 import {
   sendSigned,
   sendSignedRead,
+  VenueReadBudgetExhaustedError,
   VenueSigningRefusedError,
   VenueSigningUnavailableError,
   type ProposedRead,
@@ -141,6 +142,8 @@ export class PredictHttpError extends Error {
   readonly status: number;
   /** Canonical error code from the response body, when the backend sends one. */
   readonly bodyCode?: string;
+  /** Dispatch evidence for local transport failures; absent for HTTP errors. */
+  readonly requestSent?: boolean;
 
   constructor(status: number, bodyCode?: string) {
     super(`Predict API request failed with status ${status}.`);
@@ -150,15 +153,50 @@ export class PredictHttpError extends Error {
   }
 }
 
-/**
- * The phone refused or could not sign the call, so it was never sent. The
- * synthetic 400 maps to the generic invalid-response error rather than to a
- * region block.
- */
+/** No fetch was dispatched by this invocation. This says nothing about
+ * an earlier invocation or a different route (in particular, a mutation
+ * whose result is now being observed). */
 export class PredictRequestNotSentError extends PredictHttpError {
-  constructor(bodyCode: string) {
+  readonly requestSent = false;
+  readonly cause?: VenueSigningRefusedError | VenueSigningUnavailableError;
+
+  constructor(
+    bodyCode: string,
+    cause?: VenueSigningRefusedError | VenueSigningUnavailableError,
+  ) {
     super(400, bodyCode);
     this.name = 'PredictRequestNotSentError';
+    this.cause = cause;
+  }
+}
+
+/** Signing failed after this exchange had already dispatched a request. */
+export class PredictSigningError extends PredictHttpError {
+  readonly requestSent = true;
+  readonly cause: VenueSigningRefusedError | VenueSigningUnavailableError;
+
+  constructor(cause: VenueSigningRefusedError | VenueSigningUnavailableError) {
+    super(
+      400,
+      cause instanceof VenueSigningRefusedError
+        ? 'venue_signing_refused'
+        : 'venue_signing_unavailable',
+    );
+    this.name = 'PredictSigningError';
+    this.cause = cause;
+  }
+}
+
+/** Bounded signed read work was sent, but needs a later observe/read call.
+ * The backend retains its challenge and cursor; never restart a mutation. */
+export class PredictReadBudgetExhaustedError extends PredictHttpError {
+  readonly requestSent = true;
+  readonly cause: VenueReadBudgetExhaustedError;
+
+  constructor(cause: VenueReadBudgetExhaustedError) {
+    super(503, 'venue_read_budget_exhausted');
+    this.name = 'PredictReadBudgetExhaustedError';
+    this.cause = cause;
   }
 }
 
@@ -487,13 +525,16 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         }),
       );
     } catch (error) {
-      if (error instanceof VenueSigningRefusedError) {
-        throw new PredictRequestNotSentError(
-          `venue_signing_refused_${error.rule}`,
-        );
+      if (error instanceof VenueReadBudgetExhaustedError) {
+        throw new PredictReadBudgetExhaustedError(error);
       }
-      if (error instanceof VenueSigningUnavailableError) {
-        throw new PredictRequestNotSentError('venue_signing_unavailable');
+      if (
+        error instanceof VenueSigningRefusedError ||
+        error instanceof VenueSigningUnavailableError
+      ) {
+        // A bearer GET already went out, even if the first proposal could
+        // not be signed. Renewal must not reset that dispatch evidence.
+        throw new PredictSigningError(error);
       }
       throw error;
     }
@@ -645,13 +686,19 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       );
       return await this.#parseBody(response);
     } catch (error) {
-      if (error instanceof VenueSigningRefusedError) {
+      if (
+        error instanceof VenueSigningRefusedError ||
+        error instanceof VenueSigningUnavailableError
+      ) {
+        if (error.requestSent) {
+          throw new PredictSigningError(error);
+        }
         throw new PredictRequestNotSentError(
-          `venue_signing_refused_${error.rule}`,
+          error instanceof VenueSigningRefusedError
+            ? 'venue_signing_refused'
+            : 'venue_signing_unavailable',
+          error,
         );
-      }
-      if (error instanceof VenueSigningUnavailableError) {
-        throw new PredictRequestNotSentError('venue_signing_unavailable');
       }
       throw error;
     }

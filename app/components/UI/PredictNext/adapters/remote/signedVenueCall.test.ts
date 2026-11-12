@@ -3,8 +3,8 @@ import { TemplateError } from '../../auth/signing/profileTemplates';
 import {
   sendSigned,
   sendSignedRead,
+  VenueReadBudgetExhaustedError,
   VenueSigningRefusedError,
-  VenueSigningUnavailableError,
 } from './signedVenueCall';
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -148,6 +148,7 @@ describe('sendSigned', () => {
     ).rejects.toMatchObject({
       name: 'VenueSigningRefusedError',
       rule: 'input',
+      requestSent: false,
     });
 
     expect(send).not.toHaveBeenCalled();
@@ -171,7 +172,10 @@ describe('sendSigned', () => {
         send,
         () => ({ status: 200 }),
       ),
-    ).rejects.toBeInstanceOf(VenueSigningUnavailableError);
+    ).rejects.toMatchObject({
+      name: 'VenueSigningUnavailableError',
+      requestSent: false,
+    });
 
     expect(send).not.toHaveBeenCalled();
   });
@@ -193,6 +197,42 @@ describe('sendSigned', () => {
     ).rejects.toBe(boom);
     expect(VenueSigningRefusedError).toBeDefined();
   });
+
+  it.each(['unavailable', 'refused'])(
+    'preserves the initial dispatch when renewal signing is %s',
+    async (failure) => {
+      const signOperation = jest.fn().mockResolvedValueOnce(SIGNED);
+      if (failure === 'refused') {
+        signOperation.mockRejectedValueOnce(new TemplateError('input'));
+      } else {
+        signOperation.mockResolvedValueOnce(undefined);
+      }
+      const send = jest.fn().mockResolvedValue({
+        status: 403,
+        code: 'venue_authorization_invalid',
+      });
+      const invalidateSigningSession = jest.fn();
+
+      await expect(
+        sendSigned(
+          { signOperation, invalidateSigningSession },
+          'order.place',
+          undefined,
+          send,
+          (reply) => reply,
+        ),
+      ).rejects.toMatchObject({
+        name:
+          failure === 'refused'
+            ? 'VenueSigningRefusedError'
+            : 'VenueSigningUnavailableError',
+        requestSent: true,
+      });
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(signOperation).toHaveBeenCalledTimes(2);
+      expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
+    },
+  );
 });
 
 describe('sendSignedRead', () => {
@@ -284,8 +324,9 @@ describe('sendSignedRead', () => {
         send,
         readAttempt,
       ),
-    ).rejects.toBeInstanceOf(VenueSigningUnavailableError);
+    ).rejects.toBeInstanceOf(VenueReadBudgetExhaustedError);
     expect(signRead).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenCalledTimes(3);
   });
 
   it('re-proposes and signs again once when the signature expired', async () => {
@@ -315,5 +356,78 @@ describe('sendSignedRead', () => {
 
     expect(invalidate).toHaveBeenCalledTimes(1);
     expect(returned).toBe(invalid);
+  });
+
+  it.each(['unavailable', 'refused'])(
+    'preserves the bearer dispatch when read signing is %s',
+    async (failure) => {
+      const signRead = jest.fn();
+      if (failure === 'refused') {
+        signRead.mockRejectedValue(new TemplateError('class'));
+      } else {
+        signRead.mockResolvedValue(undefined);
+      }
+      const send = jest.fn().mockResolvedValue(propose);
+
+      await expect(
+        sendSignedRead(
+          { signRead, invalidateSigningSession: jest.fn() },
+          send,
+          readAttempt,
+        ),
+      ).rejects.toMatchObject({ requestSent: true });
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(signRead).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('allows two signed sends in each attempt and only one renewal', async () => {
+    const moved = { ...PROPOSED, query: 'a=2' };
+    const invalid = {
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'venue_authorization_invalid' }),
+    } as unknown as Response;
+    const { send, signRead, invalidate, result: returned } = await run({
+      replies: [
+        propose,
+        proposing(moved),
+        invalid,
+        propose,
+        proposing(moved),
+        invalid,
+      ],
+    });
+
+    expect(returned).toBe(invalid);
+    expect(send).toHaveBeenCalledTimes(6);
+    expect(signRead).toHaveBeenCalledTimes(4);
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves dispatch evidence when the renewed read is refused', async () => {
+    const invalid = {
+      ok: false,
+      status: 403,
+      json: async () => ({ code: 'venue_authorization_invalid' }),
+    } as unknown as Response;
+    const signRead = jest
+      .fn()
+      .mockResolvedValueOnce(HEADER)
+      .mockRejectedValueOnce(new TemplateError('class'));
+    const invalidateSigningSession = jest.fn();
+    const replies = [propose, invalid, propose];
+    const send = jest.fn(async () => replies.shift() as Response);
+
+    await expect(
+      sendSignedRead({ signRead, invalidateSigningSession }, send, readAttempt),
+    ).rejects.toMatchObject({
+      name: 'VenueSigningRefusedError',
+      rule: 'class',
+      requestSent: true,
+    });
+    expect(send).toHaveBeenCalledTimes(3);
+    expect(signRead).toHaveBeenCalledTimes(2);
+    expect(invalidateSigningSession).toHaveBeenCalledTimes(1);
   });
 });
