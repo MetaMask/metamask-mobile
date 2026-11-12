@@ -636,7 +636,7 @@ describe('PriceAdvanced', () => {
       },
     ];
 
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore,
         {
@@ -671,7 +671,7 @@ describe('PriceAdvanced', () => {
 
     // After time range change: prevBar close = 103, current = 105
     // Expected: (105 - 103) / 103 * 100 = 1.94%
-    mockUseOHLCVChart.mockReturnValueOnce({
+    mockUseOHLCVChart.mockReturnValue({
       ohlcvData: [
         ...ohlcvPadBefore.slice(0, -1),
         { ...ohlcvPadBefore[2], close: 103 },

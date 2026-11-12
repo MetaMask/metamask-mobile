@@ -71,6 +71,7 @@
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "immersveFundingSettling": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
@@ -1038,6 +1039,7 @@
       "loadingSet": false,
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
+      "moneySplashSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,

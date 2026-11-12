@@ -298,6 +298,16 @@ export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
   },
 );
 
+export const MONEY_ENABLE_SPLASH_FLAG_KEY = 'moneyEnableSplash' as const;
+
+export const selectMoneySplashEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag = remoteFeatureFlags?.[MONEY_ENABLE_SPLASH_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
 export interface MoneyAccountVaultConfig {
   chainId: Hex;
   boringVault: Hex;

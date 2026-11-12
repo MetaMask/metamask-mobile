@@ -20,6 +20,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
+import {
+  getSocialEntryReportReasonTestId,
+  SocialEntryOptionsBottomSheetSelectorsIDs,
+} from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import {
@@ -42,6 +47,7 @@ import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTrade
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
+import { ImpactMoment } from '../../../../util/haptics';
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
@@ -69,6 +75,7 @@ const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockFireImpact = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
@@ -202,6 +209,7 @@ jest.mock('../hooks/useSpotCopyTradeQuickBuy', () => ({
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playSelection: () => mockPlaySelection(),
+  fireImpact: (...args: unknown[]) => mockFireImpact(...args),
   playImpact: jest.fn().mockResolvedValue(undefined),
   playErrorNotification: jest.fn().mockResolvedValue(undefined),
 }));
@@ -901,18 +909,19 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_SPINNER),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=current-user&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(
       await screen.findByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockFireImpact).toHaveBeenCalledTimes(2);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('does not render a reset profile button on the owner profile header', () => {
@@ -1024,6 +1033,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'current-user' }),
         isClosed: false,
         isSnapshotLive: false,
+        shareSource: 'trader_feed',
       });
     });
 
@@ -1051,6 +1061,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'foreign-profile-id' }),
         isClosed: true,
         isSnapshotLive: false,
+        shareSource: 'trader_feed',
       });
     });
 
@@ -1380,13 +1391,12 @@ describe('MyProfileView', () => {
 
     await waitFor(() => {
       expect(Share.open).toHaveBeenCalledWith({
-        message:
-          'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         url: 'https://link.metamask.io/social/profile?traderId=trader-1&share=1',
         failOnCancel: false,
       });
     });
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenCalledWith(ImpactMoment.SecondaryCTA);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
   it('hides the trader deeplink share button on the owner profile', () => {
@@ -1832,12 +1842,88 @@ describe('MyProfileView', () => {
     });
 
     expect(mockBlock).toHaveBeenCalledTimes(1);
+    expect(mockBlock).toHaveBeenCalledWith();
     expect(toggleFollow).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'trader_profile',
         traderAddress: '0xabc',
       }),
     );
+  });
+
+  it('reports a followed trader with the reason and unfollows them', async () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const toggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(true, toggleFollow),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(
+          SocialEntryReportReason.ScamsAndPhishing,
+        ),
+      ),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+        ),
+      );
+    });
+
+    expect(mockBlock).toHaveBeenCalledWith('scams_and_phishing');
+    expect(toggleFollow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0xabc',
+      }),
+    );
+  });
+
+  it('keeps an impersonation report off the block request', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(false, jest.fn()),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(mockBlock).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('hides owner actions and shows follow for another trader', () => {
@@ -2286,6 +2372,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2333,6 +2420,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      shareSource: 'profile_position',
     });
   });
 
@@ -2454,6 +2542,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
 
     fireEvent.press(
@@ -2542,6 +2631,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      shareSource: 'profile_position',
     });
   });
 
