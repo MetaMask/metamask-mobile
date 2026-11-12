@@ -1,9 +1,12 @@
+import type { RegistryNetworkConfig } from '@metamask/config-registry-controller';
+import type { StateWithPartialEngine } from './featureFlagController/types';
 import {
   getConfigRegistryState,
   getConfigRegistryNetworks,
   isConfigRegistryNetworksLoading,
   getIsConfigRegistryApiEnabled,
   getAdditionalNetworksList,
+  getRegistryNetworkImagesByChainId,
   CONFIG_REGISTRY_API_ENABLED_FLAG_KEY,
 } from './configRegistry';
 
@@ -358,6 +361,70 @@ describe('configRegistry selectors', () => {
       const result = getAdditionalNetworksList(state as never);
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
+    });
+  });
+  describe('getRegistryNetworkImagesByChainId', () => {
+    const buildState = (
+      networks: Record<string, RegistryNetworkConfig | never>,
+      enabled = true,
+    ): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          ConfigRegistryController: {
+            configs: { networks },
+            version: '1.0',
+            lastFetched: 123,
+            etag: null,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              configRegistryApiEnabled: enabled,
+            },
+            cacheTimestamp: 123,
+          },
+        },
+      },
+    });
+
+    it('returns an empty map when the feature flag is off', () => {
+      const state = buildState(
+        {
+          'eip155:99901': {
+            chainId: 'eip155:99901',
+            imageUrl: 'https://x.png',
+          } as never,
+        },
+        false,
+      );
+      expect(getRegistryNetworkImagesByChainId(state as never)).toEqual({});
+    });
+
+    it('keys registry images by hex and CAIP-2 chain ID and skips non-https URLs', () => {
+      const state = buildState({
+        'eip155:99901': {
+          chainId: 'eip155:99901',
+          imageUrl: 'https://example.com/elysium.svg',
+        } as never,
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          imageUrl: 'https://example.com/solana.svg',
+        } as never,
+        'eip155:9999': {
+          chainId: 'eip155:9999',
+          imageUrl: 'http://insecure.example.com/x.svg',
+        } as never,
+      });
+      const result = getRegistryNetworkImagesByChainId(state as never);
+      expect(result['0x1863d']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+      expect(result['eip155:99901']).toEqual({
+        uri: 'https://example.com/elysium.svg',
+      });
+      expect(result['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp']).toEqual({
+        uri: 'https://example.com/solana.svg',
+      });
+      expect(result['0x270f']).toBeUndefined();
     });
   });
 });
