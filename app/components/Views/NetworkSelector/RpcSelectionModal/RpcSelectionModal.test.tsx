@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 // Internal dependencies.
@@ -18,6 +18,9 @@ import {
 } from '../../../../selectors/networkController';
 import { NETWORK_CHAIN_ID } from '../../../../util/networks/customNetworks';
 import { Hex } from '@metamask/utils';
+import Routes from '../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
@@ -100,7 +103,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actualReactNavigation,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
       setOptions: jest.fn(),
       goBack: jest.fn(),
       reset: jest.fn(),
@@ -284,7 +287,20 @@ describe('RpcSelectionModal', () => {
     expect(getByText('Linea Mainnet')).toBeTruthy();
   });
 
-  it('should call onRpcSelect and closeRpcModal when an RPC is selected', () => {
+  it('returns to the wallet tab when an RPC is selected', async () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+
+    fireEvent.press(rpcUrlElement);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+  });
+
+  it('calls onRpcSelect and closes the modal when an RPC is selected', () => {
     const { getByText } = renderWithProvider(
       <RpcSelectionModal {...defaultProps} />,
     );

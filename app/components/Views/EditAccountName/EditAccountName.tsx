@@ -38,6 +38,7 @@ import {
 } from '../../../util/ENSUtils';
 import { useTheme } from '../../../util/theme';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import Routes from '../../../constants/navigation/Routes';
 
 // Internal dependencies
 import styleSheet from './EditAccountName.styles';
@@ -110,7 +111,7 @@ const EditAccountName = () => {
     InteractionManager.runAfterInteractions(async () => {
       if (accountName && accountName.length > 0 && selectedAccount?.address) {
         Engine.setAccountLabel(selectedAccount?.address, accountName);
-        navigate('WalletView');
+        navigate(Routes.WALLET.HOME);
 
         try {
           const analyticsProperties = async () => {

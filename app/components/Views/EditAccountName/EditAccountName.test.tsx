@@ -8,6 +8,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
 import { EditAccountNameSelectorIDs } from './EditAccountName.testIds';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockPreferencesSetAccountLabel = jest.fn();
 const mockEngineSetAccountLabel = jest.fn();
@@ -140,6 +141,6 @@ describe('EditAccountName', () => {
     );
     fireEvent.changeText(input, 'New Name');
     fireEvent.press(saveButton);
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 });
