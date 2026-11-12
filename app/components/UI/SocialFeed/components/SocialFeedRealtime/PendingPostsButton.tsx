@@ -42,7 +42,7 @@ const PENDING_POSTS_FADE_OUT = FadeOut.springify()
   .mass(0.4);
 
 const LABEL_TEXT_PROPS = {
-  color: TextColor.SuccessDefault,
+  color: TextColor.TextDefault,
   fontFamily: FontFamily.Default,
   fontWeight: FontWeight.Bold,
   variant: TextVariant.BodySm,
