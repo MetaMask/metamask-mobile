@@ -213,7 +213,7 @@ const Benefits = ({
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
         {isLoading ? (
           <Box
-            twClassName="flex flex-col gap-y-3"
+            twClassName="flex flex-col gap-y-4"
             testID={BenefitsTestIds.PRICING_LOADING}
             accessibilityLabel={strings('pro_subscription.pricing.loading')}
           >
@@ -290,9 +290,8 @@ const Benefits = ({
           </Box>
         ) : null}
 
-        {canSelectPlans ? (
-          <Box twClassName="flex flex-col gap-y-3">
-            {visiblePlans.map(({ plan, copy }) => (
+        {canSelectPlans
+          ? visiblePlans.map(({ plan, copy }) => (
               <PlanSelectorCard
                 key={plan.id}
                 plan={plan}
@@ -300,9 +299,8 @@ const Benefits = ({
                 isSelected={resolvedPlan === plan.id}
                 onPress={handlePlanPress}
               />
-            ))}
-          </Box>
-        ) : null}
+            ))
+          : null}
 
         {!isProduction() ? (
           <Checkbox

@@ -349,7 +349,7 @@ const EarnStrategySelectionModal = () => {
   }, []);
 
   const strategyContent = (
-    <Box gap={3} twClassName="mt-1">
+    <Box gap={4} twClassName="mt-1">
       {strategies.map((strategy) => {
         if (isMoneyAccountDepositExperience(strategy)) {
           return renderMoneyStrategyCard(strategy, {
