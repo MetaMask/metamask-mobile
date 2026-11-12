@@ -18,6 +18,7 @@ import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import {
   AnimatedAmountDisplay,
   getFontSizeForInputLength,
+  useAmountCursorStyle,
 } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -90,6 +91,7 @@ export const Amount = () => {
       INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const { styles } = useStyles(styleSheet, { inputFontSize });
+  const amountCursorStyle = useAmountCursorStyle(inputFontSize);
   const isIos = Device.isIos();
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
@@ -221,7 +223,7 @@ export const Amount = () => {
               color={textColor}
               cursor={{
                 animated: true,
-                style: styles.cursor,
+                style: [{ marginHorizontal: 0 }, amountCursorStyle],
                 testID: 'send-amount-cursor',
               }}
               fontFamily={FontFamily.Hero}
