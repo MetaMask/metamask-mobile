@@ -2,6 +2,7 @@ import {
   selectProfileAccountGroups,
   selectProfileWalletSections,
   selectMultichainWallets,
+  selectVisibleEntropyAccountGroupsByWallet,
   selectWallets,
 } from './wallets';
 import { RootState } from '../../reducers';
@@ -496,5 +497,76 @@ describe('selectProfileWalletSections', () => {
     ]);
 
     expect(selectProfileWalletSections(state)).toEqual([]);
+  });
+});
+
+describe('selectVisibleEntropyAccountGroupsByWallet', () => {
+  const visibleGroup = {
+    id: 'entropy:wallet1/0' as const,
+    type: AccountGroupType.MultichainAccount,
+    accounts: ['account1' as const],
+    metadata: {
+      name: 'Account 1',
+      pinned: false,
+      hidden: false,
+      lastSelected: 0,
+    },
+  };
+  const hiddenGroup = {
+    ...visibleGroup,
+    id: 'entropy:wallet1/1' as const,
+    metadata: { ...visibleGroup.metadata, name: 'Hidden', hidden: true },
+  };
+  const keyringGroup = {
+    ...visibleGroup,
+    id: 'keyring:imported/0' as const,
+    type: AccountGroupType.SingleAccount,
+    metadata: { ...visibleGroup.metadata, name: 'Imported' },
+  };
+
+  it('keeps visible entropy groups and drops every other wallet', () => {
+    const state = createMockState({
+      accountTree: {
+        wallets: {
+          'entropy:wallet1': {
+            id: 'entropy:wallet1',
+            type: AccountWalletType.Entropy,
+            status: 'ready',
+            metadata: { name: 'Wallet 1', entropy: { id: 'wallet1' } },
+            groups: {
+              [visibleGroup.id]: visibleGroup,
+              [hiddenGroup.id]: hiddenGroup,
+            },
+          },
+          'keyring:imported': {
+            id: 'keyring:imported',
+            type: AccountWalletType.Keyring,
+            status: 'ready',
+            metadata: {
+              name: 'Imported accounts',
+              keyring: { type: mockKeyringTypes.HD_KEY_TREE },
+            },
+            groups: { [keyringGroup.id]: keyringGroup },
+          },
+          'entropy:empty': {
+            id: 'entropy:empty',
+            type: AccountWalletType.Entropy,
+            status: 'ready',
+            metadata: { name: 'Empty', entropy: { id: 'empty' } },
+            groups: {
+              'entropy:empty/0': {
+                ...hiddenGroup,
+                id: 'entropy:empty/0',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const result = selectVisibleEntropyAccountGroupsByWallet(state);
+
+    expect(result.map((section) => section.title)).toEqual(['Wallet 1']);
+    expect(result[0].data.map((group) => group.id)).toEqual([visibleGroup.id]);
   });
 });

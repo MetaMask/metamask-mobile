@@ -5,6 +5,7 @@ import {
 } from '@metamask/account-api';
 
 import { selectAccountTreeControllerState } from './accountTreeController';
+import { selectVisibleAccountGroupsByWallet } from './manageAccounts';
 import { createDeepEqualSelector } from '../util';
 import { selectProfileEntropySourceIds } from '../identity';
 
@@ -33,6 +34,23 @@ export const selectMultichainWallets = createDeepEqualSelector(
 );
 
 /**
+ * Visible account groups for entropy wallets, in tree order.
+ *
+ * Hidden groups are already removed. Keyring, hardware, and snap wallets are
+ * left out, and an entropy wallet with no visible groups is omitted.
+ *
+ * Shared source for the social onboarding and profile-edit account lists.
+ */
+export const selectVisibleEntropyAccountGroupsByWallet =
+  createDeepEqualSelector([selectVisibleAccountGroupsByWallet], (sections) =>
+    sections.filter(
+      (section) =>
+        section.wallet.type === AccountWalletType.Entropy &&
+        section.data.length > 0,
+    ),
+  );
+
+/**
  * Profile SRPs (the primary SRP and those paired to it), each with its visible
  * account groups. Hidden groups are dropped, and a wallet with none left is
  * omitted. Tree order is preserved.
@@ -40,22 +58,19 @@ export const selectMultichainWallets = createDeepEqualSelector(
  * Exclusively used by the social profile feature.
  */
 export const selectProfileWalletSections = createDeepEqualSelector(
-  [selectMultichainWallets, selectProfileEntropySourceIds],
-  (wallets, profileEntropySourceIds): ProfileWalletSection[] => {
+  [selectVisibleEntropyAccountGroupsByWallet, selectProfileEntropySourceIds],
+  (sections, profileEntropySourceIds): ProfileWalletSection[] => {
     const profileWalletIds = new Set<string>(
       profileEntropySourceIds.map(toMultichainAccountWalletId),
     );
 
-    return wallets
-      .filter((wallet) => profileWalletIds.has(wallet.id))
-      .map((wallet) => ({
-        id: wallet.id,
-        name: wallet.metadata.name,
-        groups: Object.values(wallet.groups).filter(
-          (group) => !group.metadata.hidden,
-        ),
-      }))
-      .filter((section) => section.groups.length > 0);
+    return sections
+      .filter((section) => profileWalletIds.has(section.wallet.id))
+      .map((section) => ({
+        id: section.wallet.id,
+        name: section.title,
+        groups: section.data,
+      }));
   },
 );
 
