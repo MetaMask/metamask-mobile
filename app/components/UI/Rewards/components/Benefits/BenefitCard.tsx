@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -109,6 +110,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
             />
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {remainingTime}
@@ -120,6 +122,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
         {companyName ? (
           <Text
             variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextAlternative}
             twClassName="max-w-[40%]"
             numberOfLines={1}
