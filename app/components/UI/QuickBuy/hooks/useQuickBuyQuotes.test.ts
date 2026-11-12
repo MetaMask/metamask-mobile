@@ -768,6 +768,40 @@ describe('useQuickBuyQuotes', () => {
     );
   });
 
+  it('fires quote analytics without trader_address for sheets with no trader', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: { caip19: 'eip155:8453/erc20:0xDEST' },
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED,
+        expect.objectContaining({ quote_count: 1 }),
+      ),
+    );
+    const requested = mockTrack.mock.calls.find(
+      ([event]) =>
+        event === MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+    );
+    expect(requested?.[1]).toEqual(
+      expect.objectContaining({ caip19: 'eip155:8453/erc20:0xDEST' }),
+    );
+    expect(requested?.[1]).not.toHaveProperty('trader_address');
+  });
+
   it('defaults amountUsd to 0 when analyticsContext.amountUsd is absent', async () => {
     fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
 
