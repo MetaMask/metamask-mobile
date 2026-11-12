@@ -3,6 +3,7 @@ import { AppiumAssertions } from '../../framework';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SocialV1View from '../../page-objects/Social/SocialV1View';
 import SocialProfileOnboardingView from '../../page-objects/Social/SocialProfileOnboardingView';
+import SocialTermsSheet from '../../page-objects/Social/SocialTermsSheet';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
@@ -63,8 +64,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
       // Wallet creation above is setup. Only the Social profile onboarding is
       // timed. A wallet with no profile opens that intro from the Social tab,
-      // so there is no Social home or Post button yet. Connect X is skipped
-      // because it needs an external X login.
+      // so there is no Social home or Post button yet. Create manually opens
+      // the terms sheet; Agree stays disabled until the terms are scrolled.
+      // Connect X is skipped because it needs an external X login.
       const socialIntroTimer = new TimerHelper(
         'Time since the user taps the Social tab until the profile onboarding intro is visible',
         // Dev-build runs landed between 1.4s and 2.7s.
@@ -93,6 +95,10 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       });
 
       await SocialProfileOnboardingView.tapCreateManuallyButton();
+      await AppiumAssertions.expectElementToExist(SocialTermsSheet.sheet, {
+        description: 'Social terms sheet should be on screen',
+      });
+      await SocialTermsSheet.acceptTerms();
       await AppiumAssertions.expectElementToBeVisible(
         SocialProfileOnboardingView.usernameStep,
         { description: 'Username step should be visible' },
