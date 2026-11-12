@@ -49,6 +49,8 @@ import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
+import HiddenTokensView from '../../Views/AddAsset/Views/HiddenTokensView/HiddenTokensView';
+import AddCustomTokenView from '../../Views/AddAsset/Views/AddCustomTokenView/AddCustomTokenView';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
@@ -180,6 +182,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -314,6 +317,7 @@ interface ForwardedParamsHostProps {
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
+  returnToCaller?: boolean;
 }
 
 /**
@@ -1212,6 +1216,16 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
+        name={Routes.WALLET.ADD_CUSTOM_TOKEN}
+        component={AddCustomTokenView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.WALLET.HIDDEN_TOKENS}
+        component={HiddenTokensView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
         options={slideFromRightNativeOptions}
@@ -1409,6 +1423,11 @@ const MainNavigator = () => {
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={fadeNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SPLASH}
+            component={MoneySplashView}
+            options={{ ...fadeNativeOptions, gestureEnabled: false }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}

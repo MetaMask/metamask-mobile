@@ -73,7 +73,10 @@ import {
   buildSocialProfileOpenGraph,
   readTraderShareName,
 } from '../navigation/socialShareOpenGraph';
-import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialProfile,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -84,6 +87,7 @@ import TraderMuteChip, {
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import { useSpotCopyTradeQuickBuy } from '../hooks/useSpotCopyTradeQuickBuy';
 import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
@@ -97,10 +101,8 @@ import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
-import type {
-  SocialV1FeedAuthor,
-  SocialV1FeedPost,
-} from '../../../UI/SocialFeed/types';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
+import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
@@ -121,7 +123,7 @@ import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
 import {
   filterPositionsByAsset,
-  matchesProfileAssetFilter,
+  profileAssetFilterChains,
   type ProfileAssetFilter,
 } from './utils/splitPositionsByType';
 import {
@@ -250,6 +252,8 @@ const MyProfileView: React.FC = () => {
       postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
       isActive: isFocused && !isOwner,
     });
+  const { onPositionPress: handlePostPositionPress } =
+    useSocialFeedPostNavigation('my_profile');
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -291,10 +295,39 @@ const MyProfileView: React.FC = () => {
   const privacyLoadError = isPrivacyPending ? liveProfile.error : null;
   const isContentHidden = isBlocked || isPrivate || isPrivacyPending;
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
-  const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
-    state: [isLoading, Boolean(error), Boolean(displayProfile)],
-    isActive: isOwner,
-  });
+  const viewedTraderAddress = isOwner
+    ? undefined
+    : (displayProfile?.linkedAccountAddress ?? traderAddress);
+  const viewedTraderUsername = isOwner
+    ? undefined
+    : (displayProfile?.handle ?? traderName);
+  const viewedTraderAnalytics = useMemo(
+    () =>
+      isOwner
+        ? undefined
+        : {
+            ...(viewedTraderAddress
+              ? { trader_address: viewedTraderAddress }
+              : {}),
+            ...(viewedTraderUsername
+              ? { trader_username: viewedTraderUsername }
+              : {}),
+          },
+    [isOwner, viewedTraderAddress, viewedTraderUsername],
+  );
+  const trackInteraction = useSocialScreenAnalytics(
+    isOwner ? Screen.MY_PROFILE : Screen.TRADER_PROFILE,
+    {
+      state: isOwner
+        ? [isLoading, Boolean(error), Boolean(displayProfile)]
+        : [
+            liveProfile.isLoading,
+            Boolean(liveProfile.error),
+            Boolean(displayProfile),
+          ],
+      properties: viewedTraderAnalytics,
+    },
+  );
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
   const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const profileTabs = useMemo<TabItem[]>(
@@ -440,7 +473,7 @@ const MyProfileView: React.FC = () => {
   }, [addressOrId, isOwner, navigation]);
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer();
+    openComposer({ composerEntry: SocialEvent.ComposerEntry.MY_PROFILE });
   }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
@@ -448,24 +481,26 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const buildProfileOgImageRequest = useCallback(
-    (shareTraderId: string, username: string | undefined) => async () =>
-      buildSocialProfileOgImageRequest({
-        traderId: shareTraderId,
-        username: liveProfile.profile?.profile.name || username,
-        avatarUrl:
-          liveProfile.profile?.profile.imageUrl ||
-          displayProfile?.imageUrl ||
-          (displayProfile?.avatarPresetId
-            ? toFoxiconAvatarUrl(
-                displayProfile.avatarPresetId,
-                displayProfile.avatarBackgroundId ??
-                  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-              )
-            : undefined),
-        profile: liveProfile.profile,
-        closedPositions,
-        nowMs: Date.now(),
-      }),
+    (shareTraderId: string, username: string | undefined) =>
+      async ({ promoCode }: SocialShareCardContext) =>
+        buildSocialProfileOgImageRequest({
+          traderId: shareTraderId,
+          username: liveProfile.profile?.profile.name || username,
+          avatarUrl:
+            liveProfile.profile?.profile.imageUrl ||
+            displayProfile?.imageUrl ||
+            (displayProfile?.avatarPresetId
+              ? toFoxiconAvatarUrl(
+                  displayProfile.avatarPresetId,
+                  displayProfile.avatarBackgroundId ??
+                    DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+                )
+              : undefined),
+          profile: liveProfile.profile,
+          closedPositions,
+          nowMs: Date.now(),
+          promoCode,
+        }),
     [
       closedPositions,
       displayProfile?.avatarBackgroundId,
@@ -486,7 +521,6 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
-    playSelection().catch(() => undefined);
     runShare(() =>
       shareSocialProfile(
         traderId,
@@ -529,7 +563,6 @@ const MyProfileView: React.FC = () => {
     if (!profileId) {
       return;
     }
-    playSelection().catch(() => undefined);
     const displayName = myProfile?.displayName;
     const handle = myProfile?.handle;
     runShare(() =>
@@ -568,26 +601,44 @@ const MyProfileView: React.FC = () => {
     traderAddress,
   ]);
 
+  const blockAndUnfollow = useCallback(
+    async (reason?: string) => {
+      const wasFollowing = isFollowing;
+      const didBlock =
+        reason === undefined ? await block() : await block(reason);
+      if (didBlock && wasFollowing) {
+        await toggleFollow({
+          source: 'trader_profile',
+          traderAddress:
+            traderAddress || liveProfile.profile?.profile.address || '',
+          traderUsername: displayProfile?.displayName,
+          traderAvatarUri: displayProfile?.imageUrl,
+        });
+      }
+    },
+    [
+      block,
+      displayProfile,
+      isFollowing,
+      liveProfile.profile,
+      toggleFollow,
+      traderAddress,
+    ],
+  );
+
   const handleBlock = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const didBlock = await block();
-    if (didBlock && wasFollowing) {
-      await toggleFollow({
-        source: 'trader_profile',
-        traderAddress:
-          traderAddress || liveProfile.profile?.profile.address || '',
-        traderUsername: displayProfile?.displayName,
-        traderAvatarUri: displayProfile?.imageUrl,
-      });
-    }
-  }, [
-    block,
-    displayProfile,
-    isFollowing,
-    liveProfile.profile,
-    toggleFollow,
-    traderAddress,
-  ]);
+    await blockAndUnfollow();
+  }, [blockAndUnfollow]);
+
+  const handleReport = useCallback(
+    async (reason: SocialEntryReportReason) => {
+      if (reason === SocialEntryReportReason.Impersonation) {
+        return;
+      }
+      await blockAndUnfollow(reason);
+    },
+    [blockAndUnfollow],
+  );
 
   const handleUnblock = useCallback(async () => {
     await unblock();
@@ -650,10 +701,14 @@ const MyProfileView: React.FC = () => {
       if (!displayProfile) {
         return;
       }
+      const isClosed = activeTab === 'closed';
       trackInteraction(Interaction.TAP, {
         trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
+        asset: position.tokenSymbol,
+        position_status: isClosed
+          ? SocialEvent.PositionStatus.CLOSED
+          : SocialEvent.PositionStatus.OPEN,
       });
-      const isClosed = activeTab === 'closed';
       // Profile rows use the feed sheet. A row with no id stays on the
       // position screen, which can still render the snapshot.
       if (position.positionId) {
@@ -662,6 +717,8 @@ const MyProfileView: React.FC = () => {
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
+          analyticsSource: SocialEvent.Source.TRADER_PROFILE,
+          shareSource: SocialEvent.Source.PROFILE_POSITION,
         });
         return;
       }
@@ -718,13 +775,7 @@ const MyProfileView: React.FC = () => {
     [activeTab, loadMorePositions, positionsHasMore],
   );
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
-  const filterProfilePost = useCallback(
-    (post: SocialV1FeedPost) =>
-      post.item.author.id === displayProfile?.profileId &&
-      Boolean(post.commentId) &&
-      matchesProfileAssetFilter(post.position, assetFilter),
-    [assetFilter, displayProfile?.profileId],
-  );
+  const postsChains = profileAssetFilterChains(assetFilter);
   const postsEmptyMessage =
     assetFilter !== 'all'
       ? strings(filteredPostsEmptyKey(assetFilter))
@@ -755,8 +806,7 @@ const MyProfileView: React.FC = () => {
 
   return (
     <SocialFeedSurfaceProvider
-      location="my_profile"
-      analyticsEnabled={isOwner}
+      location={isOwner ? 'my_profile' : 'trader_profile'}
       showMockedFields
     >
       <SafeAreaView
@@ -1173,14 +1223,15 @@ const MyProfileView: React.FC = () => {
                   <Box paddingTop={4}>
                     <SocialFeed
                       scope="all"
+                      chains={postsChains}
                       profileId={displayProfile.profileId}
                       commentedOnly
                       location="my_profile"
                       analyticsEnabled={isOwner}
                       realtime
                       refreshRef={postsFeedRef}
-                      filterPost={filterProfilePost}
                       onCopyTrade={handleSpotCopyTrade}
+                      onPositionPress={handlePostPositionPress}
                       emptyState={
                         <ProfilePostsEmptyState message={postsEmptyMessage} />
                       }
@@ -1244,6 +1295,7 @@ const MyProfileView: React.FC = () => {
           <ProfileOptionsSheet
             traderName={displayProfile.handle}
             onBlock={handleBlock}
+            onReport={handleReport}
             onClose={handleCloseProfileOptions}
           />
         ) : null}

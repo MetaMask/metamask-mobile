@@ -398,15 +398,17 @@ const toFundingTokenWithVedaContext = (
   asset: Parameters<typeof toCardFundingToken>[0],
   vedaConfig: VedaTokenConfig | null,
 ): CardFundingToken => {
-  const isVedaEntry = isMoneyAccountEntry(
-    {
-      address: asset.address,
-      stagingTokenAddress: asset.stagingTokenAddress,
-      caipChainId: asset.chainId,
-      symbol: asset.symbol,
-    },
-    vedaConfig,
-  );
+  const isVedaEntry =
+    asset.fundingSourceType === 'moneyAccount' ||
+    isMoneyAccountEntry(
+      {
+        address: asset.address,
+        stagingTokenAddress: asset.stagingTokenAddress,
+        caipChainId: asset.chainId,
+        symbol: asset.symbol,
+      },
+      vedaConfig,
+    );
   return toCardFundingToken(
     asset,
     isVedaEntry,

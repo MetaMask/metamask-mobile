@@ -19,6 +19,11 @@ import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testId
 export interface PositionSheetFooterProps {
   isPerp: boolean;
   isClosed: boolean;
+  /**
+   * The viewer's own position. Copy trade would repeat it, so it offers the
+   * same trade actions as a closed position, whether open or closed.
+   */
+  isOwnPost: boolean;
   /** Spot only: the viewer holds the token, so Sell is offered. */
   canSell: boolean;
   onCopyTrade: () => void;
@@ -27,13 +32,15 @@ export interface PositionSheetFooterProps {
 }
 
 /**
- * Open positions offer Copy trade. Closed ones offer a fresh trade in the
- * same market: Long / Short for perps, Sell / Buy for spot (Sell only when the
- * viewer has something to sell).
+ * Another trader's open position offers Copy trade. Every other position, the
+ * viewer's own included, offers a fresh trade in the same market: Long / Short
+ * for perps, Sell / Buy for spot (Sell only when the viewer has something to
+ * sell).
  */
 const PositionSheetFooter = ({
   isPerp,
   isClosed,
+  isOwnPost,
   canSell,
   onCopyTrade,
   onPerpsOrder,
@@ -43,7 +50,7 @@ const PositionSheetFooter = ({
   const halfWidth = tw.style('flex-1');
 
   const renderActions = () => {
-    if (!isClosed) {
+    if (!isClosed && !isOwnPost) {
       return (
         <Button
           variant={ButtonVariant.Primary}
