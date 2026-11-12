@@ -12303,6 +12303,7 @@
     "close": "Close"
   },
   "rewards": {
+    "today": "Today",
     "rebate": {
       "banner": "You’re getting {{percent}}% back on fees",
       "tooltip_title": "Trading Rewards",
