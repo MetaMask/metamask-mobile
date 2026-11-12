@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
   type CaipAccountId,
@@ -7,6 +7,10 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
+import type {
+  V5TransactionByIdResponse,
+  V5TransactionRecord,
+} from '@metamask/core-backend';
 import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
 import { selectEvmAddress } from '../../../../../selectors/accountsController';
@@ -39,28 +43,28 @@ export function useTransactionQuery({
     );
   }, [chainId, evmAddress]);
 
-  const baseQueryOptions = useMemo(() => {
-    if (!accountId || !txHash) {
+  const isReady = Boolean(accountId && txHash);
+
+  const queryOptions = useMemo(() => {
+    if (!isReady) {
       return null;
     }
-    return {
-      ...apiClient.accounts.getV5TransactionByIdQueryOptions(
-        accountId,
-        txHash,
-        {
-          includeLogs: false,
-          includeMiscOperations: false,
-          includeTxMetadata: true,
-          lang: (I18n.locale ?? 'en').split('-')[0],
-        },
-      ),
-      select: (response: { data: unknown }) => response.data,
-    };
-  }, [accountId, txHash]);
+    return apiClient.accounts.getV5TransactionByIdQueryOptions(
+      accountId!,
+      txHash!,
+      {
+        includeLogs: false,
+        includeMiscOperations: false,
+        includeTxMetadata: true,
+        lang: (I18n.locale ?? 'en').split('-')[0],
+      },
+    );
+  }, [accountId, txHash, isReady]);
 
   return useQuery({
-    ...(baseQueryOptions ?? {}),
-    enabled: enabled && Boolean(baseQueryOptions),
+    ...queryOptions,
+    enabled: enabled && isReady,
     retry: false,
+    select: (response: V5TransactionByIdResponse) => response.data,
   });
 }
