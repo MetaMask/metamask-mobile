@@ -23,7 +23,6 @@ export const QuoteViewSelectorText = {
   FEE_DISCLAIMER: enContent.bridge.fee_disclaimer,
   FEE_DISCLAIMER_QUOTE_VISIBLE,
   MAX: enContent.bridge.max,
-  INCLUDED: enContent.bridge.included,
   RATE: enContent.bridge.rate,
   RWA_GEO_RESTRICTED_MESSAGE:
     enContent.bridge.quote_stream_complete_rwa_geo_restricted,
@@ -58,4 +57,5 @@ export const QuoteViewSelectorIDs = {
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   BACK_BUTTON: 'bridge-back-button',
   PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
+  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 };

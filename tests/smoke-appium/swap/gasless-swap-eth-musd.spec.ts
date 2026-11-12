@@ -59,10 +59,13 @@ appiumTest.describe(SmokeSwap('Gasless Swap - ETH to MUSD'), () => {
             description: 'Network fee label visible',
           });
           await QuoteView.dismissKeypad();
-          await Assertions.expectElementToBeVisible(QuoteView.includedLabel, {
-            timeout: 10000,
-            description: 'Gas fee included in quote',
-          });
+          await Assertions.expectElementToBeVisible(
+            QuoteView.gaslessNetworkFee,
+            {
+              timeout: 10000,
+              description: 'Gasless network fee visible in quote',
+            },
+          );
 
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap, {
             description: 'Confirm swap button visible',

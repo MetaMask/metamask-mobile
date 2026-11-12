@@ -286,6 +286,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
+                  testID={BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE}
                 >
                   <Text
                     variant={TextVariant.BodyMd}

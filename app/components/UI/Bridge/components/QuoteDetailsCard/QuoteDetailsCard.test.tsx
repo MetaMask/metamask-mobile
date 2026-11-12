@@ -474,6 +474,9 @@ describe('QuoteDetailsCard', () => {
     );
 
     // Verify the gasless network fee is displayed instead of "Included"
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE),
+    ).toBeOnTheScreen();
     expect(getByText('0.01')).toBeOnTheScreen();
     expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
     expect(getByText('Price impact')).toBeOnTheScreen();
@@ -509,9 +512,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { getByText } = renderScreen(
-      () => (
-        <QuoteDetailsCardTestScreen gaslessFeeAsset={feeAsset} />
-      ),
+      () => <QuoteDetailsCardTestScreen gaslessFeeAsset={feeAsset} />,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -553,6 +554,9 @@ describe('QuoteDetailsCard', () => {
     );
 
     // Verify the gasless network fee is displayed instead of "Included"
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE),
+    ).toBeOnTheScreen();
     expect(getByText('0.01')).toBeOnTheScreen();
     expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
     expect(getByText('Price impact')).toBeOnTheScreen();

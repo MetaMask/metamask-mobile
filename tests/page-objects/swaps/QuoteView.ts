@@ -107,8 +107,9 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
-  get includedLabel(): Promise<AppiumElement> {
-    return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
+  /** Network fee value in the quote card, rendered only for gasless quotes. */
+  get gaslessNetworkFee(): Promise<AppiumElement> {
+    return Matchers.getElementByID(QuoteViewSelectorIDs.GASLESS_NETWORK_FEE);
   }
 
   get rateLabel(): Promise<AppiumElement> {
