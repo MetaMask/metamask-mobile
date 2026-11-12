@@ -110,7 +110,6 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
   it.each([
     { tabParam: 'now', expectedIndex: EXPLORE_TAB_INDEX.NOW },
     { tabParam: 'perps', expectedIndex: EXPLORE_TAB_INDEX.PERPS },
-    // Legacy alias kept for backwards compatibility
     { tabParam: 'macro', expectedIndex: EXPLORE_TAB_INDEX.PERPS },
     { tabParam: 'rwas', expectedIndex: EXPLORE_TAB_INDEX.RWAS },
     { tabParam: 'crypto', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
