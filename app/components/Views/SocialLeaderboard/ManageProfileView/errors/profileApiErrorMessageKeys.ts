@@ -43,46 +43,61 @@ export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEY =
  * Copy for profile save/update failures that are not field-specific. Codes
  * left out keep the generic save error.
  */
-export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
-  [ProfileApiErrorCode.AuthTokenMissing]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenInvalid]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenExpired]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenSubjectMissing]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthEarlyAccessRequired]:
-    'social_leaderboard.manage_profile.access_denied',
-  [ProfileApiErrorCode.AuthProfileAccessDenied]:
-    'social_leaderboard.manage_profile.access_denied',
-  [ProfileApiErrorCode.RateLimitExceeded]:
-    'social_leaderboard.manage_profile.rate_limited',
-  [ProfileApiErrorCode.ProfileNotFound]:
-    'social_leaderboard.manage_profile.profile_not_found',
-  [ProfileApiErrorCode.ProfileAlreadyExists]:
-    'social_leaderboard.manage_profile.profile_already_exists',
-  [ProfileApiErrorCode.ProfileUsernameImmutable]:
-    'social_leaderboard.manage_profile.username_immutable',
-  [ProfileApiErrorCode.ProfileConflict]:
-    'social_leaderboard.manage_profile.profile_changed',
-  [ProfileApiErrorCode.ProfileUpdateConflict]:
-    'social_leaderboard.manage_profile.profile_changed',
-  [ProfileApiErrorCode.UsernameRequired]:
-    'social_leaderboard.manage_profile.username_invalid',
-  [ProfileApiErrorCode.UsernameInvalidCharacters]:
-    'social_leaderboard.manage_profile.username_invalid',
-  [ProfileApiErrorCode.UsernameInvalidFormat]:
-    'social_leaderboard.manage_profile.username_invalid',
-  [ProfileApiErrorCode.UsernameUnavailable]:
-    'social_leaderboard.manage_profile.username_unavailable',
-  [ProfileApiErrorCode.UsernameReserved]:
-    'social_leaderboard.manage_profile.username_reserved',
-  [ProfileApiErrorCode.UsernameTaken]:
-    'social_leaderboard.manage_profile.username_unavailable',
-  [ProfileApiErrorCode.UsernameValidationUnavailable]:
-    'social_leaderboard.manage_profile.save_error',
-};
+export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
+  {
+    [ProfileApiErrorCode.AuthTokenMissing]:
+      'social_leaderboard.manage_profile.session_expired',
+    [ProfileApiErrorCode.AuthTokenInvalid]:
+      'social_leaderboard.manage_profile.session_expired',
+    [ProfileApiErrorCode.AuthTokenExpired]:
+      'social_leaderboard.manage_profile.session_expired',
+    [ProfileApiErrorCode.AuthTokenSubjectMissing]:
+      'social_leaderboard.manage_profile.session_expired',
+    [ProfileApiErrorCode.AuthEarlyAccessRequired]:
+      'social_leaderboard.manage_profile.access_denied',
+    [ProfileApiErrorCode.AuthProfileAccessDenied]:
+      'social_leaderboard.manage_profile.access_denied',
+    [ProfileApiErrorCode.RateLimitExceeded]:
+      'social_leaderboard.manage_profile.rate_limited',
+    [ProfileApiErrorCode.ProfileNotFound]:
+      'social_leaderboard.manage_profile.profile_not_found',
+    [ProfileApiErrorCode.ProfileAlreadyExists]:
+      'social_leaderboard.manage_profile.profile_already_exists',
+    [ProfileApiErrorCode.ProfileUsernameImmutable]:
+      'social_leaderboard.manage_profile.username_immutable',
+    [ProfileApiErrorCode.ProfileConflict]:
+      'social_leaderboard.manage_profile.profile_changed',
+    [ProfileApiErrorCode.ProfileUpdateConflict]:
+      'social_leaderboard.manage_profile.profile_changed',
+    [ProfileApiErrorCode.Conflict]:
+      'social_leaderboard.manage_profile.profile_changed',
+    [ProfileApiErrorCode.UsernameRequired]:
+      'social_leaderboard.manage_profile.username_invalid',
+    [ProfileApiErrorCode.UsernameInvalidCharacters]:
+      'social_leaderboard.manage_profile.username_invalid',
+    [ProfileApiErrorCode.UsernameInvalidFormat]:
+      'social_leaderboard.manage_profile.username_invalid',
+    [ProfileApiErrorCode.UsernameUnavailable]:
+      'social_leaderboard.manage_profile.username_unavailable',
+    [ProfileApiErrorCode.UsernameReserved]:
+      'social_leaderboard.manage_profile.username_reserved',
+    [ProfileApiErrorCode.UsernameTaken]:
+      'social_leaderboard.manage_profile.username_unavailable',
+    [ProfileApiErrorCode.UsernameValidationUnavailable]:
+      'social_leaderboard.manage_profile.handle_check_unavailable',
+    [ProfileApiErrorCode.ValidationFailed]:
+      'social_leaderboard.manage_profile.input_rejected',
+    [ProfileApiErrorCode.NotImplemented]:
+      'social_leaderboard.manage_profile.server_error',
+    [ProfileApiErrorCode.BadGateway]:
+      'social_leaderboard.manage_profile.server_error',
+    [ProfileApiErrorCode.ServiceUnavailable]:
+      'social_leaderboard.manage_profile.server_error',
+    [ProfileApiErrorCode.GatewayTimeout]:
+      'social_leaderboard.manage_profile.server_error',
+    [ProfileApiErrorCode.InternalError]:
+      'social_leaderboard.manage_profile.server_error',
+  };
 
 /**
  * Copy for the X auth codes that give the user something specific to do.

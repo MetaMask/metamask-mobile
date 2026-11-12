@@ -1,5 +1,6 @@
 import {
   findProfileServiceError,
+  ProfileApiErrorCode,
   type ProfileApiErrorCodeId,
 } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
@@ -44,7 +45,13 @@ export const getProfileSaveError = (
 
     const messageKey = PROFILE_SAVE_ERROR_MESSAGE_KEYS[code];
     if (messageKey) {
-      return strings(messageKey);
+      // A 400 that refuses the value in this field keeps the field copy, even
+      // when the envelope only says VALIDATION_FAILED.
+      return code === ProfileApiErrorCode.ValidationFailed &&
+        extractHttpStatus(error) === REJECTED_CONTENT_STATUS &&
+        fieldMessageKey
+        ? strings(fieldMessageKey)
+        : strings(messageKey);
     }
 
     // The code refused a different field, so this editor is not the one to
@@ -57,8 +64,7 @@ export const getProfileSaveError = (
   // A 400 still refuses the value in the field when its code has no copy of
   // its own: older deployments send no code, and newer ones can answer a
   // field rejection with a generic `VALIDATION_FAILED`.
-  return fieldMessageKey &&
-    extractHttpStatus(error) === REJECTED_CONTENT_STATUS
+  return fieldMessageKey && extractHttpStatus(error) === REJECTED_CONTENT_STATUS
     ? strings(fieldMessageKey)
     : null;
 };

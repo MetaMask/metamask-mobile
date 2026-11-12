@@ -18,10 +18,7 @@ const httpError = (httpStatus: number): Error & { httpStatus: number } =>
     httpStatus,
   });
 
-const profileApiError = (
-  code: string,
-  httpStatus = 400,
-): ProfileServiceError =>
+const profileApiError = (code: string, httpStatus = 400): ProfileServiceError =>
   new ProfileServiceError(
     httpStatus,
     `failed to update profile: ${httpStatus}: ${code}`,
@@ -73,7 +70,7 @@ describe('getProfileSaveError', () => {
     );
   });
 
-  it('names the field for a 400 whose code has no copy of its own', () => {
+  it('names the field when a 400 carries a generic code', () => {
     const error = profileApiError('VALIDATION_FAILED');
 
     expect(getProfileSaveError(error, 'bio')).toBe(BIO_PROHIBITED);
@@ -82,11 +79,23 @@ describe('getProfileSaveError', () => {
     );
   });
 
-  it('leaves a non-400 code without copy on the generic save error', () => {
+  it('names a rejected save when validation fails away from the field', () => {
     const error = profileApiError('VALIDATION_FAILED', 409);
 
-    expect(getProfileSaveError(error, 'bio')).toBeNull();
-    expect(getProfileSaveError(error, 'displayName')).toBeNull();
+    expect(getProfileSaveError(error, 'bio')).toBe(
+      strings('social_leaderboard.manage_profile.input_rejected'),
+    );
+    expect(getProfileSaveError(error, 'displayName')).toBe(
+      strings('social_leaderboard.manage_profile.input_rejected'),
+    );
+  });
+
+  it('names a server fault when the save fails behind the API', () => {
+    const error = profileApiError(ProfileApiErrorCode.InternalError, 500);
+
+    expect(getProfileSaveError(error, 'bio')).toBe(
+      strings('social_leaderboard.manage_profile.server_error'),
+    );
   });
 
   it('does not apply a bio code to the display name', () => {
@@ -108,6 +117,25 @@ describe('getProfileSaveError', () => {
 
     expect(getProfileSaveError(error, 'displayName')).toBe(
       strings('social_leaderboard.manage_profile.profile_changed'),
+    );
+  });
+
+  it('names a concurrent update from a bare conflict', () => {
+    const error = profileApiError(ProfileApiErrorCode.Conflict, 409);
+
+    expect(getProfileSaveError(error, 'bio')).toBe(
+      strings('social_leaderboard.manage_profile.profile_changed'),
+    );
+  });
+
+  it('names the reason when the handle check is unavailable', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.UsernameValidationUnavailable,
+      503,
+    );
+
+    expect(getProfileSaveError(error, 'handle')).toBe(
+      strings('social_leaderboard.manage_profile.handle_check_unavailable'),
     );
   });
 

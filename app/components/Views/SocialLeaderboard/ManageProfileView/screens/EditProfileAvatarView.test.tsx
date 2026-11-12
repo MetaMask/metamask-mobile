@@ -129,7 +129,7 @@ describe('EditProfileAvatarView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows the code-specific copy when the update conflicts', async () => {
+  it('shows the reason when the update conflicts', async () => {
     mockUpdateProfile.mockRejectedValueOnce(
       new ProfileServiceError(409, 'failed to update profile: 409', {
         code: ProfileApiErrorCode.ProfileUpdateConflict,

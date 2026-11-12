@@ -315,7 +315,7 @@ describe('useXAuth', () => {
       expect(result.current.isDisconnecting).toBe(false);
     });
 
-    it('keeps the wrapped error so a Profile API code survives', async () => {
+    it('keeps the profile API error as the cause of the wrapped XAuthError', async () => {
       const serviceError = new ProfileServiceError(
         401,
         'ProfileService: failed to disconnect X account: 401',

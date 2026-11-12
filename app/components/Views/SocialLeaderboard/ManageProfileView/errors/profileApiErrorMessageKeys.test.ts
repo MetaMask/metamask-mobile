@@ -5,10 +5,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getProfileSaveErrorCopy } from './profileApiErrorMessageKeys';
 
-const profileApiError = (
-  code: string,
-  httpStatus = 403,
-): ProfileServiceError =>
+const profileApiError = (code: string, httpStatus = 403): ProfileServiceError =>
   new ProfileServiceError(
     httpStatus,
     `ProfileService: failed to update profile: ${httpStatus}`,
@@ -49,6 +46,29 @@ describe('getProfileSaveErrorCopy', () => {
     );
   });
 
+  it('returns the profile-changed copy for a bare conflict', () => {
+    const error = profileApiError(ProfileApiErrorCode.Conflict, 409);
+
+    const result = getProfileSaveErrorCopy(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.profile_changed'),
+    );
+  });
+
+  it('returns the handle-check copy when validation is unavailable', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.UsernameValidationUnavailable,
+      503,
+    );
+
+    const result = getProfileSaveErrorCopy(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.handle_check_unavailable'),
+    );
+  });
+
   it('returns the profile-not-found copy for a missing profile', () => {
     const error = profileApiError(ProfileApiErrorCode.ProfileNotFound, 404);
 
@@ -59,8 +79,31 @@ describe('getProfileSaveErrorCopy', () => {
     );
   });
 
+  it('returns the rejected-input copy for a validation failure', () => {
+    const error = profileApiError(ProfileApiErrorCode.ValidationFailed, 409);
+
+    const result = getProfileSaveErrorCopy(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.input_rejected'),
+    );
+  });
+
+  it('returns the server-error copy for a server fault', () => {
+    const error = profileApiError(ProfileApiErrorCode.InternalError, 500);
+
+    const result = getProfileSaveErrorCopy(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.server_error'),
+    );
+  });
+
   it('returns null for a code without save copy', () => {
-    const error = profileApiError(ProfileApiErrorCode.ValidationFailed, 400);
+    const error = profileApiError(
+      ProfileApiErrorCode.AuthVerificationUnavailable,
+      401,
+    );
 
     const result = getProfileSaveErrorCopy(error);
 
