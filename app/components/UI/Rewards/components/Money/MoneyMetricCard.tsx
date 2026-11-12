@@ -73,7 +73,7 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
           <ButtonIcon
             iconName={IconName.Info}
             size={ButtonIconSize.Xs}
-            hitSlop={8}
+            hitSlop={14}
             iconProps={{ color: IconColor.IconAlternative }}
             onPress={onInfoPress}
             accessibilityLabel={label}
