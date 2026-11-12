@@ -4327,6 +4327,35 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton: {
+    name: 'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyAssetOverviewBalanceCtaEnabled: {
     name: 'earnMoneyAssetOverviewBalanceCtaEnabled',
     type: FeatureFlagType.Remote,
@@ -4421,7 +4450,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   earnMoneyVaultApyControl: {
@@ -9175,35 +9204,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '8.13.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton: {
-    name: 'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-        thresholdName: 'control',
-        thresholdVersion: 2,
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-        thresholdName: 'treatment',
-        thresholdVersion: 2,
-        value: 'treatment',
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 };

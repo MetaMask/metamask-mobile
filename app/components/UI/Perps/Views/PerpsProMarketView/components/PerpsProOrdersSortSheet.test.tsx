@@ -8,6 +8,11 @@ import {
 } from '../../../../../../util/haptics';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../../../../../locales/i18n', () => ({

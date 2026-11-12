@@ -9,7 +9,10 @@ import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING,
   PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/Homepage/abTestConfig';
-import { AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
 import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialV0View/abTestConfig';
@@ -56,6 +59,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Quick Buy
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING,

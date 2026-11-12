@@ -115,13 +115,36 @@ describe('Settings', () => {
     expect(advancedSettings).toBeDefined();
   });
 
-  it('renders updated security and advanced descriptions', () => {
-    const { getByText } = renderWithProvider(<Settings />, {
+  it('does not render root list row subtitles', () => {
+    const { getByText, queryByText } = renderWithProvider(<Settings />, {
       state: initialState,
     });
 
-    expect(getByText(strings('app_settings.advanced_desc'))).toBeOnTheScreen();
-    expect(getByText(strings('app_settings.security_desc'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('app_settings.notifications_title')),
+    ).toBeOnTheScreen();
+    expect(getByText(strings('backupAndSync.title'))).toBeOnTheScreen();
+    expect(queryByText('Manage your notifications')).not.toBeOnTheScreen();
+    expect(
+      queryByText('Back up your accounts and sync settings.'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders settings group headings', () => {
+    const { getByTestId } = renderWithProvider(<Settings />, {
+      state: initialState,
+    });
+
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_GENERAL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS),
+    ).toBeOnTheScreen();
+    expect(getByTestId(SettingsViewSelectorsIDs.GROUP_MORE)).toBeOnTheScreen();
   });
   it('does not render contacts (account menu entry)', () => {
     const { queryByTestId } = renderWithProvider(<Settings />, {
