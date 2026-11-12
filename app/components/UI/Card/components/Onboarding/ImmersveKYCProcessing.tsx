@@ -138,7 +138,9 @@ export const deriveImmersveKycView = ({
   if (webviewPhase === 'closed' && holdVerifying) {
     return 'loading';
   }
-  if (error) {
+  // A failed poll during the post-Sumsub wait is not an answer. The spinner
+  // stays up and the screen asks again. After that wait, Try again is the view.
+  if (error && !holdForCompletion) {
     return 'pollError';
   }
   if (isExpiring) {
@@ -384,9 +386,14 @@ const ImmersveKYCProcessing = () => {
   const [webviewPhase, setWebviewPhase] = useState<WebviewPhase>('none');
   const [holdVerifying, setHoldVerifying] = useState(false);
   const [awaitingCompletedResult, setAwaitingCompletedResult] = useState(false);
+  // The action already on screen when Sumsub closes. It is not a catch-up
+  // result: the close poll has not settled yet.
+  const [completionBaseline, setCompletionBaseline] =
+    useState<ImmersveNextAction | null>(null);
   const [isRetryingPoll, setIsRetryingPoll] = useState(false);
   const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const nextActionRef = useRef<ImmersveNextAction | null>(null);
 
   const clearDwellTimer = useCallback(() => {
     if (dwellTimerRef.current) {
@@ -414,13 +421,18 @@ const ImmersveKYCProcessing = () => {
       kycRedirectUrl: KYC_REDIRECT_URL,
       pollIntervalMs: IMMERSVE_KYC_POLL_INTERVAL_MS,
     });
+  nextActionRef.current = nextAction;
 
   const ctaHint = nextAction?.type === 'kyc' ? nextAction.ctaHint : undefined;
   const isInfoNeeded = ctaHint === 'KYC_INFORMATION_NEEDED';
   const promptHint = ctaHint === 'KYC_NOT_COMPLETED' || isInfoNeeded;
   const isExpiring = ctaHint === 'KYC_EXPIRING';
-  // "Additional information needed" is a real answer, so it is not held.
-  const holdForCompletion = awaitingCompletedResult && !isInfoNeeded;
+  // "Additional information needed" is a real answer once a poll after the
+  // close says so. The hint already on screen is the pre-webview result.
+  const closeResultIsStale =
+    awaitingCompletedResult && nextAction === completionBaseline;
+  const holdForCompletion =
+    awaitingCompletedResult && (closeResultIsStale || !isInfoNeeded);
 
   // The url opens the webview in an effect, one commit after this render.
   // Treat that entry as already covered so a rejection cannot flash, or
@@ -551,8 +563,9 @@ const ImmersveKYCProcessing = () => {
       }, IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
       // A completed Sumsub redirect can return before Immersve has caught up.
       // A manual close (the X, or back) shows Finish verifying as soon as the
-      // minimum dwell ends.
+      // minimum dwell ends. The action already on screen is not that result.
       clearCompletionTimer();
+      setCompletionBaseline(completed ? nextActionRef.current : null);
       setAwaitingCompletedResult(completed);
       if (completed) {
         completionTimerRef.current = setTimeout(() => {
@@ -574,32 +587,44 @@ const ImmersveKYCProcessing = () => {
   useEffect(() => clearCompletionTimer, [clearCompletionTimer]);
 
   // A funding, rejection, or review result ends the wait. So does "additional
-  // information needed": that prompt is the answer, not a lagging KYC.
+  // information needed", once a poll after the close says so. The action
+  // already on screen when Sumsub closed is not that answer.
   useEffect(() => {
     if (!awaitingCompletedResult || !nextAction) {
+      return;
+    }
+    if (nextAction === completionBaseline) {
       return;
     }
     if (nextAction.type !== 'kyc' || isInfoNeeded) {
       clearCompletionHold();
     }
-  }, [awaitingCompletedResult, nextAction, isInfoNeeded, clearCompletionHold]);
+  }, [
+    awaitingCompletedResult,
+    nextAction,
+    completionBaseline,
+    isInfoNeeded,
+    clearCompletionHold,
+  ]);
 
   // The prerequisites hook only auto-polls `pending`. After Sumsub completes,
-  // ask again once each poll settles on KYC until the hold ends.
+  // ask again once each poll settles on KYC until the hold ends. A failed
+  // poll is not an answer, so it does not stop this.
   useEffect(() => {
-    if (
-      !holdForCompletion ||
-      nextAction?.type !== 'kyc' ||
-      isLoading ||
-      error
-    ) {
+    if (!holdForCompletion || isLoading) {
+      return undefined;
+    }
+    // A settled non-KYC result ends the hold on the next render. Until then,
+    // keep asking while the action is still KYC or the close poll has not
+    // returned one.
+    if (nextAction && nextAction.type !== 'kyc') {
       return undefined;
     }
     const id = setTimeout(() => {
       refresh().catch(() => undefined);
     }, IMMERSVE_KYC_POLL_INTERVAL_MS);
     return () => clearTimeout(id);
-  }, [holdForCompletion, nextAction, isLoading, error, refresh]);
+  }, [holdForCompletion, nextAction, isLoading, refresh]);
 
   useEffect(() => {
     if (
