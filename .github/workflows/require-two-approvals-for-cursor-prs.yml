@@ -1,8 +1,7 @@
 name: Require two approvals for Cursor PRs
 
 on:
-  # zizmor: ignore[dangerous-triggers] reads trusted workflow code and PR metadata only; never checks out or executes PR code
-  pull_request_target:
+  pull_request:
     types: [opened, reopened, synchronize, ready_for_review, converted_to_draft]
     branches:
       - main
