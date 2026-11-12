@@ -4322,6 +4322,113 @@ export const runQuickBuyControllerCases = ({
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
         });
 
+        describe('in-flight preview entry', () => {
+          const submitWithPostTradeShare = async (
+            tradeMode: 'buy' | 'sell',
+            analyticsContext: QuickBuyAnalyticsContext,
+          ) => {
+            mockUsableQuote();
+            (
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              analyticsContext,
+              undefined,
+              tradeMode,
+              true,
+            );
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+            return result;
+          };
+
+          it('uses the token USD market price as the buy preview entry', async () => {
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+              tokenPriceFiat: 0.006235,
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'buy',
+                  entryPriceLabel: '$0.006235',
+                }),
+              }),
+            );
+          });
+
+          it('converts the buy token price from the user currency to USD', async () => {
+            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+            });
+
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+              tokenPriceFiat: 0.006235,
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  entryPriceLabel: '$0.007482',
+                }),
+              }),
+            );
+          });
+
+          it('leaves the buy preview entry empty without a token price', async () => {
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({ side: 'buy' }),
+              }),
+            );
+            expect(
+              getPostTradeShareSession()?.preview.entryPriceLabel,
+            ).toBeUndefined();
+          });
+
+          it('keeps the swap rate as the sell preview entry', async () => {
+            (usePositionTokenBalance as jest.Mock).mockReturnValue(
+              createSourceToken({
+                address: '0xDEST',
+                symbol: 'TARGET',
+                currencyExchangeRate: 2000,
+              }),
+            );
+            (useReceiveTokens as jest.Mock).mockReturnValue([
+              createSourceToken({
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'ETH',
+                currencyExchangeRate: 2000,
+              }),
+            ]);
+            (useLatestBalance as jest.Mock).mockReturnValue({
+              displayBalance: '1.0',
+              atomicBalance: '1000000000000000000',
+            });
+            const result = await submitWithPostTradeShare('sell', {
+              source: 'profile_position',
+            });
+            const swapRate = result.current.formattedRate;
+
+            expect(swapRate).toBeDefined();
+            expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
+              swapRate,
+            );
+          });
+        });
+
         describe('post-trade prompt', () => {
           const submit = async (postTradeShare?: boolean, amount = '20') => {
             mockUsableQuote(amount);
