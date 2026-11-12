@@ -62,9 +62,11 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
 
       // Wallet creation above is setup. Only the Social profile onboarding is
-      // timed. Connect X is skipped because it needs an external X login.
+      // timed. A wallet with no profile opens that intro from the Social tab,
+      // so there is no Social home or Post button yet. Connect X is skipped
+      // because it needs an external X login.
       const socialIntroTimer = new TimerHelper(
-        'Time since the user taps Post on the Social home until the profile onboarding intro is visible',
+        'Time since the user taps the Social tab until the profile onboarding intro is visible',
         // Dev-build runs landed between 1.4s and 2.7s.
         { ios: 2_000, android: 3_000 },
         currentDeviceDetails.platform,
@@ -83,11 +85,6 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
 
       await TabBarComponent.tapSocial();
-      await AppiumAssertions.expectElementToBeVisible(SocialV1View.plusButton, {
-        description: 'Social home should be ready',
-      });
-
-      await SocialV1View.tapPlusButton();
       await socialIntroTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           SocialProfileOnboardingView.intro,
