@@ -65,6 +65,10 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+# On Namespace, merge_group jobs append `;job.priority=2` to the profile label so
+# they start ahead of unprioritized PR jobs while the workspace is at its concurrency
+# limit. OTA already uses priority=1. E2E jobs are unchanged: they do not run on
+# merge_group. https://namespace.so/docs/solutions/github-actions/runner-controls/job-ordering
 permissions: {}
 
 jobs:
@@ -85,7 +89,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -228,7 +232,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -292,7 +296,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -349,7 +353,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        matrix.profile || 'ubuntu-latest'
+        format('{0}{1}', matrix.profile, github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -445,7 +449,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -522,7 +526,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     needs:
       - get_requirements
@@ -550,7 +554,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     if: >-
       ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
@@ -611,7 +615,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     outputs:
       has-advisories: ${{ steps.audit.outputs.has-advisories }}
@@ -703,7 +707,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1013,7 +1017,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1086,7 +1090,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1132,7 +1136,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1178,7 +1182,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1260,7 +1264,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1478,7 +1482,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -1558,7 +1562,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        matrix.profile || 'ubuntu-latest'
+        format('{0}{1}', matrix.profile, github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -2245,7 +2249,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -2302,7 +2306,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        format('namespace-profile-metamask-ci-linux-small{0}', github.event_name == 'merge_group' && ';job.priority=2' || '') || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
