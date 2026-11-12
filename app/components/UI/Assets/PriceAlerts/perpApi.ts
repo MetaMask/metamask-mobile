@@ -229,6 +229,46 @@ interface UsePerpAlertSaveFlowParams {
   fromManage?: boolean;
 }
 
+// Conditional and logical expressions cannot be lowered inside try/catch.
+function perpCreationAnalyticsProperties(
+  analyticsProperties: SaveAlertFlowParams['analyticsProperties'],
+  marketId: string,
+  displayTicker: string,
+  editingAlert: SaveAlertFlowParams['editingAlert'],
+): SaveAlertFlowParams['analyticsProperties'] {
+  return {
+    ...analyticsProperties,
+    asset_id: marketId,
+    token_symbol: displayTicker,
+    alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
+    ...(editingAlert
+      ? {
+          interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+          alert_active: editingAlert.active,
+          prev_alert_value: editingAlert.threshold,
+          prev_alert_recurring: editingAlert.recurring,
+          prev_alert_active: editingAlert.active,
+        }
+      : {
+          interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
+          alert_active: true,
+        }),
+  };
+}
+
+function applyPerpAlertCachePatch(
+  editingAlert: SaveAlertFlowParams['editingAlert'],
+  patch: SaveAlertFlowParams['patch'],
+  patchAlertCache: (
+    alertId: string,
+    nextPatch: NonNullable<SaveAlertFlowParams['patch']>,
+  ) => void,
+): void {
+  if (editingAlert && patch) {
+    patchAlertCache(editingAlert.id, patch);
+  }
+}
+
 /**
  * Save-flow for perpetuals price alerts.
  *
@@ -309,32 +349,18 @@ const usePerpAlertSaveFlow = ({
       try {
         await submit();
 
-        if (editingAlert && patch) {
-          patchAlertCache(editingAlert.id, patch);
-        }
+        applyPerpAlertCachePatch(editingAlert, patch, patchAlertCache);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
-            .addProperties({
-              ...analyticsProperties,
-              asset_id: marketId,
-              token_symbol: displayTicker,
-              alert_market_type: PriceAlertAnalytics.MARKET_TYPE.PERPS,
-              ...(editingAlert
-                ? {
-                    interaction_type:
-                      PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-                    alert_active: editingAlert.active,
-                    prev_alert_value: editingAlert.threshold,
-                    prev_alert_recurring: editingAlert.recurring,
-                    prev_alert_active: editingAlert.active,
-                  }
-                : {
-                    interaction_type:
-                      PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
-                    alert_active: true,
-                  }),
-            })
+            .addProperties(
+              perpCreationAnalyticsProperties(
+                analyticsProperties,
+                marketId,
+                displayTicker,
+                editingAlert,
+              ),
+            )
             .build(),
         );
 
