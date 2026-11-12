@@ -87,8 +87,6 @@ import {
   usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
-import { beginHomeNavigationHandoff } from '../../../util/navigation/homeNavigationHandoff';
-import Logger from '../../../util/Logger';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -163,24 +161,10 @@ function TradeWalletActions() {
   } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
-  const postCallback = useRef<
-    (() => void | boolean | Promise<void>) | undefined
-  >(undefined);
-  const [visible, setIsVisible] = useState(true);
-  const runNavigationHandoff = useRef<ReturnType<
-    typeof beginHomeNavigationHandoff
-  > | null>(null);
-  const handoffScheduled = useRef(false);
-  useEffect(
-    () => () => {
-      // The deferred callback owns the guard after a normal tray pop. An
-      // unrelated unmount during the exit animation must not strand it.
-      if (!handoffScheduled.current) {
-        runNavigationHandoff.current?.cancel();
-      }
-    },
-    [],
+  const postCallback = useRef<(() => void | Promise<void>) | undefined>(
+    undefined,
   );
+  const [visible, setIsVisible] = useState(true);
   const { width: windowWidth } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
   const insets = useSafeAreaInsets();
@@ -341,7 +325,6 @@ function TradeWalletActions() {
   const handleExitComplete = useCallback(() => {
     const callback = postCallback.current;
     postCallback.current = undefined;
-    handoffScheduled.current = Boolean(callback);
 
     dismissRootModalFlow();
 
@@ -349,20 +332,14 @@ function TradeWalletActions() {
       // Defer navigation until RootModalFlow is fully dismissed so screens
       // on MainNavigator (e.g. StakeModals) are not opened underneath it.
       requestAnimationFrame(() => {
-        runNavigationHandoff.current?.run(callback).catch((error: unknown) => {
-          Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            'Failed to navigate from trade tray',
-          );
-        });
+        // Perps navigation is async. The menu has already closed, so the
+        // result is intentionally not awaited.
+        void callback();
       });
     }
   }, [dismissRootModalFlow]);
 
   const handleNavigateBack = useCallback(() => {
-    if (postCallback.current && !runNavigationHandoff.current) {
-      runNavigationHandoff.current = beginHomeNavigationHandoff();
-    }
     onDismiss?.();
     if (isSpringboardMenu) {
       backdropOpacity.value = withTiming(0, SPRINGBOARD_FADE_OUT);
@@ -430,11 +407,12 @@ function TradeWalletActions() {
   ]);
 
   const onPredict = useCallback(() => {
-    postCallback.current = () =>
+    postCallback.current = () => {
       openPredict({
         type: 'home',
         entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
+    };
     handleNavigateBack();
   }, [handleNavigateBack, openPredict]);
 
