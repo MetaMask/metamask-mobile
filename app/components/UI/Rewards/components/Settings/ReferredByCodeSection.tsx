@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -12,12 +13,15 @@ import {
   IconSize,
   SectionDivider,
   Text,
+  TextColor,
   TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
 import {
   selectMoneyReferralAllowedForGeo,
@@ -33,6 +37,7 @@ import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
 } from '../../utils/moneyReferralCode';
+import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
 /** Alphanumeric upper-case only, capped at the Money code max length. */
 const normalizeInviteCodeInput = (value: string) =>
@@ -61,6 +66,7 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   showTrailingDivider = false,
 }) => {
   const { colors } = useTheme();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { profileId } = useReferralMe();
   useGeoRewardsMetadata({ enabled: true });
@@ -172,6 +178,17 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   const description = hasStoredCode
     ? (localizedText?.settingsReferralLinkedDescription ?? '')
     : (localizedText?.settingsReferralNotLinkedDescription ?? '');
+  const termsLink = resolveInviteTermsLink(localizedText);
+
+  const handleOpenTerms = (url: string) => {
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: url,
+        timestamp: Date.now(),
+      },
+    });
+  };
   const renderStatusIcon = () => {
     if (hasStoredCode) {
       return null;
@@ -206,6 +223,20 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
           </Text>
           <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
             {description}
+            {description.length > 0 && termsLink ? (
+              <>
+                {' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.PrimaryDefault}
+                  accessibilityRole="link"
+                  onPress={() => handleOpenTerms(termsLink.url)}
+                  testID={REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK}
+                >
+                  {termsLink.label}
+                </Text>
+              </>
+            ) : null}
           </Text>
         </Box>
 

@@ -26,6 +26,7 @@ import {
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type {
@@ -43,6 +44,7 @@ import {
   MONEY_REFERRAL_CODE_MIN_LENGTH,
 } from '../../utils/moneyReferralCode';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
@@ -53,6 +55,7 @@ export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CODE_ERROR: 'accept-invite-sheet-code-error',
   DECLINE: 'accept-invite-sheet-decline',
   ACCEPT: 'accept-invite-sheet-accept',
+  TERMS_LINK: 'accept-invite-sheet-terms-link',
 } as const;
 
 /** Alphanumeric upper-case only, capped at the Money code max length. */
@@ -75,6 +78,7 @@ function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
     () => ({
       title: localizedText?.inviteTitle ?? '',
       body: localizedText?.inviteMessageBody ?? '',
+      termsLink: resolveInviteTermsLink(localizedText),
       codeLabel:
         localizedText?.inviteReferralCode ??
         strings('rewards.referral.referral_code'),
@@ -437,6 +441,18 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     trackResponded,
   ]);
 
+  const termsLink = copy.termsLink;
+
+  const handleOpenTerms = (url: string) => {
+    navigation.navigate(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: url,
+        timestamp: Date.now(),
+      },
+    });
+  };
+
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
   // referrer or referee, or a geo-blocked country.
@@ -465,6 +481,20 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             testID={ACCEPT_INVITE_SHEET_TEST_IDS.BODY}
           >
             {copy.body}
+            {termsLink ? (
+              <>
+                {' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.PrimaryDefault}
+                  accessibilityRole="link"
+                  onPress={() => handleOpenTerms(termsLink.url)}
+                  testID={ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK}
+                >
+                  {termsLink.label}
+                </Text>
+              </>
+            ) : null}
           </Text>
         )}
         <Box
