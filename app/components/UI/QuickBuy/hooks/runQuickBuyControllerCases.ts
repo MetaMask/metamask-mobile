@@ -27,7 +27,6 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -266,9 +265,6 @@ export const setupDefaultMocks = () => {
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
-  (
-    selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-  ).mockReturnValue(false);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
@@ -3759,6 +3755,55 @@ export const runQuickBuyControllerCases = ({
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ caip19: expect.any(String) }),
           );
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: false }),
+          );
+        });
+
+        it('marks trade submitted and completed as a copy trade with a copy-trade origin', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
+            undefined,
+            undefined,
+            undefined,
+            { commentId: 'comment-1' },
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+        });
+
+        it('marks a copy trade when the sheet was opened from Copy trade without a comment', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(createTarget(), jest.fn(), {
+            source: 'trader_feed',
+            traderAddress: '0xTRADER',
+            isCopyTrade: true,
+          });
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
         });
 
         it('reports submit execution time from the start timestamp', async () => {
@@ -4249,7 +4294,7 @@ export const runQuickBuyControllerCases = ({
           const { result } = renderHook(
             createTarget(),
             jest.fn(),
-            undefined,
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
             undefined,
             'buy',
             true,
@@ -4269,6 +4314,7 @@ export const runQuickBuyControllerCases = ({
             throw new Error('post-trade share session is not a spot session');
           }
           expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.traderAddress).toBe('0xTRADER');
           expect(session.owner).toBe('social-v1-feed');
         });
 
@@ -4483,24 +4529,6 @@ export const runQuickBuyControllerCases = ({
               'tx-1',
               expect.objectContaining({
                 postTradeShare: true,
-                postTradePrompt: undefined,
-              }),
-            );
-          });
-
-          it('uses the normal toasts for copy-trades from a private profile', async () => {
-            (
-              selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-            ).mockReturnValue(true);
-
-            await submit(true);
-
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
                 postTradePrompt: undefined,
               }),
             );

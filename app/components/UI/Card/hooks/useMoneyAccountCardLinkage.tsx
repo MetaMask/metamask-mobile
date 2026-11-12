@@ -31,6 +31,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/feature
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
+  selectCardHomeData,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardVerified,
@@ -122,6 +123,23 @@ export interface LinkFlowOrigin {
   entrypoint?: CardEntryPoint;
 }
 
+export interface ConfirmLinkInBackgroundOptions {
+  delegationAmountHuman?: string;
+  entrypoint?: CardEntryPoint | string;
+  /**
+   * Delay every toast until this resolves. Nothing shows before then,
+   * including a failed precondition. On resolve, a link that is still running
+   * shows the pending toast, a failure shows the error toast, and a success
+   * or cancellation shows nothing. After resolve, toasts behave as usual.
+   */
+  holdToastsUntil?: Promise<void>;
+  /**
+   * When false, success closes the pending toast instead of showing
+   * "Your card is ready to use". Defaults to true.
+   */
+  showSuccessToast?: boolean;
+}
+
 const supportsMoneyAccountLinking = (
   capabilities: { supportsMoneyAccountLinking?: boolean } | null,
   whenUnknown: boolean,
@@ -171,10 +189,9 @@ export interface UseMoneyAccountCardLinkageReturn {
     | undefined;
   startLinkFlow: (origin: LinkFlowOrigin) => void;
   openLinkCardSheet: (entrypoint?: CardEntryPoint | string) => void;
-  confirmLinkInBackground: (options?: {
-    delegationAmountHuman?: string;
-    entrypoint?: CardEntryPoint | string;
-  }) => Promise<boolean>;
+  confirmLinkInBackground: (
+    options?: ConfirmLinkInBackgroundOptions,
+  ) => Promise<boolean>;
   reset: () => void;
 }
 
@@ -218,6 +235,7 @@ export const useMoneyAccountCardLinkage = ({
     selectImmersveMoneyAccountMode,
   );
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isAlreadyDelegated = useSelector(selectIsMoneyAccountDelegatedForCard);
   const pendingMoneyAccountCardLinkEntryPoint = useSelector(
@@ -299,6 +317,12 @@ export const useMoneyAccountCardLinkage = ({
     hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
   const isVerifiedForLinking = isCardVerified || !reportsVerificationStatus;
+  // Immersve has no verification status, so a signed-in session is not proof
+  // of a card. Link only once card home data includes one. The funding
+  // approval still uses canSubmitDelegation, which stays open after KYC.
+  const isReadyToLink =
+    isCardVerified ||
+    (!reportsVerificationStatus && Boolean(cardHomeData?.card));
   const canSubmitDelegation = Boolean(
     hasRequirements &&
       isCardAuthenticated &&
@@ -308,7 +332,10 @@ export const useMoneyAccountCardLinkage = ({
       isMoneyAccountLinkingSupported,
   );
   const canLink = Boolean(
-    canSubmitDelegation && !isAlreadyDelegated && !isResidencyBlocked,
+    canSubmitDelegation &&
+      isReadyToLink &&
+      !isAlreadyDelegated &&
+      !isResidencyBlocked,
   );
 
   const getLinkFlowRedirectTarget = useCallback(() => {
@@ -489,7 +516,7 @@ export const useMoneyAccountCardLinkage = ({
       }
 
       if (isCardAuthenticated) {
-        if (!isVerifiedForLinking) {
+        if (!isVerifiedForLinking || !isReadyToLink) {
           return;
         }
 
@@ -538,6 +565,7 @@ export const useMoneyAccountCardLinkage = ({
       primaryMoneyAccount?.address,
       isCardAuthenticated,
       isVerifiedForLinking,
+      isReadyToLink,
       isAlreadyDelegated,
       isCardholder,
       isResidencyBlocked,
@@ -559,7 +587,7 @@ export const useMoneyAccountCardLinkage = ({
       return;
     }
 
-    if (!isVerifiedForLinking) {
+    if (!isVerifiedForLinking || !isReadyToLink) {
       if (cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error') {
         dispatch(setPendingMoneyAccountCardLink(null));
       }
@@ -612,6 +640,7 @@ export const useMoneyAccountCardLinkage = ({
     isCardAuthenticated,
     isMoneyAccountLinkingSupported,
     isVerifiedForLinking,
+    isReadyToLink,
     hasMoneyAccountBaseRequirements,
     isMoneyAccountCardSupported,
     moneyAccountCardToken,
@@ -626,10 +655,7 @@ export const useMoneyAccountCardLinkage = ({
   ]);
 
   const confirmLinkInBackground = useCallback(
-    async (options?: {
-      delegationAmountHuman?: string;
-      entrypoint?: CardEntryPoint | string;
-    }): Promise<boolean> => {
+    async (options?: ConfirmLinkInBackgroundOptions): Promise<boolean> => {
       const entrypoint =
         options?.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET;
       const isRevoke =
@@ -645,6 +671,23 @@ export const useMoneyAccountCardLinkage = ({
       const isRevokeWithoutOwnedDelegation = isRevoke && !isAlreadyDelegated;
       const isBlockedByResidency =
         !isRevoke && isResidencyBlocked && !isAlreadyDelegated;
+      const showSuccess = options?.showSuccessToast !== false;
+      const hold = options?.holdToastsUntil;
+
+      const showErrorWhenReleased = () => {
+        if (!hold) {
+          showErrorToast(action);
+          return;
+        }
+        // A rejected hold still releases the toast, so a failed link is not
+        // swallowed when the caller drops the promise.
+        hold
+          .then(
+            () => showErrorToast(action),
+            () => showErrorToast(action),
+          )
+          .catch(() => undefined);
+      };
 
       if (
         !canSubmitDelegation ||
@@ -662,7 +705,7 @@ export const useMoneyAccountCardLinkage = ({
             is_revoke: isRevoke,
           },
         );
-        showErrorToast(action);
+        showErrorWhenReleased();
         return false;
       }
 
@@ -670,9 +713,60 @@ export const useMoneyAccountCardLinkage = ({
         return false;
       }
 
+      // 'quiet' is a cancellation or a linkage that was already running.
+      // Resolving the hold shows nothing, matching the unheld behaviour.
+      let phase: 'pending' | 'success' | 'error' | 'quiet' = 'pending';
+      let released = !hold;
+      let showedPending = false;
+      let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const cancelPendingTimer = () => {
+        if (pendingTimer) {
+          clearTimeout(pendingTimer);
+          pendingTimer = null;
+        }
+      };
+
+      const showPendingNow = () => {
+        showedPending = true;
+        showPendingToast(action);
+      };
+
+      // showToast mounts on its own timer. Close after that, or a pending
+      // toast that has not mounted yet appears once this call returns.
+      const dismissPendingToast = () => {
+        if (!showedPending) {
+          return;
+        }
+        setTimeout(() => {
+          toastRef?.current?.closeToast();
+        }, 0);
+      };
+
+      const onReleased = () => {
+        released = true;
+        // Wait a tick so a link that already settled in this turn does not
+        // flash the pending toast before we record the outcome.
+        pendingTimer = setTimeout(() => {
+          pendingTimer = null;
+          if (phase === 'pending') {
+            showPendingNow();
+            return;
+          }
+          if (phase === 'error') {
+            showErrorToast(action);
+          }
+        }, 0);
+      };
+
+      if (hold) {
+        hold.then(onReleased, onReleased).catch(() => undefined);
+      } else {
+        showPendingNow();
+      }
+
       setStatus('pending');
       setError(null);
-      showPendingToast(action);
 
       try {
         trackMoneyAccountLinkingEvent(
@@ -695,7 +789,15 @@ export const useMoneyAccountCardLinkage = ({
           },
         );
         setStatus('success');
-        showSuccessToast(action);
+        phase = 'success';
+        cancelPendingTimer();
+        if (released) {
+          if (showSuccess) {
+            showSuccessToast(action);
+          } else {
+            dismissPendingToast();
+          }
+        }
         return true;
       } catch (caught) {
         const linkageError =
@@ -710,6 +812,8 @@ export const useMoneyAccountCardLinkage = ({
               is_revoke: isRevoke,
             },
           );
+          phase = 'quiet';
+          cancelPendingTimer();
           setStatus('cancelled');
           return false;
         }
@@ -724,6 +828,8 @@ export const useMoneyAccountCardLinkage = ({
               is_revoke: isRevoke,
             },
           );
+          phase = 'quiet';
+          cancelPendingTimer();
           setStatus('idle');
           setError(null);
           return false;
@@ -742,9 +848,13 @@ export const useMoneyAccountCardLinkage = ({
           },
         );
         Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
+        phase = 'error';
+        cancelPendingTimer();
         setError(linkageError);
         setStatus('error');
-        showErrorToast(action);
+        if (released) {
+          showErrorToast(action);
+        }
         return false;
       }
     },
@@ -754,6 +864,7 @@ export const useMoneyAccountCardLinkage = ({
       showErrorToast,
       showPendingToast,
       showSuccessToast,
+      toastRef,
       trackMoneyAccountLinkingEvent,
       isResidencyBlocked,
       isAlreadyDelegated,

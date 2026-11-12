@@ -28,7 +28,7 @@ export interface SocialOgTradeCard {
   entryIndex?: number;
   exitIndex?: number;
   showDollar: boolean;
-  /** Referral code drawn bottom-left of the footer. Not sent yet. */
+  /** The sharer's referral code, drawn as the "Code" chip. Omitted without one. */
   promoCode?: string;
   theme?: SocialOgImageTheme;
 }
@@ -48,7 +48,7 @@ export interface SocialOgProfileCard {
   tradeCount: number;
   bestTradeUsd: number;
   followers: number;
-  /** Referral code drawn bottom-left of the footer. Not sent yet. */
+  /** The sharer's referral code, drawn as the "Code" chip. Omitted without one. */
   promoCode?: string;
   theme?: SocialOgImageTheme;
 }
