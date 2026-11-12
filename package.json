@@ -189,8 +189,8 @@
     ]
   },
   "resolutions": {
-    "@metamask/chomp-api-service": "npm:@metamask-previews/chomp-api-service@7.0.0-preview-04cf473",
-    "@metamask/money-account-upgrade-controller": "npm:@metamask-previews/money-account-upgrade-controller@6.0.1-preview-04cf473",
+    "@metamask/chomp-api-service": "^7.1.0",
+    "@metamask/money-account-upgrade-controller": "^7.0.0",
     "uniffi-bindgen-react-native": "0.31.0-2",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
@@ -336,7 +336,6 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
-    "@metamask/subscription-controller": "15.0.0",
     "@metamask/money-account-mfa-whitelist": "0.2.0"
   },
   "dependencies": {
@@ -375,7 +374,7 @@
     "@metamask/bridge-controller": "^83.1.2",
     "@metamask/bridge-status-controller": "^78.0.0",
     "@metamask/chain-agnostic-permission": "^2.1.0",
-    "@metamask/chomp-api-service": "npm:@metamask-previews/chomp-api-service@7.0.0-preview-04cf473",
+    "@metamask/chomp-api-service": "^7.1.0",
     "@metamask/claims-controller": "^1.0.3",
     "@metamask/client-controller": "^2.0.0",
     "@metamask/client-utils": "^3.0.2",
@@ -431,9 +430,9 @@
     "@metamask/money-account-api-data-service": "^2.3.1",
     "@metamask/money-account-balance-service": "^3.1.2",
     "@metamask/money-account-controller": "^3.0.0",
-    "@metamask/money-account-lifecycle-controller": "npm:@metamask-previews/money-account-lifecycle-controller@0.0.0-preview-04cf473",
+    "@metamask/money-account-lifecycle-controller": "^1.0.0",
     "@metamask/money-account-mfa-whitelist": "^0.2.0",
-    "@metamask/money-account-upgrade-controller": "npm:@metamask-previews/money-account-upgrade-controller@6.0.1-preview-04cf473",
+    "@metamask/money-account-upgrade-controller": "^7.0.0",
     "@metamask/money-account-utils": "^2.2.0",
     "@metamask/mpc-react-native": "^0.2.2",
     "@metamask/multichain-account-service": "^14.1.0",
@@ -487,7 +486,7 @@
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/stellar-wallet-snap": "^2.0.0",
     "@metamask/storage-service": "^2.0.0",
-    "@metamask/subscription-controller": "15.0.0",
+    "@metamask/subscription-controller": "^15.2.1",
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^73.0.0",
