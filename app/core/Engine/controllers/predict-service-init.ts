@@ -28,6 +28,10 @@ import type { PredictPortfolioServiceInitMessenger } from '../messengers/predict
 import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNext/implementation/subscribeToActiveVenueChanges';
 import { store } from '../../../store';
 import type { MessengerClientInitFunction } from '../types';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { createOrderDispatchJournal } from '../../../components/UI/PredictNext/services/internal/orderDispatchJournal';
+import { bindOrderRecoveryLifecycle } from '../../../components/UI/PredictNext/services/internal/orderRecoveryLifecycle';
+import { parsePredictConfig, resolveVenueAuthProfile } from '../../../components/UI/PredictNext/config/predictConfig';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
   PredictMarketDataService,
@@ -139,14 +143,59 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
     trading: adapter.trading,
     venueId: adapter.venueId,
+    journal: createOrderDispatchJournal(StorageWrapper),
   });
   // An Active Venue change cancels every Preview that has not crossed the
   // submission boundary. It is watched here, not on a screen, so it applies
   // whether or not the Order sheet is mounted; committed operations keep
   // being observed.
-  subscribeToActiveVenueChanges(
+  const unsubscribeVenue = subscribeToActiveVenueChanges(
     { getState, subscribe: (listener) => store.subscribe(listener) },
     () => controller.cancelUncommittedPreviews(),
   );
+  let recoverySignedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+  const cleanupRecovery = bindOrderRecoveryLifecycle({
+    service: controller,
+    isUnlocked: () => initMessenger.call('KeyringController:getState').isUnlocked,
+    isSignedIn: () => initMessenger.call('AuthenticationController:getState').isSignedIn,
+    isEnabled: () => resolveVenueAuthProfile(parsePredictConfig(
+      getState().engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.predictConfig,
+    )) !== undefined,
+    getIdentityScope: async () => {
+      const profile = await initMessenger.call('AuthenticationController:getSessionProfile');
+      return profile.canonicalProfileId || undefined;
+    },
+    subscribeSession: (listener) => {
+      const changed = () => listener();
+      const authenticationChanged = () => {
+        const signedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+        if (signedIn !== recoverySignedIn) {
+          recoverySignedIn = signedIn;
+          controller.suspendRecovery();
+          listener();
+        }
+      };
+      const profileChanged = () => {
+        controller.suspendRecovery();
+        listener();
+      };
+      initMessenger.subscribe('KeyringController:lock', changed);
+      initMessenger.subscribe('KeyringController:unlock', changed);
+      initMessenger.subscribe('AuthenticationController:stateChange', authenticationChanged);
+      initMessenger.subscribe('AuthenticationController:profileSignIn', profileChanged);
+      initMessenger.subscribe('RemoteFeatureFlagController:stateChange', changed);
+      return () => {
+        initMessenger.unsubscribe('KeyringController:lock', changed);
+        initMessenger.unsubscribe('KeyringController:unlock', changed);
+        initMessenger.unsubscribe('AuthenticationController:stateChange', authenticationChanged);
+        initMessenger.unsubscribe('AuthenticationController:profileSignIn', profileChanged);
+        initMessenger.unsubscribe('RemoteFeatureFlagController:stateChange', changed);
+      };
+    },
+  });
+  controller.setLifecycleCleanup(() => {
+    unsubscribeVenue();
+    cleanupRecovery();
+  });
   return { controller };
 };

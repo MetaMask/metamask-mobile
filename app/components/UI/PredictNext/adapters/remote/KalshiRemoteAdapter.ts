@@ -7,6 +7,7 @@ import {
 import {
   parsePredictOrderPreview,
   parsePredictOrderReceipt,
+  parsePredictUnresolvedOrdersPage,
 } from '../../contracts/v1/trading';
 import {
   parsePredictEvent,
@@ -243,6 +244,18 @@ export class KalshiRemoteAdapter {
             result.venueId !== this.venueId ||
             result.previewId !== previewId
           ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error, 'observe');
+        }
+      },
+      listUnresolvedOrders: async (params, options) => {
+        try {
+          const value = await client.listUnresolvedOrders(this.venueId, params, options);
+          const result = parsePredictUnresolvedOrdersPage(value);
+          if (result.operations.some(({ receipt }) => receipt.venueId !== this.venueId)) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

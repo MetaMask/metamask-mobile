@@ -14,6 +14,7 @@ import {
   size,
   string,
   union,
+  unknown,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -21,6 +22,7 @@ import type {
   PredictBuyOrderReceipt,
   PredictOrderPreview,
   PredictOrderReceipt,
+  PredictUnresolvedOrdersPage,
   PredictSellOrderPreview,
   PredictSellOrderReceipt,
 } from '../../types';
@@ -240,9 +242,9 @@ export const parsePredictOrderPreview = (
  * Parses a server Order Receipt response for a committed Order, branching on
  * the Order Action per the shared version-tolerant rules. One Order produces
  * exactly one receipt; in-progress and reconciliation-required statuses
- * observe by committing the same Preview again. Nullable fill fields arrive
- * as explicit nulls until the Venue reports them, anything the backend does
- * not send fails validation, and a variant carrying the other action's
+ * observe through GET only. Nullable fill fields arrive as explicit nulls
+ * until the Venue reports them. Anything the backend does not send fails
+ * validation, and a variant carrying the other action's
  * fields fails validation rather than being masked away.
  */
 export const parsePredictOrderReceipt = (
@@ -262,6 +264,54 @@ export const parsePredictOrderReceipt = (
       SELL_ONLY_RECEIPT_FIELDS,
       'Order Receipt',
     );
+  } catch {
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+  }
+};
+
+const unresolvedOrdersPageSchema = object({
+  operations: size(
+    array(object({
+      previewId: entityId,
+      receipt: unknown(),
+      createdAt: timestamp,
+      submittedAt: nullable(timestamp),
+    })),
+    0,
+    100,
+  ),
+  nextCursor: optional(size(string(), 1, 4096)),
+});
+
+/** Discovery carries safe operation references and canonical receipts only;
+ * credential/body additions are masked at this boundary. */
+export const parsePredictUnresolvedOrdersPage = (
+  value: unknown,
+): PredictUnresolvedOrdersPage => {
+  try {
+    const page = mask(value, unresolvedOrdersPageSchema);
+    const seen = new Set<string>();
+    const operations = page.operations.map((operation) => {
+      const receipt = parsePredictOrderReceipt(operation.receipt);
+      if (
+        receipt.previewId !== operation.previewId ||
+        ![
+          'pending',
+          'submitted',
+          'reconciliation_required',
+          'needs_manual_review',
+        ].includes(receipt.status) ||
+        seen.has(operation.previewId)
+      ) {
+        throw new Error('Invalid unresolved operation.');
+      }
+      seen.add(operation.previewId);
+      return { ...operation, receipt };
+    });
+    return {
+      operations,
+      ...(page.nextCursor && { nextCursor: page.nextCursor }),
+    } as PredictUnresolvedOrdersPage;
   } catch {
     throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }

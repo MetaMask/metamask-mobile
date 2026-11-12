@@ -96,6 +96,11 @@ export interface PredictApiReadTransport {
     params: FetchOrderCommitParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  listUnresolvedOrders(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
 
 type PredictApiReadQueryParams = FetchFeedParams &
@@ -103,6 +108,7 @@ type PredictApiReadQueryParams = FetchFeedParams &
     range?: PredictMarketHistoryRange;
     status?: string;
     sort?: FetchPositionsParams['sort'];
+    state?: 'unresolved';
   };
 
 export interface PredictApiReadClientOptions {
@@ -381,6 +387,19 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#getSigned(
       ['v1', 'venues', venueId, 'orders', params.previewId],
       undefined,
+      options,
+    );
+  }
+
+  /** Discovery never asks for a venue signature or submits an Order. */
+  listUnresolvedOrders(
+    venueId: PredictVenueId,
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'orders'],
+      { ...params, state: 'unresolved' },
       options,
     );
   }

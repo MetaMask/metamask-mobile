@@ -1387,7 +1387,7 @@ export class Engine {
     // reads are dropped, so no receipt can refill the cache afterwards. The
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
-      PredictOrderService.abandonCommits();
+      await PredictOrderService.reset();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.

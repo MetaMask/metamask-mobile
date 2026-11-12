@@ -11,7 +11,7 @@ import {
   type PredictOrderServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
 import type { PredictDeviceAuthServiceActions } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
-import type { RootMessenger } from '../types';
+import type { GlobalActions, GlobalEvents, RootMessenger } from '../types';
 
 /**
  * Get the messenger for the Predict Order service. This is scoped to the
@@ -44,6 +44,11 @@ export const getPredictOrderServiceMessenger = (
 export type PredictOrderServiceInitMessenger = Messenger<
   'PredictOrderServiceInit',
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | Extract<GlobalActions, { type:
+      | 'AuthenticationController:getSessionProfile'
+      | 'AuthenticationController:getState'
+      | 'KeyringController:getState'
+    }>
   | Extract<
       PredictDeviceAuthServiceActions,
       {
@@ -53,7 +58,13 @@ export type PredictOrderServiceInitMessenger = Messenger<
           | 'PredictDeviceAuthService:invalidateA2t';
       }
     >,
-  never
+  Extract<GlobalEvents, { type:
+    | 'KeyringController:lock'
+    | 'KeyringController:unlock'
+    | 'AuthenticationController:stateChange'
+    | 'AuthenticationController:profileSignIn'
+    | 'RemoteFeatureFlagController:stateChange'
+  }>
 >;
 
 export const getPredictOrderServiceInitMessenger = (
@@ -69,11 +80,20 @@ export const getPredictOrderServiceInitMessenger = (
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
+      'AuthenticationController:getSessionProfile',
+      'AuthenticationController:getState',
+      'KeyringController:getState',
       'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:signRead',
       'PredictDeviceAuthService:invalidateA2t',
     ],
-    events: [],
+    events: [
+      'KeyringController:lock',
+      'KeyringController:unlock',
+      'AuthenticationController:stateChange',
+      'AuthenticationController:profileSignIn',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
   return messenger;

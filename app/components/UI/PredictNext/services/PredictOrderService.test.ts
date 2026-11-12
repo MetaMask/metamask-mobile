@@ -136,7 +136,12 @@ const observeOrder = jest.fn(
     venueCall(previewId, undefined, options),
 );
 const invalidateQueries = jest.fn<Promise<void>, []>();
-const trading = { previewOrder, commitOrder, observeOrder };
+const trading = {
+  previewOrder,
+  commitOrder,
+  observeOrder,
+  listUnresolvedOrders: jest.fn().mockResolvedValue({ operations: [] }),
+};
 
 /** Every service a test builds; destroyed after each test so background
  * observation timers never leak into the next one. */

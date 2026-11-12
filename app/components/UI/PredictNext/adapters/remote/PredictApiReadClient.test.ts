@@ -1136,4 +1136,39 @@ describe('PredictApiReadClient', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });
+  it('discovers unresolved orders with owner bearer auth and opaque pagination only', async () => {
+    const signRead = jest.fn();
+    const signOperation = jest.fn();
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: async () => 'secret-token',
+      signRead,
+      signOperation,
+    });
+    const signal = new AbortController().signal;
+    fetchMock.mockResolvedValueOnce(createResponse({
+      json: { operations: [], nextCursor: 'next-page' },
+    }));
+
+    await expect(client.listUnresolvedOrders(
+      venueId,
+      { cursor: 'opaque/page+one', limit: 25 },
+      { signal },
+    )).resolves.toEqual({ operations: [], nextCursor: 'next-page' });
+    const [url, init] = fetchMock.mock.calls[0];
+    const parsed = new URL(url as string);
+    expect(parsed.pathname).toBe('/api/v1/venues/kalshi/orders');
+    expect(Object.fromEntries(parsed.searchParams)).toEqual({
+      cursor: 'opaque/page+one', limit: '25', state: 'unresolved',
+    });
+    expect(init).toMatchObject({
+      method: 'GET', signal,
+      headers: { Authorization: 'Bearer secret-token' },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(signRead).not.toHaveBeenCalled();
+    expect(signOperation).not.toHaveBeenCalled();
+  });
 });

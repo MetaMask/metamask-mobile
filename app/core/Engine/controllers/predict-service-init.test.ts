@@ -49,6 +49,9 @@ import {
 jest.mock('../../../store', () => ({
   store: { subscribe: jest.fn() },
 }));
+beforeEach(() => {
+  jest.mocked(store.subscribe).mockReturnValue(jest.fn());
+});
 
 /** The Redux state an Active Venue resolves from. */
 const activeVenueState = (venue: 'kalshi' | 'polymarket') => ({
@@ -152,13 +155,17 @@ describe('Predict service initialization', () => {
       namespace: 'PredictOrderService',
       parent: rootMessenger,
     });
-    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const call = jest.fn((action: string) => {
+      if (action === 'KeyringController:getState') return { isUnlocked: false };
+      if (action === 'AuthenticationController:getState') return { isSignedIn: false };
+      return Promise.resolve('test-bearer-token');
+    });
     const request = {
       ...buildMessengerClientInitRequestMock(
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
-      initMessenger: { call } as never,
+      initMessenger: { call, subscribe: jest.fn(), unsubscribe: jest.fn() } as never,
       getState: jest.fn(() => activeVenueState('kalshi')) as never,
     };
     const { controller } = predictOrderServiceInit(request);
@@ -193,7 +200,11 @@ describe('Predict service initialization', () => {
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
-      initMessenger: { call: jest.fn() } as never,
+      initMessenger: {
+        call: jest.fn(() => ({ isUnlocked: false, isSignedIn: false })),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as never,
       getState: jest.fn(() => state) as never,
     });
     const cancel = jest.spyOn(controller, 'cancelUncommittedPreviews');

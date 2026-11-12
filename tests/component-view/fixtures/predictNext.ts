@@ -674,9 +674,16 @@ export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
   messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) =>
-      answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[])),
+    (action: string, ...params: unknown[]) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
+      return answerPredictNextCatalog(action) ??
+        implementation(action, ...(params as never[]));
+    },
   );
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
@@ -1117,6 +1124,12 @@ export const configurePredictNextFeeds = ({
   resetPredictNextCatalog();
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
         return catalogResponse;

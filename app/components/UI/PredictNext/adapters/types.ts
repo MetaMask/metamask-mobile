@@ -21,6 +21,7 @@ import type {
   PredictSearchResults,
   PredictVenueCatalog,
   PredictVenueStatus,
+  PredictUnresolvedOrdersPage,
 } from '../types';
 
 export interface VenuePortfolioAdapter {
@@ -51,8 +52,8 @@ export interface VenueTradingAdapter {
   ): Promise<PredictOrderPreview>;
   /** Commits an approved Order Preview and returns its canonical Order
    * Receipt. Sends the `create_order` bytes the phone renders and signs
-   * from `signing`. Safe to repeat for the same `previewId`, never
-   * automatic: each call needs a signature. */
+   * from `signing`. Only the first dispatch may submit; all recovery uses
+   * observeOrder and never reconstructs an approval. */
   commitOrder(
     previewId: string,
     signing: SignOperationInput,
@@ -60,11 +61,16 @@ export interface VenueTradingAdapter {
   ): Promise<PredictOrderReceipt>;
   /** The operation's canonical Order Receipt. Never submits; while the
    * backend reconciles an ambiguous submission it device-signs the venue
-   * order scan. `ORDER_NOT_FOUND` when no operation exists. */
+   * order scan. A missing row does not resolve an earlier dispatch. */
   observeOrder(
     previewId: string,
     options?: PredictReadOptions,
   ): Promise<PredictOrderReceipt>;
+  /** Owner-scoped bearer-only discovery; never signs or submits a mutation. */
+  listUnresolvedOrders(
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictUnresolvedOrdersPage>;
 }
 
 export interface VenueMarketDataAdapter {

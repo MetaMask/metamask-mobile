@@ -1,4 +1,8 @@
-import { parsePredictOrderPreview, parsePredictOrderReceipt } from './trading';
+import {
+  parsePredictOrderPreview,
+  parsePredictOrderReceipt,
+  parsePredictUnresolvedOrdersPage,
+} from './trading';
 
 const validPreview = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -522,5 +526,48 @@ describe('parsePredictOrderReceipt', () => {
     });
 
     expect(Object.hasOwn(receipt, 'venueTicker')).toBe(false);
+  });
+});
+
+describe('parsePredictUnresolvedOrdersPage', () => {
+  const entry = {
+    previewId: validReceipt.previewId,
+    receipt: { ...validReceipt, status: 'reconciliation_required' },
+    createdAt: '2026-03-01T12:00:00.000Z',
+    submittedAt: '2026-03-01T12:00:01.000Z',
+  };
+
+  it('parses paginated recovery references and masks credential/body additions', () => {
+    const page = parsePredictUnresolvedOrdersPage({
+      operations: [{ ...entry, token: 'discard', body: 'discard' }],
+      nextCursor: 'opaque-next',
+      authorization: 'discard',
+    });
+    expect(page).toEqual({ operations: [entry], nextCursor: 'opaque-next' });
+    expect(JSON.stringify(page)).not.toContain('discard');
+  });
+
+  it('includes manual review without implying another scan or submission', () => {
+    expect(parsePredictUnresolvedOrdersPage({
+      operations: [{ ...entry, submittedAt: null, receipt: { ...entry.receipt, status: 'needs_manual_review' } }],
+    }).operations[0].receipt.status).toBe('needs_manual_review');
+  });
+
+  it('accepts an empty intermediate discovery page with continuation', () => {
+    expect(parsePredictUnresolvedOrdersPage({ operations: [], nextCursor: 'next' }))
+      .toEqual({ operations: [], nextCursor: 'next' });
+  });
+
+  it.each([
+    { operations: [{ ...entry, previewId: 'other-preview' }] },
+    { operations: [{ ...entry, createdAt: 'not-a-date' }] },
+    { operations: [{ ...entry, submittedAt: undefined }] },
+    { operations: [{ ...entry, receipt: { ...entry.receipt, status: 'filled' } }] },
+    { operations: [entry, entry] },
+    { operations: [entry], nextCursor: '' },
+    { operations: [entry], nextCursor: 'x'.repeat(4097) },
+    { operations: Array.from({ length: 101 }, (_, index) => ({ ...entry, previewId: `preview-${index}`, receipt: { ...entry.receipt, previewId: `preview-${index}` } })) },
+  ])('fails closed on malformed or terminal discovery data', (value) => {
+    expect(() => parsePredictUnresolvedOrdersPage(value)).toThrow();
   });
 });
