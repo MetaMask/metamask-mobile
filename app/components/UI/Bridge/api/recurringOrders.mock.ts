@@ -194,6 +194,18 @@ export const MOCK_RECURRING_OPEN_ORDER = createMockRecurringOrder({
   hasAttemptIssue: true,
 });
 
+export const MOCK_RECURRING_PREPARE_QUERY: PrepareRecurringDelegationQuery = {
+  clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
+  accountAddress: MOCK_RECURRING_ACCOUNT,
+  srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+  srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
+  destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+  slippage: 0.5,
+  every: 2,
+  unit: 'day',
+  repeatCount: 4,
+};
+
 export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
   id: 'mock-recurring-order-open-secondary',
   state: RecurringOrderState.Open,

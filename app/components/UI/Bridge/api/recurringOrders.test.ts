@@ -16,6 +16,7 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_OPEN_ORDER_3,
   MOCK_RECURRING_ACCOUNT,
+  MOCK_RECURRING_PREPARE_QUERY,
   MOCK_RECURRING_WALLET_ADDRESS,
 } from './recurringOrders.mock';
 import {
@@ -58,17 +59,7 @@ describe('recurring orders API', () => {
 
   describe('prepareRecurringDelegation', () => {
     it('returns an ADR-shaped prepared delegation from the mock', async () => {
-      const query = {
-        clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
-        accountAddress: MOCK_RECURRING_ACCOUNT,
-        srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
-        srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
-        destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
-        slippage: 0.5,
-        every: 2,
-        unit: 'day' as const,
-        repeatCount: 4,
-      };
+      const query = MOCK_RECURRING_PREPARE_QUERY;
 
       const result = await prepareRecurringDelegation(query);
 
@@ -405,14 +396,8 @@ describe('recurring orders API', () => {
   it('does not fetch a JWT while all six API routes are mock-gated', async () => {
     await Promise.all([
       prepareRecurringDelegation({
-        clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
-        accountAddress: MOCK_RECURRING_ACCOUNT,
-        srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
-        srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
-        destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
-        slippage: 0.5,
+        ...MOCK_RECURRING_PREPARE_QUERY,
         every: 1,
-        unit: 'day',
         repeatCount: 5,
       }),
       createRecurringOrder(),

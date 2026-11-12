@@ -2,6 +2,7 @@ import {
   createMockPrepareRecurringDelegationResponse,
   MOCK_RECURRING_ACCOUNT,
   MOCK_RECURRING_OPEN_ORDER,
+  MOCK_RECURRING_PREPARE_QUERY,
 } from './recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from './recurringSwaps.mock';
 import {
@@ -11,7 +12,6 @@ import {
 import {
   RecurringOrderState,
   type CreateRecurringOrderRequest,
-  type PrepareRecurringDelegationQuery,
 } from './recurringOrders.types';
 
 const MOCK_BASE_URL = 'https://recurring-orders.test';
@@ -29,17 +29,7 @@ jest.mock('./getRecurringOrdersBaseUrl', () => ({
   getRecurringOrdersBaseUrl: () => MOCK_BASE_URL,
 }));
 
-const PREPARE_QUERY: PrepareRecurringDelegationQuery = {
-  clientOrderId: '26b0d825-79da-45a9-ab7d-1397a091b80e',
-  accountAddress: MOCK_RECURRING_ACCOUNT,
-  srcAssetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
-  srcAmount: MOCK_RECURRING_OPEN_ORDER.src.amount,
-  destAssetId: MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
-  slippage: 0.5,
-  every: 2,
-  unit: 'day',
-  repeatCount: 4,
-};
+const PREPARE_QUERY = MOCK_RECURRING_PREPARE_QUERY;
 const PREPARE_RESPONSE =
   createMockPrepareRecurringDelegationResponse(PREPARE_QUERY);
 const CREATE_REQUEST: CreateRecurringOrderRequest = {
