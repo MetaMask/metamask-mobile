@@ -547,6 +547,7 @@ const Routes = {
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
+    ACCOUNT_STATUS: 'MoneyAccountStatus',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
