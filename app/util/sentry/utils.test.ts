@@ -1513,7 +1513,9 @@ describe('setupSentry', () => {
 
   it('registers outgoing request annotation when a Sentry client exists', async () => {
     const on = jest.fn();
-    mockedGetClient.mockReturnValue({ on } as ReturnType<typeof getClient>);
+    mockedGetClient.mockReturnValue({
+      on,
+    } as unknown as ReturnType<typeof getClient>);
 
     await setupSentry();
 
