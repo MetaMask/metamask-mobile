@@ -6,6 +6,7 @@ import {
   type QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
+  annotateTraceByRequest,
   endTrace,
   trace,
   TraceName,
@@ -26,57 +27,50 @@ interface StartSwapQuoteFetchTraceParams {
   isRefresh: boolean;
 }
 
-// Phase offsets in ms from span start, attached as span attributes on finish.
-interface PhaseMarks {
-  request_sent_ms?: number;
-  first_quote_in_state_ms?: number;
-}
-
 let activeTraceId: string | undefined;
-let activeStartTime = 0;
-let phaseMarks: PhaseMarks = {};
-let unsubscribeFromStore: (() => void) | undefined;
+let stopWatchingQuotes: (() => void) | undefined;
 
-const getReduxQuotes = (): unknown[] | undefined =>
-  (ReduxService.store.getState() as RootState).engine?.backgroundState
-    ?.BridgeController?.quotes;
-
-const stopWatchingStore = (): void => {
+const unwatchQuotes = (): void => {
   try {
-    unsubscribeFromStore?.();
+    stopWatchingQuotes?.();
   } catch {
     // Telemetry only.
   }
-  unsubscribeFromStore = undefined;
+  stopWatchingQuotes = undefined;
 };
 
-// Runs after each Redux dispatch, not inside the controller's quote handling.
-// Quotes from a previous request are excluded by comparing against the array
-// reference present when the span started.
-const watchFirstQuoteInState = (id: string): void => {
-  stopWatchingStore();
+// Reads phase times from Redux after each dispatch, so nothing runs inside the
+// controller's quote processing. quotesLastFetched is set by the controller
+// just before it fetches; quotes present at span start are stale.
+const watchQuotePhases = (id: string, startTime: number): void => {
   try {
-    const baselineQuotes = getReduxQuotes();
-    unsubscribeFromStore = ReduxService.store.subscribe(() => {
+    const { store } = ReduxService;
+    const getBridgeState = () =>
+      (store.getState() as RootState).engine.backgroundState.BridgeController;
+    const staleQuotes = getBridgeState().quotes;
+    let requestSentMarked = false;
+    stopWatchingQuotes = store.subscribe(() => {
       try {
-        if (
-          activeTraceId !== id ||
-          phaseMarks.first_quote_in_state_ms !== undefined
-        ) {
-          stopWatchingStore();
-          return;
+        const { quotes, quotesLastFetched } = getBridgeState();
+        const span = { name: TraceName.SwapQuoteFetch, id };
+        if (!requestSentMarked && (quotesLastFetched ?? 0) >= startTime) {
+          requestSentMarked = true;
+          annotateTraceByRequest(span, {
+            request_sent_ms: (quotesLastFetched ?? 0) - startTime,
+          });
         }
-        const quotes = getReduxQuotes();
-        if (quotes && quotes.length > 0 && quotes !== baselineQuotes) {
-          phaseMarks.first_quote_in_state_ms = Date.now() - activeStartTime;
-          stopWatchingStore();
+        if (quotes.length > 0 && quotes !== staleQuotes) {
+          annotateTraceByRequest(span, {
+            first_quote_in_state_ms: Date.now() - startTime,
+          });
+          unwatchQuotes();
         }
       } catch {
-        stopWatchingStore();
+        unwatchQuotes();
       }
     });
   } catch {
-    unsubscribeFromStore = undefined;
+    stopWatchingQuotes = undefined;
   }
 };
 
@@ -89,25 +83,19 @@ const finishTrace = (
     return;
   }
 
-  const endTime = Date.now();
   endTrace({
     name: TraceName.SwapQuoteFetch,
     id,
-    timestamp: endTime,
+    timestamp: Date.now(),
     data: {
       result,
       ...(result === 'no_quotes' || result === 'error'
         ? { no_quote_reason: reason ?? 'generic_error' }
         : {}),
-      ...phaseMarks,
-      ...(result === 'success'
-        ? { first_quote_rendered_ms: endTime - activeStartTime }
-        : {}),
     },
   });
   activeTraceId = undefined;
-  phaseMarks = {};
-  stopWatchingStore();
+  unwatchQuotes();
 };
 
 export const swapQuoteFetchTrace = {
@@ -152,21 +140,8 @@ export const swapQuoteFetchTrace = {
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
-    activeStartTime = startTime;
-    phaseMarks = {};
-    watchFirstQuoteInState(id);
+    watchQuotePhases(id, startTime);
     return id;
-  },
-
-  /**
-   * Records when BridgeController has accepted the request params and started
-   * polling, i.e. when the quote request is handed off to the controller.
-   */
-  markRequestSent(id: string): void {
-    if (activeTraceId !== id || phaseMarks.request_sent_ms !== undefined) {
-      return;
-    }
-    phaseMarks.request_sent_ms = Date.now() - activeStartTime;
   },
 
   finish(
