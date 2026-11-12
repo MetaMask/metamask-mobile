@@ -20,9 +20,17 @@ import {
   type ImmersveNextAction,
 } from '../../util/immersvePrerequisites';
 
+// Finish setup returns a cleanup from useFocusEffect. Keep it so a test can
+// blur the screen and press the button again.
+let mockBlurScreen: (() => void) | null = null;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-  useFocusEffect: (effect: () => void) => effect(),
+  useFocusEffect: (effect: () => void | (() => void)) => {
+    const cleanup = effect();
+    if (typeof cleanup === 'function') {
+      mockBlurScreen = cleanup;
+    }
+  },
 }));
 
 const mockReduxDispatch = jest.fn();
@@ -294,6 +302,12 @@ const closeWebview = () => {
   });
 };
 
+const blurScreen = () => {
+  act(() => {
+    mockBlurScreen?.();
+  });
+};
+
 const fundingAction: ImmersveNextAction = {
   type: 'funding',
   write: {
@@ -316,6 +330,7 @@ describe('ImmersveKYCProcessing', () => {
     mockParams = { countryKey: 'GB' };
     mockIsMoneyAccountCountry = false;
     mockCapturedOnClose = null;
+    mockBlurScreen = null;
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       reset: mockReset,
@@ -466,6 +481,36 @@ describe('ImmersveKYCProcessing', () => {
     });
     expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ['pending', { type: 'pending' } as ImmersveNextAction],
+    ['expected spend', { type: 'expected_spend' } as ImmersveNextAction],
+  ])(
+    'keeps Try again on screen for a failed %s poll and times out once the error clears',
+    (_label, action) => {
+      setNextAction(action, 'Something went wrong');
+      const { getByTestId, rerender } = render(<ImmersveKYCProcessing />);
+
+      expect(getByTestId('immersve-kyc-processing-retry-button')).toBeTruthy();
+
+      act(() => {
+        jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+      });
+      expect(mockExitCardFlow).not.toHaveBeenCalled();
+      expect(mockNotifyKycInReview).not.toHaveBeenCalled();
+
+      setNextAction(action);
+      rerender(<ImmersveKYCProcessing />);
+      act(() => {
+        jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+      });
+
+      expect(mockExitCardFlow).toHaveBeenCalledWith({
+        fallback: 'card-home-pending',
+      });
+      expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('does not time out to Card home while the webview is open', () => {
     setNextAction({ type: 'kyc', url: KYC_URL });
@@ -676,6 +721,23 @@ describe('ImmersveKYCProcessing', () => {
     },
   );
 
+  it('routes Finish setup again after the screen blurs', () => {
+    setNextAction(fundingAction);
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
+    expect(mockRoute).toHaveBeenCalledTimes(1);
+
+    blurScreen();
+    fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
+
+    expect(mockRoute).toHaveBeenCalledTimes(2);
+    expect(mockRoute).toHaveBeenLastCalledWith(fundingAction, {
+      countryKey: 'GB',
+      showAccountExistsToast: false,
+    });
+  });
+
   it('starts Money account approval in the background before Finish setup', () => {
     mockIsMoneyAccountCountry = true;
     setNextAction(fundingAction);
@@ -689,6 +751,15 @@ describe('ImmersveKYCProcessing', () => {
       countryKey: 'GB',
       showAccountExistsToast: false,
     });
+  });
+
+  it('leaves Money account approval unstarted for an active card', () => {
+    mockIsMoneyAccountCountry = true;
+    setNextAction({ type: 'active' });
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId(CompleteSelectors.TITLE)).toBeTruthy();
+    expect(mockApproveFunding).not.toHaveBeenCalled();
   });
 
   it('holds Verifying for 2s after the webview closes before a fast approval', () => {
@@ -718,6 +789,33 @@ describe('ImmersveKYCProcessing', () => {
       { type: 'active' },
       { countryKey: 'GB', showAccountExistsToast: false },
     );
+  });
+
+  it('keeps Verifying for the dwell when the close poll already failed', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    setNextAction({ type: 'kyc', url: KYC_URL }, 'Something went wrong');
+    rerender(<ImmersveKYCProcessing />);
+    closeWebview();
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      IN_PROGRESS_TITLE,
+    );
+    expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS - 1);
+    });
+    expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-retry-button')).toBeTruthy();
   });
 
   it('re-polls when the KYC webview reports a close', () => {
@@ -900,6 +998,23 @@ describe('ImmersveKYCProcessing', () => {
     );
     expect(announceForAccessibility).toHaveBeenCalledWith(
       'card.card_onboarding.immersve_kyc_processing.info_needed_title. card.card_onboarding.immersve_kyc_processing.info_needed_description',
+    );
+  });
+
+  it('shows the reason Immersve needs more information', () => {
+    setNextAction({
+      type: 'kyc',
+      url: KYC_URL,
+      ctaHint: 'KYC_INFORMATION_NEEDED',
+      reasons: ['PROOF_OF_ADDRESS_REQUIRED'],
+    });
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('immersve-kyc-processing-reason').props.children).toBe(
+      'card.card_onboarding.kyc_rejected.reasons.proof_of_address',
+    );
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_onboarding.immersve_kyc_processing.info_needed_title. card.card_onboarding.immersve_kyc_processing.info_needed_description. card.card_onboarding.kyc_rejected.reasons.proof_of_address',
     );
   });
 
