@@ -308,7 +308,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isInputFocused && (
         <>
-          <Box twClassName="flex-row gap-3 px-4 pt-3 mb-3">
+          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
@@ -355,7 +355,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {isEditingLimitPrice && (
         <>
-          <Box twClassName="flex-row gap-3 px-4 pt-3 mb-3">
+          <Box twClassName="flex-row gap-2 px-4 pt-3 mb-3">
             {limitPriceInput.presets.map((preset) => (
               <Button
                 key={preset.testID}

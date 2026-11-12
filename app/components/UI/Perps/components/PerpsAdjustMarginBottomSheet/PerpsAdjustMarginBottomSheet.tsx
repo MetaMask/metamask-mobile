@@ -770,7 +770,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
             <Box
               accessible={false}
               flexDirection={BoxFlexDirection.Row}
-              gap={3}
+              gap={2}
             >
               {[
                 { label: '25%', percentage: 0.25 },
