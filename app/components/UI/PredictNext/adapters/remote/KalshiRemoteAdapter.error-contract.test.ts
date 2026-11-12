@@ -33,6 +33,7 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
   venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
   venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+  client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
   operation_not_found: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
   venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
   venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,

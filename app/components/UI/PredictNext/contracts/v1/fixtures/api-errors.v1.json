@@ -19,6 +19,11 @@
       "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
+    "client_order_id_conflict": {
+      "status": 409,
+      "phases": ["commit"],
+      "commitRelay": "not_relayed_this_invocation"
+    },
     "insufficient_balance": {
       "status": 422,
       "phases": ["preview", "commit"],

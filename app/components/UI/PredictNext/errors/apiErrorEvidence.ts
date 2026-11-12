@@ -26,6 +26,7 @@ const COMMIT_PRE_RELAY_CODES: Record<string, true | undefined> = {
   insufficient_position: true,
   venue_unavailable: true,
   venue_preview_mismatch: true,
+  client_order_id_conflict: true,
   venue_authorization_malformed: true,
   venue_authorization_required: true,
   venue_authorization_invalid: true,

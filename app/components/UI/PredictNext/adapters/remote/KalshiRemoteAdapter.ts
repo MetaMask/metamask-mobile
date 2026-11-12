@@ -60,6 +60,7 @@ const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
     position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
     venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
     venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+    client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
     venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
     venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,
     venue_authorization_invalid: PredictErrorCode.UNAUTHENTICATED,
