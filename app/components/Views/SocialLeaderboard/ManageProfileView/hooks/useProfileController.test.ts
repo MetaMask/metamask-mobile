@@ -34,11 +34,11 @@ jest.mock('../../../../../core/Engine', () => ({
       disconnectX: (...args: unknown[]) => mockDisconnectX(...args),
       checkUsernameAvailability: (...args: unknown[]) =>
         mockCheckUsernameAvailability(...args),
-      checkDisplayNameValidity: (...args: unknown[]) =>
-        mockCheckDisplayNameValidity(...args),
     },
     ProfileService: {
       invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      checkDisplayNameValidity: (...args: unknown[]) =>
+        mockCheckDisplayNameValidity(...args),
     },
   },
 }));

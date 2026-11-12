@@ -308,10 +308,10 @@ const restoreProfileControllerMocks = () => {
       errors: [],
     });
   jest
-    .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+    .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
     .mockReset();
   jest
-    .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+    .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
     .mockResolvedValue({ valid: true });
   jest
     .mocked(Engine.context.AuthenticationController.getSessionProfile)
@@ -1032,11 +1032,11 @@ describe('SocialProfileOnboardingView', () => {
     });
 
     expect(
-      Engine.context.ProfileController.checkDisplayNameValidity,
+      Engine.context.ProfileService.checkDisplayNameValidity,
     ).not.toHaveBeenCalled();
 
     jest
-      .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
       .mockResolvedValueOnce({ valid: false });
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
@@ -1048,7 +1048,7 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      Engine.context.ProfileController.checkDisplayNameValidity,
+      Engine.context.ProfileService.checkDisplayNameValidity,
     ).toHaveBeenCalledWith('Bad Name');
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
@@ -1386,7 +1386,7 @@ describe('SocialProfileOnboardingView', () => {
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
     jest
-      .mocked(Engine.context.ProfileController.checkDisplayNameValidity)
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
       .mockResolvedValue({ valid: false });
     await renderOnboarding();
 
@@ -1405,7 +1405,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
     expect(
-      Engine.context.ProfileController.checkDisplayNameValidity,
+      Engine.context.ProfileService.checkDisplayNameValidity,
     ).not.toHaveBeenCalled();
     expect(
       screen.queryByText(

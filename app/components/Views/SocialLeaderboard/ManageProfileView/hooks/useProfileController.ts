@@ -143,9 +143,7 @@ export const useProfileController = (): UseProfileControllerResult => {
 
   const checkDisplayNameValidity = useCallback(
     async (displayName: string): Promise<FieldValidityResponse> =>
-      await Engine.context.ProfileController.checkDisplayNameValidity(
-        displayName,
-      ),
+      await Engine.context.ProfileService.checkDisplayNameValidity(displayName),
     [],
   );
 

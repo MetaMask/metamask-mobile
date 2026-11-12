@@ -253,7 +253,6 @@ jest.mock('../../app/core/Engine', () => {
           normalized: 'wen_cat',
           errors: [],
         }),
-        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
         connectX: jest.fn().mockResolvedValue({
           xUserId: 'x-user-1',
           xProfileUrl: 'https://x.com/degangirl',
@@ -282,6 +281,9 @@ jest.mock('../../app/core/Engine', () => {
         }),
         fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
         disconnectX: jest.fn().mockResolvedValue(undefined),
+      },
+      ProfileService: {
+        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
       },
       GeolocationController: {
         state: {

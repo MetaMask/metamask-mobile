@@ -26,7 +26,6 @@ export function getProfileControllerMessenger(
       'ProfileService:updateProfile',
       'ProfileService:deleteProfile',
       'ProfileService:checkUsernameAvailability',
-      'ProfileService:checkDisplayNameValidity',
       'ProfileService:getXAuthUrl',
       'ProfileService:connectX',
       'ProfileService:getXAccount',
