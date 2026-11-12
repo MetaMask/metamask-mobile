@@ -1436,7 +1436,11 @@
         },
         "following": {
           "title": "No posts yet",
-          "description": "Follow traders to see their posts here."
+          "description": "No one has posted yet."
+        },
+        "following_suggestions": {
+          "title": "Suggested for you",
+          "description": "Follow a few traders to populate your Following feed."
         },
         "live": {
           "title": "No trades yet",
@@ -1498,6 +1502,7 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_original": "See original",
       "see_more": "See more",
       "see_less": "See less",
       "translating": "Translating...",

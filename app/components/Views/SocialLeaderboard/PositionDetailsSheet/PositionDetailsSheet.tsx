@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Platform,
   View,
   type LayoutChangeEvent,
   type NativeScrollEvent,
@@ -17,6 +16,7 @@ import {
   Box,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   getPerpsDisplaySymbol,
   type PerpsMarketData,
@@ -71,7 +71,9 @@ import {
   formatTradeUnitPrice,
 } from '../../../UI/SocialFeed/utils/formatters';
 import { deriveMarketCapPerPrice } from '../../../UI/SocialFeed/utils/toSocialV1FeedItem';
-import PositionSheetChart from './components/PositionSheetChart';
+import PositionSheetChart, {
+  POSITION_SHEET_CHART_HEIGHT,
+} from './components/PositionSheetChart';
 import PositionSheetChartControls, {
   type HeadlineValueMode,
 } from './components/PositionSheetChartControls';
@@ -89,6 +91,12 @@ import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 
+/** Leaves a strip of the screen behind the sheet visible, like an iOS page sheet. */
+const SHEET_HEIGHT_RATIO = 0.9;
+const MIN_CHART_HEIGHT = 160;
+const MAX_CHART_HEIGHT = 400;
+/** Downward finger speed at the top that counts as a fling, in points per ms. */
+const DISMISS_FLING_VELOCITY = 1;
 const { BlockedReason, Interaction, Screen } = SocialEvent;
 
 const addressesMatch = (
@@ -108,6 +116,7 @@ const addressesMatch = (
  */
 const PositionDetailsSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const {
     positionId,
@@ -200,33 +209,47 @@ const PositionDetailsSheet = () => {
     setHeadlineChoice(null);
   }
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
-  const [headerHeight, setHeaderHeight] = useState(0);
-  const [pinnedFooterHeight, setPinnedFooterHeight] = useState(0);
   const { height: frameHeight } = useSafeAreaFrame();
-  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
-  // Matches the padding the design-system sheet adds under its content.
-  const sheetBottomPadding =
-    Platform.OS === 'ios' || Platform.OS === 'macos'
-      ? bottomInset
-      : bottomInset + 16;
-  const maxScrollHeight = Math.max(
-    0,
-    frameHeight -
-      topInset -
-      sheetBottomPadding -
-      headerHeight -
-      (isTabsExpanded ? pinnedFooterHeight : 0),
+  const { top: topInset } = useSafeAreaInsets();
+  const sheetHeight = Math.round(
+    Math.min(frameHeight * SHEET_HEIGHT_RATIO, frameHeight - topInset),
   );
 
-  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
-    setHeaderHeight(Math.ceil(event.nativeEvent.layout.height));
-  }, []);
-  const handlePinnedFooterLayout = useCallback((event: LayoutChangeEvent) => {
-    setPinnedFooterHeight(Math.ceil(event.nativeEvent.layout.height));
-  }, []);
+  // Collapsed, the chart takes whatever height lands the tabs just above the
+  // footer. The fit is measured only while collapsed so opening a tab never
+  // resizes the chart.
+  const [fitViewportHeight, setFitViewportHeight] = useState(0);
+  const [fitRestHeight, setFitRestHeight] = useState(0);
+  const chartHeight =
+    fitViewportHeight > 0 && fitRestHeight > 0
+      ? Math.min(
+          Math.max(fitViewportHeight - fitRestHeight, MIN_CHART_HEIGHT),
+          MAX_CHART_HEIGHT,
+        )
+      : POSITION_SHEET_CHART_HEIGHT;
+  const renderedChartHeightRef = useRef(chartHeight);
+  renderedChartHeightRef.current = chartHeight;
 
-  // Scrolling up past the threshold opens the active tab. The sheet's own
-  // pan still dismisses on a downward drag.
+  const handleScrollLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!isTabsExpanded) {
+        setFitViewportHeight(Math.floor(event.nativeEvent.layout.height));
+      }
+    },
+    [isTabsExpanded],
+  );
+  const handleContentSizeChange = useCallback(
+    (_width: number, contentHeight: number) => {
+      if (!isTabsExpanded) {
+        setFitRestHeight(
+          Math.ceil(contentHeight) - renderedChartHeightRef.current,
+        );
+      }
+    },
+    [isTabsExpanded],
+  );
+
+  // Scrolling up past the threshold opens the active tab.
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       if (event.nativeEvent.contentOffset.y > SWIPE_THRESHOLD) {
@@ -236,14 +259,22 @@ const PositionDetailsSheet = () => {
     [],
   );
 
-  // iOS bounce: pulling the open sheet down past its top closes the tab.
+  // iOS bounce: a pull or fling down past the top closes the open tab first,
+  // then dismisses the sheet. A downward fling has a negative velocity.
   const handleScrollEndDrag = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (event.nativeEvent.contentOffset.y < -SWIPE_THRESHOLD * 2) {
+      const { contentOffset, velocity } = event.nativeEvent;
+      const isPulledDown = contentOffset.y < -SWIPE_THRESHOLD * 2;
+      const isFlungDown =
+        contentOffset.y < 0 && (velocity?.y ?? 0) < -DISMISS_FLING_VELOCITY;
+      if (!isPulledDown && !isFlungDown) return;
+      if (isTabsExpanded) {
         setIsTabsExpanded(false);
+      } else {
+        sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [],
+    [isTabsExpanded],
   );
 
   const closeThen = useCallback((next: () => void) => {
@@ -612,26 +643,26 @@ const PositionDetailsSheet = () => {
           ref={sheetRef}
           isInteractable
           goBack={handleSheetClosed}
+          twClassName={`h-[${sheetHeight}px]`}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
         >
-          <View onLayout={handleHeaderLayout}>
-            <PositionSheetHeader
-              author={author}
-              isOwnPost={isOwnPost}
-              onPressTrader={handleOpenTraderProfile}
-              onShare={shareSource ? handleSharePosition : undefined}
-              isSharing={isSharing}
-            />
-          </View>
-          {/* Bounded so content past the screen scrolls instead of being clipped. */}
+          <PositionSheetHeader
+            author={author}
+            isOwnPost={isOwnPost}
+            onPressTrader={handleOpenTraderProfile}
+            onShare={shareSource ? handleSharePosition : undefined}
+            isSharing={isSharing}
+          />
+          {/* Always bounces so content that fits still stretches at both ends. */}
           <ScrollView
-            style={
-              headerHeight > 0 ? { maxHeight: maxScrollHeight } : undefined
-            }
+            style={tw.style('flex-1')}
             scrollEnabled
             nestedScrollEnabled
+            alwaysBounceVertical
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
+            onLayout={handleScrollLayout}
+            onContentSizeChange={handleContentSizeChange}
             onScroll={handleScroll}
             onScrollEndDrag={handleScrollEndDrag}
             testID={PositionDetailsSheetSelectorsIDs.SCROLL}
@@ -665,14 +696,13 @@ const PositionDetailsSheet = () => {
               lineProgress={reveal.lineProgress}
               overlayStyle={reveal.overlayStyle}
               onScrub={setScrubPoint}
+              height={chartHeight}
             />
             <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
               {details}
             </View>
           </ScrollView>
-          {isTabsExpanded ? (
-            <View onLayout={handlePinnedFooterLayout}>{footer}</View>
-          ) : null}
+          {isTabsExpanded ? footer : null}
         </BottomSheet>
       )}
 

@@ -212,6 +212,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
+  onListStateChange,
   performance,
   onScroll,
   enabled = true,
@@ -334,6 +335,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     () => ({ showSkeleton, showEmpty, showRetry }),
     [showEmpty, showRetry, showSkeleton],
   );
+  useEffect(() => {
+    onListStateChange?.(state);
+  }, [onListStateChange, state]);
 
   const firstPageSettled = dataUpdatedAt !== undefined || Boolean(error);
   const showInlineRows =
