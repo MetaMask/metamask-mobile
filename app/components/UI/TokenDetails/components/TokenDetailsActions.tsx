@@ -325,21 +325,13 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     onShort,
   });
 
-  const onPressFor = (key: TokenDetailButtonKey): (() => void) => {
-    switch (key) {
-      case 'long':
-        return handleLongPress;
-      case 'short':
-        return handleShortPress;
-      case 'buy':
-        return handleBuyPress;
-      case 'send':
-        return handleSendPress;
-      case 'receive':
-        return handleReceivePress;
-      case 'more':
-        return handleMorePress;
-    }
+  const pressHandlers: Record<TokenDetailButtonKey, () => void> = {
+    long: handleLongPress,
+    short: handleShortPress,
+    buy: handleBuyPress,
+    send: handleSendPress,
+    receive: handleReceivePress,
+    more: handleMorePress,
   };
 
   return (
@@ -349,7 +341,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           key={button.key}
           iconName={button.iconName}
           label={button.label}
-          onPress={onPressFor(button.key)}
+          onPress={pressHandlers[button.key]}
           isDisabled={button.isDisabled}
           testID={button.testID}
           containerStyle={styles.buttonContainer}
