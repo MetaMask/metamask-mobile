@@ -8,6 +8,9 @@ export const SocialEntryOptionsBottomSheetSelectorsIDs = {
   REPORT_REASON_SHEET: 'social-entry-report-reason-bottom-sheet',
   REPORT_REASON_CLOSE_BUTTON: 'social-entry-report-reason-close-button',
   REPORT_SUBMIT: 'social-entry-report-submit',
+  IMPERSONATION_SUPPORT: 'social-impersonation-support-sheet',
+  IMPERSONATION_SUPPORT_DESCRIPTION: 'social-impersonation-support-description',
+  IMPERSONATION_SUPPORT_CONTACT: 'social-impersonation-support-contact',
 } as const;
 
 export const getSocialEntryReportReasonTestId = (reason: string) =>

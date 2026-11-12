@@ -5,8 +5,14 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
-import { selectMoneyEntryContext } from '../selectors/entry';
-import { getMoneyEntryDecision } from '../navigation/moneyEntryDecision';
+import {
+  selectMoneyCtaEntryContext,
+  selectMoneyEntryContext,
+} from '../selectors/entry';
+import {
+  getMoneyEntryDecision,
+  type MoneyEntryContext,
+} from '../navigation/moneyEntryDecision';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
@@ -21,17 +27,8 @@ interface NavigateToMoneyDepositOptions extends InitiateDepositOptions {
   track?: TrackMoneyEntry;
 }
 
-/**
- * Provides gated deposit navigation separately from `useMoneyHomeNavigation`.
- *
- * `useMoneyAccountDeposit` uses `useConfirmNavigation`, which subscribes to transaction
- * state to manage pending confirmations. Keeping this dependency isolated
- * prevents home-only navigation consumers, including tab bars, from
- * re-rendering whenever transaction state changes.
- */
-export const useMoneyDepositNavigation = () => {
+const useDepositNavigation = (entryContext: MoneyEntryContext) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const entryContext = useSelector(selectMoneyEntryContext);
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const navigateToMoneyDeposit = useCallback(
@@ -69,17 +66,25 @@ export const useMoneyDepositNavigation = () => {
         return;
       }
 
-      if (decision.destination === 'onboarding') {
+      if (
+        decision.destination === 'splash' ||
+        decision.destination === 'onboarding'
+      ) {
         const { preferredPaymentToken, autoSelectFiatPayment, intent } =
           options;
-        navigation.navigate(Routes.MONEY.ONBOARDING, {
-          postOnboardingRedirect: {
-            type: MoneyPostOnboardingRedirectType.DEPOSIT,
-            preferredPaymentToken,
-            autoSelectFiatPayment,
-            intent,
+        navigation.navigate(
+          decision.destination === 'splash'
+            ? Routes.MONEY.SPLASH
+            : Routes.MONEY.ONBOARDING,
+          {
+            postOnboardingRedirect: {
+              type: MoneyPostOnboardingRedirectType.DEPOSIT,
+              preferredPaymentToken,
+              autoSelectFiatPayment,
+              intent,
+            },
           },
-        });
+        );
         return;
       }
 
@@ -90,3 +95,22 @@ export const useMoneyDepositNavigation = () => {
 
   return { navigateToMoneyDeposit };
 };
+
+/**
+ * Deposit entry for tab, deeplink and wallet-home surfaces, which keep the
+ * Rive onboarding.
+ *
+ * `useMoneyAccountDeposit` uses `useConfirmNavigation`, which subscribes to transaction
+ * state to manage pending confirmations. Keeping this dependency isolated
+ * prevents home-only navigation consumers, including tab bars, from
+ * re-rendering whenever transaction state changes.
+ */
+export const useMoneyDepositNavigation = () =>
+  useDepositNavigation(useSelector(selectMoneyEntryContext));
+
+/**
+ * Deposit entry for token, Explore and Earn CTAs, which show the intro splash
+ * before onboarding while it is enabled.
+ */
+export const useMoneyCtaDepositNavigation = () =>
+  useDepositNavigation(useSelector(selectMoneyCtaEntryContext));

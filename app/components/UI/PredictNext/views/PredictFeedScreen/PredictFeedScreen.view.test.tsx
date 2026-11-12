@@ -798,6 +798,32 @@ describe('PredictFeedScreen', () => {
     expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
   });
 
+  it('shows a binary non-game Event as the default card with Yes and No rows', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
+    );
+    expect(
+      within(card).getByTestId(
+        PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).queryByTestId(PredictHomeTestIds.category(propsEvent.id)),
+    ).not.toBeOnTheScreen();
+  });
+
   it('opens the Order flow from a tradeable Outcome row', async () => {
     configureFeeds({
       [NFL_GAMES_FEED_ID]: [propsEvent],

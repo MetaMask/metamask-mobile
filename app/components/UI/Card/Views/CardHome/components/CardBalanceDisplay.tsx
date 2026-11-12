@@ -37,6 +37,8 @@ interface CardBalanceDisplayProps {
   showInfoBadge?: boolean;
   onInfoPress?: () => void;
   infoBadgeTestID?: string;
+  /** Balance could not be read. Renders a dash instead of zero. */
+  isUnavailable?: boolean;
 }
 
 const CardBalanceDisplay = ({
@@ -48,6 +50,7 @@ const CardBalanceDisplay = ({
   showInfoBadge = false,
   onInfoPress,
   infoBadgeTestID,
+  isUnavailable = false,
 }: CardBalanceDisplayProps) => {
   const tw = useTailwind();
 
@@ -69,6 +72,8 @@ const CardBalanceDisplay = ({
                 style={tw.style('rounded-xl')}
                 testID={CardHomeSelectors.BALANCE_SKELETON}
               />
+            ) : isUnavailable ? (
+              '—'
             ) : (
               (balanceAmount ?? '0')
             )}

@@ -100,6 +100,17 @@ describe('moderationApi', () => {
     });
   });
 
+  it('reports a trader by storing the reason on the block', async () => {
+    mockCall.mockResolvedValue(undefined);
+
+    await blockProfile('trader-1', 'privacy');
+
+    expect(mockCall).toHaveBeenCalledWith('SocialService:block', {
+      profileId: 'trader-1',
+      reason: 'privacy',
+    });
+  });
+
   it('reports a comment with a reason, and hides one without', async () => {
     mockCall.mockResolvedValue(undefined);
 

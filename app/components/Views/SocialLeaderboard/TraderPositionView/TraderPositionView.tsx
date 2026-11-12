@@ -53,7 +53,10 @@ import {
   buildSocialPositionOpenGraph,
   readTraderShareName,
 } from '../navigation/socialShareOpenGraph';
-import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialTraderPosition,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import {
@@ -260,7 +263,7 @@ const TraderPositionView = () => {
     const source = getSocialEventSource(sourceParam);
     const sharedPosition = displayPosition;
     const buildOgImageRequest = sharedPosition
-      ? async () => {
+      ? async ({ promoCode }: SocialShareCardContext) => {
           const prices = positionData.isPerp
             ? await fetchPerpOgSeries(
                 sharedPosition.tokenSymbol,
@@ -292,6 +295,7 @@ const TraderPositionView = () => {
             pnlPct: pnlPercent,
             markPrice: currentPrice,
             prices,
+            promoCode,
           });
         }
       : undefined;
