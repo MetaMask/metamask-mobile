@@ -1050,6 +1050,190 @@ describe('ImmersveKYCProcessing', () => {
     );
   });
 
+  it('keeps the spinner after Sumsub completes while Immersve reports pending', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    closeWebview(true);
+    setNextAction({ type: 'pending' });
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
+    expect(queryByTestId('immersve-verifying-identity-animation')).toBeNull();
+
+    setNextAction(fundingAction);
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(getByTestId(CompleteSelectors.TITLE).props.children).toBe(
+      'card.card_onboarding.complete.title',
+    );
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+  });
+
+  it('shows a rejection in place when it arrives during the post-Sumsub pending wait', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    closeWebview(true);
+    setNextAction({ type: 'pending' });
+    rerender(<ImmersveKYCProcessing />);
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    setNextAction({ type: 'rejected', canRetry: false });
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('kyc-failed-title').props.children).toBe(
+      'card.card_onboarding.kyc_failed.title',
+    );
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+    expect(queryByTestId('immersve-verifying-identity-animation')).toBeNull();
+  });
+
+  it('goes to Card home when Immersve is still pending at the end of the post-Sumsub wait', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    closeWebview(true);
+    setNextAction({ type: 'pending' });
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_COMPLETION_HOLD_MS - 1);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
+    expect(queryByTestId('immersve-verifying-identity-animation')).toBeNull();
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycInReview).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(mockExitCardFlow).toHaveBeenCalledWith({
+      fallback: 'card-home-pending',
+    });
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      provider: CardProviderIds.Immersve,
+      action: CardActions.KYC_PENDING_TIMEOUT,
+      screen: CardScreens.KYC_PROCESSING,
+    });
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+    });
+
+    expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the spinner and re-polls when a pending poll fails during the post-Sumsub wait', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+    mockRefresh.mockClear();
+
+    closeWebview(true);
+    setNextAction({ type: 'pending' }, 'Something went wrong');
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
+    expect(queryByTestId('onboarding-title')).toBeNull();
+    // The close asks once. The hold asks again after the failed pending poll
+    // settles.
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+
+    setNextAction({ type: 'pending' }, 'Something went wrong', true);
+    rerender(<ImmersveKYCProcessing />);
+    mockRefresh.mockClear();
+    setNextAction({ type: 'pending' }, 'Something went wrong');
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_POLL_INTERVAL_MS);
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-retry-button')).toBeNull();
+  });
+
+  it('shows Verifying after the dwell when the webview is closed manually while pending', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    setNextAction({ type: 'pending' });
+    rerender(<ImmersveKYCProcessing />);
+    closeWebview();
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS - 1);
+    });
+    expect(getByTestId('immersve-kyc-processing-spinner')).toBeTruthy();
+    expect(queryByTestId('onboarding-title')).toBeNull();
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      IN_PROGRESS_TITLE,
+    );
+    expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+  });
+
+  it('shows Verifying when expected spend arrives after Sumsub completes', () => {
+    setNextAction({ type: 'kyc', url: KYC_URL });
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    closeWebview(true);
+    setNextAction({ type: 'expected_spend' });
+    rerender(<ImmersveKYCProcessing />);
+
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      IN_PROGRESS_TITLE,
+    );
+    expect(getByTestId('immersve-verifying-identity-animation')).toBeTruthy();
+    expect(queryByTestId('immersve-kyc-processing-spinner')).toBeNull();
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+  });
+
   it('keeps the spinner instead of the reopen prompt while a re-poll is in flight', () => {
     setNextAction({ type: 'kyc', url: KYC_URL });
     const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);

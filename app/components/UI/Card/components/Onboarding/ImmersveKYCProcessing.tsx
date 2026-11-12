@@ -79,7 +79,10 @@ export const IMMERSVE_KYC_RESULT_MIN_DWELL_MS = 2000;
 
 /**
  * After Sumsub redirects back as completed, keep the spinner while Immersve
- * still reports KYC. A manual close does not start this hold.
+ * still reports KYC or pending. Pending here is Immersve finishing its own
+ * checks, which can take a few seconds before an approved or rejected result.
+ * A manual close does not start this hold. Still pending when it ends goes to
+ * Card home with the in-review toast.
  */
 export const IMMERSVE_KYC_COMPLETION_HOLD_MS = 30000;
 
@@ -116,8 +119,9 @@ interface DeriveViewInput {
  * that phase stays blank — a stale result must not flash as the webview closes.
  *
  * `loading` is a bare spinner: the minimum after close, a poll with no result,
- * and the wait for Immersve to catch up after Sumsub completes. `verifying`
- * keeps the illustration, and only when Immersve says the check is pending.
+ * and the wait for Immersve to catch up after Sumsub completes. That wait
+ * covers KYC and pending. `verifying` keeps the illustration for a pending
+ * review outside that wait, and for expected spend.
  */
 export const deriveImmersveKycView = ({
   webviewPhase,
@@ -165,6 +169,13 @@ export const deriveImmersveKycView = ({
     case 'rejected':
       return nextAction.canRetry ? 'retry' : 'failed';
     case 'pending':
+      // Sumsub finished, but Immersve's own checks are still running. Keep the
+      // spinner until a terminal result arrives or the completion hold ends.
+      // A pending review outside that hold keeps the illustration.
+      if (holdForCompletion) {
+        return 'loading';
+      }
+      return 'verifying';
     case 'expected_spend':
       return 'verifying';
     case 'kyc':
@@ -325,12 +336,12 @@ const KycIdentityLayout = ({
  * then polls spending-prerequisites and swaps the result in place.
  * - before and during the webview → blank
  * - no result yet, the minimum after close, and the wait after Sumsub completes → spinner
- * - pending / expected_spend → Verifying, with the illustration
+ * - pending during that wait → spinner; a pending review otherwise, and expected_spend → Verifying, with the illustration
  * - funding / active → You're verified; Finish setup routes onward
  * - rejected and retryable → retry prompt; permanent → Not eligible, in place
  * - kyc still outstanding → Finish verifying (never auto-reopens)
  * - poll failure → Try again; KYC_EXPIRING → Back to home
- * - still pending or expected_spend after 30s → opener, or Card home, plus an in-review toast
+ * - still pending when the post-Sumsub wait ends, or pending or expected_spend for 30s → opener, or Card home, plus an in-review toast
  */
 const ImmersveKYCProcessing = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -383,6 +394,7 @@ const ImmersveKYCProcessing = () => {
   const { notifyKycRejected, notifyKycInReview } = useImmersveKycOutcome();
   const hasStartedFundingApproval = useRef(false);
   const hasNotifiedRejection = useRef(false);
+  const hasLeftForReview = useRef(false);
   const [webviewPhase, setWebviewPhase] = useState<WebviewPhase>('none');
   const [holdVerifying, setHoldVerifying] = useState(false);
   const [awaitingCompletedResult, setAwaitingCompletedResult] = useState(false);
@@ -502,8 +514,10 @@ const ImmersveKYCProcessing = () => {
       clearCompletionHold();
       setWebviewPhase('open');
       // A later rejection after this retry must be reported again, including
-      // a permanent one that signs the user out.
+      // a permanent one that signs the user out. A new session can also time
+      // out to Card home again.
       hasNotifiedRejection.current = false;
+      hasLeftForReview.current = false;
       navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
         url,
         redirectUrl: KYC_REDIRECT_URL,
@@ -515,6 +529,27 @@ const ImmersveKYCProcessing = () => {
   const leaveToHome = useCallback(() => {
     exitCardFlow();
   }, [exitCardFlow]);
+
+  // The pending-review timeout and the end of the post-Sumsub wait share this.
+  // The screen can reach both, so the second one must not exit again.
+  const leaveForReview = useCallback(() => {
+    if (hasLeftForReview.current) {
+      return;
+    }
+    hasLeftForReview.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.KYC_PENDING_TIMEOUT,
+            screen: CardScreens.KYC_PROCESSING,
+          }),
+        )
+        .build(),
+    );
+    exitCardFlow({ fallback: 'card-home-pending' });
+    notifyKycInReview();
+  }, [trackEvent, createEventBuilder, exitCardFlow, notifyKycInReview]);
 
   // Initial poll (needed for the resume/no-url entry).
   useEffect(() => {
@@ -562,20 +597,27 @@ const ImmersveKYCProcessing = () => {
         setHoldVerifying(false);
       }, IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
       // A completed Sumsub redirect can return before Immersve has caught up.
-      // A manual close (the X, or back) shows Finish verifying as soon as the
-      // minimum dwell ends. The action already on screen is not that result.
+      // Keep the spinner while the result is still KYC or pending. A manual
+      // close (the X, or back) shows the result as soon as the minimum dwell
+      // ends. The action already on screen is not that result.
       clearCompletionTimer();
       setCompletionBaseline(completed ? nextActionRef.current : null);
       setAwaitingCompletedResult(completed);
       if (completed) {
         completionTimerRef.current = setTimeout(() => {
           completionTimerRef.current = null;
+          // Pending means Immersve is still checking. Leave for Card home
+          // while the hold stays on, so Verifying cannot flash on the way out.
+          if (nextActionRef.current?.type === 'pending') {
+            leaveForReview();
+            return;
+          }
           setAwaitingCompletedResult(false);
         }, IMMERSVE_KYC_COMPLETION_HOLD_MS);
       }
       refresh().catch(() => undefined);
     },
-    [clearDwellTimer, clearCompletionTimer, refresh],
+    [clearDwellTimer, clearCompletionTimer, refresh, leaveForReview],
   );
 
   useEffect(() => {
@@ -586,9 +628,10 @@ const ImmersveKYCProcessing = () => {
   useEffect(() => clearDwellTimer, [clearDwellTimer]);
   useEffect(() => clearCompletionTimer, [clearCompletionTimer]);
 
-  // A funding, rejection, or review result ends the wait. So does "additional
-  // information needed", once a poll after the close says so. The action
-  // already on screen when Sumsub closed is not that answer.
+  // Funding, rejection, expected spend, and "additional information needed"
+  // end the wait. Pending does not: Immersve's own checks can report it for a
+  // few seconds before the approved or rejected result. The action already on
+  // screen when Sumsub closed is not an answer.
   useEffect(() => {
     if (!awaitingCompletedResult || !nextAction) {
       return;
@@ -596,7 +639,10 @@ const ImmersveKYCProcessing = () => {
     if (nextAction === completionBaseline) {
       return;
     }
-    if (nextAction.type !== 'kyc' || isInfoNeeded) {
+    const keepsHold =
+      nextAction.type === 'pending' ||
+      (nextAction.type === 'kyc' && !isInfoNeeded);
+    if (!keepsHold) {
       clearCompletionHold();
     }
   }, [
@@ -607,24 +653,27 @@ const ImmersveKYCProcessing = () => {
     clearCompletionHold,
   ]);
 
-  // The prerequisites hook only auto-polls `pending`. After Sumsub completes,
-  // ask again once each poll settles on KYC until the hold ends. A failed
-  // poll is not an answer, so it does not stop this.
+  // The prerequisites hook only auto-polls a successful `pending` result.
+  // After Sumsub completes, ask again once each poll settles on KYC, and once
+  // a pending poll fails, until the hold ends. A failed poll is not an answer,
+  // so it does not stop this. A pending result with no error is already on the
+  // hook's interval, so this does not ask again.
   useEffect(() => {
     if (!holdForCompletion || isLoading) {
       return undefined;
     }
-    // A settled non-KYC result ends the hold on the next render. Until then,
-    // keep asking while the action is still KYC or the close poll has not
-    // returned one.
-    if (nextAction && nextAction.type !== 'kyc') {
+    const pendingPollFailed = nextAction?.type === 'pending' && Boolean(error);
+    // A settled funding, rejection, or expected-spend result ends the hold on
+    // the next render. Until then, keep asking while the action is still KYC,
+    // the close poll has not returned one, or a pending poll failed.
+    if (nextAction && nextAction.type !== 'kyc' && !pendingPollFailed) {
       return undefined;
     }
     const id = setTimeout(() => {
       refresh().catch(() => undefined);
     }, IMMERSVE_KYC_POLL_INTERVAL_MS);
     return () => clearTimeout(id);
-  }, [holdForCompletion, nextAction, isLoading, refresh]);
+  }, [holdForCompletion, nextAction, isLoading, error, refresh]);
 
   useEffect(() => {
     if (
@@ -674,11 +723,12 @@ const ImmersveKYCProcessing = () => {
 
   // 30s cutoff while background checks are pending, and when Immersve asks for
   // an expected spend amount (no form on this screen, so it must not sit on
-  // Verifying forever). Not while the webview is open, and not over an error
-  // the user can retry.
+  // Verifying forever). Not while the webview is open, not during the
+  // post-Sumsub spinner, and not over an error the user can retry.
   const isWaitingOnReview =
     !error &&
     !webviewCoversScreen &&
+    !holdForCompletion &&
     (nextAction?.type === 'pending' || nextAction?.type === 'expected_spend');
 
   useEffect(() => {
@@ -686,27 +736,10 @@ const ImmersveKYCProcessing = () => {
       return undefined;
     }
     const id = setTimeout(() => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties(
-            withCardProvider(CardProviderIds.Immersve, {
-              action: CardActions.KYC_PENDING_TIMEOUT,
-              screen: CardScreens.KYC_PROCESSING,
-            }),
-          )
-          .build(),
-      );
-      exitCardFlow({ fallback: 'card-home-pending' });
-      notifyKycInReview();
+      leaveForReview();
     }, POLLING_TIMEOUT_MS);
     return () => clearTimeout(id);
-  }, [
-    isWaitingOnReview,
-    exitCardFlow,
-    notifyKycInReview,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isWaitingOnReview, leaveForReview]);
 
   useEffect(() => {
     if (
