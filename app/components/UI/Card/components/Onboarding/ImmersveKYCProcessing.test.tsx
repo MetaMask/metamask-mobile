@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveKYCProcessing from './ImmersveKYCProcessing';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -42,6 +42,20 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../hooks/useImmersveSpendingPrerequisites');
 jest.mock('../../hooks/useImmersveOnboardingRouter');
+
+const mockExitCardFlow = jest.fn();
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: () => mockExitCardFlow,
+}));
+
+const mockNotifyKycRejected = jest.fn().mockResolvedValue(undefined);
+const mockNotifyKycInReview = jest.fn();
+jest.mock('../../hooks/useImmersveKycOutcome', () => ({
+  useImmersveKycOutcome: () => ({
+    notifyKycRejected: (...args: unknown[]) => mockNotifyKycRejected(...args),
+    notifyKycInReview: () => mockNotifyKycInReview(),
+  }),
+}));
 
 let mockIsMoneyAccountCountry = false;
 const mockApproveFunding = jest.fn().mockResolvedValue(true);
@@ -248,7 +262,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-const POLLING_TIMEOUT_MS = 30000;
+const POLLING_TIMEOUT_MS = 15000;
 
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
@@ -369,10 +383,11 @@ describe('ImmersveKYCProcessing', () => {
 
     jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
+    expect(mockExitCardFlow).toHaveBeenCalledWith({
+      fallback: 'card-home-pending',
     });
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+    expect(mockReset).not.toHaveBeenCalled();
     expect(mockRoute).not.toHaveBeenCalled();
   });
 
@@ -381,22 +396,102 @@ describe('ImmersveKYCProcessing', () => {
     render(<ImmersveKYCProcessing />);
 
     jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
-    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1);
 
-    expect(mockReset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
+    expect(mockExitCardFlow).toHaveBeenCalledWith({
+      fallback: 'card-home-pending',
     });
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
   });
 
-  it('routes rejected through the onboarding router', () => {
-    const action: ImmersveNextAction = { type: 'rejected' };
+  it('leaves with the rejection toast instead of the failed screen', () => {
+    const action: ImmersveNextAction = {
+      type: 'rejected',
+      canRetry: false,
+      reasons: ['INELIGIBLE'],
+    };
     setNextAction(action);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockRoute).toHaveBeenCalledWith(action, { countryKey: 'GB' });
+    expect(mockExitCardFlow).toHaveBeenCalledWith();
+    expect(mockNotifyKycRejected).toHaveBeenCalledWith(action, {
+      source: 'processing',
+    });
+    expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('keeps the retry webview open on a retryable rejection', () => {
+    const action: ImmersveNextAction = {
+      type: 'rejected',
+      canRetry: true,
+      retryUrl: 'https://verify.immersve.com/retry',
+      reasons: ['DOCUMENT_UNREADABLE'],
+    };
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/retry',
+    };
+    setNextAction(action);
+    const { rerender } = render(<ImmersveKYCProcessing />);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
+        url: 'https://verify.immersve.com/retry',
+        redirectUrl: KYC_REDIRECT_URL,
+      },
+    );
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+
+    act(() => {
+      mockCapturedOnClose?.();
+      setNextAction(action, null, true);
+    });
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+
+    setNextAction(action);
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(mockExitCardFlow).toHaveBeenCalledWith();
+    expect(mockNotifyKycRejected).toHaveBeenCalledWith(action, {
+      source: 'processing',
+    });
+  });
+
+  it('leaves after the timeout when Immersve asks for an expected spend amount', () => {
+    setNextAction({ type: 'expected_spend' });
+    render(<ImmersveKYCProcessing />);
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+
+    expect(mockExitCardFlow).toHaveBeenCalledWith({
+      fallback: 'card-home-pending',
+    });
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+    expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('does not time out while the webview is open', () => {
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/xyz',
+    };
+    setNextAction({ type: 'pending' });
+    render(<ImmersveKYCProcessing />);
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycInReview).not.toHaveBeenCalled();
   });
 
   it('routes approved (active) through the onboarding router', () => {
@@ -510,10 +605,10 @@ describe('ImmersveKYCProcessing', () => {
     expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('polls every 2s', () => {
+  it('polls every 3s', () => {
     render(<ImmersveKYCProcessing />);
     expect(useImmersveSpendingPrerequisites).toHaveBeenCalledWith(
-      expect.objectContaining({ pollIntervalMs: 2000 }),
+      expect.objectContaining({ pollIntervalMs: 3000 }),
     );
   });
 
@@ -554,6 +649,20 @@ describe('ImmersveKYCProcessing', () => {
       .join('');
     expect(buttonLabel).toBe(
       'card.card_onboarding.immersve_kyc_processing.info_needed_button',
+    );
+  });
+
+  it('shows the reason on the additional-information prompt', () => {
+    setNextAction({
+      type: 'kyc',
+      url: 'https://verify.immersve.com/abc',
+      ctaHint: 'KYC_INFORMATION_NEEDED',
+      reasons: ['ID_DOCUMENT_EXPIRED'],
+    });
+    const { getByTestId } = render(<ImmersveKYCProcessing />);
+
+    expect(getByTestId('immersve-kyc-processing-reason').props.children).toBe(
+      'card.card_onboarding.kyc_rejected.reasons.id_document',
     );
   });
 
