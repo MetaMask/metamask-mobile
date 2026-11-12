@@ -127,8 +127,8 @@ const toHomeRouteParams = (
 
 /**
  * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
- * the current flow, after the first-time onboarding gate. Perps uses this so
- * Social stays inside the Perps flow.
+ * the current flow, after the first-time onboarding gate. The control arm of
+ * `navigateToSocialLeaderboard` uses this.
  *
  * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.

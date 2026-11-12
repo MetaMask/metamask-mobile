@@ -328,6 +328,8 @@ https://link.metamask.io/swap?tab=recurring&from=eip155:1/erc20:0xa0b86991c6218b
 ```
 https://link.metamask.io/money-account-deposit
 metamask://money-account-deposit
+https://link.metamask.io/money-account-deposit?tokenType=atoken
+metamask://money-account-deposit?tokenType=atoken
 ```
 
 Both forms enter the same React bridge route. The bridge checks the Money

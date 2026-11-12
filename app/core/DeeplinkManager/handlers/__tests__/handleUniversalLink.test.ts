@@ -2010,7 +2010,7 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.MONEY_ACCOUNT_DEPOSIT', () => {
-    it('dispatches to handleMoneyDeposit for the Money deposit deeplink', async () => {
+    it('dispatches to handleMoneyDeposit for the standard Money deposit deeplink', async () => {
       const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
       const depositUrlObj = {
         ...urlObj,
@@ -2028,12 +2028,14 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
-      expect(mockHandleMoneyDeposit).toHaveBeenCalledTimes(1);
+      expect(mockHandleMoneyDeposit).toHaveBeenCalledWith({
+        moneyDepositPath: '',
+      });
       expect(handled).toHaveBeenCalled();
     });
 
     it('returns the Money deposit startup intent in resolve mode', async () => {
-      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}`;
+      const depositUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY_ACCOUNT_DEPOSIT}?tokenType=atoken&utm_source=braze`;
       const depositUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
@@ -2059,7 +2061,9 @@ describe('handleUniversalLink', () => {
       });
 
       expect(result).toBe(intent);
-      expect(mockCreateMoneyDepositDeeplinkIntent).toHaveBeenCalledTimes(1);
+      expect(mockCreateMoneyDepositDeeplinkIntent).toHaveBeenCalledWith({
+        moneyDepositPath: '?tokenType=atoken&utm_source=braze',
+      });
       expect(mockHandleMoneyDeposit).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });

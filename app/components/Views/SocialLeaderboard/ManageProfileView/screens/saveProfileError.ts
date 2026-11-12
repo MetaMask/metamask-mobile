@@ -4,9 +4,9 @@ import type { ManageProfileTextEditorField } from './manageProfileTextEditorFiel
 
 /**
  * The profile API rejects a field it will not store with 400. `ProfileService`
- * throws `HttpError(400, 'ProfileService: failed to update profile: 400')` and
- * drops the response body, so the status is all that reaches the client. Which
- * field was refused is therefore read from the editor, not from the error.
+ * appends the API's own message to the thrown `HttpError`, but that message
+ * describes the value the user typed, not which field was being edited, so the
+ * field is read from the editor rather than from the error.
  */
 const REJECTED_CONTENT_STATUS = 400;
 

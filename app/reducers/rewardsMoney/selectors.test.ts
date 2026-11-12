@@ -12,9 +12,11 @@ import type { EarningsSummaryEntry, ReferralMeEntry } from '.';
 import {
   canAcceptMoneyReferralInvite,
   moneyDashboardPersona,
+  refereeMoneySections,
   selectCashbackLedger,
   selectClaimLock,
   selectClaimWaitingUntil,
+  selectCommissionMechanisms,
   selectCommissions,
   selectEarningsHistory,
   selectEarningsSummaryEntry,
@@ -187,6 +189,26 @@ describe('rewardsMoney selectors', () => {
         'plain',
       );
     });
+  });
+
+  describe('refereeMoneySections', () => {
+    it.each([
+      [undefined, true, true],
+      [['REFEREE'], true, true],
+      [['CASHBACK_EXPERIMENT'], false, true],
+      [['COPY_TRADING'], true, false],
+      [['REFEREE', 'COPY_TRADING'], true, true],
+      [['CASHBACK_EXPERIMENT', 'COPY_TRADING'], true, true],
+      [['REFERRER'], false, false],
+    ] as const)(
+      'maps %j to social %s and rebates %s',
+      (roles, social, rebates) => {
+        expect(refereeMoneySections(roles)).toEqual({
+          socialRewards: social,
+          tradingRebates: rebates,
+        });
+      },
+    );
   });
 
   describe('canAcceptMoneyReferralInvite', () => {
@@ -363,6 +385,7 @@ describe('rewardsMoney selectors', () => {
       expect(selectEarningsSummaryEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectReferralFunnelEntry(state, PROFILE_A)).toBeUndefined();
       expect(selectCommissions(state, PROFILE_A)).toBeUndefined();
+      expect(selectCommissionMechanisms(state, PROFILE_A)).toBeUndefined();
       expect(selectCashbackLedger(state, PROFILE_A)).toBeUndefined();
       expect(selectEarningsHistory(state, PROFILE_A)).toBeUndefined();
       expect(selectInFlightClaims(state, PROFILE_A)).toBeUndefined();

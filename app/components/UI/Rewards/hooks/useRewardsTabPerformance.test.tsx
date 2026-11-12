@@ -86,7 +86,7 @@ describe('useRewardsTabPerformance', () => {
     expect(mockEndTrace).not.toHaveBeenCalled();
   });
 
-  it('ends with onboarding when candidate is already resolved', () => {
+  it('ends with the points dashboard when candidate is already resolved', () => {
     const store = mockStore(buildState({ candidateSubscriptionId: 'error' }));
 
     renderHook(() => useRewardsTabPerformance(buildConfig()), {
@@ -96,7 +96,7 @@ describe('useRewardsTabPerformance', () => {
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({
         name: TraceName.RewardsTabTimeToContent,
-        data: { success: true, content_state: 'onboarding' },
+        data: { success: true, content_state: 'dashboard' },
       }),
     );
   });

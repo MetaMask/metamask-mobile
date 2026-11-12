@@ -4782,9 +4782,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Production client-config snapshot. chooseCurrency is absent until the
-  // chooser is turned on, and a missing value reads as false. A country in
-  // regions with no regionCurrencies entry uses defaultCurrency.
+  // Production client-config snapshot. This build reads only `chooseCurrency`
+  // and `regionOverride` from this flag; signup gating uses the per-currency
+  // flags. Older builds (8.17 to 8.20) still read `enabled`, `minimumVersion`,
+  // `regions`, `regionCurrencies`, and `defaultCurrency`.
   moneyMovementNeobank: {
     name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,

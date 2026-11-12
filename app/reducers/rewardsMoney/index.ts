@@ -3,6 +3,7 @@ import type {
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
+  MechanismsView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
   ReferralFunnelDto,
@@ -27,6 +28,12 @@ export interface RewardsMoneyState {
   referralFunnel: Record<string, ReferralFunnelEntry>;
   /** First page of follow-trade commissions, keyed by Hydra profile id. */
   commissions: Record<string, CommissionEntryView[]>;
+  /**
+   * `claim_open` from this session's commissions page, keyed by Hydra profile
+   * id. Dropped on rehydrate so a restored flag cannot submit follow-trade
+   * before this session asks the server again.
+   */
+  commissionMechanisms: Record<string, MechanismsView>;
   /** First page of self-earned cashback ledger rows, keyed by Hydra profile id. */
   cashbackLedger: Record<string, LedgerEarningEntryDto[]>;
   /**
@@ -84,6 +91,7 @@ export const initialState: RewardsMoneyState = {
   earningsSummary: {},
   referralFunnel: {},
   commissions: {},
+  commissionMechanisms: {},
   cashbackLedger: {},
   earningsHistory: {},
   inFlightClaims: {},
@@ -230,6 +238,16 @@ const rewardsMoneySlice = createSlice({
       entry.error = false;
       entry.data = action.payload.data;
     },
+    setCommissionMechanisms: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        mechanisms: MechanismsView;
+      }>,
+    ) => {
+      state.commissionMechanisms[action.payload.profileId] =
+        action.payload.mechanisms;
+    },
     setCommissions: (
       state,
       action: PayloadAction<{
@@ -330,6 +348,7 @@ const rewardsMoneySlice = createSlice({
           earningsSummary: settleEntries(persisted.earningsSummary),
           referralFunnel: settleEntries(persisted.referralFunnel),
           commissions: persisted.commissions ?? initialState.commissions,
+          commissionMechanisms: {},
           cashbackLedger:
             persisted.cashbackLedger ?? initialState.cashbackLedger,
           earningsHistory:
@@ -361,6 +380,7 @@ export const {
   setReferralFunnelError,
   setReferralFunnel,
   setCommissions,
+  setCommissionMechanisms,
   setCashbackLedger,
   setEarningsHistory,
   setInFlightClaims,

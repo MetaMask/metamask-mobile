@@ -488,6 +488,7 @@ describe('fixture-validation', () => {
         cashbackLedger: {},
         claimLocks: {},
         claimWaitingUntil: {},
+        commissionMechanisms: {},
         commissions: {},
         earningsHistory: {},
         earningsSummary: {},
