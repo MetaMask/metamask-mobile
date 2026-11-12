@@ -28,8 +28,7 @@ const RESERVED_CODES: readonly string[] = [
 const hasCode = (
   availability: UsernameAvailabilityResponse,
   codes: readonly string[],
-): boolean =>
-  availability.errors.some((error) => codes.includes(error.code));
+): boolean => availability.errors.some((error) => codes.includes(error.code));
 
 /** Whether the server refused the handle because it is reserved. */
 export const isReservedHandle = (

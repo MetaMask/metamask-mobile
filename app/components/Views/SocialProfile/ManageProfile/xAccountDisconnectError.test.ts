@@ -24,10 +24,7 @@ describe('getXAccountDisconnectError', () => {
   });
 
   it('returns the rate-limit copy for a throttled request', () => {
-    const error = profileApiError(
-      ProfileApiErrorCode.RateLimitExceeded,
-      429,
-    );
+    const error = profileApiError(ProfileApiErrorCode.RateLimitExceeded, 429);
 
     const result = getXAccountDisconnectError(error);
 
@@ -37,10 +34,7 @@ describe('getXAccountDisconnectError', () => {
   });
 
   it('returns null for a code without disconnect copy', () => {
-    const error = profileApiError(
-      ProfileApiErrorCode.ServiceUnavailable,
-      503,
-    );
+    const error = profileApiError(ProfileApiErrorCode.ServiceUnavailable, 503);
 
     const result = getXAccountDisconnectError(error);
 

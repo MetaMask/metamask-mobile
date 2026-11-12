@@ -18,9 +18,7 @@ const INVALID = strings('social_leaderboard.manage_profile.username_invalid');
 const UNAVAILABLE = strings(
   'social_leaderboard.manage_profile.username_unavailable',
 );
-const RESERVED = strings(
-  'social_leaderboard.manage_profile.username_reserved',
-);
+const RESERVED = strings('social_leaderboard.manage_profile.username_reserved');
 
 const availability = (
   overrides: Partial<{
