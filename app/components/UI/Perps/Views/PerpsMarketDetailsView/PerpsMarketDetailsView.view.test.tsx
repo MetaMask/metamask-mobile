@@ -1964,15 +1964,18 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('moves the risk disclaimer below the posts when Feed is opened', async () => {
+    it('hides the risk disclaimer on Feed and shows it again on Overview', async () => {
       setupLeaderboardApiMock({ feedItems: [ethPost] });
       const disclaimerId = PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER;
       // Host and composite nodes can both carry a testID. Every copy of
       // `before` still has to precede every copy of `after`.
       const expectBefore = (before: string, after: string) => {
-        const ordered = screen.UNSAFE_root.findAll(
-          (node) => node.props.testID === before || node.props.testID === after,
-        ).map((node) => node.props.testID as string);
+        const ordered = screen.UNSAFE_root
+          .findAll(
+            (node) =>
+              node.props.testID === before || node.props.testID === after,
+          )
+          .map((node) => node.props.testID as string);
         expect(ordered.lastIndexOf(before)).toBeGreaterThanOrEqual(0);
         expect(ordered.lastIndexOf(before)).toBeLessThan(
           ordered.indexOf(after),
@@ -1993,8 +1996,7 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
       expect(screen.queryByTestId(statsSectionTestId)).not.toBeOnTheScreen();
-      expectBefore(ethPostTestId, disclaimerId);
-      expect(screen.getAllByTestId(disclaimerId)).toHaveLength(1);
+      expect(screen.queryByTestId(disclaimerId)).not.toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(getPerpsMarketDetailsTabSelector('overview')),

@@ -2052,10 +2052,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
   const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
-  // Feed posts are rows after this header. On Feed the disclaimer has to
-  // follow those rows, so it moves to the list footer (TAT-4616).
-  const showRiskDisclaimerBelowFeed =
-    isFeedScroller && activeSocialTab === 'feed';
+  // The feed list has no end, so that tab does not mount the disclaimer.
+  // The list renders `renderFooter` only while the feed is off.
+  const isFeedTabActive = isFeedScroller && activeSocialTab === 'feed';
+  const bottomInsetSpacer = edgeInsets && !hasActionsFooter && (
+    <View
+      style={{ height: edgeInsets.bottom }}
+      testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+    />
+  );
 
   const riskDisclaimer = (
     <>
@@ -2078,12 +2083,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           </Text>
         </Text>
       </View>
-      {edgeInsets && !hasActionsFooter && (
-        <View
-          style={{ height: edgeInsets.bottom }}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
-        />
-      )}
+      {bottomInsetSpacer}
     </>
   );
 
@@ -2268,7 +2268,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </>
       )}
 
-      {showRiskDisclaimerBelowFeed ? null : riskDisclaimer}
+      {isFeedScroller ? null : riskDisclaimer}
     </>
   );
   const renderScreenContent = (): React.ReactNode => screenContent;
@@ -2327,14 +2327,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               location="perps_market_details"
               analyticsSource={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
               renderHeader={renderScreenContent}
-              renderFooter={
-                showRiskDisclaimerBelowFeed ? renderFeedFooter : undefined
-              }
+              renderFooter={isFeedTabActive ? undefined : renderFeedFooter}
               onScroll={scrollHandler}
               onRefresh={handleRefresh}
               pageRef={feedPageRef}
               scrollTestID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
             />
+            {isFeedTabActive ? bottomInsetSpacer : null}
           </View>
         ) : (
           <Animated.ScrollView

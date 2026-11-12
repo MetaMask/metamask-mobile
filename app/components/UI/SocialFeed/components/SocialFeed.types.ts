@@ -131,9 +131,9 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   /**
-   * Rendered after the posts and the page footer, scrolling with the list.
-   * Hosts that use this list as the screen scroller put trailing chrome here
-   * so it stays below the feed.
+   * Trailing chrome for a host that uses this list as its screen scroller
+   * while the feed is off. An enabled feed does not render it: that list has
+   * no end, and a label passed here would stay mounted under the posts.
    */
   renderFooter?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;

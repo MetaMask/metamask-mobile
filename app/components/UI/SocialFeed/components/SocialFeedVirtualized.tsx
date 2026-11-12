@@ -589,18 +589,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                 ) : null
               }
               ListFooterComponent={
-                enabled || renderFooter ? (
-                  <>
-                    {enabled ? (
-                      <SocialFeedFooter
-                        state={state}
-                        isFetchingNextPage={isFetchingNextPage}
-                        onRetry={() => refresh()}
-                      />
-                    ) : null}
-                    {renderFooter?.()}
-                  </>
-                ) : null
+                enabled ? (
+                  <SocialFeedFooter
+                    state={state}
+                    isFetchingNextPage={isFetchingNextPage}
+                    onRetry={() => refresh()}
+                  />
+                ) : (
+                  (renderFooter?.() ?? null)
+                )
               }
               testID={scrollTestID}
             />

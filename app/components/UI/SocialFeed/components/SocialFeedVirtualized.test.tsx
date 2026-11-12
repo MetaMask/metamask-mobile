@@ -297,15 +297,13 @@ describe('SocialFeedVirtualized', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders a host footer after the posts', () => {
+  it('leaves the host footer off while the feed is enabled', () => {
     mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
 
     renderFeed({ renderFooter: () => <Text>disclaimer</Text> });
 
-    expect([...new Set(renderedRowTexts(/^(one|disclaimer)$/))]).toEqual([
-      'one',
-      'disclaimer',
-    ]);
+    expect(screen.getByText('one')).toBeOnTheScreen();
+    expect(screen.queryByText('disclaimer')).toBeNull();
   });
 
   it('keeps a host footer when the feed is off', () => {
