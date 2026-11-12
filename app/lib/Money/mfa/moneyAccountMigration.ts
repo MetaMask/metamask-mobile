@@ -12,7 +12,7 @@ export type MoneyAccountMigrationStatus =
 export const MONEY_ACCOUNT_MIGRATION_STORAGE_KEY =
   '@MetaMask:moneyAccountMigration';
 
-export const MIGRATION_POLL_INTERVAL_MS = 5_000;
+export const MIGRATION_POLL_INTERVAL_MS = 4_000;
 export const MIGRATION_POLL_TIMEOUT_MS = 5 * 60_000;
 
 const STATUSES: MoneyAccountMigrationStatus[] = [

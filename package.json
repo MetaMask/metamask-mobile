@@ -336,6 +336,7 @@
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "@metamask/subscription-controller": "^15.2.1",
     "@metamask/money-account-mfa-whitelist": "0.2.0"
   },
   "dependencies": {
