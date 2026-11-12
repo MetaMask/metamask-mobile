@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   TransactionStatus,
   type TransactionMeta,
@@ -189,6 +189,16 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountAvailability', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccountAvailability'),
+  useMoneyAccountAvailability: jest.fn(() => ({
+    accessBlockReason: undefined,
+    isMoneyAccountAccessible: true,
+    assertMoneyAccountAccessible: jest.fn(),
+  })),
+  useMoneyAccountAccessRedirect: jest.fn(() => true),
+}));
+
 // The rescue row consumed the live balance hook; this harness renders without
 // a QueryClient, so stub the balance as unavailable (rescue row disabled —
 // out of scope for the pending-transaction regression it covers).
@@ -303,13 +313,15 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
     // withdrawal flow runs in one step — the user reaches the Send
     // confirmation instead of being stranded with a stuck pending transaction.
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
-    );
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
   });
 
   it('navigates to the Send flow when no transaction is pending (control)', async () => {
@@ -325,13 +337,15 @@ describe('MoneyTransferSheet — Between accounts with a pending transaction', (
       jest.mocked(Engine.context.ApprovalController.rejectRequest),
     ).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(addTransactionBatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MONEY.CONFIRMATIONS_ROOT,
-      expect.objectContaining({
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      }),
-    );
+    await waitFor(() => {
+      expect(addTransactionBatch).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MONEY.CONFIRMATIONS_ROOT,
+        expect.objectContaining({
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        }),
+      );
+    });
   });
 });
 

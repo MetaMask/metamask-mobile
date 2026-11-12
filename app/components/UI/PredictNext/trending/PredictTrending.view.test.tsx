@@ -327,8 +327,8 @@ describeForPlatforms('Explore prediction sections', () => {
           home: 'Steelers',
           awayScore: '17',
           homeScore: '21',
-          awayQuote: 'PAC · 41¢',
-          homeQuote: 'STE · 59¢',
+          awayQuote: /^PAC\s*· 41¢$/,
+          homeQuote: /^STE\s*· 59¢$/,
         },
       );
       expect(

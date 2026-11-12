@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext, createContext } from 'react';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationProp,
@@ -30,6 +30,16 @@ import {
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
+const KycExitContext = createContext<(() => void) | null>(null);
+
+const useKycExit = (): (() => void) => {
+  const onExit = useContext(KycExitContext);
+  if (!onExit) {
+    throw new Error('KycIdentityVerificationModule requires onExit');
+  }
+  return onExit;
+};
+
 type IdentityVerificationNavigation =
   NativeStackNavigationProp<VbaIdentityVerificationParamList>;
 
@@ -44,8 +54,8 @@ export const openPartnerTerms = (
 
 /**
  * Leaves the provider as the only route, so closing it returns to the caller
- * (money home) rather than stepping back through the terms pages the user has
- * already agreed to.
+ * rather than stepping back through the terms pages the user has already
+ * agreed to.
  */
 export const resetToProvider = (
   navigation: IdentityVerificationNavigation,
@@ -58,13 +68,14 @@ export const resetToProvider = (
 
 const ProviderTermsStep = () => {
   const navigation = useNavigation<IdentityVerificationNavigation>();
+  const onExit = useKycExit();
   const handleContinue = useCallback(
     (disclaimers: KycCatalogDisclaimerLink[]) =>
       openPartnerTerms(navigation, disclaimers),
     [navigation],
   );
 
-  return <VerifyIdentity onContinue={handleContinue} />;
+  return <VerifyIdentity onContinue={handleContinue} onExit={onExit} />;
 };
 
 const PartnerTermsStep = () => {
@@ -93,9 +104,10 @@ const PartnerTermsStep = () => {
 
 const ProviderStep = () => {
   const advance = useOpenVbaOnboarding('identity-verification-submitted');
+  const onExit = useKycExit();
   const handleSubmitted = useCallback(() => advance(), [advance]);
 
-  return <KycSumSub onSubmitted={handleSubmitted} />;
+  return <KycSumSub onSubmitted={handleSubmitted} onExit={onExit} />;
 };
 
 const InstrumentedProviderStep = withScreenPerformance(
@@ -107,7 +119,9 @@ const InstrumentedProviderStep = withScreenPerformance(
 type Props = NativeStackScreenProps<
   VbaOnboardingParamList,
   typeof VbaOnboardingRoutes.IDENTITY_VERIFICATION
->;
+> & {
+  onExit: () => void;
+};
 
 export const getVbaIdentityVerificationInitialRoute = (
   snapshot: VbaOnboardingSnapshot,
@@ -116,29 +130,31 @@ export const getVbaIdentityVerificationInitialRoute = (
     ? VbaIdentityVerificationRoutes.PROVIDER
     : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
 
-const KycIdentityVerificationModule = ({ route }: Props) => {
+const KycIdentityVerificationModule = ({ route, onExit }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
     route.params.snapshot,
   );
 
   return (
-    <Stack.Navigator
-      initialRouteName={initialRouteName}
-      screenOptions={{ headerShown: false }}
-    >
-      <Stack.Screen
-        name={VbaIdentityVerificationRoutes.PROVIDER_TERMS}
-        component={ProviderTermsStep}
-      />
-      <Stack.Screen
-        name={VbaIdentityVerificationRoutes.PARTNER_TERMS}
-        component={PartnerTermsStep}
-      />
-      <Stack.Screen
-        name={VbaIdentityVerificationRoutes.PROVIDER}
-        component={InstrumentedProviderStep}
-      />
-    </Stack.Navigator>
+    <KycExitContext.Provider value={onExit}>
+      <Stack.Navigator
+        initialRouteName={initialRouteName}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PROVIDER_TERMS}
+          component={ProviderTermsStep}
+        />
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PARTNER_TERMS}
+          component={PartnerTermsStep}
+        />
+        <Stack.Screen
+          name={VbaIdentityVerificationRoutes.PROVIDER}
+          component={InstrumentedProviderStep}
+        />
+      </Stack.Navigator>
+    </KycExitContext.Provider>
   );
 };
 

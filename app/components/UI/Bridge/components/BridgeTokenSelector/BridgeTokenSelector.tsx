@@ -1098,7 +1098,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}

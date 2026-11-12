@@ -9,6 +9,8 @@ import { ButtonVariant } from '@metamask/design-system-react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { WebView } from '@metamask/react-native-webview';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import { strings } from '../../../../../../../locales/i18n';
 import ReduxService from '../../../../../../core/redux';
 import {
   RewardsMoneyClaimRefusalError,
@@ -21,8 +23,10 @@ import type {
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import {
   renderEarningsTab as renderEarningsTabScreen,
+  REWARDS_ROOT_MODAL_BACK_TEST_ID,
   type RenderRewardsMoneyOptions,
 } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
+import { SUPPORT_CONSENT_SHEET_TEST_IDS } from '../../../../SupportConsentSheet/SupportConsentSheet.testIds';
 import {
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT,
@@ -1071,7 +1075,108 @@ describe('EarningsTab tax documentation', () => {
 
     expect(
       await view.findByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).toHaveTextContent(
+      JSON.stringify({
+        url: METAMASK_SUPPORT_URL,
+        title: strings('app_settings.contact_support'),
+        isModal: false,
+      }),
+    );
+    // Support covers the sheet. Backing out of support closes the sheet.
+    fireEvent.press(view.getByTestId(REWARDS_ROOT_MODAL_BACK_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the contact sheet up when the support consent sheet is dismissed', async () => {
+    const view = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () =>
+          Promise.resolve(
+            taxMe({
+              state: 'UNDER_REVIEW',
+              next_action: 'NONE',
+              reason: 'US_ACTIVITY_BLOCKED',
+            }),
+          ),
+      },
+    });
+    ReduxService.store = view.store;
+
+    fireEvent.press(
+      await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+    fireEvent.press(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTACT),
+    );
+    fireEvent.press(
+      await view.findByTestId(SUPPORT_CONSENT_SHEET_TEST_IDS.CLOSE),
+    );
+
+    expect(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('closes the contact sheet after backing out of support opened from the consent sheet', async () => {
+    const view = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () =>
+          Promise.resolve(
+            taxMe({
+              state: 'UNDER_REVIEW',
+              next_action: 'NONE',
+              reason: 'US_ACTIVITY_BLOCKED',
+            }),
+          ),
+      },
+    });
+    ReduxService.store = view.store;
+
+    fireEvent.press(
+      await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+    fireEvent.press(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTACT),
+    );
+    fireEvent.press(
+      await view.findByTestId(SUPPORT_CONSENT_SHEET_TEST_IDS.CONFIRM),
+    );
+
+    const webview = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE),
+    );
+    const params = JSON.parse(String(webview.props.children)) as {
+      url: string;
+      isModal: boolean;
+    };
+    expect(params.url.startsWith(METAMASK_SUPPORT_URL)).toBe(true);
+    expect(params.isModal).toBe(false);
+
+    fireEvent.press(view.getByTestId(REWARDS_ROOT_MODAL_BACK_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
   });
 
   it('claims and shows the renewal question when the answer is about to expire', async () => {

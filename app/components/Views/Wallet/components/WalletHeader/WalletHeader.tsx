@@ -38,14 +38,10 @@ import {
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
-import WalletHeaderProfileAvatar, {
-  SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER,
-} from './WalletHeaderProfileAvatar';
+import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
 import WalletHeaderAccountPickerRow from './WalletHeaderAccountPickerRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createProfileDrawerNavDetails } from '../../../SocialProfile/ProfileDrawer';
 import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { useAccountsMenuAttention } from '../../../../hooks/useAccountsMenuAttention';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -81,7 +77,6 @@ export interface WalletHeaderProps {
   handleCardPress: () => void;
   handleHamburgerPress: () => void;
   handleRewardsPress?: () => void;
-  handleProfilePress?: () => void;
   touchAreaSlop: TouchAreaSlop;
   headerActionButtonsContainerStyle: ViewStyle;
   headerAccountPickerStyle: ViewStyle;
@@ -101,7 +96,6 @@ const WalletHeader = ({
   handleCardPress,
   handleHamburgerPress,
   handleRewardsPress,
-  handleProfilePress,
   touchAreaSlop,
   displayName,
   navigation,
@@ -165,16 +159,10 @@ const WalletHeader = ({
   };
 
   const handleAccountPickerPress = useCallback(() => {
-    if (isSocialV1Enabled) {
-      (navigation as NavigationProp<ParamListBase>).navigate(
-        ...createProfileDrawerNavDetails({}),
-      );
-      return;
-    }
     (navigation as NavigationProp<ParamListBase>).navigate(
       ...createAccountSelectorNavDetails({}),
     );
-  }, [navigation, isSocialV1Enabled]);
+  }, [navigation]);
 
   const handleAccountSelectorPress = useCallback(() => {
     (navigation as NavigationProp<ParamListBase>).navigate(
@@ -300,22 +288,6 @@ const WalletHeader = ({
         gap={2}
         twClassName="h-14 px-4"
       >
-        <CapsuleGlass twClassName="h-10 w-10 shrink-0 justify-center">
-          <ButtonBase
-            onPress={() => handleProfilePress?.()}
-            testID={WalletViewSelectorsIDs.PROFILE_BUTTON}
-            accessibilityRole="button"
-            accessibilityLabel={strings(
-              'social_leaderboard.my_profile.open_profile',
-            )}
-            hitSlop={touchAreaSlop}
-            twClassName="h-10 w-10 items-center justify-center rounded-full bg-transparent p-0"
-          >
-            <WalletHeaderProfileAvatar
-              diameter={SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER}
-            />
-          </ButtonBase>
-        </CapsuleGlass>
         {socialAccountPicker}
         {socialActions}
       </Box>

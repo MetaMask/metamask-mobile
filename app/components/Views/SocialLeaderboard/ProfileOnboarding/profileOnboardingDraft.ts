@@ -15,9 +15,6 @@ export interface XOnboardingIdentity {
   avatarUrl: string | null;
 }
 
-/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
-export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
-
 export type ProfileOnboardingPath = 'manual' | 'x';
 
 export type ProfileOnboardingStep =

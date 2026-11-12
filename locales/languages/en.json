@@ -1210,6 +1210,8 @@
       "bank_name_label": "Bank name",
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
+      "copy_all_button": "Copy all details",
+      "copied_all_label": "Copied bank details",
       "button": "Done",
       "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
@@ -1322,11 +1324,18 @@
       "report_reason_title": "Report",
       "report_reason_description": "Select the reason that best describes the issue.",
       "report_reasons": {
-        "spam": "Spam",
-        "harassment": "Harassment or bullying",
-        "misleading": "False or misleading information",
-        "other": "Something else"
+        "scams_and_phishing": "Scams and phishing",
+        "impersonation": "Impersonation",
+        "financial_conduct": "Financial conduct",
+        "spam_and_fake_engagement": "Spam and fake engagement",
+        "harassment_hate_and_threats": "Harassment, hate, and threats",
+        "privacy": "Privacy",
+        "sexual_and_graphic_content": "Sexual and graphic content",
+        "illegal_and_dangerous": "Illegal and dangerous",
+        "profile_text": "Profile text"
       },
+      "impersonation_support_title": "Contact customer support",
+      "impersonation_support_description": "Our customer support team handles impersonation claims. They'll ask for your email address and follow up with you.",
       "submit_report": "Submit",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
@@ -1390,9 +1399,12 @@
       "trade": "Trade",
       "just_now": "Just now",
       "age": {
-        "minutes": "{{count}} min ago",
-        "hours": "{{count}} hr ago",
-        "days": "{{count}} d ago"
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago",
+        "years": "{{count}}y ago"
       },
       "action": {
         "perps_opened": "opened",
@@ -1513,8 +1525,9 @@
       "section_tokens": "Tokens",
       "section_perps": "Perps",
       "empty_title": "No positions to post yet",
-      "empty_help": "Why don't I see a position?",
-      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "empty_help": "Why aren't all positions visible?",
+      "hidden_position_title": "About visible positions",
+      "hidden_position_body": "Positions only appear here if they include a trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
       "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
@@ -1525,7 +1538,8 @@
       "post_failed": "Couldn't create post. Try again.",
       "linked_account_missing": "Your linked Social account isn't in this wallet.",
       "showing_linked_account": "Showing positions from {{account}}",
-      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed.",
+      "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
       "swap_in_progress": "Swap in progress",
@@ -1653,6 +1667,13 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "See {{trader}}'s trades on MetaMask",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_description": "{{trader}} is trading {{asset}}",
+      "position_title_no_asset": "{{trader}}'s trade"
+    },
     "popular_traders": "Popular traders",
     "profiles_to_follow": {
       "title": "Profiles to follow",
@@ -1718,11 +1739,17 @@
       "error_loading_profile": "Couldn't load profile",
       "more_options": "More options",
       "profile_options": "Profile options",
-      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "profile_options_description": "Report this profile, or block them to hide their posts and positions on this device for this session. Blocking also unfollows them.",
+      "report_user": "Report @{{name}}",
       "block_user": "Block @{{name}}",
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
       "blocked_description": "Their posts and positions are hidden on this device for this session.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1797,7 +1824,9 @@
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
-      "intro_title": "See trades as they happen",
+      "intro_title": "See trades in real time",
+      "intro_title_activity": "Follow verified traders and top callers",
+      "intro_title_post": "Earn rewards if someone copies your moves",
       "live_activity": "Live activity",
       "bought": "bought",
       "sold": "sold",
@@ -1999,7 +2028,8 @@
       "toast_complete_sell": "Sold {{amount}} of {{symbol}} for {{counter}}",
       "toast_failed_buy": "Couldn't buy {{symbol}}",
       "toast_failed_sell": "Couldn't sell {{symbol}}"
-    }
+    },
+    "share_preparing": "Preparing link"
   },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
@@ -3484,11 +3514,24 @@
     },
     "margin_mode": {
       "title": "Choose margin mode",
+      "title_with_market": "{{market}} margin mode",
       "isolated_title": "Isolated",
-      "isolated_description": "Each position uses only its allocated margin. If it's used up, that position liquidates, others are unaffected. You can adjust margin per position.",
+      "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
-      "cross_description": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance. Coming soon.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
+    },
+    "cross_margin_confirm": {
+      "title": "Confirm cross margin",
+      "description": "You selected cross margin for this order.\nCheck this list to confirm you understand:",
+      "collateral_title": "Collateral:",
+      "collateral_description": "All positions will share your full perps balance.",
+      "liquidation_title": "Liquidation:",
+      "liquidation_description": "If liquidation occurs, this will draw from your entire perps balance.",
+      "margin_title": "Margin:",
+      "margin_description": "Margin cannot be added or removed from a cross position.",
+      "go_back": "Go back",
+      "confirm": "Confirm"
     },
     "cross_position": {
       "badge": "Cross",
@@ -3500,6 +3543,9 @@
       "title": "Cross margin not supported",
       "message": "MetaMask Perps only support trading with isolated margin. You need to first close your cross margin position before you can trade on MetaMask.",
       "dismiss": "Got it"
+    },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3527,6 +3573,9 @@
     },
     "provider_selector": {
       "title": "Select Provider"
+    },
+    "selection_sheet": {
+      "save": "Save"
     },
     "market_type": {
       "filter_by": "Filter by"
@@ -3816,12 +3865,23 @@
       "retry": "Retry",
       "unavailable": "No markets are available right now."
     },
+    "home_categories": {
+      "title": "Categories",
+      "politics": "Politics",
+      "sports": "Sports"
+    },
+    "get_started_banner": {
+      "title": "Get started in a few steps",
+      "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
+    },
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
       "outcomes": "Outcomes",
       "view_all_markets": "View all {{count}} markets",
       "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
         "markets": "Markets",
         "moneyline": "Moneyline",
@@ -3848,7 +3908,11 @@
         "buy_price_unavailable": "Buy, price unavailable",
         "holding": "{{shares}} shares at {{price}}",
         "holding_shares": "{{shares}} shares"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
     },
     "trending": {
       "search_row_chance": "{{probability}} chance on {{outcome}}"
@@ -3926,10 +3990,15 @@
       "total_debit": "Total debit",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
-      "predict_balance": "Predict balance",
-      "total": "Total",
-      "price_details": "Price details",
+      "predictions_balance": "Predictions balance",
+      "odds": "Odds",
+      "contracts_row": "Contracts",
+      "fees": "Fees",
+      "you_will_receive": "You'll receive",
+      "you_will_receive_value": "{{amount}} ({{price}} avg)",
+      "estimated_payout": "Est. payout",
       "terms": "By continuing, you accept the platform terms.",
+      "venue_terms": "By continuing, you accept {{venue}}'s terms.",
       "learn_more": "Learn more",
       "submitting": "Submitting your order…",
       "done": "Done",
@@ -3939,6 +4008,7 @@
       "refresh": "Refresh",
       "retry": "Try again",
       "review": "Review order",
+      "buy": "Buy",
       "venue_changed": "Your prediction market changed. Close this order to continue."
     },
     "order_approval": {
@@ -5351,16 +5421,6 @@
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
-  },
-  "profile_drawer": {
-    "close": "Close",
-    "scan": "Scan QR code",
-    "create_profile": "Create profile",
-    "notifications": "Notifications",
-    "activity": "Activity",
-    "subscriptions": "Subscriptions",
-    "settings": "Settings",
-    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -8039,7 +8099,10 @@
     "card_title": "Always show MetaMask Card button",
     "card_desc": "MetaMask Card is only available to residents of select countries.",
     "daimo_demo_title": "Use DaimoPay demo environment",
-    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
+    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments.",
+    "card_logout_title": "MetaMask Card",
+    "card_logout_desc": "Log out of your MetaMask Card account on this device. Use this for troubleshooting or if MetaMask Support asks you to.",
+    "card_logout_cta": "Log out of MetaMask Card"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "You have no active sessions",
@@ -9623,6 +9686,25 @@
         }
       }
     },
+    "splash": {
+      "eyebrow": "MetaMask Money",
+      "title": "Earn, trade, and spend from one balance",
+      "body_prefix": "MetaMask Money is a stablecoin account that earns up to ",
+      "body_suffix": "—with trading, sending, and spending built in.",
+      "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
+      "benefit_convert_title": "Converts to MetaMask USD, 1:1",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, with no fees.",
+      "benefit_earn_title": "Earn automatically",
+      "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
+      "benefit_trade_title": "Trade from the same balance",
+      "benefit_trade_body": "Fund swaps, perps, and predictions directly from your Money balance.",
+      "benefit_withdraw_title": "Withdraw anytime",
+      "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
+      "benefit_send_title": "Send or spend anywhere",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "cta": "Start earning",
+      "close": "Close"
+    },
     "vba_home_card": {
       "get_started": {
         "title": "Convert to digital dollars",
@@ -9733,6 +9815,15 @@
     "metamask_card": {
       "title": "Card",
       "upsell_title": "Get card",
+      "setup": {
+        "finish_kyc_title": "Finish verifying your identity",
+        "finish_kyc_description": "Pick up where you left off to get your card.",
+        "reviewing_title": "Verifying your identity",
+        "reviewing_description": "Most applications are reviewed within a few hours.",
+        "creating_title": "Creating your card",
+        "creating_description": "This may take a few moments.",
+        "continue": "Continue"
+      },
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
@@ -9763,7 +9854,7 @@
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
-      "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+      "verification_pending": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
     },
     "what_you_get": {
       "title": "Benefits",
@@ -9973,6 +10064,7 @@
       "faq_title": "FAQs",
       "faq_q1": "What is a MetaMask Money account?",
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
       "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
@@ -9982,6 +10074,7 @@
       "faq_a4_link": "See the full Card fee breakdown here.",
       "faq_q5": "How much can I earn with a MetaMask Money account?",
       "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
+      "faq_a5_no_apy": "The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Where does the yield come from?",
       "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
       "faq_q7": "What tokens can I deposit into the Money account?",
@@ -10523,7 +10616,8 @@
     "tabs": {
       "market": "Market",
       "limit": "Limit",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "new_badge": "New"
     },
     "generic_error_toast_title": "Something went wrong",
     "generic_error_toast_body": "Please try again in a few minutes.",
@@ -11477,9 +11571,11 @@
       "verify_identity": {
         "title": "Verify your identity",
         "description": "Our partner, Crypto Life, uses a service called Veriff to keep your account secure. ",
-        "terms_1": "Your info goes directly to Veriff and Crypto Life. MetaMask never sees it.",
-        "terms_2": "You'll need your ID and proof of address to get approved. This usually takes 5 minutes.",
-        "terms_2_us": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
+        "terms_1_title": "MetaMask never sees your info",
+        "terms_1_description": "It goes straight to Veriff and Crypto Life.",
+        "terms_2_title": "Have your ID and proof of address ready",
+        "terms_2_description": "This usually takes 5 minutes.",
+        "terms_2_us_description": "Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.",
         "verify_button": "Next",
         "start_verification_error": "Error starting verification. Try again shortly."
       },
@@ -11504,7 +11600,9 @@
       "verifying_veriff_kyc": {
         "title": "Awaiting approval",
         "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Do not close the app."
+        "helper_text": "This usually takes a few seconds. Do not close the app.",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
         "title": "Awaiting approval",
@@ -11534,7 +11632,8 @@
           "title": "Set up card funding",
           "description": "Approve MetaMask Card to use your USDC on Base again so you can resume spending.",
           "confirm_button": "Approve funding"
-        }
+        },
+        "token_value": "USDC on Base"
       },
       "verifying_registration": {
         "title": "Verifying your identity",
@@ -11557,12 +11656,6 @@
         "description": "Eligibility is determined by our partner's regulatory and verification checks.",
         "close_button": "Back to home"
       },
-      "kyc_pending": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "footer_text": "Approvals usually take around 12 hours.\nWe'll notify you when a decision is made.",
-        "got_it_button": "Got it"
-      },
       "personal_details": {
         "title": "Add your info",
         "description": "Enter your personal details. We'll use this info for verification purposes.",
@@ -11570,6 +11663,7 @@
         "last_name_label": "Last name",
         "date_of_birth_label": "Date of birth",
         "nationality_label": "Nationality",
+        "nationality_placeholder": "Select your nationality",
         "ssn_label": "Social Security Number",
         "ssn_description": "Required by the card issuer. No credit check will be run.",
         "invalid_ssn": "Invalid SSN",
@@ -11583,6 +11677,7 @@
         "address_line_2_label": "Address line 2",
         "city_label": "City",
         "state_label": "State",
+        "state_placeholder": "Select your state",
         "zip_code_label": "Zip code",
         "country_label": "Country",
         "electronic_consent_1": "I agree to the ",
@@ -11606,7 +11701,7 @@
         "description": "Provide a mailing address that we can send your card to."
       },
       "complete": {
-        "title": "You're in!",
+        "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finish setup"
       },
@@ -11632,7 +11727,9 @@
         "success_toast_description": "We'll let you know when the card is available in your country."
       },
       "region_selector": {
-        "title": "Select your Region"
+        "title": "Select your region",
+        "search_label": "Search regions",
+        "search_placeholder": "Search by country"
       },
       "errors": {
         "no_region_results": "No region matches {{searchString}}",
@@ -11666,7 +11763,6 @@
       "enable_assets_button_label": "Enable assets",
       "spending_limit_warning": "You're close to your spending limit. Update to avoid declines.",
       "spending_limit_available": "available",
-      "logout": "Log out",
       "contact_support": "Contact support",
       "logout_confirmation_title": "Log out of Card?",
       "logout_confirmation_message": "Are you sure you want to log out of your MetaMask Card account?",
@@ -11708,14 +11804,25 @@
           "description": "Contact support to unblock your card"
         },
         "kyc_pending": {
-          "title": "Verification in progress",
-          "description": "Your identity verification is being reviewed. This typically takes less than 12 hours."
+          "title": "Verifying your identity",
+          "description": "Most applications are reviewed within a few hours."
         }
       },
       "messages": {
         "card_provisioning": {
           "title": "Card being created",
           "description": "Your card is being created. This may take a few moments."
+        },
+        "setup_incomplete": {
+          "title": "Finish setting up your card",
+          "descriptions": {
+            "contact": "Add your contact details to continue.",
+            "kyc": "Verify your identity to continue.",
+            "expected_spend": "Tell us how you plan to use your card to continue.",
+            "funding": "Approve funding so you can start spending.",
+            "rejected": "We couldn't verify your identity. Try again to continue."
+          },
+          "confirm_button_label": "Continue"
         }
       },
       "kyc_status": {
@@ -12004,6 +12111,10 @@
       "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
+      "show_password": "Show password",
+      "hide_password": "Hide password",
+      "email_code_label": "Email code",
+      "request_email_code_button": "Email me a code",
       "login_button": "Sign in",
       "money_account_required": {
         "title": "Set up Money account",
@@ -12046,6 +12157,7 @@
       "banner_resume_soft_body": "Finish it by {{deadline}}. You can still use your current card until then.",
       "banner_bad_creds_title": "We couldn't sign you in",
       "banner_bad_creds_body": "Check your email address and password and try again.",
+      "banner_bad_code_body": "Check the code and try again.",
       "sign_in_help_title": "Which one is mine?",
       "sign_in_help_email_title": "You made a password",
       "sign_in_help_email_body": "Sign in with email. UK cards are moving to a new setup, so we'll walk you through the switch once you're in.",
@@ -12099,7 +12211,9 @@
     },
     "card_otp_authentication": {
       "title": "Confirm your phone number",
+      "title_authenticator": "Confirm your authenticator",
       "description_with_phone_number": "Enter the verification code sent to\n{{maskedPhoneNumber}}",
+      "description_authenticator": "Enter the code from your authenticator app.",
       "description_without_phone_number": "We've sent a confirmation code to your phone number. Enter the code to continue.",
       "confirm_code_label": "Confirmation code",
       "confirm_button": "Confirm",

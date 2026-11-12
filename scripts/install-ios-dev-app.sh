@@ -63,6 +63,7 @@ source "$DEVICE_TARGET_LIB"
 GITHUB_REPO="$(resolve_github_repo)"
 BRANCH="main"
 RUN_ID=""
+MATCH_REF=""
 UNINSTALL=false
 SKIP_DOWNLOAD=false
 SKIP_INSTALL=false
@@ -107,6 +108,15 @@ while [[ $# -gt 0 ]]; do
       RUN_ID="$2"
       shift 2
       ;;
+    --match-checkout)
+      if [[ -n "${2:-}" && "${2}" != --* ]]; then
+        MATCH_REF="$2"
+        shift 2
+      else
+        MATCH_REF="HEAD"
+        shift
+      fi
+      ;;
     --uninstall)
       UNINSTALL=true
       shift
@@ -129,11 +139,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--branch main] [--run RUN_ID] [--device] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
+      echo "Usage: $0 [--branch main] [--run RUN_ID | --match-checkout [REF]] [--device] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
       echo "  (default) Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
       echo "  --device  Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected iPhone."
       echo "            Auto-connects to Metro after install. Add --skip-download to just reconnect."
       echo "  --force-download  Re-download even when the local Actions artifact digest matches."
+      echo "  --match-checkout [REF]  Use the newest build whose commit is in REF's history (default HEAD) instead of the latest."
       exit 1
       ;;
   esac
@@ -148,7 +159,7 @@ download_latest_app_simulator() {
   local resolved_run_id
   local target_app="$BUILD_DIR/$APP_NAME"
   local remote_digest
-  resolved_run_id="$(resolve_expo_dev_run "$IOS_SIMULATOR_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
+  resolved_run_id="$(resolve_expo_dev_run "$IOS_SIMULATOR_ARTIFACT_NAME" "$BRANCH" "$RUN_ID" "$MATCH_REF")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
 
   if should_skip_artifact_download "$resolved_run_id" "$IOS_SIMULATOR_ARTIFACT_NAME" "$target_app" "$FORCE_DOWNLOAD"; then
@@ -215,7 +226,7 @@ download_latest_app_device() {
   local resolved_run_id
   local target_ipa="$BUILD_DIR/$IPA_NAME"
   local remote_digest
-  resolved_run_id="$(resolve_expo_dev_run "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
+  resolved_run_id="$(resolve_expo_dev_run "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$BRANCH" "$RUN_ID" "$MATCH_REF")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
 
   if should_skip_artifact_download "$resolved_run_id" "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$target_ipa" "$FORCE_DOWNLOAD"; then
