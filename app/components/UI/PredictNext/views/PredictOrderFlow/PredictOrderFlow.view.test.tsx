@@ -10,6 +10,7 @@ import {
 import { Linking, StyleSheet } from 'react-native';
 import { Text, Button } from '@metamask/design-system-react-native';
 
+import { strings } from '../../../../../../locales/i18n';
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
@@ -1973,7 +1974,7 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
     });
 
-    it('presents the sell approval with the signed minimum proceeds emphasized and no payout, profit, or debit rows', async () => {
+    it('presents the sell approval with conditional signed proceeds and no payout, profit, or debit rows', async () => {
       stubFetch(() => ({ body: makePredictNextSellPreview() }));
 
       await reviewSellOrder();
@@ -1996,6 +1997,16 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
       ).toHaveTextContent('$28.50');
+      expect(
+        screen.getByText(
+          strings('predict_next.order_preview.proceeds_if_fully_filled'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+        ),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PredictOrderFlowTestIds.POTENTIAL_PAYOUT),
       ).toBeNull();
@@ -2047,21 +2058,54 @@ describe('PredictOrderFlow', () => {
       ).toBeNull();
     }, 30000);
 
-    it('renders a partial sell honestly: the unsold remainder stays in the position', async () => {
-      stubFetch(() => ({ body: makePredictNextSellPreview() }), {
-        commit: () => ({
-          body: makePredictNextSellReceipt({
-            status: 'partially_filled',
-            filledContracts: '42.00',
-            averageFillPrice: '0.4700',
-            fee: '0.20',
-            actualProceeds: '19.74',
-            netProceeds: '19.54',
+    it('renders a partial sell below the conditional full-fill total and keeps the unsold remainder', async () => {
+      stubFetch(
+        () => ({
+          body: makePredictNextSellPreview({
+            requestedContracts: 10,
+            estimatedContracts: 10,
+            averagePrice: '0.6000',
+            limitPrice: '0.5600',
+            fee: '0.10',
+            feeBreakdown: [{ source: 'venue', amount: '0.10' }],
+            estimatedProceeds: '6.00',
+            estimatedNetProceeds: '5.90',
           }),
         }),
-      });
+        {
+          commit: () => ({
+            body: makePredictNextSellReceipt({
+              status: 'partially_filled',
+              quotedContracts: 10,
+              filledContracts: '1.00',
+              averageFillPrice: '0.6000',
+              fee: '0.01',
+              actualProceeds: '0.60',
+              netProceeds: '0.59',
+            }),
+          }),
+        },
+      );
 
-      await approveSellOrder();
+      await reviewSellOrder('10');
+
+      // Ten contracts at the signed 56¢ floor less the 2¢ fee ceiling:
+      // $5.40 applies to a full fill, not to the one-contract fill below.
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
+      ).toHaveTextContent('$5.40');
+      expect(
+        screen.getByText(
+          strings('predict_next.order_preview.proceeds_if_fully_filled'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+        ),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
 
       await waitFor(() =>
         expect(
@@ -2070,16 +2114,26 @@ describe('PredictOrderFlow', () => {
       );
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.REMAINDER),
-      ).toHaveTextContent(/42 of 70 contracts sold/);
+      ).toHaveTextContent(/1 of 10 contracts sold/);
       expect(
-        screen.getByText(/other 28 remain in your position/),
+        screen.getByText(/other 9 remain in your position/),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.POSITION_CONTEXT),
-      ).toHaveTextContent('You sold 42 Buffalo Bills contracts');
+      ).toHaveTextContent('You sold 1 Buffalo Bills contracts');
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.NET_PROCEEDS),
-      ).toHaveTextContent('$19.54');
+      ).toHaveTextContent('$0.59');
+      expect(
+        screen.queryByText(
+          strings('predict_next.order_preview.proceeds_if_fully_filled'),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByText(
+          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+        ),
+      ).toBeNull();
     }, 30000);
 
     it('renders a zero sell with the Order-not-filled treatment and a re-quote', async () => {

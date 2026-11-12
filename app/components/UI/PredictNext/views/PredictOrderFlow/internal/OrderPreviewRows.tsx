@@ -39,7 +39,11 @@ const EmphasizedTotalRow = ({
   testID: string;
 }) => (
   <Box twClassName="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
-    <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Bold}
+      twClassName="flex-1"
+    >
       {label}
     </Text>
     <Text
@@ -210,20 +214,24 @@ const BuySignedTail = ({ display }: { display: InvariantDisplay }) => {
   );
 };
 
-/** The signed sell tail: the invariant's worst-case proceeds the phone
- * signs, replacing the quoted Net Proceeds. */
+/** The signed sell total assumes every offered contract fills. IOC orders
+ * can fill only part of the count, or none of it. */
 const SellSignedTail = ({ display }: { display: InvariantDisplay }) => (
-  <EmphasizedTotalRow
-    label={strings('predict_next.order_preview.min_proceeds')}
-    value={formatUsd(display.minProceeds)}
-    testID={PredictOrderFlowTestIds.NET_PROCEEDS}
-  />
+  <>
+    <EmphasizedTotalRow
+      label={strings('predict_next.order_preview.proceeds_if_fully_filled')}
+      value={formatUsd(display.minProceeds)}
+      testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+    />
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {strings('predict_next.order_preview.partial_fill_proceeds_description')}
+    </Text>
+  </>
 );
 
-/** Server-quoted preview rows: distinct canonical values, verbatim, for the
- * quoted Order Action. When the profile's invariant produced a signed bound
- * (`display`), the emphasized Total shows that bound — the worst case the
- * phone actually signs — and profit is measured against it. */
+/** Server-quoted preview rows with the signed bound emphasized when available.
+ * Buy profit uses the signed maximum cost; the signed sell total is conditional
+ * on all offered contracts filling. */
 export const OrderPreviewRows = ({
   preview,
   display,

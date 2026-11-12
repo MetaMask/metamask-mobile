@@ -60,14 +60,26 @@ describe('OrderPreviewRows', () => {
     expect(
       view.queryByText(strings('predict_next.order_preview.total_debit')),
     ).toBeNull();
+    expect(
+      view.queryByText(
+        strings('predict_next.order_preview.partial_fill_proceeds_description'),
+      ),
+    ).toBeNull();
   });
 
-  it('shows the signed minimum proceeds for a sell', () => {
+  it('shows the signed full-fill sell total with partial and no-fill conditions', () => {
     const view = render(<OrderPreviewRows preview={sell} display={display} />);
 
     expect(textOf(view, PredictOrderFlowTestIds.NET_PROCEEDS)).toBe('$3.70');
     expect(
-      view.getByText(strings('predict_next.order_preview.min_proceeds')),
+      view.getByText(
+        strings('predict_next.order_preview.proceeds_if_fully_filled'),
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByText(
+        strings('predict_next.order_preview.partial_fill_proceeds_description'),
+      ),
     ).toBeTruthy();
     expect(
       view.queryByText(strings('predict_next.order_preview.net_proceeds')),
@@ -85,6 +97,16 @@ describe('OrderPreviewRows', () => {
     expect(textOf(sellView, PredictOrderFlowTestIds.NET_PROCEEDS)).toBe(
       '$3.90',
     );
+    expect(
+      sellView.queryByText(
+        strings('predict_next.order_preview.proceeds_if_fully_filled'),
+      ),
+    ).toBeNull();
+    expect(
+      sellView.queryByText(
+        strings('predict_next.order_preview.partial_fill_proceeds_description'),
+      ),
+    ).toBeNull();
   });
 
   it('shows a negative profit when the signed cost exceeds the payout', () => {
