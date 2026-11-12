@@ -204,7 +204,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   isActive,
   title,
   renderHeader,
-  renderFooter,
   filterPost,
   emptyState,
   realtime = false,
@@ -595,9 +594,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                     isFetchingNextPage={isFetchingNextPage}
                     onRetry={() => refresh()}
                   />
-                ) : (
-                  (renderFooter?.() ?? null)
-                )
+                ) : null
               }
               testID={scrollTestID}
             />

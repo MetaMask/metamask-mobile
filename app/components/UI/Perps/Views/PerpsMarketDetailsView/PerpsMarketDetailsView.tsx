@@ -2052,8 +2052,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
   const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
-  // The feed list has no end, so that tab does not mount the disclaimer.
-  // The list renders `renderFooter` only while the feed is off.
+  // One FlashList scrolls every tab. The disclaimer stays inside Overview
+  // and Top traders, which unmount on Feed. A list footer would be recycled
+  // and paint that label when the next page loads.
   const isFeedTabActive = isFeedScroller && activeSocialTab === 'feed';
   const bottomInsetSpacer = edgeInsets && !hasActionsFooter && (
     <View
@@ -2244,6 +2245,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onOverviewLayout={handleAboutContainerLayout}
             onOverviewVisibilityChange={setAboutTrackingEnabled}
             onTabChange={setActiveSocialTab}
+            footer={isFeedScroller ? riskDisclaimer : undefined}
             overview={
               <PerpsHomeSectionList
                 sections={[
@@ -2272,7 +2274,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     </>
   );
   const renderScreenContent = (): React.ReactNode => screenContent;
-  const renderFeedFooter = (): React.ReactNode => riskDisclaimer;
 
   return (
     <View
@@ -2327,7 +2328,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               location="perps_market_details"
               analyticsSource={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
               renderHeader={renderScreenContent}
-              renderFooter={isFeedTabActive ? undefined : renderFeedFooter}
               onScroll={scrollHandler}
               onRefresh={handleRefresh}
               pageRef={feedPageRef}
