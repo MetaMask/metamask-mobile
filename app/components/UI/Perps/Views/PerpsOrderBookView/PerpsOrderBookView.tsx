@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Button,
   ButtonVariant,
@@ -99,10 +98,13 @@ import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
 } from './PerpsOrderBookView.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const route =
@@ -808,7 +810,8 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={() =>
               depthBandSheetRef.current?.onCloseBottomSheet(
                 handleDepthBandSheetClose,
@@ -819,7 +822,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             }}
           >
             {strings('perps.order_book.depth_band.title')}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           {groupingOptions.map((value) => (
             <ListItemSelect
               key={value}
