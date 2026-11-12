@@ -1120,7 +1120,7 @@ describe('SocialFeedPostShell', () => {
           screen.getByText('This content is in Korean.'),
         ).toBeOnTheScreen();
       });
-      expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      expect(screen.getByText('See original')).toBeOnTheScreen();
       expect(announce).toHaveBeenCalledWith(
         'This content is in Korean. Translated to English',
       );
