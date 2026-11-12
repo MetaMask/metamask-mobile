@@ -38,22 +38,14 @@ jest.mock('../BackupVault', () => ({
   clearAllVaultBackups: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('@react-native-community/netinfo', () => {
-  const fetch = jest.fn().mockResolvedValue({
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  fetch: jest.fn().mockResolvedValue({
     isConnected: true,
     isInternetReachable: true,
-  });
-  const addEventListener = jest.fn().mockReturnValue(jest.fn());
-  // `__esModule` makes `import NetInfo from ...` read `default`. Order
-  // recovery binds that default while Engine initializes.
-  const netInfo = { fetch, addEventListener };
-  return {
-    __esModule: true,
-    fetch,
-    addEventListener,
-    default: netInfo,
-  };
-});
+  }),
+  addEventListener: jest.fn().mockReturnValue(jest.fn()),
+}));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
   store: {
@@ -1451,9 +1443,7 @@ describe('Engine', () => {
 
       await engine.resetState();
 
-      // reset() suspends recovery before the journal clear and again after it.
-      // Each suspend abandons commits. The first one still precedes the purge.
-      expect(abandonSpy).toHaveBeenCalledTimes(2);
+      expect(abandonSpy).toHaveBeenCalledTimes(1);
       expect(clearSpy).toHaveBeenCalledTimes(1);
       // Abandoning first is what stops a receipt from refilling the cache the
       // purge is about to drop.

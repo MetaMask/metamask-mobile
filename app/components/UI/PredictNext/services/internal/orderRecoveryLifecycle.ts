@@ -1,6 +1,12 @@
 import { AppState } from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
+import { addEventListener as netInfoAddEventListener } from '@react-native-community/netinfo';
 import type { PredictOrderService } from '../PredictOrderService';
+
+/** Named import, not the module default: consumers of this lifecycle (Engine
+ * tests among them) mock the module's named exports only. */
+const defaultNetwork = {
+  addEventListener: netInfoAddEventListener,
+};
 
 export interface OrderRecoveryLifecycleOptions {
   service: Pick<
@@ -13,7 +19,7 @@ export interface OrderRecoveryLifecycleOptions {
   getIdentityScope: () => Promise<string | undefined>;
   subscribeSession: (listener: () => void) => () => void;
   appState?: Pick<typeof AppState, 'currentState' | 'addEventListener'>;
-  network?: Pick<typeof NetInfo, 'addEventListener'>;
+  network?: { addEventListener: typeof netInfoAddEventListener };
 }
 
 /** Identity is the authenticated canonical Predict User, never a selected
@@ -26,7 +32,7 @@ export const bindOrderRecoveryLifecycle = ({
   getIdentityScope,
   subscribeSession,
   appState = AppState,
-  network = NetInfo,
+  network = defaultNetwork,
 }: OrderRecoveryLifecycleOptions): (() => void) => {
   let generation = 0;
   let destroyed = false;
