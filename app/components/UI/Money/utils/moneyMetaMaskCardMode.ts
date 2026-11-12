@@ -1,9 +1,70 @@
+import type { CardProvisioningView, CardSetupStep } from '../../Card/types';
+import type { HardwareTier } from '../../../../util/deviceCapability';
+import type { NetworkTier } from '../../../../hooks/useNetworkTier';
+
 export type MoneyMetaMaskCardMode =
   | 'upsell'
   | 'link'
   | 'manage'
   | 'verifying'
-  | 'loading';
+  | 'loading'
+  | 'setup';
+
+export type MoneyCardSetupView =
+  | { kind: 'reconciling' }
+  | { kind: 'kyc_under_review' }
+  | { kind: 'provisioning' }
+  | { kind: 'action_required'; step: CardSetupStep };
+
+const CARD_SETUP_POLL_INTERVAL_MS = 5_000;
+const CARD_SETUP_SLOW_POLL_INTERVAL_MS = 15_000;
+
+export function deriveMoneyCardSetupPollIntervalMs(
+  _hardware: HardwareTier | null,
+  network: NetworkTier | null,
+): number | null {
+  if (network === 'NONE') {
+    return null;
+  }
+
+  if (network === 'SLOW_CELLULAR') {
+    return CARD_SETUP_SLOW_POLL_INTERVAL_MS;
+  }
+
+  return CARD_SETUP_POLL_INTERVAL_MS;
+}
+
+export function deriveMoneyCardSetupView({
+  hasProvisioningAlert,
+  provisioningView,
+  setupStep,
+}: {
+  hasProvisioningAlert: boolean;
+  provisioningView: CardProvisioningView;
+  setupStep: CardSetupStep | null;
+}): MoneyCardSetupView | null {
+  if (!hasProvisioningAlert) {
+    return null;
+  }
+
+  if (provisioningView === 'reconciling') {
+    return { kind: 'reconciling' };
+  }
+
+  if (provisioningView === 'kyc_under_review') {
+    return { kind: 'kyc_under_review' };
+  }
+
+  if (setupStep) {
+    return { kind: 'action_required', step: setupStep };
+  }
+
+  if (provisioningView === 'provisioning') {
+    return { kind: 'provisioning' };
+  }
+
+  return null;
+}
 
 export interface MoneyMetaMaskCardModeInput {
   isCardLinkedToMoneyAccount: boolean;
@@ -25,6 +86,12 @@ export interface MoneyMetaMaskCardModeInput {
    * card home data, then continue without a verification-status wait.
    */
   reportsVerificationStatus?: boolean;
+  /**
+   * The provider's card home payload includes a card. Providers that do not
+   * report verification status can be linked only after that card exists.
+   */
+  hasProviderCard?: boolean;
+  cardSetupView?: MoneyCardSetupView | null;
 }
 
 export const deriveMoneyMetaMaskCardMode = ({
@@ -41,6 +108,8 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasCardHomeDataFailed,
   isMoneyCardSectionAvailable = true,
   reportsVerificationStatus = true,
+  hasProviderCard = false,
+  cardSetupView = null,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
   if (!isMoneyCardSectionAvailable) {
     return null;
@@ -58,6 +127,10 @@ export const deriveMoneyMetaMaskCardMode = ({
     return isMoneyAccountVisible ? 'loading' : null;
   }
 
+  if (isCardAuthenticated && cardSetupView) {
+    return 'setup';
+  }
+
   // Card already linked to the Money account -> manage it.
   if (isCardLinkedToMoneyAccount) return 'manage';
 
@@ -69,9 +142,26 @@ export const deriveMoneyMetaMaskCardMode = ({
   // Residency-blocked users can't link.
   if (isResidencyBlocked) return null;
 
+  // A signed-in provider with no verification status is not linkable until it
+  // reports a card. The cardholder label alone is not that card.
+  const lacksProviderCard =
+    isCardAuthenticated && !reportsVerificationStatus && !hasProviderCard;
+
   // Cardholder or a verified authenticated user -> offer to link (needs full reqs).
-  if (isCardholder || (isCardAuthenticated && isCardVerified)) {
+  if (
+    (isCardholder || (isCardAuthenticated && isCardVerified)) &&
+    !lacksProviderCard
+  ) {
     return hasMoneyAccountRequirements ? 'link' : null;
+  }
+
+  if (
+    isCardAuthenticated &&
+    !reportsVerificationStatus &&
+    hasProviderCard &&
+    hasMoneyAccountRequirements
+  ) {
+    return 'link';
   }
 
   // Authenticated but identity not yet verified -> verification in progress.

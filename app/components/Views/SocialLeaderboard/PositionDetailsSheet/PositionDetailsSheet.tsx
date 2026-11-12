@@ -54,9 +54,17 @@ import {
 } from '../navigation/socialOgImageCards';
 import { logSocialOgShare } from '../navigation/socialOgShareLog';
 import { buildSocialPositionOpenGraph } from '../navigation/socialShareOpenGraph';
-import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialTraderPosition,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
-import { SocialEvent, useSocialAnalytics } from '../analytics';
+import {
+  SocialEvent,
+  useSocialAnalytics,
+  useSocialScreenAnalytics,
+} from '../analytics';
+import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
   formatAbbreviatedUsd,
@@ -80,6 +88,8 @@ import { useChartLineReveal } from './hooks/useChartLineReveal';
 import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
+
+const { BlockedReason, Interaction, Screen } = SocialEvent;
 
 const addressesMatch = (
   left: string | null | undefined,
@@ -106,6 +116,7 @@ const PositionDetailsSheet = () => {
     isClosed: isClosedParam,
     isSnapshotLive,
     orderSource,
+    analyticsSource,
     shareSource,
   } = useParams<PositionDetailsSheetParams>();
 
@@ -153,6 +164,30 @@ const PositionDetailsSheet = () => {
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
+
+  const analyticsAsset = data.isPerp
+    ? data.perpTradeSymbol
+    : position?.tokenSymbol;
+  const positionAnalytics = useMemo(
+    () =>
+      buildSocialPositionAnalytics({
+        isPerp: data.isPerp,
+        asset: analyticsAsset,
+        direction: data.perpDirection,
+        isClosed: data.isClosed,
+        author,
+      }),
+    [analyticsAsset, author, data.isClosed, data.isPerp, data.perpDirection],
+  );
+  // The view waits for the position so it carries the asset and state.
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.POSITION_DETAILS_SHEET,
+    {
+      source: analyticsSource ?? orderSource,
+      properties: positionAnalytics,
+      outcome: position ? undefined : null,
+    },
+  );
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
   const [headlineChoice, setHeadlineChoice] =
@@ -234,7 +269,7 @@ const PositionDetailsSheet = () => {
               symbol,
               name: getPerpsDisplaySymbol(symbol),
             } as PerpsMarketData,
-            source: 'trader_feed',
+            source: orderSource ?? 'trader_feed',
           },
         });
       });
@@ -282,7 +317,7 @@ const PositionDetailsSheet = () => {
         isNative,
       });
     });
-  }, [closeThen, data, navigation, position]);
+  }, [closeThen, data, navigation, orderSource, position]);
 
   const handleOpenTraderProfile = useCallback(() => {
     void playSelection()?.catch(() => undefined);
@@ -308,7 +343,7 @@ const PositionDetailsSheet = () => {
     }
     const sharedPosition = position;
     const buildOgImageRequest = sharedPosition
-      ? async () => {
+      ? async ({ promoCode }: SocialShareCardContext) => {
           const prices = data.isPerp
             ? await fetchPerpOgSeries(
                 sharedPosition.tokenSymbol,
@@ -337,6 +372,7 @@ const PositionDetailsSheet = () => {
             pnlPct: data.pnlPercent,
             markPrice: data.currentPrice,
             prices,
+            promoCode,
           });
         }
       : undefined;
@@ -399,23 +435,27 @@ const PositionDetailsSheet = () => {
       position && !data.isPerp ? positionToQuickBuyTarget(position) : null,
     [position, data.isPerp],
   );
-  const { destToken } = useQuickBuySetup(data.isClosed ? quickBuyTarget : null);
-  const heldBalance = usePositionTokenBalance(
-    data.isClosed ? quickBuyTarget : null,
-    destToken,
-  );
+  // Sell needs the held balance. The viewer's own open spot position offers it
+  // too, not only closed ones.
+  const heldTarget = isOwnPost || data.isClosed ? quickBuyTarget : null;
+  const { destToken } = useQuickBuySetup(heldTarget);
+  const heldBalance = usePositionTokenBalance(heldTarget, destToken);
   const [quickBuyMode, setQuickBuyMode] = useState<QuickBuyTradeMode | null>(
     null,
   );
+  const [quickBuyIsCopyTrade, setQuickBuyIsCopyTrade] = useState(false);
   const openQuickBuy = useCallback(
-    (mode: QuickBuyTradeMode) => {
+    (mode: QuickBuyTradeMode, isCopyTrade = false) => {
       isHandingOffRef.current = true;
-      closeThen(() => setQuickBuyMode(mode));
+      closeThen(() => {
+        setQuickBuyIsCopyTrade(isCopyTrade);
+        setQuickBuyMode(mode);
+      });
     },
     [closeThen],
   );
 
-  const handlePerpsOrder = useCallback(
+  const openPerpsMarketOrder = useCallback(
     (direction: PerpDirection, leverage?: number) => {
       if (!data.perpTradeSymbol) return;
       openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
@@ -423,23 +463,55 @@ const PositionDetailsSheet = () => {
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
+  const handlePerpsOrder = useCallback(
+    (direction: PerpDirection, leverage?: number) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        direction:
+          direction === 'short'
+            ? SocialEvent.Direction.SHORT
+            : SocialEvent.Direction.LONG,
+      });
+      openPerpsMarketOrder(direction, leverage);
+    },
+    [openPerpsMarketOrder, trackInteraction],
+  );
+
+  const handleSpotTrade = useCallback(
+    (mode: QuickBuyTradeMode) => {
+      trackInteraction(Interaction.BUTTON_CLICKED);
+      openQuickBuy(mode);
+    },
+    [openQuickBuy, trackInteraction],
+  );
+
   const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
+    if (!ensureSocialTermsAccepted()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.TERMS,
+      });
       return;
     }
+    if (!ensureSocialProfileOnboarding()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.PROFILE_ONBOARDING,
+      });
+      return;
+    }
+    trackInteraction(Interaction.COPY_TRADE_TAPPED);
     if (data.isPerp) {
-      handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
+      openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
       return;
     }
-    openQuickBuy('buy');
+    openQuickBuy('buy', true);
   }, [
     data.isPerp,
     data.perpDirection,
     data.leverage,
     ensureSocialProfileOnboarding,
     ensureSocialTermsAccepted,
-    handlePerpsOrder,
+    openPerpsMarketOrder,
     openQuickBuy,
+    trackInteraction,
   ]);
 
   const fillMarketCapPerPrice =
@@ -495,19 +567,19 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
-  // Copy trade repeats the viewer's own position. Closed markets still offer
-  // a fresh Long, Short, Buy, or Sell.
-  const footer =
-    isOwnPost && !data.isClosed ? null : (
-      <PositionSheetFooter
-        isPerp={data.isPerp}
-        isClosed={data.isClosed}
-        canSell={Boolean(heldBalance)}
-        onCopyTrade={handleCopyTrade}
-        onPerpsOrder={handlePerpsOrder}
-        onSpotTrade={openQuickBuy}
-      />
-    );
+  // Copy trade is for another trader's open position. Every other position
+  // offers a fresh Long, Short, Buy, or Sell in the same market.
+  const footer = (
+    <PositionSheetFooter
+      isPerp={data.isPerp}
+      isClosed={data.isClosed}
+      isOwnPost={isOwnPost}
+      canSell={Boolean(heldBalance)}
+      onCopyTrade={handleCopyTrade}
+      onPerpsOrder={handlePerpsOrder}
+      onSpotTrade={handleSpotTrade}
+    />
+  );
 
   const details = (
     <View>
@@ -611,9 +683,14 @@ const PositionDetailsSheet = () => {
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
           originalEntryPoint="trader_feed"
-          isTraderPositionClosed={data.isClosed}
+          // An open position reads as buy, so an own open position reports the
+          // pressed action instead (sell or buy).
+          isTraderPositionClosed={
+            isOwnPost && !data.isClosed ? undefined : data.isClosed
+          }
           postTradeShare
           initialTradeMode={quickBuyMode ?? undefined}
+          isCopyTrade={quickBuyIsCopyTrade}
         />
       ) : null}
       {geoBlockSheet}

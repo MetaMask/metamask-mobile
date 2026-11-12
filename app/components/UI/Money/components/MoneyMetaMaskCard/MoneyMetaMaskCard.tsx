@@ -4,6 +4,8 @@ import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  Button,
+  ButtonVariant,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
@@ -14,6 +16,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Skeleton,
   Spinner,
   Text,
   TextColor,
@@ -35,7 +38,10 @@ import {
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
-import { MoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import {
+  MoneyMetaMaskCardMode,
+  type MoneyCardSetupView,
+} from '../../utils/moneyMetaMaskCardMode';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface MoneyMetaMaskCardProps {
@@ -43,8 +49,9 @@ interface MoneyMetaMaskCardProps {
    * 'upsell' (default): virtual/metal card rows.
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
+   * 'setup': unfinished card setup.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
+  mode?: MoneyMetaMaskCardMode;
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
@@ -52,6 +59,10 @@ interface MoneyMetaMaskCardProps {
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  setupView?: MoneyCardSetupView;
+  onSetupContinuePress?: () => void;
+  /** True while a Money account funding approval is running in the background. */
+  isSetupContinueLoading?: boolean;
   onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
@@ -60,6 +71,11 @@ interface MoneyMetaMaskCardProps {
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /**
+   * When true, the spendable amount is still being read. Manage mode shows a
+   * skeleton instead of a balance.
+   */
+  isBalanceLoading?: boolean;
   /** Whether the available card balance should be masked (manage mode only). */
   privacyMode?: boolean;
   /**
@@ -218,11 +234,13 @@ const LinkContent = ({
 
 const ManageContent = ({
   cardBalance,
+  isBalanceLoading,
   isBalanceStale,
   showMetalCard,
   privacyMode,
 }: {
   cardBalance: string;
+  isBalanceLoading: boolean;
   isBalanceStale: boolean;
   showMetalCard: boolean;
   privacyMode: boolean;
@@ -237,18 +255,26 @@ const ManageContent = ({
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={
-            isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
-        >
-          {cardBalance}
-        </SensitiveText>
+        {isBalanceLoading ? (
+          <Skeleton
+            height={24}
+            width={100}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON}
+          />
+        ) : (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
+            }
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+          >
+            {cardBalance}
+          </SensitiveText>
+        )}
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -269,17 +295,118 @@ const HEADER_TITLE_KEY_BY_MODE = {
   manage: 'money.metamask_card.title',
   verifying: 'money.metamask_card.title',
   loading: 'money.metamask_card.title',
+  setup: 'money.metamask_card.title',
 } as const satisfies Record<MoneyMetaMaskCardMode, string>;
+
+/**
+ * Copy for each pending setup state. The section keeps the default card row
+ * (card art + two lines) and only swaps the copy, instead of a banner.
+ */
+const getSetupCopy = (
+  setupView: Exclude<MoneyCardSetupView, { kind: 'reconciling' }>,
+): { title: string; description: string } => {
+  switch (setupView.kind) {
+    case 'kyc_under_review':
+      return {
+        title: strings('money.metamask_card.setup.reviewing_title'),
+        description: strings('money.metamask_card.setup.reviewing_description'),
+      };
+    case 'provisioning':
+      return {
+        title: strings('money.metamask_card.setup.creating_title'),
+        description: strings('money.metamask_card.setup.creating_description'),
+      };
+    default:
+      // Only the identity step has its own row copy so far. Other steps
+      // reuse the generic setup copy until they get their own lines.
+      if (setupView.step === 'kyc') {
+        return {
+          title: strings('money.metamask_card.setup.finish_kyc_title'),
+          description: strings(
+            'money.metamask_card.setup.finish_kyc_description',
+          ),
+        };
+      }
+      return {
+        title: strings('card.card_home.messages.setup_incomplete.title'),
+        description: strings(
+          `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
+        ),
+      };
+  }
+};
+
+const SetupContent = ({
+  setupView,
+  showMetalCard,
+}: {
+  setupView: MoneyCardSetupView;
+  showMetalCard: boolean;
+}) => {
+  if (setupView.kind === 'reconciling') {
+    return (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.SETUP_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
+    );
+  }
+
+  const { title, description } = getSetupCopy(setupView);
+
+  return (
+    <Box testID={MoneyMetaMaskCardTestIds.SETUP_CONTAINER}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="pt-3 gap-4"
+      >
+        {/* Muted while pending so the card doesn't read as ready to use. */}
+        <Box
+          twClassName="opacity-50"
+          testID={MoneyMetaMaskCardTestIds.SETUP_CARD_ART}
+        >
+          <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
+        </Box>
+        <Box twClassName="gap-1 flex-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            testID={MoneyMetaMaskCardTestIds.SETUP_TITLE}
+          >
+            {title}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION}
+          >
+            {description}
+          </Text>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const MoneyMetaMaskCard = ({
   mode = 'upsell',
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onSetupContinuePress,
+  setupView,
+  isSetupContinueLoading = false,
   onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
+  isBalanceLoading = false,
   isBalanceStale = false,
   privacyMode = false,
   apy,
@@ -380,8 +507,21 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
+  const handleSetupSectionPress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onManagePress?.();
+  }, [trackCardButtonClick, onManagePress]);
+
+  const handleSetupContinuePress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onSetupContinuePress?.();
+  }, [trackCardButtonClick, onSetupContinuePress]);
+
   const isInteractionDisabled =
-    mode === 'verifying' || mode === 'loading' || isLinkDisabled;
+    mode === 'verifying' ||
+    mode === 'loading' ||
+    isLinkDisabled ||
+    (mode === 'setup' && setupView?.kind === 'reconciling');
 
   const pressHandler = useMemo(
     () =>
@@ -392,12 +532,14 @@ const MoneyMetaMaskCard = ({
               upsell: handleGetNowPress,
               link: handleLinkPress,
               manage: handleManagePress,
+              setup: handleSetupSectionPress,
             } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
           )[mode],
     [
       handleGetNowPress,
       handleLinkPress,
       handleManagePress,
+      handleSetupSectionPress,
       isInteractionDisabled,
       mode,
     ],
@@ -425,11 +567,16 @@ const MoneyMetaMaskCard = ({
     content = (
       <ManageContent
         cardBalance={cardBalance ?? ''}
+        isBalanceLoading={isBalanceLoading}
         isBalanceStale={isBalanceStale}
         showMetalCard={showMetalCard}
         privacyMode={privacyMode}
       />
     );
+  } else if (mode === 'setup') {
+    content = setupView ? (
+      <SetupContent setupView={setupView} showMetalCard={showMetalCard} />
+    ) : null;
   } else if (mode === 'verifying') {
     content = (
       <Box twClassName="pt-3">
@@ -475,6 +622,21 @@ const MoneyMetaMaskCard = ({
   }
 
   const headerTitleKey = HEADER_TITLE_KEY_BY_MODE[mode];
+  // Continue is its own control. Leaving it inside the row press target makes
+  // VoiceOver treat the whole section as one button, so Continue never gets a
+  // turn, and a tap can fire either action.
+  const showsSetupContinue =
+    mode === 'setup' && setupView?.kind === 'action_required';
+
+  const contentPressable = (
+    <Pressable
+      testID={MoneyMetaMaskCardTestIds.CONTENT}
+      style={tw.style('gap-3')}
+      onPress={pressHandler ? handleContentPress : undefined}
+    >
+      {content}
+    </Pressable>
+  );
 
   return (
     <Box
@@ -486,13 +648,23 @@ const MoneyMetaMaskCard = ({
         title={strings(headerTitleKey)}
         onPress={pressHandler ? handleHeaderPress : undefined}
       />
-      <Pressable
-        testID={MoneyMetaMaskCardTestIds.CONTENT}
-        style={tw.style('gap-3')}
-        onPress={pressHandler ? handleContentPress : undefined}
-      >
-        {content}
-      </Pressable>
+      {showsSetupContinue ? (
+        <Box twClassName="gap-4">
+          {contentPressable}
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            onPress={handleSetupContinuePress}
+            isLoading={isSetupContinueLoading}
+            isDisabled={isSetupContinueLoading}
+            testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
+          >
+            {strings('money.metamask_card.setup.continue')}
+          </Button>
+        </Box>
+      ) : (
+        contentPressable
+      )}
     </Box>
   );
 };
