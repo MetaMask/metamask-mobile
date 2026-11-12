@@ -46,12 +46,7 @@ describe('usePostTradeShareReopen', () => {
       requestPostTradeShareReopen();
     });
 
-    expect(onReopen).toHaveBeenCalledWith(
-      target,
-      undefined,
-      'buy',
-      undefined,
-    );
+    expect(onReopen).toHaveBeenCalledWith(target, undefined, 'buy', undefined);
   });
 
   it('calls onReopen with the copy-trade origin when the session has one', () => {

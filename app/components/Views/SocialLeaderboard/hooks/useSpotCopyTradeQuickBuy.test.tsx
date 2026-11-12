@@ -137,12 +137,7 @@ describe('useSpotCopyTradeQuickBuy', () => {
     renderUseSpotCopyTradeQuickBuy();
     const [onReopen] = mockUsePostTradeShareReopen.mock.calls[0];
 
-    onReopen(
-      PUMP_TARGET,
-      { commentId: 'comment-1' },
-      'sell',
-      '0xtrader',
-    );
+    onReopen(PUMP_TARGET, { commentId: 'comment-1' }, 'sell', '0xtrader');
 
     expect(mockShowQuickBuy).toHaveBeenCalledWith(
       expect.objectContaining({
