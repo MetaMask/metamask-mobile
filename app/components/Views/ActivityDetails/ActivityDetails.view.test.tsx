@@ -190,29 +190,32 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
   });
 
   it('shows confirmed Received mUSD details without fee/total and with copyable tx id', async () => {
-    setupAccountsTransactionsApiMock([
-      {
-        hash: RECEIVE_MUSD_HASH,
-        timestamp: new Date(RECEIVE_MUSD_TIMESTAMP_MS).toISOString(),
-        chainId: 1,
-        from: ACTIVITY_CV_RECIPIENT,
-        to: ACTIVITY_CV_ACCOUNT,
-        value: '0',
-        valueTransfers: [
-          {
-            from: ACTIVITY_CV_RECIPIENT,
-            to: ACTIVITY_CV_ACCOUNT,
-            amount: '1000000',
-            symbol: 'mUSD',
-            decimal: 6,
-            name: 'MetaMask USD',
-            transferType: 'ERC20',
-          },
-        ],
-        isError: false,
-        transactionCategory: 'TRANSFER',
-      },
-    ]);
+    setupAccountsTransactionsApiMock(
+      [
+        {
+          hash: RECEIVE_MUSD_HASH,
+          timestamp: new Date(RECEIVE_MUSD_TIMESTAMP_MS).toISOString(),
+          chainId: 1,
+          from: ACTIVITY_CV_RECIPIENT,
+          to: ACTIVITY_CV_ACCOUNT,
+          value: '0',
+          valueTransfers: [
+            {
+              from: ACTIVITY_CV_RECIPIENT,
+              to: ACTIVITY_CV_ACCOUNT,
+              amount: '1000000',
+              symbol: 'mUSD',
+              decimal: 6,
+              name: 'MetaMask USD',
+              transferType: 'ERC20',
+            },
+          ],
+          isError: false,
+          transactionCategory: 'TRANSFER',
+        },
+      ],
+      ACTIVITY_CV_ACCOUNT,
+    );
 
     const state = initialStateActivityWithAccountsApi().build();
 
@@ -1085,33 +1088,36 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
   });
 
   it('shows confirmed Deposited USDC with total and no fee row', async () => {
-    setupAccountsTransactionsApiMock([
-      {
-        hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
-        timestamp: new Date(
-          ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS,
-        ).toISOString(),
-        chainId: 1,
-        from: ACTIVITY_CV_ACCOUNT,
-        to: ACTIVITY_CV_DEPOSIT_CONTRACT,
-        value: '0',
-        gasUsed: 21000,
-        effectiveGasPrice: 1_000_000_000,
-        valueTransfers: [
-          {
-            from: ACTIVITY_CV_ACCOUNT,
-            to: ACTIVITY_CV_DEPOSIT_CONTRACT,
-            amount: '1000000',
-            symbol: 'USDC',
-            decimal: 6,
-            contractAddress: ACTIVITY_CV_USDC,
-            transferType: 'ERC20',
-          },
-        ],
-        isError: false,
-        transactionCategory: 'DEPOSIT',
-      },
-    ]);
+    setupAccountsTransactionsApiMock(
+      [
+        {
+          hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+          timestamp: new Date(
+            ACTIVITY_CV_DEPOSIT_USDC_TIMESTAMP_MS,
+          ).toISOString(),
+          chainId: 1,
+          from: ACTIVITY_CV_ACCOUNT,
+          to: ACTIVITY_CV_DEPOSIT_CONTRACT,
+          value: '0',
+          gasUsed: 21000,
+          effectiveGasPrice: 1_000_000_000,
+          valueTransfers: [
+            {
+              from: ACTIVITY_CV_ACCOUNT,
+              to: ACTIVITY_CV_DEPOSIT_CONTRACT,
+              amount: '1000000',
+              symbol: 'USDC',
+              decimal: 6,
+              contractAddress: ACTIVITY_CV_USDC,
+              transferType: 'ERC20',
+            },
+          ],
+          isError: false,
+          transactionCategory: 'DEPOSIT',
+        },
+      ],
+      ACTIVITY_CV_ACCOUNT,
+    );
 
     const state = initialStateActivityWithAccountsApi()
       .withOverrides(activityUsdcTokenRatesOverride)

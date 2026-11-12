@@ -113,19 +113,22 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
 
   it('displays incoming native transfer from another account via accounts API', async () => {
     const incomingHash = '0xactivitycvincomingapi';
-    setupAccountsTransactionsApiMock([
-      {
-        hash: incomingHash,
-        timestamp: new Date().toISOString(),
-        chainId: 1,
-        from: ACTIVITY_CV_RECIPIENT,
-        to: ACTIVITY_CV_ACCOUNT,
-        value: '1230000000000000000',
-        valueTransfers: [],
-        isError: false,
-        transactionCategory: 'STANDARD',
-      },
-    ]);
+    setupAccountsTransactionsApiMock(
+      [
+        {
+          hash: incomingHash,
+          timestamp: new Date().toISOString(),
+          chainId: 1,
+          from: ACTIVITY_CV_RECIPIENT,
+          to: ACTIVITY_CV_ACCOUNT,
+          value: '1230000000000000000',
+          valueTransfers: [],
+          isError: false,
+          transactionCategory: 'STANDARD',
+        },
+      ],
+      ACTIVITY_CV_ACCOUNT,
+    );
 
     const state = initialStateActivityWithAccountsApi().build();
     const { findByTestId } = renderActivityListView({ state });
@@ -143,19 +146,22 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
 
   it('displays outgoing native transfer via accounts API', async () => {
     const outgoingHash = '0xactivitycvoutgoingapi';
-    setupAccountsTransactionsApiMock([
-      {
-        hash: outgoingHash,
-        timestamp: new Date().toISOString(),
-        chainId: 1,
-        from: ACTIVITY_CV_ACCOUNT,
-        to: ACTIVITY_CV_RECIPIENT,
-        value: '1230000000000000000',
-        valueTransfers: [],
-        isError: false,
-        transactionCategory: 'STANDARD',
-      },
-    ]);
+    setupAccountsTransactionsApiMock(
+      [
+        {
+          hash: outgoingHash,
+          timestamp: new Date().toISOString(),
+          chainId: 1,
+          from: ACTIVITY_CV_ACCOUNT,
+          to: ACTIVITY_CV_RECIPIENT,
+          value: '1230000000000000000',
+          valueTransfers: [],
+          isError: false,
+          transactionCategory: 'STANDARD',
+        },
+      ],
+      ACTIVITY_CV_ACCOUNT,
+    );
 
     const state = initialStateActivityWithAccountsApi().build();
     const { findByTestId } = renderActivityListView({ state });

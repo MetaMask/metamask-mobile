@@ -78,15 +78,12 @@ function toCaipAssetId(
 
 function toV5TransactionRecord(
   transaction: MockAccountsApiTransaction,
+  subjectAddress: string,
 ): V5TransactionRecord {
   const chainId = `eip155:${transaction.chainId}`;
-  const subject =
-    transaction.from.toLowerCase() < transaction.to.toLowerCase()
-      ? transaction.from
-      : transaction.to;
 
   return {
-    accountId: `eip155:0:${subject}`,
+    accountId: `eip155:0:${subjectAddress}`,
     tx: {
       id: transaction.hash,
       chainId,
@@ -119,8 +116,11 @@ function toV5TransactionRecord(
 
 const buildTransactionsResponse = (
   transactions: MockAccountsApiTransaction[],
+  subjectAddress: string,
 ) => ({
-  data: transactions.map(toV5TransactionRecord),
+  data: transactions.map((transaction) =>
+    toV5TransactionRecord(transaction, subjectAddress),
+  ),
   pageInfo: {
     ...defaultPageInfo,
     count: transactions.length,
@@ -139,10 +139,17 @@ function mockAccountsApiGet(path: string, body: object): void {
 
 export function setupAccountsTransactionsApiMock(
   transactions: MockAccountsApiTransaction[],
+  subjectAddress?: string,
 ): void {
+  if (transactions.length > 0 && !subjectAddress) {
+    throw new Error(
+      'setupAccountsTransactionsApiMock requires the viewing account',
+    );
+  }
+
   mockAccountsApiGet(
     TRANSACTIONS_PATH,
-    buildTransactionsResponse(transactions),
+    buildTransactionsResponse(transactions, subjectAddress ?? ''),
   );
 }
 
