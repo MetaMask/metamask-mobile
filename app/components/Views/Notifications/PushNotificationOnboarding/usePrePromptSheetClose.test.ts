@@ -2,15 +2,19 @@ import { renderHook } from '@testing-library/react-native';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import { usePrePromptSheetClose } from './usePrePromptSheetClose';
 
+const sheetRef = (onCloseBottomSheet: jest.Mock): BottomSheetRef => ({
+  onCloseBottomSheet:
+    onCloseBottomSheet as BottomSheetRef['onCloseBottomSheet'],
+  onOpenBottomSheet: jest.fn() as BottomSheetRef['onOpenBottomSheet'],
+});
+
 describe('usePrePromptSheetClose', () => {
   it('records the answer before closing and runs the action after the close callback', () => {
     const onUserAnswered = jest.fn();
     const action = jest.fn();
     const onCloseBottomSheet = jest.fn();
     const { result } = renderHook(() => usePrePromptSheetClose(onUserAnswered));
-    result.current.bottomSheetRef.current = {
-      onCloseBottomSheet,
-    } as BottomSheetRef;
+    result.current.bottomSheetRef.current = sheetRef(onCloseBottomSheet);
 
     result.current.closeWithAction(action);
 
@@ -27,9 +31,7 @@ describe('usePrePromptSheetClose', () => {
     const onUserAnswered = jest.fn();
     const onCloseBottomSheet = jest.fn();
     const { result } = renderHook(() => usePrePromptSheetClose(onUserAnswered));
-    result.current.bottomSheetRef.current = {
-      onCloseBottomSheet,
-    } as BottomSheetRef;
+    result.current.bottomSheetRef.current = sheetRef(onCloseBottomSheet);
 
     result.current.closeFromIcon();
 
