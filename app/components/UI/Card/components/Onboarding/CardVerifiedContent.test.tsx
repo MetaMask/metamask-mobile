@@ -4,7 +4,7 @@ import {
   RiveErrorType,
   __fireRiveViewError,
   __resetRiveMocks,
-} from '@rive-app/react-native';
+} from '../../../../../__mocks__/rive-app-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
 import CardVerifiedContent, {
