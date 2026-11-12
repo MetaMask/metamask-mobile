@@ -37,12 +37,14 @@ import {
   type PerpsStreamOverrides,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
@@ -1774,6 +1776,20 @@ describe('PerpsOrderView', () => {
       ),
     ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
 
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+      ),
+    );
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_no_liquidation_price.content'),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    );
+
     const placeOrderButton = await waitForEnabledPlaceOrderButton();
     await act(async () => {
       fireEvent.press(placeOrderButton);
@@ -1788,6 +1804,67 @@ describe('PerpsOrderView', () => {
       screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
     ).not.toBeOnTheScreen();
     await waitForDeferredOrderData();
+  });
+
+  it('keeps the isolated liquidation price out of a lite cross order', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 10,
+        useBottomSheet: true,
+      },
+      streamOverrides: {
+        account,
+        positions: [
+          {
+            ...defaultPositionForViews,
+            leverage: { value: 10, type: 'cross' },
+          },
+        ],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    );
+    expect(
+      await screen.findByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+    );
+    fireEvent.press(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.queryByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   describe('market order liquidity', () => {

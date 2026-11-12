@@ -451,5 +451,18 @@ describe('TPSL Validation Utilities', () => {
       // Assert
       expect(result.doesStopLossRiskLiquidation).toBe(true);
     });
+
+    it('skips the liquidation check when no liquidation price is known', () => {
+      // Arrange / Act: the same stop loss is safe once liquidation is unknown
+      const result = getPerpsOrderTpSlWarnings({
+        ...base,
+        orderType: 'market',
+        stopLossPrice: '2000',
+        liquidationPrice: '',
+      });
+
+      // Assert
+      expect(result.doesStopLossRiskLiquidation).toBe(false);
+    });
   });
 });

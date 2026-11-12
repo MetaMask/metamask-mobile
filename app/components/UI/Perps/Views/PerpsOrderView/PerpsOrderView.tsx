@@ -2505,6 +2505,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           asset: getPerpsDisplaySymbol(orderForm.asset),
         });
 
+  // An order against an open cross position liquidates with the whole
+  // account. The isolated formula does not describe it, so the price, the
+  // stop-loss check, and the explainer all stay off that formula.
+  const withholdsCrossLiquidationPrice =
+    isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
+  const orderFormLiquidationPrice = withholdsCrossLiquidationPrice
+    ? ''
+    : liquidationPrice;
+  const liquidationInfoContentKey = withholdsCrossLiquidationPrice
+    ? 'cross_no_liquidation_price'
+    : 'liquidation_price';
+
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -2516,7 +2528,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice,
+    liquidationPrice: orderFormLiquidationPrice,
     marketPrice: assetData.price,
   });
 
@@ -2625,12 +2637,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const handleTradeSheetCancelBeforeInteractive = useCallback(() => {
     failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
   }, []);
-
-  // An order against an open cross position liquidates with the whole
-  // account. The isolated formula does not describe it, so both the trade
-  // sheet and the full form show the fallback, matching the Pro form.
-  const withholdsCrossLiquidationPrice =
-    isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
 
   if (useBottomSheet) {
     const feePercentage = formatCombinedFeePercentage(
@@ -2937,7 +2943,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 initialStopLossPrice={orderForm.stopLossPrice}
                 leverage={orderForm.leverage}
                 limitPrice={orderForm.limitPrice}
-                liquidationPrice={liquidationPrice}
+                liquidationPrice={
+                  withholdsCrossLiquidationPrice ? undefined : liquidationPrice
+                }
                 orderType={tradeSheetOrderType}
                 szDecimals={szDecimals ?? undefined}
                 onSave={handleTradeTPSLSave}
@@ -2950,7 +2958,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             marginInfo: <PerpsTradeInfoScreen contentKey="margin" />,
             liquidationInfo: (
-              <PerpsTradeInfoScreen contentKey="liquidation_price" />
+              <PerpsTradeInfoScreen contentKey={liquidationInfoContentKey} />
             ),
           }}
         />
@@ -3178,7 +3186,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             keyLabel={strings('perps.order.liquidation_price')}
             keyEndButtonIconProps={{
               iconName: IconName.Info,
-              onPress: () => handleTooltipPress('liquidation_price'),
+              onPress: () => handleTooltipPress(liquidationInfoContentKey),
               testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
             }}
             value={
