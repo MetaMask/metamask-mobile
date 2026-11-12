@@ -347,7 +347,7 @@ export function useMoneyActivityValuations({
         isFetching: boolean;
       }[],
     ) => ({
-      data: results.flatMap((result) => (result.data ? [result.data] : [])),
+      data: results.map((result) => result.data),
       isFetching: results.some((result) => result.isFetching),
     }),
     [],

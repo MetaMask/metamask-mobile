@@ -5,6 +5,7 @@ import type { Hex } from '@metamask/utils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { annotateTrace, trace } from '../../../../util/trace';
 import type { AccountsApiActivity } from '../types/moneyActivity';
+import type { VaultShareToken } from '../utils/accountsApi';
 import {
   readCachedVaultShareValuations,
   writeCachedVaultShareValuations,
@@ -51,6 +52,7 @@ const mockAnnotateTrace = jest.mocked(annotateTrace);
 
 const ACCOUNT = '0xAbCdEf0123456789012345678901234567890123';
 const VAULT = '0x1111111111111111111111111111111111111111' as const;
+const PREMIUM_VAULT = '0x2222222222222222222222222222222222222222' as const;
 const TX_HASH =
   '0x8b6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f1' as const;
 const TX_HASH_2 =
@@ -140,15 +142,17 @@ function queryResult(overrides: Record<string, unknown> = {}) {
 function renderValuations({
   pages,
   enabled = true,
+  tokens = vaultTokens,
 }: {
   pages: AccountsApiActivity[][];
   enabled?: boolean;
+  tokens?: readonly VaultShareToken[];
 }) {
   return renderHook(() =>
     useMoneyActivityValuations({
       pageActivities: pages,
       moneyAddress: ACCOUNT,
-      vaultShareTokens: vaultTokens,
+      vaultShareTokens: tokens,
       enabled,
     }),
   );
@@ -384,6 +388,36 @@ describe('useMoneyActivityValuations', () => {
 
     expect(result.current.getDisplayAmount(row)).toEqual({ type: 'pending' });
     expect(result.current.isSettling).toBe(true);
+  });
+
+  it('does not shift a later vault rate onto a vault with no rate data', () => {
+    const standard = activity(TX_HASH);
+    const premium: AccountsApiActivity = {
+      ...activity(TX_HASH_2, '1000000'),
+      token: { address: PREMIUM_VAULT, symbol: 'pvmUSD', decimals: 6 },
+    };
+    mockUseQueries
+      .mockReturnValueOnce({ entries: [], isFetching: false } as never)
+      .mockReturnValueOnce({
+        data: [undefined, { rate: '2' }],
+        isFetching: false,
+      } as never);
+    const { result } = renderValuations({
+      pages: [[standard, premium]],
+      tokens: [
+        { chainId: '0x8f', address: VAULT },
+        { chainId: '0x8f', address: PREMIUM_VAULT },
+      ],
+    });
+
+    expect(result.current.getDisplayAmount(standard)).toEqual({
+      type: 'unavailable',
+    });
+    expect(result.current.getDisplayAmount(premium)).toEqual({
+      type: 'approximate',
+      value: '2000000',
+      decimals: 6,
+    });
   });
 
   it('shows unavailable rather than raw shares when no rate is available', () => {
