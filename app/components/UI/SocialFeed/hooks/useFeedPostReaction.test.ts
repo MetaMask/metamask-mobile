@@ -173,7 +173,7 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBe('🔥');
   });
 
-  it('ranks the first reactions it sees by popularity', () => {
+  it('keeps the order it is given on mount instead of re-ranking', () => {
     const { result } = renderHook(
       () =>
         useFeedPostReaction(
@@ -181,6 +181,7 @@ describe('useFeedPostReaction', () => {
           [
             { emotion: '😡', count: 1 },
             { emotion: '❤️', count: 2 },
+            { emotion: '🔥', count: 0 },
           ],
           null,
         ),
@@ -188,8 +189,8 @@ describe('useFeedPostReaction', () => {
     );
 
     expect(result.current.reactions).toStrictEqual([
-      { emotion: '❤️', count: 2 },
       { emotion: '😡', count: 1 },
+      { emotion: '❤️', count: 2 },
     ]);
   });
 
@@ -221,6 +222,112 @@ describe('useFeedPostReaction', () => {
     expect(result.current.reactions).toStrictEqual([
       { emotion: '❤️', count: 1 },
       { emotion: '😡', count: 2 },
+    ]);
+    expect(mockPatchFeedCommentEngagementInCache).toHaveBeenCalledWith(
+      expect.any(QueryClient),
+      'comment-1',
+      {
+        reactions: [
+          { emotion: '❤️', count: 1 },
+          { emotion: '😡', count: 2 },
+        ],
+        userReaction: '😡',
+      },
+    );
+  });
+
+  it('keeps the original order when the request fails', async () => {
+    mockReactToComment.mockRejectedValue(new Error('offline'));
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+          '❤️',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😡');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 2 },
+      { emotion: '😡', count: 1 },
+    ]);
+    expect(result.current.userReaction).toBe('❤️');
+  });
+
+  it('keeps the other chips in place when a middle chip drops to zero', async () => {
+    mockRemoveCommentReaction.mockResolvedValue({
+      reactions: [
+        { emotion: '🔥', count: 3 },
+        { emotion: '🚀', count: 1 },
+        { emotion: '👀', count: 1 },
+      ],
+      userReaction: null,
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '🔥', count: 3 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+            { emotion: '🚀', count: 1 },
+          ],
+          '😂',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 3 },
+      { emotion: '👀', count: 1 },
+      { emotion: '🚀', count: 1 },
+    ]);
+  });
+
+  it('puts a chip back in its old slot when the server keeps what the viewer removed', async () => {
+    mockRemoveCommentReaction.mockResolvedValue({
+      reactions: [
+        { emotion: '🔥', count: 3 },
+        { emotion: '😂', count: 1 },
+        { emotion: '👀', count: 1 },
+      ],
+      userReaction: null,
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '🔥', count: 3 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+          ],
+          '😂',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 3 },
+      { emotion: '😂', count: 1 },
+      { emotion: '👀', count: 1 },
     ]);
   });
 
@@ -254,7 +361,7 @@ describe('useFeedPostReaction', () => {
     ]);
   });
 
-  it('ranks afresh when the row is reused for a different post', () => {
+  it('takes a different post in its own order', () => {
     const { result, rerender } = renderHook(
       ({
         commentId,
@@ -267,7 +374,10 @@ describe('useFeedPostReaction', () => {
         wrapper: wrapper(new QueryClient()),
         initialProps: {
           commentId: 'comment-1',
-          reactions: [{ emotion: '❤️', count: 2 }],
+          reactions: [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
         },
       },
     );
@@ -275,14 +385,14 @@ describe('useFeedPostReaction', () => {
     rerender({
       commentId: 'comment-2',
       reactions: [
-        { emotion: '😂', count: 1 },
-        { emotion: '🔥', count: 4 },
+        { emotion: '😡', count: 4 },
+        { emotion: '❤️', count: 1 },
       ],
     });
 
     expect(result.current.reactions).toStrictEqual([
-      { emotion: '🔥', count: 4 },
-      { emotion: '😂', count: 1 },
+      { emotion: '😡', count: 4 },
+      { emotion: '❤️', count: 1 },
     ]);
   });
 

@@ -615,11 +615,11 @@ describe('SocialFeedPostShell', () => {
       renderShell(
         basePost({
           reactions: [
-            { emotion: '😂', count: 1 },
             { emotion: '🔥', count: 5 },
-            { emotion: '👀', count: 1 },
             { emotion: '❤️', count: 3 },
             { emotion: '💀', count: 2 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
           ],
           userReaction: null,
         }),

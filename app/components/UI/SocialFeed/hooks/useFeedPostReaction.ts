@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   keepReactionOrder,
-  rankReactions,
+  visibleReactions,
   type CommentEngagement,
   type FeedReaction,
 } from '../reactions';
@@ -64,10 +64,11 @@ export const useFeedPostReaction = (
   initialUserReaction: string | null = null,
 ): UseFeedPostReactionResult => {
   const queryClient = useQueryClient();
-  // Ranked once per post. Later counts, including the server's re-sorted
-  // reply to the viewer's own tap, update in place so chips never restack.
+  // The feed already sorts by count, and the cache holds the on-screen order
+  // once the viewer reacts, so a remount must not re-rank. Later counts,
+  // including the server's re-sorted reply, update in place.
   const [reactions, setReactions] = useState(() =>
-    rankReactions(initialReactions),
+    visibleReactions(initialReactions),
   );
   const [userReaction, setUserReaction] = useState(initialUserReaction);
   const [isPending, setIsPending] = useState(false);
@@ -77,20 +78,22 @@ export const useFeedPostReaction = (
     initialUserReaction,
   );
   const lastPropsSeedRef = useRef(engagementSeed);
-  const rankedCommentIdRef = useRef(commentId);
+  const seededCommentIdRef = useRef(commentId);
 
   useEffect(() => {
     if (isPending || lastPropsSeedRef.current === engagementSeed) {
       return;
     }
     lastPropsSeedRef.current = engagementSeed;
-    // A recycled row can now hold a different post, which ranks afresh.
-    const isSamePost = rankedCommentIdRef.current === commentId;
-    rankedCommentIdRef.current = commentId;
+    // If the hook gets a different post, take its order afresh. Trade-only
+    // rows all have an undefined id and count as the same post, which is
+    // harmless because they cannot react.
+    const isSamePost = seededCommentIdRef.current === commentId;
+    seededCommentIdRef.current = commentId;
     setReactions((current) =>
       isSamePost
         ? keepReactionOrder(current, initialReactions)
-        : rankReactions(initialReactions),
+        : visibleReactions(initialReactions),
     );
     setUserReaction(initialUserReaction);
   }, [
@@ -119,11 +122,15 @@ export const useFeedPostReaction = (
           previous.userReaction === emotion
             ? await removeCommentReaction({ commentId })
             : await reactToComment({ commentId, emotion });
-        setReactions((current) =>
-          keepReactionOrder(current, metrics.reactions),
-        );
-        setUserReaction(metrics.userReaction);
-        patchFeedCommentEngagementInCache(queryClient, commentId, metrics);
+        // Ordered against the row before the tap, so a chip the optimistic
+        // update removed but the server kept goes back to its old slot.
+        const onScreen: CommentEngagement = {
+          reactions: keepReactionOrder(previous.reactions, metrics.reactions),
+          userReaction: metrics.userReaction,
+        };
+        setReactions(onScreen.reactions);
+        setUserReaction(onScreen.userReaction);
+        patchFeedCommentEngagementInCache(queryClient, commentId, onScreen);
       } catch (error) {
         setReactions(previous.reactions);
         setUserReaction(previous.userReaction);
