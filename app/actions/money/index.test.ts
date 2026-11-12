@@ -17,6 +17,10 @@ jest.mock('../../core/Engine', () => ({
     context: {
       MoneyAccountLifecycleController: {
         upgradeMoneyAccount: jest.fn(),
+        state: { moneyAccounts: {}, addressRegistrations: {} },
+      },
+      MoneyAccountUpgradeController: {
+        state: { upgradedAccounts: {} },
       },
     },
   },
@@ -73,6 +77,13 @@ describe('upgradeMoneyAccount', () => {
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
+    Engine.context.MoneyAccountLifecycleController.state = {
+      moneyAccounts: {},
+      addressRegistrations: {},
+    };
+    Engine.context.MoneyAccountUpgradeController.state = {
+      upgradedAccounts: {},
+    };
   });
 
   it('upgrades through MoneyAccountLifecycleController', async () => {
@@ -84,8 +95,11 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
   });
 
-  it('logs the start of an upgrade', async () => {
+  it('logs the start of an upgrade with the recorded lifecycle and upgrade', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      ADDRESS
+    ] = { type: 'notInIdentity' };
 
     dispatchUpgrade();
     await flushPromises();
@@ -93,11 +107,39 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'starting upgrade',
-      { address: ADDRESS },
+      { address: ADDRESS, lifecycle: 'notInIdentity', upgraded: false },
     );
   });
 
-  it('logs success with the duration', async () => {
+  it('logs the settled upgrade with the duration and the recorded upgrade', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      ADDRESS
+    ] = { type: 'notInIdentity' };
+    mockUpgradeAccount.mockImplementationOnce(async () => {
+      Engine.context.MoneyAccountUpgradeController.state = {
+        upgradedAccounts: {
+          [ADDRESS]: { configFingerprint: 'fingerprint', completedAt: 1 },
+        },
+      };
+    });
+
+    dispatchUpgrade();
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade settled',
+      {
+        address: ADDRESS,
+        durationMs: expect.any(Number),
+        lifecycle: 'notInIdentity',
+        upgraded: true,
+      },
+    );
+  });
+
+  it('logs a settled upgrade that upgraded nothing as not upgraded', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     dispatchUpgrade();
@@ -105,8 +147,13 @@ describe('upgradeMoneyAccount', () => {
 
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
-      { address: ADDRESS, durationMs: expect.any(Number) },
+      'upgrade settled',
+      {
+        address: ADDRESS,
+        durationMs: expect.any(Number),
+        lifecycle: undefined,
+        upgraded: false,
+      },
     );
   });
 
@@ -125,7 +172,7 @@ describe('upgradeMoneyAccount', () => {
     );
     expect(mockLogLog).not.toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
+      'upgrade settled',
       expect.anything(),
     );
   });
@@ -188,7 +235,7 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogError).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
+      'upgrade settled',
       expect.objectContaining({ address: ADDRESS }),
     );
   });
@@ -535,7 +582,7 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
   });
 
-  it('does not deduplicate upgrades for different addresses', async () => {
+  it('runs separately when the primary money account address changes', async () => {
     mockUpgradeAccount.mockReturnValue(new Promise(() => undefined));
 
     mockSelectPrimaryMoneyAccount.mockReturnValueOnce({ address: ADDRESS });
