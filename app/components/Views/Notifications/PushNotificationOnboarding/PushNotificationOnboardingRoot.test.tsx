@@ -105,7 +105,7 @@ describe('PushNotificationOnboardingRoot', () => {
     );
   });
 
-  it('keeps a visible variant latched until the pre-prompt completes', () => {
+  it('keeps a visible variant latched until the pre-prompt completes', async () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -122,8 +122,10 @@ describe('PushNotificationOnboardingRoot', () => {
       }),
     );
 
-    act(() => {
-      getLatestProps().onComplete('dismiss' as PushPrePromptCompletionReason);
+    await act(async () => {
+      await getLatestProps().onComplete(
+        'dismiss' as PushPrePromptCompletionReason,
+      );
     });
 
     mockPrePromptState({ variant: null });
@@ -133,7 +135,7 @@ describe('PushNotificationOnboardingRoot', () => {
     expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
   });
 
-  it('releases the session on completion before home is obstructed', () => {
+  it('releases the session on completion before home is obstructed', async () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -143,8 +145,8 @@ describe('PushNotificationOnboardingRoot', () => {
     // Once answered, the hook resolves nothing.
     const { onComplete } = getLatestProps();
     mockPrePromptState({ variant: null });
-    act(() => {
-      onComplete('dismiss' as PushPrePromptCompletionReason);
+    await act(async () => {
+      await onComplete('dismiss' as PushPrePromptCompletionReason);
     });
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
@@ -152,15 +154,15 @@ describe('PushNotificationOnboardingRoot', () => {
     expect(mockMarkAnswered).not.toHaveBeenCalled();
   });
 
-  it('keeps the action owner mounted when navigation covers an answered prompt', () => {
+  it('keeps the action owner mounted when navigation covers an answered prompt', async () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
     });
     const { rerender } = render(<PushNotificationOnboardingRoot />);
 
-    act(() => {
-      getLatestProps().onUserAnswered();
+    await act(async () => {
+      await getLatestProps().onUserAnswered();
     });
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
