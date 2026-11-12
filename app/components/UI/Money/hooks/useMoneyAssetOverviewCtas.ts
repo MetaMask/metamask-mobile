@@ -19,7 +19,7 @@ import { calculateProjectedEarnings } from '../utils/projections';
 import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
@@ -73,7 +73,7 @@ export const useMoneyAssetOverviewCtas = ({
       chainId: asset.chainId,
     });
 
-  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
   const { apyDecimal, apyPercent, vaultApyQuery } = useMoneyVaultApy({
     enabled: isBalanceCtaEligible || isFooterCtaEligible,
   });

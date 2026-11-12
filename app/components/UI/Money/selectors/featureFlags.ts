@@ -56,6 +56,15 @@ export const selectMoneyEnableCardActivityEnrichmentFlag = createSelector(
   },
 );
 
+export const selectMoneyEnableHistoricalVaultShareValuationsFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableHistoricalVaultShareValuations as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  });
+
 /**
  * Selects whether the tilt-driven parallax animation is shown on the Money
  * onboarding "Next Best Action" card. Defaults to off (opt-in) so the feature
@@ -131,9 +140,30 @@ export const selectMoneyVbaCompletedActivityEnabled = createSelector(
   },
 );
 
+/**
+ * Selects whether the Money account status debug page is enabled. Typically
+ * targeted at individual users by serving a
+ * threshold array whose entries list `metaMetricsIds`.
+ */
+export const selectMoneyAccountDebugEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyAccountDebugEnabled as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+export const selectMoneyAccountStatusPageEnabled = createSelector(
+  selectMoneyEnableMoneyAccountFlag,
+  selectMoneyAccountDebugEnabledFlag,
+  (isMoneyEnabled, isDebugEnabled) => isMoneyEnabled && isDebugEnabled,
 );
 
 /**

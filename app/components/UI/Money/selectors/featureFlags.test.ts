@@ -1,9 +1,12 @@
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
+  selectMoneyAccountDebugEnabledFlag,
+  selectMoneyAccountStatusPageEnabled,
   selectMoneyEnableActivityDetailsFlag,
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
@@ -80,6 +83,12 @@ describe.each([
     'moneyVbaCompletedActivityEnabled',
     'MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED',
   ],
+  [
+    'selectMoneyEnableHistoricalVaultShareValuationsFlag',
+    selectMoneyEnableHistoricalVaultShareValuationsFlag,
+    'moneyEnableHistoricalVaultShareValuations',
+    'MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS',
+  ],
 ])('%s', (_name, selector, remoteKey, localKey) => {
   const originalProcessEnv = process.env;
 
@@ -88,6 +97,7 @@ describe.each([
     process.env = { ...process.env };
     delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
     delete process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED;
+    delete process.env.MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS;
   });
 
   afterEach(() => {
@@ -191,6 +201,80 @@ describe('selectMoneyEnableActivityDetailsFlag', () => {
 
     expect(result).toBe(false);
   });
+});
+
+describe('selectMoneyAccountDebugEnabledFlag', () => {
+  const originalEnv = process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+  });
+
+  afterEach(() => {
+    if (originalEnv === undefined) {
+      delete process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED;
+    } else {
+      process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = originalEnv;
+    }
+  });
+
+  it('returns true when remote flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({
+      moneyAccountDebugEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag is disabled even if env is enabled', () => {
+    mockedValidate.mockReturnValue(false);
+    process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = 'true';
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({
+      moneyAccountDebugEnabled: { enabled: false, minimumVersion: '0.0.0' },
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it('falls back to env when remote flag is absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_ACCOUNT_DEBUG_ENABLED = 'true';
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({});
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when remote flag and env are both absent', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    const result = selectMoneyAccountDebugEnabledFlag.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectMoneyAccountStatusPageEnabled', () => {
+  it.each([
+    [true, true, true],
+    [true, false, false],
+    [false, true, false],
+    [false, false, false],
+  ])(
+    'returns %s && %s = %s for Money account and debug flags',
+    (isMoneyAccountEnabled, isDebugEnabled, expected) => {
+      expect(
+        selectMoneyAccountStatusPageEnabled.resultFunc(
+          isMoneyAccountEnabled,
+          isDebugEnabled,
+        ),
+      ).toBe(expected);
+    },
+  );
 });
 
 describe('selectMoneyEnableCardActivityEnrichmentFlag', () => {

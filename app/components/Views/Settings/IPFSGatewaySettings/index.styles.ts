@@ -18,9 +18,6 @@ const styleSheet = (params: { theme: Theme }) => {
     switch: {
       alignSelf: 'flex-start',
     },
-    halfSetting: {
-      marginTop: 24,
-    },
     desc: {
       marginTop: 8,
     },

@@ -343,6 +343,8 @@ const Routes = {
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
     WATCHLIST_FULL_VIEW: 'WatchlistFullView',
+    ADD_CUSTOM_TOKEN: 'AddCustomToken',
+    HIDDEN_TOKENS: 'HiddenTokens',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -540,10 +542,12 @@ const Routes = {
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
+    SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
     DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
+    ACCOUNT_STATUS: 'MoneyAccountStatus',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',

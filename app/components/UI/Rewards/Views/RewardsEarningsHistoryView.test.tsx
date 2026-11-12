@@ -1,6 +1,7 @@
 import React from 'react';
 import { FlatList } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   LedgerClaimEntryDto,
   EarningsSummaryDto,
@@ -298,6 +299,11 @@ describe('RewardsEarningsHistoryView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.Activity);
   });
 
   it('uses the copy-trading empty copy and opens the social leaderboard for a copy-trading-only sharer', () => {
@@ -350,6 +356,11 @@ describe('RewardsEarningsHistoryView', () => {
       Routes.MODAL.ROOT_MODAL_FLOW,
       expect.anything(),
     );
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
   });
 
   it('hides the under-review banner while history is still on its first load', () => {

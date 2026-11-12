@@ -4,6 +4,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
   answerPredictNextCatalog,
   configurePredictNextCatalog,
+  expectPredictNextGameCard,
   publishPredictNextGameLiveUpdate,
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -775,10 +776,14 @@ describe('PredictFeedScreen', () => {
     const gameCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
     );
-    expect(within(gameCard).getByText('Packers')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('Steelers')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('17')).toBeOnTheScreen();
-    expect(within(gameCard).getByText('21')).toBeOnTheScreen();
+    expectPredictNextGameCard(gameCard, gameEvent.id, {
+      away: 'Packers',
+      home: 'Steelers',
+      awayScore: '17',
+      homeScore: '21',
+      awayQuote: /^GB\s*· 42¢$/,
+      homeQuote: /^PIT\s*· 42¢$/,
+    });
 
     const propsCard = view.getByTestId(
       PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
@@ -791,6 +796,32 @@ describe('PredictFeedScreen', () => {
     ).toBeOnTheScreen();
     expect(within(propsCard).queryByText('Sports')).not.toBeOnTheScreen();
     expect(within(propsCard).getByText('$1.5M')).toBeOnTheScreen();
+  });
+
+  it('shows a binary non-game Event as the default card with Yes and No rows', async () => {
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
+    );
+    expect(
+      within(card).getByTestId(
+        PredictHomeTestIds.outcome(propsEvent.id, 'yes'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(propsEvent.id, 'no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).queryByTestId(PredictHomeTestIds.category(propsEvent.id)),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the Order flow from a tradeable Outcome row', async () => {

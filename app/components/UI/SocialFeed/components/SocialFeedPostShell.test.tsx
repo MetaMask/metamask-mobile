@@ -427,7 +427,7 @@ describe('SocialFeedPostShell', () => {
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-post-1`),
-    ).toHaveTextContent('7 min ago');
+    ).toHaveTextContent('7m ago');
   });
 
   it('omits the stat line for a trader with no stats', () => {
@@ -598,6 +598,46 @@ describe('SocialFeedPostShell', () => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
       expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
+    });
+  });
+
+  describe('reaction order', () => {
+    const chipId = (emotion: string) =>
+      `${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-${emotion}`;
+
+    it('does not restack chips after the reader reacts', async () => {
+      jest.mocked(reactToComment).mockResolvedValueOnce({
+        reactions: [
+          { emotion: '💀', count: 6 },
+          { emotion: '🔥', count: 5 },
+          { emotion: '❤️', count: 3 },
+          { emotion: '😂', count: 1 },
+          { emotion: '👀', count: 1 },
+        ],
+        userReaction: '💀',
+      });
+      renderShell(
+        basePost({
+          reactions: [
+            { emotion: '🔥', count: 5 },
+            { emotion: '❤️', count: 3 },
+            { emotion: '💀', count: 2 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+          ],
+          userReaction: null,
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipId('💀')));
+
+      await waitFor(() => {
+        expect(screen.getByTestId(chipId('💀'))).toHaveTextContent('💀6');
+      });
+      const order = screen
+        .getAllByTestId(new RegExp(`^${SocialFeedPostShellSelectorsIDs.CHIP}`))
+        .map((chip) => chip.props.testID);
+      expect(order).toStrictEqual(['🔥', '❤️', '💀', '😂', '👀'].map(chipId));
     });
   });
 

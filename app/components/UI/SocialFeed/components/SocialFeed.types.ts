@@ -4,6 +4,7 @@ import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import type { PendingPostSurface } from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
@@ -41,6 +42,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
   analyticsSource?: SocialEventSource;
+  /** Disables post interaction analytics for read-only profile surfaces. */
+  analyticsEnabled?: boolean;
   /**
    * Shows the invented values posts still carry. Omitted keeps the outer
    * surface's choice.
@@ -73,6 +76,14 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
 
 export interface SocialFeedContentProps extends SocialFeedBaseProps {
   scrollMode?: 'content';
+  /** Streams matching posts directly into the host scroll. */
+  realtime?: boolean;
+  /** Lets a host refresh the feed from its own pull-to-refresh control. */
+  refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+}
+
+export interface SocialFeedRefreshHandle {
+  refresh: () => Promise<void>;
 }
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
@@ -84,6 +95,11 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
+  /**
+   * Pins the viewer's just-written posts on top, greyed out, until this feed
+   * returns them (live or on a refresh) and its copy takes their place.
+   */
+  pendingPostsSurface?: PendingPostSurface;
   /**
    * Reorders the loaded posts, ties keeping the feed's order. Omitted keeps
    * the feed's newest-first order. Memoize it.
@@ -101,6 +117,14 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
     tab: SocialDataFetchTab;
     context: SocialPerformanceContext;
   }>;
+  /**
+   * Turns the feed off without unmounting it: no fetching, no rows. A host
+   * that embeds the list as its screen scroller sets this while the feed's
+   * own tab is not showing. Defaults to on.
+   */
+  enabled?: boolean;
+  /** Where the pull-to-refresh spinner starts, for hosts with a fixed header. */
+  refreshProgressViewOffset?: number;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;

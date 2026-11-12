@@ -361,16 +361,16 @@ describe('PredictHome', () => {
       home: 'Steelers',
       awayScore: '17',
       homeScore: '21',
-      awayQuote: /^Packers\s*· 41¢$/,
-      homeQuote: /^Steelers\s*· 59¢$/,
+      awayQuote: /^PAC\s*· 41¢$/,
+      homeQuote: /^STE\s*· 59¢$/,
     });
     expectPredictNextGameCard(nflSection, 'nfl-2', {
       away: 'Panthers',
       home: 'Cardinals',
       awayScore: '10',
       homeScore: '7',
-      awayQuote: /^Panthers\s*· 36¢$/,
-      homeQuote: /^Cardinals\s*· 64¢$/,
+      awayQuote: /^PAN\s*· 36¢$/,
+      homeQuote: /^CAR\s*· 64¢$/,
     });
     expect(
       within(nflSection).queryByText('Hidden NFL Game'),
@@ -389,16 +389,16 @@ describe('PredictHome', () => {
       home: 'Miami',
       awayScore: '24',
       homeScore: '31',
-      awayQuote: /^Pittsburgh\s*· 47¢$/,
-      homeQuote: /^Miami\s*· 53¢$/,
+      awayQuote: /^PIT\s*· 47¢$/,
+      homeQuote: /^MIA\s*· 53¢$/,
     });
     expectPredictNextGameCard(ncaaSection, 'ncaa-2', {
       away: 'Georgia',
       home: 'Florida',
       awayScore: '3',
       homeScore: '0',
-      awayQuote: /^Georgia\s*· 55¢$/,
-      homeQuote: /^Florida\s*· 45¢$/,
+      awayQuote: /^GEO\s*· 55¢$/,
+      homeQuote: /^FLO\s*· 45¢$/,
     });
     expect(
       within(ncaaSection).queryByText('Hidden College Game'),
@@ -978,6 +978,27 @@ describe('PredictHome', () => {
         POLITICS_TRUMP_FEED_ID,
         { limit: 2 },
       );
+    });
+
+    it('shows a binary Politics Event as the default card with Yes and No rows', async () => {
+      const view = renderPredictNext();
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-1'),
+      );
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'no'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
+      ).not.toBeOnTheScreen();
     });
 
     it('opens the Politics Feed Screen from the section header', async () => {

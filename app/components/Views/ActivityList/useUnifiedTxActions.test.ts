@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import {
   TransactionType,
   type TransactionMeta,
@@ -18,14 +19,6 @@ import {
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { isHardwareAccount } from '../../../util/address';
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
@@ -33,6 +26,14 @@ jest.mock('@metamask/design-system-react-native', () => {
     toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
   };
 });
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
@@ -85,10 +86,6 @@ jest.mock('../../../util/transaction-controller', () => ({
 
 jest.mock('../../../util/transactions', () => ({
   validateTransactionActionBalance: jest.fn(() => false),
-}));
-
-jest.mock('../../../util/confirmation/transactions', () => ({
-  getTransactionUpdateErrorToastOptions: jest.fn((error) => ({ error })),
 }));
 
 jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
@@ -265,5 +262,55 @@ describe('useUnifiedTxActions', () => {
       result.current.signLedgerTransaction({ id: 'ledger-tx' }),
     ).rejects.toThrow('Missing selected address');
     expect(useHardwareWallet).toHaveBeenCalled();
+  });
+
+  it('shows a danger toast when speed-up fails', async () => {
+    const { result } = renderHook(() => useUnifiedTxActions());
+
+    act(() => {
+      result.current.onSpeedUpAction(true, tx);
+    });
+    await act(async () => {
+      await result.current.speedUpTransaction({
+        error: 'replacement failed',
+        gasPrice: '0x1',
+      });
+    });
+
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Transaction update failed',
+      description: 'replacement failed',
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+    expect(result.current.speedUpIsOpen).toBe(false);
+    expect(speedUpTransaction).not.toHaveBeenCalled();
+  });
+
+  it('shows a danger toast when cancel fails', async () => {
+    const { result } = renderHook(() => useUnifiedTxActions());
+
+    act(() => {
+      result.current.onCancelAction(true, tx);
+    });
+    await act(async () => {
+      await result.current.cancelTransaction({
+        error: 'cancellation failed',
+        gasPrice: '0x1',
+      });
+    });
+
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Transaction update failed',
+      description: 'cancellation failed',
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+    expect(result.current.cancelIsOpen).toBe(false);
+    expect(
+      Engine.context.TransactionController.stopTransaction,
+    ).not.toHaveBeenCalled();
   });
 });
