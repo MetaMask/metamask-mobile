@@ -10,15 +10,14 @@ import {
 const mockGetRootState = jest.fn();
 const mockAddListener = jest.fn();
 const mockUnsubscribe = jest.fn();
+const mockNavigation = {
+  getRootState: (...args: unknown[]) => mockGetRootState(...args),
+  addListener: (...args: unknown[]) => mockAddListener(...args),
+};
 
-jest.mock('../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      getRootState: (...args: unknown[]) => mockGetRootState(...args),
-      addListener: (...args: unknown[]) => mockAddListener(...args),
-    },
-  },
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
 }));
 
 // Each helper builds the state shape React Navigation produces. Stacks hold

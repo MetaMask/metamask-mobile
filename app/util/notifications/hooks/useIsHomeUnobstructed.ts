@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { NavigationState, PartialState } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
 import { NAVIGATION_CHILDREN_ROUTE } from '../../../components/Nav/NavigationProvider/constants';
 import Routes from '../../../constants/navigation/Routes';
-import NavigationService from '../../../core/NavigationService';
 
 type RouteState = NavigationState | PartialState<NavigationState>;
 
@@ -71,21 +74,21 @@ export const isHomeUnobstructedState = (
  * change. Only re-renders when that boolean changes.
  */
 export const useIsHomeUnobstructed = (): boolean => {
+  const navigation = useNavigation();
   const [isUnobstructed, setIsUnobstructed] = useState(() =>
-    isHomeUnobstructedState(NavigationService.navigation.getRootState()),
+    isHomeUnobstructedState(navigation.getRootState()),
   );
 
   useEffect(() => {
-    const { navigation } = NavigationService;
     const apply = () => {
       setIsUnobstructed(isHomeUnobstructedState(navigation.getRootState()));
     };
     // The state may have changed between the initial render and subscribing.
     apply();
-    // The container's `state` event carries a partial tree that drops the
-    // innermost route, so the listener reads the hydrated root instead.
+    // The event's state drops the innermost route, so the listener reads the
+    // hydrated root instead.
     return navigation.addListener('state', apply);
-  }, []);
+  }, [navigation]);
 
   return isUnobstructed;
 };
