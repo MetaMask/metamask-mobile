@@ -122,6 +122,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.PROVIDER_NOT_FOUND]: 'perps.errors.providerNotAvailable',
+  [PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED]:
+    'perps.errors.providerRouteRequired',
   [PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE]:
     'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -291,6 +293,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED]:
     'perps.errors.marginAdjustmentFailed',
   [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
+  [PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED]:
+    'perps.errors.tpslLegReplaceUnsupported',
   [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
