@@ -48,6 +48,11 @@ const renderAndExpect = (
   expect(getByText(expected.text)).toBeTruthy();
 };
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('AmountPill', () => {
   beforeEach(() => {
     jest.clearAllMocks();
