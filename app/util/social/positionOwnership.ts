@@ -1,13 +1,6 @@
 import type { Position, TraderProfile } from '@metamask/social-controllers';
 
 /**
- * `Position.profileId` (the owner's profile id) until
- * `@metamask/social-controllers` ships it; older API builds omit it.
- * TODO: Drop once the core release with `Position.profileId` is installed.
- */
-export type PositionWithOwner = Position & { profileId?: string };
-
-/**
  * Who a position is shown under when the link's trader doesn't own it.
  * Open question: showing the real owner (today) or a toast instead.
  */
@@ -25,7 +18,7 @@ export const resolvePositionAuthorProfileId = (
   traderId: string,
   profile?: Pick<TraderProfile, 'profileId'> | null,
 ): string => {
-  const { profileId: ownerProfileId } = position as PositionWithOwner;
+  const { profileId: ownerProfileId } = position;
   if (!ownerProfileId || ownerProfileId === (profile?.profileId ?? traderId)) {
     return traderId;
   }

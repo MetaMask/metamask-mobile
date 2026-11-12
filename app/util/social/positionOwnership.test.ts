@@ -2,11 +2,10 @@ import type { Position } from '@metamask/social-controllers';
 import {
   resolveOwnerMismatchProfileId,
   resolvePositionAuthorProfileId,
-  type PositionWithOwner,
 } from './positionOwnership';
 
 const buildPosition = (profileId?: string): Position =>
-  ({ positionId: 'position-1', profileId }) as PositionWithOwner;
+  ({ positionId: 'position-1', profileId }) as Position;
 
 describe('resolveOwnerMismatchProfileId', () => {
   it('shows the position under its real owner', () => {
