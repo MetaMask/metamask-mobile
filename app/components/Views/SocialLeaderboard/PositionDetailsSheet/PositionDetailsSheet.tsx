@@ -54,7 +54,10 @@ import {
 } from '../navigation/socialOgImageCards';
 import { logSocialOgShare } from '../navigation/socialOgShareLog';
 import { buildSocialPositionOpenGraph } from '../navigation/socialShareOpenGraph';
-import { shareSocialTraderPosition } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialTraderPosition,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import {
   SocialEvent,
@@ -340,7 +343,7 @@ const PositionDetailsSheet = () => {
     }
     const sharedPosition = position;
     const buildOgImageRequest = sharedPosition
-      ? async () => {
+      ? async ({ promoCode }: SocialShareCardContext) => {
           const prices = data.isPerp
             ? await fetchPerpOgSeries(
                 sharedPosition.tokenSymbol,
@@ -369,6 +372,7 @@ const PositionDetailsSheet = () => {
             pnlPct: data.pnlPercent,
             markPrice: data.currentPrice,
             prices,
+            promoCode,
           });
         }
       : undefined;

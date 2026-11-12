@@ -29,6 +29,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
+import type { BuildSocialOgImageRequest } from '../navigation/socialTraderDeeplink';
 import {
   DAY_MS,
   NOW_MS,
@@ -986,8 +987,8 @@ describe('PositionDetailsSheet', () => {
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
       );
       const buildOgImageRequest = mockShareSocialTraderPosition.mock
-        .calls[0][4] as () => Promise<unknown>;
-      const request = await buildOgImageRequest();
+        .calls[0][4] as BuildSocialOgImageRequest;
+      const request = await buildOgImageRequest({ promoCode: '8F3A21' });
 
       expect(request).toEqual(
         expect.objectContaining({
@@ -999,6 +1000,7 @@ describe('PositionDetailsSheet', () => {
             status: 'open',
             pnlUsd: 40,
             pnlPct: 20,
+            promoCode: '8F3A21',
           }),
         }),
       );

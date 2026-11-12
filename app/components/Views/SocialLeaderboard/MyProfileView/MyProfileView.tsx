@@ -73,7 +73,10 @@ import {
   buildSocialProfileOpenGraph,
   readTraderShareName,
 } from '../navigation/socialShareOpenGraph';
-import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialProfile,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -478,24 +481,26 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const buildProfileOgImageRequest = useCallback(
-    (shareTraderId: string, username: string | undefined) => async () =>
-      buildSocialProfileOgImageRequest({
-        traderId: shareTraderId,
-        username: liveProfile.profile?.profile.name || username,
-        avatarUrl:
-          liveProfile.profile?.profile.imageUrl ||
-          displayProfile?.imageUrl ||
-          (displayProfile?.avatarPresetId
-            ? toFoxiconAvatarUrl(
-                displayProfile.avatarPresetId,
-                displayProfile.avatarBackgroundId ??
-                  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-              )
-            : undefined),
-        profile: liveProfile.profile,
-        closedPositions,
-        nowMs: Date.now(),
-      }),
+    (shareTraderId: string, username: string | undefined) =>
+      async ({ promoCode }: SocialShareCardContext) =>
+        buildSocialProfileOgImageRequest({
+          traderId: shareTraderId,
+          username: liveProfile.profile?.profile.name || username,
+          avatarUrl:
+            liveProfile.profile?.profile.imageUrl ||
+            displayProfile?.imageUrl ||
+            (displayProfile?.avatarPresetId
+              ? toFoxiconAvatarUrl(
+                  displayProfile.avatarPresetId,
+                  displayProfile.avatarBackgroundId ??
+                    DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+                )
+              : undefined),
+          profile: liveProfile.profile,
+          closedPositions,
+          nowMs: Date.now(),
+          promoCode,
+        }),
     [
       closedPositions,
       displayProfile?.avatarBackgroundId,
