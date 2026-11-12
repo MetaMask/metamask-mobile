@@ -5019,6 +5019,10 @@
     "title_nft": "Import NFT",
     "search_token": "Search",
     "custom_token": "Custom token",
+    "hidden_tokens": "Hidden tokens",
+    "unhide": "Unhide",
+    "add_custom_token_cta": "Can't find your token? Add a custom token",
+    "no_hidden_tokens": "You don't have any hidden tokens.",
     "tokens": {
       "cancel_add_token": "Cancel",
       "add_token": "Import"
@@ -5451,6 +5455,9 @@
     "reveal_seed_words": "Reveal Secret Recovery Phrase",
     "reset_account": "Reset account",
     "state_logs_button": "Download state logs",
+    "money_account_status": "Money account status",
+    "money_account_status_desc": "View debug information about your Money account.",
+    "money_account_status_button": "View Money account status",
     "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
     "reset_account_button": "Reset account",
     "reset_account_confirm_button": "Yes, reset",
@@ -10104,6 +10111,44 @@
         "title": "Money Account is on its way",
         "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
       }
+    },
+    "account_status": {
+      "title": "Money account status",
+      "loading": "Loading…",
+      "no_account": "No Money account found for this wallet.",
+      "address_title": "Money account address",
+      "copy": "Copy {{label}}",
+      "copied": "{{label}} copied",
+      "not_available": "Not available",
+      "flag_not_set": "Not set in remote flags",
+      "debug_title": "Debug info",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "MetaMetrics ID",
+      "profile_id": "Profile ID",
+      "summary_title": "Summary",
+      "chomp_registration": "CHOMP registration",
+      "summary": {
+        "registered": "Registered",
+        "pending": "Pending",
+        "incomplete": "Incomplete",
+        "unknown": "Unknown"
+      },
+      "request_error": "Some requests failed. Pull down to retry.",
+      "signals_title": "Signals",
+      "profile_association": "Profile association",
+      "account_upgrade": "Account upgrade",
+      "intents": "Intents",
+      "local_record": "Device upgrade record",
+      "local_record_completed_at": "Device upgrade completed {{date}}",
+      "signal": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "missing": "Missing",
+        "unknown": "Unknown"
+      },
+      "upgrades_title": "Upgrades",
+      "intents_title": "Intents",
+      "chain": "Chain {{chainId}}"
     }
   },
   "stake": {
@@ -10896,7 +10941,6 @@
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
     "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
-    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
