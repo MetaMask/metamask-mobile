@@ -9791,20 +9791,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/chomp-api-service@npm:^6.0.0, @metamask/chomp-api-service@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@metamask/chomp-api-service@npm:6.0.1"
-  dependencies:
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.103.2"
-  checksum: 10/1c00e449c04eb3958c8a7156b3d4cafd8b1b07467fc9c3c9b961dc40b00011c594f823ef4d7d7f602678545c29c0e60e8913603bdc27b1bf0218f57a47b830fd
-  languageName: node
-  linkType: hard
-
 "@metamask/chomp-api-service@npm:^7.1.0":
   version: 7.1.0
   resolution: "@metamask/chomp-api-service@npm:7.1.0"
@@ -11114,26 +11100,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-upgrade-controller@npm:^5.1.0":
-  version: 5.1.0
-  resolution: "@metamask/money-account-upgrade-controller@npm:5.1.0"
-  dependencies:
-    "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/chomp-api-service": "npm:^6.0.0"
-    "@metamask/delegation-controller": "npm:^4.0.0"
-    "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/delegation-deployments": "npm:^1.4.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/money-account-utils": "npm:^2.1.0"
-    "@metamask/network-controller": "npm:^37.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/utils": "npm:^12.0.0"
-  checksum: 10/b638b9e49a960a06ab0c129157669ec36bbebf6ab5785a9d40a38368cd37e6b93e3f9177e537e599cd7f07b3574fce983a8554ce27d07a48685a608b14c4029a
-  languageName: node
-  linkType: hard
-
 "@metamask/money-account-upgrade-controller@npm:^7.0.0":
   version: 7.0.0
   resolution: "@metamask/money-account-upgrade-controller@npm:7.0.0"
@@ -11156,7 +11122,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-utils@npm:^2.1.0, @metamask/money-account-utils@npm:^2.2.0, @metamask/money-account-utils@npm:^2.2.1":
+"@metamask/money-account-utils@npm:^2.2.0, @metamask/money-account-utils@npm:^2.2.1":
   version: 2.2.1
   resolution: "@metamask/money-account-utils@npm:2.2.1"
   dependencies:
@@ -38319,7 +38285,7 @@ __metadata:
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/browser-playground": "npm:0.8.1"
     "@metamask/chain-agnostic-permission": "npm:^2.1.0"
-    "@metamask/chomp-api-service": "npm:^6.0.1"
+    "@metamask/chomp-api-service": "npm:^7.1.0"
     "@metamask/claims-controller": "npm:^1.1.0"
     "@metamask/client-controller": "npm:^2.0.0"
     "@metamask/client-mcp-core": "npm:^0.13.1"
@@ -38384,7 +38350,7 @@ __metadata:
     "@metamask/money-account-api-data-service": "npm:^2.4.0"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
-    "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
+    "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
     "@metamask/money-account-utils": "npm:^2.2.1"
     "@metamask/multichain-account-service": "npm:^14.1.0"
     "@metamask/multichain-api-client": "npm:^0.11.0"
