@@ -19,6 +19,29 @@ jest.mock('#app/util/haptics', () => ({
 const mockPlayImpact = jest.mocked(playImpact);
 const mockPlaySelection = jest.mocked(playSelection);
 
+const mockUseLiquidGlass = jest.fn();
+jest.mock('#app/component-library/hooks/useLiquidGlass', () => ({
+  useLiquidGlass: () => mockUseLiquidGlass(),
+}));
+
+const mockGlassView = jest.fn();
+jest.mock('expo-glass-effect', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    GlassView: (props: { children?: React.ReactNode; testID?: string }) => {
+      mockGlassView(props);
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  };
+});
+
+const PLAIN_SURFACE = {
+  isGlassEnabled: false,
+  isBlurEnabled: false,
+  glassColorScheme: 'light',
+  blurTint: 'systemChromeMaterialLight',
+};
+
 describe('getPendingPostsLabelParts', () => {
   it('splits the localized label around the count', () => {
     const parts = getPendingPostsLabelParts(14);
@@ -70,6 +93,37 @@ describe('getPendingPostsAccessibilityLabel', () => {
 describe('PendingPostsButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseLiquidGlass.mockReturnValue(PLAIN_SURFACE);
+  });
+
+  it('renders the pill on Liquid Glass when glass is enabled', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isGlassEnabled: true,
+      glassColorScheme: 'dark',
+    });
+
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
+    );
+
+    expect(mockGlassView).toHaveBeenCalledWith(
+      expect.objectContaining({
+        glassEffectStyle: 'regular',
+        colorScheme: 'dark',
+        isInteractive: true,
+      }),
+    );
+    expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
+  });
+
+  it('renders the pill without Liquid Glass when glass is unavailable', () => {
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
+    );
+
+    expect(mockGlassView).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
   });
 
   it('renders the singular pending label', () => {

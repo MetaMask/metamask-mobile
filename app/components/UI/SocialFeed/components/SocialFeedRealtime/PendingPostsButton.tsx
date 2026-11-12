@@ -19,6 +19,8 @@ import Animated, {
   ZoomOut,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import CapsuleGlass from '#app/component-library/components-temp/CapsuleGlass/CapsuleGlass';
+import { useLiquidGlass } from '#app/component-library/hooks/useLiquidGlass';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
@@ -150,9 +152,12 @@ const PendingPostsButton = ({
 }: PendingPostsButtonProps) => {
   const tw = useTailwind();
   const { shadows } = useTheme();
+  const { isGlassEnabled, isBlurEnabled } = useLiquidGlass();
   if (pendingNewCount <= 0) {
     return null;
   }
+
+  const isMaterialSurface = isGlassEnabled || isBlurEnabled;
 
   const { leading, count, trailing } =
     getPendingPostsLabelParts(pendingNewCount);
@@ -173,50 +178,54 @@ const PendingPostsButton = ({
         entering={PENDING_POSTS_ZOOM_IN}
         exiting={PENDING_POSTS_ZOOM_OUT}
         // ButtonBase clips its own shadow; Android draws elevation only under a background.
-        style={[
-          tw.style('rounded-full bg-background-section'),
-          shadows.size.sm,
-        ]}
+        style={
+          isMaterialSurface
+            ? tw.style('rounded-full')
+            : [tw.style('rounded-full bg-background-section'), shadows.size.sm]
+        }
       >
-        <ButtonBase
-          accessibilityLabel={getPendingPostsAccessibilityLabel(
-            pendingNewCount,
-          )}
-          size={ButtonBaseSize.Sm}
-          onPress={handlePress}
-          twClassName={(pressed) =>
-            `border border-muted ${
-              pressed
+        <CapsuleGlass twClassName="h-8">
+          <ButtonBase
+            accessibilityLabel={getPendingPostsAccessibilityLabel(
+              pendingNewCount,
+            )}
+            size={ButtonBaseSize.Sm}
+            onPress={handlePress}
+            twClassName={(pressed) => {
+              if (isMaterialSurface) {
+                return pressed ? 'opacity-70' : 'bg-transparent';
+              }
+              return pressed
                 ? 'bg-background-section-pressed'
-                : 'bg-background-section'
-            }`
-          }
-        >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
+                : 'bg-transparent';
+            }}
           >
-            {leadingText ? (
-              <Text
-                {...LABEL_TEXT_PROPS}
-                accessible={false}
-                twClassName={/\s$/u.test(leading) ? 'mr-1' : undefined}
-              >
-                {leadingText}
-              </Text>
-            ) : null}
-            {count ? <PendingPostsCount count={count} /> : null}
-            {trailingText ? (
-              <Text
-                {...LABEL_TEXT_PROPS}
-                accessible={false}
-                twClassName={/^\s/u.test(trailing) ? 'ml-1' : undefined}
-              >
-                {trailingText}
-              </Text>
-            ) : null}
-          </Box>
-        </ButtonBase>
+            <Box
+              alignItems={BoxAlignItems.Center}
+              flexDirection={BoxFlexDirection.Row}
+            >
+              {leadingText ? (
+                <Text
+                  {...LABEL_TEXT_PROPS}
+                  accessible={false}
+                  twClassName={/\s$/u.test(leading) ? 'mr-1' : undefined}
+                >
+                  {leadingText}
+                </Text>
+              ) : null}
+              {count ? <PendingPostsCount count={count} /> : null}
+              {trailingText ? (
+                <Text
+                  {...LABEL_TEXT_PROPS}
+                  accessible={false}
+                  twClassName={/^\s/u.test(trailing) ? 'ml-1' : undefined}
+                >
+                  {trailingText}
+                </Text>
+              ) : null}
+            </Box>
+          </ButtonBase>
+        </CapsuleGlass>
       </Animated.View>
     </Animated.View>
   );
