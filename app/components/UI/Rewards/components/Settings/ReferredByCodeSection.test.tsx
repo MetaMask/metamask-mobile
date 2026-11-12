@@ -18,13 +18,10 @@ import {
 } from '../../../../../reducers/rewardsMoney/selectors';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { REFERRED_BY_CODE_SECTION_TEST_IDS } from './ReferredByCodeSection.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
-
-const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
 }));
 
@@ -87,18 +84,6 @@ const openEntry = {
     },
   },
 } as ReferralMeEntry;
-
-const entryWithTermsUrl = (inviteTermsUrl: string): ReferralMeEntry =>
-  ({
-    ...openEntry,
-    data: {
-      ...openEntry.data,
-      localized_text: {
-        ...openEntry.data?.localized_text,
-        inviteTermsUrl,
-      },
-    },
-  }) as ReferralMeEntry;
 
 const renderSection = (
   props: React.ComponentProps<typeof ReferredByCodeSection> = {},
@@ -288,22 +273,12 @@ describe('ReferredByCodeSection', () => {
     );
   });
 
-  it('opens the terms link after the not-linked description in the in-app browser', () => {
+  it('shows the terms link after the not-linked description', () => {
     const { getByTestId } = renderSection();
 
     expect(
       getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK),
     ).toHaveTextContent('Learn more');
-
-    fireEvent.press(getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: 'https://link.metamask.io/rewards/terms',
-        timestamp: expect.any(Number),
-      },
-    });
   });
 
   it('shows the terms link after the linked description too', () => {
@@ -323,19 +298,6 @@ describe('ReferredByCodeSection', () => {
     expect(
       getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK),
     ).toHaveTextContent('Learn more');
-  });
-
-  it('hides the terms link when the terms URL is blank', () => {
-    jest.mocked(selectReferralMeEntry).mockReturnValue(entryWithTermsUrl(''));
-
-    const { getByTestId, queryByTestId } = renderSection();
-
-    expect(
-      getByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.SECTION),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFERRED_BY_CODE_SECTION_TEST_IDS.TERMS_LINK),
-    ).toBeNull();
   });
 
   describe('analytics', () => {

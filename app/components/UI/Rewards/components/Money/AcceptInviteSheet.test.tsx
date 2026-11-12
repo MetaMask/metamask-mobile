@@ -429,29 +429,6 @@ describe('AcceptInviteSheet', () => {
     });
   });
 
-  it('does not open the terms link while a registration is in flight', async () => {
-    mockUseAcceptMoneyReferralCode.mockReturnValue({
-      acceptReferralCode: mockAcceptReferralCode,
-      isLoading: true,
-      errorMessage: '',
-      refusalReason: null,
-      acceptBlockedUntil: null,
-      clearError: jest.fn(),
-    });
-
-    const { getByTestId } = await renderSheet('KOL1');
-
-    expect(getByTestId(TEST_IDS.TERMS_LINK).props.onPress).toBeUndefined();
-    expect(getByTestId(TEST_IDS.TERMS_LINK).props.accessibilityState).toEqual({
-      disabled: true,
-    });
-
-    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
-
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
   it('does not open the terms link after Accept has started', async () => {
     let settleAccept: (result: { accepted: boolean }) => void = () => undefined;
     mockAcceptReferralCode.mockReturnValue(
@@ -937,6 +914,7 @@ describe('AcceptInviteSheet', () => {
     ['accept', ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT],
     ['decline', ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE],
     ['close', ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE],
+    ['terms link', ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK],
   ])(
     'ignores %s while a registration is already in flight',
     async (_name, testId) => {
@@ -954,6 +932,13 @@ describe('AcceptInviteSheet', () => {
       expect(getByTestId(TEST_IDS.CONTAINER).props.isInteractable).toBe(false);
       expect(mockAcceptReferralCode).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      if (testId === ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK) {
+        expect(getByTestId(testId).props.onPress).toBeUndefined();
+        expect(getByTestId(testId).props.accessibilityState).toEqual({
+          disabled: true,
+        });
+      }
     },
   );
   describe('analytics', () => {

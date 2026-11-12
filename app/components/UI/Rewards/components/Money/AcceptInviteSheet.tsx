@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -26,7 +32,7 @@ import {
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
+import { InviteTermsLink } from '../InviteTermsLink';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type {
@@ -123,6 +129,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
+  // Mirrors the ref for the terms link, which can only see props. Set in the
+  // same turn as the ref so a tap during accept cannot open the browser.
+  const [acceptLocked, setAcceptLocked] = useState(false);
   // Once Accept has been pressed, a late geo exclusion must not close the
   // sheet: that would interrupt registerReferee, hide a server region
   // refusal, or pop the accepted splash after a successful navigate.
@@ -377,6 +386,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Registration is the accept. A refused write leaves the sheet open, so
     // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
+    setAcceptLocked(true);
     acceptReferralCode(referralCode, { onAccepted: handleAccepted })
       .then((result) => {
         if (result.accepted) {
@@ -390,6 +400,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       .catch(() => undefined)
       .finally(() => {
         acceptInFlightRef.current = false;
+        setAcceptLocked(false);
       });
   }, [
     acceptReferralCode,
@@ -443,25 +454,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   const termsLink = copy.termsLink;
 
-  const handleOpenTerms = useCallback(
-    (url: string) => {
-      // The in-app browser unmounts this sheet. Its cleanup then clears the
-      // pending code, so the registration is left unattended and the accepted
-      // splash never opens.
-      if (isAccepting || acceptInFlightRef.current) {
-        return;
-      }
-      navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-        },
-      });
-    },
-    [isAccepting, navigation],
-  );
-
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
   // referrer or referee, or a geo-blocked country.
@@ -493,22 +485,11 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             {termsLink ? (
               <>
                 {' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.PrimaryDefault}
-                  accessibilityRole={isAccepting ? undefined : 'link'}
-                  accessibilityState={
-                    isAccepting ? { disabled: true } : undefined
-                  }
-                  onPress={
-                    isAccepting
-                      ? undefined
-                      : () => handleOpenTerms(termsLink.url)
-                  }
+                <InviteTermsLink
+                  link={termsLink}
+                  disabled={isAccepting || acceptLocked}
                   testID={ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK}
-                >
-                  {termsLink.label}
-                </Text>
+                />
               </>
             ) : null}
           </Text>
