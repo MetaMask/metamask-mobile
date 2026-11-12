@@ -164,18 +164,19 @@ describe('approved intent ledger', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
+      // Capture the refusal before revoking: the claim can only settle once
+      // its held write is released, and `clear` queues behind it.
+      const refused = pending.catch((error: unknown) => error);
       const cleared = clearApprovedIntents();
       const unconfirmed = claimIntentSignature({ ...claim, confirmed: false });
-      const unconfirmedRefused =
-        await expect(unconfirmed).rejects.toBeInstanceOf(TemplateError);
+      const unconfirmedRefused = unconfirmed.catch((error: unknown) => error);
       const nextBody = '{"ticker":"NEW-GENERATION"}';
       const next = claimIntentSignature({ ...claim, body: nextBody });
 
       write.resolve(true);
-      await refused;
+      expect(await refused).toBeInstanceOf(TemplateError);
       await cleared;
-      await unconfirmedRefused;
+      expect(await unconfirmedRefused).toBeInstanceOf(TemplateError);
       await next;
 
       // A reload sees only the new pin, never the delayed old write.

@@ -408,13 +408,14 @@ describe('Predict order durable recovery', () => {
       preview.previewId,
       signing,
     );
-    const rejection = await expect(pending).rejects.toMatchObject({
-      code: 'UNAUTHENTICATED',
-    });
+    const rejection = pending.then(
+      () => undefined,
+      (error: unknown) => error,
+    );
     await entered.promise;
     service.suspendRecovery();
     release.resolve();
-    await rejection;
+    expect(await rejection).toMatchObject({ code: 'UNAUTHENTICATED' });
     expect(trading.commitOrder).not.toHaveBeenCalled();
     // Conservative journal references can outlive a cancelled preparation;
     // recovery still cannot turn one into a mutation.

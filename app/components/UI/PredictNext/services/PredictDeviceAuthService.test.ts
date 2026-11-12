@@ -682,13 +682,15 @@ describe('PredictDeviceAuthService revocation races', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
+      // Capture the refusal before revoking: the claim can only settle once
+      // its held write is released, and `clear` queues behind it.
+      const refused = pending.catch((error: unknown) => error);
       unlocked = false;
       const cleared = service.clearApprovals();
       unlocked = true;
       write.resolve(true);
 
-      await refused;
+      expect(await refused).toBeInstanceOf(TemplateError);
       await cleared;
       expect(mockSignDeviceKey).not.toHaveBeenCalled();
       await expect(
@@ -710,7 +712,9 @@ describe('PredictDeviceAuthService revocation races', () => {
     });
     const pending = service.signOperation('order.place', order);
     await started.promise;
-    const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
+    // Capture the refusal before `reset`: the pending claim cannot settle
+    // until `write.resolve(true)` below, and reset awaits the ledger.
+    const refused = pending.catch((error: unknown) => error);
     mockClearDeviceKey.mockClear();
     mockClearSession.mockClear();
     const reset = service.reset();
@@ -720,7 +724,7 @@ describe('PredictDeviceAuthService revocation races', () => {
     expect(mockDeleteDeviceKey).toHaveBeenCalled();
     await expect(service.ensureDeviceKey()).resolves.toBeNull();
     write.resolve(true);
-    await refused;
+    expect(await refused).toBeInstanceOf(TemplateError);
     await reset;
     expect(mockSignDeviceKey).not.toHaveBeenCalled();
     await expect(
