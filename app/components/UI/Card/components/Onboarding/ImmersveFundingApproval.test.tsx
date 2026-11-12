@@ -459,6 +459,7 @@ describe('ImmersveFundingApproval', () => {
         expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
           delegationAmountHuman: '2199023255551',
           entrypoint: 'SIGN_UP',
+          showSuccessToast: false,
         });
         expect(mockRefresh).toHaveBeenCalled();
       });
@@ -476,6 +477,7 @@ describe('ImmersveFundingApproval', () => {
         expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
           delegationAmountHuman: '2199023255551',
           entrypoint: 'CARD_HOME_MONEY_ACCOUNT_CARD',
+          showSuccessToast: true,
         });
         expect(mockFetchCardHomeData).toHaveBeenCalledWith({ force: true });
         expect(mockReset).toHaveBeenCalledWith({
