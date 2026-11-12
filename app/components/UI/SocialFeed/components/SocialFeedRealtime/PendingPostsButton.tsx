@@ -19,9 +19,9 @@ import Animated, {
   ZoomOut,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import CapsuleGlass from '#app/component-library/components-temp/CapsuleGlass/CapsuleGlass';
-import { useLiquidGlass } from '#app/component-library/hooks/useLiquidGlass';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
