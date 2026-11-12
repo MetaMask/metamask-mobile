@@ -1890,7 +1890,7 @@ describe('useHomeDeepLinkEffects', () => {
   });
 
   const arrangeMocks = (
-    activeParentRouteName:
+    parentRouteName:
       | typeof Routes.WALLET.HOME
       | typeof Routes.MODAL.TRADE_WALLET_ACTIONS = Routes.WALLET.HOME,
   ) => {
@@ -1910,12 +1910,7 @@ describe('useHomeDeepLinkEffects', () => {
         getParent: () => ({
           getState: () => ({
             index: 0,
-            routes: [
-              {
-                key: 'wallet-home-key',
-                name: activeParentRouteName,
-              },
-            ],
+            routes: [{ name: parentRouteName }],
           }),
           replaceParams: mockReplaceParentParams,
         }),
@@ -1930,6 +1925,7 @@ describe('useHomeDeepLinkEffects', () => {
     testName: string;
     params: Record<string, unknown>;
     isPerpsEnabled: boolean;
+    trade?: boolean;
     assertCase: (mocks: ReturnType<typeof arrangeMocks>) => void;
   }
 
@@ -1946,9 +1942,10 @@ describe('useHomeDeepLinkEffects', () => {
       },
     },
     {
-      testName: 'navigates to perps tab when initialTab is perps',
+      testName: 'clears perps params without replacing the Trade parent',
       params: { initialTab: 'perps' },
       isPerpsEnabled: true,
+      trade: true,
       assertCase: (mocks) => {
         expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
         expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
@@ -1979,8 +1976,11 @@ describe('useHomeDeepLinkEffects', () => {
     },
   ];
 
-  it.each(testCases)('$testName', ({ params, isPerpsEnabled, assertCase }) => {
-    const mocks = arrangeMocks();
+  it.each(testCases)('$testName', (testCase) => {
+    const { params, isPerpsEnabled, trade, assertCase } = testCase;
+    const mocks = arrangeMocks(
+      trade ? Routes.MODAL.TRADE_WALLET_ACTIONS : undefined,
+    );
 
     // Setup the mocked useRoute to return the provided params.
     mocks.mockUseRoute.mockReturnValue({
@@ -2004,63 +2004,14 @@ describe('useHomeDeepLinkEffects', () => {
 
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     assertCase(mocks);
-  });
-
-  it('clears consumed leaf params and replaces Wallet-home parent params', () => {
-    const mocks = arrangeMocks();
-    mocks.mockUseRoute.mockReturnValue({
-      key: 'route',
-      name: Routes.WALLET_VIEW,
-      params: {
-        initialTab: 'perps',
-        shouldSelectPerpsTab: true,
-      },
-    });
-
-    renderHook(() =>
-      useHomeDeepLinkEffects({
-        isPerpsEnabled: true,
-        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
-        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
-        navigation: mocks.navigation,
-      }),
-    );
-
-    jest.mocked(useFocusEffect).mock.calls[0][0]();
-    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
-
-    expect(mocks.mockSetParams).toHaveBeenCalledWith({
-      initialTab: null,
-      shouldSelectPerpsTab: null,
-    });
-    expect(mocks.mockReplaceParentParams).toHaveBeenCalledWith({
-      screen: Routes.WALLET_VIEW,
-      pop: true,
-    });
-  });
-
-  it('keeps Trade parent params untouched after Wallet leaf cleanup', () => {
-    const mocks = arrangeMocks(Routes.MODAL.TRADE_WALLET_ACTIONS);
-    mocks.mockUseRoute.mockReturnValue({
-      key: 'route',
-      name: Routes.WALLET_VIEW,
-      params: { initialTab: 'perps' },
-    });
-
-    renderHook(() =>
-      useHomeDeepLinkEffects({
-        isPerpsEnabled: true,
-        onPerpsTabSelected: mocks.mockOnPerpsTabsSelected,
-        onNetworkSelectorSelected: mocks.mockOnNetworkSelectorSelected,
-        navigation: mocks.navigation,
-      }),
-    );
-
-    jest.mocked(useFocusEffect).mock.calls[0][0]();
-    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
-
-    expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
-    expect(mocks.mockReplaceParentParams).not.toHaveBeenCalled();
+    if (trade) {
+      expect(mocks.mockReplaceParentParams).not.toHaveBeenCalled();
+    } else if (Object.keys(params).length > 0) {
+      expect(mocks.mockReplaceParentParams).toHaveBeenCalledWith({
+        screen: Routes.WALLET_VIEW,
+        pop: true,
+      });
+    }
   });
 });
 
