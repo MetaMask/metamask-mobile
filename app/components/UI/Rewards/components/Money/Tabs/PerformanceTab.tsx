@@ -243,7 +243,7 @@ const FunnelSection: React.FC<{
   return (
     <>
       <SectionHeader title={localizedText.referrals} twClassName="pt-4 pb-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {localizedText.updatedDaily}
         </Text>
       </SectionHeader>
