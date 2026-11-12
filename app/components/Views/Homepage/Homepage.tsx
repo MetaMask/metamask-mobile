@@ -12,7 +12,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
 import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
-import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
@@ -23,7 +22,10 @@ import { SectionRefreshHandle, type HomepageDeviceCapability } from './types';
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { useIsActivePerpsTrader } from '../../UI/Perps/hooks';
-import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import {
+  PredictHomeSection,
+  selectPredictAvailability,
+} from '../../UI/PredictNext';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -126,7 +128,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       hasMountedOptionalSections || canMountOptionalSections;
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
@@ -347,7 +349,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 </>
               )}
               {shouldMountOptionalSections && (
-                <PredictionsSection
+                <PredictHomeSection
                   ref={predictionsSectionRef}
                   sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
                   totalSectionsLoaded={totalSectionsLoaded}

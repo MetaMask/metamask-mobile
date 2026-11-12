@@ -114,7 +114,10 @@ import {
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from '../../UI/PredictNext';
+import {
+  selectPredictAvailability,
+  usePredictActivityItems,
+} from '../../UI/PredictNext';
 import { useFilledLimitOrders } from './hooks/useFilledLimitOrders';
 import {
   FilledLimitOrdersList,
@@ -122,7 +125,6 @@ import {
 } from './FilledLimitOrdersList';
 import type { LimitOrder } from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
@@ -174,6 +176,8 @@ interface ActivityListProps {
    * offset, for driving scroll-linked animations in the parent.
    */
   scrollY?: SharedValue<number>;
+  /** Height of a header floating over the list; the content and refresh spinner start below it. */
+  contentTopInset?: number;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
   subFilterKinds?: ReadonlySet<ActivityKind>;
@@ -194,6 +198,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       header,
       chainId,
       scrollY,
+      contentTopInset = 0,
       typeFilter,
       networkFilter,
       subFilterKinds,
@@ -245,7 +250,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           typeFilter === ActivityTypeFilter.All),
       aggregateFills,
     });
-    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictAvailability);
     const predictFilterActive =
       typeFilter === ActivityTypeFilter.Predictions ||
       typeFilter === ActivityTypeFilter.All;
@@ -952,9 +957,10 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const floatingTabBarInset = useFloatingTabBarInset();
     const listContentStyle = useMemo(
       () => ({
+        paddingTop: contentTopInset,
         paddingBottom: floatingTabBarInset || (tabBarHeight ? 0 : bottomInset),
       }),
-      [floatingTabBarInset, tabBarHeight, bottomInset],
+      [contentTopInset, floatingTabBarInset, tabBarHeight, bottomInset],
     );
 
     const isPerpsLoading = perps.isLoading;
@@ -1169,6 +1175,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   onRefresh={onRefresh}
                   colors={[colors.primary.default]}
                   tintColor={colors.icon.default}
+                  progressViewOffset={contentTopInset}
                 />
               }
               onScroll={scrollHandler}
@@ -1203,6 +1210,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                       onRefresh={onRefresh}
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={contentTopInset}
                     />
                   }
                   onScroll={scrollHandler}

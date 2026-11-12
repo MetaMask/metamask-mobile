@@ -20,7 +20,7 @@ import {
 export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
-  useNavbar(strings('confirm.title.money_account_add_money'), true);
+  useNavbar(strings('confirm.title.money_account_deposit_header'), true);
   useEnsureCompatibleProvider(MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD]);
   const { preferredPaymentToken } = useParams<ConfirmationParams>({});
 

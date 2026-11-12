@@ -23,7 +23,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconSize,
   Spinner,
   Text,
@@ -79,6 +78,8 @@ import { RecurringSwapRow } from './RecurringSwapRow';
 import { useCancelRecurringOrder } from '../../hooks/useCancelRecurringOrder';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../../components/OrdersTabs/OrdersTabs.types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const LOAD_MORE_SCROLL_THRESHOLD = 100;
 
@@ -139,6 +140,7 @@ function RecurringTokenSummary({
 }
 
 function RecurringOrderDetailsView() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
@@ -153,7 +155,10 @@ function RecurringOrderDetailsView() {
     isSubmitting,
     reset: resetCancelMutation,
   } = useCancelRecurringOrder();
-  const swapsQuery = useRecurringSwaps({ orderId: order.id });
+  const swapsQuery = useRecurringSwaps({
+    orderId: order.id,
+    accountAddress: order.accountAddress,
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -281,7 +286,9 @@ function RecurringOrderDetailsView() {
       style={tw.style('flex-1 bg-default')}
       testID={RecurringOrderDetailsViewSelectorsIDs.SCREEN}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.tabs.recurring')}
         includesTopInset
         onBack={handleBack}
@@ -375,7 +382,7 @@ function RecurringOrderDetailsView() {
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.start_date')}>
             <Text variant={TextVariant.BodyMd} twClassName="text-right">
-              {formatRecurringOrderDate(order.timingData.startsAt)}
+              {formatRecurringOrderDate(order.timingData.createdAt)}
             </Text>
           </DetailRow>
           <DetailRow label={strings('bridge.recurring.end_date')}>
@@ -492,7 +499,7 @@ function RecurringOrderDetailsView() {
         </Box>
       </ScrollView>
 
-      {order.state === RecurringOrderState.Open ? (
+      {order.isCancellable ? (
         <Box padding={4}>
           <Button
             variant={ButtonVariant.Primary}

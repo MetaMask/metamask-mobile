@@ -77,14 +77,15 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPerpsProModeEnabledFlag } from '../../UI/Perps/selectors/featureFlags';
-import {
-  toPerpsNavigatorScreenParams,
-  useGetPerpsHomeNavigationTarget,
-} from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePerpsHeaderEntryNavigation } from '../../UI/Perps/hooks/usePerpsHeaderEntryNavigation';
+import { toPerpsNavigatorScreenParams } from '../../UI/Perps/utils/perpsModeSwitch';
 import { openPerpsModeSelection } from '../../UI/Perps/utils/openPerpsModeSelection';
 import { hasCompletedPerpsModeSelection } from '../../UI/Perps/utils/perpsModeSelectionStorage';
-import { selectPredictEnabledFlag } from '../../UI/Predict';
-import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+  usePredictEntryActions,
+} from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
@@ -300,9 +301,10 @@ function TradeWalletActions() {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
+  const { openPredict } = usePredictEntryActions();
 
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const { getTarget } = usePerpsHeaderEntryNavigation();
 
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -330,7 +332,9 @@ function TradeWalletActions() {
       // Defer navigation until RootModalFlow is fully dismissed so screens
       // on MainNavigator (e.g. StakeModals) are not opened underneath it.
       requestAnimationFrame(() => {
-        callback();
+        // Perps navigation is async. The menu has already closed, so the
+        // result is intentionally not awaited.
+        void callback();
       });
     }
   }, [dismissRootModalFlow]);
@@ -389,10 +393,7 @@ function TradeWalletActions() {
       if (isFirstTimePerpsUser) {
         navigate(Routes.PERPS.TUTORIAL);
       } else {
-        navigate(
-          Routes.PERPS.ROOT,
-          toPerpsNavigatorScreenParams(getPerpsHomeNavigationTarget()),
-        );
+        navigate(Routes.PERPS.ROOT, toPerpsNavigatorScreenParams(getTarget()));
       }
     };
     handleNavigateBack();
@@ -402,20 +403,18 @@ function TradeWalletActions() {
     navigation,
     isFirstTimePerpsUser,
     isPerpsProModeEnabled,
-    getPerpsHomeNavigationTarget,
+    getTarget,
   ]);
 
   const onPredict = useCallback(() => {
     postCallback.current = () => {
-      navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
-        },
+      openPredict({
+        type: 'home',
+        entryPoint: PredictEventValues.ENTRY_POINT.MAIN_TRADE_BUTTON,
       });
     };
     handleNavigateBack();
-  }, [handleNavigateBack, navigate]);
+  }, [handleNavigateBack, openPredict]);
 
   useFocusEffect(
     useCallback(() => {

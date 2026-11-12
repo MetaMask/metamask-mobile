@@ -9,6 +9,7 @@ import {
   profileCacheKey,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
   EARNINGS_SUMMARY_CACHE_THRESHOLD_MS,
+  TAX_ME_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
 import { RewardsMoneyRebateQuoteError } from './services/rewards-money-data-service';
@@ -24,6 +25,7 @@ import type {
   ReferralLocalizedText,
   ReferralMeDto,
   RewardsMoneyControllerState,
+  TaxMeDto,
 } from './types';
 
 const mockReferralMe: ReferralMeDto = {
@@ -318,6 +320,10 @@ describe('RewardsMoneyController', () => {
           'getSwapsRebateQuote',
           'getPerpsRebateQuote',
           'isRewardsMoneyFeatureEnabled',
+          'getTaxMe',
+          'submitTaxAttestation',
+          'submitTaxUsActivity',
+          'mintTaxFormToken',
           'setRewardsMoneyEnvUrl',
         ]),
       );
@@ -843,6 +849,68 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('shares one in-flight claim history read per profile', async () => {
+      let resolveHistory: (page: ClaimHistoryPageDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => {
+            resolveHistory = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getClaimHistory();
+      const second = controller.getClaimHistory();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getClaimHistory',
+        ),
+      ).toHaveLength(1);
+
+      resolveHistory(mockClaimHistory);
+      await expect(first).resolves.toEqual(mockClaimHistory);
+      await expect(second).resolves.toEqual(mockClaimHistory);
+    });
+
+    it('leaves the cache empty when an older claim history read finishes after a newer one has started', async () => {
+      const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => pending.push(resolve));
+        }
+        return undefined;
+      });
+      const olderPage = { ...mockClaimHistory, results: [mockClaim] };
+      const newerPage = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+
+      const older = controller.getClaimHistory({ forceFresh: true });
+      const newer = controller.getClaimHistory({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      pending[0](olderPage);
+      await older;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+
+      pending[1](newerPage);
+      await newer;
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]?.payload).toBe(
+        newerPage,
+      );
+    });
+
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
@@ -907,6 +975,128 @@ describe('RewardsMoneyController', () => {
 
       expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
+
+    const taxMe = (cleared: boolean): TaxMeDto => ({
+      state: cleared ? 'COMPLETE_OR_VERIFIED' : 'ACTION_REQUIRED',
+      next_action: cleared ? 'NONE' : 'ANSWER_ATTESTATION',
+      reason: cleared ? null : 'NO_ATTESTATION',
+      clears_until: null,
+      cleared,
+      can_change_answer: false,
+    });
+
+    it('caches getTaxMe for five minutes', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      const first = await controller.getTaxMe();
+      const second = await controller.getTaxMe();
+
+      expect(first).toEqual(taxMe(false));
+      expect(second).toEqual(taxMe(false));
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(1);
+      expect(controller.state.taxMe[PROFILE_A]?.payload).toEqual(taxMe(false));
+    });
+
+    it('refetches getTaxMe after the tax TTL', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      await controller.getTaxMe();
+      jest.advanceTimersByTime(TAX_ME_CACHE_THRESHOLD_MS + 1);
+      await controller.getTaxMe();
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    it('remembers a form submission per profile and drops it when cleared', async () => {
+      const snapshot = {
+        state: 'ACTION_REQUIRED' as const,
+        next_action: 'OPEN_FORM' as const,
+        reason: 'NO_FORM' as const,
+      };
+
+      expect(await controller.getTaxFormSubmitted()).toBeNull();
+
+      await controller.noteTaxFormSubmitted(snapshot);
+
+      expect(await controller.getTaxFormSubmitted()).toEqual(snapshot);
+      expect(controller.state.taxFormSubmitted[PROFILE_A]).toEqual(snapshot);
+
+      await controller.clearTaxFormSubmitted();
+
+      expect(await controller.getTaxFormSubmitted()).toBeNull();
+      expect(controller.state.taxFormSubmitted[PROFILE_A]).toBeUndefined();
+    });
+
+    it('keeps a form submission from an older state that omitted the map', async () => {
+      const restored = new RewardsMoneyController({
+        messenger: mockMessenger,
+        state: { referralMe: {} },
+      });
+
+      expect(await restored.getTaxFormSubmitted()).toBeNull();
+    });
+
+    it('forceFresh bypasses the tax cache', async () => {
+      withProfileAndData('RewardsMoneyDataService:getTaxMe', taxMe(false));
+
+      await controller.getTaxMe();
+      await controller.getTaxMe({ forceFresh: true });
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+    });
+
+    it('drops the tax cache after an attestation so the next read fetches', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getTaxMe') {
+          return Promise.resolve(taxMe(false));
+        }
+        if (action === 'RewardsMoneyDataService:submitTaxAttestation') {
+          return Promise.resolve({ review: 'NOT_NEEDED' });
+        }
+        return undefined;
+      });
+
+      await controller.getTaxMe();
+      await controller.submitTaxAttestation(false);
+      expect(controller.state.taxMe[PROFILE_A]).toBeUndefined();
+
+      await controller.getTaxMe();
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) => call[0] === 'RewardsMoneyDataService:getTaxMe',
+        ),
+      ).toHaveLength(2);
+    });
+
+    it('does not let a read that started before the attestation refill the cache', async () => {
+      let resolveRead: (value: TaxMeDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getTaxMe') {
+          return new Promise<TaxMeDto>((resolve) => {
+            resolveRead = resolve;
+          });
+        }
+        if (action === 'RewardsMoneyDataService:submitTaxAttestation') {
+          return Promise.resolve({ review: 'NOT_NEEDED' });
+        }
+        return undefined;
+      });
+
+      const pending = controller.getTaxMe();
+      await Promise.resolve();
+      await controller.submitTaxAttestation(false);
+      resolveRead(taxMe(false));
+      await expect(pending).resolves.toEqual(taxMe(false));
+
+      expect(controller.state.taxMe[PROFILE_A]).toBeUndefined();
+    });
   });
 
   describe('validateReferralCode', () => {
@@ -943,6 +1133,9 @@ describe('RewardsMoneyController', () => {
         },
       };
       mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
         if (action === 'RewardsMoneyDataService:initiateClaim') {
           return authorized;
         }
@@ -960,6 +1153,128 @@ describe('RewardsMoneyController', () => {
         'referral-rev-share',
         { money_account_address: '0xmoney' },
       );
+    });
+
+    it('drops the claim history cache after an opened claim', async () => {
+      let historyReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          historyReads += 1;
+          return Promise.resolve(mockClaimHistory);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'authorized',
+            body: {
+              claim: { id: 'claim-1' },
+              voucher: null,
+              excluded: [],
+              status: 'OPENED',
+            },
+          });
+        }
+        return undefined;
+      });
+
+      await controller.getClaimHistory();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+      await controller.getClaimHistory();
+      expect(historyReads).toBe(2);
+    });
+
+    it('keeps the claim history cache when the open asks for a proof', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return Promise.resolve(mockClaimHistory);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'proof_required',
+            body: {
+              reason: 'PROOF_REQUIRED',
+              claim_intent_id: 'intent-1',
+              expires_at: '2026-01-01T00:00:00.000Z',
+              challenges: [],
+            },
+          });
+        }
+        return undefined;
+      });
+
+      await controller.getClaimHistory();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+      await controller.getClaimHistory();
+
+      expect(
+        controller.state.claimHistoryFirstPage[PROFILE_A]?.payload,
+      ).toEqual(mockClaimHistory);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getClaimHistory',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not let a pre-open claim history read refill the cache', async () => {
+      let resolveFirstRead: (page: ClaimHistoryPageDto) => void = () =>
+        undefined;
+      let historyReads = 0;
+      const afterOpen = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          historyReads += 1;
+          if (historyReads === 1) {
+            return new Promise<ClaimHistoryPageDto>((resolve) => {
+              resolveFirstRead = resolve;
+            });
+          }
+          return Promise.resolve(afterOpen);
+        }
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return Promise.resolve({
+            kind: 'authorized',
+            body: {
+              claim: { id: 'claim-2' },
+              voucher: null,
+              excluded: [],
+              status: 'OPENED',
+            },
+          });
+        }
+        return undefined;
+      });
+
+      const pendingRead = controller.getClaimHistory();
+      await Promise.resolve();
+      await Promise.resolve();
+      await controller.initiateClaim('referral-rev-share', {
+        money_account_address: '0xmoney',
+      });
+      resolveFirstRead(mockClaimHistory);
+      await pendingRead;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]).toBeUndefined();
+      await expect(controller.getClaimHistory()).resolves.toEqual(afterOpen);
+      expect(historyReads).toBe(2);
     });
   });
 

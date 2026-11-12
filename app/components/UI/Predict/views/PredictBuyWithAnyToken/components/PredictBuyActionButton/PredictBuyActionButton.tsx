@@ -3,13 +3,8 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import ButtonHero from '../../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { strings } from '../../../../../../../../locales/i18n';
 import { formatCents } from '../../../../utils/format';
 
@@ -44,39 +39,30 @@ const PredictBuyActionButton = ({
 
   if (isChangePaymentMode) {
     return (
-      <ButtonHero
+      <Button
         testID={testID}
-        onPress={onPress}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
-        twClassName="w-full"
+        isFullWidth
+        onPress={onPress}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.PrimaryInverse}
-        >
-          {strings('predict.payment.change_payment_method')}
-        </Text>
-      </ButtonHero>
+        {strings('predict.payment.change_payment_method')}
+      </Button>
     );
   }
 
   if (isAddFundsMode) {
     return (
-      <ButtonHero
+      <Button
         testID={testID}
-        onPress={onPress}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        style={tw.style('w-full bg-muted')}
+        isFullWidth
+        isDanger
+        onPress={onPress}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.ErrorDefault}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('predict.payment.add_funds')}
-        </Text>
-      </ButtonHero>
+        {strings('predict.payment.add_funds')}
+      </Button>
     );
   }
 

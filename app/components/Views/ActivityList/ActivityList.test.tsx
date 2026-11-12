@@ -30,8 +30,21 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock(
+  '../../../component-library/components/Navigation/TabBarFloating',
+  () => ({
+    useFloatingTabBarInset: jest.fn(() => 0),
+  }),
+);
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(() => ({
+    navigateToMoneyHome: jest.fn(),
+  })),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({
@@ -513,12 +526,6 @@ jest.mock('../../UI/Perps', () => ({
   ),
 }));
 
-jest.mock('../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(
-    (state: { predictEnabled: boolean }) => state.predictEnabled,
-  ),
-}));
-
 let mockPerpsSourceState: {
   items: unknown[];
   isLoading: boolean;
@@ -546,6 +553,9 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
 const mockIsInactivePredictVenueItem = jest.fn((_item: unknown) => false);
 
 jest.mock('../../UI/PredictNext', () => ({
+  selectPredictAvailability: jest.fn(
+    (state: { predictEnabled: boolean }) => state.predictEnabled,
+  ),
   usePredictActivityItems: jest.fn(() => ({
     isInactiveVenueItem: mockIsInactivePredictVenueItem,
     ...mockPredictSourceState,
@@ -762,7 +772,9 @@ describe('ActivityList', () => {
     expect(screen.getByTestId('row-0xlocal')).toBeOnTheScreen();
     expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId('mock-refresh'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('mock-refresh'));
+    });
     expect(mockRefetch).toHaveBeenCalledTimes(1);
 
     // Scrolling should not throw (drives the UI-thread scroll handler).

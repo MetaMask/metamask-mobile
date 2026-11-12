@@ -1,21 +1,34 @@
 import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  HeaderStandardAnimated,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIconSize,
   IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
+  KalshiDebugPanel,
+  KalshiDebugTestIds,
+} from '../../onboarding/KalshiDebugPanel';
+import {
   FEED_SCREENS,
+  POLITICS_FEED_SCREEN_ID,
   type FeedScreenDefinition,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
@@ -28,6 +41,7 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
+import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -40,6 +54,8 @@ import type {
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
+import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
+import { resolveHomeCategories } from './internal/homeCategories';
 import {
   HOME_SECTION_IDS,
   HomeFeedReads,
@@ -55,6 +71,10 @@ const sectionTitle = (sectionId: FeedScreenId) => {
   const feedScreen: FeedScreenDefinition = FEED_SCREENS[sectionId];
   return feedScreen.selectionLabel ?? feedScreen.title;
 };
+
+// Categories sit after the sports previews and before Politics. The Home
+// composition ticket sets the final order.
+const CATEGORIES_INDEX = HOME_SECTION_IDS.indexOf(POLITICS_FEED_SCREEN_ID);
 
 interface PredictHomeViewProps {
   venueId: PredictVenueId;
@@ -76,6 +96,10 @@ const PredictHomeView = ({
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
   const {
     visibleKeys,
     onViewportLayout,
@@ -161,6 +185,23 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
+  const categories = useMemo(
+    () => resolveHomeCategories(capabilities),
+    [capabilities],
+  );
+  const openCategory = useCallback(
+    (categoryId: string) => {
+      const category = categories.find(({ id }) => id === categoryId);
+      if (category) {
+        navigation.navigate(PredictNextRoutes.FEED, {
+          venueId,
+          feedScreenId: category.feedScreenId,
+          selectedTabId: category.tabId,
+        });
+      }
+    },
+    [categories, navigation, venueId],
+  );
   const { openOrderFlow } = usePredictOrderFlow();
   const openEvent = useCallback(
     (event: PredictEvent) =>
@@ -188,28 +229,70 @@ const PredictHomeView = ({
     [openOrderFlow],
   );
 
+  const renderSection = (section: HomeFeedRead) =>
+    section.feedId ? (
+      <FeedPreviewSection
+        key={section.sectionId}
+        feedScreenId={section.sectionId}
+        onLayout={onSectionLayout(section.sectionId)}
+        title={sectionTitle(section.sectionId)}
+        events={section.events}
+        isLoading={section.isLoading}
+        isError={section.isError}
+        onOpen={() => openFeedScreen(section.sectionId)}
+        onOpenEvent={openEvent}
+        onOrder={canBuy ? openOrder : undefined}
+        onRetry={section.refetch}
+      />
+    ) : null;
+
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimated
+      <HeaderStandardAnimatedGlass
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
         includesTopInset
         title={homeTitle}
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endButtonIconProps={
-          isVenueSearchSupported(capabilities)
-            ? [
-                {
-                  iconName: IconName.Search,
-                  onPress: openSearch,
-                  testID: PredictHomeTestIds.SEARCH,
-                  accessibilityLabel: strings(
-                    'predict_next.search.placeholder',
-                  ),
-                  accessibilityRole: 'button',
-                },
-              ]
-            : undefined
+        endAccessory={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <PredictVenueSelectorButton
+              variant={isGlassHeader ? 'glass' : 'standard'}
+            />
+            {isVenueSearchSupported(capabilities) ? (
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
+                size={ButtonIconSize.Md}
+                iconName={IconName.Search}
+                onPress={openSearch}
+                testID={PredictHomeTestIds.SEARCH}
+                accessibilityLabel={strings('predict_next.search.placeholder')}
+                accessibilityRole="button"
+              />
+            ) : null}
+            {/* TEMPORARY: Kalshi demo onboarding debug. Self-gates on a
+                development build with Kalshi authentication on. Remove with
+                the demo onboarding. */}
+            <KalshiDebugPanel
+              renderTrigger={(open) => (
+                <ButtonIconGlass
+                  isCapsule={isGlassHeader}
+                  size={ButtonIconSize.Md}
+                  iconName={IconName.Flask}
+                  onPress={open}
+                  testID={KalshiDebugTestIds.OPEN}
+                  accessibilityLabel="User debug"
+                  accessibilityRole="button"
+                />
+              )}
+            />
+          </Box>
         }
         {...(navigation.canGoBack()
           ? {
@@ -220,6 +303,7 @@ const PredictHomeView = ({
       />
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
+        contentContainerStyle={{ paddingTop: headerInset }}
         onScroll={onScroll}
         onLayout={onViewportLayout}
         // The animated handler above only reads contentOffset, so these plain
@@ -250,23 +334,13 @@ const PredictHomeView = ({
             capabilities={capabilities}
             hasSections={sectionCount > 0}
           />
-          {sections.map((section) =>
-            section.feedId ? (
-              <FeedPreviewSection
-                key={section.sectionId}
-                feedScreenId={section.sectionId}
-                onLayout={onSectionLayout(section.sectionId)}
-                title={sectionTitle(section.sectionId)}
-                events={section.events}
-                isLoading={section.isLoading}
-                isError={section.isError}
-                onOpen={() => openFeedScreen(section.sectionId)}
-                onOpenEvent={openEvent}
-                onOrder={canBuy ? openOrder : undefined}
-                onRetry={section.refetch}
-              />
-            ) : null,
-          )}
+          {sections.slice(0, CATEGORIES_INDEX).map(renderSection)}
+          <HomeCategoriesSection
+            title={strings('predict_next.home_categories.title')}
+            categories={categories}
+            onSelect={openCategory}
+          />
+          {sections.slice(CATEGORIES_INDEX).map(renderSection)}
         </Box>
       </Reanimated.ScrollView>
     </Box>

@@ -1,4 +1,6 @@
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PredictError, PredictErrorCode } from '../../errors';
+import composedNflGame from './fixtures/composed-nfl-game.json';
 import marketHistoryMillisecondUtc from './fixtures/market-history-millisecond-utc.json';
 import {
   parsePredictEvent,
@@ -8,6 +10,10 @@ import {
   PredictMarketGroupSchema,
   PredictMarketOptionSchema,
 } from './marketData';
+
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: { log: jest.fn() },
+}));
 
 const venueId = 'kalshi';
 
@@ -176,6 +182,15 @@ describe('Predict API canonical response parsers', () => {
       },
     },
     {
+      name: 'a marketSelector group with an empty marketType',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: '',
+        option: { type: 'number', value: 220.5 },
+      },
+    },
+    {
       name: 'a marketSelector group without option',
       group: {
         key: 'total-points',
@@ -202,10 +217,13 @@ describe('Predict API canonical response parsers', () => {
         displayOrder: -1,
       },
     },
-  ])('rejects $name', ({ group }) => {
-    expect(() =>
-      parsePredictEvent(createEvent({ markets: [createMarket({ group })] })),
-    ).toThrow('Invalid Predict API response.');
+  ])('drops $name and keeps the Market', ({ group }) => {
+    const result = parsePredictEvent(
+      createEvent({ markets: [createMarket({ group })] }),
+    );
+
+    expect(result.markets[0].id).toBe('market-1');
+    expect(result.markets[0].group).toBeUndefined();
   });
 
   it('rejects non-finite numeric market options', () => {
@@ -484,11 +502,56 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses the Game Team order and each Team logo facing', () => {
+    const input = createEvent({
+      sports: {
+        sport: { id: 'soccer', label: 'Soccer' },
+        game: {
+          status: 'scheduled',
+          teamOrder: 'home_first',
+          homeTeam: { name: 'Arsenal', logoFacing: 'left' },
+          awayTeam: { name: 'Chelsea', logoFacing: 'right' },
+          observedAt: '2026-09-11T00:00:00Z',
+        },
+      },
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.sports?.game).toMatchObject({
+      teamOrder: 'home_first',
+      homeTeam: { logoFacing: 'left' },
+      awayTeam: { logoFacing: 'right' },
+    });
+  });
+
+  it('leaves the Team order and logo facing absent when the API omits them', () => {
+    const input = createEvent({
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        game: {
+          status: 'scheduled',
+          homeTeam: { name: 'Carolina Panthers' },
+          awayTeam: { name: 'Arizona Cardinals' },
+          observedAt: '2026-09-11T00:00:00Z',
+        },
+      },
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.sports?.game?.teamOrder).toBeUndefined();
+    expect(result.sports?.game?.homeTeam.logoFacing).toBeUndefined();
+    expect(result.sports?.game?.awayTeam.logoFacing).toBeUndefined();
+  });
+
   it.each([
     { field: 'status', value: 'playing' },
     { field: 'observedAt', value: 'yesterday' },
     { field: 'primaryColor', value: 'red' },
     { field: 'logoUrl', value: 'http://example.com/ari.png' },
+    { field: 'logoFacing', value: 'up' },
+    { field: 'teamOrder', value: 'alphabetical' },
   ])('rejects Game data with malformed $field', ({ field, value }) => {
     const game = {
       status: 'scheduled',
@@ -500,7 +563,9 @@ describe('Predict API canonical response parsers', () => {
       sports: {
         sport: { id: 'american-football', label: 'American football' },
         game:
-          field === 'primaryColor' || field === 'logoUrl'
+          field === 'primaryColor' ||
+          field === 'logoUrl' ||
+          field === 'logoFacing'
             ? {
                 ...game,
                 awayTeam: { ...game.awayTeam, [field]: value },
@@ -561,38 +626,275 @@ describe('Predict API canonical response parsers', () => {
     });
   });
 
-  it.each([
-    {
-      name: 'a marketSelector group without marketType',
-      group: {
-        key: 'group-1',
-        groupType: 'marketSelector',
-        option: { type: 'number', value: 1 },
-      },
-    },
-    {
-      name: 'a marketSelector group without option',
-      group: {
-        key: 'group-1',
-        groupType: 'marketSelector',
-        marketType: 'total',
-      },
-    },
-    {
-      name: 'a whitespace group key',
-      group: {
-        key: ' ',
-        groupType: 'future-group-type',
-      },
-    },
-  ])('rejects $name', ({ group }) => {
-    const input = createEvent({
-      markets: [createMarket({ group })],
+  describe('a malformed group on one line of an Event', () => {
+    const totalLine = (id: string, value: number, displayOrder: number) =>
+      createMarket({
+        id,
+        group: {
+          key: 'game:total',
+          groupType: 'marketSelector',
+          marketType: 'total',
+          option: { type: 'number', value },
+          displayOrder,
+        },
+      });
+    const moneyline = createMarket({
+      id: 'moneyline',
+      group: { key: 'game:moneyline', groupType: 'choice', displayOrder: 0 },
+    });
+    const standalone = createMarket({ id: 'standalone' });
+
+    beforeEach(() => {
+      jest.mocked(DevLogger.log).mockClear();
     });
 
-    expect(() => parsePredictEvent(input)).toThrow(
-      'Invalid Predict API response.',
-    );
+    it.each([
+      {
+        name: 'without option',
+        group: {
+          key: 'game:total',
+          groupType: 'marketSelector',
+          marketType: 'total',
+          displayOrder: 1,
+        },
+      },
+      {
+        name: 'with a non-numeric option value',
+        group: {
+          key: 'game:total',
+          groupType: 'marketSelector',
+          marketType: 'total',
+          option: { type: 'number', value: 'over' },
+          displayOrder: 1,
+        },
+      },
+      {
+        name: 'with an empty marketType',
+        group: {
+          key: 'game:total',
+          groupType: 'marketSelector',
+          marketType: '',
+          option: { type: 'number', value: 47.5 },
+          displayOrder: 1,
+        },
+      },
+      {
+        name: 'with a whitespace key on an unknown group type',
+        group: { key: ' ', groupType: 'future-group-type' },
+      },
+    ])('loads the Event and drops only the group $name', ({ group }) => {
+      const validMarkets = [
+        moneyline,
+        totalLine('total-44', 44.5, 0),
+        totalLine('total-50', 50.5, 2),
+        standalone,
+      ];
+      const input = createEvent({
+        markets: [
+          ...validMarkets.slice(0, 2),
+          createMarket({ id: 'malformed', group }),
+          ...validMarkets.slice(2),
+        ],
+      });
+
+      const result = parsePredictEvent(input);
+
+      expect(result.markets.map(({ id }) => id)).toEqual([
+        'moneyline',
+        'total-44',
+        'malformed',
+        'total-50',
+        'standalone',
+      ]);
+      expect(result.markets[2]).toEqual(createMarket({ id: 'malformed' }));
+      expect(result.markets.filter(({ id }) => id !== 'malformed')).toEqual(
+        validMarkets,
+      );
+    });
+
+    it('logs the dropped group in dev', () => {
+      parsePredictEvent(
+        createEvent({
+          markets: [
+            createMarket({
+              group: {
+                key: 'game:total',
+                groupType: 'marketSelector',
+                marketType: 'total',
+              },
+            }),
+          ],
+        }),
+      );
+
+      expect(DevLogger.log).toHaveBeenCalledTimes(1);
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Dropped malformed Market group "game:total"'),
+        expect.any(String),
+      );
+    });
+
+    it('does not log a valid or missing group', () => {
+      parsePredictEvent(createEvent({ markets: [moneyline, standalone] }));
+
+      expect(DevLogger.log).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Event screen layout and choice groups', () => {
+    const layout = {
+      tab: { key: 'game_lines', order: 0 },
+      section: { key: 'moneyline', order: 0 },
+      subgroup: { key: 'full_game', order: 0 },
+    };
+
+    it('parses a composed game with layout, choice and line-picker groups', () => {
+      const result = parsePredictEvent(composedNflGame);
+
+      expect(result.markets).toHaveLength(9);
+      expect(result.markets[0]).toMatchObject({
+        group: {
+          key: 'KXNFLGAME-26NOV02CHISEA:moneyline',
+          groupType: 'choice',
+          displayOrder: 0,
+        },
+        layout,
+      });
+      expect(result.markets[3].layout?.subgroup?.key).toBe('first_half');
+      expect(result.markets[5].group).toMatchObject({
+        groupType: 'marketSelector',
+        marketType: 'spread',
+      });
+    });
+
+    it('parses a Market without layout', () => {
+      const result = parsePredictEvent(createEvent());
+
+      expect(result.markets[0].layout).toBeUndefined();
+    });
+
+    it('parses layout keys it does not know', () => {
+      const unknownLayout = {
+        tab: { key: 'player_props', order: 4 },
+        section: { key: 'passing_yards', order: 0 },
+      };
+
+      const result = parsePredictEvent(
+        createEvent({ markets: [createMarket({ layout: unknownLayout })] }),
+      );
+
+      expect(result.markets[0].layout).toEqual(unknownLayout);
+    });
+
+    it('strips unknown fields from layout levels', () => {
+      const result = parsePredictEvent(
+        createEvent({
+          markets: [
+            createMarket({
+              layout: {
+                ...layout,
+                tab: { key: 'game_lines', order: 0, label: 'Game lines' },
+                extra: true,
+              },
+            }),
+          ],
+        }),
+      );
+
+      expect(result.markets[0].layout).toEqual(layout);
+    });
+
+    it.each([
+      { name: 'no section', value: { tab: layout.tab } },
+      {
+        name: 'an empty key',
+        value: { ...layout, section: { key: ' ', order: 0 } },
+      },
+      {
+        name: 'a fractional order',
+        value: { ...layout, subgroup: { key: 'q1', order: 1.5 } },
+      },
+      { name: 'a string', value: 'game_lines' },
+    ])('drops a layout with $name and keeps the Market', ({ value }) => {
+      const result = parsePredictEvent(
+        createEvent({ markets: [createMarket({ layout: value })] }),
+      );
+
+      expect(result.markets[0].id).toBe('market-1');
+      expect(result.markets[0].layout).toBeUndefined();
+    });
+
+    it('parses a choice group with and without display order', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+          displayOrder: 2,
+          marketType: 'ignored',
+        }),
+      ).toEqual({
+        key: 'game:moneyline',
+        groupType: 'choice',
+        displayOrder: 2,
+      });
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+        }),
+      ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
+    });
+
+    it.each([
+      {
+        key: 'game:rushing_yards:henry',
+        groupType: 'choice',
+        displayOrder: 0,
+      },
+      {
+        key: 'game:spread',
+        groupType: 'marketSelector',
+        marketType: 'spread',
+        option: { type: 'number', value: 2.5 },
+      },
+      { key: 'game:future', groupType: 'future-group-type' },
+    ])('keeps a label on a $groupType group', (group) => {
+      expect(
+        PredictMarketGroupSchema.create({ ...group, label: 'Derrick Henry' }),
+      ).toEqual({ ...group, label: 'Derrick Henry' });
+    });
+
+    it.each(['', '  '])('rejects a group label of %j', (label) => {
+      expect(() =>
+        PredictMarketGroupSchema.create({
+          key: 'game:rushing_yards:henry',
+          groupType: 'choice',
+          label,
+        }),
+      ).toThrow();
+    });
+
+    it('keeps a malformed choice group as an unsupported group', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:moneyline',
+          groupType: 'choice',
+          displayOrder: -1,
+        }),
+      ).toEqual({ key: 'game:moneyline', groupType: 'choice' });
+    });
+
+    it('parses a team total line picker', () => {
+      expect(
+        PredictMarketGroupSchema.create({
+          key: 'game:team_total:sea',
+          groupType: 'marketSelector',
+          marketType: 'team_total',
+          option: { type: 'number', value: 20.5 },
+          displayOrder: 0,
+        }),
+      ).toMatchObject({ marketType: 'team_total' });
+    });
   });
 
   it('parses a paginated event response', () => {

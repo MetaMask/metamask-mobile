@@ -33,6 +33,7 @@ interface MockSocialFeedProps {
   scope: string;
   assetIds?: readonly string[];
   realtime?: boolean;
+  pendingPostsSurface?: string;
   location: string;
   analyticsSource?: string;
   scrollMode: string;
@@ -221,12 +222,14 @@ describe('TrendingView', () => {
         scope: 'trending',
         assetIds: undefined,
         realtime: true,
+        pendingPostsSurface: 'trending',
         location: 'social_trending',
         analyticsSource: Source.NAV_TAB,
         scrollMode: 'virtualized',
         showMockedFields: true,
         isActive: true,
         onCopyTrade,
+        requireSocialProfile: true,
         testID: 'trending-content',
         scrollTestID: 'trending-scroll',
       }),
@@ -358,6 +361,17 @@ describe('TrendingView', () => {
     expect(lastFeedProps().emptyState).toBeUndefined();
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
     expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('pins the viewer’s pending posts only while no chip is selected', () => {
+    renderWithProvider(<TrendingView />);
+
+    pressChip(BTC);
+    const whileChipSelected = lastFeedProps().pendingPostsSurface;
+    pressChip(BTC);
+
+    expect(whileChipSelected).toBeUndefined();
+    expect(lastFeedProps().pendingPostsSurface).toBe('trending');
   });
 
   it('tracks a pull-to-refresh on the Trending screen', () => {

@@ -1,7 +1,7 @@
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { type LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -20,47 +20,21 @@ export const POSITION_CARD_BLEED_TW_CLASS = '-mx-3';
 export type PositionCardTone = 'neutral' | 'positive' | 'negative';
 
 /**
- * CSS `linear-gradient` angles from the Figma frames. 0° points up. Open cards
- * are ~214°, closed cards ~203°: the tint sits on the top edge, right of
- * center, and is gone 70% of the way toward the bottom. Compact cards, which
- * stop at the header, sit flatter at ~192°.
+ * The design runs the wash corner to corner: full tint at the top-right
+ * corner, clear at 70% of the way to the bottom-left one -- CSS
+ * `to bottom left`. That keeps the fade parallel to the card's other diagonal,
+ * so the angle depends on the card's aspect ratio: ~192° on a compact card,
+ * ~214° on an expanded one. The stops in between sample the same falloff so a
+ * short card does not band.
  */
-const OPEN_WASH_ANGLE = 214.2;
-const CLOSED_WASH_ANGLE = 203.13;
-const COMPACT_LIVE_WASH_ANGLE = 192.41;
-const COMPACT_CLOSED_WASH_ANGLE = 192.76;
-const GRADIENT_LOCATIONS = [0, 0.7];
+const WASH_LOCATIONS = [0, 0.175, 0.35, 0.525, 0.7];
 
-/** Where a unit vector from the box center hits the edge. */
-const pointOnBoxEdge = (vx: number, vy: number) => {
-  const tx = vx > 0 ? 0.5 / vx : vx < 0 ? -0.5 / vx : Number.POSITIVE_INFINITY;
-  const ty = vy > 0 ? 0.5 / vy : vy < 0 ? -0.5 / vy : Number.POSITIVE_INFINITY;
-  const distance = Math.min(tx, ty);
-  return { x: 0.5 + vx * distance, y: 0.5 + vy * distance };
-};
+/** The expanded card's angle, used until the card has been measured. */
+const DEFAULT_WASH_ANGLE = 214.2;
 
-/** `start` is the 0% tint. `end` is the far side the wash travels toward. */
-const washLine = (cssDegrees: number) => {
-  const radians = (cssDegrees * Math.PI) / 180;
-  const towardEndX = Math.sin(radians);
-  const towardEndY = -Math.cos(radians);
-  return {
-    start: pointOnBoxEdge(-towardEndX, -towardEndY),
-    end: pointOnBoxEdge(towardEndX, towardEndY),
-  };
-};
-
-const OPEN_WASH = washLine(OPEN_WASH_ANGLE);
-const CLOSED_WASH = washLine(CLOSED_WASH_ANGLE);
-const COMPACT_LIVE_WASH = washLine(COMPACT_LIVE_WASH_ANGLE);
-const COMPACT_CLOSED_WASH = washLine(COMPACT_CLOSED_WASH_ANGLE);
-
-const washFor = (emphasizeBorder: boolean, compact: boolean) => {
-  if (compact) {
-    return emphasizeBorder ? COMPACT_CLOSED_WASH : COMPACT_LIVE_WASH;
-  }
-  return emphasizeBorder ? CLOSED_WASH : OPEN_WASH;
-};
+/** CSS degrees (0° points up) of `to bottom left` for a `width` x `height` box. */
+export const washAngleFor = (width: number, height: number) =>
+  180 + (Math.atan2(height, width) * 180) / Math.PI;
 
 const styles = StyleSheet.create({
   // The gradient view is rectangular. On the new architecture its layer is not
@@ -79,56 +53,80 @@ const styles = StyleSheet.create({
 /**
  * `success.muted` / `error.muted` are already a 15% tint. The far stop is the
  * same hue at alpha 0. Fading to `transparent` would fade toward black.
+ * Intermediate stops sample that line so the fade stays smooth on a short card.
  */
-const washColors = (muted: string, base: string): [string, string] => [
-  muted,
-  `${base}00`,
-];
+const hexChannel = (value: number) =>
+  Math.round(value).toString(16).padStart(2, '0');
 
-const borderClassName = (
-  tone: PositionCardTone,
-  emphasizeBorder: boolean,
-): string => {
-  if (emphasizeBorder && tone === 'positive') {
-    return 'border-2 border-success-default';
-  }
-  if (emphasizeBorder && tone === 'negative') {
-    return 'border-2 border-error-default';
-  }
-  return 'border border-muted';
+const hexChannels = (hex: string): [number, number, number, number] => {
+  const value = hex.replace('#', '');
+  const alpha = value.length >= 8 ? value.slice(6, 8) : 'ff';
+  return [
+    parseInt(value.slice(0, 2), 16),
+    parseInt(value.slice(2, 4), 16),
+    parseInt(value.slice(4, 6), 16),
+    parseInt(alpha, 16),
+  ];
 };
+
+const mixHex = (from: string, to: string, amount: number) => {
+  const start = hexChannels(from);
+  const end = hexChannels(to);
+  const mixed = ([0, 1, 2, 3] as const).map((index) =>
+    hexChannel(start[index] + (end[index] - start[index]) * amount),
+  );
+  return `#${mixed.join('')}`;
+};
+
+const washColors = (muted: string, base: string): string[] => {
+  const clear = `${base}00`;
+  const clearAt = WASH_LOCATIONS[WASH_LOCATIONS.length - 1];
+  return WASH_LOCATIONS.map((location, index) => {
+    if (index === 0) {
+      return muted;
+    }
+    if (index === WASH_LOCATIONS.length - 1) {
+      return clear;
+    }
+    return mixHex(muted, clear, location / clearAt);
+  });
+};
+
+/**
+ * `border-muted` is translucent, and the design paints it inside the card, on
+ * top of the wash, so the tint shows through the hairline. A border on the card
+ * itself would sit outside the wash (absolute children start inside the
+ * parent's border), so the hairline is an overlay drawn last instead.
+ */
+const BORDER_OVERLAY_CLASS_NAME =
+  'absolute inset-0 rounded-2xl border border-muted';
 
 export interface PositionCardShellProps {
   tone?: PositionCardTone;
-  /**
-   * Closed cards outline in the P&L colour at 2px. Open cards keep the muted
-   * hairline even when the wash is tinted.
-   */
-  emphasizeBorder?: boolean;
-  /**
-   * Header-only cards (no comment) take the flatter compact wash. The border
-   * rule is still set by `emphasizeBorder`.
-   */
-  compact?: boolean;
   children: React.ReactNode;
 }
 
 /**
- * The surface a position card is drawn on. Dark mode lays a diagonal P&L wash
- * under the content. Light mode has no wash. A closed card's border takes the
- * same hue, heavier, so a win and a loss still read at a glance without it.
+ * The surface a position card is drawn on. Dark mode lays one diagonal P&L
+ * wash under the content, and that wash scales with the card. Light mode has
+ * no wash. Open and closed cards share the muted 1px border.
  *
  * Liquid Glass was tried here and dropped -- a material that samples whatever
  * scrolled behind it reads as noise in a list of cards.
  */
 const PositionCardShell: React.FC<PositionCardShellProps> = ({
   tone = 'neutral',
-  emphasizeBorder = false,
-  compact = false,
   children,
 }) => {
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
+  const [washAngle, setWashAngle] = useState(DEFAULT_WASH_ANGLE);
+  const handleWashLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    if (width > 0 && height > 0) {
+      setWashAngle(washAngleFor(width, height));
+    }
+  }, []);
   // `flatten` can return a primitive style, which has no radius. The token
   // class resolves to a style object; anything else leaves the clip square.
   const flattenedCardRadius = StyleSheet.flatten(tw.style('rounded-2xl'));
@@ -140,7 +138,6 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
       ? flattenedCardRadius.borderRadius
       : undefined;
   const showWash = themeAppearance === AppThemeKey.dark && tone !== 'neutral';
-  const wash = washFor(emphasizeBorder, compact);
   const colorsForWash =
     tone === 'positive'
       ? washColors(colors.success.muted, colors.success.default)
@@ -149,21 +146,19 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
         : null;
 
   return (
-    <Box
-      testID="position-card-shell"
-      twClassName={`rounded-2xl overflow-hidden ${borderClassName(tone, emphasizeBorder)}`}
-    >
+    <Box testID="position-card-shell" twClassName="rounded-2xl overflow-hidden">
       {showWash && colorsForWash ? (
         <View
           pointerEvents="none"
           collapsable={false}
+          onLayout={handleWashLayout}
           style={[styles.clip, { borderRadius: clipRadius }]}
         >
           <LinearGradient
             colors={colorsForWash}
-            locations={GRADIENT_LOCATIONS}
-            start={wash.start}
-            end={wash.end}
+            locations={WASH_LOCATIONS}
+            useAngle
+            angle={washAngle}
             style={styles.surface}
           />
         </View>
@@ -171,6 +166,11 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
       <Box testID="position-card-shell-content" twClassName="p-3 gap-2">
         {children}
       </Box>
+      <Box
+        testID="position-card-shell-border"
+        pointerEvents="none"
+        twClassName={BORDER_OVERLAY_CLASS_NAME}
+      />
     </Box>
   );
 };

@@ -22,7 +22,6 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -51,6 +50,8 @@ import {
   RAMP_SCREEN_CONTENT_STATE,
   RAMP_V2_SCREEN_ID,
 } from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -83,6 +84,7 @@ export const createNestedTokenSelectionNavDetails = (): readonly [
   ] as const;
 
 function TokenSelection() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const listRef = useRef<FlatList>(null);
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
@@ -354,7 +356,9 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -376,7 +380,9 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isGlass={isGlassHeader}
+            isFloating={false}
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -403,13 +409,15 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.token_modal.select_token')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}
           includesTopInset
         />
-        <Box twClassName="px-4 pb-3">
+        <Box twClassName="px-4 pt-1 pb-3">
           <TextFieldSearch
             testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
             value={searchString}

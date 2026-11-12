@@ -1,5 +1,6 @@
 export const PredictFeedScreenTestIds = {
   VIEW: 'predict-next-feed-screen',
+  HEADER: 'predict-next-feed-screen-header',
   BACK: 'predict-next-feed-screen-back',
   UNAVAILABLE: 'predict-next-feed-screen-unavailable',
   TABS: 'predict-next-feed-screen-tabs',

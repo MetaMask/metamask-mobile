@@ -9,7 +9,7 @@ import {
   messengerCall,
   mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { type PredictEvent } from '../../types';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
@@ -88,6 +88,28 @@ describe('PredictSearchScreen', () => {
       KALSHI_VENUE_ID,
       { q: 'chiefs', limit: 20 },
     ]);
+  });
+
+  it('shows a binary non-game result as the default card with Yes and No rows', async () => {
+    const event = makePredictNextEvent('search-5', 'NFL Win Total');
+    configureSearch({ total: [event] });
+    const view = renderPredictSearchScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictSearchScreenTestIds.IDLE);
+
+    typeQuery(view, 'total');
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, event.id),
+    );
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'yes')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.outcome(event.id, 'no')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).queryByTestId(PredictHomeTestIds.category(event.id)),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows an empty state naming the query, and returns to idle when cleared', async () => {

@@ -18,6 +18,7 @@ import {
 import type { BridgeToken } from '../../Bridge/types';
 import {
   selectDestAddress,
+  selectIsSlippageUserOverride,
   selectSlippage,
 } from '../../../../core/redux/slices/bridge';
 import {
@@ -210,6 +211,7 @@ const mockRootState = {
 
 const setupSelectors = () => {
   (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
+  (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(false);
   (selectDestAddress as unknown as jest.Mock).mockReturnValue(null);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
@@ -295,6 +297,49 @@ describe('useQuickBuyQuotes', () => {
 
     expect(fetchQuotesMock).not.toHaveBeenCalled();
     expect(streamQuickBuyQuotesMock).not.toHaveBeenCalled();
+  });
+
+  it('does not re-send quote params when slippage is only hydrated from the first quote', () => {
+    const sourceToken = createSourceToken();
+    const destToken = createDestToken();
+    mockUseSwapQuotes.mockReturnValue({ refreshQuotes: jest.fn() });
+    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+
+    const { rerender } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({ sourceToken, destToken, sourceTokenAmount: '0.001' }),
+      ),
+    );
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(1);
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('0.5');
+    rerender({});
+
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-sends quote params when the user overrides slippage', () => {
+    const sourceToken = createSourceToken();
+    const destToken = createDestToken();
+    mockUseSwapQuotes.mockReturnValue({ refreshQuotes: jest.fn() });
+    (selectSlippage as unknown as jest.Mock).mockReturnValue(undefined);
+
+    const { rerender } = renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({ sourceToken, destToken, sourceTokenAmount: '0.001' }),
+      ),
+    );
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+    (selectIsSlippageUserOverride as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+    rerender({});
+
+    expect(mockSetQuoteParams).toHaveBeenCalledTimes(2);
+    expect(mockSetQuoteParams).toHaveBeenLastCalledWith(
+      expect.objectContaining({ slippage: '2' }),
+    );
   });
 
   it('returns idle state when any required input is missing', () => {
@@ -721,6 +766,40 @@ describe('useQuickBuyQuotes', () => {
         expect.objectContaining({ quote_count: 0 }),
       ),
     );
+  });
+
+  it('fires quote analytics without trader_address for sheets with no trader', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    renderHook(() =>
+      useQuickBuyQuotes(
+        quotesParams({
+          sourceToken: createSourceToken(),
+          destToken: createDestToken(),
+          sourceTokenAmount: '0.001',
+          analyticsContext: { caip19: 'eip155:8453/erc20:0xDEST' },
+        }),
+      ),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() =>
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED,
+        expect.objectContaining({ quote_count: 1 }),
+      ),
+    );
+    const requested = mockTrack.mock.calls.find(
+      ([event]) =>
+        event === MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+    );
+    expect(requested?.[1]).toEqual(
+      expect.objectContaining({ caip19: 'eip155:8453/erc20:0xDEST' }),
+    );
+    expect(requested?.[1]).not.toHaveProperty('trader_address');
   });
 
   it('defaults amountUsd to 0 when analyticsContext.amountUsd is absent', async () => {

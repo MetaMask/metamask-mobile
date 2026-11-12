@@ -42,7 +42,7 @@ jest.mock('./hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
 
-const mockConnect = jest.fn<Promise<void>, []>();
+const mockConnect = jest.fn<Promise<XProfile | undefined>, []>();
 const mockUseXAuth = jest.fn<UseXAuth, []>();
 jest.mock('../../../../hooks/useXAuth', () => ({
   useXAuth: () => mockUseXAuth(),
@@ -289,6 +289,74 @@ describe('ManageProfileView', () => {
 
       expect(mockConnect).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('writes the X avatar to the profile after connecting', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(xProfile);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).toHaveBeenCalledWith({
+        avatar_url: xProfile.avatarUrl,
+      });
+    });
+
+    it('does not write the avatar when connect resolves undefined', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(undefined);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('skips the avatar write when the X avatar is empty', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockResolvedValue(undefined);
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue({ ...xProfile, avatarUrl: '' });
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('does not fail the connect when the avatar write fails', async () => {
+      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+      const updateProfile = jest.fn().mockRejectedValue(new Error('nope'));
+      mockUseProfileController.mockReturnValue(
+        controllerResult({ updateProfile }),
+      );
+      mockConnect.mockResolvedValue(xProfile);
+
+      renderWithProvider(<ManageProfileView />, { state });
+
+      await pressSocials();
+
+      expect(updateProfile).toHaveBeenCalledWith({
+        avatar_url: xProfile.avatarUrl,
+      });
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(ManageProfileViewSelectorsIDs.X_CONNECT_ERROR),
+      ).toBeNull();
     });
 
     it('ignores presses while connecting', async () => {

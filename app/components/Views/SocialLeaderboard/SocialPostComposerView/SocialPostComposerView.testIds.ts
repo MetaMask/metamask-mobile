@@ -7,10 +7,13 @@ export const SocialPostComposerViewSelectorsIDs = {
   INPUT: 'social-post-composer-input',
   SCROLL: 'social-post-composer-scroll',
   DISMISS_KEYBOARD_SURFACE: 'social-post-composer-dismiss-keyboard-surface',
+  ACTION_BAR: 'social-post-composer-action-bar',
   POSITION_CHIP: 'social-post-composer-position-chip',
   GIF_CHIP: 'social-post-composer-gif-chip',
   REMOVE_POSITION: 'social-post-composer-remove-position',
   REMOVE_GIF: 'social-post-composer-remove-gif',
   GIF_PREVIEW: 'social-post-composer-gif-preview',
   HIDE_KEYBOARD: 'social-post-composer-hide-keyboard',
+  PRIVATE_STATE: 'social-post-composer-private-state',
+  PRIVACY_SETTINGS_BUTTON: 'social-post-composer-privacy-settings',
 } as const;

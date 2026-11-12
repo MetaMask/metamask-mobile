@@ -11,6 +11,13 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELDS = [
 export type ManageProfileTextEditorField =
   (typeof MANAGE_PROFILE_TEXT_EDITOR_FIELDS)[number];
 
+/**
+ * The length the profile API accepts for a bio. It answers an over-long bio
+ * with the same 400 as refused content, so the editor caps input here to keep
+ * that 400 meaning one thing.
+ */
+export const MAX_BIO_LENGTH = 160;
+
 interface ManageProfileTextEditorFieldConfig {
   titleKey:
     | 'social_leaderboard.manage_profile.display_name'
@@ -22,6 +29,10 @@ interface ManageProfileTextEditorFieldConfig {
     | 'social_leaderboard.manage_profile.socials_helper';
   prefix?: string;
   multiline?: boolean;
+  /** Caps what the user can type. Only the bio sets it. */
+  maxLength?: number;
+  /** Opens the keyboard on the input as soon as the editor is shown. */
+  autoFocus?: boolean;
   getInitialValue: (profile: MySocialProfile | null) => string;
   testIDs: {
     container: string;
@@ -38,6 +49,7 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG: Record<
 > = {
   displayName: {
     titleKey: 'social_leaderboard.manage_profile.display_name',
+    autoFocus: true,
     getInitialValue: (profile) => profile?.displayName ?? '',
     testIDs: {
       container: ManageProfileEditorSelectorsIDs.DISPLAY_NAME_CONTAINER,
@@ -63,6 +75,8 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG: Record<
   bio: {
     titleKey: 'social_leaderboard.manage_profile.bio',
     multiline: true,
+    maxLength: MAX_BIO_LENGTH,
+    autoFocus: true,
     getInitialValue: (profile) => profile?.bio ?? '',
     testIDs: {
       container: ManageProfileEditorSelectorsIDs.BIO_CONTAINER,

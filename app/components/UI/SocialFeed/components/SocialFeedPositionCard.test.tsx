@@ -368,14 +368,16 @@ describe('SocialFeedPositionCard', () => {
       expect(style?.width).toBe('100%');
     });
 
-    it('keeps the leverage tag beside the symbol', () => {
+    it('keeps a neutral closed tag beside the symbol', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByText('15x social_leaderboard.trader_position.short'),
+        screen.getByText(
+          'social_leaderboard.feed.position_card.closed 15x social_leaderboard.trader_position.short',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -398,17 +400,20 @@ describe('SocialFeedPositionCard', () => {
     });
 
     // The side is spent once the position closes; the toned border says how.
-    it('titles a closed spot position with the bare symbol', () => {
+    it('titles a closed spot position with Sold beside the symbol', () => {
       const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
       expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
         screen.queryByText('social_leaderboard.feed.position_card.sell'),
       ).toBeNull();
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+        screen.getByText('social_leaderboard.feed.just_now'),
       ).toBeOnTheScreen();
     });
 
@@ -418,7 +423,9 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).getByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -428,7 +435,9 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.queryByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).queryByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeNull();
     });
   });
@@ -522,6 +531,18 @@ describe('SocialFeedPositionCard', () => {
     expect(within(row).getByText('\u2014')).toBeOnTheScreen();
   });
 
+  it('formats an open hold from its start and the supplied instant', () => {
+    const now = new Date('2026-07-09T12:00:00Z').getTime();
+    const item = mockOpenPerpsFeedItem({
+      holdTimeLabel: '1d 18h',
+      holdStartedAtMs: now - 3 * HOUR,
+    });
+
+    renderWithProvider(<PositionCardBody item={item} now={now} />);
+
+    expect(statValue(item.id, 'holdTime')).toBe('3h');
+  });
+
   it('renders a share spot card with entry, hold time, and copy trade', () => {
     const item = {
       ...mockOpenSpotFeedItem({
@@ -575,9 +596,9 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('hides copy trade on an open card when showCopyTrade is false', () => {
@@ -665,9 +686,9 @@ describe('SocialFeedPositionCard', () => {
       expect(statValue(item.id, 'exit')).toBe('$1,842');
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('keeps only the header on a closed card without a comment', () => {
@@ -679,7 +700,7 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<PositionCardBody item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.closed_ago'),
+        screen.getByText('social_leaderboard.feed.age.hours'),
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
@@ -693,9 +714,9 @@ describe('SocialFeedPositionCard', () => {
       ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          screen.getByTestId('position-card-shell').props.style,
+          screen.getByTestId('position-card-shell-border').props.style,
         )?.borderWidth,
-      ).toBe(2);
+      ).toBe(1);
     });
 
     it('captions a closed spot card without a comment as sold and keeps no side tag', () => {
@@ -707,7 +728,10 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<PositionCardBody item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('social_leaderboard.feed.age.hours'),
       ).toBeOnTheScreen();
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
       expect(
@@ -1071,12 +1095,17 @@ describe('SocialFeedPositionCard', () => {
         store.publish('perp:BTC', 101_000);
       });
 
-      expect(
-        within(screen.getByLabelText('+$3K')).getByText('K'),
-      ).toBeOnTheScreen();
-      expect(
-        within(screen.getByLabelText('+30.00%')).getByText('3'),
-      ).toBeOnTheScreen();
+      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
+      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
+        '3',
+      );
+
+      expect(pnlValue).toBeOnTheScreen();
+      expect(pnlPercent).toBeOnTheScreen();
+      // The glyph row defaults to the condensed hero face. These numbers stay
+      // on Inter so a live card matches the static one.
+      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
+      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
     });
   });
 

@@ -1,16 +1,19 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import {
-  MOCK_SOCIAL_V1_FEED_ITEMS,
-  mockOpenPerpsFeedItem,
-} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   addPendingPost,
@@ -32,6 +35,13 @@ const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
 const mockSocialFeed = jest.fn();
+const mockFeedScrollToOffset = jest.fn();
+const mockBottomTabPressListeners = new Set<() => void>();
+let mockIsFocused = true;
+const pressSocialBottomTab = () =>
+  act(() => {
+    mockBottomTabPressListeners.forEach((listener) => listener());
+  });
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -54,8 +64,20 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
   useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+const mockUseQuoteTokensQuery = jest.fn();
+jest.mock('../PostTradeShareBottomSheet/useQuoteTokensQuery', () => ({
+  useQuoteTokensQuery: (enabled: boolean) => mockUseQuoteTokensQuery(enabled),
 }));
 
 jest.mock('../utils/socialTabVisit', () => ({
@@ -63,14 +85,7 @@ jest.mock('../utils/socialTabVisit', () => ({
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
-// React Query. This suite covers the V1 chrome, so stand in for both data
-// sources while still driving the real pending-post store the pinning tests
-// depend on.
-jest.mock('./feed/hooks/useSocialV1Feed', () => ({
-  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
-    .mockUseSocialV1Feed,
-}));
-
+// React Query. This suite covers the V1 chrome, so stand in for it.
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -87,7 +102,7 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
-  const { View } = jest.requireActual(
+  const { View, ScrollView } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
@@ -102,28 +117,41 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
+    onScroll?: import('react-native').ScrollViewProps['onScroll'];
+    pageRef?: React.Ref<{
+      scrollToOffset: (offset: number, animated?: boolean) => void;
+    }>;
   }
+
+  const MockSocialFeed = (props: MockSocialFeedProps) => {
+    mockSocialFeed(props);
+    ReactActual.useImperativeHandle(props.pageRef, () => ({
+      scrollToOffset: (offset: number, animated?: boolean) =>
+        mockFeedScrollToOffset(props.location, offset, animated),
+    }));
+    return ReactActual.createElement(
+      View,
+      { testID: props.testID },
+      ReactActual.createElement(
+        SocialFeedRealtimeContext.Provider,
+        {
+          value: {
+            paused: props.paused ?? false,
+            pendingNewCount: 0,
+          },
+        },
+        props.renderHeader?.(),
+      ),
+      ReactActual.createElement(ScrollView, {
+        testID: props.scrollTestID,
+        onScroll: props.onScroll,
+      }),
+    );
+  };
 
   return {
     __esModule: true,
-    default: (props: MockSocialFeedProps) => {
-      mockSocialFeed(props);
-      return ReactActual.createElement(
-        View,
-        { testID: props.testID },
-        ReactActual.createElement(
-          SocialFeedRealtimeContext.Provider,
-          {
-            value: {
-              paused: props.paused ?? false,
-              pendingNewCount: 0,
-            },
-          },
-          props.renderHeader?.(),
-        ),
-        ReactActual.createElement(View, { testID: props.scrollTestID }),
-      );
-    },
+    default: MockSocialFeed,
   };
 });
 
@@ -185,6 +213,27 @@ jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   default: () => null,
 }));
 
+let mockPagerProps:
+  | {
+      onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+      onPageScrollStateChanged?: (e: {
+        nativeEvent: { pageScrollState: 'idle' | 'dragging' | 'settling' };
+      }) => void;
+    }
+  | undefined;
+
+beforeEach(() => {
+  mockPagerProps = undefined;
+});
+
+const settlePager = () => {
+  act(() => {
+    mockPagerProps?.onPageScrollStateChanged?.({
+      nativeEvent: { pageScrollState: 'idle' },
+    });
+  });
+};
+
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -196,11 +245,10 @@ jest.mock('react-native-pager-view', () => {
         testID?: string;
       },
       _ref: React.Ref<unknown>,
-    ) => (
-      <View testID={props.testID} onPageSelected={props.onPageSelected}>
-        {props.children}
-      </View>
-    ),
+    ) => {
+      mockPagerProps = props;
+      return <View testID={props.testID}>{props.children}</View>;
+    },
   );
   MockPagerView.displayName = 'MockPagerView';
   return { __esModule: true, default: MockPagerView };
@@ -262,9 +310,16 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       setParams: mockSetParams,
+      addListener: (event: string, listener: () => void) => {
+        if (event !== 'tabPress') {
+          return () => undefined;
+        }
+        mockBottomTabPressListeners.add(listener);
+        return () => mockBottomTabPressListeners.delete(listener);
+      },
     }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
-    useIsFocused: () => true,
+    useIsFocused: () => mockIsFocused,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },
@@ -280,6 +335,34 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
+    // The stock mock resets shared values every render, freezes derived
+    // values, and ignores scroll handlers, so a scrolled tab could never
+    // reach the divider's visible branch.
+    useSharedValue: (init: unknown) => {
+      const ReactActual = jest.requireActual('react') as typeof import('react');
+      const ref = ReactActual.useRef<{ value: unknown } | null>(null);
+      if (!ref.current) {
+        ref.current = { value: init };
+      }
+      return ref.current;
+    },
+    useDerivedValue: (processor: () => unknown) => ({
+      get value() {
+        return processor();
+      },
+    }),
+    useAnimatedScrollHandler:
+      (
+        handlers:
+          | ((event: { contentOffset: { y: number } }) => void)
+          | { onScroll?: (event: { contentOffset: { y: number } }) => void },
+      ) =>
+      (event: { nativeEvent?: { contentOffset: { y: number } } }) => {
+        const scrollEvent = event.nativeEvent ?? event;
+        const onScroll =
+          typeof handlers === 'function' ? handlers : handlers.onScroll;
+        onScroll?.(scrollEvent as { contentOffset: { y: number } });
+      },
   };
 });
 
@@ -319,6 +402,7 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    mockIsFocused = true;
     act(() => {
       resetPendingPosts();
     });
@@ -353,6 +437,133 @@ describe('SocialV1View', () => {
     ).toHaveTextContent('social_leaderboard.feed.tabs.live');
   });
 
+  it('loads the quote-token list for Social V1', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockUseQuoteTokensQuery).toHaveBeenCalledWith(true);
+  });
+
+  it('shows the tab divider only after the feed is scrolled', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    const divider = screen.getByTestId(
+      SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER,
+    );
+
+    expect(divider).toHaveStyle({ opacity: 0 });
+
+    fireEvent.scroll(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`),
+      { nativeEvent: { contentOffset: { y: 12, x: 0 } } },
+    );
+    rerender(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TABS_SCROLL_DIVIDER),
+    ).toHaveStyle({ opacity: 1 });
+  });
+
+  it('scrolls the active page to the top when its tab is tapped again', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
+  });
+
+  it('does not scroll the page to the top when a different tab is tapped', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(mockFeedScrollToOffset).not.toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      true,
+    );
+  });
+
+  describe('when Social is tapped again in the bottom nav', () => {
+    const openFollowing = () => {
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
+      mockTrack.mockClear();
+      mockFeedScrollToOffset.mockClear();
+    };
+
+    it('scrolls a scrolled page to the top and keeps its tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+        'social_following',
+        0,
+        true,
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
+
+    it('returns to the first tab once the page is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+
+      pressSocialBottomTab();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({
+          interaction_type: 'tab_changed',
+          tab: 'tab_trending',
+          tab_change_method: 'tap',
+        }),
+      );
+    });
+
+    it('keeps the scroll position when Social is opened from another tab', () => {
+      renderWithProvider(<SocialV1View />);
+      openFollowing();
+      fireEvent.scroll(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`),
+        { nativeEvent: { contentOffset: { y: 400, x: 0 } } },
+      );
+      mockIsFocused = false;
+      screen.rerender(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+    });
+
+    it('does nothing on the first tab when it is already at the top', () => {
+      renderWithProvider(<SocialV1View />);
+
+      pressSocialBottomTab();
+
+      expect(mockFeedScrollToOffset).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+        expect.objectContaining({ interaction_type: 'tab_changed' }),
+      );
+    });
+  });
+
   it('omits tab sub-navigation pills', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -367,6 +578,7 @@ describe('SocialV1View', () => {
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
     );
+    settlePager();
 
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
@@ -386,6 +598,21 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('scrolls the requested tab back to its top', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    mockFeedScrollToOffset.mockClear();
+
+    mockRouteParams = { initialTab: 'trending' };
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+  });
+
   it('renders Trending through the shared virtualized feed', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -400,6 +627,7 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
@@ -437,10 +665,23 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
+
+    const composerButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (node) => node.props.testID === SocialV1ViewSelectorsIDs.PLUS_BUTTON,
+      );
+
+    expect(composerButton?.props.iconName).toBe(IconName.FeedPost);
+    expect(composerButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(composerButton?.props.iconProps).toEqual({
+      color: IconColor.IconDefault,
+    });
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
@@ -514,18 +755,17 @@ describe('SocialV1View', () => {
       });
     });
 
-    it('pins the new post on top of Following', () => {
+    it('does not pin the new post on Following', () => {
       renderWithProvider(<SocialV1View />);
       fireEvent.press(
         screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
       );
 
-      const followingCards = within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getAllByTestId(/^social-v1-feed-card-/);
-      expect(followingCards[0].props.testID).toBe(
-        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
-      );
+      expect(
+        within(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+        ).queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
     });
 
     it('stays on Trending, without the post, when no post was just written', () => {
@@ -540,6 +780,10 @@ describe('SocialV1View', () => {
   it('renders the Live filter icon on the Live page', () => {
     renderWithProvider(<SocialV1View />);
 
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
     expect(
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
@@ -550,30 +794,40 @@ describe('SocialV1View', () => {
 
   it('enables Live realtime only while the Live tab is active', () => {
     renderWithProvider(<SocialV1View />);
+    const lastLiveCall = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_live')
+        .at(-1);
 
-    expect(mockSocialFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ realtime: false }),
-    );
+    // Pages mount lazily, so Live has not rendered yet.
+    expect(lastLiveCall()).toBeUndefined();
 
+    // A first visit activates the page right away.
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
     );
 
-    expect(mockSocialFeed).toHaveBeenLastCalledWith(
-      expect.objectContaining({ realtime: true }),
-    );
+    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
 
+    // Going back to a visited tab turns the old page off after the animation.
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
     );
+    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
+    settlePager();
 
-    expect(mockSocialFeed).toHaveBeenLastCalledWith(
+    expect(lastLiveCall()).toEqual(
       expect.objectContaining({ realtime: false }),
     );
   });
 
   it('filters Live posts with the applied Live filters', () => {
     renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
     const filterBeforeApply = mockSocialFeed.mock.lastCall?.[0].filterPost;
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
@@ -589,6 +843,10 @@ describe('SocialV1View', () => {
   it('opens the filters bottom sheet from the Live filter button', () => {
     renderWithProvider(<SocialV1View />);
 
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
 
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
@@ -596,6 +854,10 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
@@ -605,6 +867,10 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
@@ -732,9 +998,8 @@ describe('SocialV1View', () => {
     );
     mockTrack.mockClear();
 
-    const pager = screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER);
     act(() => {
-      pager.props.onPageSelected({ nativeEvent: { position: 0 } });
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 0 } });
     });
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -756,9 +1021,8 @@ describe('SocialV1View', () => {
     expect(mockTrack).not.toHaveBeenCalled();
     mockTrack.mockClear();
 
-    const pager = screen.getByTestId(SocialV1ViewSelectorsIDs.PAGER);
     act(() => {
-      pager.props.onPageSelected({ nativeEvent: { position: 1 } });
+      mockPagerProps?.onPageSelected?.({ nativeEvent: { position: 1 } });
     });
 
     expect(mockTrack).toHaveBeenCalledWith(
@@ -781,6 +1045,10 @@ describe('SocialV1View', () => {
 
   it('marks Live filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
 
     const filterButton = () =>
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON);
@@ -816,20 +1084,33 @@ describe('SocialV1View', () => {
     expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
-  it('renders the mocked feed on Following after that tab is opened', () => {
+  it('renders Following through the shared virtualized feed once that tab is opened', () => {
     renderWithProvider(<SocialV1View />);
+    const followingFeedProps = () =>
+      mockSocialFeed.mock.calls
+        .map(([props]) => props)
+        .filter((props) => props.location === 'social_following')
+        .pop();
+    const beforeOpening = followingFeedProps();
 
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
     );
+    settlePager();
 
-    expect(
-      within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getByTestId(
-        getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
-      ),
-    ).toBeOnTheScreen();
+    expect(beforeOpening).toBeUndefined();
+    expect(followingFeedProps()).toEqual(
+      expect.objectContaining({
+        scope: 'following_v1',
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
+        performance: expect.objectContaining({ tab: 'following' }),
+      }),
+    );
+    expect(followingFeedProps()).not.toHaveProperty('realtime');
   });
 
   it('insets the header avatar so it shares the 16px tab padding', () => {

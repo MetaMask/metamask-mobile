@@ -7,14 +7,17 @@ import {
   composePredictNextOrderService,
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
+  makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   makePredictNextSettlement,
   makePredictNextSummary,
+  makePredictNextThresholdEntry,
   makePredictNextTrade,
   messengerCall,
   mockPredictNextMessenger,
+  routePredictPortfolioServicesTo,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
@@ -24,74 +27,6 @@ import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
-
-/**
- * Routes the renderer's UI query client to real Predict services: its
- * messenger adapter calls the Engine controller messenger, so point the
- * portfolio actions and cache events at the composition root the composed
- * services share. Every other action keeps the fixture answers.
- *
- * @param rootMessenger - The composition root the real services run on.
- * @returns A restore function for the caller's cleanup.
- */
-const routePredictPortfolioServicesTo = (
-  rootMessenger: ReturnType<
-    typeof composePredictNextPortfolioTrading
-  >['rootMessenger'],
-) => {
-  const controllerMessenger = Engine.controllerMessenger as unknown as {
-    call: (action: string, ...params: unknown[]) => Promise<unknown>;
-    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
-    unsubscribe: (
-      event: string,
-      callback: (...args: unknown[]) => void,
-    ) => void;
-  };
-  const originalCall = controllerMessenger.call;
-  const originalSubscribe = controllerMessenger.subscribe;
-  const originalUnsubscribe = controllerMessenger.unsubscribe;
-  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
-  // methods are already Jest mocks, and a spy here can re-enter itself when
-  // the fixture delegate is the same mock.
-  controllerMessenger.call = (action: string, ...params: unknown[]) => {
-    if (action.startsWith('PredictPortfolioService:')) {
-      // The composition root is a MockAnyNamespace messenger: it accepts any
-      // action the real services registered.
-      return (
-        rootMessenger.call as unknown as (
-          action: string,
-          ...params: unknown[]
-        ) => Promise<unknown>
-      )(action, ...params);
-    }
-    return originalCall(action, ...params);
-  };
-  controllerMessenger.subscribe = (event, callback) => {
-    if (event.startsWith('PredictPortfolioService:')) {
-      (
-        rootMessenger.subscribe as unknown as (
-          event: string,
-          callback: (...args: unknown[]) => void,
-        ) => void
-      )(event, callback);
-    }
-  };
-  controllerMessenger.unsubscribe = (event, callback) => {
-    if (event.startsWith('PredictPortfolioService:')) {
-      (
-        rootMessenger.unsubscribe as unknown as (
-          event: string,
-          callback: (...args: unknown[]) => void,
-        ) => void
-      )(event, callback);
-    }
-  };
-  return () => {
-    controllerMessenger.call = originalCall;
-    controllerMessenger.subscribe = originalSubscribe;
-    controllerMessenger.unsubscribe = originalUnsubscribe;
-  };
-};
 
 describe('PredictPortfolioScreen', () => {
   beforeEach(() => {
@@ -484,6 +419,48 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
+  it('names threshold Positions by their Market labels, so two Players in one Game read differently', async () => {
+    const event = makePredictNextPlayerPropsEvent();
+    configurePredictNextFeeds({
+      positions: [
+        makePredictNextPosition(
+          makePredictNextThresholdEntry(
+            event,
+            'Rhamondre Stevenson',
+            60,
+            'yes',
+          ),
+        ),
+        makePredictNextPosition(
+          makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'yes'),
+        ),
+        makePredictNextPosition(),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.POSITIONS_LIST);
+    const [stevenson, walker, lakers] = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.POSITION_ROW,
+    );
+
+    expect(
+      await within(stevenson).findByText(
+        'Yes · Rhamondre Stevenson · 60+ · 75 shares',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      await within(walker).findByText('Yes · Kenneth Walker · 50+ · 75 shares'),
+    ).toBeOnTheScreen();
+    expect(within(lakers).getByText('Lakers · 75 shares')).toBeOnTheScreen();
+    // The entry context names the Market: no Event is read for it.
+    expect(messengerCall).not.toHaveBeenCalledWith(
+      'PredictMarketDataService:getEvent',
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
   it('shows an unquoted Position as having no price, never $0.00', async () => {
     configurePredictNextFeeds({
       positions: [
@@ -633,6 +610,43 @@ describe('PredictPortfolioScreen', () => {
       KALSHI_VENUE_ID,
       { limit: 20 },
     );
+  });
+
+  it('names threshold trades and Settlements by their Market labels', async () => {
+    const event = makePredictNextPlayerPropsEvent();
+    configurePredictNextFeeds({
+      activity: [
+        makePredictNextTrade(
+          makePredictNextThresholdEntry(
+            event,
+            'Rhamondre Stevenson',
+            60,
+            'yes',
+          ),
+        ),
+        makePredictNextSettlement(
+          makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
+        ),
+      ],
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST);
+    const [trade, settlement] = view.getAllByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_ROW,
+    );
+
+    expect(
+      await within(trade).findByText('Sold Yes · Rhamondre Stevenson · 60+'),
+    ).toBeOnTheScreen();
+    expect(
+      await within(settlement).findByText(
+        'Settled · No · Kenneth Walker · 50+',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('renders a losing Settlement without context as $0.00 with neutral copy', async () => {
@@ -1189,6 +1203,30 @@ describe('PredictPortfolioScreen', () => {
       expect(
         view.queryByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
       ).toBeOnTheScreen();
+    });
+
+    it('names a threshold Position by its Market labels in the Cash Out sheet', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      configurePredictNextFeeds({
+        positions: [
+          makePredictNextPosition(
+            makePredictNextThresholdEntry(event, 'Kenneth Walker', 50, 'no'),
+          ),
+        ],
+      });
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        composePredictNextOrderService();
+      globalThis.fetch = jest.fn() as unknown as typeof fetch;
+
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+      await view.findByText('No · Kenneth Walker · 50+ · 75 shares');
+      fireEvent.press(
+        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT),
+      );
+
+      expect(
+        await view.findByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+      ).toHaveTextContent('No · Kenneth Walker · 50+');
     });
 
     it('leaves the reduced Position visible after a partial Cash Out', async () => {

@@ -3,11 +3,28 @@ import { useCallback, useEffect, useRef } from 'react';
 import { InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import ReactQueryService from '../../../../../../core/ReactQueryService';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
+import { prefetchPaginatedTraderPositions } from '../../../../../../util/social/traderPositionsPagination';
 import { prefetchTraderProfileData } from '../../../../../../util/social/traderProfileQueries';
 
 const PREFETCH_INTERVAL_MS = 30_000;
 const VISIBILITY_DEBOUNCE_MS = 300;
+
+const prefetchTrader = (traderId: string, isSocialV1: boolean) => {
+  const { queryClient } = ReactQueryService;
+
+  if (!isSocialV1) {
+    return prefetchTraderProfileData(queryClient, traderId);
+  }
+
+  return Promise.allSettled([
+    prefetchTraderProfileData(queryClient, traderId, {
+      includePositions: false,
+    }),
+    prefetchPaginatedTraderPositions(queryClient, traderId),
+  ]);
+};
 
 export interface UsePrefetchTraderProfilesOptions {
   enabled: boolean;
@@ -19,6 +36,9 @@ export const usePrefetchTraderProfiles = (
   options: UsePrefetchTraderProfilesOptions,
 ) => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const isSocialV1 = useSelector(selectIsSocialV1Enabled);
+  const isSocialV1Ref = useRef(isSocialV1);
+  isSocialV1Ref.current = isSocialV1;
   const previouslyVisibleRef = useRef<string[]>([]);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const interactionTaskRef = useRef<{ cancel: () => void } | null>(null);
@@ -54,9 +74,7 @@ export const usePrefetchTraderProfiles = (
       }
 
       Promise.allSettled(
-        traderIds.map((id) =>
-          prefetchTraderProfileData(ReactQueryService.queryClient, id),
-        ),
+        traderIds.map((id) => prefetchTrader(id, isSocialV1Ref.current)),
       ).catch(() => undefined);
     });
   }, []);

@@ -15,6 +15,7 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { useMoneyVbaTransfers } from '../../hooks/useMoneyVbaTransfers';
 import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import {
@@ -135,6 +136,10 @@ jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useVbaTransactionRefresh', () => ({
+  useVbaTransactionRefresh: jest.fn(),
+}));
+
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
@@ -231,6 +236,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
 const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
+const mockUseVbaTransactionRefresh = jest.mocked(useVbaTransactionRefresh);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 
 const defaultCardIndexResult = {
@@ -311,6 +317,7 @@ function mockApiActivity(
     loadMore: mockLoadMore,
     isLoadingMore: false,
     isLoading: false,
+    isValuationSettling: false,
     error: false,
     refetch: mockRefetch,
     ...overrides,
@@ -367,6 +374,12 @@ describe('MoneyActivityView', () => {
     const { getByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(getByTestId(MoneyActivityViewTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('wires the VBA autoramp transaction refresh on mount', () => {
+    renderWithProvider(<MoneyActivityView />);
+
+    expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('renders the activity title', () => {
@@ -521,6 +534,7 @@ describe('MoneyActivityView', () => {
     useCardCapabilities.mockReturnValue({
       supportsTransactionHistory: true,
       supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: true,
     });
     mockedSelectEnrichmentFlag.mockReturnValue(true);
     mockedSelectMoneyAccountFlag.mockReturnValue(true);
