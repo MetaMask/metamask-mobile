@@ -142,10 +142,22 @@ describe('vaultShareValuations', () => {
       });
     });
 
+    it('drops a missing log index without rejecting the valuation', () => {
+      const cached = toCachedVaultShareValuation(
+        valuation({ log_index: null }),
+      );
+
+      expect(cached).not.toHaveProperty('logIndex');
+      expect(cached).toEqual(
+        expect.objectContaining({ blockNumber: 108974623 }),
+      );
+    });
+
     it.each([
       ['a non-mUSD value', { asset_symbol: 'vmUSD' }],
       ['a deposit', { type: 'deposit' as const }],
       ['a missing block', { block_number: null }],
+      ['a missing share amount', { shares_wei: null }],
       ['negative decimals', { asset_decimals: -1 }],
       ['a non-integer share amount', { shares_wei: '1.5' }],
       ['a non-integer asset amount', { assets_wei: '' }],

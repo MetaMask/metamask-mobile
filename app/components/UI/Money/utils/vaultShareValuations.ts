@@ -108,10 +108,12 @@ export function toCachedVaultShareValuation(
   if (
     valuation.asset_symbol !== 'mUSD' ||
     (valuation.type !== 'transfer_in' && valuation.type !== 'transfer_out') ||
+    typeof valuation.block_number !== 'number' ||
     !Number.isInteger(valuation.block_number) ||
     valuation.block_number < 0 ||
     !Number.isInteger(valuation.asset_decimals) ||
     valuation.asset_decimals < 0 ||
+    typeof valuation.shares_wei !== 'string' ||
     !AMOUNT_PATTERN.test(valuation.shares_wei) ||
     !AMOUNT_PATTERN.test(valuation.assets_wei)
   ) {
@@ -119,7 +121,9 @@ export function toCachedVaultShareValuation(
   }
 
   const logIndex =
-    Number.isInteger(valuation.log_index) && valuation.log_index >= 0
+    typeof valuation.log_index === 'number' &&
+    Number.isInteger(valuation.log_index) &&
+    valuation.log_index >= 0
       ? valuation.log_index
       : undefined;
 
