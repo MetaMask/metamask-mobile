@@ -26,6 +26,7 @@ interface MockSocialFeedProps {
   scrollMode: string;
   realtime?: boolean;
   paused?: boolean;
+  enabled?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
   renderHeader?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;

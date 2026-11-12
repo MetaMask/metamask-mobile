@@ -21,11 +21,6 @@ const subscribe = (listener: () => void): (() => void) => {
   };
 };
 
-/**
- * The instant a relative age is measured against. One shared timer drives
- * every caller, so a tick re-renders the age labels and not the list around
- * them. Pages that are not the selected tab do not listen.
- */
 export const useFeedAgeNow = (pinnedNow?: number): number => {
   const isPageActive = useContext(SocialFeedPageActiveContext);
   const [now, setNow] = useState(Date.now);

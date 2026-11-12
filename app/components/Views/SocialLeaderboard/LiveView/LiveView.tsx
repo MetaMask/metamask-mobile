@@ -64,8 +64,6 @@ const LiveView: React.FC<LiveViewProps> = ({
     useSocialFeedPostNavigation('social_live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
-  // The pager mounts every page up front. Hold the feed query until Live
-  // has been opened once, then keep it warm.
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
   useEffect(() => {
     if (isActive) {

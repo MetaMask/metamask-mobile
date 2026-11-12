@@ -8,7 +8,6 @@ type FeedPostAgeProps = Omit<React.ComponentProps<typeof Text>, 'children'> & {
   now?: number;
 };
 
-/** A relative age ("3 min ago") that refreshes itself on the age clock. */
 const FeedPostAge: React.FC<FeedPostAgeProps> = ({
   timestampMs,
   now,

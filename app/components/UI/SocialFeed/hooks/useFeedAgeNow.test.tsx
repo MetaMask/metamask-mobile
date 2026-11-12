@@ -9,11 +9,9 @@ describe('useFeedAgeNow', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: START });
   });
-
   afterEach(() => {
     jest.useRealTimers();
   });
-
   it('moves forward on each tick and shares one timer', () => {
     const { result } = renderHook(() => useFeedAgeNow());
     renderHook(() => useFeedAgeNow());
@@ -25,7 +23,6 @@ describe('useFeedAgeNow', () => {
     expect(result.current).toBe(START + FEED_AGE_TICK_MS);
     expect(jest.getTimerCount()).toBe(1);
   });
-
   it('holds a pinned instant', () => {
     const { result } = renderHook(() => useFeedAgeNow(START - 5_000));
 
@@ -35,7 +32,6 @@ describe('useFeedAgeNow', () => {
 
     expect(result.current).toBe(START - 5_000);
   });
-
   it('does not listen while its page is not the selected tab', () => {
     const { result } = renderHook(() => useFeedAgeNow(), {
       wrapper: ({ children }: { children: React.ReactNode }) => (

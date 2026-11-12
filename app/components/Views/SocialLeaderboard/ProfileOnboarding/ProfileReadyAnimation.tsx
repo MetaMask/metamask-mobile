@@ -28,7 +28,6 @@ import { useProfileOnboardingRiveEnabled } from './useProfileOnboardingRiveEnabl
 
 /** Pulls the avatar off the name and handle, into the card's avatar well. */
 const READY_AVATAR_LIFT = 48;
-/** The ready card plays its reveal once, then holds the last frame. */
 const READY_PLAY_ONCE_MS = 4000;
 
 interface ProfileReadyAnimationProps {
@@ -41,7 +40,6 @@ interface ProfileReadyAnimationProps {
   isVerified?: boolean;
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
-  /** Stops the loop while the terms sheet covers it or the screen blurs. */
   paused?: boolean;
 }
 

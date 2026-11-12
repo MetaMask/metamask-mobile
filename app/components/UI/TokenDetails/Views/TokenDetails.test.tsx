@@ -1062,6 +1062,51 @@ describe('TokenDetails', () => {
     });
   });
 
+  it('does not report the previous perps market on the next token', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockAutoResolvePerps = false;
+
+    const { getByText, rerender } = render(<TokenDetails />);
+
+    expect(getByText('Buy')).toBeOnTheScreen();
+
+    triggerPerpsResolved({ hasPerpsMarket: true, isLoading: false });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    triggerPerpsResolved({ hasPerpsMarket: false, isLoading: false });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          has_perps_market: false,
+        }),
+      );
+    });
+  });
+
   describe('Ambient price color A/B test', () => {
     const enableAmbientColor = () => {
       mockUseABTest.mockImplementation((key: string) => {

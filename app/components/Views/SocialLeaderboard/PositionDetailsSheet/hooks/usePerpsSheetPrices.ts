@@ -20,7 +20,6 @@ const PERIOD_CANDLES: Record<
   All: { interval: '1d', limit: 1095 },
 };
 
-/** A hung candle request is abandoned, then tried once more. */
 const PERPS_PRICE_ATTEMPTS = 2;
 const PERPS_PRICE_TIMEOUT_MS = 10_000;
 
@@ -35,7 +34,6 @@ export interface UsePerpsSheetPricesParams {
 export interface UsePerpsSheetPricesResult {
   prices: TokenPrice[];
   isLoading: boolean;
-  /** True when both attempts came back empty or failed. The chart stops waiting. */
   isError: boolean;
   retry: () => void;
 }

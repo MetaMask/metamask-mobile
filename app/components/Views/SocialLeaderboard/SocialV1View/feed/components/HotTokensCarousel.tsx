@@ -114,7 +114,7 @@ export interface HotTokensCarouselProps {
   onTokenPress?: (token: SocialV1HotToken) => void;
   /**
    * False while the rail's pager page is off screen. Stops the crawl, since the
-   * pager keeps every page mounted. Leaving the Social screen stops it too.
+   * pager keeps every page mounted.
    */
   isActive?: boolean;
 }

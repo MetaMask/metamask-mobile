@@ -524,7 +524,8 @@ const TraderPerpAdvancedChart = ({
           : undefined;
     const previous = reportedPerpMetrics.current;
     if (
-      previous?.percentChange === percentChange &&
+      previous != null &&
+      previous.percentChange === percentChange &&
       previous.currentPrice === lastClose
     ) {
       return;

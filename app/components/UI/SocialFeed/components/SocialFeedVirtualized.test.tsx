@@ -721,7 +721,7 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByLabelText('3 new posts'));
+      fireEvent.press(screen.getByLabelText('3 new updates'));
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
@@ -732,7 +732,7 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByLabelText('3 new posts'));
+      fireEvent.press(screen.getByLabelText('3 new updates'));
     });
 
     expect(calls).toEqual(['reveal', 'scroll 0']);
@@ -774,7 +774,7 @@ describe('SocialFeedVirtualized', () => {
 
     renderFeed({ realtime: true });
 
-    expect(screen.queryByLabelText(/new post/)).toBeNull();
+    expect(screen.queryByLabelText(/new update/)).toBeNull();
   });
 
   it('reveals held posts when resumed', async () => {

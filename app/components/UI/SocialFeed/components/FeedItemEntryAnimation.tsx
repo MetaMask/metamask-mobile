@@ -141,10 +141,6 @@ export interface FeedItemEntryAnimationProps {
   children: React.ReactNode;
   /** Socket event id. A row mounted with one plays the entrance once; omit for cached rows. */
   eventId?: string;
-  /**
-   * Row identity in this cell. FlashList reuses the cell for the next post, so
-   * a new identity plays the entrance again. Omit for a row that never recycles.
-   */
   itemKey?: string;
   /** Delay before the entrance starts, used to stagger bursts. */
   scheduleEntryDelay?: (eventId: string) => number;
@@ -157,13 +153,11 @@ export interface FeedItemEntryAnimationProps {
 /**
  * "Focus In" entrance for rows that arrive over the socket: the row mounts at
  * its full height, fades in, rises 20px and settles from 97% scale. The rows
- * below glide down. FlashList positions cells absolutely, so the list springs
- * each cell's `top` with the same duration instead of `itemLayoutAnimation`.
+ * below glide down through the list's `FEED_ROW_LAYOUT_TRANSITION`.
  *
- * Entering animations only run on mount. A row already on screen that later
- * receives an event id is marked played instead. FlashList reuses the cell, so
- * a new `itemKey` replays the entrance on this same view. A React key would
- * unmount the card and throw away that recycling.
+ * Entering animations only run on mount, so a row that is already on screen
+ * when it gets an event id never animates; the id is marked played instead,
+ * so a later remount does not animate either.
  */
 const FeedItemEntryAnimation: React.FC<FeedItemEntryAnimationProps> = ({
   children,

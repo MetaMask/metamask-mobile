@@ -84,27 +84,15 @@ export const REFRESH_MIN_DURATION_MS = 1000;
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
 
-/** FlashList overscan, reduced on constrained devices to cap mounted work. */
 const LIST_DRAW_DISTANCE = {
   default: 400,
   low: 200,
 } as const;
 
-/**
- * The feed explicitly owns top insertion: live rows appear at offset zero,
- * while rows received away from the top stay behind the pending-posts pill.
- * FlashList otherwise preserves the visible item by default, which would hide
- * a newly revealed first row.
- */
 const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
 
 const FeedCellSlideDurationContext = createContext(FEED_ITEM_ENTRY_DURATION_MS);
 
-/**
- * A cell slides when an insert shifts it by at most one reveal batch. A
- * recycled cell jumps further than that and snaps, so scrolling does not
- * spring rows across the screen.
- */
 export const shouldSlideFeedCell = (
   indexDelta: number,
   topDelta: number,
@@ -115,9 +103,6 @@ const FeedFlashListCell = React.forwardRef<
   React.PropsWithChildren<{ index: number; style?: ViewStyle }>
 >(({ index, style, children, ...rest }, ref) => {
   const duration = useContext(FeedCellSlideDurationContext);
-  // FlashList positions the cell with `style.top`. Keeping that value snaps
-  // the cell to the new layout on the new architecture, so the spring is the
-  // only `top` the view receives.
   const { top: layoutTop, ...cellStyle } = style ?? {};
   const targetTop = typeof layoutTop === 'number' ? layoutTop : 0;
   const top = useSharedValue(targetTop);
@@ -160,7 +145,6 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<SocialFeedFlashListProps>,
 ) as unknown as React.ComponentType<SocialFeedFlashListProps>;
 
-/** Keeps structurally different rows in separate FlashList recycling pools. */
 export const getSocialFeedListItemType = (item: SocialFeedListItem): string => {
   switch (item.kind) {
     case 'post':
@@ -203,7 +187,7 @@ const SocialFeedFirstContentTrace: React.FC<
 };
 
 /**
- * The feed as its own recycling list, for full-screen tabs. Fetches only
+ * The feed as its own virtualized list, for full-screen tabs. Fetches only
  * while focused and online, streams posts in when `realtime` is set, and
  * scales its render window and entrances to the device.
  */

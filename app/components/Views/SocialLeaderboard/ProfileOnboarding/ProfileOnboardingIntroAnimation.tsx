@@ -47,7 +47,6 @@ interface ProfileOnboardingIntroAnimationProps {
    * still loading, and while the animation is skipped.
    */
   onStepChange?: (step: number) => void;
-  /** Stops the state machine while the terms sheet covers it or the screen blurs. */
   paused?: boolean;
 }
 

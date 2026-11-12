@@ -65,7 +65,6 @@ export interface PositionSheetData {
 
   prices: TokenPrice[];
   isPricesLoading: boolean;
-  /** Perp candles failed or came back empty. The chart shows retry instead of a shimmer. */
   isPricesError: boolean;
   retryPrices: () => void;
   timeAxisLabels: string[];

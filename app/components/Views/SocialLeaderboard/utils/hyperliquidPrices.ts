@@ -93,7 +93,6 @@ export interface FetchHyperliquidPricesParams {
    * and tests stay deterministic.
    */
   nowMs: number;
-  /** Aborts the request. An abort is rethrown so the caller can retry. */
   signal?: AbortSignal;
 }
 

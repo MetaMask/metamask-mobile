@@ -63,7 +63,6 @@ const rectPath = (fromX: number, toX: number): string =>
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
   isLoading: boolean;
-  /** Both candle attempts failed. Stops the skeleton and offers a retry. */
   isError?: boolean;
   onRetry?: () => void;
   isTrendPositive: boolean;
