@@ -243,28 +243,26 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPortfolio}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               {!isLiveNowEmpty && (
-                <>
-                  <Box twClassName="-mx-4">
-                    <SectionDivider />
-                  </Box>
-                  <Box
-                    testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-                    onLayout={registerSection(
-                      PredictEventValues.SECTION_ID.LIVE_NOW,
-                    )}
-                    twClassName="pt-3 pb-3"
-                  >
-                    <PredictLiveNowSection />
-                  </Box>
-                  <PredictFeedBanner
-                    position={PredictFeedBannerPosition.AfterLiveNow}
-                  />
-                  <Box twClassName="-mx-4">
-                    <SectionDivider />
-                  </Box>
-                </>
+                <Box
+                  testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.LIVE_NOW,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictLiveNowSection />
+                </Box>
               )}
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterLiveNow}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
                 onLayout={registerSection(
@@ -277,28 +275,26 @@ const PredictHome: React.FC = () => {
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterCategories}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               {!isPopularTodayEmpty && (
-                <>
-                  <Box twClassName="-mx-4">
-                    <SectionDivider />
-                  </Box>
-                  <Box
-                    testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-                    onLayout={registerSection(
-                      PredictEventValues.SECTION_ID.POPULAR_TODAY,
-                    )}
-                    twClassName="pt-3 pb-3"
-                  >
-                    <PredictPopularTodaySection />
-                  </Box>
-                  <PredictFeedBanner
-                    position={PredictFeedBannerPosition.AfterPopularToday}
-                  />
-                  <Box twClassName="-mx-4">
-                    <SectionDivider />
-                  </Box>
-                </>
+                <Box
+                  testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.POPULAR_TODAY,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictPopularTodaySection />
+                </Box>
               )}
+              <PredictFeedBanner
+                position={PredictFeedBannerPosition.AfterPopularToday}
+              />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
                 onLayout={registerSection(
