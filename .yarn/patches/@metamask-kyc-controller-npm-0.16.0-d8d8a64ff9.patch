@@ -1,0 +1,19 @@
+diff --git a/dist/KycController.js b/dist/KycController.js
+index 03d05b5deb7df68fe82f6272574c47521b333af9..09c706ee4dcb911314271333e3a13b7b72be276f 100644
+--- a/dist/KycController.js
++++ b/dist/KycController.js
+@@ -951,12 +951,8 @@ export class KycController extends BaseController {
+                     return journey.applicantAccessToken;
+                 },
+                 onStatusChange: (_prev, next) => {
+-                    if (isSumSubFlowCompleted(next)) {
+-                        reachedCompletion = true;
+-                    }
+-                    if (isSumSubFlowFailed(next)) {
+-                        sdkFailed = true;
+-                    }
++                    reachedCompletion = isSumSubFlowCompleted(next);
++                    sdkFailed = isSumSubFlowFailed(next);
+                 },
+                 locale: params?.locale ?? 'en',
+                 debug: params?.debug ?? false,
