@@ -67,6 +67,7 @@ describe('swapQuoteFetchTrace', () => {
     jest.clearAllMocks();
     mockUuid.mockReturnValue('quote-trace-id');
     mockBridgeState = { quotes: [], quotesLastFetched: null };
+    mockRemoteFeatureFlags = {};
   });
 
   it('starts a quote trace with request correlation and route data', () => {

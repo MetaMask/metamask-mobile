@@ -652,7 +652,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS5043AbtestFirstQuoteFlush',
     type: FeatureFlagType.Remote,
     inProd: false,
-    productionDefault: false,
+    productionDefault: 'control',
     status: FeatureFlagStatus.Active,
   },
 

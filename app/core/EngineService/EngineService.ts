@@ -21,13 +21,8 @@ import getUIStartupSpan from '../Performance/UIStartup';
 
 import ReduxService from '../redux';
 import {
-  selectFeatureFlagThresholdGroups,
-  selectRemoteFeatureFlags,
-} from '../../selectors/featureFlagController';
-import { resolveABTestAssignment } from '../../util/abTest';
-import {
-  FIRST_QUOTE_FLUSH_AB_KEY,
   FirstQuoteFlushVariant,
+  selectFirstQuoteFlushVariant,
 } from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -49,17 +44,9 @@ const getPersistedAnalyticsId = (state: unknown): unknown =>
   (state as { AnalyticsController?: { analyticsId?: unknown } })
     ?.AnalyticsController?.analyticsId;
 
-const isFirstQuoteFlushTreatment = (): boolean => {
-  const state = ReduxService.store.getState();
-  return (
-    resolveABTestAssignment(
-      selectRemoteFeatureFlags(state),
-      FIRST_QUOTE_FLUSH_AB_KEY,
-      Object.values(FirstQuoteFlushVariant),
-      selectFeatureFlagThresholdGroups(state),
-    ).variantName === FirstQuoteFlushVariant.Treatment
-  );
-};
+const isFirstQuoteFlushTreatment = (): boolean =>
+  selectFirstQuoteFlushVariant(ReduxService.store.getState()) ===
+  FirstQuoteFlushVariant.Treatment;
 
 export class EngineService {
   private engineInitialized = false;
