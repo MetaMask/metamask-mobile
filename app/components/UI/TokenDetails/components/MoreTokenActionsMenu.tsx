@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -46,15 +46,11 @@ type MoreTokenActionsMenuRouteProp = RouteProp<
   'MoreTokenActionsMenu'
 >;
 
-interface ActionConfig {
-  type: string;
-  label: string;
-  description?: string;
-  iconName: IconName;
-  testID: string;
-  isVisible: boolean;
-  isDisabled?: boolean;
-  onPress: () => void;
+function symbolOrNull(symbol: string): string | null {
+  if (!symbol) {
+    return null;
+  }
+  return symbol;
 }
 
 const MoreTokenActionsMenu = () => {
@@ -171,17 +167,19 @@ const MoreTokenActionsMenu = () => {
           onConfirm: async () => {
             navigation.navigate('WalletView');
             try {
-              if (asset.chainId && isNonEvmChainId(asset.chainId)) {
-                await removeNonEvmToken({
-                  tokenAddress: asset.address,
-                  tokenChainId: asset.chainId,
-                  selectInternalAccountByScope,
-                });
+              if (asset.chainId) {
+                if (isNonEvmChainId(asset.chainId)) {
+                  await removeNonEvmToken({
+                    tokenAddress: asset.address,
+                    tokenChainId: asset.chainId,
+                    selectInternalAccountByScope,
+                  });
+                }
               }
 
               handleHideToken();
 
-              const tokenSymbol = asset.symbol || null;
+              const tokenSymbol = symbolOrNull(asset.symbol);
 
               NotificationManager.showSimpleNotification({
                 status: 'simple_notification',
@@ -251,108 +249,59 @@ const MoreTokenActionsMenu = () => {
     }),
   );
 
-  const actionConfigs: ActionConfig[] = useMemo(() => {
-    const actions: ActionConfig[] = [];
-
-    // Show receive option when perps market is active and has balance
-    // (Receive button not shown in main actions in this case)
-    if (hasPerpsMarket && hasBalance && onReceive) {
-      actions.push({
-        type: 'receive',
-        label: strings('asset_overview.receive_button'),
-        iconName: IconName.QrCode,
-        testID: 'more-actions-receive',
-        isVisible: true,
-        onPress: handleReceive,
-      });
-    }
-
-    // Show Cash buy option when perps market is active (Cash Buy button not shown in main actions)
-    if (hasPerpsMarket && isBuyable) {
-      actions.push({
-        type: 'cash-buy',
-        label: `Cash buy ${asset.symbol}`,
-        iconName: IconName.AttachMoney,
-        testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-        isVisible: true,
-        onPress: handleBuy,
-      });
-    }
-
-    // View on block explorer
-    if (explorer.getBlockExplorerName(asset.chainId)) {
-      actions.push({
-        type: 'view-explorer',
-        label: strings('asset_details.options.view_on_block'),
-        iconName: IconName.ArrowSquareOut,
-        testID: 'more-actions-view-explorer',
-        isVisible: true,
-        onPress: handleViewOnBlockExplorer,
-      });
-    }
-
-    // Remove token
-    if (!isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address)) {
-      actions.push({
-        type: 'remove-token',
-        label: strings('asset_details.options.remove_token'),
-        iconName: IconName.Trash,
-        testID: 'more-actions-remove-token',
-        isVisible: true,
-        onPress: handleRemoveToken,
-      });
-    }
-
-    if (canDeactivate) {
-      actions.push({
-        type: 'stellar-deactivate-trustline',
-        label: strings('asset_details.options.deactivate_asset'),
-        iconName: IconName.Trash,
-        testID: 'more-actions-deactivate-asset',
-        isVisible: true,
-        isDisabled: isDeactivating,
-        onPress: handleDeactivateTrustline,
-      });
-    }
-
-    return actions;
-  }, [
-    asset.address,
-    hasPerpsMarket,
-    hasBalance,
-    isBuyable,
-    isNativeCurrency,
-    asset.chainId,
-    asset.symbol,
-    explorer,
-    tokenIsInAccount,
-    onReceive,
-    handleReceive,
-    handleBuy,
-    handleViewOnBlockExplorer,
-    handleRemoveToken,
-    handleDeactivateTrustline,
-    canDeactivate,
-    isDeactivating,
-  ]);
+  const showReceive = Boolean(hasPerpsMarket && hasBalance && onReceive);
+  const showCashBuy = Boolean(hasPerpsMarket && isBuyable);
+  const showBlockExplorer = Boolean(
+    explorer.getBlockExplorerName(asset.chainId),
+  );
+  const showRemoveToken = Boolean(
+    !isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address),
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
       <Box twClassName="py-4">
-        {actionConfigs.map(
-          (config) =>
-            config.isVisible && (
-              <ActionListItem
-                key={config.type}
-                label={config.label}
-                description={config.description}
-                iconName={config.iconName}
-                onPress={config.onPress}
-                testID={config.testID}
-                isDisabled={config.isDisabled}
-              />
-            ),
-        )}
+        {showReceive ? (
+          <ActionListItem
+            label={strings('asset_overview.receive_button')}
+            iconName={IconName.QrCode}
+            onPress={handleReceive}
+            testID="more-actions-receive"
+          />
+        ) : null}
+        {showCashBuy ? (
+          <ActionListItem
+            label={`Cash buy ${asset.symbol}`}
+            iconName={IconName.AttachMoney}
+            testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
+            onPress={handleBuy}
+          />
+        ) : null}
+        {showBlockExplorer ? (
+          <ActionListItem
+            label={strings('asset_details.options.view_on_block')}
+            iconName={IconName.ArrowSquareOut}
+            testID="more-actions-view-explorer"
+            onPress={handleViewOnBlockExplorer}
+          />
+        ) : null}
+        {showRemoveToken ? (
+          <ActionListItem
+            label={strings('asset_details.options.remove_token')}
+            iconName={IconName.Trash}
+            testID="more-actions-remove-token"
+            onPress={handleRemoveToken}
+          />
+        ) : null}
+        {canDeactivate ? (
+          <ActionListItem
+            label={strings('asset_details.options.deactivate_asset')}
+            iconName={IconName.Trash}
+            testID="more-actions-deactivate-asset"
+            isDisabled={isDeactivating}
+            onPress={handleDeactivateTrustline}
+          />
+        ) : null}
       </Box>
     </BottomSheet>
   );
