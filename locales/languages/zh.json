@@ -1199,7 +1199,6 @@
       "title": "使用 Pix 添加资金",
       "description": "直接从您的银行添加资金。资金通常会在几分钟内到账您的 Money Account。",
       "provider_disclosure": "巴西的虚拟资产服务由受监管的第三方提供商提供。",
-      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "了解更多。",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix 密钥",

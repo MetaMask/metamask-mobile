@@ -1199,7 +1199,6 @@
       "title": "Approvisionner votre compte avec Pix",
       "description": "Approvisionnez votre compte directement depuis votre banque. Les fonds sont généralement crédités sur votre compte Money en quelques minutes.",
       "provider_disclosure": "Au Brésil, les services liés aux actifs virtuels sont fournis par un prestataire tiers réglementé.",
-      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "En savoir plus.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Clé Pix",
