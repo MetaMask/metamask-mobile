@@ -11,39 +11,10 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
       gap: 12,
     },
-    gradientContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 30,
-    },
-    networkContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      maxWidth: '80%',
-    },
     slippageButton: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-    },
-    recipientText: {
-      flexShrink: 1,
-    },
-    disclaimerText: {
-      textAlign: 'center',
-    },
-    networkBadgeContainer: {
-      flex: 1,
-    },
-    networkBadgeText: {
-      flex: 1,
-    },
-    riveIcon: {
-      width: 16,
-      height: 16,
-      marginTop: 0.5,
     },
   });
 
