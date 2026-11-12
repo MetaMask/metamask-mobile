@@ -18,8 +18,11 @@ import {
 import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import SocialOnboardingAnimation from '../../../../../animations/social_v1_social-onboarding.riv';
 import megaphoneFallback from '../../../../../images/socialV1/megaphone.png';
+import SocialConversationEmptyState from '../../../SocialFeed/components/SocialConversationEmptyState';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import { PROFILE_ONBOARDING_RIVE_ASSETS } from '../../../../Views/SocialLeaderboard/ProfileOnboarding/profileOnboardingRive';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
@@ -30,13 +33,16 @@ import { useOpenPositionHeader } from '../../TraderPositionPnl/useOpenPositionHe
 
 /** Artboard inside `social_v1_social-onboarding.riv`. */
 const MEGAPHONE_ARTBOARD = 'Megaphone / Pixel waves';
-const ILLUSTRATION_SIZE = 96;
+/** Holder empty state keeps the smaller animated mark. */
+const HAS_BALANCE_ILLUSTRATION = { width: 96, height: 96 };
 
 const FEED_EMPTY_TEST_ID = 'token-details-feed-empty';
 const CREATE_POST_TEST_ID = 'token-details-feed-empty-create-post';
 const MEGAPHONE_TEST_ID = 'token-details-feed-empty-megaphone';
 const MEGAPHONE_FALLBACK_TEST_ID =
   'token-details-feed-empty-megaphone-fallback';
+const NO_BALANCE_ILLUSTRATION_TEST_ID =
+  'token-details-feed-empty-no-balance-illustration';
 
 export interface TokenDetailsFeedEmptyStateProps {
   /** True when this wallet holds the token the feed is about. */
@@ -48,16 +54,26 @@ export interface TokenDetailsFeedEmptyStateProps {
 /**
  * Megaphone from the Social onboarding Rive file. The static PNG is the
  * Reduce Motion and error fallback, and what shows until the file loads.
+ * A low-memory phone on a slow connection, and any phone with no network,
+ * stays on that PNG. An unknown tier keeps the animation.
  */
-const FeedEmptyMegaphone: React.FC = () => {
+const FeedEmptyMegaphone: React.FC<{
+  width: number;
+  height: number;
+}> = ({ width, height }) => {
   const prefersReducedMotion = useReducedMotion();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const skipAnimation =
+    Boolean(prefersReducedMotion) ||
+    networkTier === 'NONE' ||
+    (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
   const [hasRiveError, setHasRiveError] = useState(false);
   const { riveFile, error: riveFileError } = useRiveFile(
-    prefersReducedMotion ? undefined : SocialOnboardingAnimation,
+    skipAnimation ? undefined : SocialOnboardingAnimation,
     { referencedAssets: PROFILE_ONBOARDING_RIVE_ASSETS },
   );
-  const showFallback =
-    Boolean(prefersReducedMotion) || hasRiveError || Boolean(riveFileError);
+  const showFallback = skipAnimation || hasRiveError || Boolean(riveFileError);
 
   const handleError = useCallback((riveError: RiveError) => {
     Logger.error(
@@ -73,7 +89,7 @@ const FeedEmptyMegaphone: React.FC = () => {
         <Image
           source={megaphoneFallback}
           resizeMode="contain"
-          style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+          style={{ width, height }}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           testID={MEGAPHONE_FALLBACK_TEST_ID}
@@ -86,7 +102,7 @@ const FeedEmptyMegaphone: React.FC = () => {
           autoPlay
           fit={Fit.Contain}
           alignment={Alignment.Center}
-          style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+          style={{ width, height }}
           onError={handleError}
           testID={MEGAPHONE_TEST_ID}
         />
@@ -153,7 +169,7 @@ const CreatePostButton: React.FC = () => {
  * Empty token feed.
  *
  * Holding the token: invite a first post, with the create-post button. No
- * balance: invite them to post a trade. Buy stays on the page footer.
+ * balance: invite a buy and a post. Buy stays on the page footer.
  *
  * `TabEmptyState` has no title and one 12px gap, so this composes the same
  * design-system Text and secondary Button with the feed spacing.
@@ -161,40 +177,48 @@ const CreatePostButton: React.FC = () => {
 const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
   hasBalance,
   token,
-}) => (
-  <Box
-    alignItems={BoxAlignItems.Center}
-    twClassName="w-full px-8 py-12"
-    testID={FEED_EMPTY_TEST_ID}
-  >
-    <FeedEmptyMegaphone />
-    <Text
-      variant={TextVariant.HeadingLg}
-      color={TextColor.TextDefault}
-      twClassName="text-center"
+}) => {
+  if (!hasBalance) {
+    return (
+      <SocialConversationEmptyState
+        title={strings('token_details_v1.feed_tab.empty.no_balance_title')}
+        description={strings(
+          'token_details_v1.feed_tab.empty.no_balance_description',
+        )}
+        testID={FEED_EMPTY_TEST_ID}
+        illustrationTestID={NO_BALANCE_ILLUSTRATION_TEST_ID}
+      />
+    );
+  }
+
+  return (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      twClassName="w-full px-8 py-12"
+      testID={FEED_EMPTY_TEST_ID}
     >
-      {strings(
-        hasBalance
-          ? 'token_details_v1.feed_tab.empty.has_balance_title'
-          : 'token_details_v1.feed_tab.empty.no_balance_title',
-      )}
-    </Text>
-    <Text
-      variant={TextVariant.BodyMd}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextAlternative}
-      twClassName="mt-1 text-center"
-    >
-      {strings('token_details_v1.feed_tab.empty.description')}
-    </Text>
-    {hasBalance ? (
-      token ? (
-        <CreateBalancePostButton token={token} />
-      ) : (
-        <CreatePostButton />
-      )
-    ) : null}
-  </Box>
-);
+      <FeedEmptyMegaphone
+        width={HAS_BALANCE_ILLUSTRATION.width}
+        height={HAS_BALANCE_ILLUSTRATION.height}
+      />
+      <Text
+        variant={TextVariant.HeadingLg}
+        color={TextColor.TextDefault}
+        twClassName="text-center"
+      >
+        {strings('token_details_v1.feed_tab.empty.has_balance_title')}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+        twClassName="mt-1 text-center"
+      >
+        {strings('token_details_v1.feed_tab.empty.description')}
+      </Text>
+      {token ? <CreateBalancePostButton token={token} /> : <CreatePostButton />}
+    </Box>
+  );
+};
 
 export default TokenDetailsFeedEmptyState;

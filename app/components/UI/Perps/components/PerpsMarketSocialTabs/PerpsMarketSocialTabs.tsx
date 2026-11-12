@@ -17,6 +17,7 @@ import {
   SocialFeed,
   toFeedAssetId,
 } from '../../../SocialFeed';
+import SocialConversationEmptyState from '../../../SocialFeed/components/SocialConversationEmptyState';
 import { HYPERLIQUID_CHAIN_NAME } from '../../../SocialFeed/utils/perp';
 import {
   SocialLeaderboard,
@@ -31,6 +32,7 @@ import {
 const TABS = ['overview', 'top_traders', 'feed'] as const;
 const SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
 const FEED_CHAINS = [HYPERLIQUID_CAIP2_CHAIN_ID];
+const FEED_EMPTY_TEST_ID = 'perps-market-feed-empty';
 
 interface PerpsMarketSocialTabsProps {
   /** Raw market symbol (`BTC`, `xyz:NVDA`); the social perp feed keys on it exactly. */
@@ -140,6 +142,13 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
               analyticsSource={SOURCE}
               onAuthorPress={onAuthorPress}
               onPositionPress={onPositionPress}
+              emptyState={
+                <SocialConversationEmptyState
+                  title={strings('perps.market.feed_empty.title')}
+                  description={strings('perps.market.feed_empty.description')}
+                  testID={FEED_EMPTY_TEST_ID}
+                />
+              }
             />
           ) : null}
         </Box>
