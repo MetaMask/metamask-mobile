@@ -60,7 +60,7 @@ const CARD_ANIMATION_START_DELAY_MS = 90;
 const fullWidthStyle: ViewStyle = { width: '100%' };
 
 /**
- * "Spend and earn" confirmation bottom sheet shown before the Money Account ↔
+ * Confirmation bottom sheet shown before the Money Account ↔
  * Card linkage runs. The sheet is opened by
  * `useMoneyAccountCardLinkage.openLinkCardSheet`; pressing the primary CTA
  * dismisses the sheet immediately and dispatches

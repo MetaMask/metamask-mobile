@@ -228,13 +228,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.money_account_label': 'Money account',
       'card.card_spending_limit.money_account_token_symbol': 'mUSD',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
-      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend your crypto',
       'card.card_spending_limit.spend_and_earn_description_prefix':
         'Link your balance to your card and spend it anywhere. Plus, earn up to ',
       'card.card_spending_limit.spend_and_earn_description_suffix':
         ' (variable) on your balance.',
       'card.card_spending_limit.spend_and_earn_description_no_apy':
-        'Link your balance to your card and spend it anywhere Mastercard is accepted.',
+        'Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.',
       'card.card_spending_limit.spend_and_earn_cta': 'Link card',
     };
     if (key === 'card.card_spending_limit.spend_and_earn_description_apy') {
@@ -1406,7 +1406,7 @@ describe('SpendingLimit Component', () => {
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(screen.getByText('Spend your crypto')).toBeOnTheScreen();
       expect(
         screen.getByText(
           /Link your balance to your card and spend it anywhere\. Plus, earn up to 4% APY \(variable\) on your balance\./,
@@ -1428,10 +1428,10 @@ describe('SpendingLimit Component', () => {
       render({ params: { flow: 'onboarding' } });
 
       expect(screen.getByTestId('use-money-account-cta')).toBeOnTheScreen();
-      expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+      expect(screen.getByText('Spend your crypto')).toBeOnTheScreen();
       expect(
         screen.getByText(
-          'Link your balance to your card and spend it anywhere Mastercard is accepted.',
+          'Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.',
         ),
       ).toBeOnTheScreen();
     });
