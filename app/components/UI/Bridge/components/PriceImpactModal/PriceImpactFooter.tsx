@@ -24,7 +24,7 @@ export function PriceImpactFooter({
 }: PriceImpactFooterProps) {
   if (type === PriceImpactModalType.Execution) {
     return (
-      <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={3}>
+      <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={4}>
         <Box twClassName="flex-1">
           <Button
             variant={ButtonVariant.Secondary}
