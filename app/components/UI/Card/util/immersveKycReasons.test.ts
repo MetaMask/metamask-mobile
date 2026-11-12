@@ -1,4 +1,7 @@
-import { describeImmersveKycRejection } from './immersveKycReasons';
+import {
+  describeImmersveKycFailureDetail,
+  describeImmersveKycRejection,
+} from './immersveKycReasons';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -53,5 +56,31 @@ describe('describeImmersveKycRejection', () => {
     expect(describeImmersveKycRejection(['PROFILE_LIMIT_REACHED'], false)).toBe(
       'card.card_onboarding.kyc_rejected.reasons.ineligible',
     );
+  });
+});
+
+describe('describeImmersveKycFailureDetail', () => {
+  it('returns the known reason line', () => {
+    expect(describeImmersveKycFailureDetail(['ID_DOCUMENT_EXPIRED'])).toBe(
+      'card.card_onboarding.kyc_rejected.reasons.id_document',
+    );
+  });
+
+  it('returns null when there is no known reason', () => {
+    expect(describeImmersveKycFailureDetail(undefined)).toBeNull();
+    expect(describeImmersveKycFailureDetail(['RETRIABLE'])).toBeNull();
+  });
+
+  it('returns null when the only reason is ineligibility', () => {
+    expect(describeImmersveKycFailureDetail(['INELIGIBLE'])).toBeNull();
+    expect(
+      describeImmersveKycFailureDetail(['PROFILE_LIMIT_REACHED']),
+    ).toBeNull();
+  });
+
+  it('keeps a specific reason when ineligibility is also present', () => {
+    expect(
+      describeImmersveKycFailureDetail(['INELIGIBLE', 'BIOMETRICS_FAILED']),
+    ).toBe('card.card_onboarding.kyc_rejected.reasons.biometrics');
   });
 });

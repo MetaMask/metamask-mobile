@@ -157,6 +157,7 @@ const useMoneyAccountFundingApprove = ({
   confirmLinkInBackground: (options: {
     delegationAmountHuman: string;
     entrypoint: CardEntryPoint;
+    showSuccessToast?: boolean;
   }) => Promise<boolean>;
   refresh: () => Promise<unknown>;
   setIsSettling: (settling: boolean) => void;
@@ -171,6 +172,9 @@ const useMoneyAccountFundingApprove = ({
         entrypoint: isReapprove
           ? CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
           : CardEntryPoint.SIGN_UP,
+        // A re-approve is for a card that already exists, so "ready to use"
+        // is true. A first approval still has to create the card.
+        showSuccessToast: isReapprove,
       });
       if (!linked) {
         setIsSettling(false);
