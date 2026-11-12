@@ -1,8 +1,12 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import type { CaipAccountId } from '@metamask/utils';
-import { parseCaipChainId } from '@metamask/utils';
+import {
+  type CaipAccountId,
+  KnownCaipNamespace,
+  parseCaipChainId,
+  toCaipAccountId,
+} from '@metamask/utils';
 import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
 import { selectEvmAddress } from '../../../../../selectors/accountsController';
@@ -23,7 +27,11 @@ export function useTransactionQuery({
       return undefined;
     }
     const { reference } = parseCaipChainId(chainId);
-    return `${chainId}:${evmAddress.toLowerCase()}` as CaipAccountId;
+    return toCaipAccountId(
+      KnownCaipNamespace.Eip155,
+      reference,
+      evmAddress.toLowerCase(),
+    );
   }, [chainId, evmAddress]);
 
   const queryOptions = apiClient.accounts.getV5TransactionByIdQueryOptions(

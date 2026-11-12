@@ -1,10 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import type {
-  V1TransactionByHashResponse,
-  V5TransactionRecord,
-} from '@metamask/core-backend';
+import type { V5TransactionRecord } from '@metamask/core-backend';
+import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -427,21 +425,23 @@ describe('useActivityDetailsItem', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
       transaction: {
-        chainId: 1,
-        hash: '0xfetched',
-        from: '0x1234567890abcdef1234567890abcdef12345678',
-        to: '0x0000000000000000000000000000000000000001',
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '0',
-      } as V1TransactionByHashResponse,
+        accountId:
+          'eip155:1:0x1234567890abcdef1234567890abcdef12345678' as CaipAccountId,
+        tx: {
+          id: '0xfetched',
+          chainId: 'eip155:1' as CaipChainId,
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-13T14:34:23.000Z',
+          from: '0x1234567890abcdef1234567890abcdef12345678',
+          to: '0x0000000000000000000000000000000000000001',
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '0',
+        },
+        valueTransfers: [],
+        fee: null,
+      } as V5TransactionRecord,
       isFetching: false,
     });
 
@@ -452,46 +452,46 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.hash).toBe('0xfetched');
   });
 
-  it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
+  it('maps a fetched v5 transaction with value transfers', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
       transaction: {
-        chainId: 1,
-        hash: '0xnotours',
-        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '2500000000000000000',
-        transactionCategory: 'STANDARD',
+        accountId:
+          'eip155:1:0x1234567890abcdef1234567890abcdef12345678' as CaipAccountId,
+        tx: {
+          id: '0xwithvaluestransfers',
+          chainId: 'eip155:1' as CaipChainId,
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-13T14:34:23.000Z',
+          from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '2500000000000000000',
+        },
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             to: '0x1234567890abcdef1234567890abcdef12345678',
+            assetId: 'eip155:1/slip44:60',
             amount: '1',
             decimal: 18,
-            contractAddress: '',
             symbol: 'ETH',
             name: 'Ether',
-            transferType: 'normal',
           },
         ],
-      } as V1TransactionByHashResponse,
+        fee: null,
+      } as V5TransactionRecord,
       isFetching: false,
     });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('0xnotours', 'eip155:1'),
+      useActivityDetailsItem('0xwithvaluestransfers', 'eip155:1'),
     );
 
-    expect(result.current.item).toBeUndefined();
+    expect(result.current.item?.hash).toBe('0xwithvaluestransfers');
   });
 
   it('maps a fetched v5 transaction without the v1 participation gate', () => {
@@ -551,22 +551,22 @@ describe('useActivityDetailsItem', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
       transaction: {
-        chainId: 1,
-        hash: '0xfetchedreceive',
-        from: counterparty,
-        to: lowercaseSubject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '1',
-        transactionCategory: 'TRANSFER',
-      } as V1TransactionByHashResponse,
+        accountId: `eip155:1:${lowercaseSubject}` as CaipAccountId,
+        tx: {
+          id: '0xfetchedreceive',
+          chainId: 'eip155:1' as CaipChainId,
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-13T14:34:23.000Z',
+          from: counterparty,
+          to: lowercaseSubject,
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '1',
+        },
+        valueTransfers: [],
+        fee: null,
+      } as V5TransactionRecord,
       isFetching: false,
     });
 
@@ -584,36 +584,33 @@ describe('useActivityDetailsItem', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
       transaction: {
-        chainId: 1,
-        hash: '0xfetchednativereceive',
-        from: counterparty,
-        to: subject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '1000000000000000000',
-        transactionCategory: 'TRANSFER',
-        // The by-hash request always sets `includeValueTransfers`, so real
-        // receives arrive with transfers the list gate would filter out.
+        accountId: `eip155:1:${subject}` as CaipAccountId,
+        tx: {
+          id: '0xfetchednativereceive',
+          chainId: 'eip155:1' as CaipChainId,
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-13T14:34:23.000Z',
+          from: counterparty,
+          to: subject,
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '1000000000000000000',
+        },
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: counterparty,
             to: subject,
+            assetId: 'eip155:1/slip44:60',
             amount: '1000000000000000000',
             decimal: 18,
-            contractAddress: '',
             symbol: 'ETH',
             name: 'Ether',
-            transferType: 'normal',
           },
         ],
-      } as V1TransactionByHashResponse,
+        fee: null,
+      } as V5TransactionRecord,
       isFetching: false,
     });
 
@@ -631,34 +628,33 @@ describe('useActivityDetailsItem', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
       transaction: {
-        chainId: 1,
-        hash: '0xfetchedtokenreceive',
-        from: counterparty,
-        to: subject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '0',
-        transactionCategory: 'TRANSFER',
+        accountId: `eip155:1:${subject}` as CaipAccountId,
+        tx: {
+          id: '0xfetchedtokenreceive',
+          chainId: 'eip155:1' as CaipChainId,
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-13T14:34:23.000Z',
+          from: counterparty,
+          to: subject,
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '0',
+        },
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: counterparty,
             to: subject,
+            assetId: 'eip155:1/erc20:0x3333333333333333333333333333333333333333',
             amount: '1000000',
             decimal: 6,
-            contractAddress: '0x3333333333333333333333333333333333333333',
             symbol: 'USDC',
             name: 'USD Coin',
-            transferType: 'ERC20',
           },
         ],
-      } as V1TransactionByHashResponse,
+        fee: null,
+      } as V5TransactionRecord,
       isFetching: false,
     });
 

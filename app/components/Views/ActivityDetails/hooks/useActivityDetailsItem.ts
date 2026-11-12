@@ -6,12 +6,8 @@ import {
   type ActivityListItem,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
-import {
-  selectSelectedAccountGroupEvmInternalAccount,
-  selectSelectedAccountGroupInternalAccounts,
-} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
@@ -122,10 +118,6 @@ export function useActivityDetailsItem(
   const rampActivityItemsById = useRampActivityItemsById();
   const { data: evmTransactions, isFetching: isListFetching } =
     useTransactionsQuery();
-  const groupEvmAccount = useSelector(
-    selectSelectedAccountGroupEvmInternalAccount,
-  );
-  const globalEvmAddress = useSelector(selectEvmAddress);
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
