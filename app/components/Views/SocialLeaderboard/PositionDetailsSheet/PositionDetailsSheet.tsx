@@ -431,11 +431,11 @@ const PositionDetailsSheet = () => {
       position && !data.isPerp ? positionToQuickBuyTarget(position) : null,
     [position, data.isPerp],
   );
-  const { destToken } = useQuickBuySetup(data.isClosed ? quickBuyTarget : null);
-  const heldBalance = usePositionTokenBalance(
-    data.isClosed ? quickBuyTarget : null,
-    destToken,
-  );
+  // Sell needs the held balance. The viewer's own open spot position offers it
+  // too, not only closed ones.
+  const heldTarget = isOwnPost || data.isClosed ? quickBuyTarget : null;
+  const { destToken } = useQuickBuySetup(heldTarget);
+  const heldBalance = usePositionTokenBalance(heldTarget, destToken);
   const [quickBuyMode, setQuickBuyMode] = useState<QuickBuyTradeMode | null>(
     null,
   );
@@ -563,19 +563,19 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
-  // Copy trade repeats the viewer's own position. Closed markets still offer
-  // a fresh Long, Short, Buy, or Sell.
-  const footer =
-    isOwnPost && !data.isClosed ? null : (
-      <PositionSheetFooter
-        isPerp={data.isPerp}
-        isClosed={data.isClosed}
-        canSell={Boolean(heldBalance)}
-        onCopyTrade={handleCopyTrade}
-        onPerpsOrder={handlePerpsOrder}
-        onSpotTrade={handleSpotTrade}
-      />
-    );
+  // Copy trade is for another trader's open position. Every other position
+  // offers a fresh Long, Short, Buy, or Sell in the same market.
+  const footer = (
+    <PositionSheetFooter
+      isPerp={data.isPerp}
+      isClosed={data.isClosed}
+      isOwnPost={isOwnPost}
+      canSell={Boolean(heldBalance)}
+      onCopyTrade={handleCopyTrade}
+      onPerpsOrder={handlePerpsOrder}
+      onSpotTrade={handleSpotTrade}
+    />
+  );
 
   const details = (
     <View>
@@ -679,7 +679,11 @@ const PositionDetailsSheet = () => {
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
           originalEntryPoint="trader_feed"
-          isTraderPositionClosed={data.isClosed}
+          // An open position reads as buy, so an own open position reports the
+          // pressed action instead (sell or buy).
+          isTraderPositionClosed={
+            isOwnPost && !data.isClosed ? undefined : data.isClosed
+          }
           postTradeShare
           initialTradeMode={quickBuyMode ?? undefined}
           isCopyTrade={quickBuyIsCopyTrade}

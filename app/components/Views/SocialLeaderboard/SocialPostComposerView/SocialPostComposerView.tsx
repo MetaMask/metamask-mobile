@@ -65,6 +65,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   fireImpact,
   ImpactMoment,
@@ -103,6 +104,7 @@ import type {
 } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import AddPositionBottomSheet from './AddPositionBottomSheet';
+import PrivateComposerContent from './PrivateComposerContent';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import {
   SocialEvent,
@@ -417,7 +419,7 @@ const ComposerPreview = ({
   );
 };
 
-const SocialPostComposerView: React.FC = () => {
+const SocialPostComposerEditor: React.FC = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
@@ -905,6 +907,11 @@ const SocialPostComposerView: React.FC = () => {
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );
+};
+
+const SocialPostComposerView: React.FC = () => {
+  const isPrivate = useSelector(selectIsProfileTradingActivityPrivate);
+  return isPrivate ? <PrivateComposerContent /> : <SocialPostComposerEditor />;
 };
 
 export default SocialPostComposerView;
