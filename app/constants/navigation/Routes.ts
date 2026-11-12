@@ -1,6 +1,7 @@
 const Routes = {
   MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
+  // Tab key and analytics name for the wallet tab.
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
@@ -324,6 +325,7 @@ const Routes = {
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
+    // Tab key and analytics name for the browser tab.
     VIEW: 'BrowserView',
     ASSET_LOADER: 'AssetLoader',
     ASSET_VIEW: 'AssetView',
@@ -334,7 +336,6 @@ const Routes = {
   },
   WALLET: {
     HOME: 'WalletTabHome',
-    TAB_STACK_FLOW: 'WalletTabStackFlow',
     WALLET_CONNECT_SESSIONS_VIEW: 'WalletConnectSessionsView',
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
