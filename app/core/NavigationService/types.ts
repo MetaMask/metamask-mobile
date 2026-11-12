@@ -175,6 +175,9 @@ import type { SendStackParamList } from '../../components/Views/confirmations/co
 // Predict params
 import type { PredictAppRouteParamList } from '../../components/UI/PredictNext';
 
+// Collectibles params
+import type { CollectiblesStackParamList } from '../../components/UI/Collectibles/types/navigation';
+
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
 import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
@@ -1038,6 +1041,10 @@ export type RootStackParamList = {
   PredictUnavailable: PredictAppRouteParamList['PredictUnavailable'];
   PredictMarketUnavailable: PredictAppRouteParamList['PredictMarketUnavailable'];
   PredictAddFundsSheet: PredictAppRouteParamList['PredictAddFundsSheet'];
+
+  // Collectibles routes — `Collectibles` is a nested stack navigator.
+  Collectibles: NavigatorScreenParams<CollectiblesStackParamList> | undefined;
+  CollectiblesHome: CollectiblesStackParamList['CollectiblesHome'];
 
   // Social Leaderboard routes
   SocialV0View:

@@ -131,6 +131,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -172,6 +173,12 @@ jest.mock(
       mockSelectPredictEnabledFlag(state),
   }),
 );
+
+jest.mock('../../UI/Collectibles', () => ({
+  CollectiblesScreenStack: () => 'CollectiblesScreenStack',
+  selectCollectiblesEnabledFlag: (state: unknown) =>
+    mockSelectCollectiblesEnabledFlag(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -1182,6 +1189,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabledFlag.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1281,6 +1289,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Collectibles route when its feature flag is enabled', () => {
+      mockSelectCollectiblesEnabledFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === Routes.COLLECTIBLES.ROOT,
+      );
+      expect(collectiblesScreen).toBeDefined();
+    });
+
+    it('excludes the Collectibles route when its feature flag is disabled', () => {
+      mockSelectCollectiblesEnabledFlag.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === Routes.COLLECTIBLES.ROOT,
+      );
+      expect(collectiblesScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {

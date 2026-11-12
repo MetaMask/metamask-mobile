@@ -221,6 +221,16 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   })),
 }));
 
+jest.mock('../../UI/Collectibles', () => ({
+  selectCollectiblesEnabledFlag: jest.fn(() => false),
+}));
+
+const mockCollectiblesSection = (enabled: boolean) => {
+  jest
+    .requireMock('../../UI/Collectibles')
+    .selectCollectiblesEnabledFlag.mockReturnValue(enabled);
+};
+
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
   UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
 }));
@@ -394,6 +404,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    COLLECTIBLES: 'collectibles',
   },
 }));
 
@@ -497,6 +508,7 @@ describe('Homepage', () => {
     mockIsNetworkEnabled.mockReturnValue(true);
     mockHardwareTier = 'MID';
     mockNetworkTier = 'WIFI';
+    mockCollectiblesSection(false);
   });
 
   it('uses one enabled Perps connection provider for the homepage', () => {
@@ -960,6 +972,43 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(7);
       });
+    });
+  });
+
+  describe('section indices — Collectibles enabled', () => {
+    const callBySectionName = (name: string) =>
+      getUseHomeViewedEventCalls().find((c) => c[0]?.sectionName === name)?.[0];
+
+    it('places Collectibles right after Predictions when its flag is enabled', () => {
+      mockCollectiblesSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('predict')?.sectionIndex).toBe(2);
+      expect(callBySectionName('collectibles')?.sectionIndex).toBe(3);
+      expect(callBySectionName('defi')?.sectionIndex).toBe(4);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+      getUseHomeViewedEventCalls().forEach((call) => {
+        expect(call[0]?.totalSectionsLoaded).toBe(6);
+      });
+    });
+
+    it('renders the Collectibles section when its flag is enabled without a Solana account', () => {
+      mockCollectiblesSection(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(screen.getByText('Collectibles')).toBeOnTheScreen();
+    });
+
+    it('leaves Collectibles out of the sections when its flag is disabled', () => {
+      mockCollectiblesSection(false);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(callBySectionName('collectibles')).toBeUndefined();
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
+      expect(screen.queryByText('Collectibles')).not.toBeOnTheScreen();
     });
   });
 
