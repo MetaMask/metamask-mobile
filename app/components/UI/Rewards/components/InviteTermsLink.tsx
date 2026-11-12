@@ -22,7 +22,7 @@ export const InviteTermsLink = ({
   link,
   testID,
   disabled = false,
-}: InviteTermsLinkProps): JSX.Element | null => {
+}: InviteTermsLinkProps): React.ReactElement | null => {
   const navigation = useNavigation<AppNavigationProp>();
   const handlePress = useCallback((): void => {
     if (!link || disabled) {
