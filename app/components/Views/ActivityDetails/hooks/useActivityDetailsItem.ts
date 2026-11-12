@@ -1,21 +1,14 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { mapApiTransaction } from '@metamask/client-utils';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
-  classifyPooledStakingActivity,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
-import { selectEvmAddress } from '../../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
-import {
-  selectSelectedAccountGroupEvmInternalAccount,
-  selectSelectedAccountGroupInternalAccounts,
-} from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectLocalActivityItemsByIdentifier } from '../../../../selectors/activity';
-import { selectExcludedActivityTransactionHashes } from '../../../../selectors/transactionController';
 import { useLocalTransactionMeta } from './useLocalTransactionMeta';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useApiTransaction } from '../../ActivityList/hooks/activity/useApiTransaction';
@@ -25,7 +18,6 @@ import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,
   mapV5ActivityItem,
-  shouldSkipUnrelatedTransaction,
 } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
 import {
@@ -126,16 +118,10 @@ export function useActivityDetailsItem(
   const rampActivityItemsById = useRampActivityItemsById();
   const { data: evmTransactions, isFetching: isListFetching } =
     useTransactionsQuery();
-  const groupEvmAccount = useSelector(
-    selectSelectedAccountGroupEvmInternalAccount,
-  );
-  const globalEvmAddress = useSelector(selectEvmAddress);
-  const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
-  const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const txHash =
@@ -191,44 +177,14 @@ export function useActivityDetailsItem(
   const localTransactionMeta = useLocalTransactionMeta(txIdentifier);
 
   const fetchedApiItem = useMemo(() => {
-    if (!apiTransaction || !evmAddress) {
+    if (!apiTransaction) {
       return undefined;
     }
 
-    // v5 maps as-is, like the extension's details page.
-    if ('tx' in apiTransaction) {
-      const activity = mapV5ActivityItem(apiTransaction);
-      return chainId && activity.chainId !== chainId ? undefined : activity;
-    }
-
-    // Participation gate only. Without it, by-hash results whose top-level
-    // from/to are not the subject (relayer gasless txs, unrelated hashes) still
-    // map to a plausible "Sent" with the native value fallback. The list's
-    // inbound-transfer filtering is deliberately not applied here: this request
-    // always includes value transfers, so it would drop genuine receives.
-    const subjectAddress = evmAddress.toLowerCase();
-    if (
-      shouldSkipUnrelatedTransaction(
-        subjectAddress,
-        apiTransaction,
-        excludedTxHashes,
-      )
-    ) {
-      return undefined;
-    }
-
-    const activity = mapApiTransaction({
-      subjectAddress,
-      transaction: apiTransaction,
-    }) as ActivityListItem;
-    const classified = classifyPooledStakingActivity(apiTransaction, activity);
-
-    if (chainId && classified.chainId !== chainId) {
-      return undefined;
-    }
-
-    return classified;
-  }, [apiTransaction, chainId, evmAddress, excludedTxHashes]);
+    // v5 endpoint always returns V5TransactionRecord
+    const activity = mapV5ActivityItem(apiTransaction);
+    return chainId && activity.chainId !== chainId ? undefined : activity;
+  }, [apiTransaction, chainId]);
 
   const item = useMemo(() => {
     if (!txIdentifier) {

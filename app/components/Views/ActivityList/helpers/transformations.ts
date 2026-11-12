@@ -8,7 +8,6 @@ import {
   mapV5ApiTransaction,
 } from '@metamask/client-utils';
 import {
-  type V1TransactionByHashResponse,
   type V5MultiAccountTransactionsResponse,
   type V5TransactionRecord,
 } from '@metamask/core-backend';
@@ -45,40 +44,6 @@ export const isBridgeHistoryForEvmTransaction = (
       equalsIgnoreCase(bridgeHistoryItem.status?.srcChain?.txHash, tx.hash)
     );
   });
-
-/**
- * Participation gate shared by the activity list and the Activity details
- * by-hash lookup: excluded hashes, transactions the subject does not take part
- * in at the top level, and no-op self transfers.
- *
- * `address` must already be lowercased.
- */
-export function shouldSkipUnrelatedTransaction(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-  excludedTxHashes?: Set<string>,
-) {
-  const rawFrom = transaction.from?.toLowerCase();
-  const rawTo = transaction.to?.toLowerCase();
-  const hash = transaction.hash?.toLowerCase();
-  const hasTopLevelAddressMatch = rawFrom === address || rawTo === address;
-
-  if (hash && excludedTxHashes?.has(hash)) {
-    return true;
-  }
-
-  if (!hasTopLevelAddressMatch) {
-    return true;
-  }
-
-  return (
-    rawFrom === address &&
-    rawTo === address &&
-    transaction.value === '0' &&
-    !transaction.valueTransfers?.length &&
-    (!transaction.methodId || transaction.methodId === '0x')
-  );
-}
 
 // Ported from Extension
 export function isZeroValueSelfSend(

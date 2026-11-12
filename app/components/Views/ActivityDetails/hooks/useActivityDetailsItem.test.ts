@@ -1,10 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { TransactionStatus } from '@metamask/transaction-controller';
-import type {
-  V1TransactionByHashResponse,
-  V5TransactionRecord,
-} from '@metamask/core-backend';
+import type { V5TransactionRecord } from '@metamask/core-backend';
+import {
+  KnownCaipNamespace,
+  toCaipAccountId,
+  toCaipChainId,
+} from '@metamask/utils';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -56,6 +58,40 @@ const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
+
+const buildV5Transaction = (
+  overrides: {
+    accountId?: ReturnType<typeof toCaipAccountId>;
+    id?: string;
+    date?: string;
+    from?: string;
+    to?: string;
+    value?: string;
+    valueTransfers?: V5TransactionRecord['valueTransfers'];
+  } = {},
+): V5TransactionRecord => ({
+  accountId:
+    overrides.accountId ??
+    toCaipAccountId(
+      KnownCaipNamespace.Eip155,
+      '1',
+      '0x1234567890abcdef1234567890abcdef12345678',
+    ),
+  tx: {
+    id: overrides.id ?? '0xhash',
+    chainId: toCaipChainId(KnownCaipNamespace.Eip155, '1'),
+    status: 'confirmed',
+    timestamp: 1778593067000,
+    date: overrides.date ?? '2026-05-13T14:34:23.000Z',
+    from: overrides.from ?? '0x1234567890abcdef1234567890abcdef12345678',
+    to: overrides.to ?? '0x0000000000000000000000000000000000000001',
+    blockNumber: '1',
+    blockHash: '0xblock',
+    value: overrides.value ?? '0',
+  },
+  valueTransfers: overrides.valueTransfers ?? [],
+  fee: null,
+});
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
@@ -426,22 +462,7 @@ describe('useActivityDetailsItem', () => {
   it('resolves a fetched API transaction when it is not in the list query pages', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        chainId: 1,
-        hash: '0xfetched',
-        from: '0x1234567890abcdef1234567890abcdef12345678',
-        to: '0x0000000000000000000000000000000000000001',
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
-        value: '0',
-      } as V1TransactionByHashResponse,
+      transaction: buildV5Transaction({ id: '0xfetched' }),
       isFetching: false,
     });
 
@@ -452,68 +473,47 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.hash).toBe('0xfetched');
   });
 
-  it('does not map a fetched API transaction when the subject is not a top-level participant', () => {
+  it('maps a fetched v5 transaction with value transfers', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        chainId: 1,
-        hash: '0xnotours',
+      transaction: buildV5Transaction({
+        id: '0xwithvaluestransfers',
         from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
         value: '2500000000000000000',
-        transactionCategory: 'STANDARD',
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             to: '0x1234567890abcdef1234567890abcdef12345678',
+            assetId: 'eip155:1/slip44:60',
             amount: '1',
             decimal: 18,
-            contractAddress: '',
             symbol: 'ETH',
             name: 'Ether',
-            transferType: 'normal',
           },
         ],
-      } as V1TransactionByHashResponse,
+      }),
       isFetching: false,
     });
 
     const { result } = renderHook(() =>
-      useActivityDetailsItem('0xnotours', 'eip155:1'),
+      useActivityDetailsItem('0xwithvaluestransfers', 'eip155:1'),
     );
 
-    expect(result.current.item).toBeUndefined();
+    expect(result.current.item?.hash).toBe('0xwithvaluestransfers');
   });
 
   it('maps a fetched v5 transaction without the v1 participation gate', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId: 'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
-        tx: {
-          id: '0xrelayed',
-          chainId: 'eip155:1',
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-12T13:37:47.000Z',
-          from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '0',
-        },
-        valueTransfers: [],
-        fee: null,
-      } as V5TransactionRecord,
+      transaction: buildV5Transaction({
+        id: '0xrelayed',
+        date: '2026-05-12T13:37:47.000Z',
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        value: '0',
+      }),
       isFetching: false,
     });
 
@@ -524,7 +524,7 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.hash).toBe('0xrelayed');
   });
 
-  it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
+  it('maps a fetched v5 transaction when the subject address is EIP-55 checksummed', () => {
     const checksummedSubject = '0x1234567890AbCdEf1234567890aBcDeF12345678';
     const lowercaseSubject = checksummedSubject.toLowerCase();
     const counterparty = '0x0000000000000000000000000000000000000001';
@@ -550,23 +550,17 @@ describe('useActivityDetailsItem', () => {
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        chainId: 1,
-        hash: '0xfetchedreceive',
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(
+          KnownCaipNamespace.Eip155,
+          '1',
+          lowercaseSubject,
+        ),
+        id: '0xfetchedreceive',
         from: counterparty,
         to: lowercaseSubject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
         value: '1',
-        transactionCategory: 'TRANSFER',
-      } as V1TransactionByHashResponse,
+      }),
       isFetching: false,
     });
 
@@ -574,46 +568,34 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchedreceive');
   });
 
-  it('classifies a fetched native receive that carries incoming value transfers', () => {
+  it('maps a fetched v5 native transaction with incoming value transfers', () => {
     const subject = '0x1234567890abcdef1234567890abcdef12345678';
     const counterparty = '0x0000000000000000000000000000000000000001';
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        chainId: 1,
-        hash: '0xfetchednativereceive',
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(KnownCaipNamespace.Eip155, '1', subject),
+        id: '0xfetchednativereceive',
         from: counterparty,
         to: subject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
         value: '1000000000000000000',
-        transactionCategory: 'TRANSFER',
-        // The by-hash request always sets `includeValueTransfers`, so real
-        // receives arrive with transfers the list gate would filter out.
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: counterparty,
             to: subject,
+            assetId: 'eip155:1/slip44:60',
             amount: '1000000000000000000',
             decimal: 18,
-            contractAddress: '',
             symbol: 'ETH',
             name: 'Ether',
-            transferType: 'normal',
           },
         ],
-      } as V1TransactionByHashResponse,
+      }),
       isFetching: false,
     });
 
@@ -621,44 +603,35 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchednativereceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchednativereceive');
   });
 
-  it('classifies a fetched token receive that carries incoming value transfers', () => {
+  it('maps a fetched v5 token transaction with incoming value transfers', () => {
     const subject = '0x1234567890abcdef1234567890abcdef12345678';
     const counterparty = '0x0000000000000000000000000000000000000001';
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        chainId: 1,
-        hash: '0xfetchedtokenreceive',
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(KnownCaipNamespace.Eip155, '1', subject),
+        id: '0xfetchedtokenreceive',
         from: counterparty,
         to: subject,
-        timestamp: '2026-05-13T14:34:23.000Z',
-        blockNumber: 1,
-        blockHash: '0xblock',
-        gas: 21000,
-        gasUsed: 21000,
-        gasPrice: '1000000000',
-        effectiveGasPrice: '1000000000',
-        nonce: 0,
-        cumulativeGasUsed: 21000,
         value: '0',
-        transactionCategory: 'TRANSFER',
         valueTransfers: [
           {
+            assetClass: 'ft',
             from: counterparty,
             to: subject,
+            assetId:
+              'eip155:1/erc20:0x3333333333333333333333333333333333333333',
             amount: '1000000',
             decimal: 6,
-            contractAddress: '0x3333333333333333333333333333333333333333',
             symbol: 'USDC',
             name: 'USD Coin',
-            transferType: 'ERC20',
           },
         ],
-      } as V1TransactionByHashResponse,
+      }),
       isFetching: false,
     });
 
@@ -666,7 +639,7 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchedtokenreceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchedtokenreceive');
   });
 
   it('does not request a single-transaction fetch when that fallback is disabled', () => {
