@@ -48,8 +48,7 @@ const mockPushNotificationPermissionFallback = jest.mocked(
 );
 
 const mockDismissPrePrompt = jest.fn();
-const mockMarkPrePromptShown = jest.fn();
-const mockUnmarkPrePromptShown = jest.fn();
+const mockMarkAnswered = jest.fn();
 
 const mockPrePromptState = ({
   isHomeUnobstructed = true,
@@ -60,8 +59,7 @@ const mockPrePromptState = ({
     dismiss: mockDismissPrePrompt,
     isHomeUnobstructed,
     isResolving: false,
-    markShown: mockMarkPrePromptShown,
-    unmarkShown: mockUnmarkPrePromptShown,
+    markAnswered: mockMarkAnswered,
     nativeOsPermissionEnabled,
     variant,
   });
@@ -75,7 +73,7 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUnmarkPrePromptShown.mockResolvedValue(undefined);
+    mockMarkAnswered.mockResolvedValue(undefined);
     mockIsPrePromptEnabled = true;
     mockPrePromptState();
   });
@@ -100,7 +98,7 @@ describe('PushNotificationOnboardingRoot', () => {
       expect.objectContaining({
         dismissPrePrompt: mockDismissPrePrompt,
         isVisible: true,
-        markPrePromptShown: mockMarkPrePromptShown,
+        onUserAnswered: mockMarkAnswered,
         nativeOsPermissionEnabled: false,
         prePromptVariant: 'push_permission',
       }),
@@ -135,7 +133,7 @@ describe('PushNotificationOnboardingRoot', () => {
     expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
   });
 
-  it('takes a visible pre-prompt down once home is obstructed', () => {
+  it('suspends presentation without discarding the pending snapshot', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -146,15 +144,17 @@ describe('PushNotificationOnboardingRoot', () => {
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
 
-    // The clearing effect runs after the first obstructed render; the sheet is
-    // gone from every render after it.
-    mockPushNotificationOnboarding.mockClear();
-    rerender(<PushNotificationOnboardingRoot />);
-
-    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+    expect(getLatestProps()).toEqual(
+      expect.objectContaining({
+        isVisible: false,
+        nativeOsPermissionEnabled: true,
+        prePromptVariant: 'push_permission',
+      }),
+    );
+    expect(mockMarkAnswered).not.toHaveBeenCalled();
   });
 
-  it('gives back the shown flag when home is obstructed before the user answers', () => {
+  it('resumes the same pending prompt when home returns', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -163,19 +163,27 @@ describe('PushNotificationOnboardingRoot', () => {
 
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
+    mockPrePromptState({ isHomeUnobstructed: true, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
 
-    expect(mockUnmarkPrePromptShown).toHaveBeenCalledTimes(1);
+    expect(getLatestProps()).toEqual(
+      expect.objectContaining({
+        isVisible: true,
+        nativeOsPermissionEnabled: true,
+        prePromptVariant: 'push_permission',
+      }),
+    );
+    expect(mockMarkAnswered).not.toHaveBeenCalled();
   });
 
-  it('keeps the shown flag when the user answers before home is obstructed', () => {
+  it('releases the session on completion before home is obstructed', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
     });
     const { rerender } = render(<PushNotificationOnboardingRoot />);
 
-    // Once answered, the hook has the prompt marked shown and resolves nothing.
+    // Once answered, the hook resolves nothing.
     const { onComplete } = getLatestProps();
     mockPrePromptState({ variant: null });
     act(() => {
@@ -184,10 +192,10 @@ describe('PushNotificationOnboardingRoot', () => {
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
 
-    expect(mockUnmarkPrePromptShown).not.toHaveBeenCalled();
+    expect(mockMarkAnswered).not.toHaveBeenCalled();
   });
 
-  it('keeps the shown flag when home is obstructed after the user answers and before the sheet completes', () => {
+  it('keeps the action owner mounted when navigation covers an answered prompt', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
       variant: 'push_permission',
@@ -200,11 +208,8 @@ describe('PushNotificationOnboardingRoot', () => {
     mockPrePromptState({ isHomeUnobstructed: false, variant: null });
     rerender(<PushNotificationOnboardingRoot />);
 
-    expect(mockUnmarkPrePromptShown).not.toHaveBeenCalled();
-    mockPushNotificationOnboarding.mockClear();
-    rerender(<PushNotificationOnboardingRoot />);
-
-    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+    expect(mockMarkAnswered).toHaveBeenCalledTimes(1);
+    expect(getLatestProps().isVisible).toBe(false);
   });
 
   it('latches the native OS permission status for the visible pre-prompt', () => {

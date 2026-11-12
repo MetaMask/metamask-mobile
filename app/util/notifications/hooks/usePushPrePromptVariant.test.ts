@@ -608,7 +608,7 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
-  it('marks the prompt as shown without hiding it until dismissed', async () => {
+  it('persists an answer and suppresses further resolution', async () => {
     mockNativePushPermissionStatus({
       nativeOsPermissionEnabled: false,
       nativeOsPermissionPromptable: true,
@@ -620,14 +620,14 @@ describe('usePushPrePromptVariant', () => {
     });
 
     await act(async () => {
-      await result.current.markShown();
+      await result.current.markAnswered();
     });
 
     expect(storageWrapper.setItem).toHaveBeenCalledWith(
       PUSH_PRE_PROMPT_SHOWN,
       TRUE,
     );
-    expect(result.current.variant).toBe('push_permission');
+    expect(result.current.variant).toBeNull();
 
     act(() => {
       result.current.dismiss();
@@ -636,26 +636,50 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.variant).toBeNull();
   });
 
-  it('takes back the shown flag so the prompt can resolve again', async () => {
+  it('does not persist an impression across remounts', async () => {
     mockNativePushPermissionStatus({
       nativeOsPermissionEnabled: false,
       nativeOsPermissionPromptable: true,
     });
-    const { result } = renderUsePushPrePromptVariant();
+    const { result, unmount } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
       expect(result.current.variant).toBe('push_permission');
     });
-    await act(async () => {
-      await result.current.markShown();
-    });
-    await act(async () => {
-      await result.current.unmarkShown();
-    });
+    unmount();
+    const remounted = renderUsePushPrePromptVariant();
 
-    expect(storageWrapper.removeItem).toHaveBeenCalledWith(
-      PUSH_PRE_PROMPT_SHOWN,
+    await waitFor(() =>
+      expect(remounted.result.current.variant).toBe('push_permission'),
     );
+    expect(storageWrapper.setItem).not.toHaveBeenCalled();
+    expect(storageWrapper.removeItem).not.toHaveBeenCalled();
+  });
+
+  it('suppresses the next mount after an answer is persisted', async () => {
+    // CV's HAS_TEST_OVERRIDES disables getItemSync. Exercise the real storage
+    // helpers here with only the storage I/O replaced by an in-memory value.
+    let storedAnswer: string | null = null;
+    jest
+      .spyOn(storageWrapper, 'getItemSync')
+      .mockImplementation(() => storedAnswer);
+    jest
+      .spyOn(storageWrapper, 'setItem')
+      .mockImplementation(async (_key, value) => {
+        storedAnswer = value;
+      });
+    const first = renderUsePushPrePromptVariant();
+    await waitFor(() => expect(first.result.current.variant).not.toBeNull());
+
+    await act(async () => {
+      await first.result.current.markAnswered();
+    });
+    first.unmount();
+    const second = renderUsePushPrePromptVariant();
+
+    await waitFor(() => expect(second.result.current.isResolving).toBe(false));
+    expect(second.result.current.variant).toBeNull();
+    expect(storedAnswer).toBe(TRUE);
   });
 
   it('does not return a prompt while home is obstructed', async () => {

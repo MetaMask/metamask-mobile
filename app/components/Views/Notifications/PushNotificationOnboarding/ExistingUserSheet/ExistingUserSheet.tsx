@@ -1,13 +1,12 @@
 import React, { useRef, useCallback } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
+  BottomSheet,
+  type BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -23,6 +22,8 @@ export interface ExistingUserSheetProps {
   onClose: (hasPendingAction?: boolean) => void;
   onConfirm?: () => void;
   onNotNow?: () => void;
+  /** Records a response before the button's close animation starts. */
+  onUserAnswered?: () => void;
   testID?: string;
 }
 
@@ -31,18 +32,23 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
   onClose,
   onConfirm,
   onNotNow,
+  onUserAnswered,
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const closeWithAction = useCallback((action?: () => void) => {
-    const callback = () => action?.();
-    if (!bottomSheetRef.current) {
-      callback();
-      return;
-    }
-    bottomSheetRef.current.onCloseBottomSheet(callback);
-  }, []);
+  const closeWithAction = useCallback(
+    (action?: () => void) => {
+      onUserAnswered?.();
+      const callback = () => action?.();
+      if (!bottomSheetRef.current) {
+        callback();
+        return;
+      }
+      bottomSheetRef.current.onCloseBottomSheet(callback);
+    },
+    [onUserAnswered],
+  );
 
   const handleConfirm = useCallback(() => {
     closeWithAction(onConfirm);
@@ -57,7 +63,6 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      shouldNavigateBack={false}
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
@@ -66,7 +71,10 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
-            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
+            onPress={() => {
+              onUserAnswered?.();
+              bottomSheetRef.current?.onCloseBottomSheet();
+            }}
           />
         </Box>
         <Box twClassName="mb-2 px-6">

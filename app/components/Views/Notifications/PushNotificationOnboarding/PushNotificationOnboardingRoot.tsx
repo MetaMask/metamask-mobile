@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import PushNotificationOnboarding, {
   type PushPrePromptCompletionReason,
@@ -21,18 +21,13 @@ const PushNotificationOnboardingRootContent = () => {
   const {
     dismiss: dismissPrePrompt,
     isHomeUnobstructed,
-    markShown: markPrePromptShown,
+    markAnswered,
     nativeOsPermissionEnabled,
-    unmarkShown: unmarkPrePromptShown,
     variant,
   } = usePushPrePromptVariant();
 
   const [visiblePrePrompt, setVisiblePrePrompt] =
     useState<VisiblePrePrompt | null>(null);
-  // Yes closes the sheet, then waits on the permission request before
-  // onComplete. The latch stays set through that wait, so this records the
-  // answer itself and keeps an obstruction from handing the shown flag back.
-  const userAnsweredRef = useRef(false);
 
   useEffect(() => {
     if (variant && !visiblePrePrompt) {
@@ -40,24 +35,8 @@ const PushNotificationOnboardingRootContent = () => {
     }
   }, [nativeOsPermissionEnabled, variant, visiblePrePrompt]);
 
-  // The latch above holds a shown sheet through resolution churn. Anything
-  // presented over home (a deeplink, say) takes it down, so it never sits over
-  // the screen the user moved to. A sheet the user has not answered can open
-  // again once home is clear. A sheet the user has answered stays counted,
-  // even while the permission request is still running.
-  useEffect(() => {
-    if (!isHomeUnobstructed && visiblePrePrompt) {
-      if (!userAnsweredRef.current) {
-        unmarkPrePromptShown().catch(() => undefined);
-      }
-      setVisiblePrePrompt(null);
-    }
-  }, [isHomeUnobstructed, unmarkPrePromptShown, visiblePrePrompt]);
-
-  const handleUserAnswered = useCallback(() => {
-    userAnsweredRef.current = true;
-  }, []);
-
+  // Preserve the pending session while navigation covers home. Only its
+  // presentation is suspended; answering and async permission work own its end.
   const currentPrePrompt =
     visiblePrePrompt ??
     (variant ? { nativeOsPermissionEnabled, variant } : null);
@@ -76,11 +55,10 @@ const PushNotificationOnboardingRootContent = () => {
   return (
     <PushNotificationOnboarding
       dismissPrePrompt={dismissPrePrompt}
-      isVisible
-      markPrePromptShown={markPrePromptShown}
+      isVisible={isHomeUnobstructed}
       nativeOsPermissionEnabled={currentPrePrompt.nativeOsPermissionEnabled}
       onComplete={handleComplete}
-      onUserAnswered={handleUserAnswered}
+      onUserAnswered={markAnswered}
       prePromptVariant={currentPrePrompt.variant}
     />
   );

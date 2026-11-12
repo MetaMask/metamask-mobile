@@ -6,34 +6,38 @@ import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
 
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const MockBottomSheet = MockReact.forwardRef(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ({ children }: any, ref: any) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return children;
-      },
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const MockBottomSheet = MockReact.forwardRef(
+    (
+      { children }: { children: React.ReactNode },
+      ref: React.ForwardedRef<
+        import('@metamask/design-system-react-native').BottomSheetRef
+      >,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: mockOnCloseBottomSheet,
+      }));
+      return children;
+    },
+  );
+  MockBottomSheet.displayName = 'MockBottomSheet';
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 jest.mock('@react-native-masked-view/masked-view', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockMaskedView = ({ children }: any) => children;
+  const MockMaskedView = ({ children }: { children: React.ReactNode }) =>
+    children;
   MockMaskedView.displayName = 'MaskedView';
   return { __esModule: true, default: MockMaskedView };
 });
 
 jest.mock('react-native-linear-gradient', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockLinearGradient = ({ children }: any) => children;
+  const MockLinearGradient = ({ children }: { children: React.ReactNode }) =>
+    children;
   MockLinearGradient.displayName = 'LinearGradient';
   return { __esModule: true, default: MockLinearGradient };
 });
@@ -115,5 +119,28 @@ describe('NewUserSheet', () => {
     expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
       mockOnNotNow.mock.invocationCallOrder[0],
     );
+  });
+
+  it('records Yes before closing and defers permission work until the close completes', () => {
+    const onAnswered = jest.fn();
+    const onYes = jest.fn();
+    mockOnCloseBottomSheet.mockImplementationOnce(() => undefined);
+    const { getByTestId } = renderWithProvider(
+      <NewUserSheet
+        {...defaultProps}
+        onUserAnswered={onAnswered}
+        onYes={onYes}
+      />,
+    );
+
+    fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_YES));
+
+    expect(onAnswered).toHaveBeenCalledTimes(1);
+    expect(onAnswered.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOnCloseBottomSheet.mock.invocationCallOrder[0],
+    );
+    expect(onYes).not.toHaveBeenCalled();
+    mockOnCloseBottomSheet.mock.calls[0][0]?.();
+    expect(onYes).toHaveBeenCalledTimes(1);
   });
 });

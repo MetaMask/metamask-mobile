@@ -4,23 +4,27 @@ import ExistingUserSheet from './ExistingUserSheet';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockReact = jest.requireActual('react');
-    const MockBottomSheet = MockReact.forwardRef(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ({ children }: any, ref: any) => {
-        MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => callback?.(),
-        }));
-        return children;
-      },
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const MockReact = jest.requireActual('react');
+  const MockBottomSheet = MockReact.forwardRef(
+    (
+      { children }: { children: React.ReactNode },
+      ref: React.ForwardedRef<
+        import('@metamask/design-system-react-native').BottomSheetRef
+      >,
+    ) => {
+      MockReact.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => callback?.(),
+      }));
+      return children;
+    },
+  );
+  MockBottomSheet.displayName = 'MockBottomSheet';
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 describe('ExistingUserSheet', () => {
   const mockOnClose = jest.fn();
@@ -65,5 +69,23 @@ describe('ExistingUserSheet', () => {
     );
     fireEvent.press(getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW));
     expect(mockOnNotNow).toHaveBeenCalledTimes(1);
+  });
+
+  it('records a response before running the confirm action', () => {
+    const onAnswered = jest.fn();
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <ExistingUserSheet
+        {...defaultProps}
+        onUserAnswered={onAnswered}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.press(getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM));
+
+    expect(onAnswered.mock.invocationCallOrder[0]).toBeLessThan(
+      onConfirm.mock.invocationCallOrder[0],
+    );
   });
 });
