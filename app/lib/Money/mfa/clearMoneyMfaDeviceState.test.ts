@@ -23,6 +23,8 @@ jest.mock('../../../core/Engine', () => ({
     context: {
       MoneyAccountLifecycleController: {
         startMigration: jest.fn(() => Promise.resolve()),
+        refresh: jest.fn(() => Promise.resolve()),
+        state: { moneyAccounts: {} },
       },
     },
   },
