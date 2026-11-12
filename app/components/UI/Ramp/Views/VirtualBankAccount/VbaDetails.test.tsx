@@ -693,7 +693,7 @@ describe('VbaDetails', () => {
       ).toHaveTextContent(
         `${strings('virtual_bank_account.vba_details.risk_disclosure')} ${strings(
           'virtual_bank_account.vba_details.provider_disclosure_link',
-        )}`,
+        ).replace(/ /g, '\u00A0')}`,
       );
       expect(strings('virtual_bank_account.vba_details.risk_disclosure')).toBe(
         'Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.',

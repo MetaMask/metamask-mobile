@@ -1005,9 +1005,10 @@ const VbaDetails = () => {
               onPress={handleOpenRiskInfo}
               testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK}
             >
+              {/* Non-breaking spaces keep the link label on one line. */}
               {strings(
                 'virtual_bank_account.vba_details.provider_disclosure_link',
-              )}
+              ).replace(/ /g, '\u00A0')}
             </TextButton>
           </Text>
         ) : null}
