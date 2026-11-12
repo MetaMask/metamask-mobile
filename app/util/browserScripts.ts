@@ -525,6 +525,214 @@ export const buildWebDownloadInterceptorScript = (): string =>
 })();
 true;`;
 
+/**
+ * Rewrites iframe navigations to `blob:` documents into `srcdoc`.
+ *
+ * TradingView chart widgets build the chart frame with `URL.createObjectURL`.
+ * iOS asks JavaScript whether to allow that navigation before WebKit loads it,
+ * and the blob document is gone by the time the answer comes back, so the
+ * chart stays blank. `srcdoc` renders the same HTML without that navigation.
+ * The script is installed in every frame because the widget creates the iframe
+ * inside its own cross-origin document.
+ */
+export const buildBlobIframeSrcdocScript = (): string =>
+  `(function () {
+  try {
+  if (window.__mmBlobIframeShim) {
+    return;
+  }
+  window.__mmBlobIframeShim = true;
+
+  // WebKit defines iframe.src on HTMLFrameElement.prototype, not on
+  // HTMLIFrameElement.prototype. Own-property lookup on the iframe prototype
+  // misses it, and the chart frame is then loaded as a blob: navigation.
+  function findSrcDescriptor(proto) {
+    var current = proto;
+    while (current) {
+      var descriptor = Object.getOwnPropertyDescriptor(current, 'src');
+      if (descriptor && typeof descriptor.set === 'function') {
+        return descriptor;
+      }
+      current = Object.getPrototypeOf(current);
+    }
+    return null;
+  }
+
+  var iframeProto = window.HTMLIFrameElement && window.HTMLIFrameElement.prototype;
+  var srcDescriptor = iframeProto ? findSrcDescriptor(iframeProto) : null;
+  if (!iframeProto || !srcDescriptor) {
+    return;
+  }
+
+  var blobs = new Map();
+  // The download interceptor already caps its own registry. This map is a
+  // second copy, so it needs its own bound or a page that mints object URLs
+  // for images would pin every Blob for the life of the document.
+  var BLOB_IFRAME_LIMIT = 30;
+  function rememberBlob(url, blob) {
+    if (!blob || typeof blob.text !== 'function') {
+      return;
+    }
+    if (blobs.size >= BLOB_IFRAME_LIMIT) {
+      var oldest = blobs.keys().next().value;
+      blobs.delete(oldest);
+    }
+    blobs.set(url, blob);
+  }
+  // PDFs, images, and other binary iframe targets must keep the native blob
+  // load. srcdoc would show their bytes as text.
+  function isBinaryBlob(blob) {
+    var type = blob && blob.type ? String(blob.type).toLowerCase() : '';
+    return type.indexOf('image/') === 0 ||
+      type.indexOf('audio/') === 0 ||
+      type.indexOf('video/') === 0 ||
+      type.indexOf('application/pdf') === 0 ||
+      type.indexOf('application/octet-stream') === 0;
+  }
+  if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+    var nativeCreateObjectURL = URL.createObjectURL;
+    var nativeRevokeObjectURL = URL.revokeObjectURL;
+    URL.createObjectURL = function (blob) {
+      var url = nativeCreateObjectURL.call(URL, blob);
+      rememberBlob(url, blob);
+      return url;
+    };
+    URL.revokeObjectURL = function (url) {
+      if (typeof nativeRevokeObjectURL === 'function') {
+        nativeRevokeObjectURL.call(URL, url);
+      }
+      // Keep the Blob until the iframe has copied its HTML. Revoke only
+      // invalidates the URL; the Blob object itself stays readable.
+      setTimeout(function () {
+        blobs.delete(url);
+      }, 10000);
+    };
+  }
+
+  function readBlob(blobUrl) {
+    var blob = blobs.get(blobUrl);
+    if (blob && typeof blob.text === 'function') {
+      return blob.text();
+    }
+    return fetch(blobUrl).then(function (response) {
+      return response.text();
+    });
+  }
+
+  function renderBlob(iframe, blobUrl) {
+    if (!iframe || iframe.__mmBlobRendered === blobUrl) {
+      return;
+    }
+    iframe.__mmBlobRendered = blobUrl;
+    readBlob(blobUrl).then(function (html) {
+      // Only reject payloads that are clearly not a document. Chart HTML is
+      // not always a full <html> document, and falling back to the native blob
+      // load leaves that iframe blank on iOS.
+      var sample = typeof html === 'string' ? html.slice(0, 20) : '';
+      var isBinaryDocument = sample.indexOf('%PDF') === 0 ||
+        sample.indexOf('GIF8') === 0 ||
+        sample.indexOf('\u0089PNG') === 0;
+      if (typeof html !== 'string' || html.length === 0 || isBinaryDocument) {
+        iframe.__mmBlobRendered = '';
+        try {
+          srcDescriptor.set.call(iframe, blobUrl);
+        } catch (e) {}
+        return;
+      }
+      var baseHref = '';
+      try {
+        baseHref = String(location.href || '').split('#')[0];
+      } catch (e) {}
+      if (baseHref && html.indexOf('<base ') === -1 && html.indexOf('<base>') === -1) {
+        html = html.replace(/<head[^>]*>/i, function (head) {
+          return head + '<base href="' + baseHref.replace(/[&"<>]/g, function (ch) {
+            return ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[ch];
+          }) + '">';
+        });
+      }
+      iframe.srcdoc = html;
+    }).catch(function () {
+      iframe.__mmBlobRendered = '';
+      try {
+        srcDescriptor.set.call(iframe, blobUrl);
+      } catch (e) {}
+    });
+  }
+
+  Object.defineProperty(iframeProto, 'src', {
+    configurable: true,
+    enumerable: Boolean(srcDescriptor.enumerable),
+    get: function () {
+      return srcDescriptor.get ? srcDescriptor.get.call(this) : '';
+    },
+    set: function (value) {
+      if (typeof value === 'string' && value.indexOf('blob:') === 0) {
+        if (isBinaryBlob(blobs.get(value))) {
+          srcDescriptor.set.call(this, value);
+          return;
+        }
+        renderBlob(this, value);
+        return;
+      }
+      srcDescriptor.set.call(this, value);
+    },
+  });
+
+  var nativeSetAttribute = iframeProto.setAttribute;
+  if (typeof nativeSetAttribute === 'function') {
+    iframeProto.setAttribute = function (name, value) {
+      if (String(name).toLowerCase() === 'src') {
+        this.src = value;
+        return;
+      }
+      return nativeSetAttribute.apply(this, arguments);
+    };
+  }
+
+  function observeIframes() {
+    if (!document.documentElement || typeof MutationObserver !== 'function') {
+      return;
+    }
+    var observer = new MutationObserver(function (records) {
+      records.forEach(function (record) {
+        var nodes = [];
+        if (record.type === 'attributes') {
+          nodes.push(record.target);
+        } else if (record.addedNodes) {
+          record.addedNodes.forEach(function (node) {
+            nodes.push(node);
+          });
+        }
+        nodes.forEach(function (node) {
+          if (!node || node.tagName !== 'IFRAME') {
+            return;
+          }
+          var src = node.getAttribute && node.getAttribute('src');
+          if (typeof src === 'string' && src.indexOf('blob:') === 0) {
+            renderBlob(node, src);
+          }
+        });
+      });
+    });
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src'],
+    });
+  }
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', observeIframes);
+    } else {
+      observeIframes();
+    }
+  }
+  } catch (e) {}
+})();
+true;`;
+
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,
   _origin: string,

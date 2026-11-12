@@ -261,6 +261,13 @@ describe('Browser utils :: protocolWhitelist', () => {
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
+  it('blob:', () => {
+    const { protocol } = new URL(
+      'blob:https://www.tradingview.com/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+    );
+
+    expect(protocolAllowList.includes(protocol)).toBeTruthy();
+  });
   it('wc:', () => {
     const { protocol } = new URL('wc:f82jdjfjakjskdfj');
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -412,6 +413,35 @@ describe('BrowserTab', () => {
           url: 'tel:+1234567890',
         }),
       ).toBe(false);
+    });
+
+    it('loads blob iframe URLs without an external-application alert', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://www.tradingview.com/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+        }),
+      ).toBe(true);
+      expect(alertSpy).not.toHaveBeenCalled();
+      expect(
+        webView.props.injectedJavaScriptBeforeContentLoadedForMainFrameOnly,
+      ).toBe(false);
+      expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+        '__mmBlobIframeShim',
+      );
+
+      alertSpy.mockRestore();
     });
 
     it('allow https resorce to load on webview', async () => {

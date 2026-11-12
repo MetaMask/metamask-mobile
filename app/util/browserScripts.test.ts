@@ -1,3 +1,6 @@
+// The chart shim is a page script. vm runs it in the test without shipping a Node builtin in the app.
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { runInNewContext } from 'vm';
 import {
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
@@ -6,6 +9,7 @@ import {
   buildWebClipboardPolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
+  buildBlobIframeSrcdocScript,
 } from './browserScripts';
 
 describe('buildWebSharePolyfillScript', () => {
@@ -150,5 +154,247 @@ describe('buildWebDownloadInterceptorScript', () => {
     // Pre-setting this flag stops BlobFileDownloader.kt from assigning
     // window.downloadBlob and clobbering page globals with that name.
     expect(script).toContain('window.blobDownloadInjected = true');
+  });
+});
+
+describe('buildBlobIframeSrcdocScript', () => {
+  const flush = async () => {
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+  };
+
+  const install = (sandbox: Record<string, unknown>) => {
+    sandbox.window = sandbox;
+    runInNewContext(buildBlobIframeSrcdocScript(), sandbox);
+  };
+
+  it('renders a blob iframe document through srcdoc', async () => {
+    const fetched: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      get() {
+        return '';
+      },
+      set() {
+        return undefined;
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const iframe = Object.create(iframeProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://www.tradingview.com/widget' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      fetch: (url: string) => {
+        fetched.push(url);
+        return Promise.resolve({
+          text: () =>
+            Promise.resolve('<html><head></head><body>chart</body></html>'),
+        });
+      },
+      URL: {
+        createObjectURL: () => 'blob:unused',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+
+    install(sandbox);
+    iframe.src = 'blob:https://www.tradingview.com/chart-frame';
+    await flush();
+
+    expect(fetched).toEqual(['blob:https://www.tradingview.com/chart-frame']);
+    expect(iframe.srcdoc).toContain(
+      '<base href="https://www.tradingview.com/widget">',
+    );
+    expect(iframe.srcdoc).toContain('chart');
+  });
+
+  it('reads a blob created on a parent src setter without fetch', async () => {
+    const html = '<html><head></head><body>chart</body></html>';
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      get() {
+        return '';
+      },
+      set() {
+        return undefined;
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    iframeProto.setAttribute = function setAttribute(
+      this: { src: string },
+      name: string,
+      value: string,
+    ) {
+      if (name === 'src') {
+        this.src = value;
+      }
+    };
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://www.tradingview.com/widget#chart' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      fetch: () => Promise.reject(new Error('fetch should not run')),
+      URL: {
+        createObjectURL: () => 'blob:https://www.tradingview.com/created',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var blob = { text: function () { return Promise.resolve(${JSON.stringify(html)}); } };
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = URL.createObjectURL(blob);
+        iframe;
+      `,
+      sandbox,
+    );
+    await flush();
+
+    expect(iframe.srcdoc).toContain(
+      '<base href="https://www.tradingview.com/widget">',
+    );
+    expect(iframe.srcdoc).toContain('chart');
+  });
+
+  it('leaves https iframe sources on the native setter', () => {
+    const assigned: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      set(value: string) {
+        assigned.push(value);
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://example.com' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      URL: {
+        createObjectURL: () => 'blob:unused',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = 'https://example.com/embed';
+        iframe;
+      `,
+      sandbox,
+    );
+
+    expect(assigned).toEqual(['https://example.com/embed']);
+    expect(iframe.srcdoc).toBeUndefined();
+  });
+
+  it('leaves pdf blob iframes on the native setter', () => {
+    const assigned: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      set(value: string) {
+        assigned.push(value);
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://example.com' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      URL: {
+        createObjectURL: () => 'blob:https://example.com/file.pdf',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var blob = { type: 'application/pdf', text: function () { return Promise.resolve('%PDF-1.7'); } };
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = URL.createObjectURL(blob);
+        iframe;
+      `,
+      sandbox,
+    );
+
+    expect(assigned).toEqual(['blob:https://example.com/file.pdf']);
+    expect(iframe.srcdoc).toBeUndefined();
   });
 });
