@@ -54,10 +54,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.earn_rewards.musd_disclaimer_accessibility_label':
         'mUSD APY disclaimer',
       'rewards.earn_rewards.musd_subtitle': 'Money accounts are here',
-      'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
-      'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
+      'rewards.earn_rewards.card_title': 'Spend your crypto',
+      'rewards.earn_rewards.card_subtitle':
+        'Spend anywhere Mastercard is accepted.',
       'rewards.earn_rewards.card_subtitle_cardholder':
-        'Access your MetaMask Card benefits',
+        'Spend anywhere Mastercard is accepted.',
     };
     const value = map[key] || key;
     return params
@@ -269,8 +270,10 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for MetaMask card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% back on spend')).toBeOnTheScreen();
-      expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
+      expect(getByText('Spend your crypto')).toBeOnTheScreen();
+      expect(
+        getByText('Spend anywhere Mastercard is accepted.'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -278,7 +281,9 @@ describe('EarnRewardsPreview', () => {
     it('shows cardholder subtitle when isCardholder is true', () => {
       setupSelectors({ geoLocation: 'US', isCardholder: true });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+      expect(
+        getByText('Spend anywhere Mastercard is accepted.'),
+      ).toBeOnTheScreen();
     });
 
     it('shows cardholder subtitle when isAuthenticatedCard is true', () => {
@@ -287,7 +292,9 @@ describe('EarnRewardsPreview', () => {
         isAuthenticatedCard: true,
       });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+      expect(
+        getByText('Spend anywhere Mastercard is accepted.'),
+      ).toBeOnTheScreen();
     });
 
     it('shows cardholder subtitle when both isCardholder and isAuthenticatedCard are true', () => {
@@ -297,13 +304,17 @@ describe('EarnRewardsPreview', () => {
         isAuthenticatedCard: true,
       });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
+      expect(
+        getByText('Spend anywhere Mastercard is accepted.'),
+      ).toBeOnTheScreen();
     });
 
     it('shows default subtitle when neither isCardholder nor isAuthenticatedCard', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
+      expect(
+        getByText('Spend anywhere Mastercard is accepted.'),
+      ).toBeOnTheScreen();
     });
   });
 
