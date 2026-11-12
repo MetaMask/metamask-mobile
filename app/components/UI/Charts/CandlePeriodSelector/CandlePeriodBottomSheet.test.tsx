@@ -1,3 +1,7 @@
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/perps-controller', () => {
   const actual = jest.requireActual('@metamask/perps-controller');
   return {

@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FilterButton,
@@ -32,6 +31,9 @@ import {
   getPerpsSlippageConfigSelector,
 } from '../../Perps.testIds';
 import PerpsCustomSlippageBottomSheet from './PerpsCustomSlippageBottomSheet';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsSlippageBottomSheetProps {
   isVisible: boolean;
@@ -50,6 +52,7 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
   onClose,
   onSave,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const [selectedBps, setSelectedBps] = useState(currentValueBps);
@@ -131,9 +134,9 @@ const PerpsSlippageBottomSheet: React.FC<PerpsSlippageBottomSheetProps> = ({
       onClose={onClose}
       testID={PerpsSlippageConfigSelectorsIDs.BOTTOM_SHEET}
     >
-      <BottomSheetHeader onClose={onClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={onClose}>
         {strings('perps.slippage.config_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

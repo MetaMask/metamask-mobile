@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -25,6 +24,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import CrossMarginIcon from '../../../../../images/perps/margin-mode/cross.svg';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import PerpsSelectionOptionCard from '../PerpsSelectionBottomSheet/PerpsSelectionOptionCard';
 import PerpsCrossMarginRatioBanner from '../PerpsCrossMarginRatioBanner';
 import {
@@ -67,6 +68,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   crossMarginRatio,
   onMarginModeSelect,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const internalSheetRef = useRef<BottomSheetRef>(null);
@@ -128,7 +130,8 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PerpsMarginModeBottomSheetSelectorsIDs.CLOSE_BUTTON,
@@ -139,7 +142,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
               market: marketLabel,
             })
           : strings('perps.margin_mode.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box gap={2} twClassName="px-4 pb-4">
         <Box accessibilityRole="radiogroup" gap={2}>
           <PerpsSelectionOptionCard
