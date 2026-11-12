@@ -14,7 +14,12 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  SectionDivider,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -206,55 +211,75 @@ const PredictHome: React.FC = () => {
               </Text>
             </Box>
 
-            <Box twClassName="gap-8">
+            <Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />
-              <PredictPortfolioModule
-                isGlass={isGlass}
-                onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-              />
+              <Box twClassName="pb-3">
+                <PredictPortfolioModule
+                  isGlass={isGlass}
+                  onDepositWalletWithdrawPress={
+                    handleDepositWalletWithdrawPress
+                  }
+                />
+              </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPortfolio}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.LIVE_NOW,
                 )}
+                twClassName="pt-3 pb-3"
               >
                 <PredictLiveNowSection />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterLiveNow}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.CATEGORIES,
                 )}
+                twClassName="pt-3 pb-3"
               >
                 <PredictCategoriesSection />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterCategories}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.POPULAR_TODAY,
                 )}
+                twClassName="pt-3 pb-3"
               >
                 <PredictPopularTodaySection />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPopularToday}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.TRENDING,
                 )}
+                twClassName="pt-3"
               >
                 <PredictTrendingSection />
               </Box>
