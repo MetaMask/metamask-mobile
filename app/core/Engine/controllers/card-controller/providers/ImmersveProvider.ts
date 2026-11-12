@@ -713,6 +713,11 @@ export class ImmersveProvider implements ICardProvider {
   private readonly hasFundingChannelLookup: boolean;
   private readonly getSelectedCountry: () => string | null;
   private readonly isMfaEnabled: () => boolean;
+  /** Card list requests in flight, by cardholder account. Concurrent callers share one. */
+  private readonly currentCardRequests = new Map<
+    string,
+    Promise<ImmersveCardListItem | null>
+  >();
 
   constructor({
     service,
@@ -1329,12 +1334,20 @@ export class ImmersveProvider implements ICardProvider {
       );
     }
 
-    const { items } = await this.service.get<ImmersveCardListResponse>(
-      `/api/accounts/${accountId}/cards?excludeExpired=true`,
-      tokens,
-    );
-
-    return this.pickCurrentCard(items ?? []);
+    let request = this.currentCardRequests.get(accountId);
+    if (!request) {
+      request = this.service
+        .get<ImmersveCardListResponse>(
+          `/api/accounts/${accountId}/cards?excludeExpired=true`,
+          tokens,
+        )
+        .then(({ items }) => this.pickCurrentCard(items ?? []))
+        .finally(() => {
+          this.currentCardRequests.delete(accountId);
+        });
+      this.currentCardRequests.set(accountId, request);
+    }
+    return request;
   }
 
   private pickCurrentCard(

@@ -1199,6 +1199,7 @@
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
@@ -1388,11 +1389,13 @@
       "live_stream": {
         "paused": "Paused",
         "live": "Live",
-        "new_posts": {
-          "one": "{{count}} new post",
-          "other": "{{count}} new posts"
+        "new_posts": "{{count}} new",
+        "new_posts_capped": "{{count}}+ new",
+        "new_posts_accessibility": {
+          "one": "{{count}} new update",
+          "other": "{{count}} new updates"
         },
-        "new_posts_capped": "{{count}}+ new posts"
+        "new_posts_capped_accessibility": "{{count}}+ new updates"
       },
       "following": "Following",
       "all": "All",
@@ -1434,7 +1437,11 @@
         },
         "following": {
           "title": "No posts yet",
-          "description": "Follow traders to see their posts here."
+          "description": "No one has posted yet."
+        },
+        "following_suggestions": {
+          "title": "Suggested for you",
+          "description": "Follow a few traders to populate your Following feed."
         },
         "live": {
           "title": "No trades yet",
@@ -1496,6 +1503,7 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_original": "See original",
       "see_more": "See more",
       "see_less": "See less",
       "translating": "Translating...",
@@ -1799,6 +1807,9 @@
       "not_counted_sheet_unsupported_label": "Unsupported token",
       "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
       "not_counted_sheet_dismiss": "Got it",
+      "not_counted_note_one": "1 position not counted in P&L",
+      "not_counted_note_other": "{{count}} positions not counted in P&L",
+      "not_counted_note_hint": "Scrolls to positions not counted",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -3870,6 +3881,12 @@
       "politics": "Politics",
       "sports": "Sports"
     },
+    "home_feed": {
+      "trending": "Trending",
+      "sports": "Sports",
+      "games_error": "Games couldn’t be loaded.",
+      "retry": "Retry"
+    },
     "get_started_banner": {
       "title": "Get started in a few steps",
       "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
@@ -5019,6 +5036,10 @@
     "title_nft": "Import NFT",
     "search_token": "Search",
     "custom_token": "Custom token",
+    "hidden_tokens": "Hidden tokens",
+    "unhide": "Unhide",
+    "add_custom_token_cta": "Can't find your token? Add a custom token",
+    "no_hidden_tokens": "You don't have any hidden tokens.",
     "tokens": {
       "cancel_add_token": "Cancel",
       "add_token": "Import"
@@ -5429,6 +5450,12 @@
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
+    "groups": {
+      "general": "General",
+      "security_and_privacy": "Security and privacy",
+      "transactions_and_assets": "Transactions and assets",
+      "more": "More"
+    },
     "current_conversion": "Base currency",
     "current_language": "Current language",
     "ipfs_gateway": "IPFS gateway",
@@ -5451,6 +5478,9 @@
     "reveal_seed_words": "Reveal Secret Recovery Phrase",
     "reset_account": "Reset account",
     "state_logs_button": "Download state logs",
+    "money_account_status": "Money account status",
+    "money_account_status_desc": "View debug information about your Money account.",
+    "money_account_status_button": "View Money account status",
     "reveal_seed_words_button": "Reveal Secret Recovery Phrase",
     "reset_account_button": "Reset account",
     "reset_account_confirm_button": "Yes, reset",
@@ -5506,6 +5536,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "General",
+    "preferences_and_display_title": "Preferences and display",
     "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
     "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
@@ -9674,13 +9705,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Get your MetaMask Card",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Get card",
           "cta_secondary": "Skip"
         },
         "unlinked_card_account": {
           "title": "Link your MetaMask Card",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
           "cta_secondary": "Skip"
         }
@@ -9701,7 +9732,7 @@
       "benefit_withdraw_title": "Withdraw anytime",
       "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
@@ -9751,8 +9782,8 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
-      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
+      "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
@@ -9827,11 +9858,9 @@
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
-      "cashback": "{{percentage}}% mUSD back",
       "link_title": "Link card",
-      "link_subtitle": "Spend your balance and earn on purchases.",
-      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
-      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
@@ -9843,14 +9872,14 @@
       "update_success_title": "Your spending limit was updated",
       "update_error": "Something went wrong updating your spending limit",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
+      "link_card_sheet_description_prefix": "Link your card to spend your Money balance while it keeps earning up to",
       "link_card_sheet_description_suffix": " (variable).",
-      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
+      "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Link card",
       "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
       "unlink_card_sheet_title_with_funding_source": "Are you sure?",
-      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
-      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
@@ -9862,8 +9891,7 @@
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
-      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% mUSD back",
+      "benefit_spend": "Spend at 150M+ merchants with MetaMask Card",
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
@@ -10104,6 +10132,44 @@
         "title": "Money Account is on its way",
         "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
       }
+    },
+    "account_status": {
+      "title": "Money account status",
+      "loading": "Loading…",
+      "no_account": "No Money account found for this wallet.",
+      "address_title": "Money account address",
+      "copy": "Copy {{label}}",
+      "copied": "{{label}} copied",
+      "not_available": "Not available",
+      "flag_not_set": "Not set in remote flags",
+      "debug_title": "Debug info",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "MetaMetrics ID",
+      "profile_id": "Profile ID",
+      "summary_title": "Summary",
+      "chomp_registration": "CHOMP registration",
+      "summary": {
+        "registered": "Registered",
+        "pending": "Pending",
+        "incomplete": "Incomplete",
+        "unknown": "Unknown"
+      },
+      "request_error": "Some requests failed. Pull down to retry.",
+      "signals_title": "Signals",
+      "profile_association": "Profile association",
+      "account_upgrade": "Account upgrade",
+      "intents": "Intents",
+      "local_record": "Device upgrade record",
+      "local_record_completed_at": "Device upgrade completed {{date}}",
+      "signal": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "missing": "Missing",
+        "unknown": "Unknown"
+      },
+      "upgrades_title": "Upgrades",
+      "intents_title": "Intents",
+      "chain": "Chain {{chainId}}"
     }
   },
   "stake": {
@@ -10896,7 +10962,6 @@
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
     "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
-    "gas_fee_deduction": "-{{fee}} for gas",
     "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
@@ -11440,19 +11505,16 @@
         "name": "Virtual Card",
         "price": "Free",
         "feature_1": "Virtual card for Apple Pay and Google Pay",
-        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
-        "feature_3": "1% mUSD back on every purchase"
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)"
       },
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/year",
         "everything_in_virtual": "Everything in virtual, plus:",
         "feature_1": "Premium engraved metal card",
-        "feature_2": "3% mUSD back on first $10,000/year",
         "feature_3": "No foreign transaction fees"
       },
-      "earn_up_to_badge": "Earn up to $300 in mUSD back annually",
-      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
+      "upgrade_to_metal_label": "Or upgrade to Metal"
     },
     "review_order": {
       "title": "Review your order",
@@ -11472,7 +11534,7 @@
     "order_completed": {
       "title": "Your card is on the way",
       "subtitle": "It should arrive in 4 to 6 weeks.",
-      "description": "Set up your virtual card and add it to your digital wallet to start earning mUSD back.",
+      "description": "Set up your virtual card and add it to your digital wallet to start spending.",
       "set_up_card_button": "Set up card",
       "back_to_card_button": "Back to Card"
     },
@@ -11513,9 +11575,9 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend and earn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
-      "apply_now_button": "Set up now",
+      "title": "Spend anywhere",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
+      "apply_now_button": "Get card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12022,10 +12084,10 @@
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
       "spend_and_earn_title": "Spend and earn",
-      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
       "spend_and_earn_description_suffix": " (variable) on your balance.",
-      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and spend it anywhere Mastercard is accepted.",
       "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
@@ -12536,31 +12598,13 @@
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
-      "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
-      "not_supported_account_type_title": "Account type not supported",
       "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
-      "not_supported_confirm_go_back": "Go back",
-      "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
-      "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
-      "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
       "step_finish": "Let's go",
       "step_skip": "Skip",
-      "title": "Start earning rewards",
-      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
-      "sign_up": "Join Rewards",
-      "sign_up_loading": "Joining...",
-      "legal_disclaimer_1": "By joining, you agree to the",
-      "legal_disclaimer_2": "Terms of Use",
-      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
-      "legal_disclaimer_4": "Learn more",
-      "referral_label": "Referral code"
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask."
     },
     "settings": {
       "title": "Rewards settings",

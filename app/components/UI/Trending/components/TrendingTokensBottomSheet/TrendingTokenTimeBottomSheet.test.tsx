@@ -11,6 +11,11 @@ const mockOnOpenBottomSheet = jest.fn();
 
 let storedOnClose: (() => void) | undefined;
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {

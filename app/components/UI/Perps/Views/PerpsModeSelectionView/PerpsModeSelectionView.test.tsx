@@ -56,6 +56,13 @@ let mockIsProModeEnabled = true;
 let mockPerpsMode = PerpsMode.Lite;
 let mockRouteParams: { entry?: string; source?: string } = {};
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
