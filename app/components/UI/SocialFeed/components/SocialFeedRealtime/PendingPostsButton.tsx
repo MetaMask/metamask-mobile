@@ -20,7 +20,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import CapsuleGlass from '#app/component-library/components-temp/CapsuleGlass/CapsuleGlass';
-import { useComponentSize } from '#app/component-library/hooks/useComponentSize';
 import { useLiquidGlass } from '#app/component-library/hooks/useLiquidGlass';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { playSelection } from '../../../../../util/haptics';
@@ -45,7 +44,7 @@ const PENDING_POSTS_FADE_OUT = FadeOut.springify()
   .mass(0.4);
 
 const LABEL_TEXT_PROPS = {
-  color: TextColor.TextPrimary,
+  color: TextColor.PrimaryDefault,
   fontFamily: FontFamily.Default,
   fontWeight: FontWeight.Bold,
   variant: TextVariant.BodySm,
@@ -155,7 +154,6 @@ const PendingPostsButton = ({
   const tw = useTailwind();
   const { shadows } = useTheme();
   const { isGlassEnabled, isBlurEnabled } = useLiquidGlass();
-  const { size: pillSize, onLayout: handlePillLayout } = useComponentSize();
   if (pendingNewCount <= 0) {
     return null;
   }
@@ -174,14 +172,14 @@ const PendingPostsButton = ({
 
   return (
     <Animated.View
-      entering={PENDING_POSTS_FADE_IN}
-      exiting={PENDING_POSTS_FADE_OUT}
+      // iOS drops glass and blur under animated opacity, so those only zoom.
+      entering={isMaterialSurface ? undefined : PENDING_POSTS_FADE_IN}
+      exiting={isMaterialSurface ? undefined : PENDING_POSTS_FADE_OUT}
+      testID={PENDING_POSTS_PILL_TEST_ID}
     >
       <Animated.View
         entering={PENDING_POSTS_ZOOM_IN}
         exiting={PENDING_POSTS_ZOOM_OUT}
-        onLayout={handlePillLayout}
-        testID={PENDING_POSTS_PILL_TEST_ID}
         // ButtonBase clips its own shadow; Android draws elevation only under a background.
         style={
           isMaterialSurface
@@ -189,11 +187,7 @@ const PendingPostsButton = ({
             : [tw.style('rounded-full bg-background-section'), shadows.size.sm]
         }
       >
-        {/* Native glass does not redraw on resize, so it is remounted at each measured size. */}
-        <CapsuleGlass
-          key={pillSize ? `${pillSize.width}x${pillSize.height}` : 'unmeasured'}
-          twClassName="h-8"
-        >
+        <CapsuleGlass twClassName="h-8">
           <ButtonBase
             accessibilityLabel={getPendingPostsAccessibilityLabel(
               pendingNewCount,

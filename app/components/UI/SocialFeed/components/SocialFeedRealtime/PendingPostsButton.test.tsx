@@ -26,16 +26,11 @@ jest.mock('#app/component-library/hooks/useLiquidGlass', () => ({
 }));
 
 const mockGlassView = jest.fn();
-const mockGlassMount = jest.fn();
 jest.mock('expo-glass-effect', () => {
-  const { useEffect } = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     GlassView: (props: { children?: React.ReactNode; testID?: string }) => {
       mockGlassView(props);
-      useEffect(() => {
-        mockGlassMount();
-      }, []);
       return <View testID={props.testID}>{props.children}</View>;
     },
   };
@@ -123,31 +118,30 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
   });
 
-  it('remounts the glass when the pill is laid out at a new size', () => {
+  it('skips the fade animation on Liquid Glass', () => {
     mockUseLiquidGlass.mockReturnValue({
       ...PLAIN_SURFACE,
       isGlassEnabled: true,
       glassColorScheme: 'dark',
     });
+
     renderWithProvider(
-      <PendingPostsButton pendingNewCount={9} onPress={jest.fn()} />,
+      <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
     );
+
     const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID);
+    expect(pill.props.entering).toBeUndefined();
+    expect(pill.props.exiting).toBeUndefined();
+  });
 
-    fireEvent(pill, 'layout', {
-      nativeEvent: { layout: { width: 80, height: 32 } },
-    });
-    fireEvent(pill, 'layout', {
-      nativeEvent: { layout: { width: 80, height: 32 } },
-    });
+  it('fades the plain pill in and out', () => {
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
+    );
 
-    expect(mockGlassMount).toHaveBeenCalledTimes(2);
-
-    fireEvent(pill, 'layout', {
-      nativeEvent: { layout: { width: 96, height: 32 } },
-    });
-
-    expect(mockGlassMount).toHaveBeenCalledTimes(3);
+    const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID);
+    expect(pill.props.entering).toBeDefined();
+    expect(pill.props.exiting).toBeDefined();
   });
 
   it('renders the pill without Liquid Glass when glass is unavailable', () => {
