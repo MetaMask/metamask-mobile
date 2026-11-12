@@ -717,7 +717,7 @@ describe('PerpsPositionCard', () => {
   });
 
   describe('Cumulative Funding Display', () => {
-    it('shows white color and $0 when cumulative funding is exactly zero', () => {
+    it('shows white color and $0.00 when cumulative funding is exactly zero', () => {
       const positionWithZeroFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -729,13 +729,13 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithZeroFunding} />);
 
-      // Near-zero (including exactly zero) shows $0 (no sign prefix), as the Pro card
-      expect(screen.getByText('$0')).toBeOnTheScreen();
+      // New behavior: near-zero (including exactly zero) shows $0.00 (no sign prefix)
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
       expect(screen.queryByText('-$0.00')).toBeNull();
       expect(screen.queryByText('+$$0.00')).toBeNull();
     });
 
-    it('shows $0 for very small positive cumulative funding (< $0.005)', () => {
+    it('shows $0.00 for very small positive cumulative funding (< $0.005)', () => {
       const positionWithTinyPositiveFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -747,11 +747,11 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithTinyPositiveFunding} />);
 
-      expect(screen.getByText('$0')).toBeOnTheScreen();
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
       expect(screen.queryByText('-$0.00')).toBeNull();
     });
 
-    it('shows $0 for very small negative cumulative funding (> -$0.005)', () => {
+    it('shows $0.00 for very small negative cumulative funding (> -$0.005)', () => {
       const positionWithTinyNegativeFunding = {
         ...mockPosition,
         cumulativeFunding: {
@@ -763,7 +763,7 @@ describe('PerpsPositionCard', () => {
 
       render(<PerpsPositionCard position={positionWithTinyNegativeFunding} />);
 
-      expect(screen.getByText('$0')).toBeOnTheScreen();
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
       expect(screen.queryByText('+$$0.00')).toBeNull();
     });
 

@@ -23,7 +23,6 @@ import {
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
-  formatFundingSinceOpen,
   formatLiquidationDistancePercent,
   formatPercentageNumber,
   formatPerpsUsdCents,
@@ -253,20 +252,6 @@ describe('formatUtils', () => {
 
       expect(pnl).toBe('+$1,234.50');
       expect(roe).toBe('+10.3%');
-    });
-  });
-
-  describe('formatFundingSinceOpen', () => {
-    it.each([
-      [1.234, '-$1.23'],
-      [-0.5, '+$0.50'],
-      [0.001, '$0'],
-      [-0.004, '$0'],
-      [0.007, '-<$0.01'],
-    ])('formats funding %p since open as %p', (sinceOpen, expected) => {
-      const formatted = formatFundingSinceOpen(sinceOpen);
-
-      expect(formatted).toBe(expected);
     });
   });
 

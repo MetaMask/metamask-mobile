@@ -24,6 +24,18 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+
+/**
+ * Formats a chart price label (axis ticks, price lines) as the header does,
+ * without the currency symbol the axis does not show. The WebView cannot import
+ * app code, so every label is formatted here and posted to it.
+ *
+ * @param price - Price to label.
+ * @returns The label, e.g. `74,123` (en) or `74.123` (de).
+ */
+export const formatChartPriceLabel = (price: number | string): string =>
+  formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL, symbol: false });
+
 export interface ChartLimitOrderLine {
   id: string;
   price: string;
@@ -327,6 +339,24 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
+            case 'FORMAT_PRICE_LABELS': {
+              // The chart asks for the price labels it is about to draw.
+              const prices: unknown[] = Array.isArray(message.prices)
+                ? message.prices
+                : [];
+              const labels = prices
+                .filter(
+                  (price): price is number =>
+                    typeof price === 'number' && Number.isFinite(price),
+                )
+                .map((price) => [price, formatChartPriceLabel(price)]);
+              if (labels.length > 0) {
+                webViewRef.current?.postMessage(
+                  JSON.stringify({ type: 'PRICE_LABELS', labels }),
+                );
+              }
+              break;
+            }
             case 'VISIBLE_CANDLE_COUNT_CHANGED': {
               const candleCount = message.candleCount;
               if (
@@ -555,10 +585,7 @@ const TradingViewChart = React.forwardRef<
               // label is formatted here to match the header, without the
               // currency symbol the axis does not show.
               currentPriceLabel: tpslLines.currentPrice
-                ? formatPerpsFiat(tpslLines.currentPrice, {
-                    ranges: PRICE_RANGES_UNIVERSAL,
-                    symbol: false,
-                  })
+                ? formatChartPriceLabel(tpslLines.currentPrice)
                 : undefined,
             },
           });

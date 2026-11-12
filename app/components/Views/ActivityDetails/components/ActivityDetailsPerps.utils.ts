@@ -48,27 +48,17 @@ export function formatSignedPerpsFiat(
   isPositive: boolean,
 ): string {
   const absolute = BigNumber(amount).absoluteValue();
-  const signed = (isPositive ? absolute : absolute.negated()).toString();
+  const sign = isPositive ? '+' : '-';
 
-  if (absolute.isZero() || absolute.isGreaterThanOrEqualTo(0.01)) {
-    return formatPerpsFiat(signed, { sign: 'exceptZero' });
+  if (absolute.isEqualTo(0)) {
+    return '$0';
   }
 
-  // Sub-cent funding fees keep every reported digit instead of `<$0.01`:
-  // one range at the value's own precision, with no threshold.
-  const decimals = absolute.decimalPlaces() ?? 0;
-  return formatPerpsFiat(signed, {
-    ranges: [
-      {
-        condition: () => true,
-        minimumDecimals: decimals,
-        maximumDecimals: decimals,
-        threshold: 0,
-      },
-    ],
-    stripTrailingZeros: false,
-    sign: 'always',
-  });
+  if (absolute.isLessThan(0.01)) {
+    return `${sign}$${absolute.toFixed()}`;
+  }
+
+  return `${sign}${formatPerpsFiat(absolute.toString())}`;
 }
 
 export function getPerpsPositionSize(

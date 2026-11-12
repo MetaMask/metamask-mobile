@@ -1043,24 +1043,6 @@ export const formatPerpsPrice = (
   }
 };
 
-/** Funding since open below half a cent shows as zero. */
-export const FUNDING_SINCE_OPEN_ZERO_THRESHOLD = 0.005;
-
-/**
- * Formats a position's cumulative funding since open from the trader's side:
- * a positive value is a cost and shows `-`, a payment shows `+`, and less than
- * half a cent shows zero.
- *
- * @example formatFundingSinceOpen(1.234) => "-$1.23"
- * @example formatFundingSinceOpen(-0.5) => "+$0.50"
- * @example formatFundingSinceOpen(0.001) => "$0"
- */
-export const formatFundingSinceOpen = (sinceOpen: number): string =>
-  formatPerpsFiat(
-    Math.abs(sinceOpen) < FUNDING_SINCE_OPEN_ZERO_THRESHOLD ? 0 : -sinceOpen,
-    { ranges: PRICE_RANGES_MINIMAL_VIEW, sign: 'exceptZero' },
-  );
-
 /**
  * Formats one side of a position's take profit / stop loss summary.
  *

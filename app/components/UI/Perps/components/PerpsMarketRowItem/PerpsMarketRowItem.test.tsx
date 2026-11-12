@@ -1,8 +1,18 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
+
+// The row's funding description for an unknown rate, built from its message key
+// so a copy change does not break the placeholder assertions.
+const UNKNOWN_FUNDING_DESCRIPTION = `BTC · ${
+  PERPS_CONSTANTS.FallbackPercentageDisplay
+} ${strings('perps.sort.funding_rate_short')}`;
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => {
@@ -826,7 +836,7 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      expect(screen.getByText('BTC · --% Funding')).toBeOnTheScreen();
+      expect(screen.getByText(UNKNOWN_FUNDING_DESCRIPTION)).toBeOnTheScreen();
     });
 
     it('displays the funding placeholder when fundingRate is null', () => {
@@ -842,7 +852,7 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      expect(screen.getByText('BTC · --% Funding')).toBeOnTheScreen();
+      expect(screen.getByText(UNKNOWN_FUNDING_DESCRIPTION)).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is 0', () => {
