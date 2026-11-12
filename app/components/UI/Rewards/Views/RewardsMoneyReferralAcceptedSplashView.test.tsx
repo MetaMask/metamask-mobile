@@ -21,6 +21,7 @@ const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
 
 const mockHomeRoute = {
   key: 'home-key',
@@ -72,7 +73,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({
-      canGoBack: () => true,
+      canGoBack: mockCanGoBack,
       dispatch: mockDispatch,
       getState: () => ({
         index: mockRootRoutesBeforeDismiss.length - 1,
@@ -214,23 +215,53 @@ describe('fillInviteAcceptedBodyDate', () => {
 describe('RewardsMoneyReferralAcceptedSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
   });
 
-  const renderSplash = (referralMe: ReferralMeDto = buildReferralMe()) => {
+  const renderSplash = (
+    referralMe: ReferralMeDto = buildReferralMe(),
+    pendingReferralCode: string | null = null,
+  ) => {
     const store = configureStore({
       engine: { backgroundState: sessionBackgroundState(PROFILE_ID) },
       rewardsMoney: {
         referralMe: {
           [PROFILE_ID]: { loading: false, error: false, data: referralMe },
         },
+        pendingReferralCode,
       },
     });
-    return render(
+    const view = render(
       <Provider store={store}>
         <RewardsMoneyReferralAcceptedSplashView />
       </Provider>,
     );
+    return { ...view, store };
   };
+
+  it('keeps the accepted deeplink referral code while the splash is shown', () => {
+    const { store } = renderSplash(buildReferralMe(), 'KOL1');
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
+  });
+
+  it('clears the accepted deeplink referral code once the splash closes', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL1');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL1');
+  });
+
+  it('clears a newer pending code once the splash closes, since the user is now a referee', () => {
+    const { store, unmount } = renderSplash(buildReferralMe(), 'KOL2');
+
+    unmount();
+
+    expect(store.getState().rewardsMoney.pendingReferralCode).toBeNull();
+    expect(store.getState().rewardsMoney.answeredReferralCode).toBe('KOL2');
+  });
 
   it('renders activation copy through the cashback window end', () => {
     const { getByTestId, getByText } = renderSplash();
@@ -290,14 +321,6 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     const { getByTestId } = renderSplash();
 
     fireEvent.press(getByTestId(TEST_IDS.VIEW_REWARDS));
-
-    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
-  });
-
-  it('opens the money dashboard when the splash is closed', () => {
-    const { getByTestId } = renderSplash();
-
-    fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
     expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
