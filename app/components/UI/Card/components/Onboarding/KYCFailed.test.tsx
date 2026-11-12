@@ -1,14 +1,17 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
 import KYCFailed from './KYCFailed';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
 
+const mockExitCardFlow = jest.fn();
+
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: () => mockExitCardFlow,
+}));
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
   useFocusEffect: (effect: () => void) => effect(),
 }));
 
@@ -208,7 +211,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('KYCFailed Component', () => {
-  const mockNavigate = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
 
@@ -216,9 +218,6 @@ describe('KYCFailed Component', () => {
     jest.clearAllMocks();
     // First useSelector call is glass header; second is activeProviderId.
     mockUseSelector.mockReturnValueOnce(false).mockReturnValue('baanx');
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-    });
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
         build: jest.fn().mockReturnValue({ event: 'test' }),
@@ -282,14 +281,13 @@ describe('KYCFailed Component', () => {
       expect(backButton).toBeTruthy();
     });
 
-    it('navigates to wallet home when back button is pressed', () => {
+    it('leaves the card flow when back button is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -310,14 +308,13 @@ describe('KYCFailed Component', () => {
       expect(getByText('Back to home')).toBeTruthy();
     });
 
-    it('navigates to wallet home when close button is pressed', () => {
+    it('leaves the card flow when close button is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
     it('is not disabled by default', () => {
@@ -330,38 +327,32 @@ describe('KYCFailed Component', () => {
   });
 
   describe('Navigation', () => {
-    it('uses navigation hook', () => {
-      render(<KYCFailed />);
-
-      expect(useNavigation).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls navigate with correct route when back is pressed', () => {
+    it('leaves the card flow when back is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
-    it('calls navigate with correct route when close is pressed', () => {
+    it('leaves the card flow when close is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
-    it('handles multiple button presses', () => {
+    it('leaves again on each button press', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -484,7 +475,7 @@ describe('KYCFailed Component', () => {
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
     it('allows user to dismiss screen via close button', () => {
@@ -493,7 +484,7 @@ describe('KYCFailed Component', () => {
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
   });
 });

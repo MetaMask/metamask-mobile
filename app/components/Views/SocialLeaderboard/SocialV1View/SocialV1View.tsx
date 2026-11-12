@@ -664,8 +664,10 @@ const SocialV1ViewContent: React.FC = () => {
   );
 
   // The Social tab stays mounted, so a later entry point's `initialTab` (e.g.
-  // a `?tab=` deeplink) has to move the pager here. Clearing it lets the same
-  // tab be requested again.
+  // a `?tab=` deeplink, or Trending after a post) has to move the pager here
+  // and bring that page back to its top: a just-written post is pinned there,
+  // and the feed only streams new posts in while it is near the top. Clearing
+  // the param lets the same tab be requested again.
   const requestedTab = route.params?.initialTab;
   useEffect(() => {
     if (!requestedTab) {
@@ -673,10 +675,31 @@ const SocialV1ViewContent: React.FC = () => {
     }
     navigation.setParams({ initialTab: undefined });
     const index = tabOrder.indexOf(requestedTab);
-    if (index !== -1 && index !== activeIndex) {
+    if (index === -1) {
+      return;
+    }
+    if (index !== activeIndex) {
       selectTab(index);
     }
-  }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
+    const requestedPage = {
+      trending: { ref: trendingPageRef, scrollY: trendingScrollY },
+      following: { ref: followingPageRef, scrollY: followingScrollY },
+      live: { ref: livePageRef, scrollY: liveScrollY },
+      leaderboard: { ref: leaderboardPageRef, scrollY: leaderboardScrollY },
+    }[requestedTab];
+    requestedPage.scrollY.value = 0;
+    requestedPage.ref.current?.scrollToOffset(0);
+  }, [
+    activeIndex,
+    followingScrollY,
+    leaderboardScrollY,
+    liveScrollY,
+    navigation,
+    requestedTab,
+    selectTab,
+    tabOrder,
+    trendingScrollY,
+  ]);
 
   const scrollPageToTop = useCallback(
     (index: number) => {

@@ -118,38 +118,40 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     scrollTestID?: string;
     testID?: string;
     onScroll?: import('react-native').ScrollViewProps['onScroll'];
-    pageRef?: React.MutableRefObject<unknown>;
+    pageRef?: React.Ref<{
+      scrollToOffset: (offset: number, animated?: boolean) => void;
+    }>;
   }
+
+  const MockSocialFeed = (props: MockSocialFeedProps) => {
+    mockSocialFeed(props);
+    ReactActual.useImperativeHandle(props.pageRef, () => ({
+      scrollToOffset: (offset: number, animated?: boolean) =>
+        mockFeedScrollToOffset(props.location, offset, animated),
+    }));
+    return ReactActual.createElement(
+      View,
+      { testID: props.testID },
+      ReactActual.createElement(
+        SocialFeedRealtimeContext.Provider,
+        {
+          value: {
+            paused: props.paused ?? false,
+            pendingNewCount: 0,
+          },
+        },
+        props.renderHeader?.(),
+      ),
+      ReactActual.createElement(ScrollView, {
+        testID: props.scrollTestID,
+        onScroll: props.onScroll,
+      }),
+    );
+  };
 
   return {
     __esModule: true,
-    default: (props: MockSocialFeedProps) => {
-      mockSocialFeed(props);
-      if (props.pageRef) {
-        props.pageRef.current = {
-          scrollToOffset: (...args: unknown[]) =>
-            mockFeedScrollToOffset(props.location, ...args),
-        };
-      }
-      return ReactActual.createElement(
-        View,
-        { testID: props.testID },
-        ReactActual.createElement(
-          SocialFeedRealtimeContext.Provider,
-          {
-            value: {
-              paused: props.paused ?? false,
-              pendingNewCount: 0,
-            },
-          },
-          props.renderHeader?.(),
-        ),
-        ReactActual.createElement(ScrollView, {
-          testID: props.scrollTestID,
-          onScroll: props.onScroll,
-        }),
-      );
-    },
+    default: MockSocialFeed,
   };
 });
 
@@ -594,6 +596,21 @@ describe('SocialV1View', () => {
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
       expect.anything(),
     );
+  });
+
+  it('scrolls the requested tab back to its top', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    mockFeedScrollToOffset.mockClear();
+
+    mockRouteParams = { initialTab: 'trending' };
+    rerender(<SocialV1View />);
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(
+      'social_trending',
+      0,
+      false,
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
   });
 
   it('renders Trending through the shared virtualized feed', () => {
