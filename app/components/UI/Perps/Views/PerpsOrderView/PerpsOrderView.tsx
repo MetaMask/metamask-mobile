@@ -2160,7 +2160,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             : undefined;
         perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
           amountUsd: orderForm.amount,
-          leverage: orderForm.leverage,
         })
           ? resolvedPerpsPostTradePrompt
           : undefined;

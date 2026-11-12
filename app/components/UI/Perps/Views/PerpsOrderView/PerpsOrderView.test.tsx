@@ -7515,8 +7515,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it('keeps the normal toasts for a copied market order below $10 margin', async () => {
-      mockOrderSize('50', 10);
+    it('keeps the normal toasts for a copied market order below $10 position size', async () => {
+      mockOrderSize('9', 10);
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),
@@ -7787,8 +7787,22 @@ describe('PerpsOrderView', () => {
       expect(getPostTradeShareSession()).toBeNull();
     });
 
-    it('uses the normal toast for a share sheet when margin is below $10', async () => {
+    it('opens a share sheet when position size reaches $10 even though margin is below it', async () => {
       mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({ variant: 'share', status: 'pending' }),
+      );
+    });
+
+    it('uses the normal toast for a share sheet when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({
         kind: 'share_sheet',
         countKey,
@@ -7802,8 +7816,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).toHaveBeenCalled();
     });
 
-    it('does not open create profile or mark it seen when margin is below $10', async () => {
-      mockOrderSize('50', 10);
+    it('does not open create profile or mark it seen when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
       const showToast = await submitOrder();
@@ -7814,8 +7828,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).toHaveBeenCalled();
     });
 
-    it('uses the confirmed toast without Post to feed when margin is below $10', async () => {
-      mockOrderSize('50', 10);
+    it('uses the confirmed toast without Post to feed when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({
         kind: 'post_to_feed_toast',
       });
