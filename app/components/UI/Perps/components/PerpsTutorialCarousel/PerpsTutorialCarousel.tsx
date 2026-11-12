@@ -390,13 +390,10 @@ const PerpsTutorialCarousel: React.FC = () => {
 
   const handleLearnMore = useCallback(() => {
     NavigationService.navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: PERPS_LEARN_MORE_URL,
-        linkType: EXTERNAL_LINK_TYPE,
-        timestamp: Date.now(),
-        fromPerps: true,
-      },
+      newTabUrl: PERPS_LEARN_MORE_URL,
+      linkType: EXTERNAL_LINK_TYPE,
+      timestamp: Date.now(),
+      fromPerps: true,
     });
   }, []);
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsConnectionErrorView from './PerpsConnectionErrorView';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
@@ -55,7 +56,7 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
 // Mock Routes
 jest.mock('../../../../../constants/navigation/Routes', () => ({
   WALLET: {
-    TAB_STACK_FLOW: 'TAB_STACK_FLOW',
+    HOME: 'WalletTabHome',
   },
 }));
 
@@ -263,6 +264,37 @@ describe('PerpsConnectionErrorView', () => {
       }),
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets to the wallet tab when there is no screen to go back to', () => {
+    mockCanGoBack.mockReturnValue(false);
+    const { getByText } = render(
+      <PerpsConnectionErrorView
+        error="Test error"
+        onRetry={mockOnRetry}
+        showBackButton
+        retryAttempts={2}
+      />,
+    );
+
+    const backButton = getByText('perps.errors.connectionFailed.go_back');
+    if (backButton.parent) {
+      fireEvent.press(backButton.parent);
+    }
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [
+        {
+          name: Routes.HOME_TABS,
+          state: {
+            index: 0,
+            routes: [{ name: Routes.WALLET.HOME }],
+          },
+        },
+      ],
+    });
   });
 
   it('should hide back button when showBackButton is false', () => {
