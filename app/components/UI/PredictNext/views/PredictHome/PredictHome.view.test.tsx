@@ -980,6 +980,27 @@ describe('PredictHome', () => {
       );
     });
 
+    it('shows a binary Politics Event as the default card with Yes and No rows', async () => {
+      const view = renderPredictNext();
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-1'),
+      );
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'no'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
+      ).not.toBeOnTheScreen();
+    });
+
     it('opens the Politics Feed Screen from the section header', async () => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));

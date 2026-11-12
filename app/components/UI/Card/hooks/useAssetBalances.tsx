@@ -12,6 +12,14 @@ import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import {
+  areAddressesEqual,
+  safeToChecksumAddress,
+} from '../../../../util/address';
+import { getStablecoinFiatAmount } from '../util/getStablecoinFiatAmount';
+import { getUsdToFiatConversionRate } from '../../Money/utils/moneyActivityFiat';
+import { TOKEN_BALANCE_LOADING } from '../../Tokens/constants';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { TokenI } from '../../Tokens/types';
 import { MarketDataDetails } from '@metamask/assets-controllers';
@@ -33,6 +41,14 @@ import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 // account balance (which embeds a fresh vmUSD→mUSD value), so the Card's
 // "Avail. balance" tracks the Money balance instead of holding a stale rate.
 const EXCHANGE_RATE_REFETCH_INTERVAL_MS = 30 * 1000; // 30 seconds
+
+/** Market data is keyed by checksum. Skip addresses that are not 20-byte hex. */
+const checksummedTokenAddress = (address?: string | null): Hex | undefined => {
+  if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return undefined;
+  }
+  return safeToChecksumAddress(address);
+};
 
 const extractTrailingCurrencyCode = (value: string): string | undefined => {
   const match = value.trim().match(/([A-Za-z]{3})$/);
@@ -86,6 +102,8 @@ export interface AssetBalanceInfo {
   balanceFormatted: string;
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
+  /** Spendable amount could not be read. Distinct from a known zero. */
+  isUnavailable?: boolean;
 }
 
 /**
@@ -177,8 +195,10 @@ export const useAssetBalances = (
 
         const conversionRate = currencyRateEntry?.conversionRate;
 
-        const tokenMarketData =
-          marketData?.[chainId]?.[token.address?.toLowerCase() as Hex];
+        const checksummedAddress = checksummedTokenAddress(token.address);
+        const tokenMarketData = checksummedAddress
+          ? marketData?.[chainId]?.[checksummedAddress]
+          : undefined;
 
         // Only require conversionRate to be present (marketData is optional)
         if (conversionRate !== undefined && conversionRate !== null) {
@@ -194,6 +214,10 @@ export const useAssetBalances = (
   }, [tokens, networkConfigs, currencyRates, marketData]);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const selectedAccountAddress = useSelector(
+    (state: RootState) =>
+      selectSelectedInternalAccountByScope(state)('eip155:0')?.address,
+  );
 
   // The Money account funding token is vmUSD — a yield-bearing Veda vault share
   // whose on-chain balance is denominated in shares, not mUSD. Its mUSD value is
@@ -236,38 +260,59 @@ export const useAssetBalances = (
     ): {
       balance: string;
       source: 'availableBalance' | 'filteredToken' | 'walletAsset';
+      isUnavailable: boolean;
     } => {
+      const known = (
+        balance: string,
+        source: 'availableBalance' | 'filteredToken' | 'walletAsset',
+      ): {
+        balance: string;
+        source: 'availableBalance' | 'filteredToken' | 'walletAsset';
+        isUnavailable: boolean;
+      } => ({ balance, source, isUnavailable: false });
+
       const isEnabled =
         token.fundingStatus === FundingStatus.Enabled ||
         token.fundingStatus === FundingStatus.Limited;
+      const ownedBySelectedAccount = Boolean(
+        token.walletAddress &&
+          selectedAccountAddress &&
+          areAddressesEqual(token.walletAddress, selectedAccountAddress),
+      );
 
       if (isEnabled) {
         // Token is enabled/delegated - use availableBalance
         if (token.spendableBalance) {
+          return known(token.spendableBalance, 'availableBalance');
+        }
+        // An unread balance for another owner (or the Money account) is not
+        // this wallet's balance, and it is not zero.
+        if (token.isMoneyAccountEntry || !ownedBySelectedAccount) {
           return {
-            balance: token.spendableBalance,
+            balance: '',
             source: 'availableBalance',
+            isUnavailable: true,
           };
         }
         if (filteredToken?.balance) {
-          return { balance: filteredToken.balance, source: 'filteredToken' };
+          return known(filteredToken.balance, 'filteredToken');
         }
         if (walletAsset?.balance) {
-          return { balance: walletAsset.balance, source: 'walletAsset' };
+          return known(walletAsset.balance, 'walletAsset');
         }
-        return { balance: '0', source: 'availableBalance' };
+        return known('0', 'availableBalance');
       }
 
       // Token is not enabled - use actual wallet balance
       if (filteredToken?.balance) {
-        return { balance: filteredToken.balance, source: 'filteredToken' };
+        return known(filteredToken.balance, 'filteredToken');
       }
       if (walletAsset?.balance) {
-        return { balance: walletAsset.balance, source: 'walletAsset' };
+        return known(walletAsset.balance, 'walletAsset');
       }
-      return { balance: '0', source: 'availableBalance' };
+      return known('0', 'availableBalance');
     },
-    [],
+    [selectedAccountAddress],
   );
 
   // Helper: Calculate fiat for Solana tokens
@@ -423,16 +468,23 @@ export const useAssetBalances = (
       if (_token.assumeUsdParity) {
         const parityBalance = parseFloat(balanceToUse.replace(',', '.'));
         if (!isNaN(parityBalance)) {
-          const balanceFiat = formatWithThreshold(
+          const fiatAmount = getStablecoinFiatAmount(
             parityBalance,
+            getUsdToFiatConversionRate(currencyRates),
+          );
+          if (fiatAmount === undefined) {
+            return { balanceFiat: '', rawFiatNumber: undefined };
+          }
+          const balanceFiat = formatWithThreshold(
+            fiatAmount,
             0.01,
             I18n.locale,
             {
               style: 'currency',
-              currency: 'USD',
+              currency: currentCurrency?.toUpperCase() || 'USD',
             },
           );
-          return { balanceFiat, rawFiatNumber: parityBalance };
+          return { balanceFiat, rawFiatNumber: fiatAmount };
         }
       }
 
@@ -642,6 +694,7 @@ export const useAssetBalances = (
       calculateFiatFromMarketData,
       calculateProportionalFiat,
       marketData,
+      currencyRates,
       currentCurrency,
     ],
   );
@@ -710,12 +763,27 @@ export const useAssetBalances = (
       const walletAsset = walletAssetsMap.get(walletAssetKey);
 
       // Determine which balance to use
-      const { balance: balanceToUse, source: balanceSource } =
-        determineBalanceToUse(
-          token,
-          filteredToken as TokenI | undefined,
-          walletAsset,
-        );
+      const {
+        balance: balanceToUse,
+        source: balanceSource,
+        isUnavailable,
+      } = determineBalanceToUse(
+        token,
+        filteredToken as TokenI | undefined,
+        walletAsset,
+      );
+
+      if (isUnavailable) {
+        map.set(tokenKey, {
+          asset: buildAssetObject(token, '', '', assetChainId),
+          balanceFiat: '',
+          balanceFormatted: '',
+          rawFiatNumber: undefined,
+          rawTokenBalance: undefined,
+          isUnavailable: true,
+        });
+        return;
+      }
 
       // Calculate fiat value
       let balanceFiat = '';
@@ -746,26 +814,36 @@ export const useAssetBalances = (
       // Normalize and format balance
       const normalizedBalance = (balanceToUse || '0').replace(',', '.');
       const rawTokenBalance = parseFloat(normalizedBalance);
-      const balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
+      let balanceFormatted = `${parseFloat(normalizedBalance).toFixed(6)} ${token.symbol}`;
 
       if (token.isMoneyAccountEntry) {
-        const safeBalance = Number.isNaN(rawTokenBalance) ? 0 : rawTokenBalance;
-        // vmUSD is a Veda vault share, so convert it to its mUSD value via the
-        // vault exchange rate (falling back to 1:1 when the rate is unavailable).
-        // mUSD is a USD-pegged stablecoin, so the mUSD amount IS the dollar
-        // value — we render it as USD 1:1 rather than through live market data,
-        // exactly as the Money account balance does (`moneyFormatUsd`). This
-        // keeps the Card "Avail. balance" identical to the Money balance for the
-        // same vmUSD position.
-        const musdBalance =
-          vmusdToMusdRate !== undefined
-            ? safeBalance * vmusdToMusdRate
-            : safeBalance;
-        balanceFiat = formatWithThreshold(musdBalance, 0.01, I18n.locale, {
-          style: 'currency',
-          currency: 'USD',
-        });
-        rawFiatNumber = musdBalance;
+        const ratePending =
+          exchangeRateQuery.data === undefined && exchangeRateQuery.isFetching;
+        if (ratePending) {
+          balanceFiat = TOKEN_BALANCE_LOADING;
+          balanceFormatted = TOKEN_BALANCE_LOADING;
+          rawFiatNumber = undefined;
+        } else {
+          const safeBalance = Number.isNaN(rawTokenBalance)
+            ? 0
+            : rawTokenBalance;
+          // vmUSD is a Veda vault share, so convert it to its mUSD value via the
+          // vault exchange rate (falling back to 1:1 when the rate is unavailable).
+          // mUSD is a USD-pegged stablecoin, so the mUSD amount IS the dollar
+          // value — we render it as USD 1:1 rather than through live market data,
+          // exactly as the Money account balance does (`moneyFormatUsd`). This
+          // keeps the Card "Avail. balance" identical to the Money balance for the
+          // same vmUSD position.
+          const musdBalance =
+            vmusdToMusdRate !== undefined
+              ? safeBalance * vmusdToMusdRate
+              : safeBalance;
+          balanceFiat = formatWithThreshold(musdBalance, 0.01, I18n.locale, {
+            style: 'currency',
+            currency: 'USD',
+          });
+          rawFiatNumber = musdBalance;
+        }
       }
 
       // Build asset object
@@ -795,6 +873,8 @@ export const useAssetBalances = (
     calculateSolanaFiat,
     calculateEvmFiat,
     buildAssetObject,
+    exchangeRateQuery.data,
+    exchangeRateQuery.isFetching,
     vmusdToMusdRate,
   ]);
 

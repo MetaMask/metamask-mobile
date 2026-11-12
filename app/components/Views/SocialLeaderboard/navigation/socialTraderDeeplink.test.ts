@@ -15,6 +15,7 @@ import {
   withSocialShareMarker,
 } from './socialTraderDeeplink';
 import type { SocialOgImageRequest } from './socialOgImageService';
+import { withSocialSharePromoCode } from './socialSharePromoCode';
 import { rewriteBranchUri } from '../../../../core/DeeplinkManager/DeeplinkManager';
 
 const mockCreateBranchUniversalObject = jest.fn();
@@ -28,6 +29,18 @@ jest.mock('./socialOgImageService', () => ({
   getSocialOgDefaultImageUrl: () =>
     'https://social.test/api/v1/og-images/default.jpg',
 }));
+
+const mockResolveSocialSharePromoCode = jest.fn();
+
+jest.mock('./socialSharePromoCode', () => ({
+  ...jest.requireActual('./socialSharePromoCode'),
+  resolveSocialSharePromoCode: () => mockResolveSocialSharePromoCode(),
+}));
+
+beforeEach(() => {
+  mockResolveSocialSharePromoCode.mockReset();
+  mockResolveSocialSharePromoCode.mockResolvedValue(undefined);
+});
 
 jest.mock('react-native-branch', () => ({
   __esModule: true,
@@ -45,7 +58,7 @@ jest.mock('react-native-share', () => ({
 }));
 
 const flush = async () => {
-  for (let step = 0; step < 10; step += 1) {
+  for (let step = 0; step < 20; step += 1) {
     await Promise.resolve();
   }
 };
@@ -176,6 +189,23 @@ describe('toSocialBranchDeeplinkPath', () => {
         $deeplink_path: toSocialBranchDeeplinkPath(canonicalUrl),
       }),
     ).toBe(canonicalUrl);
+  });
+
+  it('carries ref through rewriteBranchUri so the opened link has the promo code', () => {
+    const canonicalUrl = withSocialSharePromoCode(
+      buildSocialTraderDeeplink('trader-1'),
+      '8F3A21',
+    );
+    const opened = rewriteBranchUri(
+      'https://metamask-alternate.app.link/AbCdEf',
+      {
+        '+clicked_branch_link': true,
+        $deeplink_path: toSocialBranchDeeplinkPath(canonicalUrl),
+      },
+    );
+
+    expect(opened).toBe(canonicalUrl);
+    expect(new URL(opened as string).searchParams.get('ref')).toBe('8F3A21');
   });
 });
 
@@ -500,6 +530,69 @@ describe('share with a generated card', () => {
       message: sharedShortUrl,
       failOnCancel: false,
     });
+  });
+
+  it('puts the sharer promo code on the card and as ref on the short link', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    mockResolveSocialSharePromoCode.mockResolvedValueOnce('8F3A21');
+    mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+    const { generateShortUrl } = mockShortLink(shortUrl);
+    const buildRequest = jest.fn(async () => tradeRequest);
+
+    shareSocialTraderPosition(
+      'position-1',
+      'trader-1',
+      undefined,
+      { title: 'title', description: 'description' },
+      buildRequest,
+    );
+    await flush();
+
+    const deeplinkPath =
+      'social/profile/position?positionId=position-1&traderId=trader-1&ref=8F3A21';
+    expect(buildRequest).toHaveBeenCalledWith({ promoCode: '8F3A21' });
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      deeplinkPath,
+      expect.anything(),
+    );
+    expect(generateShortUrl).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ $deeplink_path: deeplinkPath }),
+    );
+    expect(openShare).toHaveBeenCalledWith({
+      message: sharedShortUrl,
+      failOnCancel: false,
+    });
+  });
+
+  it('adds ref to the canonical link when Branch fails', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    mockResolveSocialSharePromoCode.mockResolvedValueOnce('8F3A21');
+    mockCreateBranchUniversalObject.mockRejectedValueOnce(new Error('down'));
+
+    shareSocialProfile('trader-1', undefined, profilePreview);
+    await flush();
+
+    expect(openShare).toHaveBeenCalledWith({
+      message: `${PROFILE_URL}&ref=8F3A21&share=1`,
+      failOnCancel: false,
+    });
+  });
+
+  it('shares without ref and builds the card without a code when the sharer has none', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    mockCreateSocialOgImage.mockResolvedValueOnce(GENERATED_CARD_URL);
+    mockShortLink(shortUrl);
+    const buildRequest = jest.fn(async () => tradeRequest);
+
+    shareSocialProfile('trader-1', undefined, profilePreview, buildRequest);
+    await flush();
+
+    expect(buildRequest).toHaveBeenCalledWith({ promoCode: undefined });
+    expect(mockCreateBranchUniversalObject).toHaveBeenCalledWith(
+      'social/profile?traderId=trader-1',
+      expect.anything(),
+    );
   });
 
   it('keeps the brand image when no card builder is passed', async () => {

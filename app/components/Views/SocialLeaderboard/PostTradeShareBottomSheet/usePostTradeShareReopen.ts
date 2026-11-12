@@ -21,6 +21,7 @@ export const usePostTradeShareReopen = (
     target: QuickBuyTarget,
     copyTradeOrigin?: CopyTradeOrigin,
     tradeMode?: QuickBuyTradeMode,
+    traderAddress?: string,
   ) => void,
   owner?: PostTradeShareOwnerId,
 ): void => {
@@ -40,7 +41,12 @@ export const usePostTradeShareReopen = (
       }
       const reopened = consumePostTradeShareReopen();
       if (reopened) {
-        onReopen(reopened.target, reopened.copyTradeOrigin, reopened.tradeMode);
+        onReopen(
+          reopened.target,
+          reopened.copyTradeOrigin,
+          reopened.tradeMode,
+          reopened.traderAddress,
+        );
       }
     });
     return () => {

@@ -317,6 +317,7 @@ function mockApiActivity(
     loadMore: mockLoadMore,
     isLoadingMore: false,
     isLoading: false,
+    isValuationSettling: false,
     error: false,
     refetch: mockRefetch,
     ...overrides,

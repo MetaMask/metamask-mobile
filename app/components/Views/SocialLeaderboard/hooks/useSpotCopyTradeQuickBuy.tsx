@@ -46,13 +46,18 @@ export const useSpotCopyTradeQuickBuy = ({
       target: QuickBuyTarget,
       copyTradeOrigin?: CopyTradeOrigin,
       tradeMode: QuickBuyTradeMode = 'buy',
+      traderAddress?: string,
     ) => {
       showQuickBuy({
         target,
         copyTradeOrigin,
         features: TOP_TRADERS_QUICK_BUY_FEATURES,
         initialTradeMode: tradeMode,
-        analyticsContext: { source },
+        analyticsContext: {
+          source,
+          isCopyTrade: true,
+          ...(traderAddress ? { traderAddress } : {}),
+        },
         postTradeShare: true,
         postTradeShareOwner,
       });
@@ -71,7 +76,12 @@ export const useSpotCopyTradeQuickBuy = ({
       if (!target) {
         return;
       }
-      openQuickBuy(target, commentId ? { commentId } : undefined);
+      openQuickBuy(
+        target,
+        commentId ? { commentId } : undefined,
+        'buy',
+        item.author.address,
+      );
     },
     [openQuickBuy],
   );
