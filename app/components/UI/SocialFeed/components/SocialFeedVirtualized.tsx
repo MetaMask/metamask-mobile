@@ -13,17 +13,23 @@ import {
   type ListRenderItemInfo,
 } from '@shopify/flash-list';
 import React, {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type View, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useComposedEventHandler,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import useInterval from '../../../hooks/useInterval';
@@ -35,6 +41,7 @@ import { useTheme } from '../../../../util/theme';
 import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
+import { SOCIAL_FEED_REVEAL_BATCH_SIZE } from '../data/socialFeedRealtime';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -47,7 +54,11 @@ import {
 } from '../utils/buildSocialFeedListItems';
 import { getFeedItemId } from '../utils/feedItemId';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
-import { createFeedItemEntryScheduler } from './FeedItemEntryAnimation';
+import {
+  createFeedItemEntryScheduler,
+  FEED_ITEM_ENTRY_DURATION_MS,
+  FEED_ROW_SLIDE_MS_LOW,
+} from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type {
   SocialFeedInlineRow,
@@ -90,6 +101,53 @@ const LIST_DRAW_DISTANCE = {
  * a newly revealed first row.
  */
 const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
+
+const FeedCellSlideDurationContext = createContext(FEED_ITEM_ENTRY_DURATION_MS);
+
+/**
+ * A cell slides when an insert shifts it by at most one reveal batch. A
+ * recycled cell jumps further than that and snaps, so scrolling does not
+ * spring rows across the screen.
+ */
+export const shouldSlideFeedCell = (
+  indexDelta: number,
+  topDelta: number,
+): boolean => indexDelta <= SOCIAL_FEED_REVEAL_BATCH_SIZE && topDelta > 0.5;
+
+const FeedFlashListCell = React.forwardRef<
+  View,
+  React.PropsWithChildren<{ index: number; style?: ViewStyle }>
+>(({ index, style, children, ...rest }, ref) => {
+  const duration = useContext(FeedCellSlideDurationContext);
+  const targetTop = typeof style?.top === 'number' ? style.top : 0;
+  const top = useSharedValue(targetTop);
+  const placedRef = useRef(false);
+  const previousIndexRef = useRef(index);
+
+  useLayoutEffect(() => {
+    const indexDelta = Math.abs(index - previousIndexRef.current);
+    const topDelta = Math.abs(targetTop - top.value);
+    previousIndexRef.current = index;
+    if (!placedRef.current) {
+      placedRef.current = true;
+      top.value = targetTop;
+      return;
+    }
+    top.value = shouldSlideFeedCell(indexDelta, topDelta)
+      ? withSpring(targetTop, { duration, dampingRatio: 1 })
+      : targetTop;
+  }, [duration, index, targetTop, top]);
+
+  const animatedPosition = useAnimatedStyle(() => ({ top: top.value }));
+
+  return (
+    <Animated.View ref={ref} {...rest} style={[style, animatedPosition]}>
+      {children}
+    </Animated.View>
+  );
+});
+
+FeedFlashListCell.displayName = 'FeedFlashListCell';
 
 const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
 
@@ -412,7 +470,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         case 'post':
           return (
             <SocialFeedRow
-              key={itemKey}
               post={item.post}
               requireSocialTerms
               requireSocialProfile={requireSocialProfile}
@@ -430,18 +487,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         case 'inline':
           return (
             <SocialFeedInlineRowItem
-              key={itemKey}
               row={item.row}
               dividerTestID={dividerTestID}
             />
           );
         case 'placeholder':
           return (
-            <SocialFeedPlaceholder
-              key={itemKey}
-              state={state}
-              emptyState={emptyState}
-            />
+            <SocialFeedPlaceholder state={state} emptyState={emptyState} />
           );
         default:
           return item satisfies never;
@@ -497,52 +549,61 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               performance={performance.context}
             />
           ) : null}
-          <AnimatedFlashList
-            ref={listRef}
-            data={listItems}
-            renderItem={renderItem}
-            keyExtractor={getSocialFeedListItemKey}
-            getItemType={getSocialFeedListItemType}
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-grow pb-8')}
-            showsVerticalScrollIndicator={false}
-            drawDistance={drawDistance}
-            maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
-            onScroll={scrollHandler}
-            scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScrollSettled}
-            onScrollEndDrag={handleScrollSettled}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
+          <FeedCellSlideDurationContext.Provider
+            value={
+              isLowHardware
+                ? FEED_ROW_SLIDE_MS_LOW
+                : FEED_ITEM_ENTRY_DURATION_MS
             }
-            ListHeaderComponent={header}
-            ListEmptyComponent={
-              <SocialFeedPlaceholder
-                state={state}
-                skeletonCount={
-                  isLowHardware || isOffline
-                    ? CONSTRAINED_SKELETON_COUNT
-                    : undefined
-                }
-                emptyState={emptyState}
-              />
-            }
-            ListFooterComponent={
-              <SocialFeedFooter
-                state={state}
-                isFetchingNextPage={isFetchingNextPage}
-                onRetry={() => refresh()}
-              />
-            }
-            testID={scrollTestID}
-          />
+          >
+            <AnimatedFlashList
+              ref={listRef}
+              data={listItems}
+              renderItem={renderItem}
+              keyExtractor={getSocialFeedListItemKey}
+              CellRendererComponent={FeedFlashListCell}
+              getItemType={getSocialFeedListItemType}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('flex-grow pb-8')}
+              showsVerticalScrollIndicator={false}
+              drawDistance={drawDistance}
+              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
+              onScroll={scrollHandler}
+              scrollEventThrottle={16}
+              onMomentumScrollEnd={handleScrollSettled}
+              onScrollEndDrag={handleScrollSettled}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.5}
+              refreshControl={
+                <RefreshControl
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
+              ListHeaderComponent={header}
+              ListEmptyComponent={
+                <SocialFeedPlaceholder
+                  state={state}
+                  skeletonCount={
+                    isLowHardware || isOffline
+                      ? CONSTRAINED_SKELETON_COUNT
+                      : undefined
+                  }
+                  emptyState={emptyState}
+                />
+              }
+              ListFooterComponent={
+                <SocialFeedFooter
+                  state={state}
+                  isFetchingNextPage={isFetchingNextPage}
+                  onRetry={() => refresh()}
+                />
+              }
+              testID={scrollTestID}
+            />
+          </FeedCellSlideDurationContext.Provider>
           <Box
             pointerEvents="box-none"
             twClassName="absolute top-5 left-0 right-0 items-center"

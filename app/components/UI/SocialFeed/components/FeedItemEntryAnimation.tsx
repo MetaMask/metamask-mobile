@@ -18,7 +18,7 @@ export const FEED_ITEM_ENTRY_DURATION_MS = 500 * MOTION_MULTIPLIER;
 export const FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS =
   200 * MOTION_MULTIPLIER;
 export const FEED_ITEM_ENTRY_STAGGER_MS = 70 * MOTION_MULTIPLIER;
-const LOW_HARDWARE_ROW_TRANSITION_MS = 250 * MOTION_MULTIPLIER;
+export const FEED_ROW_SLIDE_MS_LOW = 250 * MOTION_MULTIPLIER;
 
 /** The card is fully opaque well before the spring settles. */
 const FADE_SHARE = 0.6;
@@ -42,7 +42,7 @@ export const FEED_ROW_LAYOUT_TRANSITION = LinearTransition.springify(
   FEED_ITEM_ENTRY_DURATION_MS,
 ).dampingRatio(1);
 export const FEED_ROW_LAYOUT_TRANSITION_LOW = LinearTransition.springify(
-  LOW_HARDWARE_ROW_TRANSITION_MS,
+  FEED_ROW_SLIDE_MS_LOW,
 ).dampingRatio(1);
 
 /**
@@ -150,7 +150,8 @@ export interface FeedItemEntryAnimationProps {
 /**
  * "Focus In" entrance for rows that arrive over the socket: the row mounts at
  * its full height, fades in, rises 20px and settles from 97% scale. The rows
- * below glide down through the list's `FEED_ROW_LAYOUT_TRANSITION`.
+ * below glide down. FlashList positions cells absolutely, so the list springs
+ * each cell's `top` with the same duration instead of `itemLayoutAnimation`.
  *
  * Entering animations only run on mount, so a row that is already on screen
  * when it gets an event id never animates; the id is marked played instead,

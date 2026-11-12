@@ -32,6 +32,7 @@ import {
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
   getSocialFeedListItemType,
+  shouldSlideFeedCell,
 } from './SocialFeedVirtualized';
 import type { SocialFeedListItem } from '../utils/buildSocialFeedListItems';
 
@@ -153,6 +154,8 @@ jest.mock('./FeedItemEntryAnimation', () => ({
     <>{children}</>
   )),
   createFeedItemEntryScheduler: () => () => 0,
+  FEED_ITEM_ENTRY_DURATION_MS: 500,
+  FEED_ROW_SLIDE_MS_LOW: 250,
   FEED_ROW_LAYOUT_TRANSITION: 'row-layout-transition',
   FEED_ROW_LAYOUT_TRANSITION_LOW: 'row-layout-transition-low',
 }));
@@ -261,6 +264,20 @@ const renderFeed = (
 const getList = () => screen.UNSAFE_getByType(FlatList);
 
 const lastFeedOptions = () => mockUseSocialFeed.mock.lastCall?.[1];
+
+describe('shouldSlideFeedCell', () => {
+  it('slides a row shifted by one inserted post', () => {
+    expect(shouldSlideFeedCell(1, 180)).toBe(true);
+  });
+
+  it('snaps a recycled cell that jumps several rows', () => {
+    expect(shouldSlideFeedCell(8, 900)).toBe(false);
+  });
+
+  it('snaps when the cell did not move', () => {
+    expect(shouldSlideFeedCell(0, 0)).toBe(false);
+  });
+});
 
 describe('SocialFeedVirtualized', () => {
   beforeEach(() => {
@@ -472,7 +489,7 @@ describe('SocialFeedVirtualized', () => {
     expect(itemTypes).toEqual(['post-perpsOpen', 'inline-rail', 'placeholder']);
   });
 
-  it('keys each rendered subtree by item identity before recycling it', () => {
+  it('does not key a row, so a recycled cell updates in place', () => {
     renderFeed();
     const renderItem = getList().props.renderItem as (info: {
       item: SocialFeedListItem;
@@ -486,7 +503,7 @@ describe('SocialFeedVirtualized', () => {
     ];
 
     expect(items.map((item, index) => renderItem({ item, index }).key)).toEqual(
-      ['one', 'two', 'inline-rail', 'placeholder'],
+      [null, null, null, null],
     );
   });
 
