@@ -6,7 +6,10 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
-import { makePredictNextGameEvent } from '../../../../../../../tests/component-view/fixtures/predictNext';
+import {
+  expectPredictNextSmallGameCard,
+  makePredictNextGameEvent,
+} from '../../../../../../../tests/component-view/fixtures/predictNext';
 import { formatGameStartShort } from '../../../events/game';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 import { HomeSportsSection } from './HomeSportsSection';
@@ -23,9 +26,6 @@ const GAMES = [
     startsAt: STARTS_AT,
   }),
 ];
-
-// Team logos are hidden from screen readers.
-const HIDDEN = { includeHiddenElements: true };
 
 const renderSection = (
   props: Partial<React.ComponentProps<typeof HomeSportsSection>> = {},
@@ -72,37 +72,12 @@ describe('HomeSportsSection', () => {
   it('shows the Competition and start, then each Team with its logo, abbreviation and price', () => {
     renderSection();
 
-    const card = within(
-      screen.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3')),
-    );
-    expect(
-      card.getByTestId('predict-next-game-header-nfl-3-competition'),
-    ).toHaveTextContent('NFL');
-    expect(
-      card.getByTestId('predict-next-game-header-nfl-3-start'),
-    ).toHaveTextContent(formatGameStartShort(STARTS_AT));
-
-    const away = within(card.getByTestId('predict-next-game-team-nfl-3-away'));
-    expect(
-      away.getByTestId('predict-next-game-logo-fallback-nfl-3-away', HIDDEN),
-    ).toHaveTextContent('BIL');
-    expect(
-      away.getByTestId('predict-next-game-team-label-nfl-3-away'),
-    ).toHaveTextContent('BIL');
-    expect(
-      away.getByTestId(PredictHomeTestIds.gameQuote('nfl-3', 'away')),
-    ).toHaveTextContent('37¢');
-
-    const home = within(card.getByTestId('predict-next-game-team-nfl-3-home'));
-    expect(
-      home.getByTestId('predict-next-game-logo-fallback-nfl-3-home', HIDDEN),
-    ).toHaveTextContent('RAM');
-    expect(
-      home.getByTestId('predict-next-game-team-label-nfl-3-home'),
-    ).toHaveTextContent('RAM');
-    expect(
-      home.getByTestId(PredictHomeTestIds.gameQuote('nfl-3', 'home')),
-    ).toHaveTextContent('63¢');
+    expectPredictNextSmallGameCard(screen.root, 'nfl-3', {
+      competition: 'NFL',
+      start: formatGameStartShort(STARTS_AT),
+      away: { abbr: 'BIL', quote: '37¢' },
+      home: { abbr: 'RAM', quote: '63¢' },
+    });
   });
 
   it('scrolls freely, without snapping, with 16pt edges and 8pt between cards', () => {

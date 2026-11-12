@@ -1,34 +1,10 @@
-// Renders every cell at once, as Carousel.test.tsx does. The real list
-// measures itself first and re-renders outside act().
-jest.mock('@shopify/flash-list', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createElement, Fragment } = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
-  return {
-    FlashList: (props: {
-      data: unknown[];
-      testID: string;
-      keyExtractor: (item: unknown, index: number) => string;
-      renderItem: (info: {
-        item: unknown;
-        index: number;
-        target: string;
-      }) => unknown;
-    }) =>
-      createElement(
-        View,
-        { testID: props.testID },
-        props.data.map((item, index) =>
-          createElement(
-            Fragment,
-            { key: props.keyExtractor(item, index) },
-            props.renderItem({ item, index, target: 'Cell' }),
-          ),
-        ),
-      ),
-  };
-});
+// Renders every cell at once. The real list measures itself first and
+// re-renders outside act().
+jest.mock(
+  '@shopify/flash-list',
+  () =>
+    jest.requireActual('./testUtils/flashListRenderAll').flashListRenderAllMock,
+);
 
 import React from 'react';
 import { StyleSheet } from 'react-native';

@@ -5,6 +5,7 @@ import {
   answerPredictNextCatalog,
   configurePredictNextCatalog,
   expectPredictNextGameCard,
+  feedScreenTabLabels,
   publishPredictNextGameLiveUpdate,
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -236,10 +237,9 @@ describe('Politics Feed Screen', () => {
         PredictHomeTestIds.event(KALSHI_VENUE_ID, trumpEvent.id),
       ),
     ).toBeOnTheScreen();
-    const tabs = within(view.getByTestId(PredictFeedScreenTestIds.TABS))
-      .getAllByRole('button')
-      .map((tab) => tab.props.accessibilityLabel);
-    expect(tabs).toEqual(['Trump', 'Congress', 'Iran']);
+    expect(
+      feedScreenTabLabels(view.getByTestId(PredictFeedScreenTestIds.VIEW)),
+    ).toEqual(['Trump', 'Congress', 'Iran']);
     expect(
       view.getByTestId(PredictFeedScreenTestIds.tab('trump')).props
         .accessibilityState,
@@ -364,10 +364,9 @@ describe('Trending Feed Screen', () => {
         'Trending',
       ),
     ).toBeOnTheScreen();
-    const tabs = within(view.getByTestId(PredictFeedScreenTestIds.TABS))
-      .getAllByRole('button')
-      .map((tab) => tab.props.accessibilityLabel);
-    expect(tabs).toEqual(['NFL', 'NCAAF']);
+    expect(
+      feedScreenTabLabels(view.getByTestId(PredictFeedScreenTestIds.VIEW)),
+    ).toEqual(['NFL', 'NCAAF']);
     expect(
       view.getByTestId(PredictFeedScreenTestIds.tab('nfl')).props
         .accessibilityState,

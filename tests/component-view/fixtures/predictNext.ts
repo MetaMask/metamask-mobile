@@ -19,6 +19,7 @@ import type {
   PredictQuote,
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
+import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -1171,3 +1172,63 @@ export const expectPredictNextGameCard = (
     expect(scoped.getByText(volume)).toBeOnTheScreen();
   }
 };
+
+/** Team logos are hidden from screen readers. */
+const INCLUDE_HIDDEN = { includeHiddenElements: true };
+
+/**
+ * Checks a small game card: the Competition and start, then each Team's logo
+ * fallback, abbreviation and price.
+ */
+export const expectPredictNextSmallGameCard = (
+  section: Parameters<typeof within>[0],
+  eventId: string,
+  {
+    competition,
+    start,
+    away,
+    home,
+  }: {
+    competition: string;
+    start: string;
+    away: { abbr: string; quote: string };
+    home: { abbr: string; quote: string };
+  },
+): void => {
+  const card = within(
+    within(section).getByTestId(PredictHomeTestIds.event('kalshi', eventId)),
+  );
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-competition`),
+  ).toHaveTextContent(competition);
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-start`),
+  ).toHaveTextContent(start);
+
+  (['away', 'home'] as const).forEach((side) => {
+    const { abbr, quote } = side === 'away' ? away : home;
+    const team = within(
+      card.getByTestId(`predict-next-game-team-${eventId}-${side}`),
+    );
+    expect(
+      team.getByTestId(
+        `predict-next-game-logo-fallback-${eventId}-${side}`,
+        INCLUDE_HIDDEN,
+      ),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(`predict-next-game-team-label-${eventId}-${side}`),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(PredictHomeTestIds.gameQuote(eventId, side)),
+    ).toHaveTextContent(quote);
+  });
+};
+
+/** The Feed Screen's tab labels, in order. */
+export const feedScreenTabLabels = (
+  container: Parameters<typeof within>[0],
+): string[] =>
+  within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
+    .getAllByRole('button')
+    .map((tab) => tab.props.accessibilityLabel);

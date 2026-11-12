@@ -36,6 +36,8 @@ import {
   configurePredictNextCatalog,
   configurePredictNextFeeds,
   expectPredictNextGameCard,
+  expectPredictNextSmallGameCard,
+  feedScreenTabLabels,
   makePredictNextGameEvent,
   messengerCall,
   mockPredictNextMessenger,
@@ -52,7 +54,7 @@ const {
   politicsTrump: POLITICS_TRUMP_FEED_ID,
 } = PREDICT_NEXT_FEED_IDS;
 
-/** The pagination dots and Team logos are hidden from screen readers. */
+/** The pagination dots are hidden from screen readers. */
 const HIDDEN = { includeHiddenElements: true };
 
 const STARTS_AT = '2026-11-15T18:00:00Z';
@@ -101,6 +103,19 @@ const rowEventIds = (row: Parameters<typeof within>[0]) =>
     );
 const eventIdsOf = (events: readonly PredictEvent[]) =>
   events.map((event) => event.id);
+/** The messenger calls to one action, in call order. */
+const callsTo = (action: string) =>
+  messengerCall.mock.calls.filter(([name]) => name === action);
+/** Every Feed read, or only the reads of one Feed. */
+const feedCalls = (feedId?: PredictFeedId) =>
+  callsTo('PredictMarketDataService:getFeed').filter(
+    ([, , id]) => feedId === undefined || id === feedId,
+  );
+/** Every Event id the live-data service was asked to watch, in call order. */
+const watchedEventIds = () =>
+  callsTo('PredictLiveDataService:watchEvents').flatMap(
+    ([, , ids]: [string, string, PredictEntityId[]]) => ids,
+  );
 
 describe('PredictHome', () => {
   beforeEach(() => {
@@ -387,6 +402,32 @@ describe('PredictHome', () => {
       configureFullHomeFeeds();
     });
 
+    /**
+     * Opens a Feed Screen from a Home header, checks its title, runs
+     * `whileOpen`, goes back to Home, and returns the Feed Screen's tab labels.
+     */
+    const openFeedScreenFrom = async (
+      view: ReturnType<typeof renderPredictNext>,
+      headerTestId: string,
+      title: string,
+      whileOpen: () => Promise<void> | void = () => undefined,
+    ): Promise<string[]> => {
+      fireEvent.press(view.getByTestId(headerTestId));
+      const header = await view.findByTestId(PredictFeedScreenTestIds.HEADER);
+      expect(within(header).getByText(title)).toBeOnTheScreen();
+      const tabs = feedScreenTabLabels(
+        view.getByTestId(PredictFeedScreenTestIds.VIEW),
+      );
+      await whileOpen();
+      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+        ).not.toBeOnTheScreen(),
+      );
+      return tabs;
+    };
+
     it('reads six NFL, four NCAAF and two Politics Events', async () => {
       renderPredictNext();
 
@@ -469,33 +510,12 @@ describe('PredictHome', () => {
       );
       expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
 
-      const card = within(
-        within(sports).getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4')),
-      );
-      expect(
-        card.getByTestId('predict-next-game-header-nfl-4-competition'),
-      ).toHaveTextContent('NFL');
-      expect(
-        card.getByTestId('predict-next-game-header-nfl-4-start'),
-      ).toHaveTextContent(formatGameStartShort(STARTS_AT));
-      expect(
-        card.getByTestId('predict-next-game-logo-fallback-nfl-4-away', HIDDEN),
-      ).toHaveTextContent('CHI');
-      expect(
-        card.getByTestId('predict-next-game-team-label-nfl-4-away'),
-      ).toHaveTextContent('CHI');
-      expect(
-        card.getByTestId(PredictHomeTestIds.gameQuote('nfl-4', 'away')),
-      ).toHaveTextContent('55¢');
-      expect(
-        card.getByTestId('predict-next-game-logo-fallback-nfl-4-home', HIDDEN),
-      ).toHaveTextContent('BRO');
-      expect(
-        card.getByTestId('predict-next-game-team-label-nfl-4-home'),
-      ).toHaveTextContent('BRO');
-      expect(
-        card.getByTestId(PredictHomeTestIds.gameQuote('nfl-4', 'home')),
-      ).toHaveTextContent('45¢');
+      expectPredictNextSmallGameCard(sports, 'nfl-4', {
+        competition: 'NFL',
+        start: formatGameStartShort(STARTS_AT),
+        away: { abbr: 'CHI', quote: '55¢' },
+        home: { abbr: 'BRO', quote: '45¢' },
+      });
       // The seventh NFL Game is past the NFL read's six.
       expect(
         view.queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-7')),
@@ -519,40 +539,31 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       messengerCall.mockClear();
 
-      fireEvent.press(
-        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+      const tabs = await openFeedScreenFrom(
+        view,
+        PredictHomeTestIds.HOME_TRENDING_HEADER,
+        'Trending',
+        async () => {
+          const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
+          expect(
+            await within(list).findByTestId(
+              PredictHomeTestIds.event('kalshi', 'nfl-1'),
+            ),
+          ).toBeOnTheScreen();
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictMarketDataService:getFeed',
+            'kalshi',
+            NFL_GAMES_FEED_ID,
+            { limit: 20 },
+          );
+          // Trending stays inside Predict: the app's Explore tab never opens.
+          expect(
+            view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+          ).not.toBeOnTheScreen();
+        },
       );
 
-      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
-      expect(
-        within(view.getByTestId(PredictFeedScreenTestIds.HEADER)).getByText(
-          'Trending',
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        within(within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS))
-          .getAllByRole('button')
-          .map((tab) => tab.props.accessibilityLabel),
-      ).toEqual(['NFL', 'NCAAF']);
-      const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
-      expect(
-        await within(list).findByTestId(
-          PredictHomeTestIds.event('kalshi', 'nfl-1'),
-        ),
-      ).toBeOnTheScreen();
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getFeed',
-        'kalshi',
-        NFL_GAMES_FEED_ID,
-        { limit: 20 },
-      );
-      // Trending stays inside Predict: the app's Explore tab never opens.
-      expect(
-        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
-      ).not.toBeOnTheScreen();
-
-      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
-
+      expect(tabs).toEqual(['NFL', 'NCAAF']);
       expect(
         await view.findByTestId(PredictHomeTestIds.HOME),
       ).toBeOnTheScreen();
@@ -562,41 +573,24 @@ describe('PredictHome', () => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
-      /** Opens a Feed Screen from a Home header, checks its title, returns
-       * its tab labels, and goes back to Home. */
-      const openFeedScreenFrom = async (
-        headerTestId: string,
-        title: string,
-      ): Promise<string[]> => {
-        fireEvent.press(view.getByTestId(headerTestId));
-        const header = await view.findByTestId(PredictFeedScreenTestIds.HEADER);
-        expect(within(header).getByText(title)).toBeOnTheScreen();
-        const tabs = within(view.getByTestId(PredictFeedScreenTestIds.TABS))
-          .getAllByRole('button')
-          .map((tab) => tab.props.accessibilityLabel);
-        fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
-        await waitFor(() =>
-          expect(
-            view.queryByTestId(PredictFeedScreenTestIds.VIEW),
-          ).not.toBeOnTheScreen(),
-        );
-        return tabs;
-      };
 
       expect(
         await openFeedScreenFrom(
+          view,
           PredictHomeTestIds.HOME_TRENDING_HEADER,
           'Trending',
         ),
       ).toEqual(['NFL', 'NCAAF']);
       expect(
         await openFeedScreenFrom(
+          view,
           PredictHomeTestIds.HOME_SPORTS_HEADER,
           'Sports',
         ),
       ).toEqual(['Games', 'Props']);
       expect(
         await openFeedScreenFrom(
+          view,
           PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
           'Politics',
         ),
@@ -675,15 +669,15 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       messengerCall.mockClear();
 
-      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_SPORTS_HEADER));
-
-      expect(
-        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
-      ).toBeOnTheScreen();
-      expect(view.getByText('Sports')).toBeOnTheScreen();
-      expect(view.getAllByText('NFL')[0]).toBeOnTheScreen();
-
-      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
+      await openFeedScreenFrom(
+        view,
+        PredictHomeTestIds.HOME_SPORTS_HEADER,
+        'Sports',
+        () => {
+          expect(view.getByText('Sports')).toBeOnTheScreen();
+          expect(view.getAllByText('NFL')[0]).toBeOnTheScreen();
+        },
+      );
 
       expect(
         await view.findByTestId(PredictHomeTestIds.HOME),
@@ -804,11 +798,6 @@ describe('PredictHome', () => {
         { nativeEvent: { layout: { y: politicsY, height: 300 } } },
       );
     };
-
-    const watchedEventIds = () =>
-      liveDataCalls()
-        .filter(([action]) => action === 'PredictLiveDataService:watchEvents')
-        .flatMap(([, , ids]: [string, string, PredictEntityId[]]) => ids);
 
     // Reanimated's Jest mock runs the scroll reaction through the
     // microtask/frame queues, so let them drain before reading the result.
@@ -1073,15 +1062,6 @@ describe('PredictHome', () => {
           release();
         });
     };
-    const feedReadCount = (feedId: PredictFeedId) =>
-      messengerCall.mock.calls.filter(
-        ([action, , id]) =>
-          action === 'PredictMarketDataService:getFeed' && id === feedId,
-      ).length;
-    const watchedEventIds = () =>
-      messengerCall.mock.calls
-        .filter(([action]) => action === 'PredictLiveDataService:watchEvents')
-        .flatMap(([, , ids]: [string, string, PredictEntityId[]]) => ids);
 
     it('shows the Trending Games while the Politics read is still pending', async () => {
       // Two NFL and two NCAAF Games: Trending shows all four, Sports none.
@@ -1198,9 +1178,9 @@ describe('PredictHome', () => {
         view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
       ).not.toBeOnTheScreen();
       // Retry reads the two failed Feeds again, and only those.
-      expect(feedReadCount(NFL_GAMES_FEED_ID)).toBe(1);
-      expect(feedReadCount(NCAA_GAMES_FEED_ID)).toBe(1);
-      expect(feedReadCount(POLITICS_TRUMP_FEED_ID)).toBe(0);
+      expect(feedCalls(NFL_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(NCAA_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(POLITICS_TRUMP_FEED_ID)).toHaveLength(0);
     });
 
     it('offers Retry when the NFL read alone fails and rereads only that read', async () => {
@@ -1230,8 +1210,8 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
       ).not.toBeOnTheScreen();
-      expect(feedReadCount(NFL_GAMES_FEED_ID)).toBe(1);
-      expect(feedReadCount(NCAA_GAMES_FEED_ID)).toBe(0);
+      expect(feedCalls(NFL_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(NCAA_GAMES_FEED_ID)).toHaveLength(0);
     });
   });
 
@@ -1373,10 +1353,6 @@ describe('PredictHome', () => {
   });
 
   describe('capability-gated Feed sections', () => {
-    const feedCalls = () =>
-      messengerCall.mock.calls.filter(
-        ([action]) => action === 'PredictMarketDataService:getFeed',
-      );
     const buyButtons = (view: ReturnType<typeof renderPredictNext>) =>
       view.queryAllByLabelText(/, buy$/);
 
@@ -1693,12 +1669,7 @@ describe('PredictHome', () => {
 
       const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
       expect(within(feedScreen).getByText('Sports')).toBeOnTheScreen();
-      const tabs = within(
-        within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS),
-      )
-        .getAllByRole('button')
-        .map((tab) => tab.props.accessibilityLabel);
-      expect(tabs).toEqual(['NFL', 'NCAAF']);
+      expect(feedScreenTabLabels(feedScreen)).toEqual(['NFL', 'NCAAF']);
       expect(
         within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl'))
           .props.accessibilityState,
@@ -1820,9 +1791,6 @@ describe('PredictHome', () => {
   });
 
   describe('venue-generic Home', () => {
-    const calls = (action: string) =>
-      messengerCall.mock.calls.filter(([name]) => name === action);
-
     it('renders the rows and Feeds of an arbitrary Venue descriptor', async () => {
       // A feed set Kalshi's catalog does not have: college football only,
       // under Feed IDs of its own, plus a key Home has no section for.
@@ -1877,7 +1845,7 @@ describe('PredictHome', () => {
         view.queryByTestId(PredictHomeTestIds.SEARCH),
       ).not.toBeOnTheScreen();
       expect(
-        calls('PredictMarketDataService:getFeed').map(
+        callsTo('PredictMarketDataService:getFeed').map(
           ([, venueId, feedId, params]) => [venueId, feedId, params],
         ),
       ).toEqual([['kalshi', testFeedId, { limit: 4 }]]);
@@ -1925,10 +1893,10 @@ describe('PredictHome', () => {
           await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
         ).toBeOnTheScreen();
         expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
-        expect(calls('PredictPortfolioService:getBalance')).toEqual([
+        expect(callsTo('PredictPortfolioService:getBalance')).toEqual([
           ['PredictPortfolioService:getBalance', venueId],
         ]);
-        expect(calls('PredictMarketDataService:getFeed')).toHaveLength(0);
+        expect(callsTo('PredictMarketDataService:getFeed')).toHaveLength(0);
         expect(
           messengerCall.mock.calls.filter(([, id]) => id === 'kalshi'),
         ).toEqual([]);
@@ -1945,7 +1913,7 @@ describe('PredictHome', () => {
         ).toBeOnTheScreen();
         await waitFor(() =>
           expect(
-            calls('PredictPortfolioService:getPositions').map(([, id]) => id),
+            callsTo('PredictPortfolioService:getPositions').map(([, id]) => id),
           ).toContain(venueId),
         );
       });
