@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -7,6 +13,7 @@ import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 import {
   selectInternalAccountListSpreadByScopesByGroupId,
   selectInternalAccountsByGroupId,
@@ -47,6 +54,16 @@ export const AddressList = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const bottomInset = useBottomSafeAreaInset();
+
+  // Android runs edge-to-edge (targetSdk 36 + edgeToEdgeEnabled), so this list
+  // draws under the system navigation bar. `useSafeAreaInsets().bottom` reads 0
+  // there, so use the nav-bar-aware inset and pad the list content, keeping the
+  // last network row scrollable and tappable instead of hidden behind the bar.
+  const listContentContainerStyle = useMemo(
+    () => ({ paddingBottom: Math.max(bottomInset, 16) }),
+    [bottomInset],
+  );
 
   const { groupId, title, source, onLoad } = useParams<AddressListProps>();
 
@@ -171,6 +188,7 @@ export const AddressList = () => {
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}
         renderItem={renderAddressItem}
+        contentContainerStyle={listContentContainerStyle}
         onLoad={completeLoadTrace}
       />
     </View>

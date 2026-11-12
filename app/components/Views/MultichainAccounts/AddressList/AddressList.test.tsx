@@ -10,6 +10,7 @@ import {
 } from '@metamask/keyring-api';
 import { IconName, toast } from '@metamask/design-system-react-native';
 import { FlashList } from '@shopify/flash-list';
+import { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -33,6 +34,7 @@ const TITLE = 'Test Address List';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
+const mockedUseBottomSafeAreaInset = jest.mocked(useBottomSafeAreaInset);
 let mockFocusCleanup: (() => void) | undefined;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -73,6 +75,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useBottomSafeAreaInset', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -222,6 +228,7 @@ const renderWithAddressList = ({ includeBtcAccount = false } = {}) => {
 describe('AddressList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedUseBottomSafeAreaInset.mockReturnValue(0);
     mockFocusCleanup = undefined;
 
     const { useParams } = jest.requireMock(
@@ -372,6 +379,28 @@ describe('AddressList', () => {
     unmount();
 
     expect(onLoad).toHaveBeenCalledTimes(1);
+  });
+
+  describe('bottom safe area', () => {
+    it('reserves the bottom inset so the last network row clears the Android navigation bar', () => {
+      mockedUseBottomSafeAreaInset.mockReturnValue(48);
+
+      const { UNSAFE_getByType } = renderWithAddressList();
+
+      expect(UNSAFE_getByType(FlashList).props.contentContainerStyle).toEqual({
+        paddingBottom: 48,
+      });
+    });
+
+    it('falls back to the minimum gap when no bottom inset is reported', () => {
+      mockedUseBottomSafeAreaInset.mockReturnValue(0);
+
+      const { UNSAFE_getByType } = renderWithAddressList();
+
+      expect(UNSAFE_getByType(FlashList).props.contentContainerStyle).toEqual({
+        paddingBottom: 16,
+      });
+    });
   });
 
   describe('Analytics tracking', () => {
