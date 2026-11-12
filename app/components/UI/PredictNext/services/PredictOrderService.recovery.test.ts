@@ -1,17 +1,41 @@
 import { Messenger, MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 import { PredictError, PredictErrorCode } from '../errors';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
-import type { PredictOrderPreview, PredictOrderReceipt } from '../types';
-import { PredictOrderService, type PredictOrderServiceActions, type PredictOrderServiceEvents, type PredictOrderServiceOptions } from './PredictOrderService';
+import type {
+  PredictOrderPreview,
+  PredictOrderReceipt,
+  PredictAmount,
+  PredictDecimal,
+  PredictEntityId,
+  PredictSignedAmount,
+  PredictTimestamp,
+} from '../types';
+import { PredictOrderService, type PredictOrderServiceActions, type PredictOrderServiceEvents, type PredictOrderServiceOptions, type PredictOrderServiceMessenger } from './PredictOrderService';
 import { createOrderDispatchJournal, type OrderDispatchJournal } from './internal/orderDispatchJournal';
 
-const preview = {
-  previewId: 'preview-one', venueId: KALSHI_VENUE_ID, marketId: 'market-one',
-  side: 'yes', action: 'buy', requestedAmount: '4.00', orderAmount: '4.00',
-  estimatedContracts: 10, averagePrice: '0.40', limitPrice: '0.40', fee: '0',
-  feeBreakdown: [], totalDebit: '4.00', potentialPayout: '10', potentialProfit: '6',
-  expiresAt: '2099-01-01T00:00:00.000Z',
-} as PredictOrderPreview;
+// ES2022 has no Promise.withResolvers; keep test barriers explicit.
+const deferred = <Value,>() => {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  const promise = new Promise<Value>((done) => { resolve = done; });
+  return { promise, resolve };
+};
+
+const preview: PredictOrderPreview = {
+  previewId: 'preview-one', venueId: KALSHI_VENUE_ID,
+  marketId: 'market-one' as PredictEntityId,
+  side: 'yes', action: 'buy',
+  requestedAmount: '4.00' as PredictAmount,
+  orderAmount: '4.00' as PredictAmount,
+  estimatedContracts: 10,
+  averagePrice: '0.40' as PredictDecimal,
+  limitPrice: '0.40' as PredictDecimal,
+  fee: '0' as PredictAmount,
+  feeBreakdown: [],
+  totalDebit: '4.00' as PredictAmount,
+  potentialPayout: '10' as PredictAmount,
+  potentialProfit: '6' as PredictSignedAmount,
+  expiresAt: '2099-01-01T00:00:00.000Z' as PredictTimestamp,
+};
 const receipt = {
   operationId: 'operation-one', previewId: 'preview-one', venueId: KALSHI_VENUE_ID,
   marketId: 'market-one', side: 'yes', action: 'buy', status: 'filled',
@@ -31,7 +55,7 @@ const memory = () => {
 const instances: PredictOrderService[] = [];
 const setup = (journal: OrderDispatchJournal, options: Partial<PredictOrderServiceOptions> = {}) => {
   const root = new Messenger<MockAnyNamespace, PredictOrderServiceActions, PredictOrderServiceEvents>({ namespace: MOCK_ANY_NAMESPACE });
-  const messenger = new Messenger<'PredictOrderService', PredictOrderServiceActions, PredictOrderServiceEvents>({ namespace: 'PredictOrderService', parent: root });
+  const messenger: PredictOrderServiceMessenger = new Messenger({ namespace: 'PredictOrderService', parent: root });
   const invalidated = jest.fn().mockResolvedValue(undefined);
   const resolved = jest.fn();
   root.registerActionHandler('PredictPortfolioService:invalidateQueries', invalidated);
@@ -123,8 +147,8 @@ describe('Predict order durable recovery', () => {
     const journal = createOrderDispatchJournal(memory());
     await journal.put(reference);
     const { service, trading } = setup(journal);
-    const held = Promise.withResolvers<PredictOrderReceipt>();
-    const started = Promise.withResolvers<void>();
+    const held = deferred<PredictOrderReceipt>();
+    const started = deferred<void>();
     trading.observeOrder.mockImplementationOnce(() => {
       started.resolve();
       return held.promise;
@@ -171,8 +195,8 @@ describe('Predict order durable recovery', () => {
     const journal = createOrderDispatchJournal(memory());
     await journal.put(reference);
     const { service, trading, resolved, invalidated } = setup(journal);
-    const held = Promise.withResolvers<PredictOrderReceipt>();
-    const started = Promise.withResolvers<void>();
+    const held = deferred<PredictOrderReceipt>();
+    const started = deferred<void>();
     trading.observeOrder.mockImplementationOnce(() => { started.resolve(); return held.promise; });
     const recovering = service.resumeRecovery('user-one');
     await started.promise;
@@ -220,8 +244,8 @@ describe('Predict order durable recovery', () => {
     const { service, trading } = setup(journal);
     await service.resumeRecovery('user-one');
     await quote(service);
-    const entered = Promise.withResolvers<void>();
-    const release = Promise.withResolvers<void>();
+    const entered = deferred<void>();
+    const release = deferred<void>();
     const save = storage.setItem.getMockImplementation();
     storage.setItem.mockImplementationOnce(async (key, value) => {
       entered.resolve();
@@ -271,16 +295,16 @@ describe('Predict order durable recovery', () => {
   it('blocks recovery and approval while reset clears the journal and drops an old discovery result', async () => {
     const journal = createOrderDispatchJournal(memory());
     const { service, trading } = setup(journal);
-    const list = Promise.withResolvers<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
-    const listed = Promise.withResolvers<void>();
+    const list = deferred<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
+    const listed = deferred<void>();
     trading.listUnresolvedOrders.mockImplementationOnce(() => {
       listed.resolve();
       return list.promise;
     });
     const recovery = service.resumeRecovery('user-one');
     await listed.promise;
-    const clear = Promise.withResolvers<void>();
-    const clearing = Promise.withResolvers<void>();
+    const clear = deferred<void>();
+    const clearing = deferred<void>();
     const originalClear = journal.clear;
     jest.spyOn(journal, 'clear').mockImplementationOnce(async () => {
       clearing.resolve();
@@ -311,8 +335,8 @@ describe('Predict order durable recovery', () => {
       const { service, trading, resolved } = setup(journal);
       await service.resumeRecovery('user-one');
       await quote(service);
-      const list = Promise.withResolvers<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
-      const listed = Promise.withResolvers<void>();
+      const list = deferred<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
+      const listed = deferred<void>();
       trading.listUnresolvedOrders.mockImplementationOnce(() => {
         listed.resolve();
         return list.promise;
@@ -336,11 +360,11 @@ describe('Predict order durable recovery', () => {
     const { service, trading } = setup(journal);
     await service.resumeRecovery('user-one');
     await quote(service);
-    const discovered = Promise.withResolvers<void>();
-    const releaseDiscovery = Promise.withResolvers<void>();
-    const manualStarted = Promise.withResolvers<void>();
-    const releaseManual = Promise.withResolvers<void>();
-    const manualReasserted = Promise.withResolvers<void>();
+    const discovered = deferred<void>();
+    const releaseDiscovery = deferred<void>();
+    const manualStarted = deferred<void>();
+    const releaseManual = deferred<void>();
+    const manualReasserted = deferred<void>();
     const put = journal.put;
     let holdDiscovery = true;
     let manualWrites = 0;

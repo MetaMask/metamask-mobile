@@ -23,6 +23,7 @@ import type {
   PredictOrderPreview,
   PredictOrderReceipt,
   PredictUnresolvedOrdersPage,
+  PredictTimestamp,
   PredictSellOrderPreview,
   PredictSellOrderReceipt,
 } from '../../types';
@@ -306,12 +307,17 @@ export const parsePredictUnresolvedOrdersPage = (
         throw new Error('Invalid unresolved operation.');
       }
       seen.add(operation.previewId);
-      return { ...operation, receipt };
+      return {
+        ...operation,
+        receipt,
+        createdAt: operation.createdAt as PredictTimestamp,
+        submittedAt: operation.submittedAt as PredictTimestamp | null,
+      };
     });
     return {
       operations,
       ...(page.nextCursor && { nextCursor: page.nextCursor }),
-    } as PredictUnresolvedOrdersPage;
+    };
   } catch {
     throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }

@@ -2,11 +2,18 @@ import { bindOrderRecoveryLifecycle } from './orderRecoveryLifecycle';
 import type { AppStateStatus } from 'react-native';
 import type { NetInfoState } from '@react-native-community/netinfo';
 
+// ES2022 has no Promise.withResolvers; keep test barriers explicit.
+const deferred = <Value,>() => {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  const promise = new Promise<Value>((done) => { resolve = done; });
+  return { promise, resolve };
+};
+
 const setup = () => {
   let unlocked = true;
   let signedIn = true;
   let enabled = true;
-  let sessionChanged = () => undefined;
+  let sessionChanged: () => void = () => undefined;
   let appChanged: (state: AppStateStatus) => void = () => undefined;
   let networkChanged: (state: NetInfoState) => void = () => undefined;
   let serviceGeneration = 0;
@@ -63,7 +70,7 @@ describe('order recovery lifecycle', () => {
   it('synchronously suspends on lock and never resumes from stale identity resolution', async () => {
     const lifecycle = setup();
     await settle();
-    const held = Promise.withResolvers<string>();
+    const held = deferred<string>();
     lifecycle.getIdentityScope.mockReturnValueOnce(held.promise);
     lifecycle.app('active');
     lifecycle.lock();
@@ -80,7 +87,7 @@ describe('order recovery lifecycle', () => {
   it('does not restore an identity lookup that completes after wallet reset', async () => {
     const lifecycle = setup();
     await settle();
-    const held = Promise.withResolvers<string>();
+    const held = deferred<string>();
     lifecycle.getIdentityScope.mockReturnValueOnce(held.promise);
     lifecycle.app('active');
 

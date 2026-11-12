@@ -5,9 +5,12 @@ import SecureKeychain from '../../../../core/SecureKeychain';
 import { buildPredictDeviceAuthIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { loadVenueProfile } from '../auth/venueSigningProfiles';
 import { deviceSigningBase } from '../auth/signing/deviceRequestSigner';
-import * as deviceCrypto from '../auth/p256QuickCrypto';
 import { createP256DeviceKey } from '../auth/p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
+import type { signP256 } from '../auth/p256QuickCrypto';
+
+const deviceCrypto: { signP256: typeof signP256 } =
+  jest.requireActual('../auth/p256QuickCrypto');
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),

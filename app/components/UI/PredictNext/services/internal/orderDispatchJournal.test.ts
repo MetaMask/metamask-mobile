@@ -1,6 +1,13 @@
 import { createOrderDispatchJournal, type OrderDispatchReference } from './orderDispatchJournal';
 import type { PredictVenueId } from '../../types';
 
+// ES2022 has no Promise.withResolvers; keep test barriers explicit.
+const deferred = <Value,>() => {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  const promise = new Promise<Value>((done) => { resolve = done; });
+  return { promise, resolve };
+};
+
 const reference: OrderDispatchReference = {
   identityScope: 'profile-one',
   venueId: 'kalshi' as PredictVenueId,
@@ -60,8 +67,8 @@ describe('order dispatch journal', () => {
 
   it('fences an in-flight write and clears it before a new wallet writes', async () => {
     const storage = storageWith();
-    const writeStarted = Promise.withResolvers<void>();
-    const writeRelease = Promise.withResolvers<void>();
+    const writeStarted = deferred<void>();
+    const writeRelease = deferred<void>();
     const initialWrite = storage.setItem.getMockImplementation();
     storage.setItem.mockImplementationOnce(async (key, value) => {
       writeStarted.resolve();

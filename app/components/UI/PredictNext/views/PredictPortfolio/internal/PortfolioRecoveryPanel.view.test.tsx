@@ -1,3 +1,4 @@
+import '../../../../../../../tests/component-view/mocks';
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import Engine from '../../../../../../core/Engine';
@@ -5,10 +6,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { PredictVenueId } from '../../../types';
 import { PortfolioRecoveryPanel } from './PortfolioRecoveryPanel';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  __esModule: true,
-  default: { controllerMessenger: { call: jest.fn(), subscribe: jest.fn(), unsubscribe: jest.fn() } },
-}));
 const venueId = 'kalshi' as PredictVenueId;
 const call = jest.mocked(Engine.controllerMessenger.call);
 const subscribe = jest.mocked(Engine.controllerMessenger.subscribe);

@@ -214,7 +214,7 @@ describe('sendSigned', () => {
       const invalidateSigningSession = jest.fn();
 
       await expect(
-        sendSigned(
+        sendSigned<Reply>(
           { signOperation, invalidateSigningSession },
           'order.place',
           undefined,

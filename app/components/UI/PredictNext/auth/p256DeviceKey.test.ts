@@ -16,9 +16,17 @@ import {
   type P256DevicePublicMaterial,
 } from './p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
-import * as deviceCrypto from './p256QuickCrypto';
-import * as deviceKeyStorage from './p256DeviceKeyStorage';
-import type { PersistedP256DeviceKeyRead } from './p256DeviceKeyStorage';
+import type { generateP256Key } from './p256QuickCrypto';
+import type {
+  PersistedP256DeviceKeyRead,
+  readPersistedP256DeviceKey,
+} from './p256DeviceKeyStorage';
+
+const deviceCrypto: { generateP256Key: typeof generateP256Key } =
+  jest.requireActual('./p256QuickCrypto');
+const deviceKeyStorage: {
+  readPersistedP256DeviceKey: typeof readPersistedP256DeviceKey;
+} = jest.requireActual('./p256DeviceKeyStorage');
 
 // The global stub returns fixed bytes. QuickCrypto's own Jest mock forwards
 // to node:crypto, so key generation, signing, and hashing are real here.

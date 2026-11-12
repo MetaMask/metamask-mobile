@@ -1,7 +1,7 @@
 import contract from '../../contracts/v1/fixtures/api-errors.v1.json';
 import { PredictErrorCode } from '../../errors';
 import { predictErrorEvidence, type PredictErrorPhase } from '../../errors/apiErrorEvidence';
-import type { PredictEntityId } from '../../types';
+import type { PredictAmount, PredictEntityId } from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
   PredictHttpError,
@@ -51,7 +51,7 @@ const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
     marketId: 'market-1' as PredictEntityId,
     side: 'yes' as const,
     action: 'buy' as const,
-    amount: '1.00',
+    amount: '1.00' as PredictAmount,
     idempotencyKey: '0195dbde-a21b-4000-8000-000000000001',
   };
   const reject = jest.fn().mockRejectedValue(error);

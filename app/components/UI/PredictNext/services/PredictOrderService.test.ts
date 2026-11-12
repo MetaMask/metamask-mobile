@@ -29,6 +29,13 @@ import {
 } from '../types';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
+// ES2022 has no Promise.withResolvers; keep test barriers explicit.
+const deferred = <Value,>() => {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  const promise = new Promise<Value>((done) => { resolve = done; });
+  return { promise, resolve };
+};
+
 const SIGNING: PredictOrderApproval = { kind: 'user-approved' };
 
 const preview: PredictOrderPreview = {
@@ -746,7 +753,7 @@ describe('PredictOrderService', () => {
   it('drops review results when its quoted context is revoked during rendering', async () => {
     const orderService = service();
     await orderService.requestQuote(KALSHI_VENUE_ID, buyQuoteParams);
-    const held = Promise.withResolvers<PredictOrderReview>();
+    const held = deferred<PredictOrderReview>();
     trading.reviewOrder.mockReturnValueOnce(held.promise);
     const review = orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
 

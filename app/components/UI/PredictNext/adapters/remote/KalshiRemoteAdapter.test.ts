@@ -1,6 +1,8 @@
 import { PREDICT_MARKET_TYPES } from '../../constants';
 import { PredictErrorCode } from '../../errors';
 import type {
+  PredictAmount,
+  PredictDecimal,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -1129,9 +1131,9 @@ describe('KalshiRemoteAdapter', () => {
       params.side = 'no' as typeof params.side;
       resolveQuote(previewPayload);
       const preview = await quoting;
-      preview.limitPrice = '0.9900';
+      preview.limitPrice = '0.9900' as PredictDecimal;
       preview.estimatedContracts = 1;
-      if (preview.action === 'buy') preview.requestedAmount = '99.00';
+      if (preview.action === 'buy') preview.requestedAmount = '99.00' as PredictAmount;
 
       const review = await adapter.trading.reviewOrder(previewPayload.previewId);
       Object.assign(review, { maxCost: '0.01', contracts: '999' });
