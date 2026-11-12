@@ -334,6 +334,7 @@ describe('LiveView', () => {
         isClosed: false,
         isSnapshotLive: false,
         orderSource: 'social_live_trades',
+        analyticsSource: 'social_live_trades',
         shareSource: 'social_live_trades',
       }),
     );
