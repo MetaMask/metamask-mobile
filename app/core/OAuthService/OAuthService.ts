@@ -79,7 +79,12 @@ export interface OAuthServiceConfig {
   authServerUrl: string;
 }
 
-const getAuthConnectionIdFromClientId = (params: {
+/**
+ * Maps an OAuth client id to the Seedless auth-connection ids used at wallet
+ * creation. Modern iOS Google (`GoogleWebGID`) must resolve to the Android
+ * connection ids so refresh stays compatible with existing vaults.
+ */
+export const getAuthConnectionIdFromClientId = (params: {
   clientId: string;
   authConnection: AuthConnection;
   authConnectionConfig: OAuthServiceConfig['authConnectionConfig'];
@@ -569,6 +574,131 @@ export class OAuthService {
       web3AuthNetwork,
       parentTraceContext,
     );
+  };
+
+  /**
+   * Money MFA password-unlock path: one `authenticateIdentifier` social login
+   * then seedless authenticate. Shares the same loginInProgress guard,
+   * rehydration flag, TOPRF preload, Sentry spans, and post-login state as
+   * {@link handleOAuthLogin} so Onboarding cannot double-start a login.
+   *
+   * Lazy-imports the MFA helper to avoid a module cycle with
+   * `seedlessPasswordUnlockViaMfa` (which calls {@link handleSeedlessAuthenticate}).
+   */
+  handleMfaSeedlessPasswordUnlock = async (
+    params: {
+      identifier: {
+        type: string;
+        namespace: string;
+        value: string;
+        verifier?: unknown;
+      };
+      expectedSeedlessUserId?: string;
+      authConnection: AuthConnection;
+      clientId: string;
+    },
+    userClickedRehydration: boolean,
+    parentTraceContext?: TraceContext,
+  ): Promise<HandleOAuthLoginResult> => {
+    if (this.localState.loginInProgress) {
+      throw new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+    }
+    this.updateLocalState({ userClickedRehydration });
+    this.#dispatchLogin();
+
+    const preloadToprfNodeDetailsPromise = whenEngineReady()
+      .then(() =>
+        Engine.context.SeedlessOnboardingController.preloadToprfNodeDetails(),
+      )
+      .catch((error) => {
+        Logger.log(error as Error, {
+          message: 'Failed to preload TOPRF node details',
+        });
+      });
+
+    let seedlessAuthSuccess = false;
+    try {
+      await preloadToprfNodeDetailsPromise;
+
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        op: TraceOperation.OnboardingSecurityOp,
+        parentContext: parentTraceContext,
+      });
+
+      // Lazy import avoids OAuthService ↔ seedlessPasswordUnlockViaMfa cycle.
+      const { authenticateSeedlessViaMfaIdentifier } = await import(
+        '../MfaRecovery/seedlessPasswordUnlockViaMfa'
+      );
+
+      const unlockResult = await authenticateSeedlessViaMfaIdentifier(
+        params.identifier,
+        {
+          expectedSeedlessUserId: params.expectedSeedlessUserId,
+          clientId: params.clientId,
+        },
+      );
+
+      seedlessAuthSuccess = true;
+      const result: HandleOAuthLoginResult = {
+        type: OAuthLoginResultType.SUCCESS,
+        existingUser: unlockResult.existingUser,
+        accountName: unlockResult.accountName,
+      };
+
+      this.#dispatchPostLogin(result);
+
+      ReduxService.store.dispatch(
+        setSeedlessOnboarding({
+          clientId: params.clientId,
+          authConnection: params.authConnection,
+        }),
+      );
+
+      return result;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage },
+        parentContext: parentTraceContext,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
+      });
+
+      trackSocialLoginFailed({
+        authConnection: params.authConnection,
+        isRehydration: this.localState.userClickedRehydration,
+        errorCategory: 'seedless_auth',
+        error,
+      });
+
+      this.#dispatchPostLogin({
+        type: OAuthLoginResultType.ERROR,
+        existingUser: false,
+        error: errorMessage,
+      });
+
+      if (error instanceof OAuthError) {
+        throw error;
+      }
+      throw new OAuthError(
+        error instanceof Error ? error : 'Unknown error',
+        OAuthErrorType.LoginError,
+      );
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        data: { success: seedlessAuthSuccess },
+      });
+    }
   };
 
   updateLocalState = (newState: Partial<OAuthService['localState']>) => {

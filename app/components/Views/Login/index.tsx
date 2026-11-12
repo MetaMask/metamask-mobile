@@ -17,9 +17,23 @@ import {
   Box,
   BoxFlexDirection,
   TextField,
+  Button,
   ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { connect, useSelector } from 'react-redux';
+import {
+  selectSeedlessOnboardingAuthConnection,
+  selectSeedlessOnboardingUserId,
+  selectSeedlessOnboardingLoginFlow,
+} from '../../../selectors/seedlessOnboardingController';
+import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
+import OAuthService from '../../../core/OAuthService/OAuthService';
+import { buildOidcIdentifier } from '../../../core/MfaRecovery';
+import Engine from '../../../core/Engine';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import {
@@ -32,7 +46,6 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton';
 import Logger from '../../../util/Logger';
@@ -99,7 +112,6 @@ import {
   startUnlockTraces,
   type UnlockTraceTokens,
 } from '../../../core/Performance/unlockTraces';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { checkForDeeplink } from '../../../actions/user';
 import {
   getLoginUnlockFailureErrorType,
@@ -173,6 +185,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const isLocked = Boolean(route.params?.locked);
   const resumeOverlay = Boolean(route.params?.resumeOverlay);
   const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
+  const isSeedlessLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const seedlessUserId = useSelector(selectSeedlessOnboardingUserId);
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
 
   const dismissResumeOverlay = useCallback(() => {
     navigation.goBack();
@@ -616,6 +632,63 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setError(null);
   };
 
+  /**
+   * Local-only: validate left-hand MFA recovery while locked (seedless userId
+   * present). Not for production.
+   */
+  const handleDevMfaSocialUnlock = useCallback(async () => {
+    if (!__DEV__) {
+      return;
+    }
+
+    const hasMfaRecoveryController = Boolean(
+      (Engine.context as { MfaRecoveryController?: unknown })
+        .MfaRecoveryController,
+    );
+    const provider = authConnection as AuthConnection | undefined;
+
+    if (!hasMfaRecoveryController) {
+      Alert.alert('DEV MFA', 'MfaRecoveryController is not on Engine.context');
+      return;
+    }
+    if (!isSeedlessLogin || !provider || !seedlessUserId) {
+      Alert.alert(
+        'DEV MFA',
+        'Need a locked seedless social wallet (authConnection + userId)',
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const loginHandler = createLoginHandler(Platform.OS, provider, false, {
+        telegramLoginEnabled: isTelegramLoginEnabled,
+      });
+
+      await OAuthService.handleMfaSeedlessPasswordUnlock(
+        {
+          identifier: buildOidcIdentifier({ authConnection: provider }),
+          expectedSeedlessUserId: seedlessUserId,
+          authConnection: provider,
+          clientId: loginHandler.options.clientId,
+        },
+        true,
+      );
+
+      Alert.alert(
+        'DEV MFA OK',
+        'MfaRecoveryController path succeeded. Enter password to unlock the vault.',
+      );
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+      Alert.alert('DEV MFA failed', message);
+    } finally {
+      setLoading(false);
+    }
+  }, [authConnection, seedlessUserId, isSeedlessLogin, isTelegramLoginEnabled]);
+
   const renderWordmark = (wordmark: React.ReactElement) => (
     <TouchableOpacity
       testID={LoginViewSelectors.DOWNLOAD_LOGS_BUTTON}
@@ -677,6 +750,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </HelpText>
           )}
         </Box>
+        {__DEV__ && isSeedlessLogin ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ctaSize}
+            onPress={handleDevMfaSocialUnlock}
+            isDisabled={loading}
+            isLoading={loading}
+            isFullWidth
+            testID="dev-mfa-social-unlock-button"
+          >
+            DEV: MFA social unlock
+          </Button>
+        ) : null}
         <FooterGlass
           twClassName="px-0"
           primaryButtonProps={{
