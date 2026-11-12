@@ -194,6 +194,29 @@ const selectTokenAndPressNext = (utils: ReturnType<typeof renderComponent>) => {
 
 // --- Tests ---
 
+describe('analytics', () => {
+  it.each([
+    ['eip155:1', '1'],
+    [null, undefined],
+  ])('reports the import chain id for %s as %s', (selectedChainId, chainId) => {
+    const addProperties = jest.fn().mockReturnThis();
+    const build = jest.fn();
+    mockCreateEventBuilder.mockReturnValue({ addProperties, build });
+    setupWithTokenResults();
+    const utils = renderComponent({
+      selectedChainId: selectedChainId as CaipChainId | null,
+    });
+    selectTokenAndPressNext(utils);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.TOKEN_IMPORT_CLICKED,
+    );
+    expect(addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ chain_id: chainId }),
+    );
+  });
+});
+
 describe('SearchTokenAutocomplete', () => {
   beforeEach(() => {
     jest.clearAllMocks();

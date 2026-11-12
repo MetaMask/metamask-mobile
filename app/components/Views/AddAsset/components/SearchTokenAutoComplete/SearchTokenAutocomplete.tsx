@@ -10,6 +10,11 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { useTheme } from '../../../../../util/theme';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
+import { parseCaipChainId,
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import {
@@ -22,12 +27,6 @@ import {
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
-import {
-  CaipAssetType,
-  CaipChainId,
-  Hex,
-  parseCaipAssetType,
-} from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -373,7 +372,7 @@ const SearchTokenAutocomplete = ({
         .addProperties({
           source: 'manual',
           chain_id: selectedChainId
-            ? getDecimalChainId(selectedChainId)
+            ? getDecimalChainId(parseCaipChainId(selectedChainId).reference)
             : undefined,
         })
         .build(),
