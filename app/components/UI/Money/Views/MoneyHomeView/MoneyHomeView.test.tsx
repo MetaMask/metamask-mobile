@@ -48,7 +48,7 @@ const controlSendActionAbTest = {
   variantName: MoneyHomeSendActionVariant.Control,
   isActive: false,
 };
-const mockUseABTest = jest.fn(() => controlSendActionAbTest);
+const mockUseABTest = jest.fn((..._args: unknown[]) => controlSendActionAbTest);
 
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: (...args: unknown[]) => mockUseABTest(...args),
