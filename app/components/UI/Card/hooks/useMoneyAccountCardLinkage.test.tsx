@@ -280,7 +280,10 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
 
 describe('useMoneyAccountCardLinkage', () => {
   let mockShowToast: jest.Mock;
-  let mockToastRef: { current: { showToast: jest.Mock } };
+  let mockCloseToast: jest.Mock;
+  let mockToastRef: {
+    current: { showToast: jest.Mock; closeToast: jest.Mock };
+  };
   const expectedLinkCardSheetRoute = (
     entrypoint: CardEntryPoint | string = CardEntryPoint.MONEY_LINK_CARD_SHEET,
   ) => ({
@@ -381,7 +384,10 @@ describe('useMoneyAccountCardLinkage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockShowToast = jest.fn();
-    mockToastRef = { current: { showToast: mockShowToast } };
+    mockCloseToast = jest.fn();
+    mockToastRef = {
+      current: { showToast: mockShowToast, closeToast: mockCloseToast },
+    };
 
     mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
     mockUseCardCapabilities.mockReturnValue({
@@ -2014,6 +2020,226 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(result.current.status).toBe('idle');
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('confirmLinkInBackground - held toasts', () => {
+    const flushReleased = async () => {
+      await act(async () => {
+        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+    };
+
+    it('shows the pending toast only after the hold resolves, while the link is running', async () => {
+      let resolveLink: () => void = () => undefined;
+      mockLinkMoneyAccountCard.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveLink = resolve;
+        }),
+      );
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      act(() => {
+        linkPromise = result.current.confirmLinkInBackground({
+          holdToastsUntil,
+        });
+      });
+      await flushReleased();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      release();
+      await flushReleased();
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        hasNoTimeout: true,
+        labelOptions: [{ label: 'Linking your card' }],
+      });
+
+      await act(async () => {
+        resolveLink();
+        await linkPromise;
+      });
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Your card is ready to use' }],
+        }),
+      );
+    });
+
+    it('shows nothing when the link succeeds before the hold resolves', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          holdToastsUntil,
+        });
+      });
+
+      expect(returned).toBe(true);
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      release();
+      await flushReleased();
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockCloseToast).not.toHaveBeenCalled();
+    });
+
+    it('shows the error toast when the hold resolves after a failed link', async () => {
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(new Error('boom'));
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          holdToastsUntil,
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      release();
+      await flushReleased();
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
+      });
+    });
+
+    it('shows the error toast after the pending toast when the link fails once released', async () => {
+      let rejectLink: (error: Error) => void = () => undefined;
+      mockLinkMoneyAccountCard.mockReturnValueOnce(
+        new Promise<void>((_resolve, reject) => {
+          rejectLink = reject;
+        }),
+      );
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      act(() => {
+        linkPromise = result.current.confirmLinkInBackground({
+          holdToastsUntil,
+        });
+      });
+      release();
+      await flushReleased();
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Linking your card' }],
+      });
+
+      await act(async () => {
+        rejectLink(new Error('boom'));
+        await linkPromise;
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [{ label: 'Something went wrong linking your card' }],
+        }),
+      );
+    });
+
+    it('holds a failed precondition until the user leaves', async () => {
+      applySelectorMocks(buildSelectors({ isCardAuthenticated: false }));
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          holdToastsUntil,
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      release();
+      await flushReleased();
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
+      });
+    });
+
+    it('shows nothing when the user cancels before the hold resolves', async () => {
+      const { UserCancelledError } = jest.requireMock('./useCardDelegation');
+      mockLinkMoneyAccountCard.mockRejectedValueOnce(
+        new UserCancelledError('User denied'),
+      );
+      let release: () => void = () => undefined;
+      const holdToastsUntil = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({ holdToastsUntil });
+      });
+      release();
+      await flushReleased();
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(result.current.status).toBe('cancelled');
+    });
+
+    it('closes the pending toast instead of announcing the card is ready', async () => {
+      let resolveLink: () => void = () => undefined;
+      mockLinkMoneyAccountCard.mockReturnValueOnce(
+        new Promise<void>((resolve) => {
+          resolveLink = resolve;
+        }),
+      );
+      const { result } = renderLinkageHook();
+
+      let linkPromise: Promise<boolean> | undefined;
+      act(() => {
+        linkPromise = result.current.confirmLinkInBackground({
+          showSuccessToast: false,
+        });
+      });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Linking your card' }],
+      });
+
+      await act(async () => {
+        resolveLink();
+        await linkPromise;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
     });
   });
 

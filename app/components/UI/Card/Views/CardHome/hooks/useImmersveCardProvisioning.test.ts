@@ -274,19 +274,92 @@ describe('useImmersveCardProvisioning', () => {
       jest.useRealTimers();
     });
 
-    it('does not poll while Card Home is not focused', async () => {
+    it('does not reconcile or poll while Card Home is not focused', () => {
       mockIsFocused = false;
+      jest.useFakeTimers();
 
       const { result } = renderHook(() =>
         useImmersveCardProvisioning(provisioningData),
       );
 
-      await waitFor(() => expect(result.current.isReconciling).toBe(false));
-      jest.useFakeTimers();
-      controller.fetchCardHomeData.mockClear();
       jest.advanceTimersByTime(10000);
+      expect(result.current.isReconciling).toBe(true);
+      expect(mockResolve).not.toHaveBeenCalled();
+      expect(controller.getSpendingPrerequisites).not.toHaveBeenCalled();
       expect(controller.fetchCardHomeData).not.toHaveBeenCalled();
       jest.useRealTimers();
+    });
+
+    it('reconciles once the screen is focused again, without a Card flow mark', async () => {
+      mockIsFocused = false;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: kycPrerequisites,
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      expect(mockResolve).not.toHaveBeenCalled();
+
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(result.current.pendingAction?.type).toBe('kyc'),
+      );
+      expect(result.current.isReconciling).toBe(false);
+      expect(mockResolve).toHaveBeenCalledTimes(1);
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps Continue disabled while a reconcile deferred after a result runs', async () => {
+      let resolveRecheck: (value: {
+        prerequisites: typeof kycPrerequisites;
+      }) => void = () => undefined;
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({ prerequisites: kycPrerequisites })
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveRecheck = resolve;
+          }),
+        );
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.pendingAction?.type).toBe('kyc');
+        expect(result.current.isReconciling).toBe(false);
+      });
+
+      mockIsFocused = false;
+      mockSelectedCountry = 'NZ';
+      rerender(undefined);
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2),
+      );
+      expect(result.current.isReconciling).toBe(true);
+      act(() => {
+        result.current.resumePendingAction();
+      });
+      expect(mockRoute).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveRecheck({ prerequisites: kycPrerequisites });
+      });
+
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
     });
 
     it('does not poll while status is still reconciling', async () => {
@@ -1175,7 +1248,7 @@ describe('useImmersveCardProvisioning', () => {
       );
     });
 
-    it('does not notify a permanent rejection while the screen is not focused', async () => {
+    it('does not check or notify a permanent rejection while the screen is not focused', () => {
       mockIsFocused = false;
       controller.getSpendingPrerequisites.mockResolvedValue({
         prerequisites: [{ stage: 'kyc', status: 'blocked' }],
@@ -1187,9 +1260,8 @@ describe('useImmersveCardProvisioning', () => {
         }),
       );
 
-      await waitFor(() =>
-        expect(result.current.pendingAction?.type).toBe('rejected'),
-      );
+      expect(result.current.pendingAction).toBeNull();
+      expect(controller.getSpendingPrerequisites).not.toHaveBeenCalled();
       expect(mockNotifyKycRejected).not.toHaveBeenCalled();
     });
 
@@ -1205,14 +1277,14 @@ describe('useImmersveCardProvisioning', () => {
         }),
       );
 
-      await waitFor(() =>
-        expect(result.current.pendingAction?.type).toBe('rejected'),
-      );
       expect(mockNotifyKycRejected).not.toHaveBeenCalled();
 
       mockIsFocused = true;
       rerender(undefined);
 
+      await waitFor(() =>
+        expect(result.current.pendingAction?.type).toBe('rejected'),
+      );
       await waitFor(() =>
         expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1),
       );
