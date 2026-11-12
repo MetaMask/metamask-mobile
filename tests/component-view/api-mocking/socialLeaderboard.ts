@@ -12,6 +12,8 @@ import type {
   FeedItem as CoreFeedItem,
   Position as SocialPosition,
   SwapCommentResponse,
+  FollowingResponse,
+  TraderProfileResponse,
 } from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
@@ -171,6 +173,12 @@ export interface LeaderboardApiMockOptions {
    */
   feedFailuresBeforeSuccess?: number;
   openPositions?: SocialPosition[];
+  /** Profiles returned by `fetchFollowing`. Omit to leave unintercepted. */
+  following?: FollowingResponse['following'];
+  /** Response from `fetchTraderProfile`; null means no trader data. */
+  traderProfile?: TraderProfileResponse | null;
+  /** Items returned by `fetchTraderFeed`. Omit to leave unintercepted. */
+  traderFeedItems?: CoreFeedItem[];
   swapComment?: SwapCommentResponse;
 }
 
@@ -199,6 +207,9 @@ export function setupLeaderboardApiMock(
     leaderboardFailuresBeforeSuccess = 0,
     feedFailuresBeforeSuccess = 0,
     openPositions,
+    following,
+    traderProfile,
+    traderFeedItems,
     swapComment,
   } = options;
 
@@ -212,14 +223,45 @@ export function setupLeaderboardApiMock(
 
   clearLeaderboardApiMock();
 
+  // The CV Engine mock's `controllerMessenger.call` is already a `jest.fn`, so
+  // `spyOn` returns that shared mock rather than a fresh spy. A previous
+  // test's tree can still call it after that test's `mockRestore` (for example
+  // an idle tab prefetch firing before unmount), so drop that history here or
+  // call assertions in this test read the other test's requests.
   messengerSpy = jest
     .spyOn(Engine.controllerMessenger, 'call')
+    .mockClear()
     .mockImplementation((...messengerArgs: [string, ...unknown[]]) => {
       const [action, fetchOpts] = messengerArgs as [
         string,
         { chains?: string[] } | undefined,
         ...unknown[],
       ];
+
+      if (
+        following !== undefined &&
+        action === 'SocialService:fetchFollowing'
+      ) {
+        return Promise.resolve({ following }) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+      if (
+        traderProfile !== undefined &&
+        action === 'SocialService:fetchTraderProfile'
+      ) {
+        return Promise.resolve(traderProfile) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+      if (
+        traderFeedItems !== undefined &&
+        action === 'SocialService:fetchTraderFeed'
+      ) {
+        return Promise.resolve({ items: traderFeedItems }) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
 
       if (action === 'SocialService:fetchFeed') {
         if (remainingFeedFailures > 0) {

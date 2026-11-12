@@ -25,11 +25,9 @@ import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
-  SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 
 type MoneyEarnCryptoInfoSheetVariant = 'default' | 'deposit';
 
@@ -45,8 +43,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const { showMoneyHomeCta = false, variant = 'default' } =
     useParams<MoneyEarnCryptoInfoSheetParams>();
   const { apyPercent } = useMoneyVaultApy();
-  const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
-    useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const { trackBottomSheetViewed, trackButtonClicked } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_EARN_CRYPTO_INFO_SHEET,
@@ -63,18 +60,17 @@ const MoneyEarnCryptoInfoSheet = () => {
   }, []);
 
   const handleGoToMoneyHome = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: isOnboardingRedirectNeeded
-        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-        : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
-      label_key: 'money.earn_crypto_info_sheet.go_to_money_account',
-      redirect_target: isOnboardingRedirectNeeded
-        ? SCREEN_NAMES.MONEY_ONBOARDING
-        : SCREEN_NAMES.MONEY_HOME,
+    navigateToMoneyHome({
+      track: ({ button_intent, redirect_target }) => {
+        trackButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent,
+          label_key: 'money.earn_crypto_info_sheet.go_to_money_account',
+          redirect_target,
+        });
+      },
     });
-    navigateToMoneyHome();
-  }, [isOnboardingRedirectNeeded, navigateToMoneyHome, trackButtonClicked]);
+  }, [navigateToMoneyHome, trackButtonClicked]);
 
   const title =
     variant === 'deposit'

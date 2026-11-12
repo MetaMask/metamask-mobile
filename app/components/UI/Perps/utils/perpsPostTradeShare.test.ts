@@ -21,64 +21,34 @@ describe('perpsPostTradeShare', () => {
   });
 
   describe('isPerpsPostTradeShareEligible', () => {
-    it('returns false when margin is below the minimum', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '9.99',
-        leverage: 1,
-      });
+    it('returns false when position size is below the minimum', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: '9.99' });
 
       expect(result).toBe(false);
     });
 
-    it('returns false when notional times leverage reaches the minimum but margin does not', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '5',
-        leverage: 2,
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when size is at the minimum and leverage reduces margin below it', () => {
+    it('returns true at the minimum position size', () => {
       const result = isPerpsPostTradeShareEligible({
         amountUsd: String(MIN_POST_TRADE_SHARE_USD),
-        leverage: 10,
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for a $5 margin 10x order', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '50',
-        leverage: 10,
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true at the minimum margin', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: String(MIN_POST_TRADE_SHARE_USD),
-        leverage: 1,
       });
 
       expect(result).toBe(true);
     });
 
-    it('returns true when size at 10x equals $10 margin', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '100',
-        leverage: 10,
-      });
+    it('returns true for a $50 position at 10x even though margin is $5', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: '50' });
 
       expect(result).toBe(true);
     });
 
-    it('returns false when leverage is missing', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '100',
-      });
+    it('returns false when position size is missing', () => {
+      const result = isPerpsPostTradeShareEligible({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when position size is not a number', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: 'abc' });
 
       expect(result).toBe(false);
     });
@@ -98,7 +68,10 @@ describe('perpsPostTradeShare', () => {
       }),
     ).toBe(false);
     expect(
-      canPromptPerpsPostTrade({ orderType: 'market', activeProvider: 'myx' }),
+      canPromptPerpsPostTrade({
+        orderType: 'market',
+        activeProvider: 'lighter',
+      }),
     ).toBe(false);
   });
 
@@ -175,7 +148,7 @@ describe('perpsPostTradeShare', () => {
     expect(getPostTradeShareSession()).toBeNull();
   });
 
-  it('keeps a leveraged copy-trade on the toast path when margin is below the minimum', () => {
+  it('keeps a leveraged copy-trade on the toast path when position size is below the minimum', () => {
     const sessionId = beginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType: 'market',
@@ -183,14 +156,14 @@ describe('perpsPostTradeShare', () => {
       asset: 'ETH',
       direction: 'long',
       leverage: 10,
-      amountUsd: '50',
+      amountUsd: '9',
     });
 
     expect(sessionId).toBeUndefined();
     expect(getPostTradeShareSession()).toBeNull();
   });
 
-  it('opens a share for a copy-trade at the minimum margin', () => {
+  it('opens a share for a leveraged copy-trade at the minimum position size', () => {
     const sessionId = beginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType: 'market',
@@ -198,7 +171,7 @@ describe('perpsPostTradeShare', () => {
       asset: 'ETH',
       direction: 'long',
       leverage: 10,
-      amountUsd: '100',
+      amountUsd: String(MIN_POST_TRADE_SHARE_USD),
     });
 
     expect(sessionId).toBeDefined();

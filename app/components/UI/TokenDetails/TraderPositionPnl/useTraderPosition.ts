@@ -43,8 +43,9 @@ export const useTraderPosition = (
   const query = useQuery({
     queryKey: queryKey(positionId),
     queryFn: async ({ signal }) => {
+      const resolvedPositionId = positionId ?? '';
       try {
-        return await getTraderPosition(positionId ?? '', signal);
+        return await getTraderPosition(resolvedPositionId, signal);
       } catch (error) {
         if (error instanceof TraderPositionHttpError && error.status === 404) {
           return null;

@@ -660,6 +660,16 @@ describe('PredictController', () => {
       });
     });
 
+    it('gives the provider the selected EVM account address', () => {
+      withController(() => {
+        const [{ getSelectedAddress }] = (
+          PolymarketProvider as unknown as jest.Mock
+        ).mock.calls.at(-1) as [{ getSelectedAddress: () => string }];
+
+        expect(getSelectedAddress()).toBe(MOCK_ADDRESS);
+      });
+    });
+
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
         lastError: 'custom-error',

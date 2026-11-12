@@ -7,7 +7,6 @@ import {
 } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Icon,
   IconColor,
@@ -37,8 +36,12 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsSharePositionSheetSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsModalsNavigationParamList } from '../../types/navigation';
 import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from './PerpsSharePositionView.constants';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsSharePositionView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsModalsNavigationParamList, 'PerpsSharePosition'>>();
@@ -137,9 +140,9 @@ const PerpsSharePositionView = () => {
       goBack={navigation.goBack}
       testID={PerpsSharePositionSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader onClose={closeSheet}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={closeSheet}>
         {strings('perps.share_position.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <ListItem
         isInteractive
         avatar={<Foxicon variant={FoxiconVariant.Base} size={24} />}

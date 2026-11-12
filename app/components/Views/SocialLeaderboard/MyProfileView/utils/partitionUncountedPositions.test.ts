@@ -4,6 +4,7 @@ import {
   isUncountedPosition,
   listUncountedPositions,
   partitionUncountedPositions,
+  resolveUncountedNoteTarget,
 } from './partitionUncountedPositions';
 
 const position = (
@@ -85,5 +86,62 @@ describe('filterPositionsByAsset', () => {
     const result = listUncountedPositions([token, perp], 'perps');
 
     expect(ids(result)).toEqual(['BTC']);
+  });
+});
+
+describe('resolveUncountedNoteTarget', () => {
+  const flaggedOpen = position('Nigel', { flags: ['insider'] });
+  const flaggedClosed = position('Moodeng', { flags: ['developer'] });
+  const flaggedPerp = position('BTC', {
+    flags: ['insider'],
+    chain: 'hyperliquid',
+    perpPositionType: 'long',
+  });
+
+  it('counts the owner profile the same way as another trader', () => {
+    const result = resolveUncountedNoteTarget({
+      activeTab: 'open',
+      filter: 'all',
+      openPositions: [flaggedOpen],
+      closedPositions: [flaggedClosed],
+    });
+
+    expect(result).toEqual({ tab: 'open', count: 1 });
+  });
+
+  it('counts only the active tab after the asset filter', () => {
+    const openResult = resolveUncountedNoteTarget({
+      activeTab: 'open',
+      filter: 'tokens',
+      openPositions: [flaggedOpen, flaggedPerp],
+      closedPositions: [flaggedClosed],
+    });
+    const closedResult = resolveUncountedNoteTarget({
+      activeTab: 'closed',
+      filter: 'all',
+      openPositions: [flaggedOpen],
+      closedPositions: [flaggedClosed],
+    });
+
+    expect(openResult).toEqual({ tab: 'open', count: 1 });
+    expect(closedResult).toEqual({ tab: 'closed', count: 1 });
+  });
+
+  it('uses Open from Posts when Open has flagged rows, otherwise Closed', () => {
+    const openFirst = resolveUncountedNoteTarget({
+      activeTab: 'posts',
+      filter: 'all',
+      openPositions: [flaggedOpen],
+      closedPositions: [flaggedClosed],
+    });
+    const closedFallback = resolveUncountedNoteTarget({
+      activeTab: 'posts',
+      filter: 'all',
+      openPositions: [],
+      closedPositions: [flaggedClosed],
+    });
+
+    expect(openFirst).toEqual({ tab: 'open', count: 1 });
+    expect(closedFallback).toEqual({ tab: 'closed', count: 1 });
   });
 });

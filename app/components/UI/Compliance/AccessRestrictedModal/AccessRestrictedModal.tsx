@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ButtonBase,
   ButtonBaseSize,
@@ -13,12 +12,16 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
   isVisible,
   onClose,
   onContactSupport,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   if (!isVisible) return null;
 
   return (
@@ -26,12 +29,13 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
       onClose={onClose}
       testID={AccessRestrictedModalSelectorsIDs.BOTTOM_SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onClose}
         textProps={{ testID: AccessRestrictedModalSelectorsIDs.TITLE }}
       >
         {strings('access_restricted.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-6">
         <Text

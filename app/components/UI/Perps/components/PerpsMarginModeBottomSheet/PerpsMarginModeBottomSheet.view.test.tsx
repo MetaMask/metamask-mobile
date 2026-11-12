@@ -60,7 +60,11 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
       expect(screen.getByTestId(selectedId)).toBeEnabled();
       const sheet = within(screen.getByTestId(marginIds.CONTAINER));
       expect(
-        sheet.getByText(strings('perps.margin_mode.title')),
+        sheet.getByText(
+          strings('perps.margin_mode.title_with_market', {
+            market: 'ETH-USDC',
+          }),
+        ),
       ).toBeOnTheScreen();
       expect(
         sheet.getByText(strings('perps.margin_mode.isolated_description')),

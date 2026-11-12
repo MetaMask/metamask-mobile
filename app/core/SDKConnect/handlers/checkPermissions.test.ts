@@ -99,6 +99,8 @@ describe('checkPermissions', () => {
       revalidate: mockRevalidate,
       initialConnection: true,
       setLoading: jest.fn(),
+      validUntil: currentTime + 1000,
+      onTerminate: jest.fn(),
     } as unknown as Connection;
 
     engine = {
@@ -140,6 +142,34 @@ describe('checkPermissions', () => {
     mockGetPermittedAccounts.mockReturnValue(['0x123']);
     const result = await checkPermissions({ connection, engine });
     expect(result).toBe(true);
+  });
+
+  it('terminates an expired session instead of using its permitted accounts', async () => {
+    mockGetPermittedAccounts.mockReturnValue(['0x123']);
+    connection.validUntil = currentTime - 1;
+
+    await expect(checkPermissions({ connection, engine })).rejects.toThrow(
+      'SDK session expired',
+    );
+
+    expect(connection.onTerminate).toHaveBeenCalledWith({
+      channelId: 'channelId',
+    });
+    expect(mockGetPermittedAccounts).not.toHaveBeenCalled();
+    expect(requestPermissions).not.toHaveBeenCalled();
+  });
+
+  it('treats a session without an expiry as expired', async () => {
+    mockGetPermittedAccounts.mockReturnValue(['0x123']);
+    connection.validUntil = undefined;
+
+    await expect(checkPermissions({ connection, engine })).rejects.toThrow(
+      'SDK session expired',
+    );
+
+    expect(connection.onTerminate).toHaveBeenCalledWith({
+      channelId: 'channelId',
+    });
   });
 
   it('should return false if no permitted accounts exist and no approval promise', async () => {

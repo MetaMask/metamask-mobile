@@ -30,9 +30,9 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
   __esModule: true,
-  useMoneyNavigation: () => ({ navigateToMoneyHome: jest.fn() }),
+  useMoneyHomeNavigation: () => ({ navigateToMoneyHome: jest.fn() }),
 }));
 
 // Maskicon crashes on undefined addresses in some rendered states; stub the

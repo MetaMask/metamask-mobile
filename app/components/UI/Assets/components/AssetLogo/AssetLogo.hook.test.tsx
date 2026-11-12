@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { renderHook, act } from '@testing-library/react-native';
 import { ImageURISource } from 'react-native';
 import { useSmartImageFallback } from './AssetLogo.hook';
@@ -133,6 +134,44 @@ describe('useSmartImageFallback', () => {
     rerender({ hookSources: updatedSources });
 
     expect(result.current.source).toStrictEqual(updatedSources[0]);
+  });
+
+  it('commits the new primary source when URIs change after an error', () => {
+    const initialSources = createSourcesFromUris([
+      'https://example.com/commit-reset-a-primary.png',
+      'https://example.com/commit-reset-a-fallback.png',
+    ]);
+    const nextSources = createSourcesFromUris([
+      'https://example.com/commit-reset-b-primary.png',
+      'https://example.com/commit-reset-b-fallback.png',
+    ]);
+    const committedSources: ImageURISource[] = [];
+
+    const { result, rerender } = renderHook(
+      ({ hookSources }: { hookSources: ImageURISource[] }) => {
+        const value = useSmartImageFallback(hookSources);
+        useEffect(() => {
+          if (value.source) {
+            committedSources.push(value.source);
+          }
+        });
+        return value;
+      },
+      { initialProps: { hookSources: initialSources } },
+    );
+
+    act(() => {
+      result.current.onError();
+    });
+
+    const committedBeforeSwap = committedSources.length;
+    rerender({ hookSources: nextSources });
+
+    const committedAfterSwap = committedSources.slice(committedBeforeSwap);
+    expect(committedAfterSwap.length).toBeGreaterThan(0);
+    committedAfterSwap.forEach((source) => {
+      expect(source).toStrictEqual(nextSources[0]);
+    });
   });
 
   it('resets fallback index when sources change after onError cycles', () => {

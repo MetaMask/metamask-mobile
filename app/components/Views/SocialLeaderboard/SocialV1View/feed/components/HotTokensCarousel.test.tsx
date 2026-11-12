@@ -14,6 +14,7 @@ import React, { Suspense, useState } from 'react';
 import { Animated } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { RAIL_DRIFT_DECELERATION } from './hotTokenRailMotion';
 import { playSelection } from '../../../../../../util/haptics';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../types';
@@ -183,8 +184,12 @@ describe('HotTokensCarousel', () => {
     expect(chip).toHaveTextContent('Bitcoin perps');
     expect(chip).toHaveStyle({
       height: 40,
-      paddingLeft: 12,
+      paddingLeft: 8,
       paddingRight: 16,
+    });
+    expect(screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID)).toHaveStyle({
+      paddingLeft: 8,
+      gap: 8,
     });
     expect(
       screen.UNSAFE_getByProps({
@@ -724,6 +729,42 @@ describe('HotTokensCarousel', () => {
       layOutOverflowingRail();
 
       expect(mockTimingStart).toHaveBeenCalled();
+    });
+
+    it('coasts when a flick ends', () => {
+      const decayStart = jest.fn();
+      const decaySpy = jest.spyOn(Animated, 'decay').mockImplementation(
+        () =>
+          ({
+            start: decayStart,
+            stop: jest.fn(),
+            reset: jest.fn(),
+          }) as unknown as Animated.CompositeAnimation,
+      );
+      arrange([mockHotToken(), NVIDIA]);
+      renderWithProvider(<HotTokensCarousel />);
+      layOutOverflowingRail();
+
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID),
+          [
+            { translationX: 0, velocityX: 0 },
+            { translationX: -80, velocityX: -400 },
+            { translationX: -120, velocityX: -900 },
+          ],
+        );
+      });
+
+      expect(decaySpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          velocity: 900 / 1000,
+          deceleration: RAIL_DRIFT_DECELERATION,
+          useNativeDriver: true,
+        }),
+      );
+      decaySpy.mockRestore();
     });
 
     it('lets the rail be scrubbed', () => {

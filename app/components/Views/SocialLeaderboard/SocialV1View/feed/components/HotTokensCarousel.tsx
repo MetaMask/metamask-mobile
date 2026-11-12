@@ -4,6 +4,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
+import { useIsFocused } from '@react-navigation/native';
 import React, {
   startTransition,
   useCallback,
@@ -264,6 +265,7 @@ const HotTokenPill: React.FC<HotTokenPillProps> = ({
     <Animated.View style={[styles.pill, pillStyle]} onLayout={handleLayout}>
       <ExplorePill
         testID={getSocialV1HotTokenChipTestId(chipId)}
+        twClassName="pl-2"
         accessibilityState={{ selected: false }}
         leading={
           <Box twClassName="mr-1">
@@ -291,7 +293,7 @@ const HotTokenTrack: React.FC<
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
-    twClassName="pl-4 gap-2"
+    twClassName="pl-2 gap-2"
     onLayout={onLayout}
     testID={testID}
   >
@@ -324,7 +326,8 @@ const HotTokenTrack: React.FC<
  * frame keeps a native scroll gesture alive on PagerView page 0 and cancels
  * taps on the rest of Trending (reactions, overflow menu, Popular traders). A
  * pan on this rail still wins over the pager so scrubbing the chips does not
- * change tabs.
+ * change tabs. Lifting a finger coasts on the iOS scroll deceleration curve,
+ * in whichever direction the flick went, and the crawl resumes after it.
  *
  * Low-end hardware keeps the rail still, and its chips fade in place instead
  * of scattering. Reduce Motion gets the same fade, and the docked chip fades
@@ -342,6 +345,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isActive = true,
 }) => {
   const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
+  const isFocused = useIsFocused();
   const reduceMotion = useReducedMotion();
   // A press moves the rail at once and hands the feed's filter to a
   // transition, so the animation does not wait on the feed re-rendering. The
@@ -432,7 +436,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
 
   // A docked chip holds the crawl where it stopped, so the chips come back
   // where they left.
-  const shouldRun = isActive && !isLowHardware && shouldMarquee && !isSelected;
+  const shouldRun =
+    isActive && isFocused && !isLowHardware && shouldMarquee && !isSelected;
   const { translateX, readOffset, hold, scrubBy, release } = useRailCrawl({
     trackWidth,
     enabled: shouldRun,
@@ -456,7 +461,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         .failOffsetY([-12, 12])
         .onBegin(hold)
         .onUpdate((event) => scrubBy(event.translationX))
-        .onFinalize(release),
+        .onEnd((event) => release(event.velocityX))
+        .onFinalize(() => release()),
     [hold, isSelected, release, scrubBy],
   );
 
@@ -520,6 +526,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       <GestureDetector gesture={pan}>
         <RNAnimated.View
           style={[styles.row, trackStyle]}
+          renderToHardwareTextureAndroid
           testID={SOCIAL_V1_HOT_TOKENS_RAIL_TEST_ID}
           pointerEvents={isSelected ? 'none' : 'auto'}
           accessibilityElementsHidden={isSelected}

@@ -103,6 +103,54 @@ describe('useSpotTraderPositionPrices', () => {
     expect(mockFetchHyperliquid).not.toHaveBeenCalled();
   });
 
+  it('does not refetch when a new position object keeps the same token', async () => {
+    const { result, rerender } = renderHook(
+      ({ position }: { position: Position }) =>
+        useSpotTraderPositionPrices(
+          { positionParam: position, caipChainId: 'eip155:8453' },
+          { enabled: true },
+        ),
+      { initialProps: { position: spotPosition } },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const fetchCount = (global.fetch as jest.Mock).mock.calls.length;
+
+    rerender({ position: { ...spotPosition, lastTradeAt: 1 } as Position });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(global.fetch).toHaveBeenCalledTimes(fetchCount);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('refetches when the token changes', async () => {
+    const { result, rerender } = renderHook(
+      ({ position }: { position: Position }) =>
+        useSpotTraderPositionPrices(
+          { positionParam: position, caipChainId: 'eip155:8453' },
+          { enabled: true },
+        ),
+      { initialProps: { position: spotPosition } },
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    const fetchCount = (global.fetch as jest.Mock).mock.calls.length;
+
+    rerender({
+      position: { ...spotPosition, tokenAddress: '0xdef' } as Position,
+    });
+
+    await waitFor(() =>
+      expect((global.fetch as jest.Mock).mock.calls.length).toBeGreaterThan(
+        fetchCount,
+      ),
+    );
+    const latestUrls = (global.fetch as jest.Mock).mock.calls
+      .slice(fetchCount)
+      .map(([url]) => url as string);
+    expect(latestUrls.every((url) => url.includes('erc20:0xdef'))).toBe(true);
+  });
+
   it('resolves caipChainId via chain mapping when passed from facade', () => {
     (chainNameToId as jest.Mock).mockReturnValue('eip155:8453');
     const { result } = renderHook(() =>

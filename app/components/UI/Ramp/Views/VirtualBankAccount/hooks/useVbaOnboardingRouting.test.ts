@@ -79,6 +79,7 @@ const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
+const mockReset = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
@@ -103,6 +104,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       getSessionStatusForVendor: (...args: unknown[]) =>
         mockGetSessionStatusForVendor(...args),
       startSession: (...args: unknown[]) => mockStartSession(...args),
+      reset: () => mockReset(),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
@@ -161,6 +163,7 @@ describe('useOpenVbaOnboarding', () => {
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
+    mockReset.mockResolvedValue(undefined);
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreateAutoramp.mockResolvedValue({
       id: 'autoramp-1',
@@ -1151,6 +1154,84 @@ describe('resolveVbaOnboarding', () => {
     await expect(
       resolveVbaOnboarding('money-add-money-bank-account'),
     ).resolves.toEqual({ status: 'error' });
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the stored session when the geoCountry changed, then hydrates', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValueOnce(
+      new Error(
+        'KycController already initialized with a different geoCountry',
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
+
+    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockStartSession).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('resets empty KYC state when the geoCountry changed with no stored session', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController already initialized with a different geoCountry',
+        ),
+      )
+      .mockResolvedValueOnce({ id: 'session-remote' });
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
+
+    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockStartSession).toHaveBeenCalledTimes(2);
+    expect(mockReset.mock.invocationCallOrder[0]).toBeLessThan(
+      mockHydrate.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('continues as a new user when the retry after a geoCountry reset has no session and no AAL2 token', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController already initialized with a different geoCountry',
+        ),
+      )
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController.startSession: aal2Token is required to create a KYC session.',
+        ),
+      );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('does not reset for an email mismatch and returns an error', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new Error('KycController already initialized with a different email'),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockReset).not.toHaveBeenCalled();
     expect(mockHydrate).not.toHaveBeenCalled();
   });
 
