@@ -214,6 +214,12 @@ const TraderPositionView = () => {
         )
       : traderId;
   const isOwnerMismatch = authorProfileId !== traderId;
+  // An owner that isn't the link's `traderId` verbatim can only be confirmed
+  // through the profile, so hold the position back until it settles.
+  const isOwnershipPending =
+    isProfileLoading &&
+    Boolean(resolvedPosition?.profileId) &&
+    resolvedPosition?.profileId !== traderId;
   const { profile: ownerProfile, refresh: refreshOwnerProfile } =
     useTraderProfile(isOwnerMismatch ? authorProfileId : '');
   const authorProfile = isOwnerMismatch ? ownerProfile : fetchedProfile;
@@ -670,9 +676,10 @@ const TraderPositionView = () => {
   );
 
   const isInitialLoading =
-    !displayPosition &&
-    !isBlockedPerpPosition &&
-    (isPositionLoading || isProfileLoading);
+    isOwnershipPending ||
+    (!displayPosition &&
+      !isBlockedPerpPosition &&
+      (isPositionLoading || isProfileLoading));
   const hasFailed =
     isBlockedPerpPosition ||
     (!displayPosition && !isPositionLoading && !isProfileLoading);
@@ -1042,7 +1049,11 @@ const TraderPositionView = () => {
             traderProfileId={authorProfileId}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
-            onShare={effectivePositionId ? handleSharePosition : undefined}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
             isSharing={isSharing}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
             shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
@@ -1063,7 +1074,11 @@ const TraderPositionView = () => {
             perpLeverage={displayPosition?.perpLeverage}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
-            onShare={effectivePositionId ? handleSharePosition : undefined}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
             isSharing={isSharing}
           />
         )}

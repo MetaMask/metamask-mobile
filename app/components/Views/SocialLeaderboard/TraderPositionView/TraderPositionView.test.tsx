@@ -474,7 +474,10 @@ describe('TraderPositionView', () => {
       refresh: mockRefreshProfile,
     });
 
-    const renderWithOwner = (ownerProfileId?: string) => {
+    const renderWithOwner = (
+      ownerProfileId?: string,
+      { isTraderProfileLoading = false } = {},
+    ) => {
       const { useTraderPosition } = jest.requireMock(
         './hooks/useTraderPosition',
       );
@@ -488,6 +491,9 @@ describe('TraderPositionView', () => {
         refetch: mockRefetchPosition,
       });
       (useTraderProfile as jest.Mock).mockImplementation((id: string) => {
+        if (id === 'trader-1' && isTraderProfileLoading) {
+          return { ...buildProfileResult(null), isLoading: true };
+        }
         if (id === 'trader-1') {
           return buildProfileResult({
             profileId: 'trader-1',
@@ -530,6 +536,28 @@ describe('TraderPositionView', () => {
 
     const traderNameLink = () =>
       screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK);
+
+    it('holds the position back while the link trader profile confirms a different owner id', () => {
+      renderWithOwner('owner-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows the position without waiting when the link trader id is the owner', () => {
+      renderWithOwner('trader-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+    });
 
     it('keeps the link trader when the position has no owner', () => {
       renderWithOwner();
