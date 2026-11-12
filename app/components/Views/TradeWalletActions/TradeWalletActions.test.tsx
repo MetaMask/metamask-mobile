@@ -495,6 +495,17 @@ const mockInitialState: DeepPartial<RootState> = {
 };
 
 const mockNavigate = jest.fn();
+const mockRunNavigationHandoff = jest.fn((navigate: () => unknown) =>
+  Promise.resolve(navigate()),
+);
+const mockBeginHomeNavigationHandoff = jest.fn(() => ({
+  run: mockRunNavigationHandoff,
+  cancel: jest.fn(),
+}));
+
+jest.mock('../../../util/navigation/homeNavigationHandoff', () => ({
+  beginHomeNavigationHandoff: () => mockBeginHomeNavigationHandoff(),
+}));
 const mockGoBack = jest.fn();
 const mockParentGoBack = jest.fn();
 let mockParentCanGoBack = true;
@@ -1035,6 +1046,10 @@ describe('TradeWalletActions', () => {
       );
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
+      expect(mockBeginHomeNavigationHandoff).toHaveBeenCalledTimes(1);
+      expect(
+        mockBeginHomeNavigationHandoff.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockParentGoBack.mock.invocationCallOrder[0]);
     });
   });
 

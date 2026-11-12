@@ -39,8 +39,7 @@ const mockVariant = (variant: PushPrePromptVariant) => {
     dismiss: jest.fn(),
     isResolving: false,
     isHomeUnobstructed: true,
-    markShown: jest.fn().mockResolvedValue(undefined),
-    unmarkShown: jest.fn().mockResolvedValue(undefined),
+    markAnswered: jest.fn().mockResolvedValue(undefined),
     nativeOsPermissionEnabled: null,
     variant,
   });

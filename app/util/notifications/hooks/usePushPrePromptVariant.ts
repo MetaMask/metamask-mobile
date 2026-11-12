@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getIsNotificationEnabledByDefaultFeatureFlag } from '../../../selectors/notifications';
 import {
@@ -14,9 +14,8 @@ import {
 } from '../../../reducers/rewardsMoney/selectors';
 import Logger from '../../Logger';
 import {
-  hasPushPrePromptBeenShown,
-  resetPushPrePromptShown,
-  setPushPrePromptShown,
+  hasPushPrePromptBeenAnswered,
+  setPushPrePromptAnswered,
 } from '../constants/notification-storage-keys';
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
@@ -36,7 +35,7 @@ interface PushPrePromptResolutionState {
 
 interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
-  hasPrePromptBeenShown: boolean;
+  hasPrePromptBeenAnswered: boolean;
   hasMarketingConsent: boolean;
   isMarketingConsentResolutionPending: boolean;
   isMetaMetricsEnabled: boolean;
@@ -45,7 +44,7 @@ interface PushPrePromptEligibility {
 
 const getResolutionKey = ({
   canShowPrePrompt,
-  hasPrePromptBeenShown,
+  hasPrePromptBeenAnswered,
   hasMarketingConsent,
   isMarketingConsentResolutionPending,
   isMetaMetricsEnabled,
@@ -53,7 +52,7 @@ const getResolutionKey = ({
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
-    `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
+    `hasPrePromptBeenAnswered:${hasPrePromptBeenAnswered}`,
     `hasMarketingConsent:${hasMarketingConsent}`,
     `isMarketingConsentResolutionPending:${isMarketingConsentResolutionPending}`,
     `isMetaMetricsEnabled:${isMetaMetricsEnabled}`,
@@ -77,7 +76,7 @@ interface PushPrePromptResolutionResult {
 const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptResolutionResult> => {
-  if (eligibility.hasPrePromptBeenShown) {
+  if (eligibility.hasPrePromptBeenAnswered) {
     return {
       nativeOsPermissionEnabled: null,
       variant: null,
@@ -141,8 +140,8 @@ const resolvePrePromptVariant = async (
  *
  * The pre-prompt presenter uses this hook to decide between the push permission
  * prompt, the marketing consent prompt, or no prompt. The hook keeps the UI in
- * a resolving state while it checks local "already shown" storage and native
- * push permission, then exposes helpers for marking the prompt as shown and
+ * a resolving state while it checks local response storage and native
+ * push permission, then exposes helpers for recording an answer and
  * hiding it after the user dismisses or completes the flow.
  *
  * Eligibility is shared by both prompts. Once eligible, native OS push
@@ -154,8 +153,7 @@ export function usePushPrePromptVariant(): {
   isHomeUnobstructed: boolean;
   nativeOsPermissionEnabled: boolean | null;
   variant: PushPrePromptVariant;
-  markShown: () => Promise<void>;
-  unmarkShown: () => Promise<void>;
+  markAnswered: () => Promise<void>;
   dismiss: () => void;
 } {
   // Two independent gates:
@@ -224,16 +222,14 @@ export function usePushPrePromptVariant(): {
 
   // Storage resets should affect the next app session/remount, not reopen the
   // pre-prompt while this root is already mounted.
-  const hasPrePromptBeenShownRef = useRef<boolean | null>(null);
-  if (hasPrePromptBeenShownRef.current === null) {
-    hasPrePromptBeenShownRef.current = hasPushPrePromptBeenShown();
-  }
-  const hasPrePromptBeenShown = hasPrePromptBeenShownRef.current;
+  const [hasPrePromptBeenAnswered, setHasPrePromptBeenAnswered] = useState(
+    hasPushPrePromptBeenAnswered,
+  );
 
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({
       canShowPrePrompt,
-      hasPrePromptBeenShown,
+      hasPrePromptBeenAnswered,
       hasMarketingConsent: startupHasMarketingConsent,
       isMarketingConsentResolutionPending,
       isMetaMetricsEnabled,
@@ -241,7 +237,7 @@ export function usePushPrePromptVariant(): {
     }),
     [
       canShowPrePrompt,
-      hasPrePromptBeenShown,
+      hasPrePromptBeenAnswered,
       isMarketingConsentResolutionPending,
       isMetaMetricsEnabled,
       startupHasMarketingConsent,
@@ -306,16 +302,9 @@ export function usePushPrePromptVariant(): {
     };
   }, [eligibility, resolutionKey]);
 
-  const markShown = useCallback(async () => {
-    hasPrePromptBeenShownRef.current = true;
-    await setPushPrePromptShown();
-  }, []);
-
-  // Takes back markShown when a sheet is removed before the user answered it,
-  // so a sheet the user barely saw does not use up the one chance on this install.
-  const unmarkShown = useCallback(async () => {
-    hasPrePromptBeenShownRef.current = false;
-    await resetPushPrePromptShown();
+  const markAnswered = useCallback(async () => {
+    setHasPrePromptBeenAnswered(true);
+    await setPushPrePromptAnswered();
   }, []);
 
   const dismiss = useCallback(() => {
@@ -337,8 +326,7 @@ export function usePushPrePromptVariant(): {
     dismiss,
     isResolving: isCurrentResolution ? resolutionState.isResolving : true,
     isHomeUnobstructed,
-    markShown,
-    unmarkShown,
+    markAnswered,
     nativeOsPermissionEnabled: isCurrentResolution
       ? resolutionState.nativeOsPermissionEnabled
       : null,
