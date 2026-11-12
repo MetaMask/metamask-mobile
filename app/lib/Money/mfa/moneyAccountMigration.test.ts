@@ -1,6 +1,8 @@
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
+  MIGRATION_POLL_INTERVAL_MS,
+  MIGRATION_POLL_TIMEOUT_MS,
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
@@ -20,6 +22,8 @@ jest.mock('../../../core/Engine', () => ({
     context: {
       MoneyAccountLifecycleController: {
         startMigration: jest.fn(),
+        refresh: jest.fn(),
+        state: { moneyAccounts: {} },
       },
     },
   },
@@ -35,10 +39,21 @@ const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
 const mockStartMigration = jest.mocked(
   Engine.context.MoneyAccountLifecycleController.startMigration,
 );
+const mockRefresh = jest.mocked(
+  Engine.context.MoneyAccountLifecycleController.refresh,
+);
+const lifecycleState = Engine.context.MoneyAccountLifecycleController.state as {
+  moneyAccounts: Record<string, { type: string }>;
+};
+const setMoneyAccountType = (type: string) => {
+  lifecycleState.moneyAccounts = { '0xabc': { type } };
+};
 
 describe('moneyAccountMigration', () => {
   beforeEach(() => {
     mockStartMigration.mockResolvedValue(undefined);
+    mockRefresh.mockResolvedValue(undefined);
+    setMoneyAccountType('mfa');
   });
 
   afterEach(() => {
@@ -154,5 +169,41 @@ describe('moneyAccountMigration', () => {
 
       expect(fresh.getStatus()).toBe('not_started');
     });
+  });
+
+  it('refreshes until the Money account is no longer migrating', async () => {
+    jest.useFakeTimers();
+    setMoneyAccountType('migrating');
+    mockRefresh
+      .mockResolvedValueOnce(undefined)
+      .mockImplementationOnce(async () => {
+        setMoneyAccountType('mfa');
+      });
+
+    const run = moneyAccountMigration.start();
+    await jest.advanceTimersByTimeAsync(MIGRATION_POLL_INTERVAL_MS);
+    await run;
+
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+    expect(moneyAccountMigration.getStatus()).toBe('done');
+    jest.useRealTimers();
+  });
+
+  it('fails when the Money account is still migrating after the timeout', async () => {
+    jest.useFakeTimers();
+    setMoneyAccountType('migrating');
+
+    const result = moneyAccountMigration.start().catch((error: Error) => error);
+    await jest.advanceTimersByTimeAsync(
+      MIGRATION_POLL_TIMEOUT_MS + MIGRATION_POLL_INTERVAL_MS,
+    );
+
+    expect((await result) as Error).toHaveProperty(
+      'message',
+      'Money account migration did not finish in time',
+    );
+
+    expect(moneyAccountMigration.getStatus()).toBe('failed');
+    jest.useRealTimers();
   });
 });

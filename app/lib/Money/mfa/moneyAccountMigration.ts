@@ -12,6 +12,9 @@ export type MoneyAccountMigrationStatus =
 export const MONEY_ACCOUNT_MIGRATION_STORAGE_KEY =
   '@MetaMask:moneyAccountMigration';
 
+export const MIGRATION_POLL_INTERVAL_MS = 5_000;
+export const MIGRATION_POLL_TIMEOUT_MS = 5 * 60_000;
+
 const STATUSES: MoneyAccountMigrationStatus[] = [
   'not_started',
   'migrating',
@@ -29,6 +32,31 @@ let lastError: string | undefined;
 // Bumped by reset and clear so a migration already running can't write its result.
 let generation = 0;
 const listeners = new Set<() => void>();
+
+const isAnyMoneyAccountMigrating = () =>
+  Object.values(
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
+  ).some((lifecycle) => lifecycle.type === 'migrating');
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const waitForMigrationToFinish = async (startedIn: number) => {
+  const deadline = Date.now() + MIGRATION_POLL_TIMEOUT_MS;
+  for (;;) {
+    if (startedIn !== generation) {
+      return;
+    }
+    await Engine.context.MoneyAccountLifecycleController.refresh();
+    if (!isAnyMoneyAccountMigrating()) {
+      return;
+    }
+    if (Date.now() >= deadline) {
+      throw new Error('Money account migration did not finish in time');
+    }
+    await wait(MIGRATION_POLL_INTERVAL_MS);
+  }
+};
 
 const setStatus = (next: MoneyAccountMigrationStatus) => {
   status = next;
@@ -57,6 +85,7 @@ export const moneyAccountMigration = {
     setStatus('migrating');
     try {
       await Engine.context.MoneyAccountLifecycleController.startMigration();
+      await waitForMigrationToFinish(startedIn);
       if (startedIn !== generation) {
         throw new Error('Money account migration was cancelled');
       }
