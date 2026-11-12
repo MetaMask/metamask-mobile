@@ -12,9 +12,6 @@ import { SCREEN_NAMES } from './constants/moneyEventLocations';
  * ticket existed when this test was added, so the ticket segment is the
  * placeholder `EARN0`. Create the LaunchDarkly flag with this exact key, or
  * rename this constant and the flag together before enabling it.
- *
- * "Withdraw" (the `withdraw` variant) needs legal/L&C sign-off before the
- * flag is enabled in production.
  */
 export const MONEY_HOME_SEND_ACTION_AB_KEY =
   'earnEARN0AbtestMoneyHomeSendLabel';
