@@ -69,7 +69,9 @@ function destinationForAction(
         ? Routes.CARD.HOME
         : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
-      return Routes.CARD.ONBOARDING.KYC_FAILED;
+      return action.canRetry
+        ? Routes.CARD.ONBOARDING.KYC_PROCESSING
+        : Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
       return Routes.CARD.HOME;
     default:
@@ -197,6 +199,14 @@ export const useImmersveOnboardingRouter = () => {
           });
           break;
         case 'rejected':
+          if (action.canRetry) {
+            Engine.context.CardController.setSignInLinkStage('identity');
+            goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+              countryKey,
+              kycUrl: action.retryUrl,
+            });
+            break;
+          }
           if (navigateFromOutsideCard) {
             enterCardOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED);
           } else if (navigateFromRoot) {

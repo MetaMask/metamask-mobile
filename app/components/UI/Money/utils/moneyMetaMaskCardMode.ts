@@ -86,6 +86,11 @@ export interface MoneyMetaMaskCardModeInput {
    * card home data, then continue without a verification-status wait.
    */
   reportsVerificationStatus?: boolean;
+  /**
+   * The provider's card home payload includes a card. Providers that do not
+   * report verification status can be linked only after that card exists.
+   */
+  hasProviderCard?: boolean;
   cardSetupView?: MoneyCardSetupView | null;
 }
 
@@ -103,6 +108,7 @@ export const deriveMoneyMetaMaskCardMode = ({
   hasCardHomeDataFailed,
   isMoneyCardSectionAvailable = true,
   reportsVerificationStatus = true,
+  hasProviderCard = false,
   cardSetupView = null,
 }: MoneyMetaMaskCardModeInput): MoneyMetaMaskCardMode | null => {
   if (!isMoneyCardSectionAvailable) {
@@ -136,9 +142,26 @@ export const deriveMoneyMetaMaskCardMode = ({
   // Residency-blocked users can't link.
   if (isResidencyBlocked) return null;
 
+  // A signed-in provider with no verification status is not linkable until it
+  // reports a card. The cardholder label alone is not that card.
+  const lacksProviderCard =
+    isCardAuthenticated && !reportsVerificationStatus && !hasProviderCard;
+
   // Cardholder or a verified authenticated user -> offer to link (needs full reqs).
-  if (isCardholder || (isCardAuthenticated && isCardVerified)) {
+  if (
+    (isCardholder || (isCardAuthenticated && isCardVerified)) &&
+    !lacksProviderCard
+  ) {
     return hasMoneyAccountRequirements ? 'link' : null;
+  }
+
+  if (
+    isCardAuthenticated &&
+    !reportsVerificationStatus &&
+    hasProviderCard &&
+    hasMoneyAccountRequirements
+  ) {
+    return 'link';
   }
 
   // Authenticated but identity not yet verified -> verification in progress.
