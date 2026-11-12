@@ -205,7 +205,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
-          marginBottom={3}
+          marginBottom={4}
           twClassName="flex-wrap"
         >
           <Text
@@ -316,7 +316,7 @@ export const InputSection = forwardRef<InputSectionRef, InputSectionProps>(
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mb-3 leading-[16px]"
+            twClassName="mt-0.5 mb-3 leading-[16px]"
           >
             {shouldShowAmountTypeToggle ? (
               <Text
