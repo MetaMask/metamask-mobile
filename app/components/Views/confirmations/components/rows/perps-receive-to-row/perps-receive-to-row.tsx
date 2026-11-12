@@ -159,6 +159,9 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="self-end pr-4"
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
         >
           {`(${selectedBalance})`}
         </Text>
@@ -214,7 +217,14 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
                         <RadioButton
                           isChecked={isSelected}
                           isReadOnly
-                          touchableOpacityProps={{ accessible: false }}
+                          accessible={false}
+                          accessibilityElementsHidden
+                          importantForAccessibility="no"
+                          touchableOpacityProps={{
+                            accessible: false,
+                            accessibilityElementsHidden: true,
+                            importantForAccessibility: 'no',
+                          }}
                         />
                       }
                       isSelected={isSelected}

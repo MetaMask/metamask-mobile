@@ -109,7 +109,10 @@ describe('PerpsReceiveToRow', () => {
     expect(
       getByText(strings('confirm.perps_receive_to.hyperliquid')),
     ).toBeOnTheScreen();
-    expect(getByText('($4,892.06)')).toBeOnTheScreen();
+    // The visual balance line is accessibility-hidden so VoiceOver does not repeat it.
+    expect(
+      getByText('($4,892.06)', { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsReceiveToSelectorsIDs.ROW));
 
@@ -139,7 +142,9 @@ describe('PerpsReceiveToRow', () => {
     expect(
       getByText(strings('confirm.perps_receive_to.lighter')),
     ).toBeOnTheScreen();
-    expect(getByText('($4,718.18)')).toBeOnTheScreen();
+    expect(
+      getByText('($4,718.18)', { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
