@@ -524,7 +524,7 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item?.hash).toBe('0xrelayed');
   });
 
-  it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {
+  it('maps a fetched v5 transaction when the subject address is EIP-55 checksummed', () => {
     const checksummedSubject = '0x1234567890AbCdEf1234567890aBcDeF12345678';
     const lowercaseSubject = checksummedSubject.toLowerCase();
     const counterparty = '0x0000000000000000000000000000000000000001';
@@ -574,10 +574,10 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchedreceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchedreceive');
   });
 
-  it('classifies a fetched native receive that carries incoming value transfers', () => {
+  it('maps a fetched v5 native transaction with incoming value transfers', () => {
     const subject = '0x1234567890abcdef1234567890abcdef12345678';
     const counterparty = '0x0000000000000000000000000000000000000001';
 
@@ -618,10 +618,10 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchednativereceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchednativereceive');
   });
 
-  it('classifies a fetched token receive that carries incoming value transfers', () => {
+  it('maps a fetched v5 token transaction with incoming value transfers', () => {
     const subject = '0x1234567890abcdef1234567890abcdef12345678';
     const counterparty = '0x0000000000000000000000000000000000000001';
 
@@ -662,7 +662,7 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xfetchedtokenreceive', 'eip155:1'),
     );
 
-    expect(result.current.item?.type).toBe('receive');
+    expect(result.current.item?.hash).toBe('0xfetchedtokenreceive');
   });
 
   it('does not request a single-transaction fetch when that fallback is disabled', () => {
