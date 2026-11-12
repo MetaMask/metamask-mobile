@@ -1613,8 +1613,9 @@ export function useQuickBuyController(
       setIsPresetAddFundsMode(false);
       return;
     }
-    setIsPresetAddFundsMode(numeric > maxSpendFiat);
-  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode]);
+    // Max spends the exact balance; its cent-rounded fiat can exceed maxSpendFiat.
+    setIsPresetAddFundsMode(!isMaxSourceAmount && numeric > maxSpendFiat);
+  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode, isMaxSourceAmount]);
 
   const handleConfirm = useCallback(async () => {
     if ((isPresetAddFundsMode || hasNoPayWithFunds) && tradeMode === 'buy') {
