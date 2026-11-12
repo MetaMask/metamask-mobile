@@ -64,11 +64,18 @@ describe('useTransactionQuery', () => {
 
     expect(
       apiClient.accounts.getV5TransactionByIdQueryOptions,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenCalledWith(
+      'eip155:0:0x0',
+      '',
+      expect.objectContaining({
+        includeTxMetadata: true,
+      }),
+    );
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        enabled: false,
+        queryFn: expect.any(Symbol),
         retry: false,
+        select: expect.any(Function),
       }),
     );
   });

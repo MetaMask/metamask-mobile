@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import type { CaipAccountId, CaipChainId } from '@metamask/utils';
+import {
+  KnownCaipNamespace,
+  toCaipAccountId,
+  toCaipChainId,
+} from '@metamask/utils';
 import { useApiTransaction } from './useApiTransaction';
 import { useCachedEvmTransaction } from './useCachedEvmTransaction';
 import { useTransactionQuery } from './useTransactionQuery';
@@ -14,11 +18,14 @@ const useTransactionQueryMock = jest.mocked(useTransactionQuery);
 const buildV5Transaction = (
   overrides: Partial<V5TransactionRecord['tx']> = {},
 ): V5TransactionRecord => ({
-  accountId:
-    'eip155:1:0x0000000000000000000000000000000000000001' as CaipAccountId,
+  accountId: toCaipAccountId(
+    KnownCaipNamespace.Eip155,
+    '1',
+    '0x0000000000000000000000000000000000000001',
+  ),
   tx: {
     id: '0xhash',
-    chainId: 'eip155:1' as CaipChainId,
+    chainId: toCaipChainId(KnownCaipNamespace.Eip155, '1'),
     status: 'confirmed',
     timestamp: 1778593067000,
     date: '2026-05-13T14:34:23.000Z',

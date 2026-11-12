@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
-  type CaipAccountId,
+  isCaipChainId,
   KnownCaipNamespace,
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
-import type { V5TransactionByIdResponse } from '@metamask/core-backend';
 import I18n from '../../../../../../locales/i18n';
 import { apiClient } from '../../../../../core/apiClient';
 import { selectEvmAddress } from '../../../../../selectors/accountsController';
@@ -28,43 +27,36 @@ export function useTransactionQuery({
   const globalEvmAddress = useSelector(selectEvmAddress);
   const evmAddress = (groupEvmAccount?.address ?? globalEvmAddress ?? '') || '';
 
-  const accountId = useMemo<CaipAccountId | undefined>(() => {
-    if (!chainId?.startsWith('eip155:') || !evmAddress) {
+  const accountId = useMemo(() => {
+    if (!chainId || !isCaipChainId(chainId) || !evmAddress) {
       return undefined;
     }
-    const { reference } = parseCaipChainId(chainId as `${string}:${string}`);
+    const { namespace, reference } = parseCaipChainId(chainId);
+    if (namespace !== KnownCaipNamespace.Eip155) {
+      return undefined;
+    }
     return toCaipAccountId(
       KnownCaipNamespace.Eip155,
       reference,
-      evmAddress.toLowerCase() as `0x${string}`,
+      evmAddress.toLowerCase(),
     );
   }, [chainId, evmAddress]);
 
-  const isReady = Boolean(accountId && txHash);
-
-  const queryOptions = useMemo(() => {
-    if (!isReady || !accountId || !txHash) {
-      return null;
-    }
-    return apiClient.accounts.getV5TransactionByIdQueryOptions(
-      accountId,
-      txHash,
-      {
-        includeLogs: false,
-        includeMiscOperations: false,
-        includeTxMetadata: true,
-        lang: (I18n.locale ?? 'en').split('-')[0],
-      },
-    );
-  }, [accountId, txHash, isReady]);
+  const queryOptions = apiClient.accounts.getV5TransactionByIdQueryOptions(
+    accountId ?? toCaipAccountId(KnownCaipNamespace.Eip155, '0', '0x0'),
+    txHash ?? '',
+    {
+      includeLogs: false,
+      includeMiscOperations: false,
+      includeTxMetadata: true,
+      lang: (I18n.locale ?? 'en').split('-')[0],
+    },
+  );
 
   return useQuery({
-    queryKey: queryOptions?.queryKey ?? ['v5Transaction', 'disabled'],
-    queryFn:
-      queryOptions?.queryFn ??
-      (() => Promise.reject(new Error('No query options'))),
-    enabled: enabled && isReady,
+    ...queryOptions,
+    queryFn: enabled && accountId && txHash ? queryOptions.queryFn : skipToken,
     retry: false,
-    select: (response: V5TransactionByIdResponse) => response.data,
+    select: (response) => response.data,
   });
 }

@@ -2,7 +2,11 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import type { V5TransactionRecord } from '@metamask/core-backend';
-import type { CaipAccountId, CaipChainId } from '@metamask/utils';
+import {
+  KnownCaipNamespace,
+  toCaipAccountId,
+  toCaipChainId,
+} from '@metamask/utils';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -54,6 +58,40 @@ const useRampActivityItemsByIdMock = jest.mocked(useRampActivityItemsById);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 const useLocalTransactionMetaMock = jest.mocked(useLocalTransactionMeta);
+
+const buildV5Transaction = (
+  overrides: {
+    accountId?: ReturnType<typeof toCaipAccountId>;
+    id?: string;
+    date?: string;
+    from?: string;
+    to?: string;
+    value?: string;
+    valueTransfers?: V5TransactionRecord['valueTransfers'];
+  } = {},
+): V5TransactionRecord => ({
+  accountId:
+    overrides.accountId ??
+    toCaipAccountId(
+      KnownCaipNamespace.Eip155,
+      '1',
+      '0x1234567890abcdef1234567890abcdef12345678',
+    ),
+  tx: {
+    id: overrides.id ?? '0xhash',
+    chainId: toCaipChainId(KnownCaipNamespace.Eip155, '1'),
+    status: 'confirmed',
+    timestamp: 1778593067000,
+    date: overrides.date ?? '2026-05-13T14:34:23.000Z',
+    from: overrides.from ?? '0x1234567890abcdef1234567890abcdef12345678',
+    to: overrides.to ?? '0x0000000000000000000000000000000000000001',
+    blockNumber: '1',
+    blockHash: '0xblock',
+    value: overrides.value ?? '0',
+  },
+  valueTransfers: overrides.valueTransfers ?? [],
+  fee: null,
+});
 
 const rampOrder: FiatOrder = {
   id: 'ramp-order-id',
@@ -424,24 +462,7 @@ describe('useActivityDetailsItem', () => {
   it('resolves a fetched API transaction when it is not in the list query pages', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId:
-          'eip155:1:0x1234567890abcdef1234567890abcdef12345678' as CaipAccountId,
-        tx: {
-          id: '0xfetched',
-          chainId: 'eip155:1' as CaipChainId,
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-13T14:34:23.000Z',
-          from: '0x1234567890abcdef1234567890abcdef12345678',
-          to: '0x0000000000000000000000000000000000000001',
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '0',
-        },
-        valueTransfers: [],
-        fee: null,
-      } as V5TransactionRecord,
+      transaction: buildV5Transaction({ id: '0xfetched' }),
       isFetching: false,
     });
 
@@ -455,21 +476,11 @@ describe('useActivityDetailsItem', () => {
   it('maps a fetched v5 transaction with value transfers', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId:
-          'eip155:1:0x1234567890abcdef1234567890abcdef12345678' as CaipAccountId,
-        tx: {
-          id: '0xwithvaluestransfers',
-          chainId: 'eip155:1' as CaipChainId,
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-13T14:34:23.000Z',
-          from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '2500000000000000000',
-        },
+      transaction: buildV5Transaction({
+        id: '0xwithvaluestransfers',
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        value: '2500000000000000000',
         valueTransfers: [
           {
             assetClass: 'ft',
@@ -482,8 +493,7 @@ describe('useActivityDetailsItem', () => {
             name: 'Ether',
           },
         ],
-        fee: null,
-      } as V5TransactionRecord,
+      }),
       isFetching: false,
     });
 
@@ -497,23 +507,13 @@ describe('useActivityDetailsItem', () => {
   it('maps a fetched v5 transaction without the v1 participation gate', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId: 'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
-        tx: {
-          id: '0xrelayed',
-          chainId: 'eip155:1',
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-12T13:37:47.000Z',
-          from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '0',
-        },
-        valueTransfers: [],
-        fee: null,
-      } as V5TransactionRecord,
+      transaction: buildV5Transaction({
+        id: '0xrelayed',
+        date: '2026-05-12T13:37:47.000Z',
+        from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+        value: '0',
+      }),
       isFetching: false,
     });
 
@@ -550,23 +550,17 @@ describe('useActivityDetailsItem', () => {
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId: `eip155:1:${lowercaseSubject}` as CaipAccountId,
-        tx: {
-          id: '0xfetchedreceive',
-          chainId: 'eip155:1' as CaipChainId,
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-13T14:34:23.000Z',
-          from: counterparty,
-          to: lowercaseSubject,
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '1',
-        },
-        valueTransfers: [],
-        fee: null,
-      } as V5TransactionRecord,
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(
+          KnownCaipNamespace.Eip155,
+          '1',
+          lowercaseSubject,
+        ),
+        id: '0xfetchedreceive',
+        from: counterparty,
+        to: lowercaseSubject,
+        value: '1',
+      }),
       isFetching: false,
     });
 
@@ -583,20 +577,12 @@ describe('useActivityDetailsItem', () => {
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId: `eip155:1:${subject}` as CaipAccountId,
-        tx: {
-          id: '0xfetchednativereceive',
-          chainId: 'eip155:1' as CaipChainId,
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-13T14:34:23.000Z',
-          from: counterparty,
-          to: subject,
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '1000000000000000000',
-        },
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(KnownCaipNamespace.Eip155, '1', subject),
+        id: '0xfetchednativereceive',
+        from: counterparty,
+        to: subject,
+        value: '1000000000000000000',
         valueTransfers: [
           {
             assetClass: 'ft',
@@ -609,8 +595,7 @@ describe('useActivityDetailsItem', () => {
             name: 'Ether',
           },
         ],
-        fee: null,
-      } as V5TransactionRecord,
+      }),
       isFetching: false,
     });
 
@@ -627,20 +612,12 @@ describe('useActivityDetailsItem', () => {
 
     setSources({});
     useApiTransactionMock.mockReturnValue({
-      transaction: {
-        accountId: `eip155:1:${subject}` as CaipAccountId,
-        tx: {
-          id: '0xfetchedtokenreceive',
-          chainId: 'eip155:1' as CaipChainId,
-          status: 'confirmed',
-          timestamp: 1778593067000,
-          date: '2026-05-13T14:34:23.000Z',
-          from: counterparty,
-          to: subject,
-          blockNumber: '1',
-          blockHash: '0xblock',
-          value: '0',
-        },
+      transaction: buildV5Transaction({
+        accountId: toCaipAccountId(KnownCaipNamespace.Eip155, '1', subject),
+        id: '0xfetchedtokenreceive',
+        from: counterparty,
+        to: subject,
+        value: '0',
         valueTransfers: [
           {
             assetClass: 'ft',
@@ -654,8 +631,7 @@ describe('useActivityDetailsItem', () => {
             name: 'USD Coin',
           },
         ],
-        fee: null,
-      } as V5TransactionRecord,
+      }),
       isFetching: false,
     });
 
