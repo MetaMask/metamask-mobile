@@ -10030,6 +10030,7 @@
       "date": "Date",
       "paid_with": "Paid with",
       "you_deposited": "You deposited",
+      "amount_unavailable": "Amount unavailable",
       "transaction_fees": "Transaction fees",
       "paid_by_metamask": "Paid by MetaMask",
       "total": "Total",
@@ -11611,16 +11612,20 @@
         "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
-        "title": "Awaiting approval",
-        "description": "Our partner needs to verify your identity in order to approve your application.",
-        "helper_text": "This usually takes a few seconds. Do not close the app.",
+        "loading_label": "Loading",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app.",
         "incomplete_title": "Finish verifying your identity",
         "incomplete_description": "You closed identity verification before it was complete. Continue to finish.",
         "continue_button": "Continue verification",
         "info_needed_title": "Additional information needed",
         "info_needed_description": "We need a bit more information to complete your verification. Continue to provide it.",
         "info_needed_button": "Continue verification",
-        "expiring_error": "Your verification session expired. Contact support to continue."
+        "expiring_error": "Your verification session expired. Contact support to continue.",
+        "error_title": "Something went wrong",
+        "try_again_button": "Try again",
+        "expired_title": "Verification session expired",
+        "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
         "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
@@ -11722,7 +11727,9 @@
       "complete": {
         "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
-        "confirm_button": "Finish setup"
+        "confirm_button": "Finish setup",
+        "money_account_description": "We're getting your card ready. It'll be on your Card home in a moment.",
+        "money_account_confirm_button": "Continue"
       },
       "account_exists": {
         "title": "You already have an account",

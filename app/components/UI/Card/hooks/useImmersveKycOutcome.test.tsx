@@ -1,6 +1,9 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import { CardActions } from '../util/metrics';
 import { useImmersveKycOutcome } from './useImmersveKycOutcome';
 
@@ -41,15 +44,6 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
-}));
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      error: { default: 'red' },
-      primary: { default: 'blue' },
-    },
-  }),
 }));
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -103,6 +97,7 @@ describe('useImmersveKycOutcome', () => {
 
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
+        variant: ToastVariants.Plain,
         labelOptions: [
           { label: 'card.card_onboarding.kyc_rejected.retry_title' },
         ],
@@ -133,6 +128,7 @@ describe('useImmersveKycOutcome', () => {
 
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
+        variant: ToastVariants.Plain,
         labelOptions: [{ label: 'card.card_onboarding.kyc_failed.title' }],
         descriptionOptions: {
           description: 'card.card_onboarding.kyc_rejected.reasons.ineligible',
@@ -203,6 +199,7 @@ describe('useImmersveKycOutcome', () => {
 
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
+        variant: ToastVariants.Plain,
         labelOptions: [{ label: 'money.metamask_card.setup.reviewing_title' }],
         descriptionOptions: {
           description: 'money.metamask_card.setup.reviewing_description',
