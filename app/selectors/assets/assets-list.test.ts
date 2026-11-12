@@ -1511,6 +1511,39 @@ describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
     ).toBe('7');
   });
 
+  it('aggregates staked TRX across multiple Tron accounts into one resolvable row', () => {
+    // The non-scoped Tron account has the larger stake, so sorting would
+    // previously keep its row and selectAsset would fail to resolve it.
+    const state = createTronStakeState({
+      stakingMetadata: { energy: '7000000' },
+      secondTronAccountStakingMetadata: { energy: '9000000' },
+      trxPrice: 0.12,
+    });
+
+    const stakedRows = selectSortedAssetsBySelectedAccountGroup(state).filter(
+      (asset) => asset.chainId === TrxScope.Mainnet && asset.isStaked,
+    );
+
+    expect(stakedRows).toEqual([
+      {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      },
+    ]);
+    expect(
+      selectAsset(state, {
+        address: TRON_NATIVE_ASSET_ID,
+        chainId: TrxScope.Mainnet,
+        isStaked: true,
+      }),
+    ).toEqual(expect.objectContaining({ balance: '16', balanceFiat: '$1.92' }));
+
+    const details = selectTronSpecialAssetsBySelectedAccountGroup(state);
+    expect(details.stakedTrxForEnergy?.balance).toBe('16');
+    expect(details.totalStakedTrx).toBe(16);
+  });
+
   it('excludes staked assets of accounts outside the selected group on a shared chain', () => {
     const baseState = createTronStakeState();
     const { backgroundState } = baseState.engine;
