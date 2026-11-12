@@ -15,6 +15,7 @@ import {
 import {
   calculatePositionSize,
   CandlePeriod,
+  PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -1592,6 +1593,13 @@ describe('PerpsOrderView', () => {
 
     await waitForDeferredOrderData();
     emitEthPrice(stream);
+
+    // The isolated formula does not describe an order against a cross position.
+    expect(
+      await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
 
     const placeOrderButton = await waitForEnabledPlaceOrderButton();
     await act(async () => {

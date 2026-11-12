@@ -37,6 +37,7 @@ import CapsuleGlass from '../../../../../component-library/components-temp/Capsu
 import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
   type PerpsMarketHeaderProps,
@@ -270,10 +271,10 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
-  const walletRiskBadge =
-    walletRiskTone === 'warning' || walletRiskTone === 'danger'
-      ? WALLET_RISK_BADGE[walletRiskTone]
-      : undefined;
+  const walletRiskAlert = getCrossMarginRatioAlert(walletRiskTone);
+  const walletRiskBadge = walletRiskAlert
+    ? WALLET_RISK_BADGE[walletRiskAlert]
+    : undefined;
 
   const iconButtons = [
     onWalletPress ? (

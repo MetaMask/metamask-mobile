@@ -27,7 +27,11 @@ import CrossMarginIcon from '../../../../../images/perps/margin-mode/cross.svg';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsSelectionOptionCard from '../PerpsSelectionBottomSheet/PerpsSelectionOptionCard';
 import PerpsCrossMarginRatioBanner from '../PerpsCrossMarginRatioBanner';
-import { getCrossMarginRatioTone } from '../../utils/crossMarginSummary';
+import {
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
+  getCrossMarginRatioTone,
+} from '../../utils/crossMarginSummary';
 import { formatCrossMarginRatio } from '../../utils/formatUtils';
 
 interface PerpsMarginModeBottomSheetProps {
@@ -97,8 +101,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   const ratioTone = isCrossMarginAvailable
     ? getCrossMarginRatioTone(crossMarginRatio)
     : undefined;
-  const ratioSeverity =
-    ratioTone === 'warning' || ratioTone === 'danger' ? ratioTone : undefined;
+  const ratioSeverity = getCrossMarginRatioAlert(ratioTone);
   const formattedRatio =
     ratioSeverity && crossMarginRatio !== undefined
       ? formatCrossMarginRatio(crossMarginRatio)
@@ -106,11 +109,13 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   // The ratio is private, so both the option tag and the banner name the
   // risk level instead of printing the figure while privacy mode is on.
   const ratioTag =
-    ratioSeverity === undefined
+    ratioSeverity === undefined || crossMarginRatio === undefined
       ? undefined
-      : privacyMode
-        ? strings(`perps.crossMarginSummary.tone_${ratioSeverity}`)
-        : formattedRatio;
+      : getCrossMarginRatioAlertLabel(
+          crossMarginRatio,
+          ratioSeverity,
+          privacyMode,
+        );
 
   if (!isVisible) {
     return null;

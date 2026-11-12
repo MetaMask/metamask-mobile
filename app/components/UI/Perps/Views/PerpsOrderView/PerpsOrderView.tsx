@@ -2634,6 +2634,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     failPerpsTradeSheetInteractiveTrace('dismissed_before_interactive');
   }, []);
 
+  // An order against an open cross position liquidates with the whole
+  // account. The isolated formula does not describe it, so both the trade
+  // sheet and the full form show the fallback, matching the Pro form.
+  const withholdsCrossLiquidationPrice =
+    isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
+
   if (useBottomSheet) {
     const feePercentage = formatCombinedFeePercentage(
       feeResults.protocolFeeRate,
@@ -2726,6 +2732,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
     const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
     const hasLiquidationPrice =
+      !withholdsCrossLiquidationPrice &&
       hasValidAmount &&
       Number.isFinite(parsedLiquidationPrice) &&
       parsedLiquidationPrice > 0;
@@ -2733,8 +2740,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // retains it while calculating; only the initial unresolved request needs
     // a skeleton.
     const isTradeSheetLiquidationLoading =
-      isLoadingMarketData ||
-      (hasValidAmount && isCalculatingLiquidationPrice && !hasLiquidationPrice);
+      !withholdsCrossLiquidationPrice &&
+      (isLoadingMarketData ||
+        (hasValidAmount &&
+          isCalculatingLiquidationPrice &&
+          !hasLiquidationPrice));
     const tradeSheetLiquidationPrice = hasLiquidationPrice
       ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
       : PERPS_CONSTANTS.FallbackDataDisplay;
@@ -3178,7 +3188,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               testID: PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
             }}
             value={
-              hasValidAmount
+              hasValidAmount && !withholdsCrossLiquidationPrice
                 ? formatPerpsFiat(liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })

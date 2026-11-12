@@ -27,7 +27,10 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsCrossMarginConfirmBottomSheet from '../../../components/PerpsCrossMarginConfirmBottomSheet';
 import { usePerpsCrossMarginSummary } from '../../../hooks/usePerpsCrossMarginSummary';
-import { formatCrossMarginRatio } from '../../../utils/formatUtils';
+import {
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
+} from '../../../utils/crossMarginSummary';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
@@ -346,22 +349,25 @@ const PerpsProOrderFormPanel = ({
   const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
     usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });
   const privacyMode = useSelector(selectPrivacyMode);
+  const crossMarginAlert = getCrossMarginRatioAlert(crossMarginTone);
   const marginModeTag = useMemo(
     () =>
       marginMode === 'cross' &&
       crossMarginRatio !== undefined &&
-      (crossMarginTone === 'warning' || crossMarginTone === 'danger')
+      crossMarginAlert
         ? {
-            label: privacyMode
-              ? strings(`perps.crossMarginSummary.tone_${crossMarginTone}`)
-              : formatCrossMarginRatio(crossMarginRatio),
+            label: getCrossMarginRatioAlertLabel(
+              crossMarginRatio,
+              crossMarginAlert,
+              privacyMode,
+            ),
             severity:
-              crossMarginTone === 'danger'
+              crossMarginAlert === 'danger'
                 ? TagSeverity.Danger
                 : TagSeverity.Warning,
           }
         : undefined,
-    [crossMarginRatio, crossMarginTone, marginMode, privacyMode],
+    [crossMarginAlert, crossMarginRatio, marginMode, privacyMode],
   );
   const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
   const openTwapDuration = useCallback(

@@ -91,6 +91,7 @@ import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceAction
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCrossMarginRatioBanner from '../../components/PerpsCrossMarginRatioBanner';
 import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSummary';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
 import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
@@ -399,10 +400,7 @@ const PerpsHomeView = () => {
     () => setIsBalanceSheetVisible(false),
     [],
   );
-  const crossMarginBannerSeverity =
-    crossMarginTone === 'warning' || crossMarginTone === 'danger'
-      ? crossMarginTone
-      : undefined;
+  const crossMarginBannerSeverity = getCrossMarginRatioAlert(crossMarginTone);
 
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';

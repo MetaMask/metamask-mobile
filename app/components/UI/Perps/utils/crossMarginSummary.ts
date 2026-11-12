@@ -5,6 +5,8 @@ import {
   type CrossMarginSummary,
   type PerpsAccountSummary,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
+import { formatCrossMarginRatio } from './formatUtils';
 import {
   CROSS_MARGIN_RATIO_DANGER_THRESHOLD,
   CROSS_MARGIN_RATIO_WARNING_THRESHOLD,
@@ -12,6 +14,9 @@ import {
 } from '../constants/perpsConfig';
 
 export type CrossMarginRatioTone = 'safe' | 'warning' | 'danger';
+
+/** A ratio that needs an alert. Safe and unknown ratios do not. */
+export type CrossMarginRatioAlert = Exclude<CrossMarginRatioTone, 'safe'>;
 
 const EMPTY_ACCOUNT_SUMMARY: PerpsAccountSummary = {
   maintenanceMargin: undefined,
@@ -105,3 +110,22 @@ export const getCrossMarginRatioTone = (
   }
   return ratio <= CROSS_MARGIN_RATIO_DANGER_THRESHOLD ? 'warning' : 'danger';
 };
+
+/** The alert level of a tone, or undefined when the ratio is safe or unknown. */
+export const getCrossMarginRatioAlert = (
+  tone: CrossMarginRatioTone | undefined,
+): CrossMarginRatioAlert | undefined =>
+  tone === 'warning' || tone === 'danger' ? tone : undefined;
+
+/**
+ * Label for a ratio alert: the risk level while privacy mode hides the
+ * figure, otherwise the formatted ratio.
+ */
+export const getCrossMarginRatioAlertLabel = (
+  ratio: number,
+  alert: CrossMarginRatioAlert,
+  privacyMode: boolean,
+): string =>
+  privacyMode
+    ? strings(`perps.crossMarginSummary.tone_${alert}`)
+    : formatCrossMarginRatio(ratio);

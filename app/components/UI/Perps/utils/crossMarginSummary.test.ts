@@ -1,7 +1,10 @@
 import type { AccountState } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
   estimateCrossLiquidationPrice,
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
 } from './crossMarginSummary';
 
@@ -51,6 +54,24 @@ describe('crossMarginSummary', () => {
       [1.2, 'danger'],
     ])('maps %s to %s', (ratio, tone) => {
       expect(getCrossMarginRatioTone(ratio)).toBe(tone);
+    });
+  });
+
+  describe('getCrossMarginRatioAlert', () => {
+    it.each([
+      [undefined, undefined],
+      ['safe' as const, undefined],
+      ['warning' as const, 'warning'],
+      ['danger' as const, 'danger'],
+    ])('maps %s to %s', (tone, alert) => {
+      expect(getCrossMarginRatioAlert(tone)).toBe(alert);
+    });
+
+    it('names the risk level while privacy mode hides the ratio', () => {
+      expect(getCrossMarginRatioAlertLabel(0.8, 'danger', true)).toBe(
+        strings('perps.crossMarginSummary.tone_danger'),
+      );
+      expect(getCrossMarginRatioAlertLabel(0.8, 'danger', false)).toBe('80%');
     });
   });
 

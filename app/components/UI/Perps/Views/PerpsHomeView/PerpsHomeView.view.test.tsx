@@ -2478,7 +2478,7 @@ describe('Perps home cross margin risk', () => {
       },
     });
 
-  it('opens the balance summary from a warning banner and explains the account ratio', async () => {
+  it('shows a warning banner and opens the balance summary from the available balance', async () => {
     renderCrossHome(fundedCrossAccount('610', '730', '3200'));
 
     expect(

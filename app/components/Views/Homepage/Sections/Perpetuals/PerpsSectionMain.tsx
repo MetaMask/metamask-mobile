@@ -42,6 +42,7 @@ import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsServiceInterruptionBanner from '../../../../UI/Perps/components/PerpsServiceInterruptionBanner';
 import PerpsCrossMarginRatioBanner from '../../../../UI/Perps/components/PerpsCrossMarginRatioBanner';
 import { usePerpsCrossMarginSummary } from '../../../../UI/Perps/hooks/usePerpsCrossMarginSummary';
+import { getCrossMarginRatioAlert } from '../../../../UI/Perps/utils/crossMarginSummary';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsTrendingCarousel from './components/PerpsTrendingCarousel';
@@ -274,10 +275,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
       });
     const crossMarginBannerSeverity =
-      !showSkeleton &&
-      hasFilledPositions &&
-      (crossMarginTone === 'warning' || crossMarginTone === 'danger')
-        ? crossMarginTone
+      !showSkeleton && hasFilledPositions
+        ? getCrossMarginRatioAlert(crossMarginTone)
         : undefined;
 
     // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
