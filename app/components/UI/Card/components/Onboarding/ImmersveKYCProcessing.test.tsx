@@ -401,6 +401,21 @@ describe('ImmersveKYCProcessing', () => {
     expect(queryByTestId('onboarding-title')).toBeNull();
   });
 
+  it('polls on mount only without a kycUrl param', () => {
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/xyz',
+    };
+    setNextAction(null);
+    render(<ImmersveKYCProcessing />);
+
+    expect(mockRefresh).not.toHaveBeenCalled();
+
+    closeWebview();
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
   it('shows Verifying for a pending resume and does not route', () => {
     setNextAction({ type: 'pending' });
     const { getByTestId, queryByTestId } = render(<ImmersveKYCProcessing />);

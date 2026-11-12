@@ -129,6 +129,9 @@ export function useImmersveCardProvisioning(
   const markCardFlowOpened = useCallback(() => {
     hasOpenedCardFlowRef.current = true;
   }, []);
+  // A screen under a Card flow waits until it is focused again. The flow on
+  // top resolves the same funding source, and a second create is rejected.
+  const isReconcileDeferredRef = useRef(false);
 
   useEffect(() => {
     if (!isProvisioning) {
@@ -205,7 +208,16 @@ export function useImmersveCardProvisioning(
   useEffect(() => {
     const regainedFocus = isFocused && !wasFocusedRef.current;
     wasFocusedRef.current = isFocused;
-    if (!regainedFocus || !recheckOnFocus) {
+    if (!regainedFocus) {
+      return;
+    }
+    if (isReconcileDeferredRef.current) {
+      isReconcileDeferredRef.current = false;
+      hasOpenedCardFlowRef.current = false;
+      setRecheckCount((count) => count + 1);
+      return;
+    }
+    if (!recheckOnFocus) {
       return;
     }
     // Sheets and other Money screens also blur Money home. Only a Card screen
@@ -263,6 +275,10 @@ export function useImmersveCardProvisioning(
 
   useEffect(() => {
     if (!isProvisioning || handled.current) {
+      return undefined;
+    }
+    if (!isFocusedRef.current) {
+      isReconcileDeferredRef.current = true;
       return undefined;
     }
     handled.current = true;

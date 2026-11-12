@@ -551,10 +551,14 @@ const ImmersveKYCProcessing = () => {
     notifyKycInReview();
   }, [trackEvent, createEventBuilder, exitCardFlow, notifyKycInReview]);
 
-  // Initial poll (needed for the resume/no-url entry).
+  // A KYC url means the opener has just checked, and the webview covers this
+  // screen until the close poll. Without one, this poll is the first result.
   useEffect(() => {
+    if (kycUrl) {
+      return;
+    }
     refresh().catch(() => undefined);
-  }, [refresh]);
+  }, [refresh, kycUrl]);
 
   // Entry shortcut: SignUp already derived the KYC url, so open the webview
   // immediately instead of waiting for a poll.
