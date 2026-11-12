@@ -4,6 +4,7 @@ import {
   Alignment,
   Fit,
   RiveView,
+  useRive,
   useRiveBoolean,
   useRiveFile,
   useRiveString,
@@ -27,6 +28,7 @@ import { useProfileOnboardingRiveEnabled } from './useProfileOnboardingRiveEnabl
 
 /** Pulls the avatar off the name and handle, into the card's avatar well. */
 const READY_AVATAR_LIFT = 48;
+const READY_PLAY_ONCE_MS = 4000;
 
 interface ProfileReadyAnimationProps {
   displayName: string;
@@ -38,6 +40,7 @@ interface ProfileReadyAnimationProps {
   isVerified?: boolean;
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
+  paused?: boolean;
 }
 
 /**
@@ -54,6 +57,7 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   imageUrl,
   isVerified = false,
   fallback,
+  paused = false,
 }) => {
   const tw = useTailwind();
   const { themeAppearance } = useTheme();
@@ -71,6 +75,20 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     async: true,
   });
   const loadError = riveFileError ?? instanceError;
+  const { riveViewRef, setHybridRef } = useRive();
+
+  useEffect(() => {
+    if (!riveViewRef) return undefined;
+    if (paused) {
+      riveViewRef.pause().catch(() => undefined);
+      return undefined;
+    }
+    riveViewRef.play().catch(() => undefined);
+    const hold = setTimeout((): void => {
+      riveViewRef.pause().catch(() => undefined);
+    }, READY_PLAY_ONCE_MS);
+    return () => clearTimeout(hold);
+  }, [paused, riveViewRef]);
 
   useEffect(() => {
     if (loadError) {
@@ -130,11 +148,12 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     <Box twClassName="w-full aspect-square">
       {riveFile && instance ? (
         <RiveView
+          hybridRef={setHybridRef}
           file={riveFile}
           artboardName={PROFILE_READY_RIVE_ARTBOARD}
           stateMachineName={PROFILE_READY_RIVE_STATE_MACHINE}
           dataBind={instance}
-          autoPlay
+          autoPlay={!paused}
           fit={Fit.Contain}
           alignment={Alignment.Center}
           style={tw.style('flex-1')}

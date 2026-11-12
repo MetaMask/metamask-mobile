@@ -162,6 +162,25 @@ describe('fetchHyperliquidHistoricalPrices', () => {
     ]);
   });
 
+  it('rethrows an aborted request without logging it', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new Error('aborted')) as unknown as typeof fetch;
+
+    await expect(
+      fetchHyperliquidHistoricalPrices({
+        symbol: 'BTC',
+        interval: '1m',
+        limit: 60,
+        nowMs: NOW,
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow('aborted');
+    expect(mockLoggerError).not.toHaveBeenCalled();
+  });
+
   it('logs and returns an empty array when the request throws', async () => {
     global.fetch = jest
       .fn()
