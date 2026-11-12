@@ -88,9 +88,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
         );
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
-            navigation.navigate(Routes.WALLET.HOME, {
-              screen: Routes.WALLET_VIEW,
-            });
+            navigation.navigate(Routes.WALLET.HOME);
             break;
           case Routes.MODAL.WALLET_ACTIONS:
             navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -106,9 +104,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             );
             break;
           case Routes.BROWSER.VIEW:
-            navigation.navigate(Routes.BROWSER.HOME, {
-              screen: Routes.BROWSER.VIEW,
-            });
+            navigation.navigate(Routes.BROWSER.HOME);
             break;
           case Routes.TRANSACTIONS_VIEW:
             navigation.navigate(Routes.TRANSACTIONS_VIEW, {
