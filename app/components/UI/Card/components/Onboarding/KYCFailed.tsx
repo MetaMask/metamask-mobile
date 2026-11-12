@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, StatusBar } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
+import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
@@ -33,7 +32,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
  * stop-gap away from the old-brand purple full-bleed artwork.
  */
 const KYCFailed = () => {
-  const navigation = useNavigation<AppNavigationProp>();
+  const exitCardFlow = useExitCardFlow();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -74,8 +73,8 @@ const KYCFailed = () => {
   }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation]);
+    exitCardFlow();
+  }, [exitCardFlow]);
 
   return (
     <SafeAreaView

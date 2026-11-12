@@ -126,6 +126,18 @@ describe('ReactionChip', () => {
     );
   });
 
+  it('keeps the count width steady as digits change', () => {
+    renderWithProvider(
+      <ReactionChip emotion="🔥" count={9} testID="reaction-chip-fire" />,
+    );
+
+    expect(screen.getByText('9')).toHaveStyle({
+      fontVariant: ['tabular-nums'],
+      minWidth: 16,
+      textAlign: 'center',
+    });
+  });
+
   it('still renders on low-tier hardware, where the pop animation is skipped', () => {
     mockGetHardwareTier.mockReturnValue('LOW');
 
