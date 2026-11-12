@@ -57,7 +57,11 @@ const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
           accessible={false}
         />
         <Box twClassName="gap-2">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center"
+            accessibilityRole="header"
+          >
             {strings('money.mfa.intro_title')}
           </Text>
           <Text

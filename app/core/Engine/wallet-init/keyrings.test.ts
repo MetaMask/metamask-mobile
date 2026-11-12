@@ -25,6 +25,20 @@ import {
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
 import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
+import {
+  buildMpcMoneyKeyringBuilder,
+  buildRealMpcMoneyKeyringBuilder,
+} from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
+import { MfaFlowError } from '../../../util/identity/mfa/engine/errors';
+import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
+
+jest.mock('../../MpcMoneyKeyring/mpc-money-keyring-builder', () => ({
+  ...jest.requireActual('../../MpcMoneyKeyring/mpc-money-keyring-builder'),
+  buildRealMpcMoneyKeyringBuilder: jest.fn(),
+}));
+jest.mock('../../../util/identity/mfa/useMfa', () => ({
+  verifyOrEnroll: jest.fn(),
+}));
 
 jest.mock('../../../store', () => ({
   store: {
@@ -298,6 +312,52 @@ describe('wallet-init/keyrings', () => {
         { id: 'metadata-id', name: 'name' },
       );
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
+    });
+  });
+  describe('Money MPC 2-step verification', () => {
+    const flags = {
+      MM_MONEY_MPC_KEYRING_ENABLED: process.env.MM_MONEY_MPC_KEYRING_ENABLED,
+      MM_MONEY_MPC_REAL_KEYRING: process.env.MM_MONEY_MPC_REAL_KEYRING,
+    };
+
+    const getTwoFactorToken = () => {
+      const buildReal = jest
+        .mocked(buildRealMpcMoneyKeyringBuilder)
+        .mockReturnValue(buildMpcMoneyKeyringBuilder());
+      getKeyringBuilders(getRootMessenger(), false);
+      const [options] = buildReal.mock.calls[0];
+      return options.getTwoFactorToken?.();
+    };
+
+    beforeEach(() => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+    });
+
+    afterEach(() => {
+      jest.mocked(buildRealMpcMoneyKeyringBuilder).mockReset();
+      Object.entries(flags).forEach(([name, value]) => {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      });
+    });
+
+    it('rejects as a user rejection when the user closes the prompt', async () => {
+      jest
+        .mocked(verifyOrEnroll)
+        .mockRejectedValue(new MfaFlowError('flow_cancelled'));
+
+      await expect(getTwoFactorToken()).rejects.toMatchObject({ code: 4001 });
+    });
+
+    it('passes other verification errors through', async () => {
+      const error = new MfaFlowError('too_many_attempts');
+      jest.mocked(verifyOrEnroll).mockRejectedValue(error);
+
+      await expect(getTwoFactorToken()).rejects.toBe(error);
     });
   });
 });

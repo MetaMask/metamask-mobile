@@ -162,8 +162,9 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
 
-// Long enough for the shine to show after the success toast leaves the header.
-const MFA_BADGE_HIGHLIGHT_MS = 10000;
+// The shield pulses once the success toast has left the header.
+const MFA_BADGE_PULSE_DELAY_MS = 3200;
+const MFA_BADGE_PULSE_MS = 3000;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -307,7 +308,6 @@ const MoneyHomeView = () => {
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     status: mfaStatus,
-    turnOn: turnOnMfa,
     retry: retryMfaSetup,
     isSettingUpBannerDismissed: isMfaBannerDismissed,
     dismissSettingUpBanner: dismissMfaBanner,
@@ -318,21 +318,32 @@ const MoneyHomeView = () => {
 
   useFocusEffect(refreshMfaCredentials);
 
+  const [isMfaBadgePulsePending, setIsMfaBadgePulsePending] = useState(false);
   const [isMfaBadgeHighlighted, setIsMfaBadgeHighlighted] = useState(false);
   useFocusEffect(
     useCallback(() => {
       if (hasUnseenEnabledConfirmation && showEnabledConfirmation()) {
-        setIsMfaBadgeHighlighted(true);
+        setIsMfaBadgePulsePending(true);
       }
     }, [hasUnseenEnabledConfirmation, showEnabledConfirmation]),
   );
+  useEffect(() => {
+    if (!isMfaBadgePulsePending) {
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setIsMfaBadgePulsePending(false);
+      setIsMfaBadgeHighlighted(true);
+    }, MFA_BADGE_PULSE_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [isMfaBadgePulsePending]);
   useEffect(() => {
     if (!isMfaBadgeHighlighted) {
       return;
     }
     const timeout = setTimeout(
       () => setIsMfaBadgeHighlighted(false),
-      MFA_BADGE_HIGHLIGHT_MS,
+      MFA_BADGE_PULSE_MS,
     );
     return () => clearTimeout(timeout);
   }, [isMfaBadgeHighlighted]);
@@ -344,8 +355,8 @@ const MoneyHomeView = () => {
       label_key: 'money.mfa.card_cta',
       component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
     });
-    void turnOnMfa();
-  }, [trackButtonClicked, turnOnMfa]);
+    navigation.navigate(Routes.MONEY.MFA_INTRO);
+  }, [navigation, trackButtonClicked]);
 
   const handleMfaRetry = useCallback(() => {
     trackButtonClicked({

@@ -112,6 +112,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/mpc-interface',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
+  '@metamask/money-account-lifecycle-controller',
   // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).
   '@metamask/money-account-controller',
   '@metamask/money-account-api-data-service',

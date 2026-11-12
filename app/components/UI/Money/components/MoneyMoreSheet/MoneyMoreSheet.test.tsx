@@ -56,7 +56,7 @@ const mockMfaStatus = (status: MoneyMfaStatus) =>
   jest.mocked(useMoneyMfa).mockReturnValue({
     status,
     turnOn: mockTurnOnMfa,
-    addPasskeyAndTurnOn: jest.fn(),
+    addPasskey: jest.fn(),
     retry: jest.fn(),
     turnOff: jest.fn(),
     isSettingUpBannerDismissed: false,

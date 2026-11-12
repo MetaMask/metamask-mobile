@@ -4,10 +4,15 @@ import { fireEvent, render } from '@testing-library/react-native';
 import MoneyMfaHeaderBadge from './MoneyMfaHeaderBadge';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 
-jest.mock('react-native-reanimated', () => ({
-  ...jest.requireActual('react-native-reanimated'),
-  useReducedMotion: jest.fn(() => false),
-}));
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    useReducedMotion: jest.fn(() => false),
+  };
+});
 
 describe('MoneyMfaHeaderBadge', () => {
   it.each([false, true])(
@@ -24,7 +29,7 @@ describe('MoneyMfaHeaderBadge', () => {
     },
   );
 
-  it('shows a static shield when reduced motion is on', () => {
+  it('opens the 2-step verification sheet when reduced motion is on', () => {
     jest.mocked(useReducedMotion).mockReturnValueOnce(true);
     const onPress = jest.fn();
     const { getByTestId } = render(

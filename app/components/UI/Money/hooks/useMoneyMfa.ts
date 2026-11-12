@@ -24,6 +24,7 @@ import {
   selectMoneyEnableMfaFlag,
   selectMoneyEnableMoneyAccountFlag,
 } from '../selectors/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
@@ -41,6 +42,10 @@ export type MoneyMfaStatus =
 
 const getReason = (): MfaReason => ({
   operation: 'money.mfa.setup',
+});
+
+const getAddPasskeyReason = (): MfaReason => ({
+  operation: 'money.mfa.addPasskey',
 });
 
 const getTurnOffReason = (): MfaReason => ({
@@ -116,7 +121,13 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isKitEnabled || !isMoneyAccountEnabled) {
+  // Turning it on creates the MPC Money account, which needs the MPC keyring.
+  if (
+    !isFlagEnabled ||
+    !isKitEnabled ||
+    !isMoneyAccountEnabled ||
+    !isMpcMoneyKeyringBuildEnabled()
+  ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
@@ -172,16 +183,16 @@ export const useMoneyMfa = () => {
     await migrate();
   }, [verifyOrEnroll, showToast]);
 
-  const addPasskeyAndTurnOn = useCallback(async () => {
-    if (!activeMethods.includes('passkey')) {
-      try {
-        await enroll({ method: 'passkey', reason: getReason() });
-      } catch {
-        return;
-      }
+  const addPasskey = useCallback(async () => {
+    if (activeMethods.includes('passkey')) {
+      return;
     }
-    await turnOn();
-  }, [activeMethods, enroll, turnOn]);
+    try {
+      await enroll({ method: 'passkey', reason: getAddPasskeyReason() });
+    } catch {
+      // The kit has already shown any error.
+    }
+  }, [activeMethods, enroll]);
 
   const turnOff = useCallback(async () => {
     try {
@@ -233,7 +244,7 @@ export const useMoneyMfa = () => {
   return {
     status,
     turnOn,
-    addPasskeyAndTurnOn,
+    addPasskey,
     retry,
     turnOff,
     isSettingUpBannerDismissed: isMigrationBannerDismissed,

@@ -10,6 +10,7 @@ import {
   selectMoneyEnableMoneyAccountFlag,
 } from '../selectors/featureFlags';
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -34,6 +35,10 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 
 jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
+}));
+
+jest.mock('../../../../constants/featureFlags', () => ({
+  isMpcMoneyKeyringBuildEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../util/identity/mfa/bindings', () => ({
@@ -65,6 +70,7 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
+const mockIsMpcKeyringEnabled = jest.mocked(isMpcMoneyKeyringBuildEnabled);
 const mockStart = jest.mocked(moneyAccountMigration.start);
 const setMigration = (status: MoneyAccountMigrationStatus) =>
   act(() => {
@@ -127,11 +133,13 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
+  isMpcKeyringEnabled = true,
   isMoneyAccountEnabled = true,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
+  isMpcKeyringEnabled?: boolean;
   isMoneyAccountEnabled?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
@@ -142,6 +150,7 @@ const arrange = ({
       return isMoneyAccountEnabled;
     return undefined;
   });
+  mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
     enroll: mockEnroll,
@@ -189,6 +198,12 @@ describe('useMoneyMfa', () => {
 
     it('returns unavailable when the MFA kit is disabled', () => {
       const { result } = arrange({ isKitEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+    });
+
+    it('returns unavailable when the build has no MPC Money keyring', () => {
+      const { result } = arrange({ isMpcKeyringEnabled: false });
 
       expect(result.current.status).toBe('unavailable');
     });
@@ -382,38 +397,38 @@ describe('useMoneyMfa', () => {
     });
   });
 
-  describe('addPasskeyAndTurnOn', () => {
-    it('adds a passkey first when none is active', async () => {
+  describe('addPasskey', () => {
+    it('adds a passkey without turning on 2-step verification', async () => {
       const { result } = arrange();
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockEnroll).toHaveBeenCalledWith({
         method: 'passkey',
-        reason: expect.objectContaining({ operation: 'money.mfa.setup' }),
+        reason: expect.objectContaining({ operation: 'money.mfa.addPasskey' }),
       });
-      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
+      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
+      expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(false);
     });
 
     it('skips adding a passkey when one is active', async () => {
       const { result } = arrange({ credentials: [activePasskey] });
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockEnroll).not.toHaveBeenCalled();
-      expect(mockVerifyOrEnroll).toHaveBeenCalledTimes(1);
     });
 
-    it('stops when adding the passkey is cancelled', async () => {
+    it('resolves when adding the passkey is cancelled', async () => {
       mockEnroll.mockRejectedValue(new Error('flow_cancelled'));
       const { result } = arrange();
 
       await act(async () => {
-        await result.current.addPasskeyAndTurnOn();
+        await result.current.addPasskey();
       });
 
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();

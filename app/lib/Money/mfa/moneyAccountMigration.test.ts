@@ -1,5 +1,8 @@
+import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
+  MIGRATION_POLL_INTERVAL_MS,
+  MIGRATION_POLL_TIMEOUT_MS,
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
@@ -13,16 +16,47 @@ jest.mock('../../../store/storage-wrapper', () => ({
   },
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      MoneyAccountLifecycleController: {
+        startMigration: jest.fn(),
+        refresh: jest.fn(),
+        state: { moneyAccounts: {} },
+      },
+    },
+  },
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
 const mockSetItem = jest.mocked(StorageWrapper.setItem);
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
+const mockStartMigration = jest.mocked(
+  Engine.context.MoneyAccountLifecycleController.startMigration,
+);
+const mockRefresh = jest.mocked(
+  Engine.context.MoneyAccountLifecycleController.refresh,
+);
+const lifecycleState = Engine.context.MoneyAccountLifecycleController.state as {
+  moneyAccounts: Record<string, { type: string }>;
+};
+const setMoneyAccountType = (type: string) => {
+  lifecycleState.moneyAccounts = { '0xabc': { type } };
+};
 
 describe('moneyAccountMigration', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    mockStartMigration.mockResolvedValue(undefined);
+    mockRefresh.mockResolvedValue(undefined);
+    setMoneyAccountType('mfa');
   });
 
   afterEach(() => {
-    jest.useRealTimers();
     moneyAccountMigration.reset();
     jest.clearAllMocks();
   });
@@ -31,34 +65,62 @@ describe('moneyAccountMigration', () => {
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
   });
 
-  it('is migrating while it runs, then done', async () => {
-    const promise = moneyAccountMigration.start();
+  it('starts the Money account migration in the lifecycle controller', async () => {
+    await moneyAccountMigration.start();
 
-    expect(moneyAccountMigration.getStatus()).toBe('migrating');
-
-    jest.runAllTimers();
-    await promise;
-
+    expect(mockStartMigration).toHaveBeenCalledTimes(1);
     expect(moneyAccountMigration.getStatus()).toBe('done');
   });
 
-  it('fails and rejects when the migration throws', async () => {
-    const error = new Error('timer unavailable');
-    jest.spyOn(global, 'setTimeout').mockImplementationOnce(() => {
-      throw error;
-    });
+  it('is migrating while the lifecycle controller migrates', async () => {
+    let finish: () => void = () => undefined;
+    mockStartMigration.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+
+    const promise = moneyAccountMigration.start();
+
+    expect(moneyAccountMigration.getStatus()).toBe('migrating');
+    finish();
+    await promise;
+    expect(moneyAccountMigration.getStatus()).toBe('done');
+  });
+
+  it('fails and rejects when the migration fails', async () => {
+    const error = new Error('Money Account migration is not available');
+    mockStartMigration.mockRejectedValueOnce(error);
 
     await expect(moneyAccountMigration.start()).rejects.toThrow(error);
 
     expect(moneyAccountMigration.getStatus()).toBe('failed');
   });
 
-  it('rejects without saving a result when reset while running', async () => {
+  it('keeps the last failure for QA tools', async () => {
+    mockStartMigration.mockRejectedValueOnce(
+      new Error('MPC service unavailable'),
+    );
+
+    await expect(moneyAccountMigration.start()).rejects.toThrow();
+
+    expect(moneyAccountMigration.getLastError()).toMatch(
+      /^Error: MPC service unavailable\n {2}at /u,
+    );
+  });
+
+  it('rejects without saving a result when reset during the migration', async () => {
+    let finish: () => void = () => undefined;
+    mockStartMigration.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
     const promise = moneyAccountMigration.start();
     moneyAccountMigration.reset();
     mockSetItem.mockClear();
 
-    jest.runAllTimers();
+    finish();
 
     await expect(promise).rejects.toThrow('cancelled');
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
@@ -69,9 +131,7 @@ describe('moneyAccountMigration', () => {
     const listener = jest.fn();
     moneyAccountMigration.subscribe(listener);
 
-    const promise = moneyAccountMigration.start();
-    jest.runAllTimers();
-    await promise;
+    await moneyAccountMigration.start();
 
     expect(mockSetItem).toHaveBeenCalledWith(
       MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
@@ -109,5 +169,41 @@ describe('moneyAccountMigration', () => {
 
       expect(fresh.getStatus()).toBe('not_started');
     });
+  });
+
+  it('refreshes until the Money account is no longer migrating', async () => {
+    jest.useFakeTimers();
+    setMoneyAccountType('migrating');
+    mockRefresh
+      .mockResolvedValueOnce(undefined)
+      .mockImplementationOnce(async () => {
+        setMoneyAccountType('mfa');
+      });
+
+    const run = moneyAccountMigration.start();
+    await jest.advanceTimersByTimeAsync(MIGRATION_POLL_INTERVAL_MS);
+    await run;
+
+    expect(mockRefresh).toHaveBeenCalledTimes(2);
+    expect(moneyAccountMigration.getStatus()).toBe('done');
+    jest.useRealTimers();
+  });
+
+  it('fails when the Money account is still migrating after the timeout', async () => {
+    jest.useFakeTimers();
+    setMoneyAccountType('migrating');
+
+    const result = moneyAccountMigration.start().catch((error: Error) => error);
+    await jest.advanceTimersByTimeAsync(
+      MIGRATION_POLL_TIMEOUT_MS + MIGRATION_POLL_INTERVAL_MS,
+    );
+
+    expect((await result) as Error).toHaveProperty(
+      'message',
+      'Money account migration did not finish in time',
+    );
+
+    expect(moneyAccountMigration.getStatus()).toBe('failed');
+    jest.useRealTimers();
   });
 });

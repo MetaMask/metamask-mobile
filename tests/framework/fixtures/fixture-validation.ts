@@ -226,6 +226,8 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.AccountTreeController.accountWalletsMetadata',
     'engine.backgroundState.MoneyAccountController.moneyAccounts',
     'engine.backgroundState.MoneyAccountController.defaultMoneyAccountId',
+    'engine.backgroundState.MoneyAccountLifecycleController.moneyAccounts',
+    'engine.backgroundState.MoneyAccountLifecycleController.addressRegistrations',
     'engine.backgroundState.TokenBalancesController.tokenBalances',
     'engine.backgroundState.MultichainNetworkController.networksWithTransactionActivity',
     'browser.activeTab',

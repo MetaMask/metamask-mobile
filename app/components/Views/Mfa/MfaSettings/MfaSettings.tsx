@@ -25,6 +25,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
@@ -38,6 +39,7 @@ import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
+import MoneyMpcQaPresets from './MoneyMpcQaPresets';
 import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
@@ -223,6 +225,9 @@ const MfaSettings = () => {
           />
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}
+        {isMfaDevBuild() && isRealMpcMoneyKeyringBuildEnabled() ? (
+          <MoneyMpcQaPresets />
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

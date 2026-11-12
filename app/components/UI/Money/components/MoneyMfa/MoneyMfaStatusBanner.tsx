@@ -1,18 +1,12 @@
 import React, { useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import {
-  Box,
-  ButtonIcon,
-  ButtonIconSize,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
+  BannerAlert,
+  BannerAlertSeverity,
+  BannerBase,
+  BoxBackgroundColor,
   IconSize,
-  Text,
-  TextButton,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import PendingSpinner from '../PendingSpinner/PendingSpinner';
@@ -60,65 +54,38 @@ const MoneyMfaStatusBanner = ({
     return null;
   }
 
+  if (isSettingUp) {
+    return (
+      <BannerBase
+        accessibilityLiveRegion="polite"
+        backgroundColor={BoxBackgroundColor.BackgroundMuted}
+        twClassName="mx-4 mt-2"
+        startAccessory={<PendingSpinner size={IconSize.Md} />}
+        title={title}
+        description={strings('money.mfa.setting_up_description')}
+        descriptionProps={{ color: TextColor.TextAlternative }}
+        onClose={onDismissSettingUp}
+        closeButtonProps={{
+          accessibilityLabel: strings('money.mfa.dismiss'),
+          testID: MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE,
+        }}
+        testID={MoneyMfaTestIds.SETTING_UP_BANNER}
+      />
+    );
+  }
+
   return (
-    <Box
+    <BannerAlert
       accessibilityLiveRegion="polite"
-      twClassName={`mx-4 mt-2 flex-row items-start gap-3 rounded-xl p-4 ${
-        isSettingUp ? 'bg-muted' : 'bg-error-muted'
-      }`}
-      testID={
-        isSettingUp
-          ? MoneyMfaTestIds.SETTING_UP_BANNER
-          : MoneyMfaTestIds.FAILED_BANNER
-      }
-    >
-      <Box twClassName="pt-0.5">
-        {isSettingUp ? (
-          <PendingSpinner size={IconSize.Md} />
-        ) : (
-          <Icon
-            name={IconName.Danger}
-            size={IconSize.Md}
-            color={IconColor.ErrorDefault}
-          />
-        )}
-      </Box>
-      <Box twClassName="flex-1 gap-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {title}
-        </Text>
-        {isSettingUp ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('money.mfa.setting_up_description')}
-          </Text>
-        ) : (
-          <Box twClassName="flex-row flex-wrap gap-1">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('money.mfa.failed_description')}
-            </Text>
-            <TextButton
-              variant={TextVariant.BodySm}
-              onPress={onRetry}
-              testID={MoneyMfaTestIds.FAILED_BANNER_RETRY}
-            >
-              {strings('money.mfa.failed_retry')}
-            </TextButton>
-          </Box>
-        )}
-      </Box>
-      {isSettingUp && (
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSize.Sm}
-          accessibilityLabel={strings('money.mfa.dismiss')}
-          onPress={onDismissSettingUp}
-          testID={MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE}
-        />
-      )}
-    </Box>
+      severity={BannerAlertSeverity.Danger}
+      twClassName="mx-4 mt-2"
+      title={title}
+      description={strings('money.mfa.failed_description')}
+      actionButtonLabel={strings('money.mfa.failed_retry')}
+      actionButtonOnPress={onRetry}
+      actionButtonProps={{ testID: MoneyMfaTestIds.FAILED_BANNER_RETRY }}
+      testID={MoneyMfaTestIds.FAILED_BANNER}
+    />
   );
 };
 

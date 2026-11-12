@@ -30,6 +30,11 @@ export function isRealMpcMoneyKeyringBuildEnabled(): boolean {
   return process.env.MM_MONEY_MPC_REAL_KEYRING === 'true';
 }
 
+/** Build-time gate for 2FA approvals on Money MPC signatures. Needs `MM_MONEY_MPC_REAL_KEYRING`. */
+export function isMpcTwoFactorApprovalBuildEnabled(): boolean {
+  return process.env.MM_MONEY_MPC_2FA_APPROVAL === 'true';
+}
+
 /**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations

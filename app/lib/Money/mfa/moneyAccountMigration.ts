@@ -1,5 +1,7 @@
+import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../../util/Logger';
+import { describeError } from '../../../util/describeError';
 
 export type MoneyAccountMigrationStatus =
   | 'not_started'
@@ -10,7 +12,8 @@ export type MoneyAccountMigrationStatus =
 export const MONEY_ACCOUNT_MIGRATION_STORAGE_KEY =
   '@MetaMask:moneyAccountMigration';
 
-const STUB_DELAY_MS = 2000;
+export const MIGRATION_POLL_INTERVAL_MS = 4_000;
+export const MIGRATION_POLL_TIMEOUT_MS = 5 * 60_000;
 
 const STATUSES: MoneyAccountMigrationStatus[] = [
   'not_started',
@@ -25,9 +28,35 @@ const readPersisted = (): MoneyAccountMigrationStatus => {
 };
 
 let status: MoneyAccountMigrationStatus = readPersisted();
+let lastError: string | undefined;
 // Bumped by reset and clear so a migration already running can't write its result.
 let generation = 0;
 const listeners = new Set<() => void>();
+
+const isAnyMoneyAccountMigrating = () =>
+  Object.values(
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
+  ).some((lifecycle) => lifecycle.type === 'migrating');
+
+const wait = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const waitForMigrationToFinish = async (startedIn: number) => {
+  const deadline = Date.now() + MIGRATION_POLL_TIMEOUT_MS;
+  for (;;) {
+    if (startedIn !== generation) {
+      return;
+    }
+    await Engine.context.MoneyAccountLifecycleController.refresh();
+    if (!isAnyMoneyAccountMigrating()) {
+      return;
+    }
+    if (Date.now() >= deadline) {
+      throw new Error('Money account migration did not finish in time');
+    }
+    await wait(MIGRATION_POLL_INTERVAL_MS);
+  }
+};
 
 const setStatus = (next: MoneyAccountMigrationStatus) => {
   status = next;
@@ -40,13 +69,10 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
 /**
  * Moves the Money account to the MPC account that 2-step verification
  * protects.
- *
- * Placeholder until the migration API lands in core (MPC keyring: core#10694):
- * the status is saved on the device and `start` resolves after a short delay.
- * The real migration sets `failed` and rejects when it fails.
  */
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
+  getLastError: (): string | undefined => lastError,
   subscribe: (listener: () => void) => {
     listeners.add(listener);
     return () => {
@@ -58,15 +84,18 @@ export const moneyAccountMigration = {
     const startedIn = generation;
     setStatus('migrating');
     try {
-      await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
+      await Engine.context.MoneyAccountLifecycleController.startMigration();
+      await waitForMigrationToFinish(startedIn);
+      if (startedIn !== generation) {
+        throw new Error('Money account migration was cancelled');
+      }
     } catch (error) {
       if (startedIn === generation) {
+        lastError = describeError(error);
+        Logger.error(error as Error, 'Money account migration failed');
         setStatus('failed');
       }
       throw error;
-    }
-    if (startedIn !== generation) {
-      throw new Error('Money account migration was cancelled');
     }
     setStatus('done');
   },

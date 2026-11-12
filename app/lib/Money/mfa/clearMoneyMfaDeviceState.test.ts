@@ -17,13 +17,21 @@ jest.mock('../../../store/storage-wrapper', () => ({
   },
 }));
 
-describe('clearMoneyMfaDeviceState', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-  });
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      MoneyAccountLifecycleController: {
+        startMigration: jest.fn(() => Promise.resolve()),
+        refresh: jest.fn(() => Promise.resolve()),
+        state: { moneyAccounts: {} },
+      },
+    },
+  },
+}));
 
+describe('clearMoneyMfaDeviceState', () => {
   afterEach(() => {
-    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -35,9 +43,7 @@ describe('clearMoneyMfaDeviceState', () => {
       hasUnseenEnabledConfirmation: false,
     });
     moneyMfaHomePromptSession.markPrompted();
-    const migration = moneyAccountMigration.start();
-    jest.runAllTimers();
-    await migration;
+    await moneyAccountMigration.start();
 
     await clearMoneyMfaDeviceState();
 

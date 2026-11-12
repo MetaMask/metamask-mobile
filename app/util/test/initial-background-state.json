@@ -1041,5 +1041,9 @@
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
+  },
+  "MoneyAccountLifecycleController": {
+    "moneyAccounts": {},
+    "addressRegistrations": {}
   }
 }
