@@ -1324,11 +1324,18 @@
       "report_reason_title": "Report",
       "report_reason_description": "Select the reason that best describes the issue.",
       "report_reasons": {
-        "spam": "Spam",
-        "harassment": "Harassment or bullying",
-        "misleading": "False or misleading information",
-        "other": "Something else"
+        "scams_and_phishing": "Scams and phishing",
+        "impersonation": "Impersonation",
+        "financial_conduct": "Financial conduct",
+        "spam_and_fake_engagement": "Spam and fake engagement",
+        "harassment_hate_and_threats": "Harassment, hate, and threats",
+        "privacy": "Privacy",
+        "sexual_and_graphic_content": "Sexual and graphic content",
+        "illegal_and_dangerous": "Illegal and dangerous",
+        "profile_text": "Profile text"
       },
+      "impersonation_support_title": "Contact customer support",
+      "impersonation_support_description": "Our customer support team handles impersonation claims. They'll ask for your email address and follow up with you.",
       "submit_report": "Submit",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
@@ -1731,7 +1738,8 @@
       "error_loading_profile": "Couldn't load profile",
       "more_options": "More options",
       "profile_options": "Profile options",
-      "profile_options_description": "Blocking hides this profile's posts and positions on this device for this session. It also unfollows them.",
+      "profile_options_description": "Report this profile, or block them to hide their posts and positions on this device for this session. Blocking also unfollows them.",
+      "report_user": "Report @{{name}}",
       "block_user": "Block @{{name}}",
       "unblock": "Unblock",
       "blocked_title": "You blocked @{{name}}",
@@ -3860,6 +3868,10 @@
       "title": "Categories",
       "politics": "Politics",
       "sports": "Sports"
+    },
+    "get_started_banner": {
+      "title": "Get started in a few steps",
+      "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
     },
     "event": {
       "your_positions": "Your positions",
@@ -9673,6 +9685,25 @@
         }
       }
     },
+    "splash": {
+      "eyebrow": "MetaMask Money",
+      "title": "Earn, trade, and spend from one balance",
+      "body_prefix": "MetaMask Money is a stablecoin account that earns up to ",
+      "body_suffix": "—with trading, sending, and spending built in.",
+      "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
+      "benefit_convert_title": "Converts to MetaMask USD, 1:1",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, with no fees.",
+      "benefit_earn_title": "Earn automatically",
+      "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
+      "benefit_trade_title": "Trade from the same balance",
+      "benefit_trade_body": "Fund swaps, perps, and predictions directly from your Money balance.",
+      "benefit_withdraw_title": "Withdraw anytime",
+      "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
+      "benefit_send_title": "Send or spend anywhere",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "cta": "Start earning",
+      "close": "Close"
+    },
     "vba_home_card": {
       "get_started": {
         "title": "Convert to digital dollars",
@@ -9783,6 +9814,15 @@
     "metamask_card": {
       "title": "Card",
       "upsell_title": "Get card",
+      "setup": {
+        "finish_kyc_title": "Finish verifying your identity",
+        "finish_kyc_description": "Pick up where you left off to get your card.",
+        "reviewing_title": "Verifying your identity",
+        "reviewing_description": "Most applications are reviewed within a few hours.",
+        "creating_title": "Creating your card",
+        "creating_description": "This may take a few moments.",
+        "continue": "Continue"
+      },
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
@@ -10023,6 +10063,7 @@
       "faq_title": "FAQs",
       "faq_q1": "What is a MetaMask Money account?",
       "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Is MetaMask Money account safe?",
       "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Who controls my MetaMask Money account?",
@@ -10032,6 +10073,7 @@
       "faq_a4_link": "See the full Card fee breakdown here.",
       "faq_q5": "How much can I earn with a MetaMask Money account?",
       "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
+      "faq_a5_no_apy": "The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Where does the yield come from?",
       "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
       "faq_q7": "What tokens can I deposit into the Money account?",
@@ -11768,6 +11810,17 @@
         "card_provisioning": {
           "title": "Card being created",
           "description": "Your card is being created. This may take a few moments."
+        },
+        "setup_incomplete": {
+          "title": "Finish setting up your card",
+          "descriptions": {
+            "contact": "Add your contact details to continue.",
+            "kyc": "Verify your identity to continue.",
+            "expected_spend": "Tell us how you plan to use your card to continue.",
+            "funding": "Approve funding so you can start spending.",
+            "rejected": "We couldn't verify your identity. Try again to continue."
+          },
+          "confirm_button_label": "Continue"
         }
       },
       "kyc_status": {

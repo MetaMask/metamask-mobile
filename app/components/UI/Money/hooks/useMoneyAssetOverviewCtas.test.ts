@@ -19,7 +19,7 @@ import useMoneyVaultApy from './useMoneyVaultApy';
 import { useMoneyAnalytics } from './useMoneyAnalytics';
 import { useMoneyAssetOverviewCtas } from './useMoneyAssetOverviewCtas';
 import { useMoneyAssetOverviewCtaVisibility } from './useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from './useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from './useMoneyDepositNavigation';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
@@ -46,7 +46,7 @@ const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyAssetOverviewCtaVisibility = jest.mocked(
   useMoneyAssetOverviewCtaVisibility,
 );
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
 const mockSelectIsAaveOutputToken = jest.mocked(
   earnSelectors.selectIsAaveOutputToken,
 );
