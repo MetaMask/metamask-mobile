@@ -49,6 +49,18 @@ const getPersistedAnalyticsId = (state: unknown): unknown =>
   (state as { AnalyticsController?: { analyticsId?: unknown } })
     ?.AnalyticsController?.analyticsId;
 
+const isFirstQuoteFlushTreatment = (): boolean => {
+  const state = ReduxService.store.getState();
+  return (
+    resolveABTestAssignment(
+      selectRemoteFeatureFlags(state),
+      FIRST_QUOTE_FLUSH_AB_KEY,
+      Object.values(FirstQuoteFlushVariant),
+      selectFeatureFlagThresholdGroups(state),
+    ).variantName === FirstQuoteFlushVariant.Treatment
+  );
+};
+
 export class EngineService {
   private engineInitialized = false;
 
@@ -108,18 +120,15 @@ export class EngineService {
       }
       this.updateBatcher.add(controllerName);
 
+      // Each quote stream replaces the list with its first quote, which the
+      // user is waiting on. Later quotes stay batched.
+      const isFirstBridgeQuote =
+        controllerName === 'BridgeController' &&
+        engine.context.BridgeController.state.quotes.length === 1;
+
       if (
         controllerName === 'ApprovalController' ||
-        // Each quote stream replaces the list with its first quote, which the
-        // user is waiting on. Later quotes stay batched.
-        (controllerName === 'BridgeController' &&
-          engine.context.BridgeController.state.quotes.length === 1 &&
-          resolveABTestAssignment(
-            selectRemoteFeatureFlags(ReduxService.store.getState()),
-            FIRST_QUOTE_FLUSH_AB_KEY,
-            Object.values(FirstQuoteFlushVariant),
-            selectFeatureFlagThresholdGroups(ReduxService.store.getState()),
-          ).variantName === FirstQuoteFlushVariant.Treatment)
+        (isFirstBridgeQuote && isFirstQuoteFlushTreatment())
       ) {
         this.updateBatcher.flush();
       }

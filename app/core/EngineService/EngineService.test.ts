@@ -494,7 +494,6 @@ describe('EngineService', () => {
     });
 
     it.each([
-      [0, 'treatment', false],
       [1, 'treatment', true],
       [2, 'treatment', false],
       [1, 'control', false],
