@@ -40,11 +40,11 @@ describe('Money home send action A/B test', () => {
       'money.action.move_to_wallet',
     );
     expect(MONEY_HOME_SEND_ACTION_VARIANTS.withdraw.destinationLabelKey).toBe(
-      'money.transfer_sheet.my_wallet',
+      'money.transfer_sheet.your_wallet',
     );
     expect(
       MONEY_HOME_SEND_ACTION_VARIANTS.moveToWallet.destinationLabelKey,
-    ).toBe('money.transfer_sheet.my_wallet');
+    ).toBe('money.transfer_sheet.your_wallet');
   });
 
   it('falls back to control when the flag is absent or invalid', () => {
