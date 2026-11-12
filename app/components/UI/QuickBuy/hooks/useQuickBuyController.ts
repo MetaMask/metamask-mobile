@@ -51,6 +51,7 @@ import { getTokenKey } from '../tokenKey';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { formatPostTradePairLabel } from '../utils/formatPostTradePairLabel';
 import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMapping';
+import { formatTradeUnitPrice } from '../../SocialFeed/utils/formatters';
 import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
@@ -1193,6 +1194,14 @@ export function useQuickBuyController(
     tradeMode === 'sell'
       ? sourceToken?.currencyExchangeRate
       : destTokenForRate?.currencyExchangeRate;
+  // A buy's Entry is the bought token's USD market price. The swap rate
+  // (`formattedRate`) is a token ratio, not a price, so it never becomes a
+  // buy's Entry. Sells keep the rate until their Entry is defined.
+  const buyEntryPriceLabel = useMemo(() => {
+    if (tradeMode !== 'buy' || !tokenPrice) return undefined;
+    const usdPrice = toAmountUsd(tokenPrice);
+    return usdPrice > 0 ? formatTradeUnitPrice(usdPrice) : undefined;
+  }, [tradeMode, tokenPrice, toAmountUsd]);
 
   const metamaskFeePercent = useMemo(
     () => getMetamaskFeePercent(activeQuote),
@@ -1756,7 +1765,7 @@ export function useQuickBuyController(
       chain: previewChain,
       side: tradeMode,
       costLabel: tradeToastInfo.fiatAmountLabel,
-      entryPriceLabel: formattedRate,
+      entryPriceLabel: tradeMode === 'buy' ? buyEntryPriceLabel : formattedRate,
     };
     // Copy-trades always share. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
@@ -2015,6 +2024,7 @@ export function useQuickBuyController(
     toAmountUsd,
     currentCurrency,
     formattedRate,
+    buyEntryPriceLabel,
     formatters,
     traderAddress,
     caip19,
