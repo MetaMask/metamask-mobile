@@ -1,8 +1,9 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import {
-  ButtonHero,
-  ButtonHeroSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
@@ -76,8 +77,9 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   if (amount === undefined) {
     return withGlass(
-      <ButtonHero
-        size={ButtonHeroSize.Lg}
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
         onPress={onPress}
         isDisabled={isDisabled}
         testID={testID}
@@ -88,7 +90,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
         ) : (
           strings('predict.claim_winnings_text')
         )}
-      </ButtonHero>,
+      </Button>,
     );
   }
 
@@ -97,8 +99,9 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   });
 
   return withGlass(
-    <ButtonHero
-      size={ButtonHeroSize.Lg}
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
       onPress={onPress}
       isDisabled={isDisabled}
       testID={testID}
@@ -109,7 +112,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
       ) : (
         <AmountLabel label={amountLabel} isHidden={isHidden} />
       )}
-    </ButtonHero>,
+    </Button>,
   );
 };
 
