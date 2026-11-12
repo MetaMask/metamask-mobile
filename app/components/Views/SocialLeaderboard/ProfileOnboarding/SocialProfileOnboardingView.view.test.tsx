@@ -1012,7 +1012,7 @@ describe('SocialProfileOnboardingView', () => {
         normalized: 'wen_cat',
         errors: [{ code: 'RESERVED', message: 'This username is reserved' }],
       });
-    renderSocialProfileOnboarding();
+    await renderOnboarding();
 
     fireEvent.press(
       screen.getByTestId(
@@ -1026,6 +1026,80 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       await screen.findByText(
         strings('social_leaderboard.profile_onboarding.username_reserved'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the character rule when the server refuses the format with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [
+          {
+            code: 'USERNAME_INVALID_FORMAT',
+            message: 'This username has invalid characters',
+          },
+        ],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the character rule for the short INVALID_FORMAT code with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
       ),
     ).toBeOnTheScreen();
     expect(

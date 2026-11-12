@@ -69,7 +69,7 @@ import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import { getProfileSaveErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
-import { isReservedHandle } from '../ManageProfileView/screens/handleAvailabilityError';
+import { getHandleAvailabilityRejection } from '../ManageProfileView/screens/handleAvailabilityError';
 import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
@@ -700,25 +700,31 @@ const SocialProfileOnboardingView: React.FC = () => {
     async (username: string): Promise<UsernameAvailability> => {
       try {
         const availability = await checkUsernameAvailability(username);
-        if (!availability.valid) {
-          return {
-            status: 'invalid',
-            claimError: strings(
-              'social_leaderboard.profile_onboarding.username_invalid',
-            ),
-          };
+        switch (getHandleAvailabilityRejection(availability)) {
+          case null:
+            return { status: 'available', claimError: null };
+          case 'invalidFormat':
+            return {
+              status: 'invalid',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_invalid',
+              ),
+            };
+          case 'reserved':
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_reserved',
+              ),
+            };
+          default:
+            return {
+              status: 'taken',
+              claimError: strings(
+                'social_leaderboard.profile_onboarding.username_unavailable',
+              ),
+            };
         }
-        if (!availability.available) {
-          return {
-            status: 'taken',
-            claimError: strings(
-              isReservedHandle(availability)
-                ? 'social_leaderboard.profile_onboarding.username_reserved'
-                : 'social_leaderboard.profile_onboarding.username_unavailable',
-            ),
-          };
-        }
-        return { status: 'available', claimError: null };
       } catch {
         return {
           status: 'error',

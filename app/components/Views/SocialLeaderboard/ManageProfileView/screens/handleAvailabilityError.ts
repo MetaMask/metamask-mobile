@@ -35,6 +35,37 @@ export const isReservedHandle = (
   availability: UsernameAvailabilityResponse,
 ): boolean => hasCode(availability, RESERVED_CODES);
 
+/** Whether the server refused the handle because of its characters. */
+export const isInvalidFormatHandle = (
+  availability: UsernameAvailabilityResponse,
+): boolean =>
+  !availability.valid || hasCode(availability, INVALID_FORMAT_CODES);
+
+/** Why the server refused a handle; `null` when it can be claimed. */
+export type HandleAvailabilityRejection =
+  | 'invalidFormat'
+  | 'reserved'
+  | 'unavailable';
+
+/**
+ * Classifies a server refusal once for every surface that shows handle copy.
+ * The format codes are read even when `valid` is true, because a catalogue
+ * spelling of the same refusal must not read as "someone else has this".
+ */
+export const getHandleAvailabilityRejection = (
+  availability: UsernameAvailabilityResponse,
+): HandleAvailabilityRejection | null => {
+  if (availability.valid && availability.available) {
+    return null;
+  }
+
+  if (isInvalidFormatHandle(availability)) {
+    return 'invalidFormat';
+  }
+
+  return isReservedHandle(availability) ? 'reserved' : 'unavailable';
+};
+
 /** The local rule that fails before the server is asked, or null when it passes. */
 export const getHandleLocalRuleError = (value: string): string | null => {
   const status = getUsernameStatus(value);
@@ -62,17 +93,14 @@ export const getHandleLocalRuleError = (value: string): string | null => {
 export const getHandleAvailabilityError = (
   availability: UsernameAvailabilityResponse,
 ): string | null => {
-  if (availability.valid && availability.available) {
-    return null;
+  switch (getHandleAvailabilityRejection(availability)) {
+    case null:
+      return null;
+    case 'invalidFormat':
+      return strings('social_leaderboard.manage_profile.username_invalid');
+    case 'reserved':
+      return strings('social_leaderboard.manage_profile.username_reserved');
+    default:
+      return strings('social_leaderboard.manage_profile.username_unavailable');
   }
-
-  if (!availability.valid || hasCode(availability, INVALID_FORMAT_CODES)) {
-    return strings('social_leaderboard.manage_profile.username_invalid');
-  }
-
-  return strings(
-    isReservedHandle(availability)
-      ? 'social_leaderboard.manage_profile.username_reserved'
-      : 'social_leaderboard.manage_profile.username_unavailable',
-  );
 };
