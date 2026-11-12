@@ -20,6 +20,7 @@ import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
 
 import ReduxService from '../redux';
+import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
@@ -104,7 +105,9 @@ export class EngineService {
         // Each quote stream replaces the list with its first quote, which the
         // user is waiting on. Later quotes stay batched.
         (controllerName === 'BridgeController' &&
-          engine.context.BridgeController.state.quotes.length === 1)
+          engine.context.BridgeController.state.quotes.length === 1 &&
+          selectRemoteFeatureFlags(ReduxService.store.getState())
+            .bridgeFirstQuoteFlushEnabled === true)
       ) {
         this.updateBatcher.flush();
       }

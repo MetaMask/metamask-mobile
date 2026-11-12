@@ -494,12 +494,27 @@ describe('EngineService', () => {
     });
 
     it.each([
-      [0, false],
-      [1, true],
-      [2, false],
+      [0, true, false],
+      [1, true, true],
+      [2, true, false],
+      [1, false, false],
     ])(
-      'with %i quotes, dispatches immediately: %s',
-      async (quoteCount, isImmediate) => {
+      'with %i quotes and flag %s, dispatches immediately: %s',
+      async (quoteCount, flagEnabled, isImmediate) => {
+        ReduxService.store = {
+          ...ReduxService.store,
+          getState: () => ({
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    bridgeFirstQuoteFlushEnabled: flagEnabled,
+                  },
+                },
+              },
+            },
+          }),
+        } as unknown as ReduxStore;
         await engineService.start();
         (
           Engine.context as unknown as Record<string, unknown>

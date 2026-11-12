@@ -6,11 +6,14 @@ import {
   type QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
+  annotateTraceByRequest,
   endTrace,
   trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import ReduxService from '../../../../core/redux';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -90,6 +93,14 @@ export const swapQuoteFetchTrace = {
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
+    annotateTraceByRequest(
+      { name: TraceName.SwapQuoteFetch, id },
+      {
+        first_quote_flush_enabled:
+          selectRemoteFeatureFlags(ReduxService.store.getState())
+            .bridgeFirstQuoteFlushEnabled === true,
+      },
+    );
     return id;
   },
 

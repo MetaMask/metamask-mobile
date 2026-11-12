@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import {
+  annotateTraceByRequest,
   endTrace,
   trace,
   TraceName,
@@ -9,10 +10,27 @@ import {
 import { swapQuoteFetchTrace } from './swapQuoteFetchTrace';
 import type { BridgeToken } from '../types';
 
+let mockRemoteFeatureFlags: Record<string, unknown> = {};
+
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
+  annotateTraceByRequest: jest.fn(),
+}));
+
+jest.mock('../../../../core/redux', () => ({
+  store: {
+    getState: () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: mockRemoteFeatureFlags,
+          },
+        },
+      },
+    }),
+  },
 }));
 
 jest.mock('uuid', () => ({
@@ -61,6 +79,20 @@ describe('swapQuoteFetchTrace', () => {
       startTime: expect.any(Number),
     });
   });
+
+  it.each([true, false])(
+    'annotates the trace with first_quote_flush_enabled: %s',
+    (flagEnabled) => {
+      mockRemoteFeatureFlags = { bridgeFirstQuoteFlushEnabled: flagEnabled };
+
+      swapQuoteFetchTrace.start({ isRefresh: false });
+
+      expect(annotateTraceByRequest).toHaveBeenCalledWith(
+        { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+        { first_quote_flush_enabled: flagEnabled },
+      );
+    },
+  );
 
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
