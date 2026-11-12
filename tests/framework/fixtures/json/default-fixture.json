@@ -238,6 +238,10 @@
           "moneyAccounts": {},
           "defaultMoneyAccountId": null
         },
+        "MoneyAccountLifecycleController": {
+          "moneyAccounts": {},
+          "addressRegistrations": {}
+        },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
         },

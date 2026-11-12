@@ -11088,6 +11088,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/money-account-lifecycle-controller@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/money-account-lifecycle-controller@npm:1.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/chomp-api-service": "npm:^7.1.0"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/money-account-controller": "npm:^3.0.0"
+    "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
+    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
+    "@metamask/subscription-controller": "npm:^15.2.1"
+    "@metamask/utils": "npm:^12.0.1"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/ca9d56c0257a67ed76dbb197c31641e029ebba6fecf924ca85624e89f5942c10635ab0af01a38a44a190d502b5d87d8c25a35d29599f98fd314417d05d3f1d8e
+  languageName: node
+  linkType: hard
+
 "@metamask/money-account-mfa-whitelist@npm:^0.1.0":
   version: 0.1.0
   resolution: "@metamask/money-account-mfa-whitelist@npm:0.1.0"
@@ -38350,6 +38368,7 @@ __metadata:
     "@metamask/money-account-api-data-service": "npm:^2.4.0"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
+    "@metamask/money-account-lifecycle-controller": "npm:^1.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
     "@metamask/money-account-utils": "npm:^2.2.1"
     "@metamask/multichain-account-service": "npm:^14.1.0"
