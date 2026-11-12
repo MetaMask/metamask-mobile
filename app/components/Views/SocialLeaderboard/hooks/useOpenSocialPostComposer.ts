@@ -15,15 +15,27 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 import { useTheme } from '../../../../util/theme';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
-import type { SocialPostComposerEntryPoint } from '../SocialPostComposerView/SocialPostComposerView.types';
+import type {
+  SocialPostComposerBlankEntry,
+  SocialPostComposerEntryPoint,
+} from '../SocialPostComposerView/SocialPostComposerView.types';
 
-/** Optional share context when a host screen opens the composer. */
-export interface OpenComposerOptions {
+/** Share context when a host screen opens the composer with a position. */
+export interface OpenComposerPositionOptions {
   /** Pre-attach this position instead of opening the position picker. */
   position: Position;
   /** Where the share was started from. */
   entryPoint: SocialPostComposerEntryPoint;
 }
+
+/** A blank composer opened from a post button. */
+export interface OpenComposerBlankOptions {
+  composerEntry: SocialPostComposerBlankEntry;
+}
+
+export type OpenComposerOptions =
+  | OpenComposerPositionOptions
+  | OpenComposerBlankOptions;
 
 export interface UseOpenSocialPostComposerResult {
   openComposer: (options?: OpenComposerOptions) => void;
