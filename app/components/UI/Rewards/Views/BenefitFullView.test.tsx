@@ -311,12 +311,9 @@ describe('BenefitFullView', () => {
     fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: mockBenefit.url,
-        timestamp: expect.any(Number),
-        fromBenefit: true,
-      },
+      newTabUrl: mockBenefit.url,
+      timestamp: expect.any(Number),
+      fromBenefit: true,
     });
   });
 
