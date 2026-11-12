@@ -95,6 +95,33 @@ async function parseResponse<T>(
   return parse(await response.json());
 }
 
+interface RecurringRequestOptions<Result> {
+  method: 'DELETE' | 'GET' | 'POST';
+  path?: string;
+  searchParams?: URLSearchParams;
+  body?: unknown;
+  operation: string;
+  parse: (value: unknown) => Result;
+}
+
+async function recurringRequest<Result>({
+  method,
+  path,
+  searchParams,
+  body,
+  operation,
+  parse,
+}: RecurringRequestOptions<Result>): Promise<Result> {
+  const hasBody = body !== undefined;
+  const response = await fetch(getRecurringOrdersUrl(path, searchParams), {
+    method,
+    headers: await getRecurringHeaders(hasBody),
+    ...(hasBody ? { body: JSON.stringify(body) } : {}),
+  });
+
+  return parseResponse(response, operation, parse);
+}
+
 async function prepareRecurringDelegation(
   query: PrepareRecurringDelegationQuery,
 ): Promise<PrepareRecurringDelegationResponse> {
@@ -109,35 +136,25 @@ async function prepareRecurringDelegation(
     unit: query.unit,
     repeatCount: String(query.repeatCount),
   });
-  const response = await fetch(
-    getRecurringOrdersUrl('/delegations', searchParams),
-    {
-      method: 'GET',
-      headers: await getRecurringHeaders(),
-    },
-  );
 
-  return parseResponse(
-    response,
-    'prepareRecurringDelegation',
-    parsePrepareRecurringDelegationResponse,
-  );
+  return recurringRequest({
+    method: 'GET',
+    path: '/delegations',
+    searchParams,
+    operation: 'prepareRecurringDelegation',
+    parse: parsePrepareRecurringDelegationResponse,
+  });
 }
 
 async function createRecurringOrder(
   request: CreateRecurringOrderRequest,
 ): Promise<CreateRecurringOrderResponse> {
-  const response = await fetch(getRecurringOrdersUrl(), {
+  return recurringRequest({
     method: 'POST',
-    headers: await getRecurringHeaders(true),
-    body: JSON.stringify(request),
+    body: request,
+    operation: 'createRecurringOrder',
+    parse: parseCreateRecurringOrderResponse,
   });
-
-  return parseResponse(
-    response,
-    'createRecurringOrder',
-    parseCreateRecurringOrderResponse,
-  );
 }
 
 async function getRecurringOrders(
@@ -157,16 +174,12 @@ async function getRecurringOrders(
   }
   if (query.after) searchParams.set('after', query.after);
 
-  const response = await fetch(getRecurringOrdersUrl('', searchParams), {
+  return recurringRequest({
     method: 'GET',
-    headers: await getRecurringHeaders(),
+    searchParams,
+    operation: 'getRecurringOrders',
+    parse: parseListRecurringOrdersResponse,
   });
-
-  return parseResponse(
-    response,
-    'getRecurringOrders',
-    parseListRecurringOrdersResponse,
-  );
 }
 
 async function getRecurringOrder(
@@ -176,19 +189,14 @@ async function getRecurringOrder(
   const searchParams = new URLSearchParams({
     accountAddress: query.accountAddress,
   });
-  const response = await fetch(
-    getRecurringOrdersUrl(`/${encodeURIComponent(orderId)}`, searchParams),
-    {
-      method: 'GET',
-      headers: await getRecurringHeaders(),
-    },
-  );
 
-  return parseResponse(
-    response,
-    'getRecurringOrder',
-    parseGetRecurringOrderResponse,
-  );
+  return recurringRequest({
+    method: 'GET',
+    path: `/${encodeURIComponent(orderId)}`,
+    searchParams,
+    operation: 'getRecurringOrder',
+    parse: parseGetRecurringOrderResponse,
+  });
 }
 
 async function getRecurringSwaps(
@@ -204,22 +212,13 @@ async function getRecurringSwaps(
   }
   if (query.after) searchParams.set('after', query.after);
 
-  const response = await fetch(
-    getRecurringOrdersUrl(
-      `/${encodeURIComponent(orderId)}/swaps`,
-      searchParams,
-    ),
-    {
-      method: 'GET',
-      headers: await getRecurringHeaders(),
-    },
-  );
-
-  return parseResponse(
-    response,
-    'getRecurringSwaps',
-    parseListRecurringSwapsResponse,
-  );
+  return recurringRequest({
+    method: 'GET',
+    path: `/${encodeURIComponent(orderId)}/swaps`,
+    searchParams,
+    operation: 'getRecurringSwaps',
+    parse: parseListRecurringSwapsResponse,
+  });
 }
 
 async function cancelRecurringOrder(
@@ -229,19 +228,14 @@ async function cancelRecurringOrder(
   const searchParams = new URLSearchParams({
     accountAddress: query.accountAddress,
   });
-  const response = await fetch(
-    getRecurringOrdersUrl(`/${encodeURIComponent(orderId)}`, searchParams),
-    {
-      method: 'DELETE',
-      headers: await getRecurringHeaders(),
-    },
-  );
 
-  return parseResponse(
-    response,
-    'cancelRecurringOrder',
-    parseCancelRecurringOrderResponse,
-  );
+  return recurringRequest({
+    method: 'DELETE',
+    path: `/${encodeURIComponent(orderId)}`,
+    searchParams,
+    operation: 'cancelRecurringOrder',
+    parse: parseCancelRecurringOrderResponse,
+  });
 }
 
 export const recurringOrdersApiClient = {
