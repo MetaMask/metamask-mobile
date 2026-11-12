@@ -3,10 +3,28 @@ import { act, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { UseMyProfileResult } from '../../MyProfileView/hooks/useMyProfile';
+import { MAX_DISPLAY_NAME_LENGTH } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { ManageProfileEditorSelectorsIDs } from '../ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './manageProfileTextEditorFields';
 import ManageProfileTextEditorView from './ManageProfileTextEditorView';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
+
+const controllerBackedProfile = (
+  overrides: Partial<UseProfileControllerResult> = {},
+): UseProfileControllerResult => ({
+  isControllerBacked: true,
+  profile: undefined,
+  linkedAddresses: [],
+  updateProfile: jest.fn().mockResolvedValue(undefined),
+  createProfile: jest.fn().mockResolvedValue(undefined),
+  fetchAndUpdateProfile: jest.fn(),
+  fetchAndUpdateXAccount: jest.fn(),
+  disconnectX: jest.fn(),
+  getXAuthorizationUrl: jest.fn(),
+  checkUsernameAvailability: jest.fn(),
+  checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+  ...overrides,
+});
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn<
@@ -175,6 +193,173 @@ describe('ManageProfileTextEditorView', () => {
       ),
     ).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('shows the length rule for a stored display name over 32 characters', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest.fn();
+    mockUseMyProfile.mockReturnValue({
+      profile: {
+        profileId: 'current-user',
+        displayName: 'A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1),
+        handle: 'giga-whale.metamask',
+      },
+      isLoading: false,
+      error: null,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseProfileController.mockReturnValue(
+      controllerBackedProfile({ updateProfile, checkDisplayNameValidity }),
+    );
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(checkDisplayNameValidity).not.toHaveBeenCalled();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.display_name_too_long', {
+          max: MAX_DISPLAY_NAME_LENGTH,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the display name when the validity check cannot reach the API', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest
+      .fn()
+      .mockRejectedValue(new Error('offline'));
+    mockUseProfileController.mockReturnValue(
+      controllerBackedProfile({ updateProfile, checkDisplayNameValidity }),
+    );
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      'Laser Gains',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(checkDisplayNameValidity).toHaveBeenCalledWith('Laser Gains');
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.display_name_check_error'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.save_error'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('trims surrounding spaces before checking and saving a display name', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest
+      .fn()
+      .mockResolvedValue({ valid: true });
+    mockUseProfileController.mockReturnValue(
+      controllerBackedProfile({ updateProfile, checkDisplayNameValidity }),
+    );
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      '  Laser Gains  ',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(checkDisplayNameValidity).toHaveBeenCalledWith('Laser Gains');
+    expect(updateProfile).toHaveBeenCalledWith({
+      display_name: 'Laser Gains',
+    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves the next display name after a rejected one', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkDisplayNameValidity = jest
+      .fn()
+      .mockResolvedValueOnce({ valid: false })
+      .mockResolvedValueOnce({ valid: true });
+    mockUseProfileController.mockReturnValue(
+      controllerBackedProfile({ updateProfile, checkDisplayNameValidity }),
+    );
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      'Bad Name',
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_INPUT),
+      'Laser Gains',
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.DISPLAY_NAME_SAVE),
+      );
+    });
+
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(updateProfile).toHaveBeenCalledTimes(1);
+    expect(updateProfile).toHaveBeenCalledWith({
+      display_name: 'Laser Gains',
+    });
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('preserves username casing when checking availability and updating the handle', async () => {
