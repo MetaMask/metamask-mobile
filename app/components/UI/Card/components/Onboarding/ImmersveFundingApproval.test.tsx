@@ -811,7 +811,7 @@ describe('ImmersveFundingApproval', () => {
   });
 
   it('delegates unexpected next actions to the shared router', () => {
-    const action: ImmersveNextAction = { type: 'rejected' };
+    const action: ImmersveNextAction = { type: 'rejected', canRetry: false };
     setNextAction(action);
     render(<ImmersveFundingApproval />);
 

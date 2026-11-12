@@ -83,6 +83,7 @@ export const useCardHomeData = () => {
       balanceFormatted: info?.balanceFormatted,
       rawFiatNumber: info?.rawFiatNumber,
       rawTokenBalance: info?.rawTokenBalance,
+      isUnavailable: info?.isUnavailable,
     };
   }, [primaryTokenRaw, balanceMap]);
 
@@ -97,6 +98,7 @@ export const useCardHomeData = () => {
           balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
+          isUnavailable: info?.isUnavailable,
         };
       }),
     [availableTokensRaw, balanceMap],
@@ -113,6 +115,7 @@ export const useCardHomeData = () => {
           balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
+          isUnavailable: info?.isUnavailable,
         };
       }),
     [fundingTokensRaw, balanceMap],

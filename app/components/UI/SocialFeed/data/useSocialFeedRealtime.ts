@@ -30,6 +30,7 @@ import {
   getRowFeedItemId,
   getVisiblePendingNewCount,
   mergeRealtimeRows,
+  pinRealtimeRows,
   rememberEvictedRevision,
   toRealtimeEventPost,
   type PendingRealtimeEvent,
@@ -99,6 +100,12 @@ type RealtimeView = Omit<RealtimeStore, 'evicted'> & {
   stream: string | null;
 };
 
+/** The sort keys rows were shown at, for the request they were streamed for. */
+interface RowPlacement {
+  stream: string | null;
+  placed: ReadonlyMap<string, number>;
+}
+
 interface CachedFeedPost {
   core: CoreFeedItem;
   item: TraderFeedRow['item'];
@@ -132,7 +139,8 @@ const noop = () => undefined;
  * Socket-only posts are capped at
  * {@link SOCIAL_FEED_REALTIME_BUFFER_SIZE}; going over the cap, a reconnect,
  * or becoming active again schedules a catch-up refresh, run once the list is
- * at the top and live. Rows survive while inactive.
+ * at the top and live. Rows survive while inactive. A shown row keeps its
+ * place; posts the list did not show yet only enter above it.
  */
 export const useSocialFeedRealtime = (
   { rows, dataUpdatedAt, refresh }: UseSocialFeedRealtimeInput,
@@ -563,18 +571,36 @@ export const useSocialFeedRealtime = (
     entrances.retain(eventIds);
   }, [entrances, view.revisedRows, view.socketRows]);
 
-  const mergedRows = useMemo(
-    () =>
-      realtimeScope
-        ? mergeRealtimeRows({
-            serverRows: rows,
-            socketRows: view.socketRows,
-            revisedRows: view.revisedRows,
-            pending: view.pending,
-          })
-        : [],
-    [realtimeScope, rows, view.pending, view.revisedRows, view.socketRows],
-  );
+  // Pinning is idempotent for the same rows, so a repeated render (strict
+  // mode, a discarded concurrent render) recomputes the same placement.
+  const placementRef = useRef<RowPlacement>({ stream, placed: new Map() });
+  const mergedRows = useMemo(() => {
+    if (!realtimeScope) {
+      return [];
+    }
+    const merged = mergeRealtimeRows({
+      serverRows: rows,
+      socketRows: view.socketRows,
+      revisedRows: view.revisedRows,
+      pending: view.pending,
+    });
+    const previous = placementRef.current;
+    const pinned = pinRealtimeRows(
+      merged,
+      previous.stream === stream ? previous.placed : new Map(),
+      serverRowsById,
+    );
+    placementRef.current = { stream, placed: pinned.placed };
+    return pinned.rows;
+  }, [
+    realtimeScope,
+    rows,
+    serverRowsById,
+    stream,
+    view.pending,
+    view.revisedRows,
+    view.socketRows,
+  ]);
 
   const posts = useMemo(() => {
     if (!realtimeScope) {

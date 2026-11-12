@@ -7,6 +7,7 @@ import {
   SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -100,11 +101,8 @@ export const PerpsTabContent: React.FC<
     hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
   );
   const [isSortSheetVisible, setIsSortSheetVisible] = useState(false);
+  const tw = useTailwind();
   const floatingTabBarInset = useFloatingTabBarInset();
-  const contentContainerStyle = useMemo(
-    () => ({ paddingTop: 12, paddingBottom: 16 + floatingTabBarInset }),
-    [floatingTabBarInset],
-  );
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   // Local (not persisted) state; the watchlist and categories are exclusive.
@@ -252,7 +250,11 @@ export const PerpsTabContent: React.FC<
   const emptyComponent = useMemo(() => {
     if (isLoading) {
       return (
-        <View testID={PerpsTabSelectorsIDs.LOADING}>
+        <View
+          testID={PerpsTabSelectorsIDs.LOADING}
+          accessibilityLabel="Loading markets"
+          accessibilityState={{ busy: true }}
+        >
           <PerpsRowSkeleton count={8} />
         </View>
       );
@@ -330,7 +332,9 @@ export const PerpsTabContent: React.FC<
   return (
     <>
       <PerpsMarketList
-        contentContainerStyle={contentContainerStyle}
+        contentContainerStyle={tw.style(
+          `pt-3 pb-[${16 + floatingTabBarInset}px]`,
+        )}
         markets={showFavoritesOnly || isLoading ? [] : markets}
         keepHeaderHiddenOnReset
         emptyComponent={emptyComponent}

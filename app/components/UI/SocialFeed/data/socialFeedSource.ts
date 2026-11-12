@@ -7,6 +7,7 @@ import {
 import {
   SOCIAL_FEED_CHANNELS,
   type FeedItem as CoreFeedItem,
+  type FeedScope,
   type FetchFeedOptions,
   type FetchTokenFeedOptions,
   type FetchTraderFeedOptions,
@@ -20,13 +21,7 @@ import {
 import { chainNameToId } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 
-/**
- * The feed `SocialService:fetchFeed` serves: `following`, `following_v1`,
- * `leaderboard`, `all`, or `trending`. `following_v1` is the following feed in
- * the shape of `all`: one item per post, ordered by `occurredAt`. The installed
- * `@metamask/social-controllers` does not list it yet.
- */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']> | 'following_v1';
+export type { FeedScope };
 
 /**
  * A slice of the social feed, as `SocialService:fetchFeed` filters it. Plain
