@@ -145,6 +145,25 @@ test('scenario specs are discovered only when @PerformanceShadow is selected', (
   );
 });
 
+test('a @PerfHealTest selection lists only the two tagged scenarios', () => {
+  const login = discover('imported-wallet', repoRoot, '@PerfHealTest');
+  const onboarding = discover('onboarding', repoRoot, '@PerfHealTest');
+
+  assert.equal(login.status, 0);
+  assert.deepEqual(login.specs.sort(), [
+    'tests/performance/login/scenarios/asset-view.scenario.spec.ts',
+    'tests/performance/login/scenarios/predict-available-balance.scenario.spec.ts',
+  ]);
+  assert.equal(onboarding.status, 0);
+  assert.deepEqual(onboarding.specs, []);
+  assert.equal(
+    discover('imported-wallet', repoRoot, '@PerfHealTest').specs.includes(
+      'tests/performance/login/send-eth-between-accounts.spec.ts',
+    ),
+    false,
+  );
+});
+
 test('a @PerformanceShadow-only selection lists only scenario specs', () => {
   const { status, specs } = discover(
     'imported-wallet',

@@ -15,5 +15,14 @@
         "value": "homepage-section-title-predictions"
       }
     }
+  ],
+  "the Predict home screen is visible": [
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "perf-heal-test-does-not-exist"
+      }
+    }
   ]
 }

@@ -106,6 +106,10 @@ BUILD_TYPE="$BUILD_TYPE" bash ./.github/scripts/qa-automation/performance-tests/
   > "$DISCOVERY_LIST"
 DISCOVERY_COUNT="$(wc -l < "$DISCOVERY_LIST" | tr -d ' ')"
 if [[ "$DISCOVERY_COUNT" -lt 1 ]]; then
+  if [[ "${GREP_TAGS:-}" == "@PerfHealTest" ]]; then
+    echo "No @PerfHealTest scenarios for BUILD_TYPE=$BUILD_TYPE; skipping HyperExecute."
+    exit 0
+  fi
   echo "Discovery produced no specs for BUILD_TYPE=$BUILD_TYPE" >&2
   exit 1
 fi

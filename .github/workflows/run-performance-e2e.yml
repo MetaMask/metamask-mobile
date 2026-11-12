@@ -418,7 +418,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
-      contains(needs.prepare.outputs.grep_pattern, '@PerformanceShadow') &&
+      (contains(needs.prepare.outputs.grep_pattern, '@PerformanceShadow') || contains(needs.prepare.outputs.grep_pattern, '@PerfHealTest')) &&
       (
         github.event_name == 'workflow_dispatch' ||
         github.event_name == 'schedule' ||
