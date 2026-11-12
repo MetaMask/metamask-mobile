@@ -648,6 +648,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  bridgeFirstQuoteFlushEnabled: {
+    name: 'bridgeFirstQuoteFlushEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeQuoteStatusManager: {
     name: 'bridgeQuoteStatusManager',
     type: FeatureFlagType.Remote,
