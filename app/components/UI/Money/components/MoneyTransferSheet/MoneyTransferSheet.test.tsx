@@ -18,6 +18,40 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { selectMoneyAccountAccessBlockReason } from '../../selectors/visibility';
+import { withPendingTransactionActiveAbTests } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  MONEY_HOME_SEND_ACTION_AB_KEY,
+  MONEY_HOME_SEND_ACTION_VARIANTS,
+  MoneyHomeSendActionVariant,
+} from '../../abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+
+const controlSendActionAbTest = {
+  variant: MONEY_HOME_SEND_ACTION_VARIANTS.control,
+  variantName: MoneyHomeSendActionVariant.Control,
+  isActive: false,
+};
+const mockUseABTest = jest.fn(() => controlSendActionAbTest);
+
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
+
+jest.mock(
+  '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+  () => {
+    const actual = jest.requireActual(
+      '../../../../../util/transactions/transaction-active-ab-test-attribution-registry',
+    );
+    return {
+      ...actual,
+      withPendingTransactionActiveAbTests: jest.fn(
+        (tests: unknown, fn: () => Promise<unknown>) =>
+          actual.withPendingTransactionActiveAbTests(tests, fn),
+      ),
+    };
+  },
+);
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackSurfaceClicked = jest.fn();
@@ -138,6 +172,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('MoneyTransferSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockImplementation(() => controlSendActionAbTest);
     global.alert = jest.fn();
     mockUseMoneyAccountBalance.mockReturnValue({
       liquidMusd: undefined,
@@ -575,5 +610,74 @@ describe('MoneyTransferSheet', () => {
         redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
       });
     });
+  });
+
+  describe('send action label experiment', () => {
+    it('keeps "Another account" when the assignment is control', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <MoneyTransferSheet />,
+      );
+
+      expect(
+        getByText(strings('money.transfer_sheet.title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.transfer_sheet.between_accounts')),
+      ).toBeOnTheScreen();
+      expect(queryByText(strings('money.transfer_sheet.my_wallet'))).toBeNull();
+    });
+
+    it.each([
+      {
+        variantName: MoneyHomeSendActionVariant.Withdraw,
+        titleKey: 'money.transfer_sheet.title_withdraw' as const,
+      },
+      {
+        variantName: MoneyHomeSendActionVariant.MoveToWallet,
+        titleKey: 'money.transfer_sheet.title_move_to_wallet' as const,
+      },
+    ])(
+      'leads with My wallet for the $variantName variant',
+      ({ variantName, titleKey }) => {
+        mockUseABTest.mockReturnValue({
+          variant: MONEY_HOME_SEND_ACTION_VARIANTS[variantName],
+          variantName,
+          isActive: true,
+        });
+
+        const { getByText, queryByText, getByTestId } = renderWithProvider(
+          <MoneyTransferSheet />,
+        );
+
+        expect(getByText(strings(titleKey))).toBeOnTheScreen();
+        expect(
+          getByText(strings('money.transfer_sheet.my_wallet')),
+        ).toBeOnTheScreen();
+        expect(
+          queryByText(strings('money.transfer_sheet.between_accounts')),
+        ).toBeNull();
+        expect(
+          getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyTransferSheetTestIds.WITHDRAW_TO_BANK_ROW),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
+        );
+
+        expect(withPendingTransactionActiveAbTests).toHaveBeenCalledWith(
+          [
+            createActiveABTestAssignment(
+              MONEY_HOME_SEND_ACTION_AB_KEY,
+              variantName,
+            ),
+          ],
+          expect.any(Function),
+        );
+        expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+      },
+    );
   });
 });

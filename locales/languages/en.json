@@ -9766,6 +9766,8 @@
     "action": {
       "add": "Add",
       "transfer": "Send",
+      "withdraw": "Withdraw",
+      "move_to_wallet": "Move to wallet",
       "card": "Card",
       "details": "Details"
     },
@@ -9891,7 +9893,10 @@
     },
     "transfer_sheet": {
       "title": "Send funds to",
+      "title_withdraw": "Withdraw to",
+      "title_move_to_wallet": "Move funds to",
       "between_accounts": "Another account",
+      "my_wallet": "My wallet",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",

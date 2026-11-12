@@ -36,6 +36,23 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  MONEY_HOME_SEND_ACTION_AB_KEY,
+  MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
+  MONEY_HOME_SEND_ACTION_VARIANTS,
+  MoneyHomeSendActionVariant,
+} from '../../abTestConfig';
+
+const controlSendActionAbTest = {
+  variant: MONEY_HOME_SEND_ACTION_VARIANTS.control,
+  variantName: MoneyHomeSendActionVariant.Control,
+  isActive: false,
+};
+const mockUseABTest = jest.fn(() => controlSendActionAbTest);
+
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (...args: unknown[]) => mockUseABTest(...args),
+}));
 import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
@@ -842,6 +859,7 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
     mockRouteParams = undefined;
+    mockUseABTest.mockReturnValue(controlSendActionAbTest);
 
     // clearAllMocks() resets call history but not a previously-set
     // mockReturnValue, so explicitly restore the default (visible) state.
@@ -2331,6 +2349,65 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
+  });
+
+  describe('send action label experiment', () => {
+    it('reads the experiment on Money home and defaults to Send', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const transferButton = getByTestId(
+        MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+      );
+
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        MONEY_HOME_SEND_ACTION_AB_KEY,
+        MONEY_HOME_SEND_ACTION_VARIANTS,
+        MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
+      );
+      expect(transferButton).toHaveTextContent(
+        strings('money.action.transfer'),
+      );
+      expect(transferButton).not.toHaveTextContent(
+        strings('money.action.withdraw'),
+      );
+    });
+
+    it.each([
+      {
+        variantName: MoneyHomeSendActionVariant.Withdraw,
+        labelKey: 'money.action.withdraw' as const,
+      },
+      {
+        variantName: MoneyHomeSendActionVariant.MoveToWallet,
+        labelKey: 'money.action.move_to_wallet' as const,
+      },
+    ])(
+      'renders $variantName and records that label on the tap',
+      ({ variantName, labelKey }) => {
+        mockUseABTest.mockReturnValue({
+          variant: MONEY_HOME_SEND_ACTION_VARIANTS[variantName],
+          variantName,
+          isActive: true,
+        });
+
+        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+        const transferButton = getByTestId(
+          MoneyActionButtonRowTestIds.TRANSFER_BUTTON,
+        );
+
+        expect(transferButton).toHaveTextContent(strings(labelKey));
+
+        fireEvent.press(
+          getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON),
+        );
+
+        expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+          expect.objectContaining({
+            button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+            label_key: labelKey,
+          }),
+        );
+      },
+    );
   });
 
   describe('transfer button disabled state', () => {

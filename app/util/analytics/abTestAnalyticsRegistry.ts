@@ -33,6 +33,7 @@ import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_RAMPS_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/confirmations/hooks/transactions/abTestConfig';
+import { MONEY_HOME_SEND_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Money/abTestConfig';
 
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Swaps
@@ -80,4 +81,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Confirmations / Money Account deposit prefill
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_RAMPS_AB_TEST_ANALYTICS_MAPPING,
+
+  // Money home send action label
+  MONEY_HOME_SEND_ACTION_AB_TEST_ANALYTICS_MAPPING,
 ];
