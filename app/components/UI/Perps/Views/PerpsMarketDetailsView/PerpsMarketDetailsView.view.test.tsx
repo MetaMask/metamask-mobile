@@ -1970,12 +1970,9 @@ describe('PerpsMarketDetailsView', () => {
       // Host and composite nodes can both carry a testID. Every copy of
       // `before` still has to precede every copy of `after`.
       const expectBefore = (before: string, after: string) => {
-        const ordered = screen.UNSAFE_root
-          .findAll(
-            (node) =>
-              node.props.testID === before || node.props.testID === after,
-          )
-          .map((node) => node.props.testID as string);
+        const ordered = screen.UNSAFE_root.findAll(
+          (node) => node.props.testID === before || node.props.testID === after,
+        ).map((node) => node.props.testID as string);
         expect(ordered.lastIndexOf(before)).toBeGreaterThanOrEqual(0);
         expect(ordered.lastIndexOf(before)).toBeLessThan(
           ordered.indexOf(after),
