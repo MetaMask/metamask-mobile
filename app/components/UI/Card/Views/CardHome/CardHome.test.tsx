@@ -79,6 +79,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -337,17 +338,25 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 
 const mockEnableCard = jest.fn();
 let mockCanEnableCard = false;
+let mockIsEnableCardPending = false;
 let mockProvisioningView:
   | 'reconciling'
   | 'hidden'
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
+let mockIsSignedOutKycPending = false;
+jest.mock('./hooks/useSignedOutKycPending', () => ({
+  __esModule: true,
+  default: () => mockIsSignedOutKycPending,
+}));
+
 jest.mock('./hooks/useCardEnableCard', () => ({
-  useCardEnableCard: () => ({
+  useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
-  }),
+    isEnableCardPending: mockIsEnableCardPending,
+  })),
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -1334,6 +1343,8 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCanEnableCard = false;
+    mockIsEnableCardPending = false;
+    mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
     jest.clearAllMocks();
@@ -1499,6 +1510,15 @@ describe('CardHome Component', () => {
     mockUseMoneyAccountCardLinkage.mockReset();
     mockUseMoneyAccountCardLinkage.mockImplementation(
       createDefaultMoneyAccountCardLinkageMock,
+    );
+  });
+
+  it('rechecks the left-off setup step when Card home regains focus', () => {
+    render();
+
+    expect(jest.mocked(useCardEnableCard)).toHaveBeenCalledWith(
+      expect.anything(),
+      { recheckOnFocus: true },
     );
   });
 
@@ -2609,6 +2629,47 @@ describe('CardHome Component', () => {
     expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
     expect(mockEnableCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Enable card while the Money account approval is running', () => {
+    mockCanEnableCard = true;
+    mockIsEnableCardPending = true;
+    mockProvisioningView = 'hidden';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shimmers the card image and disables Enable card while setup is being checked', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'reconciling';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeDisabled();
+    expect(screen.queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
   });
 
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
@@ -4669,6 +4730,54 @@ describe('CardHome Component', () => {
         expect(
           screen.getByText('card.card_home.warnings.kyc_pending.title'),
         ).toBeOnTheScreen();
+      });
+    });
+
+    describe('Signed out while identity is in review', () => {
+      it('shows the pending banner and the waiting layout', () => {
+        // Given: still in onboarding, no signed-in Card account
+        mockIsSignedOutKycPending = true;
+        setupMockSelectors({ isAuthenticated: false });
+
+        // When: component renders
+        render();
+
+        // Then: the pending banner shows and nothing card-ready does
+        expect(
+          screen.getByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.SET_PIN_BUTTON),
+        ).toBeNull();
+        expect(
+          screen.queryByTestId(CardHomeSelectors.FREEZE_CARD_TOGGLE),
+        ).toBeNull();
+        // The card art is muted to 50% opacity
+        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toHaveStyle({
+          opacity: 0.5,
+        });
+      });
+
+      it('does not show the pending banner when signed out and not in review', () => {
+        // Given: signed out, nothing pending
+        setupMockSelectors({ isAuthenticated: false });
+
+        // When: component renders
+        render();
+
+        // Then: no pending banner
+        expect(
+          screen.queryByText('card.card_home.warnings.kyc_pending.title'),
+        ).toBeNull();
+        expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).not.toHaveStyle({
+          opacity: 0.5,
+        });
       });
     });
 
@@ -7605,6 +7714,56 @@ describe('CardHome Component', () => {
       setupLinkageMock({
         canLink: false,
         isMoneyAccountLinkingSupported: false,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides link-mode content while an Immersve setup step is pending', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      setupLinkageMock();
+      mockCanEnableCard = true;
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each(['kyc_pending', 'card_provisioning', 'allowance_revoked'])(
+      'hides link-mode content while the %s setup alert is showing',
+      (alertType) => {
+        setupMockSelectors({ cardHomeDataStatus: 'success' });
+        setupLinkageMock();
+        setupLoadCardDataMock({
+          alerts: [{ type: alertType, dismissable: false }],
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    it('hides link-mode content before card home data has loaded', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'loading' });
+      setupLinkageMock();
+      (useCardHomeData as jest.Mock).mockReturnValue({
+        data: null,
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+        isLoading: true,
+        isError: false,
+        refetch: mockRefetchAllData,
       });
 
       render();

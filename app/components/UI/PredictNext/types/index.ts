@@ -363,11 +363,12 @@ interface PredictOrderPreviewBase {
 /** A buy Order Preview: estimated cost, fees, and potential return. */
 export interface PredictBuyOrderPreview extends PredictOrderPreviewBase {
   action: 'buy';
-  /** The entered maximum USD spend before fees. */
+  /** The entered maximum USD spend, fees included. */
   requestedAmount: PredictAmount;
-  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  /** Estimated cost of the quoted contracts, before the fee. */
   orderAmount: PredictAmount;
-  /** The Order amount plus the fee: the total expected debit. */
+  /** The Order amount plus the fee: the total expected debit. Never above
+   * requestedAmount. */
   totalDebit: PredictAmount;
   potentialPayout: PredictAmount;
   potentialProfit: PredictSignedAmount;
