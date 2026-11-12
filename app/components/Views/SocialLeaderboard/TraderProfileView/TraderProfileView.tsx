@@ -261,7 +261,7 @@ const TraderProfileView = () => {
           });
         },
         buildSocialProfileOpenGraph(traderLabel),
-        async () =>
+        async ({ promoCode }) =>
           buildSocialProfileOgImageRequest({
             traderId,
             username: profile?.profile.name || traderName,
@@ -269,6 +269,7 @@ const TraderProfileView = () => {
             profile,
             closedPositions,
             nowMs: Date.now(),
+            promoCode,
           }),
       ),
     );
