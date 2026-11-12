@@ -294,7 +294,10 @@ describe('predictErrorHandler', () => {
       'net::ERR_CERT_AUTHORITY_INVALID',
       'net::ERR_CERT_DATE_INVALID',
       'Cronet failed: Exception in CronetUrlRequest: net::ERR_CERT_AUTHORITY_INVALID',
-    ])('returns false for an Android certificate error: %s', (message) => {
+      'net::ERR_SSL_PROTOCOL_ERROR',
+      'net::ERR_SSL_PINNED_KEY_NOT_IN_CERT_CHAIN',
+      'Cronet failed: Exception in CronetUrlRequest: net::ERR_SSL_PROTOCOL_ERROR',
+    ])('returns false for an Android TLS error: %s', (message) => {
       expect(isNetworkError(new Error(message))).toBe(false);
     });
 

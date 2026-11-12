@@ -31,7 +31,8 @@ export function ensureError(error: unknown): Error {
  * Left as errors on purpose: -999 cancelled, -1011 bad server response,
  * -1013 auth required, -1018 roaming off, -1020 data not allowed, -1022 ATS,
  * -1200 secure connection failed, -1202 to -1206 certificate. Android
- * net::ERR_CERT_* is the same failure class and also stays an error.
+ * net::ERR_CERT_* and net::ERR_SSL_* are the same failure class and also
+ * stay errors.
  */
 const IOS_CONNECTIVITY_ERROR_CODES = {
   timedOut: -1001,
@@ -80,7 +81,7 @@ const NETWORK_ERROR_PATTERNS: RegExp[] = [
 const HTTP_FAILURE_STATUS = /failed: (\d{3})\b/u;
 
 // Checked first: /net::ERR_/ and /Cronet failed/ would otherwise match it.
-const ANDROID_CERT_ERROR_PATTERN = /net::ERR_CERT_/iu;
+const ANDROID_TLS_ERROR_PATTERN = /net::ERR_(?:CERT|SSL)_/iu;
 
 /**
  * Determines whether an error represents a transient network/connectivity
@@ -96,7 +97,7 @@ export function isNetworkError(error: unknown): boolean {
     return false;
   }
 
-  if (ANDROID_CERT_ERROR_PATTERN.test(message)) {
+  if (ANDROID_TLS_ERROR_PATTERN.test(message)) {
     return false;
   }
 
