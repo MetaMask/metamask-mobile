@@ -727,6 +727,53 @@ describe('TrendingView', () => {
       });
     });
 
+    it('reports the seeded tab as previous_tab on the next switch after a sourced deeplink', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.PERPS,
+        source: 'deeplink',
+      };
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+
+      expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Perps',
+            previous_tab: 'Now',
+            source: 'deeplink',
+          },
+        }),
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Crypto',
+            previous_tab: 'Perps',
+          },
+        }),
+      ]);
+    });
+
+    it('reports the seeded tab as previous_tab on the next switch after an unsourced deeplink', () => {
+      mockRouteParams = { initialTab: EXPLORE_TAB_INDEX.PERPS };
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+
+      expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Crypto',
+            previous_tab: 'Perps',
+          },
+        }),
+      ]);
+    });
+
     it('fires the deeplink-attributed switch once when the requested tab is already active', () => {
       mockRouteParams = {
         initialTab: EXPLORE_TAB_INDEX.NOW,

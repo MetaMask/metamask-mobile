@@ -133,6 +133,7 @@ const useExploreTabNavigationEffect = (opts: {
           previous_tab: previousTabRef.current,
           source: entrySource,
         });
+        previousTabRef.current = destinationTab;
       } else if (
         entrySource &&
         pendingExploreEntrySourceRef.current === entrySource
@@ -155,6 +156,7 @@ const useExploreTabNavigationEffect = (opts: {
 };
 
 interface ExploreTabsProps {
+  initialIndex: number;
   previousTabRef: React.MutableRefObject<ExploreTabName>;
   pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
   scenes: Record<ExploreTabKey, React.ReactElement>;
@@ -167,23 +169,22 @@ interface ExploreTabsProps {
  */
 const useExploreTabsController = (opts: {
   ref: React.ForwardedRef<ExploreTabsHandle>;
+  initialIndex: number;
   previousTabRef: React.MutableRefObject<ExploreTabName>;
   pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
   scenes: Record<ExploreTabKey, React.ReactElement>;
 }) => {
-  const { ref, previousTabRef, pendingExploreEntrySourceRef, scenes } = opts;
-  const route =
-    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
-  const [landingIndex] = useState(
-    () =>
-      Object.values(EXPLORE_TAB_INDEX).find(
-        (tab) => tab === route.params?.initialTab,
-      ) ?? EXPLORE_TAB_INDEX.NOW,
-  );
-  const [activeIndex, setActiveIndex] = useState<number>(landingIndex);
+  const {
+    ref,
+    initialIndex,
+    previousTabRef,
+    pendingExploreEntrySourceRef,
+    scenes,
+  } = opts;
+  const [activeIndex, setActiveIndex] = useState<number>(initialIndex);
   const { pageActiveIndex, activate, onPagerRest } =
-    usePageActivation(landingIndex);
-  const activeIndexRef = useRef<number>(landingIndex);
+    usePageActivation(initialIndex);
+  const activeIndexRef = useRef<number>(initialIndex);
   const tabBarPressRef = useRef(false);
 
   const routes = useMemo<TabViewRoute[]>(
@@ -265,7 +266,10 @@ const useExploreTabsController = (opts: {
 };
 
 const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
-  ({ previousTabRef, pendingExploreEntrySourceRef, scenes }, ref) => {
+  (
+    { initialIndex, previousTabRef, pendingExploreEntrySourceRef, scenes },
+    ref,
+  ) => {
     const tw = useTailwind();
     const {
       activeTab,
@@ -276,6 +280,7 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
       onPagerRest,
     } = useExploreTabsController({
       ref,
+      initialIndex,
       previousTabRef,
       pendingExploreEntrySourceRef,
       scenes,
@@ -307,9 +312,19 @@ export const ExploreFeed: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   const tabProps = useExploreRefresh();
+  const route =
+    useRoute<RouteProp<{ params: ExploreFeedRouteParams }, 'params'>>();
+  const [landingTabIndex] = useState(
+    () =>
+      Object.values(EXPLORE_TAB_INDEX).find(
+        (tab) => tab === route.params?.initialTab,
+      ) ?? EXPLORE_TAB_INDEX.NOW,
+  );
   const tabsListRef = useRef<ExploreTabsHandle>(null);
   const sessionManager = TrendingFeedSessionManager.getInstance();
-  const previousTabRef = useRef<ExploreTabName>('Now');
+  const previousTabRef = useRef<ExploreTabName>(
+    route.params?.source ? 'Now' : (TAB_NAMES[landingTabIndex] ?? 'Now'),
+  );
   const pendingExploreEntrySourceRef = useRef<string | undefined>(undefined);
 
   // Handle tab navigation from route params
@@ -432,6 +447,7 @@ export const ExploreFeed: React.FC = () => {
         ) : (
           <ExploreTabs
             ref={tabsListRef}
+            initialIndex={landingTabIndex}
             previousTabRef={previousTabRef}
             pendingExploreEntrySourceRef={pendingExploreEntrySourceRef}
             scenes={scenes}
