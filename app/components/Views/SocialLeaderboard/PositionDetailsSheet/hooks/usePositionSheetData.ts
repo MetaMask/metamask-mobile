@@ -91,6 +91,10 @@ export interface PositionSheetData {
   pnlPercentLabel: string;
   pnlValueLabel: string;
   isPnlPositive: boolean;
+  /** Raw figures behind the P&L labels, for the share card. */
+  pnlValue: number | null | undefined;
+  pnlPercent: number | null;
+  tokenImageUrl: string | undefined;
 }
 
 const sumEntryTokens = (position: Position): number =>
@@ -335,5 +339,8 @@ export function usePositionSheetData(
     pnlPercentLabel: formatPercent(base.pnlPercent),
     pnlValueLabel: formatSignedUsd(base.pnlValue),
     isPnlPositive: base.isPnlPositive,
+    pnlValue: base.pnlValue,
+    pnlPercent: base.pnlPercent,
+    tokenImageUrl: base.tokenImageUrl,
   };
 }

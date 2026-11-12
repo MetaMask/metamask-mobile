@@ -42,9 +42,9 @@ import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import { useMoneyHomeNavigation } from '../../../Money/hooks/useMoneyHomeNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import { getMoneyEntryDecision } from '../../../Money/navigation/moneyEntryDecision';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
@@ -177,11 +177,15 @@ const EarnSection = ({
     enabled: enabled && isMoneyAccountVisible,
   });
 
-  const { navigateToMoneyHome } = useMoneyHomeNavigation();
-  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const { navigateToMoneyDeposit } = useMoneyCtaDepositNavigation();
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
+  const { destination: moneyDepositDestination } = getMoneyEntryDecision(
+    'deposit',
+    moneyEntryContext,
+  );
   const isMoneyOnboardingRedirectNeeded =
-    getMoneyEntryDecision('home', moneyEntryContext).destination ===
-    'onboarding';
+    moneyDepositDestination === 'onboarding' ||
+    moneyDepositDestination === 'splash';
   const {
     screen_name: earnScreenName,
     entry_point: earnEntryPoint,
@@ -362,15 +366,20 @@ const EarnSection = ({
   ]);
 
   const handleMoneyAccountCardPress = useCallback(() => {
-    navigateToMoneyHome({
+    navigateToMoneyDeposit({
       track: ({ redirect_target }) => {
         trackMoneySurfaceClicked({
           component_name: MONEY_COMPONENT_NAMES.EARN_SECTION_MONEY_CARD,
           redirect_target,
         });
       },
+    }).catch((error) => {
+      Logger.error(
+        error as Error,
+        '[EarnSection] Failed to initiate Money deposit',
+      );
     });
-  }, [navigateToMoneyHome, trackMoneySurfaceClicked]);
+  }, [navigateToMoneyDeposit, trackMoneySurfaceClicked]);
 
   const handleRetry = useCallback(async () => {
     if (isRetryingRef.current) {

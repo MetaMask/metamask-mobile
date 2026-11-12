@@ -22,11 +22,19 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectImmersveFundingSourceId } from '../../../../../core/redux/slices/card';
+import { selectCardSelectedCountry } from '../../../../../selectors/cardController';
 import { useImmersveSpendingPrerequisites } from '../../hooks/useImmersveSpendingPrerequisites';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
+import { useImmersveMoneyAccountFundingApproval } from '../../hooks/useImmersveMoneyAccountFundingApproval';
+import { useIsImmersveMoneyAccountCountry } from '../../hooks/useImmersveFundingChannel';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { KYC_REDIRECT_URL } from '../../constants';
 import {
@@ -79,8 +87,14 @@ const ImmersveKYCProcessing = () => {
   }>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const fundingSourceId = useSelector(selectImmersveFundingSourceId);
+  const selectedCountry = useSelector(selectCardSelectedCountry);
+  const fundingCountry = countryKey ?? selectedCountry ?? undefined;
+  const isMoneyAccountCountry =
+    useIsImmersveMoneyAccountCountry(fundingCountry);
+  const { approveFunding } = useImmersveMoneyAccountFundingApproval();
   const route = useImmersveOnboardingRouter();
   const hasOpenedWebview = useRef(false);
+  const hasStartedFundingApproval = useRef(false);
 
   const openKycWebview = useCallback(
     (url: string) => {
@@ -156,6 +170,16 @@ const ImmersveKYCProcessing = () => {
         openKycWebview(nextAction.url ?? '');
       }
     } else if (type === 'funding' || type === 'active' || type === 'rejected') {
+      // Money account approval has no screen of its own. Start it before
+      // leaving so Card Home mounts with the link already in progress.
+      if (
+        type === 'funding' &&
+        isMoneyAccountCountry &&
+        !hasStartedFundingApproval.current
+      ) {
+        hasStartedFundingApproval.current = true;
+        approveFunding(CardEntryPoint.SIGN_UP).catch(() => undefined);
+      }
       route(nextAction, { countryKey });
     }
   }, [
@@ -163,6 +187,8 @@ const ImmersveKYCProcessing = () => {
     navigation,
     route,
     countryKey,
+    isMoneyAccountCountry,
+    approveFunding,
     openKycWebview,
     promptHint,
     isExpiring,

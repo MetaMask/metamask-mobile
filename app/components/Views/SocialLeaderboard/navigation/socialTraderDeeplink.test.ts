@@ -76,10 +76,10 @@ describe('buildSocialTraderPositionShareContent', () => {
   const positionUrl =
     'https://link.metamask.io/social/profile/position?positionId=position-1&traderId=trader-1';
 
-  it('puts the position URL in message and url on iOS', () => {
+  it('shares the position URL only as the url on iOS', () => {
     expect(
       buildSocialTraderPositionShareContent('position-1', 'trader-1', 'ios'),
-    ).toEqual({ message: positionUrl, url: positionUrl });
+    ).toEqual({ url: positionUrl });
   });
 
   it('shares the position URL as the message on Android', () => {
@@ -94,9 +94,8 @@ describe('buildSocialTraderPositionShareContent', () => {
 });
 
 describe('buildSocialTraderShareContent', () => {
-  it('puts the profile URL in message and url on iOS', () => {
+  it('shares the profile URL only as the url on iOS', () => {
     expect(buildSocialTraderShareContent('trader-1', 'ios')).toEqual({
-      message: PROFILE_URL,
       url: PROFILE_URL,
     });
   });
@@ -307,7 +306,6 @@ describe('OS share completion', () => {
     await flush();
 
     expect(openShare).toHaveBeenCalledWith({
-      message: sharedShortUrl,
       url: sharedShortUrl,
       failOnCancel: false,
     });
