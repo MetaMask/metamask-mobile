@@ -1660,6 +1660,10 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      # Single source of truth for the Smart E2E acceptance threshold.
+      # Empty when this job is skipped or fails, so callers run ALL and still build.
+      ai_tags_accepted: ${{ fromJSON(steps.e2e-selection.outputs.ai_confidence || '0') >= 80 }}
+      skip_e2e_builds: ${{ fromJSON(steps.e2e-selection.outputs.ai_confidence || '0') >= 80 && steps.e2e-selection.outputs.ai_e2e_test_tags == '[]' }}
       ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
       ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
@@ -1740,7 +1744,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     permissions:
       contents: read
@@ -1777,7 +1781,7 @@ jobs:
       ${{
         !cancelled() &&
         (needs.get_requirements.outputs.android_e2e_needed == 'true' || needs.get_requirements.outputs.ios_e2e_needed == 'true') &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     needs: [get_requirements, smart-e2e-selection]
     outputs:
@@ -1828,7 +1832,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        needs.smart-e2e-selection.outputs.skip_e2e_builds != 'true'
       }}
     permissions:
       contents: read
@@ -1881,7 +1885,7 @@ jobs:
         }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 &&
+          (needs.smart-e2e-selection.outputs.ai_tags_accepted == 'true' &&
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
@@ -1922,7 +1926,7 @@ jobs:
         }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 &&
+          (needs.smart-e2e-selection.outputs.ai_tags_accepted == 'true' &&
            needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
