@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   mergePositionsForAccounts,
@@ -121,14 +121,21 @@ export function useDeFiPositionsV2({
         });
       } catch {
         setIsError(true);
-      } finally {
-        setIsFetching(false);
-        setHasFetched(true);
-        setFetchedForGroupId(selectedAccountGroupId);
       }
+
+      setIsFetching(false);
+      setHasFetched(true);
+      setFetchedForGroupId(selectedAccountGroupId);
     },
     [enabled, isUnlocked, selectedAccountGroupId],
   );
+
+  // Latest gate, read only when shouldFetch or the account group changes.
+  // Listing these flags as effect deps would refetch as soon as an error settles.
+  const readFetchGate = useEffectEvent(() => ({
+    hasFetchedForCurrentGroup,
+    isError,
+  }));
 
   useEffect(() => {
     if (!shouldFetch) {
@@ -140,11 +147,8 @@ export function useDeFiPositionsV2({
       return;
     }
 
-    // Skip scroll-back refetch after a successful fetch for this group.
-    // Errors still retry on re-entry; force refresh stays on pull-to-refresh.
-    // Intentionally read these flags only when shouldFetch / group changes —
-    // do not depend on them or a settled error would immediately re-fetch.
-    if (hasFetchedForCurrentGroup && !isError) {
+    const fetchGate = readFetchGate();
+    if (fetchGate.hasFetchedForCurrentGroup && !fetchGate.isError) {
       return;
     }
 
@@ -173,7 +177,6 @@ export function useDeFiPositionsV2({
       cancelled = true;
       cancelIdleTask();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see skip-guard comment above
   }, [shouldFetch, selectedAccountGroupId]);
 
   const positions = useMemo(
