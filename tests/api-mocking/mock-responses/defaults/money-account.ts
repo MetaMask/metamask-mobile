@@ -41,6 +41,13 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
         },
       },
     },
+    // MoneyAccountLifecycleController reads the derived identities on unlock.
+    {
+      urlEndpoint:
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities(\?|$)/u,
+      responseCode: 200,
+      response: { identities: [] },
+    },
     // Money Account positions are polled after unlock when the feature is
     // enabled. Tests that need a funded account override this empty fallback.
     {
