@@ -10,6 +10,10 @@ import {
 } from '@testing-library/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import {
   fireGestureHandler,
   getByGestureTestId,
 } from 'react-native-gesture-handler/jest-utils';
@@ -22,6 +26,7 @@ import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds
 import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   AvatarTokenSize,
+  BottomSheet,
   Icon,
   IconColor,
   IconName,
@@ -189,12 +194,15 @@ jest.mock('./components/PositionSheetChart', () => {
   const { Pressable, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
+    POSITION_SHEET_CHART_HEIGHT: 280,
     default: ({
       onScrub,
+      height,
     }: {
       onScrub?: (point: [string, number] | null) => void;
+      height?: number;
     }) => (
-      <View testID="position-sheet-chart">
+      <View testID="position-sheet-chart" accessibilityValue={{ now: height }}>
         <Pressable
           testID="position-sheet-chart-scrub"
           onPress={() => onScrub?.(['100', 60])}
@@ -1115,6 +1123,86 @@ describe('PositionDetailsSheet', () => {
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.POSTS_LIST),
       ).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    const endDrag = (offsetY: number, velocityY = 0) =>
+      fireEvent(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SCROLL),
+        'scrollEndDrag',
+        {
+          nativeEvent: {
+            contentOffset: { x: 0, y: offsetY },
+            velocity: { x: 0, y: velocityY },
+          },
+        },
+      );
+
+    it('dismisses when pulled down past its top with the tabs closed', () => {
+      render(<PositionDetailsSheet />);
+
+      endDrag(-80);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses on a fast downward fling at the top', () => {
+      render(<PositionDetailsSheet />);
+
+      endDrag(-10, -2);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open on a short, slow pull at the top', () => {
+      render(<PositionDetailsSheet />);
+
+      endDrag(-10, -0.2);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('sizes the chart so the tabs sit just above the footer, and keeps it while open', () => {
+      render(<PositionDetailsSheet />);
+      const scroll = screen.getByTestId(
+        PositionDetailsSheetSelectorsIDs.SCROLL,
+      );
+      const chartHeight = () =>
+        screen.getByTestId('position-sheet-chart').props.accessibilityValue.now;
+
+      fireEvent(scroll, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 375, height: 600 } },
+      });
+      fireEvent(scroll, 'contentSizeChange', 375, 700);
+
+      expect(chartHeight()).toBe(180);
+
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.POSTS_TAB),
+      );
+      fireEvent(scroll, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 375, height: 500 } },
+      });
+      fireEvent(scroll, 'contentSizeChange', 375, 1200);
+
+      expect(chartHeight()).toBe(180);
+    });
+
+    it('opens to 90% of the screen height', () => {
+      const {
+        result: { current: frame },
+      } = renderHook(() => useSafeAreaFrame());
+      const {
+        result: { current: insets },
+      } = renderHook(() => useSafeAreaInsets());
+      render(<PositionDetailsSheet />);
+      const expectedHeight = Math.round(
+        Math.min(frame.height * 0.9, frame.height - insets.top),
+      );
+
+      expect(screen.UNSAFE_getByType(BottomSheet).props.twClassName).toBe(
+        `h-[${expectedHeight}px]`,
+      );
     });
 
     it('lists every comment on the position under Posts', () => {
