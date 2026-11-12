@@ -98,7 +98,7 @@ Latency cutoffs per hardware tier (`LATENCY_THRESHOLDS`, from 90 days of product
 
 A call of about 3 s is above `slowMs` on `HIGH` only. On `MID` the median cutoff is 5.5 s, and on `LOW` it is 12.5 s. `global.fetch` records the real duration. It does not add delay. Enter `SLOW` with 2 samples at or above `hungMs` among the newest 5, or with at least 3 samples whose median is above `slowMs`. Leave `SLOW` only when the newest 3 are all at or below `slowMs`.
 
-Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortError` under 8000 ms, fetches while the transport is `NONE`, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure, or an `AbortError` at or above 8000 ms, records `max(elapsed, hungMs)`.
+Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortError` shorter than the hardware row's `hungMs`, fetches while the transport is `NONE`, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure, and an `AbortError` at or above that `hungMs`, record the elapsed time.
 
 ## Files
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { act, renderHook } from '@testing-library/react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import {
@@ -81,16 +82,46 @@ describe('useNetworkLatency', () => {
     expect(result.current).toEqual({ tier: 'SLOW_CELLULAR', latency: 'OK' });
   });
 
-  it('reports unknown latency while offline over a slow bucket', () => {
-    mockNetInfoState({
+  it('does not re-render when NetInfo changes', () => {
+    const listeners = new Set<() => void>();
+    let state: {
+      type: string;
+      isInternetReachable: boolean | null;
+      details: Record<string, unknown>;
+    } = {
+      type: 'wifi',
+      isInternetReachable: true,
+      details: {},
+    };
+    const useSubscribingNetInfo = () => {
+      const [, setTick] = useState(0);
+      useEffect(() => {
+        const listener = () => setTick((tick) => tick + 1);
+        listeners.add(listener);
+        return () => {
+          listeners.delete(listener);
+        };
+      }, []);
+      return state;
+    };
+    mockUseNetInfo.mockImplementation(useSubscribingNetInfo);
+    let renders = 0;
+    const { result } = renderHook(() => {
+      renders += 1;
+      return useNetworkLatency();
+    });
+    const rendersAfterMount = renders;
+
+    state = {
       type: 'none',
       isInternetReachable: false,
       details: {},
+    };
+    act(() => {
+      listeners.forEach((listener) => listener());
     });
-    const { result } = renderHook(() => useNetworkLatency());
 
-    recordSamples([MID_HUNG_MS, MID_HUNG_MS]);
-
+    expect(renders).toBe(rendersAfterMount);
     expect(result.current).toBe('UNKNOWN');
   });
 

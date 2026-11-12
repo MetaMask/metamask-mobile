@@ -31,5 +31,3 @@ export const LATENCY_SAMPLE_SIZE = 5;
 export const LATENCY_MIN_SAMPLES = 3;
 export const LATENCY_HUNG_TO_ENTER = 2;
 export const LATENCY_GOOD_TO_EXIT = 3;
-// An `AbortError` shorter than this is a caller cancel, not a hung link.
-export const LATENCY_ABORT_MIN_MS = 8000;

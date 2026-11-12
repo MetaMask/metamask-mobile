@@ -405,7 +405,7 @@ describe('NitroFetchSetup', () => {
         );
       });
 
-      it('records a connection failure as hung and rethrows it', async () => {
+      it('records a connection failure as its elapsed time and rethrows it', async () => {
         const failure = new Error(
           'Cronet failed: net::ERR_CONNECTION_TIMED_OUT',
         );
@@ -417,9 +417,7 @@ describe('NitroFetchSetup', () => {
         const [{ durationMs }] = mockRecordFetchSample.mock.calls[0] as [
           { durationMs: number },
         ];
-        expect(durationMs).toBeGreaterThanOrEqual(
-          getLatencyThresholds().hungMs,
-        );
+        expect(durationMs).toBeLessThan(getLatencyThresholds().hungMs);
       });
 
       it('skips a short AbortError and rethrows it', async () => {

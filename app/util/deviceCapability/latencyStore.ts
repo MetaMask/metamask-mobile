@@ -68,6 +68,7 @@ export function recordFetchSample(
   );
 }
 
+/** Subscribes to bucket changes. Returns the unsubscribe function. */
 export function subscribeLatency(listener: () => void): () => void {
   listeners.add(listener);
   return () => {
@@ -80,10 +81,12 @@ export function getLatencySnapshot(): LatencyBucket {
   return bucket;
 }
 
+/** Hardware-row cutoffs selected by `startLatencyMonitoring`. */
 export function getLatencyThresholds(): LatencyThresholds {
   return thresholds;
 }
 
+/** True while the NetInfo transport tier is `NONE`. */
 export function isLatencyTransportNone(): boolean {
   return isTransportNone;
 }

@@ -48,22 +48,15 @@ describe('classifyFetchSample', () => {
     expect(result).toEqual({ atMs: START_MS + 300, durationMs: 300 });
   });
 
-  it.each<[HardwareTier, number]>([
-    ['HIGH', 8000],
-    ['MID', 15000],
-    ['LOW', 30000],
-  ])(
-    'records a %s connection failure as at least %i ms',
-    (hardwareTier, hungMs) => {
-      const result = classify({
-        outcome: { error: new Error('Cronet failed: net::ERR_TIMED_OUT') },
-        elapsedMs: 500,
-        hardwareTier,
-      });
+  it('records a 500 ms connection failure on LOW as 500 ms', () => {
+    const result = classify({
+      outcome: { error: new Error('Cronet failed: net::ERR_TIMED_OUT') },
+      elapsedMs: 500,
+      hardwareTier: 'LOW',
+    });
 
-      expect(result).toEqual({ atMs: START_MS + 500, durationMs: hungMs });
-    },
-  );
+    expect(result).toEqual({ atMs: START_MS + 500, durationMs: 500 });
+  });
 
   it('keeps a connection failure elapsed time above hungMs', () => {
     const result = classify({
@@ -74,14 +67,24 @@ describe('classifyFetchSample', () => {
     expect(result?.durationMs).toBe(31000);
   });
 
-  it('records an AbortError at 8000 ms as at least hungMs', () => {
+  it('skips an AbortError at 8000 ms on LOW', () => {
     const result = classify({
       outcome: { error: abortError() },
       elapsedMs: 8000,
       hardwareTier: 'LOW',
     });
 
-    expect(result).toEqual({ atMs: START_MS + 8000, durationMs: 30000 });
+    expect(result).toBeNull();
+  });
+
+  it('records an AbortError at 30000 ms on LOW as 30000 ms', () => {
+    const result = classify({
+      outcome: { error: abortError() },
+      elapsedMs: 30000,
+      hardwareTier: 'LOW',
+    });
+
+    expect(result).toEqual({ atMs: START_MS + 30000, durationMs: 30000 });
   });
 
   it('skips an AbortError at 7999 ms', () => {

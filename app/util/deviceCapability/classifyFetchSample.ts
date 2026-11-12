@@ -1,4 +1,3 @@
-import { LATENCY_ABORT_MIN_MS } from './thresholds';
 import type { LatencySample, LatencyThresholds } from './types';
 
 export type FetchOutcome =
@@ -56,12 +55,12 @@ export function classifyFetchSample({
 
   const { error } = outcome;
   if (isAbortError(error)) {
-    if (elapsedMs < LATENCY_ABORT_MIN_MS) {
+    if (elapsedMs < thresholds.hungMs) {
       return null;
     }
   } else if (error instanceof TypeError) {
     return null;
   }
 
-  return { atMs: endMs, durationMs: Math.max(elapsedMs, thresholds.hungMs) };
+  return { atMs: endMs, durationMs: elapsedMs };
 }
