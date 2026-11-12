@@ -196,9 +196,7 @@ describe('useIsHomeUnobstructed', () => {
       { name: Routes.WALLET_VIEW },
       { name: 'RevealPrivateCredential' },
     ]);
-    mockGetState.mockReturnValue(
-      wrapped(homeRoot(walletTab(pushedWallet))),
-    );
+    mockGetState.mockReturnValue(wrapped(homeRoot(walletTab(pushedWallet))));
     act(() => {
       // The event payload is one route short of the hydrated root.
       listener({
