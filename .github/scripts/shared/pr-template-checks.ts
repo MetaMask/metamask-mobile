@@ -40,7 +40,10 @@ type Validator = (section: string, ctx: ValidatorContext) => ValidatorResult;
 
 // ─── Template loading (single read at module load) ───────────────────────────
 
-const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
+export const TEMPLATE_PATH = path.join(
+  __dirname,
+  '../../pull-request-template.md',
+);
 
 // Read once against the base-branch template (the workflow uses
 // pull_request_target without a ref override, so the checkout always reflects

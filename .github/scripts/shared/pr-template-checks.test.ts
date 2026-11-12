@@ -1,9 +1,9 @@
 import * as fs from 'fs';
-import * as path from 'path';
 
 import {
   PR_TEMPLATE_SECTIONS,
   PR_TEMPLATE_SECTION_TITLES,
+  TEMPLATE_PATH,
   buildRequiredSectionTitles,
   buildValidationPlan,
   extractSection,
@@ -19,6 +19,10 @@ import {
   validatePlanTypes,
 } from './pr-template-checks';
 import { tokenize } from './markdown-tokenizer';
+
+const shippedTemplate = fs.readFileSync(TEMPLATE_PATH, 'utf8');
+const shippedManualTestingSection =
+  extractSection(shippedTemplate, '## **Manual testing steps**') ?? '';
 
 const fullValidBody = `
 ## **Description**
@@ -268,16 +272,13 @@ Feature: my feature name
   });
 
   it('fails for the Manual testing section shipped in pull-request-template.md', () => {
-    const template = fs.readFileSync(
-      path.join(__dirname, '../../pull-request-template.md'),
-      'utf8',
-    );
-    const section = extractSection(template, '## **Manual testing steps**');
-    expect(section).toContain('Feature: [feature name]');
-    expect(section).toContain('[first concrete action]');
+    expect(shippedManualTestingSection).toContain('Feature: [feature name]');
+    expect(shippedManualTestingSection).toContain('[first concrete action]');
     // Guidance lives in an HTML comment and must not itself be the failure.
-    expect(section).not.toContain('one behavior per Scenario');
-    expect(hasRealManualTesting(section ?? '').ok).toBe(false);
+    expect(shippedManualTestingSection).not.toContain(
+      'one behavior per Scenario',
+    );
+    expect(hasRealManualTesting(shippedManualTestingSection).ok).toBe(false);
   });
 });
 
@@ -518,19 +519,7 @@ Fixes:
 
 ## **Manual testing steps**
 
-\`\`\`gherkin
-Feature: [feature name]
-
-  Background:
-    Given [flag, build, account, network, or test data]
-    And [any other shared setup]
-
-  Scenario: [one behavior]
-    When the user [first concrete action]
-    And [next action, in order]
-    Then [expected outcome]
-    And [side effect, such as an Activity entry or balance change]
-\`\`\`
+${shippedManualTestingSection}
 
 ## **Screenshots/Recordings**
 
