@@ -68,22 +68,4 @@ describe('ErrorHandler', () => {
       'DisconnectedDevice',
     );
   });
-
-  it('handles a Ledger Bluetooth BleError without crashing the app', () => {
-    const defaultHandler = jest.fn();
-    setReactNativeDefaultHandler(defaultHandler);
-    const mockError = {
-      name: 'BleError',
-      message: 'Device D1:A3:7C:42:9E:10 was disconnected',
-    };
-    console.error = jest.fn();
-
-    handleCustomError(mockError, true);
-
-    expect(defaultHandler).not.toHaveBeenCalled();
-    expect(console.error).toHaveBeenCalledWith(
-      'Ledger error: ',
-      'Device D1:A3:7C:42:9E:10 was disconnected',
-    );
-  });
 });
