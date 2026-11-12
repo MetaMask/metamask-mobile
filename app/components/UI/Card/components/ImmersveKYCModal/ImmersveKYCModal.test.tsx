@@ -1,9 +1,8 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
 import ImmersveKYCModal, {
@@ -199,18 +198,10 @@ const getBeforeRemoveListener = () => {
   return listenerCall[1];
 };
 
-const pressExitConfirmationButton = (index: number) => {
-  const buttons = (Alert.alert as jest.Mock).mock.calls[0][2] as {
-    onPress?: () => void;
-  }[];
-  buttons[index].onPress?.();
-};
-
 describe('ImmersveKYCModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
-    jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     capturedProps = {};
     clearImmersveKycOnClose();
     Platform.OS = 'android';
@@ -553,25 +544,7 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows the exit confirmation when the close button is pressed', async () => {
-    const { getByTestId } = render(<ImmersveKYCModal />);
-
-    await waitFor(() => {
-      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
-    });
-
-    fireEvent.press(getByTestId('immersve-kyc-close-button'));
-
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'card.card_onboarding.exit_confirmation.title',
-      'card.card_onboarding.exit_confirmation.message',
-      expect.any(Array),
-    );
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('navigates to wallet home when exit is confirmed', async () => {
+  it('returns to the processing screen when the close button is pressed', async () => {
     const onClose = jest.fn();
     setImmersveKycOnClose(onClose);
     const { getByTestId } = render(<ImmersveKYCModal />);
@@ -581,11 +554,10 @@ describe('ImmersveKYCModal', () => {
     });
 
     fireEvent.press(getByTestId('immersve-kyc-close-button'));
-    pressExitConfirmationButton(1);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(onClose).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
     expect(getTrackedProperties()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
@@ -593,38 +565,37 @@ describe('ImmersveKYCModal', () => {
     );
   });
 
-  it('keeps the webview open when continue is pressed', async () => {
-    const { getByTestId } = render(<ImmersveKYCModal />);
+  it.each(['GO_BACK', 'POP'])(
+    're-polls once when %s removes the screen, without going back again',
+    (type) => {
+      const onClose = jest.fn();
+      setImmersveKycOnClose(onClose);
+      render(<ImmersveKYCModal />);
+      const preventDefault = jest.fn();
 
-    await waitFor(() => {
-      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
-    });
+      getBeforeRemoveListener()({
+        preventDefault,
+        data: { action: { type } },
+      });
+      getBeforeRemoveListener()({
+        preventDefault,
+        data: { action: { type } },
+      });
 
-    fireEvent.press(getByTestId('immersve-kyc-close-button'));
-    pressExitConfirmationButton(0);
+      expect(preventDefault).not.toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getTrackedProperties()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+        ]),
+      );
+    },
+  );
 
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('asks for confirmation when the screen is removed before a close', () => {
-    render(<ImmersveKYCModal />);
-    const preventDefault = jest.fn();
-
-    getBeforeRemoveListener()({
-      preventDefault,
-      data: { action: { type: 'GO_BACK' } },
-    });
-
-    expect(preventDefault).toHaveBeenCalledTimes(1);
-    expect(Alert.alert).toHaveBeenCalledWith(
-      'card.card_onboarding.exit_confirmation.title',
-      'card.card_onboarding.exit_confirmation.message',
-      expect.any(Array),
-    );
-  });
-
-  it('lets a programmatic reset remove the screen without confirmation', () => {
+  it('lets a programmatic reset remove the screen without a re-poll', () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
     render(<ImmersveKYCModal />);
     const preventDefault = jest.fn();
 
@@ -634,10 +605,12 @@ describe('ImmersveKYCModal', () => {
     });
 
     expect(preventDefault).not.toHaveBeenCalled();
-    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('lets a redirect close through without confirmation', async () => {
+  it('lets a redirect close through and re-polls only once', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
     render(<ImmersveKYCModal />);
 
     await waitFor(() => {
@@ -656,8 +629,13 @@ describe('ImmersveKYCModal', () => {
     });
 
     expect(preventDefault).not.toHaveBeenCalled();
-    expect(Alert.alert).not.toHaveBeenCalled();
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_COMPLETED }),
+      ]),
+    );
   });
 
   it('fires the registered onClose callback on redirect close', async () => {

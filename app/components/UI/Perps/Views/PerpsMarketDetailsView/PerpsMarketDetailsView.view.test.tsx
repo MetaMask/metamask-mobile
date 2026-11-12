@@ -1674,8 +1674,19 @@ describe('PerpsMarketDetailsView', () => {
     const postTestId = (post: typeof ethPost) =>
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.positionId}-${post.timestamp}`;
 
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    // The Feed and Holders only fetch online, and the NetInfo mock starts offline.
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({
+        type: 'wifi',
+        isInternetReachable: true,
+      });
+    });
+
     afterEach(() => {
       clearLeaderboardApiMock();
+      netInfoMock.__resetMockNetInfo();
     });
 
     it('shows Overview by default with the position above the tab bar', async () => {
@@ -1706,6 +1717,61 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         screen.queryByText(strings('perps.position.card.details_title')),
       ).not.toBeOnTheScreen();
+    });
+
+    it('fetches the feed only once Feed is opened', async () => {
+      const messengerSpy = setupLeaderboardApiMock({ feedItems: [ethPost] });
+      const feedFetches = () =>
+        messengerSpy.mock.calls.filter(
+          ([action]) => action === 'SocialService:fetchFeed',
+        );
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(feedFetches()).toHaveLength(0);
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+      expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+      expect(feedFetches().length).toBeGreaterThan(0);
+    });
+
+    it('scrolls the screen through the feed list on every tab', async () => {
+      setupLeaderboardApiMock({ feedItems: [ethPost] });
+
+      renderPerpsMarketDetailsView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketDetailsTabSelector('feed')),
+      );
+      expect(await screen.findByTestId(ethPostTestId)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.SOCIAL_TABS),
+      ).toBeOnTheScreen();
     });
 
     it('orders the tabs Overview, Holders, Feed', async () => {
@@ -1928,7 +1994,6 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     describe('Holders', () => {
-      const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
       const holdersOverrides = {
         engine: {
           backgroundState: {
@@ -1980,17 +2045,8 @@ describe('PerpsMarketDetailsView', () => {
         },
       });
 
-      // The leaderboard only fetches online, and the NetInfo mock starts offline.
-      beforeEach(() => {
-        netInfoMock.__setMockNetInfo({
-          type: 'wifi',
-          isInternetReachable: true,
-        });
-      });
-
       afterEach(() => {
         clearPerpsMarketHoldersApiMock();
-        netInfoMock.__resetMockNetInfo();
       });
 
       it('lists the open holders of this market in the order the API ranks them', async () => {

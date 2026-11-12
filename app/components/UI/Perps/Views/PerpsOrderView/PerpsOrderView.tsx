@@ -229,7 +229,6 @@ import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectIsProfileTradingActivityPrivate } from '../../../../../selectors/profileController';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import {
   postCopyTradeIntent,
@@ -544,9 +543,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     undefined,
   );
   const resolvePostTradePrompt = usePostTradePromptResolver();
-  const isProfileTradingActivityPrivate = useSelector(
-    selectIsProfileTradingActivityPrivate,
-  );
   const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
@@ -2148,18 +2144,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // order is submitted. Default is market details; `stayOnCurrentScreen`
         // dismisses back to the presenting screen. A Social V1 copy-trade that
         // can return an order id shows the share sheet instead of these toasts.
-        perpsShareSessionIdRef.current = isProfileTradingActivityPrivate
-          ? undefined
-          : beginPerpsPostTradeShare({
-              copyTradeOrigin,
-              orderType: orderForm.type,
-              activeProvider: activePerpsProvider,
-              asset: orderForm.asset,
-              direction: orderForm.direction,
-              leverage: orderForm.leverage,
-              amountUsd: orderForm.amount,
-              analyticsSource: shareAnalyticsSource,
-            });
+        perpsShareSessionIdRef.current = beginPerpsPostTradeShare({
+          copyTradeOrigin,
+          orderType: orderForm.type,
+          activeProvider: activePerpsProvider,
+          asset: orderForm.asset,
+          direction: orderForm.direction,
+          leverage: orderForm.leverage,
+          amountUsd: orderForm.amount,
+          analyticsSource: shareAnalyticsSource,
+        });
         const resolvedPerpsPostTradePrompt =
           !perpsShareSessionIdRef.current &&
           !isPerpsProModeActive &&
@@ -2171,7 +2165,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             : undefined;
         perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
           amountUsd: orderForm.amount,
-          leverage: orderForm.leverage,
         })
           ? resolvedPerpsPostTradePrompt
           : undefined;
@@ -2319,7 +2312,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.amount,
       copyTradeOrigin,
       activePerpsProvider,
-      isProfileTradingActivityPrivate,
       isPerpsProModeActive,
       resolvePostTradePrompt,
       positionSize,
@@ -3016,6 +3008,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               showPercentageLabels
               disabled={isAmountDisabled}
               testID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER}
+              ignoreUntilLayout
+              layoutTestID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER_LAYOUT}
             />
           </View>
         )}

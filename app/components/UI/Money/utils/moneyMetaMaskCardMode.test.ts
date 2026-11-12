@@ -276,7 +276,7 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('manage');
   });
 
-  it('returns link for a Money account cardholder while card state is unresolved', () => {
+  it('returns upsell for a signed-in cardholder with no provider card', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -286,6 +286,20 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardVerified: false,
         hasMoneyAccountRequirements: true,
         reportsVerificationStatus: false,
+        hasProviderCard: false,
+      }),
+    ).toBe('upsell');
+  });
+
+  it('returns link once a provider without verification status reports a card', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardholder: false,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        reportsVerificationStatus: false,
+        hasProviderCard: true,
       }),
     ).toBe('link');
   });

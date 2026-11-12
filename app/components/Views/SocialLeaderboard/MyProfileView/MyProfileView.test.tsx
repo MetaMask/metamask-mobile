@@ -1033,6 +1033,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'current-user' }),
         isClosed: false,
         isSnapshotLive: false,
+        analyticsSource: 'trader_profile',
         shareSource: 'trader_feed',
       });
     });
@@ -1061,6 +1062,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'foreign-profile-id' }),
         isClosed: true,
         isSnapshotLive: false,
+        analyticsSource: 'trader_profile',
         shareSource: 'trader_feed',
       });
     });
@@ -2372,6 +2374,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
   });
@@ -2420,6 +2423,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
   });
@@ -2542,6 +2546,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
 
@@ -2631,6 +2636,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
   });
