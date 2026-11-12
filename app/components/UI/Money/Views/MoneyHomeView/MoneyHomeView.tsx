@@ -82,6 +82,8 @@ import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
+  deriveMoneyCardSetupPollIntervalMs,
+  deriveMoneyCardSetupView,
   deriveMoneyMetaMaskCardMode,
   MoneyMetaMaskCardMode,
 } from '../../utils/moneyMetaMaskCardMode';
@@ -92,6 +94,7 @@ import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
@@ -107,6 +110,9 @@ import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFla
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import { useCardEnableCard } from '../../../Card/Views/CardHome/hooks/useCardEnableCard';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -313,6 +319,33 @@ const MoneyHomeView = () => {
     reportsVerificationStatus,
   } = useMoneyAccountCardLinkage();
 
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  const cardSetupPollIntervalMs = deriveMoneyCardSetupPollIntervalMs(
+    hardwareTier,
+    networkTier,
+  );
+  const { data: cardHomeData, primaryToken: cardPrimaryToken } =
+    useCardHomeData();
+  const {
+    enableCard,
+    provisioningView,
+    setupStep,
+    isEnableCardPending,
+    markCardFlowOpened,
+  } = useCardEnableCard(cardHomeData, {
+    pollIntervalMs: cardSetupPollIntervalMs,
+    navigateFromOutsideCard: true,
+    recheckOnFocus: true,
+  });
+  const cardSetupView = deriveMoneyCardSetupView({
+    hasProvisioningAlert: (cardHomeData?.alerts ?? []).some(
+      (cardAlert) => cardAlert.type === 'card_provisioning',
+    ),
+    provisioningView,
+    setupStep,
+  });
+
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
@@ -352,6 +385,7 @@ const MoneyHomeView = () => {
     hasCardHomeDataFailed: cardHomeDataStatus === 'error',
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
+    cardSetupView,
   });
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -592,6 +626,7 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
+    markCardFlowOpened();
     const isUpsell = metamaskCardMode === 'upsell';
 
     // Cross-navigator jump into the Card stack + top-level `animation` option.
@@ -603,7 +638,7 @@ const MoneyHomeView = () => {
         ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
       },
     ]);
-  }, [navigation, metamaskCardMode]);
+  }, [markCardFlowOpened, navigation, metamaskCardMode]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -672,7 +707,7 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage') {
+      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -925,24 +960,31 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // Money Account entries are already valued in USD. Other Card tokens report
+  const isCardBalanceLoading =
+    cardPrimaryToken?.balanceFiat === TOKEN_BALANCE_LOADING;
+  // Money Account entries are already valued in USD. USD-pegged tokens use
+  // their token amount, which is already dollars. Other Card tokens report
   // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const rawFiat = cardPrimaryToken?.rawFiatNumber;
-    const usd = cardPrimaryToken?.isMoneyAccountEntry
-      ? rawFiat
-      : convertSelectedFiatToUsd(rawFiat, currencyRates);
-    return usd === undefined
-      ? formattedZero
+    if (!cardPrimaryToken || cardPrimaryToken.isUnavailable) {
+      return '—';
+    }
+    let usd: number | undefined;
+    if (cardPrimaryToken.isMoneyAccountEntry) {
+      usd = cardPrimaryToken.rawFiatNumber;
+    } else if (cardPrimaryToken.assumeUsdParity) {
+      usd = cardPrimaryToken.rawTokenBalance;
+    } else {
+      usd = convertSelectedFiatToUsd(
+        cardPrimaryToken.rawFiatNumber,
+        currencyRates,
+      );
+    }
+    return usd === undefined || Number.isNaN(usd)
+      ? '—'
       : moneyFormatUsd(new BigNumber(usd));
-  }, [
-    cardPrimaryToken?.isMoneyAccountEntry,
-    cardPrimaryToken?.rawFiatNumber,
-    currencyRates,
-    formattedZero,
-  ]);
+  }, [cardPrimaryToken, currencyRates]);
 
   const cardState = deriveCardState({
     isCardholder,
@@ -967,10 +1009,14 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            setupView={cardSetupView ?? undefined}
+            onSetupContinuePress={enableCard ?? navigateToCardHome}
+            isSetupContinueLoading={isEnableCardPending}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
-            isBalanceStale={showBalanceUnavailableBanner}
+            isBalanceLoading={isCardBalanceLoading}
+            isBalanceStale={cardHomeDataStatus === 'error'}
             privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
