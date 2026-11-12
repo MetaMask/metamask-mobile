@@ -229,7 +229,6 @@ interface UsePerpAlertSaveFlowParams {
   fromManage?: boolean;
 }
 
-// Conditional and logical expressions cannot be lowered inside try/catch.
 function perpCreationAnalyticsProperties(
   analyticsProperties: SaveAlertFlowParams['analyticsProperties'],
   marketId: string,
