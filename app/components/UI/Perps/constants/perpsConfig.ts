@@ -212,8 +212,14 @@ export const CROSS_MARGIN_RATIO_DANGER_THRESHOLD = 0.75;
 export const CROSS_MARGIN_RATIO_MAX_DECIMALS = 1;
 
 /**
- * Spot USDC counted as cross collateral. `AccountState` does not expose spot
- * collateral yet, so the account summary assumes none until Core provides it.
+ * Spot USDC counted as cross collateral.
+ *
+ * `AccountState` does not expose it, and the controller only folds spot into
+ * the balances after it knows the abstraction mode, which the client cannot
+ * read. Until TAT-4615, the summary assumes none. That matches a Standard
+ * account. A Unified account with free spot USDC gets an overstated ratio:
+ * account value $100, free spot $900, and maintenance $60 shows 60% instead
+ * of 6%. Passing `undefined` would hide the ratio entirely, so this stays 0.
  */
 export const CROSS_MARGIN_SPOT_COLLATERAL = 0;
 

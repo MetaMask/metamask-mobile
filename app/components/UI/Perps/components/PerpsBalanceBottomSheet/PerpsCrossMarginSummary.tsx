@@ -167,6 +167,11 @@ const SummaryRow: React.FC<RowProps> = ({
 /**
  * Cross margin metrics shown under the perps balance: account ratio,
  * maintenance margin, account leverage and cross margin usage.
+ *
+ * Only the account ratio carries a risk tone. Usage is initial margin over
+ * collateral, so a healthy account can sit near 100% of it, and reaching 100%
+ * blocks new positions rather than liquidating. The ratio bands would flag it
+ * as risky when it is not.
  */
 const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
   accountRatio,
@@ -222,7 +227,6 @@ const PerpsCrossMarginSummary: React.FC<PerpsCrossMarginSummaryProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : formatCrossMarginRatio(crossMarginUsage)
       }
-      tone={getCrossMarginRatioTone(crossMarginUsage)}
       privacyMode={privacyMode}
       testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}
       onInfoPress={onInfoPress}
