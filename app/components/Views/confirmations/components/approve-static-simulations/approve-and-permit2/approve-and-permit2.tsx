@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { Text } from '@metamask/design-system-react-native';
 
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { formatAmountMaxPrecision } from '../../../../../UI/SimulationDetails/formatAmount';
@@ -18,6 +19,7 @@ import Address from '../../UI/info-row/info-value/address';
 import InfoDate from '../../UI/info-row/info-value/info-date';
 import { Pill } from '../../UI/pill';
 import { ApproveMethod } from '../../../types/approve';
+import { UINT48_MAX } from '../../../utils/date';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button';
 import styleSheet from '../shared-styles';
 
@@ -41,6 +43,9 @@ export const ApproveAndPermit2 = () => {
 
   const transactionMetadata =
     useTransactionMetadataRequest() as TransactionMeta;
+  const [now] = useState(() => Math.floor(Date.now() / 1000));
+  // Permit2 treats 0 as the current block time
+  const expirationTimestamp = Number(expiration) || now;
   const tokenAddress = (token ?? transactionMetadata?.txParams?.to) as string;
   const isPermit2 = approveMethod === ApproveMethod.PERMIT2_APPROVE;
   const isERC20 = tokenStandard === TokenStandard.ERC20;
@@ -129,7 +134,11 @@ export const ApproveAndPermit2 = () => {
       </AlertRow>
       {isPermit2 && (
         <InfoRow label={strings('confirm.expiration')}>
-          <InfoDate unixTimestamp={Number(expiration)} />
+          {expirationTimestamp === UINT48_MAX ? (
+            <Text>{strings('confirm.never_expires')}</Text>
+          ) : (
+            <InfoDate unixTimestamp={expirationTimestamp} />
+          )}
         </InfoRow>
       )}
     </>
