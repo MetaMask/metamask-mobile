@@ -2163,23 +2163,53 @@ describe('App', () => {
       });
     });
 
-    it('renders the RevealPrivateCredential screen', async () => {
+    it('presents RevealPrivateCredential above AppFlow sheets', async () => {
       const routeState = {
-        index: 0,
-        routes: [{ name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL }],
+        index: 1,
+        routes: [
+          { name: Routes.FOX_LOADER },
+          { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
+        ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { UNSAFE_root } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'fullScreenModal' &&
+              node.props.stackAnimation === 'slide_from_right',
+          ),
+        ).not.toHaveLength(0);
+      });
+    });
+
+    it('registers the simple webview on AppFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.WEBVIEW.MAIN,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WEBVIEW.SIMPLE }],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-webview')).toBeOnTheScreen();
       });
     });
 
     it('registers the QR tab switcher on AppFlow', async () => {
       const routeState = {
-        index: 0,
-        routes: [{ name: Routes.QR_TAB_SWITCHER }],
+        index: 1,
+        routes: [{ name: Routes.FOX_LOADER }, { name: Routes.QR_TAB_SWITCHER }],
       };
       const store = configureMockStore()(initialState);
       const Providers = ({ children }: { children: React.ReactElement }) => (
@@ -2198,8 +2228,12 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(
-          UNSAFE_root.findByProps({ title: Routes.QR_TAB_SWITCHER }),
-        ).toBeTruthy();
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'push' &&
+              node.props.stackAnimation === 'slide_from_bottom',
+          ),
+        ).not.toHaveLength(0);
       });
     });
 

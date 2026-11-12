@@ -35,6 +35,7 @@ import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
   addDeviceToWalletPageOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -1187,6 +1188,10 @@ const AppFlow = () => {
         <NativeStack.Screen
           name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
           component={RevealPrivateCredential}
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'slide_from_right',
+          }}
         />
         <NativeStack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
@@ -1197,6 +1202,11 @@ const AppFlow = () => {
           component={AddWallet}
         />
       </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
       <NativeStack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}
@@ -1212,10 +1222,7 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
         component={QRTabSwitcherWithMessenger}
-        options={{
-          presentation: 'modal',
-          animation: 'slide_from_bottom',
-        }}
+        options={fullScreenModalSlideFromBottomNativeOptions}
       />
       {/* AppFlow owns add-device and its verification sheet. */}
       <NativeStack.Screen

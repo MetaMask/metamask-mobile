@@ -86,7 +86,7 @@ export const BaseWalletDetails = ({
     if (keyringId) {
       navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
         keyringId,
-        popToTopOnDone: true, // Return to wallet home and dismiss Accounts sheet + Wallet Details
+        returnToWalletHomeOnDone: true,
       });
     }
   }, [navigation, keyringId]);
