@@ -673,6 +673,7 @@ describe('socialFeedRealtime', () => {
   });
 
   describe('pinRealtimeRows', () => {
+    const NO_SERVER_ROWS = new Set<string>();
     const rowAt = (
       feedItemId: string,
       sortTimestamp: number,
@@ -686,7 +687,7 @@ describe('socialFeedRealtime', () => {
     it('keeps own keys on the first placement', () => {
       const rows = [rowAt('pos-b', 200), rowAt('pos-a', 100)];
 
-      const pinned = pinRealtimeRows(rows, new Map());
+      const pinned = pinRealtimeRows(rows, new Map(), NO_SERVER_ROWS);
 
       expect(order(pinned.rows)).toEqual([
         ['pos-b', 200],
@@ -707,6 +708,7 @@ describe('socialFeedRealtime', () => {
       const pinned = pinRealtimeRows(
         [rowAt('pos-a', 300), rowAt('pos-b', 200)],
         placed,
+        NO_SERVER_ROWS,
       );
 
       expect(order(pinned.rows)).toEqual([
@@ -724,6 +726,7 @@ describe('socialFeedRealtime', () => {
       const pinned = pinRealtimeRows(
         [rowAt('pos-c', 300), rowAt('pos-b', 200), rowAt('pos-a', 100)],
         placed,
+        NO_SERVER_ROWS,
       );
 
       expect(order(pinned.rows)).toEqual([
@@ -745,6 +748,7 @@ describe('socialFeedRealtime', () => {
           rowAt('pos-later', 510),
         ],
         placed,
+        NO_SERVER_ROWS,
       );
 
       expect(order(pinned.rows)).toEqual([
@@ -759,9 +763,72 @@ describe('socialFeedRealtime', () => {
       const placed = new Map([['pos-shown', 500]]);
       const older = rowAt('pos-older', 100);
 
-      const pinned = pinRealtimeRows([rowAt('pos-shown', 500), older], placed);
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-shown', 500), older],
+        placed,
+        NO_SERVER_ROWS,
+      );
 
       expect(pinned.rows[1]).toBe(older);
+    });
+
+    it('puts a next-page server row newer than shown rows below the bottom', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [
+          rowAt('pos-c', 300),
+          rowAt('pos-page-new', 200),
+          rowAt('pos-a', 100),
+          rowAt('pos-page-old', 50),
+        ],
+        placed,
+        new Set(['pos-c', 'pos-a', 'pos-page-new', 'pos-page-old']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-c', 300],
+        ['pos-a', 100],
+        ['pos-page-new', 99],
+        ['pos-page-old', 50],
+      ]);
+    });
+
+    it('raises a server row newer than every shown row above the top', () => {
+      const placed = new Map([['pos-a', 100]]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-fresh', 400), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-fresh', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-fresh', 400],
+        ['pos-a', 100],
+      ]);
+    });
+
+    it('raises a late socket row above the top beside server rows', () => {
+      const placed = new Map([
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
+
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-c', 300), rowAt('pos-socket', 200), rowAt('pos-a', 100)],
+        placed,
+        new Set(['pos-c', 'pos-a']),
+      );
+
+      expect(order(pinned.rows)).toEqual([
+        ['pos-socket', 301],
+        ['pos-c', 300],
+        ['pos-a', 100],
+      ]);
     });
 
     it('forgets rows no longer present', () => {
@@ -770,7 +837,11 @@ describe('socialFeedRealtime', () => {
         ['pos-a', 100],
       ]);
 
-      const pinned = pinRealtimeRows([rowAt('pos-a', 100)], placed);
+      const pinned = pinRealtimeRows(
+        [rowAt('pos-a', 100)],
+        placed,
+        NO_SERVER_ROWS,
+      );
 
       expect([...pinned.placed]).toEqual([['pos-a', 100]]);
     });
@@ -787,9 +858,10 @@ describe('socialFeedRealtime', () => {
           ['pos-c', 300],
           ['pos-a', 100],
         ]),
+        NO_SERVER_ROWS,
       );
 
-      const second = pinRealtimeRows(rows, first.placed);
+      const second = pinRealtimeRows(rows, first.placed, NO_SERVER_ROWS);
 
       expect(order(second.rows)).toEqual(order(first.rows));
       expect(second.placed).toEqual(first.placed);

@@ -334,14 +334,17 @@ export interface PinnedRealtimeRows {
  * grows at the top: socket delivery across replicas can arrive out of order,
  * and a refresh can return a moved post.
  *
- * A row the list did not show yet that would land at or above the oldest
- * shown row goes above the newest one instead, in its own order. Rows older
- * than everything shown (the next page) keep their own key. `placed` keeps
- * only the ids of `rows`.
+ * A row the list did not show yet goes above the newest shown row, in its own
+ * order, when it is a socket row at or above the oldest shown row, or a server
+ * row newer than everything shown. Any other server row (the next page, which
+ * on the global feed can hold events newer than shown rows) goes below the
+ * oldest shown row, in its own order. Socket rows older than everything shown
+ * keep their own key. `placed` keeps only the ids of `rows`.
  */
 export const pinRealtimeRows = (
   rows: readonly SocialFeedRow[],
   placed: ReadonlyMap<string, number>,
+  serverIds: Pick<ReadonlySet<string>, 'has'>,
 ): PinnedRealtimeRows => {
   let top = -Infinity;
   let bottom = Infinity;
@@ -353,20 +356,36 @@ export const pinRealtimeRows = (
     }
   });
 
-  const raised = new Map<string, number>();
-  rows
-    .filter((row) => !placed.has(row.feedItemId) && row.sortTimestamp >= bottom)
-    .sort((a, b) => a.sortTimestamp - b.sortTimestamp)
-    .forEach((row) => {
-      top = Math.max(row.sortTimestamp, top + 1);
-      raised.set(row.feedItemId, top);
-    });
+  const keys = new Map<string, number>();
+  if (top !== -Infinity) {
+    const shownTop = top;
+    const unplaced = rows.filter((row) => !placed.has(row.feedItemId));
+    const goesOnTop = (row: SocialFeedRow): boolean =>
+      serverIds.has(row.feedItemId)
+        ? row.sortTimestamp > shownTop
+        : row.sortTimestamp >= bottom;
+
+    unplaced
+      .filter(goesOnTop)
+      .sort((a, b) => a.sortTimestamp - b.sortTimestamp)
+      .forEach((row) => {
+        top = Math.max(row.sortTimestamp, top + 1);
+        keys.set(row.feedItemId, top);
+      });
+    unplaced
+      .filter((row) => serverIds.has(row.feedItemId) && !goesOnTop(row))
+      .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
+      .forEach((row) => {
+        bottom = Math.min(row.sortTimestamp, bottom - 1);
+        keys.set(row.feedItemId, bottom);
+      });
+  }
 
   const nextPlaced = new Map<string, number>();
   const pinned = rows.map((row) => {
     const key =
       placed.get(row.feedItemId) ??
-      raised.get(row.feedItemId) ??
+      keys.get(row.feedItemId) ??
       row.sortTimestamp;
     nextPlaced.set(row.feedItemId, key);
     return key === row.sortTimestamp ? row : { ...row, sortTimestamp: key };

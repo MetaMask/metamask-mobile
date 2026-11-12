@@ -588,12 +588,14 @@ export const useSocialFeedRealtime = (
     const pinned = pinRealtimeRows(
       merged,
       previous.stream === stream ? previous.placed : new Map(),
+      serverRowsById,
     );
     placementRef.current = { stream, placed: pinned.placed };
     return pinned.rows;
   }, [
     realtimeScope,
     rows,
+    serverRowsById,
     stream,
     view.pending,
     view.revisedRows,
