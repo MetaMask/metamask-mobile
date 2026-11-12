@@ -145,8 +145,15 @@ export interface PredictDeviceAuthServiceDependencies {
 
 interface PredictDeviceAuthBinding {
   profileId: string;
+  canonicalProfileId: string | undefined;
   deviceKey: P256DeviceKey;
   session: A2tSession;
+}
+
+interface PredictDeviceAuthSnapshot {
+  binding: PredictDeviceAuthBinding;
+  generation: number;
+  canonicalProfileId: string | undefined;
 }
 
 /**
@@ -159,6 +166,8 @@ interface PredictDeviceAuthBinding {
 export class PredictDeviceAuthService {
   readonly #deps: PredictDeviceAuthServiceDependencies;
   #active: PredictDeviceAuthBinding | undefined;
+  #generation = 0;
+  #resetsInProgress = 0;
 
   constructor(
     messenger: PredictDeviceAuthServiceMessenger,
@@ -209,24 +218,17 @@ export class PredictDeviceAuthService {
   }
 
   async ensureDeviceKey(): Promise<P256DevicePublicMaterial | null> {
-    const enabled = this.#deps.isEnabled();
-    const unlocked = this.#deps.isUnlocked();
-    return this.#ensureDeviceKey(this.#resolveBinding(), enabled, unlocked);
+    return this.#ensureDeviceKey(this.#captureSession());
   }
 
   async getA2t(): Promise<string | undefined> {
-    const enabled = this.#deps.isEnabled();
-    const unlocked = this.#deps.isUnlocked();
-    const binding = this.#resolveBinding();
-    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
-    if (this.#stoppedDuringKeyLoad(binding, key) || !binding || !key) {
+    const snapshot = this.#captureSession();
+    const key = await this.#ensureDeviceKey(snapshot);
+    if (!snapshot || !key || !this.#canSign(snapshot, key)) {
       return undefined;
     }
-    if (!this.#deps.isSignedIn()) {
-      binding.session.clear();
-      return undefined;
-    }
-    return binding.session.ensureA2T();
+    const a2t = await snapshot.binding.session.ensureA2T();
+    return this.#canSign(snapshot, key) ? a2t : undefined;
   }
 
   /**
@@ -264,11 +266,9 @@ export class PredictDeviceAuthService {
     intent: string,
     input: SignOperationInput = {},
   ): Promise<SignedOperation | undefined> {
-    const enabled = this.#deps.isEnabled();
-    const unlocked = this.#deps.isUnlocked();
-    const binding = this.#resolveBinding();
-    const profile = binding ? await loadVenueProfile() : undefined;
-    if (!binding || !profile) {
+    const snapshot = this.#captureSession();
+    const profile = snapshot ? await loadVenueProfile() : undefined;
+    if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
     }
     const nowMs = this.#deps.nowMs();
@@ -277,18 +277,16 @@ export class PredictDeviceAuthService {
     if (requests.length > maxSignatures) {
       throw new TemplateError('max_signatures', intent);
     }
-    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
-    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+    const key = await this.#ensureDeviceKey(snapshot);
+    if (!key || !this.#canSign(snapshot, key)) {
       return undefined;
     }
-    if (!this.#deps.isSignedIn()) {
-      binding.session.clear();
+    const a2t = await snapshot.binding.session.ensureA2T();
+    if (!a2t || !this.#canSign(snapshot, key)) {
       return undefined;
     }
-    const a2t = await binding.session.ensureA2T();
-    if (!a2t) {
-      return undefined;
-    }
+    // The Engine may learn the canonical identity during first issuance.
+    snapshot.canonicalProfileId = this.#deps.getCanonicalProfileId();
     const intentRule = profile.intents.find((rule) => rule.id === intent);
     const confirmation = intentRule?.confirm;
     if (confirmation?.kind === 'per-intent') {
@@ -311,6 +309,9 @@ export class PredictDeviceAuthService {
         confirmed: input.confirmed === true,
       });
     }
+    if (!this.#canSign(snapshot, key)) {
+      return undefined;
+    }
     const context: DeviceSigningContext = {
       a2t,
       deviceKey: key.publicKey,
@@ -322,12 +323,20 @@ export class PredictDeviceAuthService {
         : await Promise.all(
             requests.map((request) =>
               signDeviceRequest(profile, request, context, {
-                sign: binding.deviceKey.sign,
+                sign: (bytes) => {
+                  if (!this.#canSign(snapshot, key)) {
+                    throw new TemplateError('confirmation', intent);
+                  }
+                  return snapshot.binding.deviceKey.sign(bytes);
+                },
                 requestId: () => uuidv4(),
                 now: this.#deps.now,
               }),
             ),
           );
+    if (!this.#canSign(snapshot, key)) {
+      return undefined;
+    }
     const header: DeviceAuthHeader = {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
@@ -359,11 +368,9 @@ export class PredictDeviceAuthService {
   async signRead(
     proposed: ProposedRead,
   ): Promise<DeviceAuthHeader | undefined> {
-    const enabled = this.#deps.isEnabled();
-    const unlocked = this.#deps.isUnlocked();
-    const binding = this.#resolveBinding();
-    const profile = binding ? await loadVenueProfile() : undefined;
-    if (!binding || !profile) {
+    const snapshot = this.#captureSession();
+    const profile = snapshot ? await loadVenueProfile() : undefined;
+    if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
     }
     if (!readAllowed(profile, proposed)) {
@@ -389,18 +396,15 @@ export class PredictDeviceAuthService {
     if (maxSignatures < 1) {
       throw new TemplateError('max_signatures', 'read');
     }
-    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
-    if (this.#stoppedDuringKeyLoad(binding, key) || !key) {
+    const key = await this.#ensureDeviceKey(snapshot);
+    if (!key || !this.#canSign(snapshot, key)) {
       return undefined;
     }
-    if (!this.#deps.isSignedIn()) {
-      binding.session.clear();
+    const a2t = await snapshot.binding.session.ensureA2T();
+    if (!a2t || !this.#canSign(snapshot, key)) {
       return undefined;
     }
-    const a2t = await binding.session.ensureA2T();
-    if (!a2t) {
-      return undefined;
-    }
+    snapshot.canonicalProfileId = this.#deps.getCanonicalProfileId();
     const context: DeviceSigningContext = {
       a2t,
       deviceKey: key.publicKey,
@@ -408,11 +412,19 @@ export class PredictDeviceAuthService {
     };
     const [signature] = await Promise.all([
       signDeviceRequest(profile, request, context, {
-        sign: binding.deviceKey.sign,
+        sign: (bytes) => {
+          if (!this.#canSign(snapshot, key)) {
+            throw new TemplateError('confirmation', 'read');
+          }
+          return snapshot.binding.deviceKey.sign(bytes);
+        },
         requestId: () => proposed.requestId ?? uuidv4(),
         now: this.#deps.now,
       }),
     ]);
+    if (!this.#canSign(snapshot, key)) {
+      return undefined;
+    }
     return {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
@@ -425,17 +437,13 @@ export class PredictDeviceAuthService {
   }
 
   async prefetch(includeA2t = true): Promise<void> {
-    const enabled = this.#deps.isEnabled();
-    const unlocked = this.#deps.isUnlocked();
-    const binding = this.#resolveBinding();
-    const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
-    if (this.#stoppedDuringKeyLoad(binding, key)) {
-      return;
-    }
-    if (binding && key && includeA2t && this.#deps.isSignedIn()) {
-      await binding.session.ensureA2T();
-    } else if (!this.#deps.isSignedIn()) {
-      binding?.session.clear();
+    const snapshot = this.#captureSession();
+    const key = await this.#ensureDeviceKey(snapshot);
+    if (snapshot && key && includeA2t && this.#canSign(snapshot, key)) {
+      await snapshot.binding.session.ensureA2T();
+      this.#canSign(snapshot, key);
+    } else if (snapshot && !this.#deps.isSignedIn()) {
+      snapshot.binding.session.clear();
     }
   }
 
@@ -444,11 +452,13 @@ export class PredictDeviceAuthService {
    * intents stay: a stale A2T does not undo what the user confirmed.
    */
   invalidateA2t(): void {
+    this.#generation += 1;
     this.#active?.session.clear();
   }
 
   /** Drops the in-memory session and device key. The pinned intents stay. */
   clear(): void {
+    this.#generation += 1;
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
   }
@@ -468,65 +478,109 @@ export class PredictDeviceAuthService {
    * does not skip the remaining slots or reject.
    */
   async reset(): Promise<void> {
+    this.#resetsInProgress += 1;
+    const active = this.#active;
+    this.#active = undefined;
+    this.#generation += 1;
     const logFailure = (error: unknown): void => {
       Logger.error(
         ensureError(error, 'PredictDeviceAuthService.reset'),
         'Failed to reset Predict device authentication',
       );
     };
-    await clearApprovedIntents();
-    const active = this.#active;
-    this.#active = undefined;
     try {
       active?.session.clear();
       active?.deviceKey.clear();
     } catch (error) {
       logFailure(error);
     }
-
-    for (const profile of listBundledAuthenticationProfiles()) {
+    // Revoke and enqueue deletes before yielding. A pending key load/write
+    // must settle before deletion, and no new preparation may start meanwhile.
+    const cleared = clearApprovedIntents();
+    const deleted = listBundledAuthenticationProfiles().map(async (profile) => {
       try {
         await createP256DeviceKey(profile.deviceKey).delete();
       } catch (error) {
         logFailure(error);
       }
+    });
+    try {
+      await cleared;
+      await Promise.all(deleted);
+    } finally {
+      this.#resetsInProgress -= 1;
     }
   }
 
-  /**
-   * A lock or flag clear during key loading already dropped this session.
-   * `ensureA2T` would otherwise start a new flight and poll until timeout.
-   * Returns true when issuance must stop. Clears only when this call still
-   * holds a key, so the pre-load clear is not repeated.
-   */
-  #stoppedDuringKeyLoad(
-    binding: PredictDeviceAuthBinding | undefined,
-    key: P256DevicePublicMaterial | null,
-  ): boolean {
-    if (this.#deps.isEnabled() && this.#deps.isUnlocked()) {
+  #captureSession(): PredictDeviceAuthSnapshot | undefined {
+    const binding = this.#resolveBinding();
+    return (
+      binding && {
+        binding,
+        generation: this.#generation,
+        canonicalProfileId: this.#deps.getCanonicalProfileId(),
+      }
+    );
+  }
+
+  /** A later unlock cannot authorize work captured before a revocation. */
+  #isCurrent(snapshot: PredictDeviceAuthSnapshot): boolean {
+    if (
+      snapshot.generation !== this.#generation ||
+      snapshot.binding !== this.#active ||
+      this.#resetsInProgress > 0
+    ) {
       return false;
     }
-    if (binding && key) {
-      this.clear();
+    if (
+      this.#resolveBinding() !== snapshot.binding ||
+      snapshot.generation !== this.#generation
+    ) {
+      return false;
+    }
+    if (
+      !this.#deps.isEnabled() ||
+      !this.#deps.isUnlocked() ||
+      (snapshot.canonicalProfileId !== undefined &&
+        snapshot.canonicalProfileId !== this.#deps.getCanonicalProfileId())
+    ) {
+      void this.clearApprovals();
+      return false;
+    }
+    return snapshot.generation === this.#generation;
+  }
+
+  #canSign(
+    snapshot: PredictDeviceAuthSnapshot,
+    key: P256DevicePublicMaterial,
+  ): boolean {
+    if (!this.#isCurrent(snapshot)) {
+      return false;
+    }
+    if (!this.#deps.isSignedIn()) {
+      void this.clearApprovals();
+      return false;
+    }
+    const current = snapshot.binding.deviceKey.get();
+    if (
+      !current ||
+      current.publicKey !== key.publicKey ||
+      current.salt !== key.salt
+    ) {
+      void this.clearApprovals();
+      return false;
     }
     return true;
   }
 
-  /**
-   * Loads the key for the binding this call already resolved. A second
-   * `getProfile` after the load would request the A2T from a new session
-   * whose key was never loaded.
-   */
   async #ensureDeviceKey(
-    binding: PredictDeviceAuthBinding | undefined,
-    enabled: boolean,
-    unlocked: boolean,
+    snapshot: PredictDeviceAuthSnapshot | undefined,
   ): Promise<P256DevicePublicMaterial | null> {
-    if (!enabled || !unlocked || !binding) {
-      this.clear();
+    if (!snapshot || !this.#isCurrent(snapshot)) {
       return null;
     }
-    return binding.deviceKey.ensure(unlocked);
+    const key = await snapshot.binding.deviceKey.ensure(true);
+    return this.#isCurrent(snapshot) ? key : null;
   }
 
   /**
@@ -536,11 +590,24 @@ export class PredictDeviceAuthService {
    * profile id.
    */
   #resolveBinding(): PredictDeviceAuthBinding | undefined {
+    if (this.#resetsInProgress > 0) {
+      return undefined;
+    }
     const profile = this.#deps.getProfile();
+    const canonicalProfileId = this.#deps.getCanonicalProfileId();
     if (!profile || this.#active?.profileId !== profile.id) {
-      this.#active?.session.clear();
-      this.#active?.deviceKey.clear();
+      if (this.#active) {
+        void this.clearApprovals();
+      }
       this.#active = profile && this.#buildBinding(profile);
+    } else if (
+      this.#active.canonicalProfileId !== undefined &&
+      this.#active.canonicalProfileId !== canonicalProfileId
+    ) {
+      void this.clearApprovals();
+    }
+    if (this.#active) {
+      this.#active.canonicalProfileId = canonicalProfileId;
     }
     return this.#active;
   }
@@ -562,7 +629,12 @@ export class PredictDeviceAuthService {
       nowMs: this.#deps.nowMs,
       sleep: this.#deps.sleep,
     });
-    return { profileId: profile.id, deviceKey, session };
+    return {
+      profileId: profile.id,
+      canonicalProfileId: this.#deps.getCanonicalProfileId(),
+      deviceKey,
+      session,
+    };
   }
 
   /**

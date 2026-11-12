@@ -15,6 +15,15 @@ jest.mock('../../../../../core/SecureKeychain', () => ({
   },
 }));
 
+// The mobile TypeScript library target is ES2022, before Promise.withResolvers.
+const deferred = <T,>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+
 const claim = {
   operation: 'orders.commit',
   idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
@@ -112,19 +121,17 @@ describe('approved intent ledger', () => {
   });
 
   it('refuses a claim in flight when a clear lands, and keeps the ledger empty', async () => {
-    let releaseRead: () => void = () => undefined;
-    const read = new Promise<null>((resolve) => {
-      releaseRead = () => resolve(null);
+    const read = deferred<null>();
+    const started = deferred<void>();
+    (SecureKeychain.getSecureItem as jest.Mock).mockImplementationOnce(() => {
+      started.resolve();
+      return read.promise;
     });
-    (SecureKeychain.getSecureItem as jest.Mock).mockImplementationOnce(
-      () => read,
-    );
 
     const pending = claimIntentSignature(claim);
-    // Let the claim reach its keychain read before the clear lands.
-    await new Promise((resolve) => setImmediate(resolve));
+    await started.promise;
     const cleared = clearApprovedIntents();
-    releaseRead();
+    read.resolve(null);
 
     await expect(pending).rejects.toBeInstanceOf(TemplateError);
     await cleared;
@@ -133,6 +140,54 @@ describe('approved intent ledger', () => {
       claimIntentSignature({ ...claim, confirmed: false }),
     ).rejects.toBeInstanceOf(TemplateError);
   });
+
+  it.each(['first claim', 'renewal'] as const)(
+    'refuses a revoked %s after its write and orders clear before the next generation',
+    async (phase) => {
+      if (phase === 'renewal') {
+        await claimIntentSignature(claim);
+      }
+      const write = deferred<boolean>();
+      const started = deferred<void>();
+      (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(
+        async (_account: string, value: string) => {
+          started.resolve();
+          const stored = await write.promise;
+          if (stored) {
+            saved = value;
+          }
+          return stored;
+        },
+      );
+      const pending = claimIntentSignature({
+        ...claim,
+        confirmed: phase === 'first claim',
+      });
+      await started.promise;
+      const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+      const cleared = clearApprovedIntents();
+      const unconfirmed = claimIntentSignature({ ...claim, confirmed: false });
+      const unconfirmedRefused = expect(unconfirmed).rejects.toBeInstanceOf(
+        TemplateError,
+      );
+      const nextBody = '{"ticker":"NEW-GENERATION"}';
+      const next = claimIntentSignature({ ...claim, body: nextBody });
+
+      write.resolve(true);
+      await refused;
+      await cleared;
+      await unconfirmedRefused;
+      await next;
+
+      // A reload sees only the new pin, never the delayed old write.
+      await expect(
+        claimIntentSignature({ ...claim, confirmed: false }),
+      ).rejects.toBeInstanceOf(TemplateError);
+      await expect(
+        claimIntentSignature({ ...claim, body: nextBody, confirmed: false }),
+      ).resolves.toBeUndefined();
+    },
+  );
 
   it('allows a new confirmation after a clear', async () => {
     await claimIntentSignature(claim);

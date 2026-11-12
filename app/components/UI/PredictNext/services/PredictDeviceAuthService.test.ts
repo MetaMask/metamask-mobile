@@ -1,3 +1,4 @@
+import SecureKeychain from '../../../../core/SecureKeychain';
 import Logger from '../../../../util/Logger';
 import {
   PredictDeviceAuthService,
@@ -35,6 +36,8 @@ const mockClearSession = jest.fn();
 const mockEnsureDeviceKey = jest.fn();
 const mockClearDeviceKey = jest.fn();
 const mockDeleteDeviceKey = jest.fn();
+const mockSignDeviceKey = jest.fn();
+const mockGetDeviceKey = jest.fn();
 
 jest.mock('../auth/a2tSession', () => ({
   A2tSession: jest.fn().mockImplementation(() => ({
@@ -56,11 +59,11 @@ jest.mock('../auth/venueAuthProfiles', () => {
 jest.mock('../auth/p256DeviceKey', () => ({
   createP256DeviceKey: jest.fn(() => ({
     ensure: mockEnsureDeviceKey,
-    get: jest.fn(),
+    get: mockGetDeviceKey,
     wait: jest.fn(),
     clear: mockClearDeviceKey,
     delete: mockDeleteDeviceKey,
-    sign: jest.fn().mockResolvedValue(new Uint8Array(64).fill(7)),
+    sign: mockSignDeviceKey,
     commitment: jest.fn(),
   })),
 }));
@@ -89,6 +92,7 @@ const createService = ({
   isEnabled = () => enabled,
   isUnlocked = () => unlocked,
   isSignedIn = () => signedIn,
+  getCanonicalProfileId = () => 'profile-id',
 }: {
   enabled?: boolean;
   unlocked?: boolean;
@@ -97,6 +101,7 @@ const createService = ({
   isEnabled?: () => boolean;
   isUnlocked?: () => boolean;
   isSignedIn?: () => boolean;
+  getCanonicalProfileId?: () => string | undefined;
 } = {}) => {
   const registerActionHandler = jest.fn();
   const messenger = {
@@ -106,7 +111,7 @@ const createService = ({
     getProfile,
     getIssuerUrl: () => 'https://issuer.example',
     getAccessToken: async () => 'access-token',
-    getCanonicalProfileId: () => 'profile-id',
+    getCanonicalProfileId,
     getSrpIdentifier: async () => 'srp-id',
     signSrpMessage: async () => 'signature',
     isEnabled,
@@ -119,6 +124,35 @@ const createService = ({
   });
   return { service, registerActionHandler };
 };
+
+// The mobile TypeScript library target is ES2022, before Promise.withResolvers.
+const deferred = <T,>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+
+beforeEach(() => {
+  let ledger: string | null = null;
+  mockGetDeviceKey.mockReset().mockReturnValue(DEVICE_PUBLIC_MATERIAL);
+  mockSignDeviceKey.mockReset().mockResolvedValue(new Uint8Array(64).fill(7));
+  mockEnsureDeviceKey.mockReset().mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
+  jest.mocked(SecureKeychain.getSecureItem).mockImplementation(async () =>
+    ledger === null ? null : { key: 'approved-intents', value: ledger },
+  );
+  (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
+    async (_account: string, value: string) => {
+      ledger = value;
+      return true;
+    },
+  );
+  jest.mocked(SecureKeychain.clearSecureScope).mockImplementation(async () => {
+    ledger = null;
+    return true;
+  });
+});
 
 describe('PredictDeviceAuthService', () => {
   beforeEach(() => {
@@ -166,7 +200,7 @@ describe('PredictDeviceAuthService', () => {
     expect(mockGetA2t).not.toHaveBeenCalled();
   });
 
-  it('keeps the local key but skips issuance while signed out', async () => {
+  it('clears the session and plaintext key while signed out', async () => {
     const { service } = createService({ signedIn: false });
 
     await expect(service.getA2t()).resolves.toBeUndefined();
@@ -310,28 +344,23 @@ describe('PredictDeviceAuthService', () => {
     expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
   });
 
-  it('requests the A2T for the profile resolved before the device key loads', async () => {
+  it('refuses issuance for a profile replaced while the device key loads', async () => {
     const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
     const { service } = createService({ getProfile });
-    mockEnsureDeviceKey.mockImplementation(async () => {
+    mockEnsureDeviceKey.mockImplementationOnce(async () => {
       getProfile.mockReturnValue(SECOND_AUTHENTICATION_PROFILE);
       return DEVICE_PUBLIC_MATERIAL;
     });
 
-    await expect(service.getA2t()).resolves.toBe('opaque-a2t');
+    await expect(service.getA2t()).resolves.toBeUndefined();
 
-    expect(getProfile).toHaveBeenCalledTimes(1);
-    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
-    expect(createP256DeviceKey).toHaveBeenCalledWith(
-      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
+    expect(mockGetA2t).not.toHaveBeenCalled();
+    expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    await expect(service.getA2t()).resolves.toBe('opaque-a2t');
+    expect(A2tSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({ profile: SECOND_AUTHENTICATION_PROFILE }),
     );
-    expect(A2tSession).toHaveBeenCalledTimes(1);
-    expect(A2tSession).toHaveBeenCalledWith(
-      expect.objectContaining({ profile: KALSHI_AUTHENTICATION_PROFILE }),
-    );
-    expect(mockGetA2t).toHaveBeenCalledTimes(1);
-    expect(mockClearDeviceKey).not.toHaveBeenCalled();
-    expect(mockClearSession).not.toHaveBeenCalled();
   });
 
   it.each(['getA2t', 'prefetch'] as const)(
@@ -368,28 +397,19 @@ describe('PredictDeviceAuthService', () => {
     },
   );
 
-  it('prefetches the A2T for the profile resolved before the device key loads', async () => {
+  it('does not prefetch for a profile replaced while the device key loads', async () => {
     const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
     const { service } = createService({ getProfile });
-    mockEnsureDeviceKey.mockImplementation(async () => {
+    mockEnsureDeviceKey.mockImplementationOnce(async () => {
       getProfile.mockReturnValue(SECOND_AUTHENTICATION_PROFILE);
       return DEVICE_PUBLIC_MATERIAL;
     });
 
     await service.prefetch();
 
-    expect(getProfile).toHaveBeenCalledTimes(1);
-    expect(createP256DeviceKey).toHaveBeenCalledTimes(1);
-    expect(createP256DeviceKey).toHaveBeenCalledWith(
-      KALSHI_AUTHENTICATION_PROFILE.deviceKey,
-    );
-    expect(A2tSession).toHaveBeenCalledTimes(1);
-    expect(A2tSession).toHaveBeenCalledWith(
-      expect.objectContaining({ profile: KALSHI_AUTHENTICATION_PROFILE }),
-    );
-    expect(mockGetA2t).toHaveBeenCalledTimes(1);
-    expect(mockClearDeviceKey).not.toHaveBeenCalled();
-    expect(mockClearSession).not.toHaveBeenCalled();
+    expect(mockGetA2t).not.toHaveBeenCalled();
+    expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -612,5 +632,227 @@ describe('PredictDeviceAuthService.signOperation availability guards', () => {
     await expect(
       service.signOperation('order.place', { ...ORDER, confirmed: false }),
     ).rejects.toMatchObject({ name: 'TemplateError', rule: 'confirmation' });
+  });
+});
+
+describe('PredictDeviceAuthService revocation races', () => {
+  const order = {
+    inputs: {
+      marketId: 'MKT-1',
+      idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+      action: 'buy' as const,
+      outcome: 'yes' as const,
+      amountCents: 5000,
+    },
+    values: { count: '10.00', price: '0.5000' },
+    confirmed: true,
+  };
+  const read = {
+    method: 'GET' as const,
+    path: '/trade-api/v2/portfolio/orders',
+    query: '',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    resetVenueProfile();
+    mockGetA2t.mockResolvedValue('opaque-a2t');
+  });
+
+  it.each(['first claim', 'renewal'] as const)(
+    'refuses a %s when lock and unlock happen during its ledger write',
+    async (phase) => {
+      let unlocked = true;
+      const { service } = createService({ isUnlocked: () => unlocked });
+      if (phase === 'renewal') {
+        await service.signOperation('order.place', order);
+      }
+      mockSignDeviceKey.mockClear();
+      const started = deferred<void>();
+      const write = deferred<boolean>();
+      (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(() => {
+        started.resolve();
+        return write.promise;
+      });
+      const pending = service.signOperation('order.place', {
+        ...order,
+        confirmed: phase === 'first claim',
+      });
+      await started.promise;
+      const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+      unlocked = false;
+      const cleared = service.clearApprovals();
+      unlocked = true;
+      write.resolve(true);
+
+      await refused;
+      await cleared;
+      expect(mockSignDeviceKey).not.toHaveBeenCalled();
+      await expect(
+        service.signOperation('order.place', { ...order, confirmed: false }),
+      ).rejects.toMatchObject({ rule: 'confirmation' });
+      await expect(
+        service.signOperation('order.place', order),
+      ).resolves.toBeDefined();
+    },
+  );
+
+  it('revokes synchronously when reset waits on an approval write', async () => {
+    const { service } = createService();
+    const started = deferred<void>();
+    const write = deferred<boolean>();
+    (SecureKeychain.setSecureItem as jest.Mock).mockImplementationOnce(() => {
+      started.resolve();
+      return write.promise;
+    });
+    const pending = service.signOperation('order.place', order);
+    await started.promise;
+    const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+    mockClearDeviceKey.mockClear();
+    mockClearSession.mockClear();
+    const reset = service.reset();
+
+    expect(mockClearDeviceKey).toHaveBeenCalledTimes(1);
+    expect(mockClearSession).toHaveBeenCalledTimes(1);
+    expect(mockDeleteDeviceKey).toHaveBeenCalled();
+    await expect(service.ensureDeviceKey()).resolves.toBeNull();
+    write.resolve(true);
+    await refused;
+    await reset;
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
+    await expect(
+      service.signOperation('order.place', order),
+    ).resolves.toBeDefined();
+  });
+
+  it.each(['operation', 'read'] as const)(
+    'refuses %s signing after lock and unlock during key loading',
+    async (lane) => {
+      const key = deferred<typeof DEVICE_PUBLIC_MATERIAL>();
+      const started = deferred<void>();
+      mockEnsureDeviceKey.mockImplementationOnce(() => {
+        started.resolve();
+        return key.promise;
+      });
+      const { service } = createService();
+      const pending =
+        lane === 'operation'
+          ? service.signOperation('order.place', order)
+          : service.signRead(read);
+      await started.promise;
+      await service.clearApprovals();
+      key.resolve(DEVICE_PUBLIC_MATERIAL);
+
+      await expect(pending).resolves.toBeUndefined();
+      expect(mockGetA2t).not.toHaveBeenCalled();
+      expect(mockSignDeviceKey).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['operation', 'read'] as const)(
+    'refuses %s signing after revocation during A2T preparation',
+    async (lane) => {
+      const a2t = deferred<string>();
+      const started = deferred<void>();
+      mockGetA2t.mockImplementationOnce(() => {
+        started.resolve();
+        return a2t.promise;
+      });
+      const { service } = createService();
+      const pending =
+        lane === 'operation'
+          ? service.signOperation('order.place', order)
+          : service.signRead(read);
+      await started.promise;
+      await service.clearApprovals();
+      a2t.resolve('revoked-a2t');
+
+      await expect(pending).resolves.toBeUndefined();
+      expect(mockSignDeviceKey).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ['operation', 'lock'],
+    ['read', 'lock'],
+    ['operation', 'reset'],
+    ['read', 'reset'],
+  ] as const)(
+    'drops a completed %s signature after %s during crypto',
+    async (lane, boundary) => {
+      const signature = deferred<Uint8Array>();
+      const started = deferred<void>();
+      mockSignDeviceKey.mockImplementationOnce(() => {
+        started.resolve();
+        return signature.promise;
+      });
+      const { service } = createService();
+      const pending =
+        lane === 'operation'
+          ? service.signOperation('order.place', order)
+          : service.signRead(read);
+      await started.promise;
+      if (boundary === 'reset') {
+        await service.reset();
+      } else {
+        await service.clearApprovals();
+      }
+      signature.resolve(new Uint8Array(64).fill(7));
+
+      await expect(pending).resolves.toBeUndefined();
+      await expect(service.signRead(read)).resolves.toBeDefined();
+    },
+  );
+
+  it.each(['identity', 'profile', 'key'] as const)(
+    'drops an envelope when its %s snapshot changes during crypto',
+    async (replacement) => {
+      let identity = 'original-identity';
+      let profile = KALSHI_AUTHENTICATION_PROFILE;
+      const { service } = createService({
+        getCanonicalProfileId: () => identity,
+        getProfile: () => profile,
+      });
+      const signature = deferred<Uint8Array>();
+      const started = deferred<void>();
+      mockSignDeviceKey.mockImplementationOnce(() => {
+        started.resolve();
+        return signature.promise;
+      });
+      const pending = service.signRead(read);
+      await started.promise;
+      if (replacement === 'identity') {
+        identity = 'new-identity';
+      } else if (replacement === 'profile') {
+        profile = SECOND_AUTHENTICATION_PROFILE;
+      } else {
+        mockGetDeviceKey.mockReturnValue({
+          ...DEVICE_PUBLIC_MATERIAL,
+          publicKey: 'replacement-key',
+        });
+      }
+      signature.resolve(new Uint8Array(64).fill(7));
+
+      await expect(pending).resolves.toBeUndefined();
+    },
+  );
+
+  it('does not return a key from an ensure that predates reset', async () => {
+    const key = deferred<typeof DEVICE_PUBLIC_MATERIAL>();
+    const started = deferred<void>();
+    mockEnsureDeviceKey.mockImplementationOnce(() => {
+      started.resolve();
+      return key.promise;
+    });
+    const { service } = createService();
+    const pending = service.ensureDeviceKey();
+    await started.promise;
+    await service.reset();
+    key.resolve(DEVICE_PUBLIC_MATERIAL);
+
+    await expect(pending).resolves.toBeNull();
+    await expect(service.ensureDeviceKey()).resolves.toEqual(
+      DEVICE_PUBLIC_MATERIAL,
+    );
   });
 });

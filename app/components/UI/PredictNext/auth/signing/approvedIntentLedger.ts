@@ -67,7 +67,7 @@ const serialized = <T>(task: () => Promise<T>): Promise<T> => {
 
 /**
  * Bumped synchronously by every clear. A claim that started before a clear
- * never writes after it, even when the claim was queued first.
+ * never succeeds, and its serialized write settles before the clear runs.
  */
 let ledgerGeneration = 0;
 
@@ -168,6 +168,7 @@ const claimInOrder = async (
       signCount: live.signCount + 1,
     };
     await writeLedger(entries);
+    refuseIfCleared();
     return;
   }
   if (!claim.confirmed) {
@@ -180,6 +181,7 @@ const claimInOrder = async (
     pinnedAt: claim.nowMs,
   };
   await writeLedger(entries);
+  refuseIfCleared();
 };
 
 /**
