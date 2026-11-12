@@ -32,6 +32,7 @@ import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
 import {
   kalshiOrderSigningInput,
+  loadFeeCeilingCentsPerContract,
   type KalshiOrderSigningInput,
 } from './kalshiOrderSigning';
 import type {
@@ -281,6 +282,12 @@ export class KalshiRemoteAdapter {
           if (!isQuotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
+          // A buy signs the contracts its typed spend covers at the limit
+          // price plus this ceiling, not the average-price estimate.
+          const feeCeilingCentsPerContract =
+            params.action === 'buy'
+              ? await loadFeeCeilingCentsPerContract()
+              : undefined;
           if (
             generation !== this.#previewGeneration ||
             approvalGeneration !== signing?.getApprovalGeneration()
@@ -310,7 +317,11 @@ export class KalshiRemoteAdapter {
             this.#previews.set(result.previewId, {
               expiresAt: Date.parse(result.expiresAt),
               approvalGeneration,
-              signing: kalshiOrderSigningInput(params, result),
+              signing: kalshiOrderSigningInput(
+                params,
+                result,
+                feeCeilingCentsPerContract,
+              ),
               snapshot,
             });
           }

@@ -1114,7 +1114,7 @@ describe('KalshiRemoteAdapter', () => {
           inputs: expect.objectContaining({
             idempotencyKey: previewParams.idempotencyKey,
           }),
-          values: { count: '43.00', price: '0.4700' },
+          values: { count: '40.00', price: '0.4700' },
           confirmed: true,
         }),
       );
@@ -1163,7 +1163,7 @@ describe('KalshiRemoteAdapter', () => {
             outcome: 'yes',
             amountCents: 2000,
           },
-          values: { count: '43.00', price: '0.4700' },
+          values: { count: '40.00', price: '0.4700' },
           approvalGeneration: 0,
           confirmed: true,
         },
@@ -1417,7 +1417,7 @@ describe('KalshiRemoteAdapter', () => {
         undefined,
         expect.objectContaining({
           inputs: expect.objectContaining({ marketId, amountCents: 2000 }),
-          values: { count: '43.00', price: '0.4700' },
+          values: { count: '40.00', price: '0.4700' },
           confirmed: true,
         }),
       );

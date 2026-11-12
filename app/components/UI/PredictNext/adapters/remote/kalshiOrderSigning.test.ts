@@ -3,7 +3,14 @@ import type {
   PredictOrderPreviewParams,
   PredictSellOrderPreview,
 } from '../../types';
-import { kalshiOrderSigningInput } from './kalshiOrderSigning';
+import { renderRequest } from '../../auth/signing/profileTemplates';
+import { loadVenueProfile } from '../../auth/venueSigningProfiles';
+import {
+  kalshiOrderSigningInput,
+  loadFeeCeilingCentsPerContract,
+} from './kalshiOrderSigning';
+
+const FEE_CEILING_CENTS = 2;
 
 type BuyParams = Extract<PredictOrderPreviewParams, { action: 'buy' }>;
 type SellParams = Extract<PredictOrderPreviewParams, { action: 'sell' }>;
@@ -77,7 +84,7 @@ describe('kalshiOrderSigningInput', () => {
     const params = buyParams();
     const preview = buyPreview();
 
-    const result = kalshiOrderSigningInput(params, preview);
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
 
     expect(result).toEqual({
       inputs: {
@@ -90,6 +97,97 @@ describe('kalshiOrderSigningInput', () => {
       values: { count: '10.00', price: '0.4600' },
     });
     expect(result).not.toHaveProperty('confirmed');
+  });
+
+  it('signs the contracts the spend covers at the limit plus the fee ceiling, not the average-price estimate', () => {
+    const params = buyParams({ amount: '20' as BuyParams['amount'] });
+    const preview = buyPreview({
+      estimatedContracts: 43,
+      averagePrice: '0.4651' as PredictBuyOrderPreview['averagePrice'],
+      limitPrice: '0.4700' as PredictBuyOrderPreview['limitPrice'],
+      requestedAmount: '20.00' as PredictBuyOrderPreview['requestedAmount'],
+    });
+
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
+
+    // 43 x (47 + 2) cents is 21.07 and overspends 20.00. 40 x 49 is 19.60.
+    expect(result?.values).toEqual({ count: '40.00', price: '0.4700' });
+    expect(result?.inputs).toMatchObject({ amountCents: 2000 });
+  });
+
+  it('renders under the bundled profile invariant for an ordinary buy', async () => {
+    const feeCeiling = await loadFeeCeilingCentsPerContract();
+    const profile = await loadVenueProfile();
+    const payload = profile?.payloads.create_order;
+    if (payload?.kind !== 'http-rfc9421' || !payload.body) {
+      throw new Error('create_order is not a bodied http-rfc9421 payload');
+    }
+    const params = buyParams({ amount: '20' as BuyParams['amount'] });
+    const preview = buyPreview({
+      estimatedContracts: 43,
+      limitPrice: '0.4700' as PredictBuyOrderPreview['limitPrice'],
+      requestedAmount: '20.00' as PredictBuyOrderPreview['requestedAmount'],
+    });
+    const signing = kalshiOrderSigningInput(params, preview, feeCeiling);
+    if (!signing) {
+      throw new Error('expected a signing input');
+    }
+
+    const rendered = renderRequest(
+      'create_order',
+      {
+        class: 'mutation',
+        method: payload.method,
+        path: payload.path,
+        body: payload.body,
+        idempotencyKey: payload.idempotencyKey,
+        invariants: payload.invariants,
+      },
+      { ...signing, nowMs: 1_700_000_000_000 },
+    );
+
+    expect(feeCeiling).toBe(2);
+    expect(rendered.display?.maxCost).toBe('19.60');
+  });
+
+  it('prices a NO buy against the NO limit when sizing', () => {
+    const params = buyParams({
+      side: 'no',
+      amount: '5' as BuyParams['amount'],
+    });
+    const preview = buyPreview({
+      side: 'no',
+      estimatedContracts: 11,
+      limitPrice: '0.4400' as PredictBuyOrderPreview['limitPrice'],
+    });
+
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
+
+    // 500 cents covers 10 contracts at 44 + 2 cents (4.60), not 11 (5.06).
+    expect(result?.values).toEqual({ count: '10.00', price: '0.5600' });
+  });
+
+  it('never signs more contracts than the quote offered', () => {
+    const params = buyParams({ amount: '50' as BuyParams['amount'] });
+    const preview = buyPreview({
+      requestedAmount: '50.00' as PredictBuyOrderPreview['requestedAmount'],
+    });
+
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
+
+    expect(result?.values.count).toBe('10.00');
+  });
+
+  it('refuses a buy the fee ceiling is unknown for, or the spend cannot cover one contract', () => {
+    const params = buyParams({ amount: '0.40' as BuyParams['amount'] });
+    const preview = buyPreview({
+      requestedAmount: '0.40' as PredictBuyOrderPreview['requestedAmount'],
+    });
+
+    expect(kalshiOrderSigningInput(buyParams(), buyPreview())).toBeUndefined();
+    expect(
+      kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS),
+    ).toBeUndefined();
   });
 
   it('signs offered sell contracts, not the partial-fill estimate', () => {
@@ -127,7 +225,11 @@ describe('kalshiOrderSigningInput', () => {
         limitPrice: limitPrice as PredictBuyOrderPreview['limitPrice'],
       });
 
-      const result = kalshiOrderSigningInput(params, preview);
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
 
       expect(result?.values.price).toBe(price);
     },
@@ -141,7 +243,11 @@ describe('kalshiOrderSigningInput', () => {
         limitPrice: limitPrice as PredictBuyOrderPreview['limitPrice'],
       });
 
-      const result = kalshiOrderSigningInput(params, preview);
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
 
       expect(result).toBeUndefined();
     },
@@ -153,7 +259,11 @@ describe('kalshiOrderSigningInput', () => {
       const params = buyParams();
       const preview = buyPreview({ estimatedContracts });
 
-      const result = kalshiOrderSigningInput(params, preview);
+      const result = kalshiOrderSigningInput(
+        params,
+        preview,
+        FEE_CEILING_CENTS,
+      );
 
       expect(result).toBeUndefined();
     },
@@ -164,7 +274,11 @@ describe('kalshiOrderSigningInput', () => {
     (amount) => {
       const params = buyParams({ amount: amount as BuyParams['amount'] });
 
-      const result = kalshiOrderSigningInput(params, buyPreview());
+      const result = kalshiOrderSigningInput(
+        params,
+        buyPreview(),
+        FEE_CEILING_CENTS,
+      );
 
       expect(result).toBeUndefined();
     },
@@ -173,7 +287,11 @@ describe('kalshiOrderSigningInput', () => {
   it('refuses spend drift from the canonical quoted amount', () => {
     const params = buyParams({ amount: '6' as BuyParams['amount'] });
 
-    const result = kalshiOrderSigningInput(params, buyPreview());
+    const result = kalshiOrderSigningInput(
+      params,
+      buyPreview(),
+      FEE_CEILING_CENTS,
+    );
 
     expect(result).toBeUndefined();
   });
@@ -198,7 +316,7 @@ describe('kalshiOrderSigningInput', () => {
     const params = buyParams();
     const preview = buyPreview(drift as Partial<PredictBuyOrderPreview>);
 
-    const result = kalshiOrderSigningInput(params, preview);
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
 
     expect(result).toBeUndefined();
   });
@@ -207,7 +325,7 @@ describe('kalshiOrderSigningInput', () => {
     const params = buyParams();
     const preview = sellPreview();
 
-    const result = kalshiOrderSigningInput(params, preview);
+    const result = kalshiOrderSigningInput(params, preview, FEE_CEILING_CENTS);
 
     expect(result).toBeUndefined();
   });
