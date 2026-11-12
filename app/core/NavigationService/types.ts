@@ -334,7 +334,6 @@ interface ImportFromSecretRecoveryPhraseParams {
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
 interface ConfirmAddAssetParams {
   selectedAsset: ImportAsset[];
-  networkName: string;
   addTokenList: () => Promise<void>;
 }
 
@@ -1269,6 +1268,8 @@ export type RootStackParamList = {
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
+  AddCustomToken: undefined;
+  HiddenTokens: undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)
