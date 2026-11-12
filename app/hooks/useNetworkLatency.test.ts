@@ -104,7 +104,9 @@ describe('useNetworkLatency', () => {
       }, []);
       return state;
     };
-    mockUseNetInfo.mockImplementation(useSubscribingNetInfo);
+    mockUseNetInfo.mockImplementation(
+      useSubscribingNetInfo as unknown as typeof useNetInfo,
+    );
     let renders = 0;
     const { result } = renderHook(() => {
       renders += 1;
