@@ -133,18 +133,18 @@ const PerpsWithdrawView: React.FC = () => {
     hasPositiveBalance;
 
   // Get withdrawal quote
-  const { formattedQuoteData } = usePerpsWithdrawQuote({
+  const { formattedQuoteData, networkFeeAmount } = usePerpsWithdrawQuote({
     amount: withdrawAmountDetailed,
   });
 
-  // Calculate destination amount (for now, same as withdrawal amount minus fees)
+  // Calculate destination amount (for now, same as withdrawal amount minus fees).
+  // Uses the numeric fee: the display string is localized and grouped.
   const destAmount = useMemo(() => {
-    if (!withdrawAmountDetailed || !formattedQuoteData?.networkFee) return '';
+    if (!withdrawAmountDetailed || networkFeeAmount === undefined) return '';
     const amount = parseFloat(withdrawAmountDetailed) || 0;
-    const fee = parseFloat(formattedQuoteData.networkFee.replace('$', '')) || 0;
-    const result = Math.max(0, amount - fee);
+    const result = Math.max(0, amount - networkFeeAmount);
     return result.toFixed(2);
-  }, [withdrawAmountDetailed, formattedQuoteData]);
+  }, [withdrawAmountDetailed, networkFeeAmount]);
 
   // Performance tracking: Measure withdrawal screen load time until core data is ready
   usePerpsMeasurement({

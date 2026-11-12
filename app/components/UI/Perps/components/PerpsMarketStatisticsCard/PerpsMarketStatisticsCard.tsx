@@ -31,7 +31,6 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
@@ -57,6 +56,9 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
     // Undefined while the rate is unknown, so it is never coloured as a zero.
     let fundingValue: number | undefined;
     let displayText: string;
+    // The stats hook formats in the app language, so compare with the
+    // localized zero (e.g. `0,0000%` in de), not the en constant.
+    const zeroDisplay = formatFundingRate(0);
 
     if (liveFunding !== undefined) {
       fundingValue = liveFunding;
@@ -70,13 +72,13 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       displayText = marketStats.fundingRate;
     } else if (
       marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay
+      marketStats.fundingRate !== zeroDisplay
     ) {
       fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
       displayText = marketStats.fundingRate;
     } else {
       fundingValue = 0;
-      displayText = FUNDING_RATE_CONFIG.ZeroDisplay;
+      displayText = zeroDisplay;
     }
 
     let color: TextColor = TextColor.TextDefault;

@@ -8,6 +8,7 @@ import {
   PerpsOrderBookViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import I18n from '../../../../../../locales/i18n';
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -29,6 +30,8 @@ jest.mock('@react-navigation/native', () => {
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string) => key),
 }));
 
@@ -207,6 +210,22 @@ describe('PerpsMarketStatisticsCard', () => {
         textElement.props.children === FUNDING_RATE_CONFIG.ZeroDisplay,
     );
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('falls back to the localized zero rate in a non-English app language', () => {
+    I18n.locale = 'de';
+    try {
+      const { getByText } = render(
+        <PerpsMarketStatisticsCard
+          {...defaultProps}
+          marketStats={{ ...mockMarketStats, fundingRate: '' }}
+        />,
+      );
+
+      expect(getByText('0,0000%')).toBeOnTheScreen();
+    } finally {
+      I18n.locale = 'en-US';
+    }
   });
 
   it('displays a negative threshold funding rate in error color', () => {

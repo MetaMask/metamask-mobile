@@ -79,6 +79,36 @@ export const formatPercentage = (
       : decimalsOrOptions),
   });
 
+/**
+ * A %RoE at the position precision whose sign agrees with the loss/profit
+ * colour rendered with it. `formatPercentage` shows a value that rounds to zero
+ * as `+0.0%`; when `isLoss` (the colour is the loss colour) and the value is not
+ * positive, it keeps a minus (`-0.0%`) so it agrees with e.g. `-$0.01` beside it.
+ * An unknown value renders the shared placeholder.
+ */
+export const formatRoePercentage = (
+  value: number | undefined,
+  isLoss: boolean,
+): string => {
+  const percentage = formatPercentage(
+    value,
+    PERPS_DISPLAY_PRECISION.RoePercent,
+  );
+  if (
+    value === undefined ||
+    !isLoss ||
+    value > 0 ||
+    percentage.startsWith('-')
+  ) {
+    return percentage;
+  }
+  const unsigned = formatPercentage(value, {
+    decimals: PERPS_DISPLAY_PRECISION.RoePercent,
+    sign: 'never',
+  });
+  return `-${unsigned}`;
+};
+
 /** Core `formatFundingRate` in the app language. */
 export const formatFundingRate = (
   value?: PerpsDisplayValue,

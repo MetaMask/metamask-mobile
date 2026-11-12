@@ -62,11 +62,13 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     return routes.find((route) => route.assetId === usdcAssetId);
   }, []);
 
+  // Numeric network fee, for arithmetic; never re-parse the localized display.
+  const networkFeeAmount: number =
+    withdrawalRoute?.constraints?.fees?.fixed ??
+    WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+
   const formattedQuoteData = useMemo<FormattedQuoteData>(() => {
-    // Get fees from route constraints or use defaults
-    const networkFee =
-      withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+    const networkFee = networkFeeAmount;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
@@ -106,7 +108,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
         decimals: PERPS_DISPLAY_PRECISION.Fee,
       })} USDC`,
     };
-  }, [parsedAmount, isValid, withdrawalRoute]);
+  }, [parsedAmount, isValid, withdrawalRoute, networkFeeAmount]);
 
   // Simple validation
   const hasValidQuote = useMemo(() => {
@@ -141,6 +143,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
   return {
     formattedQuoteData,
+    networkFeeAmount,
     hasValidQuote,
     error,
     // These are not needed for withdrawals but kept for consistency with deposit hook

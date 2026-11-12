@@ -6,8 +6,11 @@ import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import type { UsePerpsMarketStatsReturn } from '../../hooks/usePerpsMarketStats';
+import I18n from '../../../../../../locales/i18n';
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en-US' },
   strings: jest.fn((key: string) => key),
 }));
 
@@ -171,6 +174,39 @@ describe('PerpsProMarketStatsBar', () => {
     expect(
       getByText(`${FUNDING_RATE_CONFIG.ZeroDisplay} / 39:24`),
     ).toBeOnTheScreen();
+  });
+
+  describe('in a non-English app language', () => {
+    afterEach(() => {
+      I18n.locale = 'en-US';
+    });
+
+    it('colours a localized zero rate neutrally', () => {
+      I18n.locale = 'de';
+      mockUsePerpsMarketStats.mockReturnValue({
+        ...mockMarketStats,
+        fundingRate: '0,0000%',
+      });
+
+      const { UNSAFE_getAllByType } = renderComponent();
+
+      const fundingRateText = UNSAFE_getAllByType(Text).find(
+        (textElement) => textElement.props.children === '0,0000% / 39:24',
+      );
+      expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
+    });
+
+    it('falls back to the localized zero when there is no rate', () => {
+      I18n.locale = 'de';
+      mockUsePerpsMarketStats.mockReturnValue({
+        ...mockMarketStats,
+        fundingRate: '',
+      });
+
+      const { getByText } = renderComponent();
+
+      expect(getByText('0,0000% / 39:24')).toBeOnTheScreen();
+    });
   });
 
   it('displays a positive threshold funding rate in success color', () => {

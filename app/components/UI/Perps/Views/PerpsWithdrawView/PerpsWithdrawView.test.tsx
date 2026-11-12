@@ -105,6 +105,7 @@ jest.mock('../../hooks', () => ({
     formattedQuoteData: {
       networkFee: '$1.00',
     },
+    networkFeeAmount: 1,
   })),
   useWithdrawTokens: jest.fn(() => ({
     destToken: {

@@ -1,39 +1,17 @@
 import React from 'react';
-import {
-  PERPS_CONSTANTS,
-  PERPS_DISPLAY_PRECISION,
-} from '@metamask/perps-controller';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
-import { formatPercentage } from '../../../utils/formatUtils';
+import { formatRoePercentage } from '../../../utils/formatUtils';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
   getCloseSummaryPnlColor,
 } from '../../../components/PerpsCloseSummary/closeSummaryFormat';
-
-// RoE at the same precision as the position cards. `formatPercentage` shows a
-// value that rounds to zero without a minus; a non-positive RoE beside a
-// negative $P&L (e.g. a limit just under the entry price) keeps its minus so
-// the percentage agrees with the $P&L rendered beside it.
-const formatSummaryPercentage = (value: number, pnl: number) => {
-  const percentage = formatPercentage(
-    value,
-    PERPS_DISPLAY_PRECISION.RoePercent,
-  );
-  if (pnl >= 0 || value > 0 || percentage.startsWith('-')) {
-    return percentage;
-  }
-  const unsigned = formatPercentage(value, {
-    decimals: PERPS_DISPLAY_PRECISION.RoePercent,
-    sign: 'never',
-  });
-  return `-${unsigned}`;
-};
 
 export interface PerpsCloseTotalsProps {
   /** P&L realized by the close; undefined while unavailable. */
@@ -82,7 +60,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : `${formatSignedCloseSummaryFiat(pnl)}${
               roePercentage !== undefined
-                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                ? ` (${formatRoePercentage(roePercentage, pnl < 0)})`
                 : ''
             }`
       }

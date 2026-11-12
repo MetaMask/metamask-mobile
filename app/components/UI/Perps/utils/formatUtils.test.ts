@@ -25,6 +25,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   formatLiquidationDistancePercent,
   formatPercentageNumber,
+  formatRoePercentage,
   formatPerpsUsdCents,
   formatLimitPriceInput,
   formatPerpsPrice,
@@ -292,6 +293,28 @@ describe('formatUtils', () => {
       const formatted = formatPercentageNumber(undefined);
 
       expect(formatted).toBe('--');
+    });
+  });
+
+  describe('formatRoePercentage', () => {
+    it('keeps a minus on a loss that rounds to zero', () => {
+      expect(formatRoePercentage(-0.004, true)).toBe('-0.0%');
+      expect(formatRoePercentage(0, true)).toBe('-0.0%');
+    });
+
+    it('follows formatPercentage when not a loss', () => {
+      expect(formatRoePercentage(-0.004, false)).toBe(
+        formatPercentage(-0.004, 1),
+      );
+      expect(formatRoePercentage(12.34, false)).toBe('+12.3%');
+    });
+
+    it('keeps a minus already rendered for a non-zero loss', () => {
+      expect(formatRoePercentage(-1.26, true)).toBe('-1.3%');
+    });
+
+    it('returns the placeholder for an unknown value', () => {
+      expect(formatRoePercentage(undefined, true)).toBe('--%');
     });
   });
 

@@ -583,6 +583,23 @@ describe('PerpsPositionCard', () => {
       expect(returnValue).toHaveTextContent(/\+1,250\.0%/); // ROE is 12.5 * 100 = 1250%, at RoE precision
     });
 
+    it('keeps the minus on a losing Return that rounds to zero', () => {
+      // Arrange - RoE -0.004% rounds to 0.0% beside a -$0.01 P&L
+      const nearZeroLoss = {
+        ...mockPosition,
+        unrealizedPnl: '-0.01',
+        returnOnEquity: '-0.00004',
+      };
+
+      // Act
+      render(<PerpsPositionCard position={nearZeroLoss} />);
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
+      ).toHaveTextContent('-0.0%');
+    });
+
     it('handles missing PnL percentage data', () => {
       // Arrange - Set returnOnEquity to empty string to test fallback
       const positionWithoutROE = {

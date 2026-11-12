@@ -1452,7 +1452,8 @@ ${createLimitOrderOverlayScript({
                                 // away from realtime, preserve their current viewport.
                                 if ((message.isNewBar || appendedCandle) && wasTrackingRealtime) {
                                     window.applyZoom(window.visibleCandleCount, false);
-                                }                            } catch (error) {
+                                }
+                            } catch (error) {
                                 console.error('TradingView: Error applying incremental update:', error);
                             }
                         }
@@ -1623,7 +1624,8 @@ ${createLimitOrderOverlayScript({
                                                         window.chart.applyOptions({
                                                             width: window.chart.options().width,
                                                             height: chartHeight
-                                                        });                                                    }
+                                                        });
+                                                    }
                                                 } catch (heightError) {
                                                     // Silent error handling
                                                 }

@@ -35,14 +35,13 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import {
   getPerpsDisplaySymbol,
-  PERPS_DISPLAY_PRECISION,
   type Order,
   type Position,
 } from '@metamask/perps-controller';
 import {
-  formatPercentage,
   formatPerpsFiat,
   formatPnl,
+  formatRoePercentage,
   formatPositionSize,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -386,10 +385,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPercentage(
-                  roePercentage,
-                  PERPS_DISPLAY_PRECISION.RoePercent,
-                )}
+                {formatRoePercentage(roePercentage, roe < 0)}
               </SensitiveText>
             </Card>
           </Box>

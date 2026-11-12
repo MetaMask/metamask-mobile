@@ -254,6 +254,15 @@ describe('usePerpsWithdrawQuote', () => {
       expect(result.current.formattedQuoteData.totalFees).toBe('$1.00');
       expect(result.current.formattedQuoteData.receivingAmount).toBe('99 USDC');
     });
+
+    it('exposes the numeric network fee for arithmetic', () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsWithdrawQuote({ amount: '100' }),
+        { state: {} as DeepPartial<RootState> },
+      );
+
+      expect(result.current.networkFeeAmount).toBe(HYPERLIQUID_WITHDRAWAL_FEE);
+    });
   });
 
   describe('static return values', () => {

@@ -34,8 +34,8 @@ import ButtonIcon, {
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
-  formatPercentage,
   formatPerpsFiat,
+  formatRoePercentage,
   parseCurrencyString,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -46,7 +46,6 @@ import PositivePnlCharacter2 from '../../../../../images/positive_pnl_character_
 import PositivePnlCharacter3 from '../../../../../images/positive_pnl_character_3_3x.png';
 import {
   PERPS_CONSTANTS,
-  PERPS_DISPLAY_PRECISION,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
@@ -177,10 +176,7 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
-  const pnlDisplay = formatPercentage(
-    data.roe,
-    PERPS_DISPLAY_PRECISION.RoePercent,
-  );
+  const pnlDisplay = formatRoePercentage(data.roe, data.roe < 0);
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage
