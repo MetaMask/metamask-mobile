@@ -1,5 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import type {
+  V1TransactionByHashResponse,
+  V5TransactionRecord,
+} from '@metamask/core-backend';
 import { useApiTransaction } from './useApiTransaction';
 import { useCachedEvmTransaction } from './useCachedEvmTransaction';
 import { useTransactionQuery } from './useTransactionQuery';
@@ -31,6 +34,27 @@ const buildTransaction = (
     ...overrides,
   }) as V1TransactionByHashResponse;
 
+const buildV5CachedTransaction = (
+  overrides: Partial<V5TransactionRecord['tx']> = {},
+): V5TransactionRecord => ({
+  accountId: 'eip155:1:0x0000000000000000000000000000000000000001',
+  tx: {
+    id: '0xhash',
+    chainId: 'eip155:1',
+    status: 'confirmed',
+    timestamp: 1778593067000,
+    date: '2026-05-13T14:34:23.000Z',
+    from: '0x0000000000000000000000000000000000000001',
+    to: '0x0000000000000000000000000000000000000002',
+    blockNumber: '1',
+    blockHash: '0xblock',
+    value: '0',
+    ...overrides,
+  },
+  valueTransfers: [],
+  fee: null,
+});
+
 describe('useApiTransaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,7 +65,7 @@ describe('useApiTransaction', () => {
   });
 
   it('returns the cached transaction without fetching', () => {
-    const cached = buildTransaction({ hash: '0xabc' });
+    const cached = buildV5CachedTransaction({ id: '0xabc' });
     useCachedEvmTransactionMock.mockReturnValue(cached);
 
     const { result } = renderHook(() =>
