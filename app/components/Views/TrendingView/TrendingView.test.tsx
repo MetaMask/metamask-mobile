@@ -125,16 +125,28 @@ let mockPagerProps:
   | undefined;
 
 const settlePager = (): void => {
+  const onPageScrollStateChanged = mockPagerProps?.onPageScrollStateChanged;
+  if (!onPageScrollStateChanged) {
+    throw new Error(
+      'settlePager: pager mock not wired — did react-native-tab-view stop forwarding onPageScrollStateChanged?',
+    );
+  }
   act(() => {
-    mockPagerProps?.onPageScrollStateChanged?.({
+    onPageScrollStateChanged({
       nativeEvent: { pageScrollState: 'idle' },
     });
   });
 };
 
 const swipeToPage = (position: number): void => {
+  const onPageSelected = mockPagerProps?.onPageSelected;
+  if (!onPageSelected) {
+    throw new Error(
+      'swipeToPage: pager mock not wired — did react-native-tab-view stop forwarding onPageSelected?',
+    );
+  }
   act(() => {
-    mockPagerProps?.onPageSelected?.({ nativeEvent: { position } });
+    onPageSelected({ nativeEvent: { position } });
   });
 };
 

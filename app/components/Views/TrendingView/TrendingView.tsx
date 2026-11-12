@@ -92,6 +92,9 @@ export interface ExploreFeedRouteParams {
 }
 
 export interface ExploreTabsHandle {
+  /** No-ops when the pager is already on `tabIndex`; callers that need to
+   * distinguish the two (e.g. the deeplink effect's analytics) must check
+   * `getCurrentIndex()` first. */
   goToTabIndex: (tabIndex: number) => void;
   getCurrentIndex: () => number;
 }
@@ -274,6 +277,12 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
             renderScene={renderScene}
             renderTabBar={renderTabBar}
             onIndexChange={handleIndexChange}
+            // Revisited tabs defer their context update to `onPagerRest`:
+            // tab-view 4.3.4's PagerViewAdapter maps the pager's settled
+            // `pageScrollState: 'idle'` (including after a programmatic bar
+            // tap) to `onSwipeEnd`. An adapter or upgrade that only fires it
+            // after real swipes would leave `ExploreActiveTabContext` stale
+            // until the next switch.
             onSwipeEnd={onPagerRest}
             initialLayout={TAB_VIEW_INITIAL_LAYOUT}
             lazy
