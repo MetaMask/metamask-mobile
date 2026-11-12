@@ -332,7 +332,7 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('reads only the Venue’s own Feeds, at the PredictNext Home preview size, and never Polymarket markets', async () => {
+    it('reads only the Venue’s own Feeds, at the slot size, and never Polymarket markets', async () => {
       const view = renderSection();
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));

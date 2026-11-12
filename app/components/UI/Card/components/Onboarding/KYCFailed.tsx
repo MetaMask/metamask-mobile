@@ -1,38 +1,30 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { ScrollView, StatusBar } from 'react-native';
+import { StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
 import { useExitCardFlow } from '../../hooks/useExitCardFlow';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens, withCardProvider } from '../../util/metrics';
 import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  TitleStandard,
-} from '@metamask/design-system-react-native';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { useImmersveKycOutcome } from '../../hooks/useImmersveKycOutcome';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import VbaAccountCreateFailure from '../../../Ramp/Views/VirtualBankAccount/assets/vba-account-create-failure.svg';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import KYCFailedContent from './KYCFailedContent';
 
 /**
- * Terminal Card KYC rejection. Mirrors VBA's VbaAccountCreateError terminal
- * pattern (TitleStandard + vba-account-create-failure.svg topAccessory) as a
- * stop-gap away from the old-brand purple full-bleed artwork.
+ * Terminal Card KYC rejection. The body mirrors VBA's VbaAccountCreateError
+ * terminal (see `KYCFailedContent`); Immersve shows that same body in place.
  */
 const KYCFailed = () => {
   const exitCardFlow = useExitCardFlow();
+  const { notifyKycRejected } = useImmersveKycOutcome();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -73,8 +65,16 @@ const KYCFailed = () => {
   }, [trackEvent, createEventBuilder, activeProviderId]);
 
   const navigateToHome = useCallback(() => {
+    // The screen is the explanation. Signing out stops a later Link card
+    // from treating this Immersve session as ready. Baanx keeps its session.
+    if (activeProviderId === CardProviderIds.Immersve) {
+      notifyKycRejected(
+        { type: 'rejected', canRetry: false, reasons: [] },
+        { source: 'kyc_failed', toast: false },
+      ).catch(() => undefined);
+    }
     exitCardFlow();
-  }, [exitCardFlow]);
+  }, [activeProviderId, exitCardFlow, notifyKycRejected]);
 
   return (
     <SafeAreaView
@@ -91,47 +91,7 @@ const KYCFailed = () => {
         }}
         includesTopInset
       />
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
-      >
-        <TitleStandard
-          title={strings('card.card_onboarding.kyc_failed.title')}
-          bottomLabel={strings('card.card_onboarding.kyc_failed.description')}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: 'kyc-failed-title',
-          }}
-          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
-          bottomLabelProps={{
-            twClassName: 'text-center',
-            testID: 'kyc-failed-description',
-          }}
-          bottomLabelWrapperProps={{
-            justifyContent: BoxJustifyContent.Center,
-          }}
-          topAccessory={
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.End}
-              twClassName="mb-5 w-full"
-              testID="kyc-failed-illustration"
-            >
-              <VbaAccountCreateFailure name="vba-account-create-failure" />
-            </Box>
-          }
-        />
-      </ScrollView>
-      <Box gap={2} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={navigateToHome}
-          isFullWidth
-          testID="kyc-failed-close-button"
-        >
-          {strings('card.card_onboarding.kyc_failed.close_button')}
-        </Button>
-      </Box>
+      <KYCFailedContent onClose={navigateToHome} />
     </SafeAreaView>
   );
 };

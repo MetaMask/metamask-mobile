@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import type { FeedItem } from '@metamask/social-controllers';
+import { Text } from 'react-native';
 import { mockPerpFeedItem } from '../../SocialFeed/mocks/coreFeed.mock';
 import { formatAbbreviatedUsd } from '../../SocialFeed/utils/formatters';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -234,6 +235,25 @@ describe('SocialLeaderboard', () => {
         enabled: true,
       }),
     );
+    expect(rowIds()).toEqual([
+      'trader-row-high',
+      'trader-row-mid',
+      'trader-row-low',
+    ]);
+  });
+
+  it('renders the Social V1 rows through FlashList when it owns scrolling', () => {
+    renderLeaderboard({
+      virtualizedListProps: {
+        testID: 'social-leaderboard-flash-list',
+        listHeaderComponent: <Text>Leaderboard filters</Text>,
+      },
+    });
+
+    expect(
+      screen.getByTestId('social-leaderboard-flash-list'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Leaderboard filters')).toBeOnTheScreen();
     expect(rowIds()).toEqual([
       'trader-row-high',
       'trader-row-mid',

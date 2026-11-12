@@ -1,4 +1,16 @@
+import { AppState } from 'react-native';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+
+jest.mock('react-native', () => {
+  const actual = jest.requireActual('react-native');
+  return {
+    ...actual,
+    AppState: {
+      currentState: 'active',
+      addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
+  };
+});
 import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
@@ -74,6 +86,14 @@ jest.mock('../../../hooks/useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
 }));
 
+const mockNotifyKycRejected = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../hooks/useImmersveKycOutcome', () => ({
+  useImmersveKycOutcome: () => ({
+    notifyKycRejected: (...args: unknown[]) => mockNotifyKycRejected(...args),
+    notifyKycInReview: jest.fn(),
+  }),
+}));
+
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuild = jest.fn().mockReturnValue({});
@@ -140,6 +160,9 @@ const kycPrerequisites = [
 describe('useImmersveCardProvisioning', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (AppState.addEventListener as jest.Mock).mockImplementation(() => ({
+      remove: jest.fn(),
+    }));
     mockProviderId = 'immersve';
     mockReduxFundingSourceId = 'fs-1';
     mockSelectedCountry = 'GB';
@@ -378,6 +401,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         });
       });
     });
@@ -414,6 +438,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
       expect(result.current.isReconciling).toBe(false);
@@ -455,7 +480,7 @@ describe('useImmersveCardProvisioning', () => {
       });
 
       expect(mockRoute).toHaveBeenCalledWith(
-        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
         { navigateFromRoot: true, countryKey: 'GB' },
       );
     });
@@ -478,7 +503,7 @@ describe('useImmersveCardProvisioning', () => {
       });
 
       expect(mockRoute).toHaveBeenCalledWith(
-        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
         {
           navigateFromRoot: true,
           countryKey: 'GB',
@@ -652,6 +677,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
 
@@ -706,6 +732,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         });
         expect(result.current.isReconciling).toBe(false);
       });
@@ -760,6 +787,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
 
@@ -777,6 +805,7 @@ describe('useImmersveCardProvisioning', () => {
         type: 'kyc',
         url: 'https://kyc',
         ctaHint: undefined,
+        reasons: [],
       });
     });
 
@@ -796,6 +825,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
 
@@ -814,6 +844,7 @@ describe('useImmersveCardProvisioning', () => {
         type: 'kyc',
         url: 'https://kyc',
         ctaHint: undefined,
+        reasons: [],
       });
     });
 
@@ -841,6 +872,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
 
@@ -1000,6 +1032,7 @@ describe('useImmersveCardProvisioning', () => {
           type: 'kyc',
           url: 'https://kyc',
           ctaHint: undefined,
+          reasons: [],
         }),
       );
       expect(mockDispatch).toHaveBeenCalledWith({
@@ -1033,6 +1066,182 @@ describe('useImmersveCardProvisioning', () => {
           payload: false,
         }),
       );
+    });
+
+    it('rechecks an identity review when focus returns', async () => {
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({
+          prerequisites: [{ stage: 'kyc', status: 'pending' }],
+        })
+        .mockResolvedValueOnce({
+          prerequisites: [
+            {
+              stage: 'expected_spend',
+              status: 'action-required',
+              actionType: 'set_expected_spend_amount',
+            },
+          ],
+        });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+
+      mockIsFocused = false;
+      rerender(undefined);
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'expected_spend',
+        }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+    });
+
+    it('rechecks an identity review when the app returns to the foreground', async () => {
+      const listeners: ((state: string) => void)[] = [];
+      (AppState.addEventListener as jest.Mock).mockImplementation(
+        (_type, listener) => {
+          listeners.push(listener as (state: string) => void);
+          return { remove: jest.fn() };
+        },
+      );
+
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({
+          prerequisites: [{ stage: 'kyc', status: 'pending' }],
+        })
+        .mockResolvedValueOnce({
+          prerequisites: [
+            {
+              stage: 'expected_spend',
+              status: 'action-required',
+              actionType: 'set_expected_spend_amount',
+            },
+          ],
+        });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({ type: 'pending' }),
+      );
+
+      await act(async () => {
+        listeners[listeners.length - 1]?.('active');
+      });
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'expected_spend',
+        }),
+      );
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2);
+    });
+
+    it('notifies when a focused reconcile finds a permanent rejection', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'blocked' }],
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'rejected',
+          canRetry: false,
+          retryUrl: undefined,
+          reasons: [],
+        }),
+      );
+      expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1);
+      expect(mockNotifyKycRejected).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'rejected', canRetry: false }),
+        { source: 'reconcile' },
+      );
+    });
+
+    it('does not notify a permanent rejection while the screen is not focused', async () => {
+      mockIsFocused = false;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'blocked' }],
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction?.type).toBe('rejected'),
+      );
+      expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+    });
+
+    it('notifies a permanent rejection when the screen is focused again', async () => {
+      mockIsFocused = false;
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [{ stage: 'kyc', status: 'blocked' }],
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction?.type).toBe('rejected'),
+      );
+      expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(mockNotifyKycRejected).toHaveBeenCalledTimes(1),
+      );
+    });
+
+    it('keeps a retryable rejection without toasting', async () => {
+      controller.getSpendingPrerequisites.mockResolvedValue({
+        prerequisites: [
+          {
+            stage: 'kyc',
+            status: 'kyc_check_failed',
+            params: { kycUrl: 'https://verify.immersve.com/retry' },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData),
+      );
+
+      await waitFor(() =>
+        expect(result.current.pendingAction).toEqual({
+          type: 'rejected',
+          canRetry: true,
+          retryUrl: 'https://verify.immersve.com/retry',
+          reasons: [],
+        }),
+      );
+      expect(mockNotifyKycRejected).not.toHaveBeenCalled();
     });
 
     it('does not reconcile when not provisioning', async () => {

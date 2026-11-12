@@ -91,6 +91,24 @@ describe('OutcomeRow', () => {
       });
     });
 
+    it('sizes the pill from the class names it is given', () => {
+      render(
+        <OutcomeRow.Price
+          price="34¢"
+          color={TEAM_COLOR}
+          isDisabled={false}
+          onPress={jest.fn()}
+          testID="price"
+          twClassName="min-w-[64px] h-[37px] px-3"
+        />,
+      );
+
+      expect(screen.getByTestId('price')).toHaveStyle({
+        height: 37,
+        minWidth: 64,
+      });
+    });
+
     it('shows a dash without a price', () => {
       render(
         <OutcomeRow.Price

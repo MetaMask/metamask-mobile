@@ -3,6 +3,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 import AccessRestrictedModal from './AccessRestrictedModal';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {

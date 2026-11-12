@@ -120,6 +120,14 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
     tab: SocialDataFetchTab;
     context: SocialPerformanceContext;
   }>;
+  /**
+   * Turns the feed off without unmounting it: no fetching, no rows. A host
+   * that embeds the list as its screen scroller sets this while the feed's
+   * own tab is not showing. Defaults to on.
+   */
+  enabled?: boolean;
+  /** Where the pull-to-refresh spinner starts, for hosts with a fixed header. */
+  refreshProgressViewOffset?: number;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;

@@ -34,6 +34,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
+import type { BuildSocialOgImageRequest } from '../navigation/socialTraderDeeplink';
 import {
   DAY_MS,
   NOW_MS,
@@ -71,6 +72,19 @@ let mockIsMemeToken: { isMeme: boolean; isLoading: boolean };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+}));
+
+const mockTrackInteraction = jest.fn();
+const mockTrackSocialPost = jest.fn();
+const mockUseSocialScreenAnalytics = jest.fn(
+  (..._args: unknown[]) => mockTrackInteraction,
+);
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenAnalytics: (...args: unknown[]) =>
+    mockUseSocialScreenAnalytics(...args),
+  useSocialAnalytics: () => ({ trackInteraction: mockTrackSocialPost }),
 }));
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -133,12 +147,6 @@ jest.mock('../navigation/socialTraderDeeplink', () => ({
     mockShareSocialTraderPosition(...args),
 }));
 
-const mockTrackSocialPost = jest.fn();
-jest.mock('../analytics', () => ({
-  ...jest.requireActual('../analytics'),
-  useSocialAnalytics: () => ({ trackInteraction: mockTrackSocialPost }),
-}));
-
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
     ensureSocialTermsAccepted: mockEnsureSocialTermsAccepted,
@@ -155,24 +163,26 @@ jest.mock('../../../UI/SocialFeed/hooks/useOpenPerpsOrder', () => ({
   }),
 }));
 
+const mockQuickBuyRender = jest.fn();
 jest.mock('../../../UI/QuickBuy', () => {
   const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
-      isVisible,
-      initialTradeMode,
-      onClose,
-    }: {
+    default: (props: {
       isVisible: boolean;
       initialTradeMode?: string;
+      isCopyTrade?: boolean;
       onClose: () => void;
-    }) =>
-      isVisible ? (
-        <Text testID="quick-buy-sheet" onPress={onClose}>
-          {initialTradeMode}
+      isTraderPositionClosed?: boolean;
+    }) => {
+      mockQuickBuyRender(props);
+      return props.isVisible ? (
+        <Text testID="quick-buy-sheet" onPress={props.onClose}>
+          {props.initialTradeMode}
+          {props.isCopyTrade ? <Text testID="quick-buy-copy-trade" /> : null}
         </Text>
-      ) : null,
+      ) : null;
+    },
     positionToQuickBuyTarget: () => ({ tokenAddress: '0xpepe' }),
   };
 });
@@ -182,7 +192,9 @@ jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
 }));
 
 jest.mock('../../../UI/QuickBuy/hooks/usePositionTokenBalance', () => ({
-  usePositionTokenBalance: () => mockHeldBalance,
+  // Holdings are only looked up for a spot target, as the sheet gates them.
+  usePositionTokenBalance: (target: unknown) =>
+    target ? mockHeldBalance : undefined,
 }));
 
 const mockUseIsMemeToken = jest.fn();
@@ -1020,8 +1032,8 @@ describe('PositionDetailsSheet', () => {
         screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHARE_BUTTON),
       );
       const buildOgImageRequest = mockShareSocialTraderPosition.mock
-        .calls[0][4] as () => Promise<unknown>;
-      const request = await buildOgImageRequest();
+        .calls[0][4] as BuildSocialOgImageRequest;
+      const request = await buildOgImageRequest({ promoCode: '8F3A21' });
 
       expect(request).toEqual(
         expect.objectContaining({
@@ -1033,6 +1045,7 @@ describe('PositionDetailsSheet', () => {
             status: 'open',
             pnlUsd: 40,
             pnlPct: 20,
+            promoCode: '8F3A21',
           }),
         }),
       );
@@ -1373,6 +1386,53 @@ describe('PositionDetailsSheet', () => {
     });
   });
 
+  describe('analytics', () => {
+    it('views a spot position with the trader and the opening surface', () => {
+      mockParams = { ...mockParams, analyticsSource: 'trader_profile' };
+
+      render(<PositionDetailsSheet />);
+
+      expect(mockUseSocialScreenAnalytics).toHaveBeenCalledWith(
+        'position_details_sheet',
+        {
+          source: 'trader_profile',
+          outcome: undefined,
+          properties: {
+            trade_type: 'spot',
+            asset: 'PEPE',
+            position_status: 'open',
+            trader_address: '0xTrader',
+            trader_username: 'satoshi',
+          },
+        },
+      );
+    });
+
+    it('views a closed perp with its side and falls back to the order source', () => {
+      mockParams = {
+        ...mockParams,
+        position: buildPerpPosition(),
+        orderSource: 'social_trending',
+      };
+      mockSheetData = perpData({ isClosed: true });
+
+      render(<PositionDetailsSheet />);
+
+      expect(mockUseSocialScreenAnalytics).toHaveBeenCalledWith(
+        'position_details_sheet',
+        expect.objectContaining({
+          source: 'social_trending',
+          properties: expect.objectContaining({
+            trade_type: 'perps',
+            asset: 'BTC',
+            direction: 'short',
+            position_status: 'closed',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('footer', () => {
     it.each([
       ['profile id', { profileId: 'trader-1' }],
@@ -1428,6 +1488,7 @@ describe('PositionDetailsSheet', () => {
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_tapped');
     });
 
     it('dismisses the sheet and copies an open spot position through QuickBuy', () => {
@@ -1438,6 +1499,7 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('buy');
+      expect(screen.getByTestId('quick-buy-copy-trade')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
       ).toBeNull();
@@ -1466,6 +1528,9 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_blocked', {
+        blocked_reason: 'terms',
+      });
     });
 
     it('skips copy trade when there is no linked social wallet', () => {
@@ -1479,6 +1544,9 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(mockOpenPerpsOrder).not.toHaveBeenCalled();
+      expect(mockTrackInteraction).toHaveBeenCalledWith('copy_trade_blocked', {
+        blocked_reason: 'profile_onboarding',
+      });
     });
 
     it('offers Long and Short on a closed perp', () => {
@@ -1502,6 +1570,9 @@ describe('PositionDetailsSheet', () => {
         direction: 'long',
         asset: 'BTC',
         leverage: undefined,
+      });
+      expect(mockTrackInteraction).toHaveBeenCalledWith('button_clicked', {
+        direction: 'long',
       });
     });
 
@@ -1531,6 +1602,7 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+      expect(mockTrackInteraction).toHaveBeenCalledWith('button_clicked');
     });
 
     it('offers only Buy on a closed spot position the viewer does not hold', () => {
@@ -1556,9 +1628,97 @@ describe('PositionDetailsSheet', () => {
       );
 
       expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('sell');
+      expect(screen.queryByTestId('quick-buy-copy-trade')).toBeNull();
       expect(
         screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CONTAINER),
       ).toBeNull();
+    });
+
+    it('offers Buy and no Copy trade on the viewer’s own open spot position', () => {
+      mockProfile = { profileId: 'trader-1' };
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
+    it('adds Sell on the viewer’s own open spot position when the viewer holds it', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockHeldBalance = { balance: '1' };
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SELL_BUTTON),
+      );
+
+      expect(screen.getByTestId('quick-buy-sheet')).toHaveTextContent('sell');
+    });
+
+    it('hides Sell on the viewer’s own open spot position when the viewer holds nothing', () => {
+      mockProfile = { profileId: 'trader-1' };
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeNull();
+    });
+
+    it('offers Long and Short on the viewer’s own open perp', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+    });
+
+    it('opens Long on the viewer’s own open perp without leverage', () => {
+      mockProfile = { profileId: 'trader-1' };
+      mockParams = { ...mockParams, position: buildPerpPosition() };
+      mockSheetData = perpData();
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.LONG_BUTTON),
+      );
+
+      expect(mockOpenPerpsOrder).toHaveBeenCalledWith({
+        direction: 'long',
+        asset: 'BTC',
+        leverage: undefined,
+      });
+    });
+
+    it('reports the pressed trade to QuickBuy on the viewer’s own open spot position', () => {
+      mockProfile = { profileId: 'trader-1' };
+
+      render(<PositionDetailsSheet />);
+      fireEvent.press(
+        screen.getByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      );
+
+      expect(mockQuickBuyRender).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isTraderPositionClosed: undefined }),
+      );
     });
   });
 
