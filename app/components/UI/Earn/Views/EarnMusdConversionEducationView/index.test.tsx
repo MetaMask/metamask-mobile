@@ -421,12 +421,6 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.HOME,
-          {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: {
-              screen: Routes.WALLET_VIEW,
-            },
-          },
         );
       });
     });
@@ -463,12 +457,6 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.HOME,
-          {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: {
-              screen: Routes.WALLET_VIEW,
-            },
-          },
         );
       });
     });
@@ -588,12 +576,6 @@ describe('EarnMusdConversionEducationView', () => {
         expect(mockInitiateConversion).not.toHaveBeenCalled();
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.HOME,
-          {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: {
-              screen: Routes.WALLET_VIEW,
-            },
-          },
         );
       });
     });
@@ -668,10 +650,6 @@ describe('EarnMusdConversionEducationView', () => {
       await waitFor(() => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.HOME,
-          {
-            screen: Routes.WALLET.TAB_STACK_FLOW,
-            params: { screen: Routes.WALLET_VIEW },
-          },
         );
         expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
           Routes.WALLET.CASH_TOKENS_FULL_VIEW,
