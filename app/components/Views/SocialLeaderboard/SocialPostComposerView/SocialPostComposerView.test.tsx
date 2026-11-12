@@ -107,6 +107,13 @@ jest.mock('../../../UI/SocialFeed/utils/formatters', () => ({
   formatFeedTimestamp: () => 'Now',
 }));
 
+let mockIsProfileTradingActivityPrivate = false;
+jest.mock('../../../../selectors/profileController', () => ({
+  ...jest.requireActual('../../../../selectors/profileController'),
+  selectIsProfileTradingActivityPrivate: () =>
+    mockIsProfileTradingActivityPrivate,
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -1467,6 +1474,109 @@ describe('SocialPostComposerView', () => {
         },
         source: 'metamask-mobile',
       });
+    });
+  });
+
+  describe('private profile', () => {
+    beforeEach(() => {
+      mockIsProfileTradingActivityPrivate = true;
+    });
+
+    afterEach(() => {
+      mockIsProfileTradingActivityPrivate = false;
+    });
+
+    it('shows the private state instead of the editor for a private profile', () => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('social_leaderboard.composer.private_description'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+      ).toBeNull();
+    });
+
+    it('marks the private state title as a heading', () => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.getByRole('header', {
+          name: 'social_leaderboard.trader_profile.private_title_own',
+        }),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens trading activity settings from the privacy settings button', () => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialPostComposerViewSelectorsIDs.PRIVACY_SETTINGS_BUTTON,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
+      );
+      expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+        'button_clicked',
+        'success',
+      );
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('goes back when the close button is pressed', () => {
+      renderWithProvider(<SocialPostComposerView />);
+
+      fireEvent.press(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrackComposerInteraction).toHaveBeenCalledWith(
+        'button_clicked',
+        'dismissed',
+      );
+    });
+
+    it('shows the private state for a post-trade entry without submitting', () => {
+      mockRouteParams = {
+        tradeInFlight: {
+          orderId: '42',
+          chain: 'hyperliquid',
+          tokenAddress: 'ETH',
+        },
+      };
+
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeOnTheScreen();
+      expect(mockCreateSwapComment).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the editor when the composer opens again after the profile goes public', () => {
+      const { unmount } = renderWithProvider(<SocialPostComposerView />);
+
+      unmount();
+      mockIsProfileTradingActivityPrivate = false;
+      renderWithProvider(<SocialPostComposerView />);
+
+      expect(
+        screen.queryByTestId(SocialPostComposerViewSelectorsIDs.PRIVATE_STATE),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      ).toBeOnTheScreen();
     });
   });
 });

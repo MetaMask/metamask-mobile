@@ -486,6 +486,85 @@ describe('SocialFeedVirtualized', () => {
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
+  describe('enabled', () => {
+    it('fetches by default', () => {
+      renderFeed();
+
+      expect(lastFeedOptions()?.enabled).toBe(true);
+    });
+
+    it('stops fetching when the host turns the feed off', () => {
+      renderFeed({ enabled: false });
+
+      expect(lastFeedOptions()?.enabled).toBe(false);
+    });
+
+    it('shows no rows, placeholder, or footer while off', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({
+          posts: [post('p1'), post('p2')],
+          error: 'boom',
+          dataUpdatedAt: undefined,
+        }),
+      );
+
+      renderFeed({ enabled: false });
+
+      expect(screen.queryByText('p1')).toBeNull();
+      expect(screen.queryByText('p2')).toBeNull();
+      expect(screen.queryByTestId(SOCIAL_FEED_RETRY_TEST_ID)).toBeNull();
+      expect(
+        screen.queryByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeNull();
+    });
+
+    it('does not load the next page while off', () => {
+      renderFeed({ enabled: false });
+
+      expect(getList().props.onEndReached).toBeUndefined();
+    });
+
+    it('still tells the host about a pull-to-refresh but skips the feed refetch', async () => {
+      const refresh = jest.fn(async () => undefined);
+      const onRefresh = jest.fn();
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ enabled: false, onRefresh });
+
+      await act(async () => {
+        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      });
+
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('shows the rows again when turned back on', () => {
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('p1')] }));
+      const { rerender } = renderFeed({ enabled: false });
+      expect(screen.queryByText('p1')).toBeNull();
+
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          enabled
+        />,
+      );
+
+      expect(screen.getByText('p1')).toBeOnTheScreen();
+    });
+  });
+
+  it('starts the pull-to-refresh spinner at the host offset', () => {
+    renderFeed({ refreshProgressViewOffset: 120 });
+
+    expect(
+      screen.UNSAFE_getByType(RefreshControl).props.progressViewOffset,
+    ).toBe(120);
+  });
+
   it('refreshes through the refresh control', async () => {
     const refresh = jest.fn(async () => undefined);
     mockUseSocialFeed.mockReturnValue(feedState({ refresh }));

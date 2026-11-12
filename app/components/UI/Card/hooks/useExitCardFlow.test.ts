@@ -16,6 +16,7 @@ interface TestRoute {
 
 interface TestNavigation {
   navigate: jest.Mock;
+  reset: jest.Mock;
   goBack: jest.Mock;
   canGoBack: jest.Mock;
   getParent: () => TestNavigation | undefined;
@@ -23,6 +24,7 @@ interface TestNavigation {
 }
 
 const mockNavigate = jest.fn();
+const mockReset = jest.fn();
 let mockScreenNavigation: TestNavigation;
 
 jest.mock('@react-navigation/native', () => ({
@@ -45,6 +47,7 @@ const createNavigation = ({
   routes?: TestRoute[];
 }): TestNavigation => ({
   navigate: mockNavigate,
+  reset: mockReset,
   goBack: jest.fn(),
   canGoBack: jest.fn(() => canGoBack),
   getParent: () => parent,
@@ -119,6 +122,49 @@ describe('useExitCardFlow', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+  });
+
+  it('resets to Card home when the pending fallback has no opener', () => {
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current({ fallback: 'card-home-pending' });
+    });
+
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME, params: { fromKycPending: true } }],
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('returns to the opener instead of the pending fallback', () => {
+    const cardRoot = createNavigation({
+      routeName: Routes.CARD.ROOT,
+      params: { returnToCaller: true },
+      index: 1,
+    });
+    const onboarding = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.ROOT,
+      parent: cardRoot,
+    });
+    mockScreenNavigation = createNavigation({
+      routeName: Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      parent: onboarding,
+    });
+
+    const { result } = renderHook(() => useExitCardFlow());
+
+    act(() => {
+      result.current({ fallback: 'card-home-pending' });
+    });
+
+    expect(cardRoot.goBack).toHaveBeenCalledTimes(1);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('navigates to wallet home when the Card root cannot go back', () => {

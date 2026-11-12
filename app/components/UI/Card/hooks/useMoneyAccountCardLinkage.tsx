@@ -31,6 +31,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/feature
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
+  selectCardHomeData,
   selectCardHomeDataStatus,
   selectIsCardAuthenticated,
   selectIsCardVerified,
@@ -218,6 +219,7 @@ export const useMoneyAccountCardLinkage = ({
     selectImmersveMoneyAccountMode,
   );
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
+  const cardHomeData = useSelector(selectCardHomeData);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isAlreadyDelegated = useSelector(selectIsMoneyAccountDelegatedForCard);
   const pendingMoneyAccountCardLinkEntryPoint = useSelector(
@@ -299,6 +301,12 @@ export const useMoneyAccountCardLinkage = ({
     hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
   const isVerifiedForLinking = isCardVerified || !reportsVerificationStatus;
+  // Immersve has no verification status, so a signed-in session is not proof
+  // of a card. Link only once card home data includes one. The funding
+  // approval still uses canSubmitDelegation, which stays open after KYC.
+  const isReadyToLink =
+    isCardVerified ||
+    (!reportsVerificationStatus && Boolean(cardHomeData?.card));
   const canSubmitDelegation = Boolean(
     hasRequirements &&
       isCardAuthenticated &&
@@ -308,7 +316,10 @@ export const useMoneyAccountCardLinkage = ({
       isMoneyAccountLinkingSupported,
   );
   const canLink = Boolean(
-    canSubmitDelegation && !isAlreadyDelegated && !isResidencyBlocked,
+    canSubmitDelegation &&
+      isReadyToLink &&
+      !isAlreadyDelegated &&
+      !isResidencyBlocked,
   );
 
   const getLinkFlowRedirectTarget = useCallback(() => {
@@ -489,7 +500,7 @@ export const useMoneyAccountCardLinkage = ({
       }
 
       if (isCardAuthenticated) {
-        if (!isVerifiedForLinking) {
+        if (!isVerifiedForLinking || !isReadyToLink) {
           return;
         }
 
@@ -538,6 +549,7 @@ export const useMoneyAccountCardLinkage = ({
       primaryMoneyAccount?.address,
       isCardAuthenticated,
       isVerifiedForLinking,
+      isReadyToLink,
       isAlreadyDelegated,
       isCardholder,
       isResidencyBlocked,
@@ -559,7 +571,7 @@ export const useMoneyAccountCardLinkage = ({
       return;
     }
 
-    if (!isVerifiedForLinking) {
+    if (!isVerifiedForLinking || !isReadyToLink) {
       if (cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error') {
         dispatch(setPendingMoneyAccountCardLink(null));
       }
@@ -612,6 +624,7 @@ export const useMoneyAccountCardLinkage = ({
     isCardAuthenticated,
     isMoneyAccountLinkingSupported,
     isVerifiedForLinking,
+    isReadyToLink,
     hasMoneyAccountBaseRequirements,
     isMoneyAccountCardSupported,
     moneyAccountCardToken,

@@ -107,7 +107,6 @@ import { registerHwSubmissionOutcomeListener } from '../../HardwareWallet/Swaps/
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -321,9 +320,6 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
-  const isProfileTradingActivityPrivate = useSelector(
-    selectIsProfileTradingActivityPrivate,
-  );
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1617,8 +1613,9 @@ export function useQuickBuyController(
       setIsPresetAddFundsMode(false);
       return;
     }
-    setIsPresetAddFundsMode(numeric > maxSpendFiat);
-  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode]);
+    // Max spends the exact balance; its cent-rounded fiat can exceed maxSpendFiat.
+    setIsPresetAddFundsMode(!isMaxSourceAmount && numeric > maxSpendFiat);
+  }, [fiatAmount, maxSpendFiat, hasSourcePrice, tradeMode, isMaxSourceAmount]);
 
   const handleConfirm = useCallback(async () => {
     if ((isPresetAddFundsMode || hasNoPayWithFunds) && tradeMode === 'buy') {
@@ -1674,6 +1671,8 @@ export function useQuickBuyController(
             ? { [QuickBuyEventProperties.AMOUNT_USD]: amountUsd }
             : {}),
           [QuickBuyEventProperties.TRADE_TYPE]: tradeMode,
+          [QuickBuyEventProperties.IS_COPY_TRADE]:
+            Boolean(copyTradeOrigin) || analyticsContext.isCopyTrade === true,
           ...(submittedPayWith
             ? {
                 [QuickBuyEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
@@ -1765,14 +1764,12 @@ export function useQuickBuyController(
       costLabel: tradeToastInfo.fiatAmountLabel,
       entryPriceLabel: formattedRate,
     };
-    // Public copy-trades always share. Private profiles use the normal
-    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
+    // Copy-trades always share. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
     const canPostTradeShare =
       isSpotPostTradeShareEligible(amountUsdValue) &&
       !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
-    const isForcedPostTradeShare =
-      postTradeShare && !isProfileTradingActivityPrivate;
+    const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
       isForcedPostTradeShare && canPostTradeShare;
     const prompt = isForcedPostTradeShare
@@ -1826,6 +1823,9 @@ export function useQuickBuyController(
                 : undefined,
             tradeInFlightChain,
             copyTradeOrigin,
+            ...(submittedTraderAddress
+              ? { traderAddress: submittedTraderAddress }
+              : {}),
             owner: postTradeShareOwner,
             preview: sharePreview,
           })
@@ -2033,7 +2033,6 @@ export function useQuickBuyController(
     preserveBridgeStateOnUnmount,
     navigation,
     postTradeShare,
-    isProfileTradingActivityPrivate,
     resolvePostTradePrompt,
     copyTradeOrigin,
     postTradeShareOwner,
@@ -2041,6 +2040,7 @@ export function useQuickBuyController(
     estimatedReceiveAmount,
     target,
     analyticsContext.source,
+    analyticsContext.isCopyTrade,
   ]);
 
   // Preformatted headline value in the user's display currency (correct symbol
