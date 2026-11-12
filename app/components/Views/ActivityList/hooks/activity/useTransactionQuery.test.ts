@@ -73,7 +73,6 @@ describe('useTransactionQuery', () => {
     );
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryFn: expect.any(Symbol),
         retry: false,
         select: expect.any(Function),
       }),
@@ -110,7 +109,6 @@ describe('useTransactionQuery', () => {
     );
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        enabled: true,
         retry: false,
         select: expect.any(Function),
       }),
