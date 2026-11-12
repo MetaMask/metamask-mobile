@@ -16,6 +16,32 @@ const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   bank_transfer: 'money.transaction.deposited',
 };
 
+function withCardEnrichment(
+  base: MoneyTransactionDisplayInfo,
+  enrichment: CardTransaction,
+): MoneyTransactionDisplayInfo {
+  // originalAmount is already the merchant-currency amount from the Card
+  // provider. formatCardAmount only formats it; USD stays on the mUSD line.
+  const original = enrichment.originalAmount;
+  const secondaryAmount =
+    original && original.currency.toUpperCase() !== 'USD'
+      ? formatCardAmount(original, enrichment.isDebit)
+      : base.fiatAmount;
+
+  return {
+    ...base,
+    description: enrichment.merchant?.name ?? base.description,
+    fiatAmount: secondaryAmount,
+    // A declined or reversed purchase can still settle on-chain, so the
+    // Accounts-API row is indistinguishable from a successful spend — the
+    // data service only sees the transfer. The card provider holds the real
+    // outcome, so let the enrichment override the status.
+    status: isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? 'failed'
+      : base.status,
+  };
+}
+
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
   enrichment?: CardTransaction,
@@ -74,24 +100,5 @@ export function accountsApiActivityDisplayInfo(
     return base;
   }
 
-  // originalAmount is already the merchant-currency amount from the Card
-  // provider. formatCardAmount only formats it; USD stays on the mUSD line.
-  const original = enrichment.originalAmount;
-  const secondaryAmount =
-    original && original.currency.toUpperCase() !== 'USD'
-      ? formatCardAmount(original, enrichment.isDebit)
-      : fiatAmount;
-
-  return {
-    ...base,
-    description: enrichment.merchant?.name ?? base.description,
-    fiatAmount: secondaryAmount,
-    // A declined or reversed purchase can still settle on-chain, so the
-    // Accounts-API row is indistinguishable from a successful spend — the
-    // data service only sees the transfer. The card provider holds the real
-    // outcome, so let the enrichment override the status.
-    status: isUnsuccessfulCardTransactionStatus(enrichment.status)
-      ? 'failed'
-      : base.status,
-  };
+  return withCardEnrichment(base, enrichment);
 }

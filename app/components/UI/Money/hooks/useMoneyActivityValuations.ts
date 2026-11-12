@@ -37,6 +37,18 @@ import type { VaultShareToken } from '../utils/accountsApi';
 
 const EMPTY_CACHE: VaultShareValuationCacheEntry[] = [];
 
+interface ValuationRequest {
+  chainId: number;
+  chainIdHex: Hex;
+  vaultAddresses: Hex[];
+  txHashes: string[];
+}
+
+interface ValuationBatchResult {
+  entries: VaultShareValuationCacheEntry[];
+  failed: boolean;
+}
+
 interface UseMoneyActivityValuationsOptions {
   pageActivities: readonly (readonly AccountsApiActivity[])[];
   moneyAddress: string;
@@ -53,6 +65,10 @@ export interface UseMoneyActivityValuationsResult {
 
 function numericChainId(chainId: Hex): number {
   return Number.parseInt(chainId, 16);
+}
+
+function compareStrings(left: string, right: string): number {
+  return left.localeCompare(right);
 }
 
 function chunk<Item>(values: readonly Item[], size: number): Item[][] {
@@ -100,6 +116,66 @@ function usableEntries(
   );
 }
 
+function valuationRequests(
+  missing: ReadonlyMap<number, Set<string>>,
+  vaultShareTokens: readonly VaultShareToken[],
+): ValuationRequest[] {
+  const requests: ValuationRequest[] = [];
+  for (const [chainId, hashes] of missing) {
+    const configuredVaults = vaultShareTokens.filter(
+      (token) => numericChainId(token.chainId) === chainId,
+    );
+    const chainIdHex = configuredVaults[0]?.chainId;
+    if (!chainIdHex) {
+      continue;
+    }
+    for (const txHashes of chunk(
+      [...hashes].sort(compareStrings),
+      VAULT_SHARE_VALUATIONS_MAX_TX_HASHES,
+    )) {
+      requests.push({
+        chainId,
+        chainIdHex,
+        vaultAddresses: configuredVaults.map((token) => token.address),
+        txHashes,
+      });
+    }
+  }
+  return requests;
+}
+
+async function fetchValuationBatch({
+  request,
+  moneyAddress,
+  targets,
+}: {
+  request: ValuationRequest;
+  moneyAddress: string;
+  targets: readonly VaultShareValuationTarget[];
+}): Promise<ValuationBatchResult> {
+  try {
+    const response = await Engine.controllerMessenger.call(
+      'MoneyAccountApiDataService:fetchVaultShareValuations',
+      moneyAddress,
+      { txHashes: request.txHashes, chainId: request.chainId },
+    );
+    return {
+      entries: usableEntries(
+        targets,
+        cacheEntriesFromResponse({
+          response,
+          account: moneyAddress,
+          chainId: request.chainIdHex,
+          vaultAddresses: request.vaultAddresses,
+        }),
+      ),
+      failed: false,
+    };
+  } catch {
+    return { entries: [], failed: true };
+  }
+}
+
 function missingHashesByChain(
   targets: readonly VaultShareValuationTarget[],
   entries: ReadonlyMap<string, VaultShareValuationCacheEntry>,
@@ -122,7 +198,7 @@ function requestParams(
   return [...missing.entries()]
     .map(([chainId, hashes]) => ({
       chainId,
-      txHashes: [...hashes].sort(),
+      txHashes: [...hashes].sort(compareStrings),
     }))
     .sort((a, b) => a.chainId - b.chainId);
 }
@@ -207,66 +283,42 @@ export function useMoneyActivityValuations({
               tags: { page_index: pageIndex },
             },
             async (context) => {
-              let entries = readCachedVaultShareValuations();
-              let entryMap = entriesByIdentity(entries);
-              let requestedCount = 0;
-              let chunkCount = 0;
-              let failedChunkCount = 0;
-              const freshMissing = missingHashesByChain(page.targets, entryMap);
-
-              for (const [chainId, hashes] of freshMissing) {
-                const configuredVaults = vaultShareTokens.filter(
-                  (token) => numericChainId(token.chainId) === chainId,
-                );
-                const chainIdHex = configuredVaults[0]?.chainId;
-                if (!chainIdHex) {
-                  continue;
-                }
-                const chunks = chunk(
-                  [...hashes].sort(),
-                  VAULT_SHARE_VALUATIONS_MAX_TX_HASHES,
-                );
-                chunkCount += chunks.length;
-
-                for (const txHashes of chunks) {
-                  requestedCount += txHashes.length;
-                  try {
-                    const response = await Engine.controllerMessenger.call(
-                      'MoneyAccountApiDataService:fetchVaultShareValuations',
-                      moneyAddress,
-                      { txHashes, chainId },
-                    );
-                    const newEntries = usableEntries(
-                      page.targets,
-                      cacheEntriesFromResponse({
-                        response,
-                        account: moneyAddress,
-                        chainId: chainIdHex,
-                        vaultAddresses: configuredVaults.map(
-                          (token) => token.address,
-                        ),
-                      }),
-                    );
-                    if (newEntries.length > 0) {
-                      await writeCachedVaultShareValuations(newEntries);
-                      entries = [...entries, ...newEntries];
-                      entryMap = entriesByIdentity(entries);
-                    }
-                  } catch {
-                    failedChunkCount += 1;
-                  }
-                }
+              const entries = readCachedVaultShareValuations();
+              const requests = valuationRequests(
+                missingHashesByChain(page.targets, entriesByIdentity(entries)),
+                vaultShareTokens,
+              );
+              const batches = await Promise.all(
+                requests.map((request) =>
+                  fetchValuationBatch({
+                    request,
+                    moneyAddress,
+                    targets: page.targets,
+                  }),
+                ),
+              );
+              const newEntries = [
+                ...entriesByIdentity(
+                  batches.flatMap((batch) => batch.entries),
+                ).values(),
+              ];
+              if (newEntries.length > 0) {
+                await writeCachedVaultShareValuations(newEntries);
               }
 
               annotateTrace(context, {
-                requested_count: requestedCount,
+                requested_count: requests.reduce(
+                  (count, request) => count + request.txHashes.length,
+                  0,
+                ),
                 cache_hit_count: page.targets.filter((target) =>
                   hasHistoricalValue(target, page.cachedByIdentity),
                 ).length,
-                chunk_count: chunkCount,
-                failed_chunk_count: failedChunkCount,
+                chunk_count: requests.length,
+                failed_chunk_count: batches.filter((batch) => batch.failed)
+                  .length,
               });
-              return usableEntries(page.targets, entries);
+              return usableEntries(page.targets, [...entries, ...newEntries]);
             },
           ),
       } as const;
