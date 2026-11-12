@@ -14,7 +14,7 @@ import MoneyNextBestActionParallax, {
   PARALLAX_ARTBOARD_CARD,
   PARALLAX_ARTBOARD_FUND,
 } from '../MoneyNextBestActionParallax';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';

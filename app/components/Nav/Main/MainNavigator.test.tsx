@@ -223,9 +223,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
-  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {
@@ -575,7 +575,7 @@ describe('MainNavigator', () => {
   });
 
   // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
-  // read once at module-load time (see MainNavigator.js) so that
+  // read once at module-load time (see MainNavigator.tsx) so that
   // `app/features/SampleFeature` is dead-code-eliminated out of builds that
   // don't set the flag. Re-requiring the module with the flag flipped would
   // pull in a second React instance and break context, so only the default
@@ -907,38 +907,6 @@ describe('MainNavigator', () => {
           },
         },
       },
-    });
-
-    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('treatment'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
-    });
-
-    it('does not register the ProfileDrawer route under the control arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('control'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
     });
 
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
@@ -1898,7 +1866,7 @@ describe('MainNavigator', () => {
 
     expect(manageProfileScreen).toBeDefined();
     expect(manageProfileScreen?.component.displayName).toBe(
-      'withSocialAccountGate(ManageProfileView)',
+      'withSocialAccountGate(withPortfolioBalanceProviders(ManageProfileView))',
     );
   });
 

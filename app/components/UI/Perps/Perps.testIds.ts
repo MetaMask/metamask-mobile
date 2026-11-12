@@ -187,6 +187,15 @@ export const PerpsWatchlistSelectorsIDs = {
   SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
   SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
   SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+  INLINE_ROWS: 'perps-watchlist-inline-rows',
+} as const;
+
+export const PerpsTabSelectorsIDs = {
+  FILTERS: 'perps-tab-filters',
+  LOADING: 'perps-tab-loading',
+  MARKET_LIST: 'perps-tab-market-list',
+  SORT_SHEET: 'perps-tab-sort-sheet',
+  TRENDING_LISTS_HEADER: 'section-header-perps-trending-lists',
 } as const;
 
 // ========================================
@@ -1265,6 +1274,16 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
   ISOLATED_OPTION: 'perps-margin-mode-isolated',
   CROSS_OPTION: 'perps-margin-mode-cross',
+} as const;
+
+export const PerpsCrossMarginConfirmBottomSheetSelectorsIDs = {
+  CONTAINER: 'perps-cross-margin-confirm-bottom-sheet',
+  CLOSE_BUTTON: 'perps-cross-margin-confirm-bottom-sheet-close',
+  COLLATERAL_ITEM: 'perps-cross-margin-confirm-collateral',
+  LIQUIDATION_ITEM: 'perps-cross-margin-confirm-liquidation',
+  MARGIN_ITEM: 'perps-cross-margin-confirm-margin',
+  GO_BACK_BUTTON: 'perps-cross-margin-confirm-go-back',
+  CONFIRM_BUTTON: 'perps-cross-margin-confirm-confirm',
 } as const;
 
 export const PerpsLeverageBottomSheetSelectorsIDs = {

@@ -110,6 +110,24 @@ describe('PositionTokenAvatar', () => {
     jest.clearAllMocks();
   });
 
+  it('loads the MetaMask icon when chain is already a CAIP id', () => {
+    renderWithProvider(
+      <PositionTokenAvatar
+        position={{
+          ...basePosition,
+          chain: 'eip155:1',
+          tokenAddress:
+            'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          tokenImageUrl: null,
+        }}
+      />,
+    );
+
+    expect(lastAvatarTokenProps().src).toEqual({
+      uri: 'https://static.cx.metamask.io/eip155:1.png',
+    });
+  });
+
   it('renders with the Clicker URL when tokenImageUrl is set', () => {
     renderWithProvider(<PositionTokenAvatar position={basePosition} />);
 

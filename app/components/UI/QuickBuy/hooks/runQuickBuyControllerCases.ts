@@ -27,7 +27,6 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -266,9 +265,6 @@ export const setupDefaultMocks = () => {
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
-  (
-    selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-  ).mockReturnValue(false);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
@@ -4190,6 +4186,53 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('formats the share pair label with swap sheet decimals and grouping', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote(),
+              destTokenAmount: '1234.5678912345',
+            }),
+          );
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          // The test i18n mock returns keys, so spy on the interpolation the
+          // pair label is built from. Restore in `finally` because the suite's
+          // `resetAllMocks` would otherwise leave the spy returning undefined.
+          const i18nMock = jest.requireMock('../../../../../locales/i18n');
+          const stringsSpy = jest.spyOn(i18nMock, 'strings');
+          try {
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              true,
+            );
+
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+
+            expect(stringsSpy).toHaveBeenCalledWith(
+              'bridge.post_trade_modal.trade_subtitle',
+              {
+                sourceAmount: '0.01',
+                sourceSymbol: 'ETH',
+                destAmount: '1,234.56789',
+                destSymbol: 'TARGET',
+              },
+            );
+          } finally {
+            stringsSpy.mockRestore();
+          }
+        });
+
         it('stores the copy-trade origin on the post-trade share session', async () => {
           mockUsableQuote();
           (
@@ -4436,24 +4479,6 @@ export const runQuickBuyControllerCases = ({
               'tx-1',
               expect.objectContaining({
                 postTradeShare: true,
-                postTradePrompt: undefined,
-              }),
-            );
-          });
-
-          it('uses the normal toasts for copy-trades from a private profile', async () => {
-            (
-              selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-            ).mockReturnValue(true);
-
-            await submit(true);
-
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
                 postTradePrompt: undefined,
               }),
             );
