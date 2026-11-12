@@ -1,15 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { NavigationState, PartialState } from '@react-navigation/native';
-import NavigationService from '../../../core/NavigationService';
+import { NAVIGATION_CHILDREN_ROUTE } from '../../../components/Nav/NavigationProvider/constants';
 import Routes from '../../../constants/navigation/Routes';
+import NavigationService from '../../../core/NavigationService';
 
 type RouteState = NavigationState | PartialState<NavigationState>;
-
-/**
- * NavigationProvider mounts the app inside one native-stack screen of this
- * name. It is not a screen the user opened.
- */
-export const NAVIGATION_CHILDREN_ROUTE = 'NavigationChildren';
 
 const topRouteOf = (state: RouteState | undefined) =>
   state?.routes[state.index ?? state.routes.length - 1];

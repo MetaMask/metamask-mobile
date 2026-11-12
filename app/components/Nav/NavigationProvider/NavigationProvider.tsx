@@ -19,6 +19,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { NAVIGATION_CHILDREN_ROUTE } from './constants';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
@@ -29,7 +30,6 @@ import {
 } from '../../../util/analytics/navigationAnalyticsAttribution';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
-import { NAVIGATION_CHILDREN_ROUTE } from '../../../util/notifications/hooks/useIsHomeUnobstructed';
 
 const NativeStack = createNativeStackNavigator();
 

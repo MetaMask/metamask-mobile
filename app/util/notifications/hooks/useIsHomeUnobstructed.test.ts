@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
 import type { NavigationState } from '@react-navigation/native';
+import { NAVIGATION_CHILDREN_ROUTE } from '../../../components/Nav/NavigationProvider/constants';
 import Routes from '../../../constants/navigation/Routes';
 import {
   isHomeUnobstructedState,
-  NAVIGATION_CHILDREN_ROUTE,
   useIsHomeUnobstructed,
 } from './useIsHomeUnobstructed';
 
