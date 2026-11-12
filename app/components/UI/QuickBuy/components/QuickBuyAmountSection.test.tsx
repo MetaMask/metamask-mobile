@@ -286,3 +286,58 @@ describe('QuickBuyAmountSection open-keypad symbol', () => {
     ).toHaveTextContent('0');
   });
 });
+
+describe('QuickBuyAmountSection post minimum disclaimer', () => {
+  const baseProps = {
+    amountDisplayMode: 'fiat' as const,
+    fiatAmountLabel: '$0',
+    destSymbol: 'ETH',
+    estimatedReceiveAmount: undefined,
+    isQuoteLoading: false,
+  };
+
+  it('replaces the secondary line with the buy disclaimer when the amount is empty', () => {
+    render(
+      <QuickBuyAmountSection {...baseProps} tradeMode="buy" isEmptyAmount />,
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.min_post_buy'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('0 ETH')).not.toBeOnTheScreen();
+  });
+
+  it('shows the sell disclaimer below the available balance when the amount is empty', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        tradeMode="sell"
+        isEmptyAmount
+        sourceBalanceDisplay="$18.46"
+      />,
+    );
+
+    expect(
+      screen.getByText('social_leaderboard.quick_buy.available_balance'),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('quick-buy-post-disclaimer')).toHaveTextContent(
+      'social_leaderboard.quick_buy.min_post_sell',
+    );
+  });
+
+  it('hides the disclaimer once an amount is entered', () => {
+    render(
+      <QuickBuyAmountSection
+        {...baseProps}
+        fiatAmountLabel="$5"
+        fiatAmount="5"
+        tradeMode="buy"
+        isEmptyAmount={false}
+      />,
+    );
+
+    expect(
+      screen.queryByText('social_leaderboard.quick_buy.min_post_buy'),
+    ).not.toBeOnTheScreen();
+  });
+});
