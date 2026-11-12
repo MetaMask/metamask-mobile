@@ -18,6 +18,7 @@ import {
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
 import { MUSD_MAINNET } from '../../../constants/musd-mainnet';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PERPS_ARBITRUM_USDC = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
 const PERPS_WITHDRAW_TELLER = '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117';
@@ -960,26 +961,7 @@ async function mockAccountsApiTransactions(
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {
