@@ -563,9 +563,7 @@ describe('CardHome', () => {
         extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
       });
 
-      fireEvent.press(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      );
+      fireEvent.press(await findByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
       expect(
         await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
@@ -598,7 +596,7 @@ describe('CardHome', () => {
         await findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
   });
