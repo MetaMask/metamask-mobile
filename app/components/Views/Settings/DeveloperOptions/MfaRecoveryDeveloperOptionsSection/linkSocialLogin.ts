@@ -183,7 +183,8 @@ export async function linkSocialLogin({
       : undefined;
   const seedlessEmail = seedlessState.socialLoginEmail || undefined;
   const sendsEmail = identifierType === 'GOOGLE' || identifierType === 'APPLE';
-  const email = '6verifier1@11.gg'; //sendsEmail ? (tokenEmail ?? seedlessEmail) : undefined;
+  // To link / add to cubist Need to change to modidied verifier id that you use
+  const email = '7verifier1@11.gg'; //sendsEmail ? (tokenEmail ?? seedlessEmail) : undefined;
   const emailDiagnostics: LinkSocialLoginEmailDiagnostics = {
     emailSource:
       email === undefined
