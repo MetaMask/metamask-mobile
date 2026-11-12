@@ -214,6 +214,8 @@ export function useImmersveCardProvisioning(
     if (isReconcileDeferredRef.current) {
       isReconcileDeferredRef.current = false;
       hasOpenedCardFlowRef.current = false;
+      // Same as the recheck below: Continue stays disabled until it lands.
+      setHasResolvedStatus(false);
       setRecheckCount((count) => count + 1);
       return;
     }
