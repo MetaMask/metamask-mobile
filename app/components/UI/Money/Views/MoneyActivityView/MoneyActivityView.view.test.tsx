@@ -17,11 +17,14 @@ import {
   MONEY_STANDARD_VAULT,
 } from '../../../../../../tests/component-view/presets/moneyActivity';
 import { MoneyActivityItemTestIds } from '../../components/MoneyActivityItem/MoneyActivityItem.testIds';
+import {
+  CARD_BLOCK_NUMBER,
+  CARD_TX_HASH as CARD_HASH,
+  CASHBACK_TX_HASH as CASHBACK_HASH,
+  cardValuation,
+  vaultShareValuationResponse,
+} from '../../__fixtures__/vaultShareValuations';
 
-const CARD_HASH =
-  '0x8b6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f1';
-const CASHBACK_HASH =
-  '0x69271794b692b7bd6e0f89c60a566421f9cd5584779885eeb3c542cfb93cdf79';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
 const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
 
@@ -31,21 +34,12 @@ const defaultEngineCall = engineCall.getMockImplementation() as
   | ((action: string, ...args: unknown[]) => unknown)
   | undefined;
 
-interface ValuationFixture {
-  hash: string;
-  vault: string;
-  blockNumber: number;
-  sharesWei: string;
-  assetsWei: string;
-  type: 'transfer_in' | 'transfer_out';
-}
-
 function cardTransaction(): MockMoneyActivityTransaction {
   return {
     hash: CARD_HASH,
     timestamp: '2026-09-29T07:17:22Z',
     chainId: 143,
-    blockNumber: 108974623,
+    blockNumber: CARD_BLOCK_NUMBER,
     from: MONEY_ACTIVITY_ACCOUNT,
     to: SETTLEMENT_ADDRESS,
     transactionType: 'METAMASK_CARD_PAYMENT',
@@ -81,40 +75,6 @@ function cashbackTransaction(): MockMoneyActivityTransaction {
         symbol: 'pvmUSD',
       },
     ],
-  };
-}
-
-function valuationResponse(valuations: ValuationFixture[]) {
-  return {
-    address: MONEY_ACTIVITY_ACCOUNT.toLowerCase(),
-    chain_id: 143,
-    results: valuations.map((valuation) => ({
-      tx_hash: valuation.hash.toLowerCase(),
-      found: true,
-      valuations: [
-        {
-          vault_address: valuation.vault,
-          vault_key:
-            valuation.vault === MONEY_PREMIUM_VAULT.boringVault
-              ? 'premium'
-              : 'standard',
-          asset_symbol: 'mUSD',
-          asset_decimals: 6,
-          type: valuation.type,
-          log_index: 1,
-          block_number: valuation.blockNumber,
-          timestamp: '2026-09-29T07:17:22Z',
-          shares_wei: valuation.sharesWei,
-          assets_wei: valuation.assetsWei,
-          rate: '1.017488',
-          source: 'erc20_transfer',
-        },
-      ],
-    })),
-    as_of_block: 121037906,
-    as_of_timestamp: '2026-11-10T14:32:32Z',
-    data_freshness: 'live',
-    indexer_lag_seconds: 21,
   };
 }
 
@@ -160,24 +120,20 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     installMoneyApi({
       valuationReply: () =>
         Promise.resolve(
-          valuationResponse([
-            {
-              hash: CARD_HASH,
-              vault: MONEY_STANDARD_VAULT.boringVault,
-              blockNumber: 108974623,
-              sharesWei: '951755696',
-              assetsWei: '968399999',
-              type: 'transfer_out',
-            },
-            {
-              hash: CASHBACK_HASH,
-              vault: MONEY_PREMIUM_VAULT.boringVault,
-              blockNumber: 107901997,
-              sharesWei: '524978000',
-              assetsWei: '533860000',
-              type: 'transfer_in',
-            },
-          ]),
+          vaultShareValuationResponse(
+            [
+              cardValuation('968399999', MONEY_STANDARD_VAULT.boringVault),
+              {
+                hash: CASHBACK_HASH,
+                vaultAddress: MONEY_PREMIUM_VAULT.boringVault,
+                blockNumber: 107901997,
+                sharesWei: '524978000',
+                assetsWei: '533860000',
+                type: 'transfer_in',
+              },
+            ],
+            MONEY_ACTIVITY_ACCOUNT,
+          ),
         ),
     });
 
@@ -215,16 +171,10 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     installMoneyApi({
       valuationReply: () =>
         Promise.resolve(
-          valuationResponse([
-            {
-              hash: CARD_HASH,
-              vault: MONEY_STANDARD_VAULT.boringVault,
-              blockNumber: 108974623,
-              sharesWei: '951755696',
-              assetsWei: '968399999',
-              type: 'transfer_out',
-            },
-          ]),
+          vaultShareValuationResponse(
+            [cardValuation('968399999', MONEY_STANDARD_VAULT.boringVault)],
+            MONEY_ACTIVITY_ACCOUNT,
+          ),
         ),
     });
 
@@ -271,16 +221,10 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
 
     await act(async () => {
       resolveValuation(
-        valuationResponse([
-          {
-            hash: CARD_HASH,
-            vault: MONEY_STANDARD_VAULT.boringVault,
-            blockNumber: 108974623,
-            sharesWei: '951755696',
-            assetsWei: '900000000',
-            type: 'transfer_out',
-          },
-        ]),
+        vaultShareValuationResponse(
+          [cardValuation('900000000', MONEY_STANDARD_VAULT.boringVault)],
+          MONEY_ACTIVITY_ACCOUNT,
+        ),
       );
       await pendingValuation;
     });

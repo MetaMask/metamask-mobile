@@ -3,7 +3,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
-import type { AccountsApiActivity } from '../types/moneyActivity';
+import {
+  MONEY_ACCOUNT_ADDRESS as ACCOUNT,
+  VAULT_SHARE_TOKENS,
+  cardActivity,
+  cardValuation,
+  vaultShareValuationResponse,
+} from '../__fixtures__/vaultShareValuations';
 import {
   readCachedVaultShareValuations,
   writeCachedVaultShareValuations,
@@ -28,21 +34,8 @@ const mockNetworkTier = jest.mocked(useNetworkTier);
 const mockReadCache = jest.mocked(readCachedVaultShareValuations);
 const mockWriteCache = jest.mocked(writeCachedVaultShareValuations);
 
-const ACCOUNT = '0xabcdef0123456789012345678901234567890123';
-const VAULT = '0x1111111111111111111111111111111111111111' as const;
-const TX_HASH =
-  '0x8b6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f1' as const;
-const activity: AccountsApiActivity = {
-  kind: 'card',
-  hash: TX_HASH,
-  time: 1_700_000_000_000,
-  chainId: '0x8f',
-  blockNumber: 108974623,
-  token: { address: VAULT, symbol: 'vmUSD', decimals: 6 },
-  amount: '951755696',
-  paidTo: '0x4444444444444444444444444444444444444444',
-};
-const vaultShareTokens = [{ chainId: '0x8f' as const, address: VAULT }];
+const activity = cardActivity();
+const vaultShareTokens = [VAULT_SHARE_TOKENS[0]];
 
 function QueryWrapper({
   client,
@@ -95,36 +88,7 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     await waitFor(() => expect(result.current.isSettling).toBe(true));
 
     await act(async () => {
-      resolveValuation({
-        address: ACCOUNT.toLowerCase(),
-        chain_id: 143,
-        results: [
-          {
-            tx_hash: TX_HASH,
-            found: true,
-            valuations: [
-              {
-                vault_address: VAULT,
-                vault_key: 'standard',
-                asset_symbol: 'mUSD',
-                asset_decimals: 6,
-                type: 'transfer_out',
-                log_index: 1,
-                block_number: 108974623,
-                timestamp: '2026-09-29T07:17:22Z',
-                shares_wei: '951755696',
-                assets_wei: '968399999',
-                rate: '1.017488',
-                source: 'erc20_transfer',
-              },
-            ],
-          },
-        ],
-        as_of_block: 1,
-        as_of_timestamp: '2026-11-10T12:34:56Z',
-        data_freshness: 'live',
-        indexer_lag_seconds: 4,
-      });
+      resolveValuation(vaultShareValuationResponse([cardValuation()], ACCOUNT));
       await pending;
     });
 

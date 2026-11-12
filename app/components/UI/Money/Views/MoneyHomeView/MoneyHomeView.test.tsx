@@ -1344,9 +1344,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('historical activity fetch cap', () => {
-    it('does not auto-fill page two when historical valuations are enabled', () => {
-      const loadMore = jest.fn();
-      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
+    beforeEach(() => {
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
         deposits: [],
@@ -1354,6 +1352,11 @@ describe('MoneyHomeView', () => {
         submittedTransactions: [],
         moneyAddress: '0x0000000000000000000000000000000000000001',
       });
+    });
+
+    it('does not auto-fill page two when historical valuations are enabled', () => {
+      const loadMore = jest.fn();
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
       mockUseMoneyAccountApiActivity.mockReturnValue(
         apiActivityResult({
           activity: [CARD_TX],
@@ -1372,13 +1375,6 @@ describe('MoneyHomeView', () => {
     it('keeps the existing auto-fill when historical valuations are disabled', () => {
       const loadMore = jest.fn();
       mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
-      mockUseMoneyAccountTransactions.mockReturnValue({
-        allTransactions: [],
-        deposits: [],
-        transfers: [],
-        submittedTransactions: [],
-        moneyAddress: '0x0000000000000000000000000000000000000001',
-      });
       mockUseMoneyAccountApiActivity.mockReturnValue(
         apiActivityResult({
           activity: [],

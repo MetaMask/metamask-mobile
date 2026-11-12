@@ -50,22 +50,22 @@ const buildTransactionsResponse = (
   },
 });
 
-export function setupAccountsTransactionsApiMock(
-  transactions: MockAccountsApiTransaction[],
-): void {
+function mockAccountsApiGet(path: string, body: object): void {
   clearAllNockMocks();
   disableNetConnect();
 
-  const body = buildTransactionsResponse(transactions);
-
-  nock(ACCOUNTS_API_ORIGIN)
-    .persist()
-    .get(TRANSACTIONS_PATH)
-    .query(true)
-    .reply(200, body);
-
+  nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, body);
   // Same payload as nock. undici fetch is not always settled by the interceptor.
-  stubFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH, body);
+  stubFetchPath(ACCOUNTS_API_ORIGIN, path, body);
+}
+
+export function setupAccountsTransactionsApiMock(
+  transactions: MockAccountsApiTransaction[],
+): void {
+  mockAccountsApiGet(
+    TRANSACTIONS_PATH,
+    buildTransactionsResponse(transactions),
+  );
 }
 
 export interface MockMoneyActivityTransaction {
@@ -92,21 +92,14 @@ export function setupMoneyActivityApiMock(
   address: string,
   transactions: MockMoneyActivityTransaction[],
 ): void {
-  clearAllNockMocks();
-  disableNetConnect();
-
-  const path = moneyTransactionsPath(address);
-  const body = {
+  mockAccountsApiGet(moneyTransactionsPath(address), {
     data: transactions,
     pageInfo: {
       count: transactions.length,
       hasNextPage: false,
       cursor: undefined,
     },
-  };
-
-  nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, body);
-  stubFetchPath(ACCOUNTS_API_ORIGIN, path, body);
+  });
 }
 
 export function clearAccountsTransactionsApiMocks(address?: string): void {

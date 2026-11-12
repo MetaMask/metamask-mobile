@@ -4,6 +4,17 @@ import Engine from '../../../../core/Engine';
 import type { Hex } from '@metamask/utils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { annotateTrace, trace } from '../../../../util/trace';
+import {
+  CARD_TX_HASH as TX_HASH,
+  MONEY_ACCOUNT_ADDRESS as ACCOUNT,
+  OTHER_TX_HASH as TX_HASH_2,
+  PREMIUM_VAULT,
+  STANDARD_VAULT as VAULT,
+  VAULT_SHARE_TOKENS,
+  cardActivity,
+  hashAt as txHash,
+  valuationResponseForActivities as valuationResponse,
+} from '../__fixtures__/vaultShareValuations';
 import type { AccountsApiActivity } from '../types/moneyActivity';
 import type { VaultShareToken } from '../utils/accountsApi';
 import {
@@ -50,30 +61,10 @@ const mockWriteCache = jest.mocked(writeCachedVaultShareValuations);
 const mockTrace = jest.mocked(trace);
 const mockAnnotateTrace = jest.mocked(annotateTrace);
 
-const ACCOUNT = '0xAbCdEf0123456789012345678901234567890123';
-const VAULT = '0x1111111111111111111111111111111111111111' as const;
-const PREMIUM_VAULT = '0x2222222222222222222222222222222222222222' as const;
-const TX_HASH =
-  '0x8b6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f1' as const;
-const TX_HASH_2 =
-  '0x6c6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f2' as const;
-const vaultTokens = [{ chainId: '0x8f' as const, address: VAULT }];
-
-function txHash(index: number): Hex {
-  return `0x${index.toString(16).padStart(64, '0')}`;
-}
+const vaultTokens = [VAULT_SHARE_TOKENS[0]];
 
 function activity(hash: Hex, amount = '951755696'): AccountsApiActivity {
-  return {
-    kind: 'card',
-    hash,
-    time: 1_700_000_000_000,
-    chainId: '0x8f',
-    blockNumber: 108974623,
-    token: { address: VAULT, symbol: 'vmUSD', decimals: 6 },
-    amount,
-    paidTo: '0x4444444444444444444444444444444444444444',
-  };
+  return cardActivity({ hash, amount });
 }
 
 function cacheEntry(
@@ -95,37 +86,6 @@ function cacheEntry(
         assetDecimals: 6,
       },
     ],
-  };
-}
-
-function valuationResponse(rows: AccountsApiActivity[]) {
-  return {
-    address: ACCOUNT.toLowerCase(),
-    chain_id: 143,
-    results: rows.map((row) => ({
-      tx_hash: row.hash.toLowerCase(),
-      found: true,
-      valuations: [
-        {
-          vault_address: VAULT,
-          vault_key: 'standard',
-          asset_symbol: 'mUSD',
-          asset_decimals: 6,
-          type: 'transfer_out' as const,
-          log_index: 1,
-          block_number: row.blockNumber ?? 0,
-          timestamp: '2026-09-29T07:17:22Z',
-          shares_wei: row.amount,
-          assets_wei: '968399999',
-          rate: '1.017488',
-          source: 'erc20_transfer' as const,
-        },
-      ],
-    })),
-    as_of_block: 1,
-    as_of_timestamp: '2026-11-10T12:34:56Z',
-    data_freshness: 'live' as const,
-    indexer_lag_seconds: 4,
   };
 }
 

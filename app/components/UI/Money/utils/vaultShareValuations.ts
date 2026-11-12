@@ -3,7 +3,7 @@ import type {
   VaultShareValuation,
   VaultShareValuationsResponse,
 } from '@metamask/money-account-api-data-service';
-import type { Hex } from '@metamask/utils';
+import { hexToNumber, type Hex } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { MUSD_DECIMALS } from '../../Earn/constants/musd';
 import type {
@@ -54,6 +54,14 @@ export function getVaultShareValuationCacheIdentity(
   ].join(':');
 }
 
+export function entriesByIdentity(
+  entries: readonly VaultShareValuationCacheEntry[],
+): Map<string, VaultShareValuationCacheEntry> {
+  return new Map(
+    entries.map((entry) => [getVaultShareValuationCacheIdentity(entry), entry]),
+  );
+}
+
 export function getVaultShareVaultKey(
   chainId: Hex,
   vaultAddress: string,
@@ -90,7 +98,7 @@ export function getVaultShareValuationTarget({
 
   const key: VaultShareValuationCacheKey = {
     account: moneyAddress.toLowerCase(),
-    chainId: Number.parseInt(activity.chainId, 16),
+    chainId: hexToNumber(activity.chainId),
     vaultAddress: activity.token.address.toLowerCase(),
     txHash: activity.hash.toLowerCase(),
   };
@@ -148,7 +156,7 @@ export function cacheEntriesFromResponse({
   chainId: Hex;
   vaultAddresses: readonly Hex[];
 }): VaultShareValuationCacheEntry[] {
-  const numericChainId = Number.parseInt(chainId, 16);
+  const numericChainId = hexToNumber(chainId);
   if (response.chain_id !== numericChainId) {
     return [];
   }

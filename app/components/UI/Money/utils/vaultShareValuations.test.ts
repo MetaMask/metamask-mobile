@@ -1,6 +1,16 @@
 import type { VaultShareValuation } from '@metamask/money-account-api-data-service';
+import {
+  CARD_BLOCK_NUMBER as BLOCK_NUMBER,
+  CARD_TX_HASH as TX_HASH,
+  MONEY_ACCOUNT_ADDRESS as ACCOUNT,
+  PREMIUM_VAULT,
+  STANDARD_VAULT,
+  UNRELATED_VAULT,
+  VAULT_SHARE_TOKENS as vaultTokens,
+  cardActivity,
+  valuation,
+} from '../__fixtures__/vaultShareValuations';
 import type { AccountsApiActivity } from '../types/moneyActivity';
-import type { VaultShareToken } from './accountsApi';
 import {
   cacheEntriesFromResponse,
   getApproximateVaultShareDisplayAmount,
@@ -9,54 +19,6 @@ import {
   getVaultShareValuationTarget,
   toCachedVaultShareValuation,
 } from './vaultShareValuations';
-
-const ACCOUNT = '0xAbCdEf0123456789012345678901234567890123';
-const STANDARD_VAULT = '0x1111111111111111111111111111111111111111' as const;
-const PREMIUM_VAULT = '0x2222222222222222222222222222222222222222' as const;
-const UNRELATED_VAULT = '0x3333333333333333333333333333333333333333' as const;
-const TX_HASH =
-  '0x8b6975a5d81b44bbe4487b5e5237e25be7ffc71e38d48146e8a501299fddc9f1' as const;
-
-const vaultTokens: VaultShareToken[] = [
-  { chainId: '0x8f', address: STANDARD_VAULT },
-  { chainId: '0x8f', address: PREMIUM_VAULT },
-];
-
-function cardActivity(
-  overrides: Partial<Extract<AccountsApiActivity, { kind: 'card' }>> = {},
-): AccountsApiActivity {
-  return {
-    kind: 'card',
-    hash: TX_HASH,
-    time: 1_700_000_000_000,
-    chainId: '0x8f',
-    blockNumber: 108974623,
-    token: { address: STANDARD_VAULT, symbol: 'vmUSD', decimals: 6 },
-    amount: '951755696',
-    paidTo: '0x4444444444444444444444444444444444444444',
-    ...overrides,
-  };
-}
-
-function valuation(
-  overrides: Partial<VaultShareValuation> = {},
-): VaultShareValuation {
-  return {
-    vault_address: STANDARD_VAULT,
-    vault_key: 'standard',
-    asset_symbol: 'mUSD',
-    asset_decimals: 6,
-    type: 'transfer_out',
-    log_index: 156,
-    block_number: 108974623,
-    timestamp: '2026-09-29T07:17:22Z',
-    shares_wei: '951755696',
-    assets_wei: '968399999',
-    rate: '1.017488',
-    source: 'erc20_transfer',
-    ...overrides,
-  };
-}
 
 describe('vaultShareValuations', () => {
   describe('getVaultShareValuationTarget', () => {
@@ -135,7 +97,7 @@ describe('vaultShareValuations', () => {
       expect(toCachedVaultShareValuation(valuation())).toEqual({
         type: 'transfer_out',
         logIndex: 156,
-        blockNumber: 108974623,
+        blockNumber: BLOCK_NUMBER,
         sharesWei: '951755696',
         assetsWei: '968399999',
         assetDecimals: 6,
@@ -149,7 +111,7 @@ describe('vaultShareValuations', () => {
 
       expect(cached).not.toHaveProperty('logIndex');
       expect(cached).toEqual(
-        expect.objectContaining({ blockNumber: 108974623 }),
+        expect.objectContaining({ blockNumber: BLOCK_NUMBER }),
       );
     });
 

@@ -1,10 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
+import { chunk } from 'lodash';
 import {
   VAULT_SHARE_VALUATIONS_MAX_TX_HASHES,
   type VaultRateResponse,
 } from '@metamask/money-account-api-data-service';
-import type { Hex } from '@metamask/utils';
+import { hexToNumber, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
@@ -25,6 +26,7 @@ import {
 } from '../utils/moneyVaultShareValuationCache';
 import {
   cacheEntriesFromResponse,
+  entriesByIdentity,
   getApproximateVaultShareDisplayAmount,
   getHistoricalVaultShareDisplayAmount,
   getVaultShareValuationCacheIdentity,
@@ -63,28 +65,8 @@ export interface UseMoneyActivityValuationsResult {
   isSettling: boolean;
 }
 
-function numericChainId(chainId: Hex): number {
-  return Number.parseInt(chainId, 16);
-}
-
 function compareStrings(left: string, right: string): number {
   return left.localeCompare(right);
-}
-
-function chunk<Item>(values: readonly Item[], size: number): Item[][] {
-  const chunks: Item[][] = [];
-  for (let index = 0; index < values.length; index += size) {
-    chunks.push(values.slice(index, index + size));
-  }
-  return chunks;
-}
-
-function entriesByIdentity(
-  entries: readonly VaultShareValuationCacheEntry[],
-): Map<string, VaultShareValuationCacheEntry> {
-  return new Map(
-    entries.map((entry) => [getVaultShareValuationCacheIdentity(entry), entry]),
-  );
 }
 
 function hasHistoricalValue(
@@ -123,7 +105,7 @@ function valuationRequests(
   const requests: ValuationRequest[] = [];
   for (const [chainId, hashes] of missing) {
     const configuredVaults = vaultShareTokens.filter(
-      (token) => numericChainId(token.chainId) === chainId,
+      (token) => hexToNumber(token.chainId) === chainId,
     );
     const chainIdHex = configuredVaults[0]?.chainId;
     if (!chainIdHex) {
@@ -358,13 +340,13 @@ export function useMoneyActivityValuations({
       queryKey: [
         MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
         token.address,
-        { chainId: numericChainId(token.chainId) },
+        { chainId: hexToNumber(token.chainId) },
       ],
       queryFn: (): Promise<VaultRateResponse> =>
         Engine.controllerMessenger.call(
           'MoneyAccountApiDataService:fetchVaultRate',
           token.address,
-          { chainId: numericChainId(token.chainId) },
+          { chainId: hexToNumber(token.chainId) },
         ),
       enabled: enabled && canFetch,
       staleTime: 5 * MINUTE,

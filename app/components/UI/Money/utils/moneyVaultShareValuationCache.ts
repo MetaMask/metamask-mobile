@@ -11,7 +11,7 @@ import {
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Logger from '../../../../util/Logger';
 import {
-  getVaultShareValuationCacheIdentity,
+  entriesByIdentity,
   type VaultShareValuationCacheEntry,
 } from './vaultShareValuations';
 
@@ -63,14 +63,9 @@ function mergeEntries(
   current: readonly VaultShareValuationCacheEntry[],
   incoming: readonly VaultShareValuationCacheEntry[],
 ): VaultShareValuationCacheEntry[] {
-  const byIdentity = new Map<string, VaultShareValuationCacheEntry>();
-  for (const entry of current) {
-    byIdentity.set(getVaultShareValuationCacheIdentity(entry), entry);
-  }
-  for (const entry of incoming) {
-    byIdentity.set(getVaultShareValuationCacheIdentity(entry), entry);
-  }
-  return [...byIdentity.values()].slice(-VAULT_SHARE_VALUATION_CACHE_LIMIT);
+  return [...entriesByIdentity([...current, ...incoming]).values()].slice(
+    -VAULT_SHARE_VALUATION_CACHE_LIMIT,
+  );
 }
 
 async function persistEntries(
