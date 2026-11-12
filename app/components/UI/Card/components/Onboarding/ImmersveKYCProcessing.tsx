@@ -764,6 +764,16 @@ const ImmersveKYCProcessing = () => {
         <CardVerifiedContent
           onContinue={handleFinishSetup}
           isLoading={isFinishingSetup}
+          {...(isMoneyAccountCountry
+            ? {
+                description: strings(
+                  'card.card_onboarding.complete.money_account_description',
+                ),
+                confirmLabel: strings(
+                  'card.card_onboarding.complete.money_account_confirm_button',
+                ),
+              }
+            : {})}
         />
       );
     }

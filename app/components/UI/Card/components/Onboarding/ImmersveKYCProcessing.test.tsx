@@ -300,6 +300,9 @@ const setNextAction = (
   });
 };
 
+const buttonLabel = (node: { props: { children?: unknown } }) =>
+  ([] as unknown[]).concat(node.props.children).filter(Boolean).join('');
+
 const closeWebview = (completed = false) => {
   act(() => {
     mockCapturedOnClose?.(completed);
@@ -704,7 +707,12 @@ describe('ImmersveKYCProcessing', () => {
 
       expect(mockRoute).not.toHaveBeenCalled();
       expect(getByTestId(CompleteSelectors.TITLE)).toBeTruthy();
-      expect(getByTestId(CompleteSelectors.CONFIRM_BUTTON)).toBeTruthy();
+      expect(getByTestId(CompleteSelectors.DESCRIPTION).props.children).toBe(
+        'card.card_onboarding.complete.description',
+      );
+      expect(buttonLabel(getByTestId(CompleteSelectors.CONFIRM_BUTTON))).toBe(
+        'card.card_onboarding.complete.confirm_button',
+      );
       expect(queryByTestId('card-header-close-button')).toBeNull();
       expect(queryByTestId('kyc-failed-back-button')).toBeNull();
       expect(mockAddProperties).toHaveBeenCalledWith({
@@ -792,6 +800,12 @@ describe('ImmersveKYCProcessing', () => {
     const { getByTestId } = render(<ImmersveKYCProcessing />);
 
     expect(getByTestId(CompleteSelectors.TITLE)).toBeTruthy();
+    expect(getByTestId(CompleteSelectors.DESCRIPTION).props.children).toBe(
+      'card.card_onboarding.complete.money_account_description',
+    );
+    expect(buttonLabel(getByTestId(CompleteSelectors.CONFIRM_BUTTON))).toBe(
+      'card.card_onboarding.complete.money_account_confirm_button',
+    );
     expect(mockApproveFunding).not.toHaveBeenCalled();
   });
 

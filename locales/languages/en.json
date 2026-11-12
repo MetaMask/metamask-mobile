@@ -11719,7 +11719,9 @@
       "complete": {
         "title": "You're verified",
         "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
-        "confirm_button": "Finish setup"
+        "confirm_button": "Finish setup",
+        "money_account_description": "We're getting your card ready. It'll be on your Card home in a moment.",
+        "money_account_confirm_button": "Continue"
       },
       "account_exists": {
         "title": "You already have an account",
