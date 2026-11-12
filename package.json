@@ -189,7 +189,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/social-controllers": "npm:@metamask-previews/social-controllers@3.21.0-preview-d8f16be",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^38.0.0",
