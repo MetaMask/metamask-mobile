@@ -8,7 +8,13 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Icon,
+  IconName as DsIconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
   CellVariant,
@@ -25,10 +31,7 @@ import {
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
@@ -201,7 +204,7 @@ export default function NetworkListBottomSheet({
                 }}
               >
                 {selectedNetwork === null && (
-                  <Icon name={IconName.Check} size={IconSize.Md} />
+                  <Icon name={DsIconName.Check} size={IconSize.Md} />
                 )}
               </Cell>
             ) : null

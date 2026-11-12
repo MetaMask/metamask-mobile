@@ -96,9 +96,9 @@ const HiddenTokensView = () => {
   const emptyImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
   const rows = useHiddenAssetRows();
 
-  const handleUnhide = useCallback((assetId: CaipAssetType) => {
+  const handleUnhide = useCallback(async (assetId: CaipAssetType) => {
     try {
-      Engine.context.AssetsController.unhideAsset(assetId);
+      await Engine.context.AssetsController.unhideAsset(assetId);
     } catch (error) {
       Logger.error(error as Error, 'HiddenTokensView: unhideAsset failed');
     }
