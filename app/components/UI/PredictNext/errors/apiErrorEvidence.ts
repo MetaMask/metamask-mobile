@@ -42,16 +42,20 @@ export function predictErrorEvidence(
   bodyCode?: string,
   requestSent?: boolean,
 ): PredictErrorEvidence {
+  const relay = (): PredictMutationRelay => {
+    if (phase !== 'commit') {
+      return 'not_a_mutation';
+    }
+    if (requestSent === false) {
+      return 'not_relayed_this_invocation';
+    }
+    return bodyCode !== undefined && COMMIT_PRE_RELAY_CODES[bodyCode] === true
+      ? 'not_relayed_this_invocation'
+      : 'unknown';
+  };
   return {
     phase,
-    mutationRelay:
-      phase !== 'commit'
-        ? 'not_a_mutation'
-        : requestSent === false ||
-            (bodyCode !== undefined &&
-              COMMIT_PRE_RELAY_CODES[bodyCode] === true)
-          ? 'not_relayed_this_invocation'
-          : 'unknown',
+    mutationRelay: relay(),
     operationOutcome: 'unknown',
   };
 }

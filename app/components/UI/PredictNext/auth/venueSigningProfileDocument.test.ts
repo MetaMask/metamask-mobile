@@ -174,6 +174,27 @@ describe('verifyProfileDocument envelope refusals', () => {
     );
   });
 
+  it('accepts a valid signature whose s is high', async () => {
+    const signed = JSON.parse(sign(bundledPayload)) as Record<string, unknown>;
+    const payload = signed.payload;
+    if (typeof payload !== 'string') {
+      throw new Error('sign() produced no payload');
+    }
+    const digest = sha256(new TextEncoder().encode(payload));
+    const lowS = p256.sign(digest, PRIVATE_KEY, { lowS: true });
+    // s and n - s are both valid for the same digest; signers emit either.
+    const highS = new p256.Signature(lowS.r, p256.Point.Fn.neg(lowS.s));
+    const raw = JSON.stringify({
+      payload,
+      signature: toBase64(highS.toBytes('compact')),
+      keyId: 'primary',
+    });
+
+    await expect(verify(bundledPayload, raw)).resolves.toMatchObject({
+      id: 'kalshi-demo-signing',
+    });
+  });
+
   it('refuses a keyId the keyring has no key for', async () => {
     const envelope = JSON.parse(sign(bundledPayload)) as Record<
       string,

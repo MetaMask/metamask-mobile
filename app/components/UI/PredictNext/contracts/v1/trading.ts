@@ -2,18 +2,15 @@ import {
   type AnyStruct,
   array,
   enums,
-  boolean,
   literal,
   mask,
   nullable,
   number,
   object,
   optional,
-  record,
   refine,
   size,
   string,
-  union,
   unknown,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';

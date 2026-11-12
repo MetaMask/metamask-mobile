@@ -12,6 +12,7 @@ import type {
   PredictOrderPreviewParams,
   PredictOrderReceipt,
   PredictOrderReceiptStatus,
+  PredictUnresolvedOrder,
   PredictVenueId,
 } from '../types';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
@@ -295,7 +296,7 @@ export class PredictOrderService {
   #sessionAvailable = false;
   #recoveryPromise?: Promise<void>;
   #recoveryAbort?: AbortController;
-  #recoveryTimer?: OrderOperation['backgroundTimer'];
+  #recoveryTimer?: ReturnType<typeof setTimeout>;
   #recoveryStartedAt = 0;
   #recoveryCalls = 0;
   #recoveryOffset = 0;
@@ -409,8 +410,7 @@ export class PredictOrderService {
     const contextEpoch = this.#contextEpoch;
     if (
       this.#resetsInProgress > 0 ||
-      !operation ||
-      operation.state !== 'quoted' ||
+      operation?.state !== 'quoted' ||
       operation.expiresAt <= Date.now()
     ) {
       throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
@@ -689,6 +689,174 @@ export class PredictOrderService {
     return operation;
   }
 
+  /** A settled operation is one with a terminal Receipt: discovery must not
+   * resurrect it or rewrite its journal row. */
+  #isSettled(previewId: string): boolean {
+    const operation = this.#operations.get(previewId);
+    return (
+      operation?.state === 'resolved' ||
+      (operation?.lastReceipt !== undefined &&
+        isTerminalReceipt(operation.lastReceipt))
+    );
+  }
+
+  /** Journals one discovered order and adopts its receipt. A settled
+   * operation keeps a manual-review row and drops any other one. */
+  async #adoptDiscoveredEntry(
+    journal: OrderDispatchJournal,
+    identityScope: string,
+    generation: number,
+    entry: PredictUnresolvedOrder,
+    reference: OrderDispatchReference,
+  ): Promise<void> {
+    await journal.put(reference);
+    this.#assertNotAbandoned(generation);
+    const after = this.#operations.get(entry.previewId);
+    if (
+      after?.state === 'resolved' ||
+      (after?.lastReceipt && isTerminalReceipt(after.lastReceipt))
+    ) {
+      if (
+        after.lastReceipt?.status === 'needs_manual_review' ||
+        after.recoveryState === 'manual_review'
+      ) {
+        await journal.put({ ...reference, recoveryState: 'manual_review' });
+      } else {
+        await journal.remove(identityScope, this.#venueId, entry.previewId);
+      }
+      this.#assertNotAbandoned(generation);
+      return;
+    }
+    const operation = this.#restoreReference(reference);
+    operation.lastReceipt = entry.receipt;
+    if (reference.recoveryState === 'manual_review') {
+      operation.recoveryState = 'manual_review';
+      operation.state = 'resolved';
+    }
+  }
+
+  /** One discovery page: adopt the venue's unresolved orders into the journal
+   * and into local state. Returns false when the round must stop because the
+   * session is gone; a discovery failure otherwise never drops local
+   * dispatches, whose references are still observed below. */
+  async #mergeDiscoveryPage(
+    identityScope: string,
+    generation: number,
+    references: readonly OrderDispatchReference[],
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    const journal = this.#journal;
+    // One page per round leaves budget for existing journal entries even
+    // when the account has many pages of server operations.
+    if (!journal || this.#discoveryComplete || !this.#hasRecoveryBudget()) {
+      return true;
+    }
+    this.#recoveryCalls += 1;
+    try {
+      const page = await this.#trading.listUnresolvedOrders(
+        { cursor: this.#discoveryCursor, limit: 25 },
+        { signal },
+      );
+      this.#assertNotAbandoned(generation);
+      const known = new Map(
+        references.map((reference) => [reference.previewId, reference]),
+      );
+      for (const entry of page.operations) {
+        if (!this.#isSettled(entry.previewId)) {
+          await this.#adoptDiscoveredEntry(
+            journal,
+            identityScope,
+            generation,
+            entry,
+            {
+              identityScope,
+              venueId: this.#venueId,
+              previewId: entry.previewId,
+              dispatchedAt: Date.parse(entry.submittedAt ?? entry.createdAt),
+              recoveryState:
+                entry.receipt.status === 'needs_manual_review' ||
+                known.get(entry.previewId)?.recoveryState === 'manual_review'
+                  ? 'manual_review'
+                  : 'unresolved',
+            },
+          );
+        }
+      }
+      this.#discoveryCursor = page.nextCursor;
+      this.#discoveryComplete = !page.nextCursor;
+      this.#publishRecovery();
+      return true;
+    } catch (error) {
+      this.#assertNotAbandoned(generation);
+      if (
+        error instanceof PredictError &&
+        [
+          PredictErrorCode.RATE_LIMITED,
+          PredictErrorCode.UNAUTHENTICATED,
+        ].includes(error.code)
+      ) {
+        this.#recoveryActive = false;
+        return false;
+      }
+      return true;
+    }
+  }
+
+  /** Observes one candidate. Returns false when the session is gone, so no
+   * further call in this round can succeed. */
+  async #dispatchRecoveryCandidate(
+    operation: OrderOperation,
+    generation: number,
+  ): Promise<boolean> {
+    this.#recoveryCalls += 1;
+    try {
+      await this.#dispatch(operation, 0);
+    } catch (error) {
+      this.#assertNotAbandoned(generation);
+      const cause =
+        error instanceof PredictError ? error.metadata?.causeCode : undefined;
+      if (
+        cause === PredictErrorCode.RATE_LIMITED ||
+        cause === PredictErrorCode.UNAUTHENTICATED
+      ) {
+        this.#recoveryActive = false;
+        return false;
+      }
+    }
+    this.#assertNotAbandoned(generation);
+    return true;
+  }
+
+  /** Re-observes the dispatched, unresolved operations, round-robin from the
+   * last one attempted and bounded by the recovery budget. */
+  async #dispatchRecoveryCandidates(generation: number): Promise<void> {
+    const candidates = [...this.#operations.values()].filter(
+      (operation) =>
+        operation.state === 'dispatched' &&
+        operation.posted &&
+        operation.recoveryState !== 'manual_review',
+    );
+    if (candidates.length === 0) {
+      return;
+    }
+    const start = this.#recoveryOffset % candidates.length;
+    for (
+      let step = 0;
+      step < candidates.length && this.#hasRecoveryBudget();
+      step += 1
+    ) {
+      const index = (start + step) % candidates.length;
+      const operation = candidates[index];
+      if (this.#inFlightCommits.has(operation.previewId)) {
+        continue;
+      }
+      this.#recoveryOffset = index + 1;
+      if (!(await this.#dispatchRecoveryCandidate(operation, generation))) {
+        return;
+      }
+    }
+  }
+
   #runRecovery(): Promise<void> {
     const generation = this.#commitGeneration;
     const identityScope = this.#identityScope;
@@ -702,129 +870,17 @@ export class PredictOrderService {
       this.#assertNotAbandoned(generation);
       references.forEach((reference) => this.#restoreReference(reference));
       this.#publishRecovery();
-      // One discovery page per round leaves budget for existing journal
-      // entries even when the account has many pages of server operations.
-      if (!this.#discoveryComplete && this.#hasRecoveryBudget()) {
-        this.#recoveryCalls += 1;
-        try {
-          const page = await this.#trading.listUnresolvedOrders(
-            { cursor: this.#discoveryCursor, limit: 25 },
-            { signal: abort.signal },
-          );
-          this.#assertNotAbandoned(generation);
-          const known = new Map(
-            references.map((reference) => [reference.previewId, reference]),
-          );
-          for (const entry of page.operations) {
-            const before = this.#operations.get(entry.previewId);
-            if (
-              before?.state === 'resolved' ||
-              (before?.lastReceipt && isTerminalReceipt(before.lastReceipt))
-            ) {
-              continue;
-            }
-            const reference: OrderDispatchReference = {
-              identityScope,
-              venueId: this.#venueId,
-              previewId: entry.previewId,
-              dispatchedAt: Date.parse(entry.submittedAt ?? entry.createdAt),
-              recoveryState:
-                entry.receipt.status === 'needs_manual_review' ||
-                known.get(entry.previewId)?.recoveryState === 'manual_review'
-                  ? 'manual_review'
-                  : 'unresolved',
-            };
-            await this.#journal.put(reference);
-            this.#assertNotAbandoned(generation);
-            const after = this.#operations.get(entry.previewId);
-            if (
-              after?.state === 'resolved' ||
-              (after?.lastReceipt && isTerminalReceipt(after.lastReceipt))
-            ) {
-              if (
-                after.lastReceipt?.status === 'needs_manual_review' ||
-                after.recoveryState === 'manual_review'
-              ) {
-                await this.#journal.put({
-                  ...reference,
-                  recoveryState: 'manual_review',
-                });
-                this.#assertNotAbandoned(generation);
-              } else {
-                await this.#journal.remove(
-                  identityScope,
-                  this.#venueId,
-                  entry.previewId,
-                );
-                this.#assertNotAbandoned(generation);
-              }
-              continue;
-            }
-            const operation = this.#restoreReference(reference);
-            operation.lastReceipt = entry.receipt;
-            if (reference.recoveryState === 'manual_review') {
-              operation.recoveryState = 'manual_review';
-              operation.state = 'resolved';
-            }
-          }
-          this.#discoveryCursor = page.nextCursor;
-          this.#discoveryComplete = !page.nextCursor;
-          this.#publishRecovery();
-        } catch (error) {
-          this.#assertNotAbandoned(generation);
-          if (
-            error instanceof PredictError &&
-            [
-              PredictErrorCode.RATE_LIMITED,
-              PredictErrorCode.UNAUTHENTICATED,
-            ].includes(error.code)
-          ) {
-            this.#recoveryActive = false;
-            return;
-          }
-          // Discovery failure never drops local dispatches; observe their
-          // references even if the operation row is not visible yet.
-        }
+      if (
+        !(await this.#mergeDiscoveryPage(
+          identityScope,
+          generation,
+          references,
+          abort.signal,
+        ))
+      ) {
+        return;
       }
-      const candidates = [...this.#operations.values()].filter(
-        (operation) =>
-          operation.state === 'dispatched' &&
-          operation.posted &&
-          operation.recoveryState !== 'manual_review',
-      );
-      if (candidates.length > 0) {
-        const start = this.#recoveryOffset % candidates.length;
-        for (
-          let step = 0;
-          step < candidates.length && this.#hasRecoveryBudget();
-          step += 1
-        ) {
-          const index = (start + step) % candidates.length;
-          const operation = candidates[index];
-          if (this.#inFlightCommits.has(operation.previewId)) {
-            continue;
-          }
-          this.#recoveryCalls += 1;
-          this.#recoveryOffset = index + 1;
-          try {
-            await this.#dispatch(operation, 0);
-          } catch (error) {
-            this.#assertNotAbandoned(generation);
-            const cause =
-              error instanceof PredictError
-                ? error.metadata?.causeCode
-                : undefined;
-            if (
-              cause === PredictErrorCode.RATE_LIMITED ||
-              cause === PredictErrorCode.UNAUTHENTICATED
-            ) {
-              this.#recoveryActive = false;
-              return;
-            }
-          }
-          this.#assertNotAbandoned(generation);
-        }
-      }
+      await this.#dispatchRecoveryCandidates(generation);
     };
     const tracked = work()
       .catch((error) => {
@@ -1067,6 +1123,49 @@ export class PredictOrderService {
     return this.#observe(operation, generation, signal, maxObservations - 1);
   }
 
+  /** Journals the dispatch before the Commit leaves, so a crash mid-request
+   * still leaves a recoverable reference. Without an authenticated session
+   * the Commit must not be sent at all; an unwritable journal refuses it. */
+  async #journalDispatch(
+    journal: OrderDispatchJournal,
+    operation: OrderOperation,
+    generation: number,
+  ): Promise<void> {
+    const identityScope = this.#identityScope;
+    if (!identityScope || !this.#sessionAvailable) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
+        metadata: {
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+        },
+      });
+    }
+    try {
+      await journal.put({
+        identityScope,
+        venueId: this.#venueId,
+        previewId: operation.previewId,
+        dispatchedAt: operation.dispatchedAt ?? Date.now(),
+        recoveryState: 'unresolved',
+      });
+    } catch {
+      throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
+        metadata: {
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+        },
+      });
+    }
+    this.#assertNotAbandoned(generation);
+    operation.recoveryState = 'unresolved';
+    if (!this.#recoveryActive) {
+      this.#recoveryActive = true;
+      this.#recoveryStartedAt = Date.now();
+      this.#recoveryCalls = 0;
+    }
+    this.#publishRecovery();
+  }
+
   /** The signed Commit the first time, a receipt read afterwards. The
    * generation is checked before the request, so an abandoned Commit is
    * never sent again, and after the response, so a receipt that arrives for
@@ -1093,40 +1192,9 @@ export class PredictOrderService {
       if (approval?.kind !== 'user-approved') {
         throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
       }
-      if (this.#journal) {
-        const identityScope = this.#identityScope;
-        if (!identityScope || !this.#sessionAvailable) {
-          throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
-            metadata: {
-              phase: 'commit',
-              mutationRelay: 'not_relayed_this_invocation',
-            },
-          });
-        }
-        try {
-          await this.#journal.put({
-            identityScope,
-            venueId: this.#venueId,
-            previewId: operation.previewId,
-            dispatchedAt: operation.dispatchedAt ?? Date.now(),
-            recoveryState: 'unresolved',
-          });
-        } catch {
-          throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
-            metadata: {
-              phase: 'commit',
-              mutationRelay: 'not_relayed_this_invocation',
-            },
-          });
-        }
-        this.#assertNotAbandoned(generation);
-        operation.recoveryState = 'unresolved';
-        if (!this.#recoveryActive) {
-          this.#recoveryActive = true;
-          this.#recoveryStartedAt = Date.now();
-          this.#recoveryCalls = 0;
-        }
-        this.#publishRecovery();
+      const journal = this.#journal;
+      if (journal) {
+        await this.#journalDispatch(journal, operation, generation);
       }
       operation.posted = true;
       receipt = await this.#trading.commitOrder(operation.previewId, approval, {

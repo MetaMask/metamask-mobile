@@ -18,16 +18,7 @@ import { p256 } from '@noble/curves/nist';
 import { sha256 } from '@noble/hashes/sha2';
 
 import profileDocument from './venue-profiles/kalshi-trading-1.json';
-import type {
-  BodyField,
-  HttpRfc9421Payload,
-  Intent,
-  ReadPattern,
-  Shape,
-  SigningProfile,
-  Source,
-  Transform,
-} from './signing/profileSchema';
+import type { SigningProfile } from './signing/profileSchema';
 
 export type {
   BodyField,
@@ -38,7 +29,7 @@ export type {
   SigningProfile,
   Source,
   Transform,
-};
+} from './signing/profileSchema';
 
 /** The payload kinds the DSL renders. Only `http-rfc9421` renders today. */
 export type RenderedPayloadKind = 'http-rfc9421';
@@ -248,7 +239,7 @@ function patternToRegExp(pattern: string): RegExp {
         return '[^/]+';
       }
       // Regex metacharacters in literal segments stay literal.
-      return segment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return segment.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
     })
     .join('/');
   return new RegExp(`^${source}$`, 'u');
@@ -271,7 +262,8 @@ export class ProfileDocumentValidationError extends Error {
   readonly code: ProfileDocumentError;
 
   constructor(code: ProfileDocumentError, detail?: string) {
-    super(`Profile document rejected (${code})${detail ? `: ${detail}` : ''}.`);
+    const suffix = detail === undefined ? '' : `: ${detail}`;
+    super(`Profile document rejected (${code})${suffix}.`);
     this.name = 'ProfileDocumentValidationError';
     this.code = code;
   }
@@ -391,45 +383,56 @@ const verifyDocumentSignature = (
     }
     throw new ProfileDocumentValidationError('profile_document_unknown_key');
   }
-  const r = rawSignature.slice(0, 32);
-  const s = rawSignature.slice(32, 64);
   // Signers in the wild emit high-s; ECDSA accepts both (n - s just flips
   // the recovery y), and low-s is the wire norm. Normalize before verify.
-  const toBig = (u: Uint8Array): bigint => {
-    let hex = '';
-    for (const byte of u) {
-      hex += byte.toString(16).padStart(2, '0');
-    }
-    return BigInt(`0x${hex}`);
-  };
-  const signature = new p256.Signature(toBig(r), toBig(s));
-  let ok: boolean;
   try {
-    ok = p256.verify(
-      signature.normalizeS().toCompactRawBytes(),
-      digest,
-      point,
-      { lowS: true },
-    );
-  } catch {
-    ok = false;
-  }
-  if (!ok) {
+    let signature = p256.Signature.fromBytes(rawSignature, 'compact');
+    if (signature.hasHighS()) {
+      signature = new p256.Signature(
+        signature.r,
+        p256.Point.Fn.neg(signature.s),
+      );
+    }
+    const ok = p256.verify(signature.toBytes('compact'), digest, point, {
+      lowS: true,
+    });
+    if (!ok) {
+      throw new ProfileDocumentValidationError(
+        'profile_document_bad_signature',
+      );
+    }
+  } catch (error) {
+    if (error instanceof ProfileDocumentValidationError) {
+      throw error;
+    }
     throw new ProfileDocumentValidationError('profile_document_bad_signature');
   }
 };
 
-/**
- * Verifies the document and returns the profile. `lastAcceptedVersion`
- * enforces monotonicity (a remote profile may not roll back); the bundled
- * copy loads with 0.
- */
-export async function verifyProfileDocument(input: {
+interface ProfileDocumentInput {
   raw: string;
   keys: ProfileKeys;
   lastAcceptedVersion: number;
   minDslSupported: readonly string[];
-}): Promise<SigningProfile> {
+}
+
+/**
+ * Verifies the document and returns the profile. `lastAcceptedVersion`
+ * enforces monotonicity (a remote profile may not roll back); the bundled
+ * copy loads with 0. Every check is synchronous, so a refusal surfaces as a
+ * rejection rather than a throw from the calling frame.
+ */
+export function verifyProfileDocument(
+  input: ProfileDocumentInput,
+): Promise<SigningProfile> {
+  try {
+    return Promise.resolve(validateProfileDocument(input));
+  } catch (error) {
+    return Promise.reject(error);
+  }
+}
+
+function validateProfileDocument(input: ProfileDocumentInput): SigningProfile {
   const document = parseDocument(input.raw);
   verifyDocumentSignature(document, input.keys);
   let profileJson: unknown;
@@ -566,7 +569,9 @@ const validateSource = (value: unknown): boolean => {
  * ahead of the validators that read it: trusting a profile's invariant list
  * is what makes an unknown one a load-time refusal rather than a signing-time
  * surprise. */
-const KNOWN_INVARIANTS: readonly string[] = ['binary-limit-order-v1'];
+const KNOWN_INVARIANTS: Record<string, true> = {
+  'binary-limit-order-v1': true,
+};
 
 const PATH_PATTERN = /^\/[a-z0-9/{}_-]+$/iu;
 
@@ -634,7 +639,7 @@ const validateHttpRfc9421Payload = (
         (entry: unknown) =>
           isRecord(entry) &&
           typeof entry.implementation === 'string' &&
-          KNOWN_INVARIANTS.includes(entry.implementation) &&
+          KNOWN_INVARIANTS[entry.implementation] === true &&
           (entry.params === undefined || isRecord(entry.params)),
       ))
   ) {
@@ -659,14 +664,77 @@ const validatePayload = (value: unknown): boolean => {
   }
 };
 
+/** One intent: a non-empty id, non-empty payload names, and a per-intent
+ * confirm whose sign limit is a positive safe integer. */
+const validateIntent = (intent: unknown): boolean =>
+  isRecord(intent) &&
+  typeof intent.id === 'string' &&
+  intent.id.length > 0 &&
+  Array.isArray(intent.payloads) &&
+  intent.payloads.length > 0 &&
+  intent.payloads.every(
+    (name: unknown): name is string =>
+      typeof name === 'string' && name.length > 0,
+  ) &&
+  isRecord(intent.confirm) &&
+  intent.confirm.kind === 'per-intent' &&
+  typeof intent.confirm.signLimit === 'number' &&
+  Number.isSafeInteger(intent.confirm.signLimit) &&
+  intent.confirm.signLimit >= 1 &&
+  (intent.invariant === undefined ||
+    KNOWN_INVARIANTS[intent.invariant as string] === true);
+
+/** Reads: allow patterns and a path-length ceiling. Every signer needs them. */
+const validateReads = (reads: unknown): boolean => {
+  if (!isRecord(reads) || !Array.isArray(reads.allow)) {
+    return false;
+  }
+  const allowValid = reads.allow.every(
+    (entry: unknown) =>
+      isRecord(entry) &&
+      entry.method === 'GET' &&
+      typeof entry.path === 'string' &&
+      PATH_PATTERN.test(entry.path),
+  );
+  return (
+    allowValid &&
+    typeof reads.maxPathLength === 'number' &&
+    reads.maxPathLength >= 1
+  );
+};
+
+/** The RFC 9421 parameters this build signs under. Signing is impossible
+ * without them, so a profile lacking them is refused at load. */
+const validateImplementation = (implementation: unknown): boolean => {
+  if (
+    !isRecord(implementation) ||
+    implementation.id !== 'device-p256-rfc9421-v1'
+  ) {
+    return false;
+  }
+  const params = implementation.params;
+  if (!isRecord(params) || !isRecord(params.headers)) {
+    return false;
+  }
+  const { headers } = params;
+  return (
+    typeof params.authority === 'string' &&
+    typeof params.label === 'string' &&
+    typeof params.tag === 'string' &&
+    typeof params.lifetimeSec === 'number' &&
+    typeof params.tokenScheme === 'string' &&
+    typeof headers.requestId === 'string' &&
+    typeof headers.key === 'string' &&
+    typeof headers.salt === 'string' &&
+    typeof params.maxSignatures === 'number'
+  );
+};
+
 function validateSigningProfile(value: unknown): SigningProfile | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
-  const id = value.id;
-  const version = value.version;
-  const minDsl = value.minDsl;
-  const venue = value.venue;
+  const { id, version, minDsl, venue, intents, payloads } = value;
   if (
     typeof id !== 'string' ||
     id.length === 0 ||
@@ -678,90 +746,28 @@ function validateSigningProfile(value: unknown): SigningProfile | undefined {
   ) {
     return undefined;
   }
-  // Intents: id, payloads (non-empty names), per-intent confirm.
-  if (!Array.isArray(value.intents) || value.intents.length === 0) {
+  if (
+    !Array.isArray(intents) ||
+    intents.length === 0 ||
+    !intents.every(validateIntent)
+  ) {
     return undefined;
-  }
-  for (const intent of value.intents) {
-    if (
-      !isRecord(intent) ||
-      typeof intent.id !== 'string' ||
-      intent.id.length === 0 ||
-      !Array.isArray(intent.payloads) ||
-      intent.payloads.length === 0 ||
-      !intent.payloads.every(
-        (name: unknown): name is string =>
-          typeof name === 'string' && name.length > 0,
-      ) ||
-      !isRecord(intent.confirm) ||
-      intent.confirm.kind !== 'per-intent' ||
-      typeof intent.confirm.signLimit !== 'number' ||
-      !Number.isSafeInteger(intent.confirm.signLimit) ||
-      intent.confirm.signLimit < 1 ||
-      (intent.invariant !== undefined &&
-        !KNOWN_INVARIANTS.includes(intent.invariant as string))
-    ) {
-      return undefined;
-    }
   }
   // Payloads: every named one present and valid.
-  if (!isRecord(value.payloads)) {
+  if (!isRecord(payloads)) {
     return undefined;
   }
-  const named = value.intents.flatMap(
-    (intent) => (intent as { payloads: string[] }).payloads,
+  const named = (intents as { payloads: string[] }[]).flatMap(
+    (intent) => intent.payloads,
   );
-  for (const name of named) {
-    if (!validatePayload(value.payloads[name])) {
-      return undefined;
-    }
+  if (!named.every((name) => validatePayload(payloads[name]))) {
+    return undefined;
   }
-  // Reads: allow patterns and a path-length ceiling. Required: every
-  // signer needs them.
-  {
-    if (!isRecord(value.reads) || !Array.isArray(value.reads.allow)) {
-      return undefined;
-    }
-    for (const entry of value.reads.allow) {
-      if (
-        !isRecord(entry) ||
-        entry.method !== 'GET' ||
-        typeof entry.path !== 'string' ||
-        !PATH_PATTERN.test(entry.path)
-      ) {
-        return undefined;
-      }
-    }
-    if (
-      typeof value.reads.maxPathLength !== 'number' ||
-      value.reads.maxPathLength < 1
-    ) {
-      return undefined;
-    }
-  }
-  // Implementation: the RFC 9421 parameters this build signs under.
-  // Required: signing is impossible without it.
-  {
-    const impl = value.implementation;
-    if (!isRecord(impl) || impl.id !== 'device-p256-rfc9421-v1') {
-      return undefined;
-    }
-    const params = impl.params;
-    if (
-      !isRecord(params) ||
-      typeof params.authority !== 'string' ||
-      typeof params.label !== 'string' ||
-      typeof params.tag !== 'string' ||
-      typeof params.lifetimeSec !== 'number' ||
-      typeof params.tokenScheme !== 'string' ||
-      !isRecord(params.headers) ||
-      typeof params.headers.requestId !== 'string' ||
-      typeof params.headers.key !== 'string' ||
-      typeof params.headers.salt !== 'string' ||
-      typeof params.maxSignatures !== 'number'
-    ) {
-      return undefined;
-    }
+  if (
+    !validateReads(value.reads) ||
+    !validateImplementation(value.implementation)
+  ) {
+    return undefined;
   }
   return value as unknown as SigningProfile;
 }

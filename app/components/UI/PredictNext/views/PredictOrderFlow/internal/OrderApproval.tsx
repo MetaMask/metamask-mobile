@@ -53,24 +53,10 @@ export const OrderApproval = ({
   onApprove,
   onBack,
   onRefresh,
-}: OrderApprovalProps) => (
-  <Box twClassName="gap-3" testID={PredictOrderFlowTestIds.APPROVAL}>
-    <Text variant={TextVariant.HeadingSm}>
-      {strings('predict_next.order_approval.title')}
-    </Text>
-    <OrderPreviewRows preview={preview} display={display} />
-    <Text
-      variant={TextVariant.BodyXs}
-      color={TextColor.TextAlternative}
-      testID={PredictOrderFlowTestIds.EXPIRY}
-    >
-      {strings('predict_next.order_approval.expires_at', {
-        time: getIntlDateTimeFormatter(I18n.locale, EXPIRY_TIME_OPTIONS).format(
-          new Date(preview.expiresAt),
-        ),
-      })}
-    </Text>
-    {isObserving ? (
+}: OrderApprovalProps) => {
+  let actions: React.ReactElement;
+  if (isObserving) {
+    actions = (
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -81,7 +67,9 @@ export const OrderApproval = ({
       >
         {strings('predict_next.order_receipt.keep_checking')}
       </Button>
-    ) : isExpired ? (
+    );
+  } else if (isExpired) {
+    actions = (
       <>
         <Text
           variant={TextVariant.BodySm}
@@ -102,7 +90,9 @@ export const OrderApproval = ({
           {strings('predict_next.order_preview.refresh')}
         </Button>
       </>
-    ) : (
+    );
+  } else {
+    actions = (
       <>
         <Button
           variant={ButtonVariant.Primary}
@@ -125,6 +115,28 @@ export const OrderApproval = ({
           {strings('predict_next.order_approval.edit_order')}
         </Button>
       </>
-    )}
-  </Box>
-);
+    );
+  }
+
+  return (
+    <Box twClassName="gap-3" testID={PredictOrderFlowTestIds.APPROVAL}>
+      <Text variant={TextVariant.HeadingSm}>
+        {strings('predict_next.order_approval.title')}
+      </Text>
+      <OrderPreviewRows preview={preview} display={display} />
+      <Text
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        testID={PredictOrderFlowTestIds.EXPIRY}
+      >
+        {strings('predict_next.order_approval.expires_at', {
+          time: getIntlDateTimeFormatter(
+            I18n.locale,
+            EXPIRY_TIME_OPTIONS,
+          ).format(new Date(preview.expiresAt)),
+        })}
+      </Text>
+      {actions}
+    </Box>
+  );
+};

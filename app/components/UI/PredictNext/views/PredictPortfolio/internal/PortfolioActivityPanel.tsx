@@ -149,6 +149,53 @@ export const PortfolioActivityPanel = ({
     </Box>
   ) : null;
 
+  // Two archive notices share one gate: both describe the settled slice, so
+  // neither belongs on a loading or failed panel.
+  const showArchiveNotices = !isPending && !hasInitialError;
+  const notices: React.ReactNode[] = [];
+  if (showArchiveNotices && settlementsCompleteFrom) {
+    notices.push(
+      <Text
+        key="horizon"
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        twClassName="py-2"
+        testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON}
+      >
+        {strings('predict_next.portfolio.settlements_complete_from', {
+          date: formatActivityDate(settlementsCompleteFrom),
+        })}
+      </Text>,
+    );
+  }
+  if (showArchiveNotices && settlementsDegraded) {
+    notices.push(
+      <Text
+        key="degraded"
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
+        twClassName="py-2"
+        testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED}
+      >
+        {strings('predict_next.portfolio.settlements_permission_denied')}
+      </Text>,
+    );
+  }
+
+  let footer: React.ReactElement | undefined;
+  if (continuation) {
+    footer = continuation;
+  } else if (isFetchingNextPage) {
+    footer = (
+      <Box
+        testID={PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING}
+        twClassName="items-center py-4"
+      >
+        <ActivityIndicator />
+      </Box>
+    );
+  }
+
   let content: React.ReactNode;
   if (isPending) {
     content = (
@@ -186,45 +233,14 @@ export const PortfolioActivityPanel = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}
-        ListFooterComponent={
-          continuation ??
-          (isFetchingNextPage ? (
-            <Box
-              testID={PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING}
-              twClassName="items-center py-4"
-            >
-              <ActivityIndicator />
-            </Box>
-          ) : null)
-        }
+        ListFooterComponent={footer}
       />
     );
   }
 
   return (
     <Box twClassName="flex-1">
-      {settlementsCompleteFrom && !isPending && !hasInitialError ? (
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="py-2"
-          testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON}
-        >
-          {strings('predict_next.portfolio.settlements_complete_from', {
-            date: formatActivityDate(settlementsCompleteFrom),
-          })}
-        </Text>
-      ) : null}
-      {settlementsDegraded && !isPending && !hasInitialError ? (
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="py-2"
-          testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED}
-        >
-          {strings('predict_next.portfolio.settlements_permission_denied')}
-        </Text>
-      ) : null}
+      {notices}
       {content}
     </Box>
   );

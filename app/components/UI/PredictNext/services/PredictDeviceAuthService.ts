@@ -442,18 +442,16 @@ export class PredictDeviceAuthService {
       deviceKey: key.publicKey,
       salt: key.salt,
     };
-    const [signature] = await Promise.all([
-      signDeviceRequest(profile, request, context, {
-        sign: (bytes) => {
-          if (!this.#canSign(snapshot, key)) {
-            throw new TemplateError('confirmation', 'read');
-          }
-          return snapshot.binding.deviceKey.sign(bytes);
-        },
-        requestId: () => proposed.requestId ?? uuidv4(),
-        now: this.#deps.now,
-      }),
-    ]);
+    const signature = await signDeviceRequest(profile, request, context, {
+      sign: (bytes) => {
+        if (!this.#canSign(snapshot, key)) {
+          throw new TemplateError('confirmation', 'read');
+        }
+        return snapshot.binding.deviceKey.sign(bytes);
+      },
+      requestId: () => proposed.requestId ?? uuidv4(),
+      now: this.#deps.now,
+    });
     if (!this.#canSign(snapshot, key)) {
       return undefined;
     }
@@ -596,11 +594,7 @@ export class PredictDeviceAuthService {
       return false;
     }
     const current = snapshot.binding.deviceKey.get();
-    if (
-      !current ||
-      current.publicKey !== key.publicKey ||
-      current.salt !== key.salt
-    ) {
+    if (current?.publicKey !== key.publicKey || current.salt !== key.salt) {
       void this.clearApprovals();
       return false;
     }

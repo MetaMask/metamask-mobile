@@ -107,6 +107,29 @@ const toHttpErrorMetadata = (
   ...predictErrorEvidence(phase, error.bodyCode, error.requestSent),
 });
 
+/**
+ * The last resort when the backend sent no canonical code. 403 is also used
+ * for authorization and unknown coded failures, so only an explicit 451 is
+ * a region restriction: never invent one from 403.
+ */
+const codeForHttpStatus = (status: number): PredictErrorCode => {
+  if (status === 401) {
+    return PredictErrorCode.UNAUTHENTICATED;
+  }
+  if (status === 451) {
+    return PredictErrorCode.GEO_BLOCKED;
+  }
+  if (status === 429) {
+    return PredictErrorCode.RATE_LIMITED;
+  }
+  if (status === 503) {
+    return PredictErrorCode.VENUE_UNAVAILABLE;
+  }
+  return status >= 500
+    ? PredictErrorCode.NETWORK_ERROR
+    : PredictErrorCode.INVALID_RESPONSE;
+};
+
 const mapError = (
   error: unknown,
   phase: PredictErrorPhase = 'signed_read',
@@ -124,29 +147,9 @@ const mapError = (
     const mapped = error.bodyCode
       ? ERROR_CODE_BY_BACKEND_CODE[error.bodyCode]
       : undefined;
-    if (mapped) {
-      throw PredictError.from(mapped, { metadata });
-    }
-    if (error.status === 401) {
-      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, { metadata });
-    }
-    // 403 is also used for authorization and unknown coded failures. Without
-    // explicit geography evidence, do not invent a region restriction.
-    if (error.status === 451) {
-      throw PredictError.from(PredictErrorCode.GEO_BLOCKED, { metadata });
-    }
-    if (error.status === 429) {
-      throw PredictError.from(PredictErrorCode.RATE_LIMITED, { metadata });
-    }
-    if (error.status === 503) {
-      throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
-        metadata,
-      });
-    }
-    if (error.status >= 500) {
-      throw PredictError.from(PredictErrorCode.NETWORK_ERROR, { metadata });
-    }
-    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE, { metadata });
+    throw PredictError.from(mapped ?? codeForHttpStatus(error.status), {
+      metadata,
+    });
   }
 
   throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
