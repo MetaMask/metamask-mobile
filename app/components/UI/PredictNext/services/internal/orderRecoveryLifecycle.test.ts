@@ -140,7 +140,10 @@ describe('order recovery lifecycle', () => {
     expect(lifecycle.service.suspendRecovery).toHaveBeenCalledTimes(1);
     lifecycle.app('active');
     await settle();
-    expect(lifecycle.service.resumeRecovery).toHaveBeenNthCalledWith(2, 'canonical-user-one');
+    expect(lifecycle.service.resumeRecovery).toHaveBeenNthCalledWith(
+      2,
+      'canonical-user-one',
+    );
     lifecycle.dispose();
   });
 

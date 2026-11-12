@@ -172,7 +172,9 @@ const setup = (
   instances.push(service);
   return { service, trading, resolved, invalidated, recoveryChanged };
 };
-const quote = async (service: PredictOrderService): Promise<PredictOrderPreview> => {
+const quote = async (
+  service: PredictOrderService,
+): Promise<PredictOrderPreview> => {
   const quoted = await service.requestQuote(KALSHI_VENUE_ID, {
     marketId: preview.marketId,
     side: 'yes',
@@ -206,7 +208,9 @@ describe('Predict order durable recovery', () => {
       sent.resolve();
       return held.promise;
     });
-    const pending = service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing).catch((error: unknown) => error);
+    const pending = service
+      .commitPreview(KALSHI_VENUE_ID, preview.previewId, signing)
+      .catch((error: unknown) => error);
     await sent.promise;
     service.suspendRecovery();
     await pending;
@@ -235,22 +239,37 @@ describe('Predict order durable recovery', () => {
       sent.resolve();
       return held.promise;
     });
-    const pending = service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
+    const pending = service.commitPreview(
+      KALSHI_VENUE_ID,
+      preview.previewId,
+      signing,
+    );
     const rejection = pending.catch((error: unknown) => error);
     await sent.promise;
     const generation = service.getRecoveryGeneration();
     service.suspendRecovery();
     expect(await rejection).toMatchObject({
       code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
-      metadata: { phase: 'commit', mutationRelay: 'unknown', causeCode: PredictErrorCode.UNAUTHENTICATED },
+      metadata: {
+        phase: 'commit',
+        mutationRelay: 'unknown',
+        causeCode: PredictErrorCode.UNAUTHENTICATED,
+      },
     });
     expect(signal?.aborted).toBe(false);
     expect(service.getRecoveryGeneration()).toBe(generation);
     expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([
-      expect.objectContaining({ recoveryState: 'unresolved', expiresAt: Date.parse(preview.expiresAt) }),
+      expect.objectContaining({
+        recoveryState: 'unresolved',
+        expiresAt: Date.parse(preview.expiresAt),
+      }),
     ]);
-    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([{ previewId: preview.previewId, status: 'checking' }]);
-    await expect(service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing)).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([
+      { previewId: preview.previewId, status: 'checking' },
+    ]);
+    await expect(
+      service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing),
+    ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
     held.resolve(receipt);
     await Promise.resolve();
     await Promise.resolve();
@@ -269,9 +288,15 @@ describe('Predict order durable recovery', () => {
     const journal = createOrderDispatchJournal(memory());
     const expiresAt = Date.now() + 30_000;
     await journal.put({ ...reference, expiresAt });
-    const { service, trading, resolved } = setup(journal, { maxBackgroundObservations: 2 });
+    const { service, trading, resolved } = setup(journal, {
+      maxBackgroundObservations: 2,
+    });
     const missing = PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
-      metadata: { phase: 'observe', bodyCode: 'operation_not_found', mutationRelay: 'not_a_mutation' },
+      metadata: {
+        phase: 'observe',
+        bodyCode: 'operation_not_found',
+        mutationRelay: 'not_a_mutation',
+      },
     });
     trading.observeOrder.mockRejectedValue(missing);
     await service.resumeRecovery('user-one');
@@ -279,7 +304,10 @@ describe('Predict order durable recovery', () => {
     jest.setSystemTime(expiresAt + MISSING_OPERATION_EXPIRY_GRACE_MS);
     const held = deferred<PredictOrderReceipt>();
     const started = deferred<void>();
-    trading.observeOrder.mockImplementationOnce(() => { started.resolve(); return held.promise; });
+    trading.observeOrder.mockImplementationOnce(() => {
+      started.resolve();
+      return held.promise;
+    });
     const recovering = service.resumeRecovery('user-one');
     await started.promise;
     jest.setSystemTime(Date.now() + 1);
@@ -288,30 +316,55 @@ describe('Predict order durable recovery', () => {
     expect(resolved).not.toHaveBeenCalled();
     expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
     await service.resumeRecovery('user-one');
-    expect(resolved).toHaveBeenCalledWith(expect.objectContaining({
-      outcome: { status: 'not_placed', code: PredictErrorCode.PREVIEW_EXPIRED },
-    }));
+    expect(resolved).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: {
+          status: 'not_placed',
+          code: PredictErrorCode.PREVIEW_EXPIRED,
+        },
+      }),
+    );
     expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
     expect(trading.commitOrder).not.toHaveBeenCalled();
   });
 
-  it.each(['network', 'missing-expiry', 'receipt-exists'] as const)('never prunes unknown %s outcomes based on age alone', async (kind) => {
-    const journal = createOrderDispatchJournal(memory());
-    await journal.put({ ...reference, ...(kind === 'missing-expiry' ? {} : { expiresAt: Date.now() - 60_000 }) });
-    const { service, trading, resolved } = setup(journal);
-    trading.observeOrder.mockRejectedValue(PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
-      metadata: { phase: 'observe', bodyCode: kind === 'network' ? 'network_error' : 'operation_not_found' },
-    }));
-    if (kind === 'receipt-exists') {
-      trading.listUnresolvedOrders.mockResolvedValueOnce({ operations: [{
-        previewId: preview.previewId, createdAt: '2026-01-01T00:00:00.000Z', submittedAt: null,
-        receipt: { ...receipt, status: 'reconciliation_required' },
-      }] });
-    }
-    await service.resumeRecovery('user-one');
-    expect(resolved).not.toHaveBeenCalled();
-    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
-  });
+  it.each(['network', 'missing-expiry', 'receipt-exists'] as const)(
+    'never prunes unknown %s outcomes based on age alone',
+    async (kind) => {
+      const journal = createOrderDispatchJournal(memory());
+      await journal.put({
+        ...reference,
+        ...(kind === 'missing-expiry'
+          ? {}
+          : { expiresAt: Date.now() - 60_000 }),
+      });
+      const { service, trading, resolved } = setup(journal);
+      trading.observeOrder.mockRejectedValue(
+        PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+          metadata: {
+            phase: 'observe',
+            bodyCode:
+              kind === 'network' ? 'network_error' : 'operation_not_found',
+          },
+        }),
+      );
+      if (kind === 'receipt-exists') {
+        trading.listUnresolvedOrders.mockResolvedValueOnce({
+          operations: [
+            {
+              previewId: preview.previewId,
+              createdAt: '2026-01-01T00:00:00.000Z',
+              submittedAt: null,
+              receipt: { ...receipt, status: 'reconciliation_required' },
+            },
+          ],
+        });
+      }
+      await service.resumeRecovery('user-one');
+      expect(resolved).not.toHaveBeenCalled();
+      expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+    },
+  );
 
   it('persists before POST and after restart observes a lost accepted response without another POST', async () => {
     const storage = memory();
@@ -587,10 +640,15 @@ describe('Predict order durable recovery', () => {
     });
     const remove = journal.remove;
     jest.spyOn(journal, 'remove').mockImplementation(async (...args) => {
-      expect(service.getRecovery(KALSHI_VENUE_ID)).toContainEqual({ previewId: reference.previewId, status: 'needs_manual_review' });
+      expect(service.getRecovery(KALSHI_VENUE_ID)).toContainEqual({
+        previewId: reference.previewId,
+        status: 'needs_manual_review',
+      });
       expect(recoveryChanged).toHaveBeenCalledWith({
         venueId: KALSHI_VENUE_ID,
-        operations: [{ previewId: reference.previewId, status: 'needs_manual_review' }],
+        operations: [
+          { previewId: reference.previewId, status: 'needs_manual_review' },
+        ],
       });
       await remove(...args);
     });
@@ -604,16 +662,34 @@ describe('Predict order durable recovery', () => {
     jest.mocked(journal.remove).mockRestore();
     service.destroy();
     const restarted = setup(journal);
-    restarted.trading.listUnresolvedOrders.mockResolvedValueOnce(await trading.listUnresolvedOrders());
+    restarted.trading.listUnresolvedOrders.mockResolvedValueOnce(
+      await trading.listUnresolvedOrders(),
+    );
     await restarted.service.resumeRecovery('user-one');
     expect(restarted.service.getRecovery(KALSHI_VENUE_ID)).toEqual([
       { previewId: reference.previewId, status: 'needs_manual_review' },
     ]);
     expect(restarted.trading.observeOrder).not.toHaveBeenCalled();
     expect(restarted.trading.commitOrder).not.toHaveBeenCalled();
-    expect(logged.mock.calls.filter(([message]) => message === 'PredictNext: pruned terminal order review')).toEqual([
-      ['PredictNext: pruned terminal order review', { previewId: reference.previewId, reason: 'server_confirmed_needs_manual_review_surfaced' }],
-      ['PredictNext: pruned terminal order review', { previewId: reference.previewId, reason: 'server_confirmed_needs_manual_review_surfaced' }],
+    expect(
+      logged.mock.calls.filter(
+        ([message]) => message === 'PredictNext: pruned terminal order review',
+      ),
+    ).toEqual([
+      [
+        'PredictNext: pruned terminal order review',
+        {
+          previewId: reference.previewId,
+          reason: 'server_confirmed_needs_manual_review_surfaced',
+        },
+      ],
+      [
+        'PredictNext: pruned terminal order review',
+        {
+          previewId: reference.previewId,
+          reason: 'server_confirmed_needs_manual_review_surfaced',
+        },
+      ],
     ]);
     logged.mockRestore();
     expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
@@ -748,16 +824,21 @@ describe('Predict order durable recovery', () => {
       await put(entry);
     });
     trading.listUnresolvedOrders.mockResolvedValueOnce({
-      operations: [{
-        previewId: preview.previewId,
-        receipt: { ...receipt, status: 'submitted' },
-        createdAt: '2026-11-12T00:00:00.000Z',
-        submittedAt: null,
-      }],
+      operations: [
+        {
+          previewId: preview.previewId,
+          receipt: { ...receipt, status: 'submitted' },
+          createdAt: '2026-11-12T00:00:00.000Z',
+          submittedAt: null,
+        },
+      ],
     });
     const recovery = service.refreshRecovery(KALSHI_VENUE_ID);
     await discovered.promise;
-    trading.commitOrder.mockResolvedValueOnce({ ...receipt, status: 'needs_manual_review' });
+    trading.commitOrder.mockResolvedValueOnce({
+      ...receipt,
+      status: 'needs_manual_review',
+    });
     await service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
     releaseDiscovery.resolve();
     await recovery;

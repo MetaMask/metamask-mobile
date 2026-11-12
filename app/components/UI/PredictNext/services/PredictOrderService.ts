@@ -881,7 +881,10 @@ export class PredictOrderService {
 
   /** Re-observes the dispatched, unresolved operations, round-robin from the
    * last one attempted and bounded by the recovery budget. */
-  async #dispatchRecoveryCandidates(generation: number, signal: AbortSignal): Promise<void> {
+  async #dispatchRecoveryCandidates(
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
     const candidates = [...this.#operations.values()].filter(
       (operation) =>
         operation.state === 'dispatched' &&
@@ -903,7 +906,9 @@ export class PredictOrderService {
         continue;
       }
       this.#recoveryOffset = index + 1;
-      if (!(await this.#dispatchRecoveryCandidate(operation, generation, signal))) {
+      if (
+        !(await this.#dispatchRecoveryCandidate(operation, generation, signal))
+      ) {
         return;
       }
     }
@@ -1017,7 +1022,11 @@ export class PredictOrderService {
     operation: OrderOperation,
     identityScope: string,
   ): Promise<void> {
-    await this.#journal?.remove(identityScope, this.#venueId, operation.previewId);
+    await this.#journal?.remove(
+      identityScope,
+      this.#venueId,
+      operation.previewId,
+    );
     if (!operation.manualReviewPruned) {
       operation.manualReviewPruned = true;
       Logger.log('PredictNext: pruned terminal order review', {
@@ -1202,7 +1211,13 @@ export class PredictOrderService {
       return receipt;
     }
     await sleep(this.#observationDelayMs);
-    return this.#observe(operation, generation, signal, observationSignal, maxObservations - 1);
+    return this.#observe(
+      operation,
+      generation,
+      signal,
+      observationSignal,
+      maxObservations - 1,
+    );
   }
 
   /** Journals the dispatch before the Commit leaves, so a crash mid-request
@@ -1304,7 +1319,12 @@ export class PredictOrderService {
       }
       const journal = this.#journal;
       if (journal) {
-        await this.#journalDispatch(journal, operation, generation, observationSignal);
+        await this.#journalDispatch(
+          journal,
+          operation,
+          generation,
+          observationSignal,
+        );
       }
       operation.posted = true;
       receipt = await this.#trading.commitOrder(operation.previewId, approval, {

@@ -107,53 +107,81 @@ describe('order dispatch journal', () => {
 
   it('quarantines invalid entries without losing valid v2 references or leaking payloads', async () => {
     const storage = storageWith();
-    await storage.setItem('journal', JSON.stringify({
-      v: 2,
-      entries: [reference, { previewId: 'secret-corrupt-payload' }],
-    }));
+    await storage.setItem(
+      'journal',
+      JSON.stringify({
+        v: 2,
+        entries: [reference, { previewId: 'secret-corrupt-payload' }],
+      }),
+    );
     const journal = createOrderDispatchJournal(storage);
-    expect(await journal.list('profile-one', reference.venueId)).toEqual([reference]);
+    expect(await journal.list('profile-one', reference.venueId)).toEqual([
+      reference,
+    ]);
     expect(Logger.error).toHaveBeenCalledTimes(1);
-    expect(JSON.stringify(jest.mocked(Logger.error).mock.calls)).not.toContain('secret-corrupt-payload');
+    expect(JSON.stringify(jest.mocked(Logger.error).mock.calls)).not.toContain(
+      'secret-corrupt-payload',
+    );
     const restarted = createOrderDispatchJournal(storage);
     await restarted.put({ ...reference, previewId: 'next' });
     expect(await restarted.list('profile-one', reference.venueId)).toEqual([
-      reference, { ...reference, previewId: 'next' },
+      reference,
+      { ...reference, previewId: 'next' },
     ]);
     expect(Logger.error).toHaveBeenCalledTimes(1);
-    expect(storage.setItem.mock.calls[1][1]).not.toContain('secret-corrupt-payload');
+    expect(storage.setItem.mock.calls[1][1]).not.toContain(
+      'secret-corrupt-payload',
+    );
   });
 
   it('loads v1 references without inventing expiry and migrates on the next save', async () => {
     const storage = storageWith();
     const { expiresAt: _expiresAt, ...legacy } = reference;
-    await storage.setItem('journal', JSON.stringify({ v: 1, entries: [legacy] }));
+    await storage.setItem(
+      'journal',
+      JSON.stringify({ v: 1, entries: [legacy] }),
+    );
     const journal = createOrderDispatchJournal(storage);
-    expect(await journal.list('profile-one', reference.venueId)).toEqual([legacy]);
+    expect(await journal.list('profile-one', reference.venueId)).toEqual([
+      legacy,
+    ]);
     expect(storage.setItem).toHaveBeenCalledTimes(1);
     await journal.put({ ...reference, previewId: 'next' });
     expect(JSON.parse(storage.setItem.mock.calls[1][1])).toEqual({
-      v: 2, entries: [legacy, { ...reference, previewId: 'next' }],
+      v: 2,
+      entries: [legacy, { ...reference, previewId: 'next' }],
     });
   });
 
-  it.each([NaN, Infinity, -1, 'invalid'])('refuses malformed expiry %s on put', async (expiresAt) => {
-    const storage = storageWith();
-    const journal = createOrderDispatchJournal(storage);
-    await expect(journal.put({ ...reference, expiresAt } as OrderDispatchReference)).rejects.toThrow('Invalid Predict order dispatch reference');
-    expect(storage.setItem).not.toHaveBeenCalled();
-  });
+  it.each([NaN, Infinity, -1, 'invalid'])(
+    'refuses malformed expiry %s on put',
+    async (expiresAt) => {
+      const storage = storageWith();
+      const journal = createOrderDispatchJournal(storage);
+      await expect(
+        journal.put({ ...reference, expiresAt } as OrderDispatchReference),
+      ).rejects.toThrow('Invalid Predict order dispatch reference');
+      expect(storage.setItem).not.toHaveBeenCalled();
+    },
+  );
 
-  it.each(['not-json-secret', '{"v":9,"entries":[]}'])('quarantines an unreadable envelope and permits new dispatches', async (raw) => {
-    const storage = storageWith();
-    await storage.setItem('journal', raw);
-    const journal = createOrderDispatchJournal(storage);
-    await journal.put(reference);
-    expect(await journal.list('profile-one', reference.venueId)).toEqual([reference]);
-    expect(Logger.error).toHaveBeenCalledTimes(1);
-    expect(storage.removeItem).toHaveBeenCalledTimes(1);
-    expect(JSON.stringify(jest.mocked(Logger.error).mock.calls)).not.toContain(raw);
-  });
+  it.each(['not-json-secret', '{"v":9,"entries":[]}'])(
+    'quarantines an unreadable envelope and permits new dispatches',
+    async (raw) => {
+      const storage = storageWith();
+      await storage.setItem('journal', raw);
+      const journal = createOrderDispatchJournal(storage);
+      await journal.put(reference);
+      expect(await journal.list('profile-one', reference.venueId)).toEqual([
+        reference,
+      ]);
+      expect(Logger.error).toHaveBeenCalledTimes(1);
+      expect(storage.removeItem).toHaveBeenCalledTimes(1);
+      expect(
+        JSON.stringify(jest.mocked(Logger.error).mock.calls),
+      ).not.toContain(raw);
+    },
+  );
 
   it('fences an in-flight write and clears it before a new wallet writes', async () => {
     const storage = storageWith();
