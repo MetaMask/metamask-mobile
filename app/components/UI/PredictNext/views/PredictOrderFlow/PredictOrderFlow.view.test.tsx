@@ -1412,11 +1412,11 @@ describe('PredictOrderFlow', () => {
     expect(observeCalls().length).toBeGreaterThan(0);
   }, 30000);
 
-  it('renders a failed commit on the approval step with re-approval that re-POSTs the same previewId', async () => {
+  it('keeps an ambiguous commit on the approval step with observe-only refresh', async () => {
     stubFetch(() => ({ body: makePreview() }), {
       commit: () => ({
         status: 500,
-        body: { code: 'venue_unavailable', message: 'Venue unavailable.' },
+        body: {},
       }),
     });
 
@@ -1428,19 +1428,31 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen(),
     );
     expect(
-      screen.getByText('Unable to reach the prediction service.'),
+      screen.getByText('Order outcome could not be confirmed. Check your activity or contact support.'),
     ).toBeOnTheScreen();
-    // The quoted values stay approved: re-approving re-POSTs the same
-    // idempotent Preview reference instead of placing another Order.
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
-    ).toBeOnTheScreen();
-    expect(screen.getByTestId(PredictOrderFlowTestIds.BACK)).toBeOnTheScreen();
-
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
-    await waitFor(() => expect(commitCalls()).toHaveLength(2));
-    expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.BACK)).toBeNull();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING));
+    await waitFor(() => expect(observeCalls().length).toBeGreaterThan(0));
+    expect(commitCalls()).toHaveLength(1);
   }, 30000);
+
+  it('shows manual review without a submit or re-quote action', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({ body: makeUnresolvedReceipt('needs_manual_review') }),
+    });
+    await approveOrder();
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.RECEIPT_NOT_FILLED),
+    ).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.REQUOTE)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
+    expect(screen.getByTestId(PredictOrderFlowTestIds.DONE)).toBeOnTheScreen();
+    expect(commitCalls()).toHaveLength(1);
+  });
 
   describe('Active Venue change', () => {
     const engine = Engine as unknown as { state: Record<string, unknown> };
@@ -1570,14 +1582,14 @@ describe('PredictOrderFlow', () => {
 
       moveActiveVenueToPolymarket(view);
 
-      // Still shown, never cancelled, but the stale sheet cannot re-POST it.
+      // Still shown, but a stale sheet cannot initiate an observation.
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+        screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
       ).toBeDisabled();
-      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING));
       await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
       expect(commitCalls()).toHaveLength(1);
     });
@@ -1593,7 +1605,7 @@ describe('PredictOrderFlow', () => {
       {
         commit: () => ({
           status: 500,
-          body: { code: 'venue_unavailable', message: 'Venue unavailable.' },
+          body: {},
         }),
       },
     );
@@ -1606,31 +1618,20 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen(),
     );
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
 
     await act(() => new Promise((resolve) => setTimeout(resolve, 4500)));
 
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REFRESH)).toBeNull();
 
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
-    // `venue_unavailable` proves no operation exists, so the re-approval
-    // signs the same create_order again for the same Preview.
-    await waitFor(() => expect(commitCalls()).toHaveLength(2));
-    expect(commitCalls()[0]?.body).toEqual({
-      ticker: 'KXTEST-26-A',
-      client_order_id: expect.any(String),
-      side: 'bid',
-      count: '41.00',
-      price: '0.4651',
-      time_in_force: 'immediate_or_cancel',
-      self_trade_prevention_type: 'taker_at_cross',
-      reduce_only: false,
-    });
-    expect(commitCalls()[1]?.body).toEqual(commitCalls()[0]?.body);
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING));
+    await waitFor(() => expect(observeCalls().length).toBeGreaterThan(0));
+    expect(commitCalls()).toHaveLength(1);
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
   }, 30000);
 
   it('links the backend-owned terms URL when the venue publishes one', async () => {

@@ -4035,7 +4035,7 @@
       "keep_checking": "Keep checking",
       "requote": "Try again",
       "needs_review_title": "We couldn't confirm this order",
-      "needs_review_description": "This order is too old for us to check again. Look for the outcome in your History.",
+      "needs_review_description": "Order outcome could not be confirmed. Check your activity or contact support.",
       "done": "Done"
     },
     "order_notification": {

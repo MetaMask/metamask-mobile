@@ -441,6 +441,26 @@ describe('PredictNext Order Preview request', () => {
       }),
     );
   });
+  it('keeps positions independently readable when the summary is rate limited without fabricating a balance', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) => {
+      if (String(url).includes('/portfolio/summary')) {
+        return { status: 429, body: { code: 'rate_limited' } };
+      }
+      if (String(url).includes('/positions')) {
+        return { body: { venueId: 'kalshi', positions: [] } };
+      }
+      return { status: 404 };
+    });
+
+    const positions = harness.portfolioService.getPositions(KALSHI_VENUE_ID, {});
+    await expect(
+      harness.portfolioService.getPortfolioSummary(KALSHI_VENUE_ID),
+    ).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+    await expect(positions).resolves.toMatchObject({
+      venueId: 'kalshi',
+      positions: [],
+    });
+  });
 
   it('commits a sell Preview to its receipt, and a terminal receipt invalidates the portfolio reads', async () => {
     // The venue reports the pre-trade Position first, the reduced Position
@@ -665,7 +685,7 @@ describe('PredictNext Order Preview request', () => {
   });
 
   describe('platform reset', () => {
-    /** A pending Receipt: accepted, still working, so it is re-POSTed. */
+    /** A pending receipt is observed through GET, never another POST. */
     const pendingReceipt = {
       ...buyReceiptResponse,
       status: 'pending',
@@ -801,7 +821,6 @@ describe('PredictNext Order Preview request', () => {
      * on the Engine root, cancelled by the Active Venue subscription. */
     const composeOrderFlow = (
       harness: ReturnType<typeof createPredictNextIntegrationHarness>,
-      options: { ambiguousCommitGraceMs?: number } = {},
     ) => {
       const store = buildVenueStore();
       const orderService = new PredictOrderService({
@@ -814,7 +833,6 @@ describe('PredictNext Order Preview request', () => {
         venueId: harness.adapter.venueId,
         observationDelayMs: 0,
         backgroundObservationDelaysMs: [10],
-        ...options,
       });
       const unsubscribe = subscribeToActiveVenueChanges(store.source, () =>
         orderService.cancelUncommittedPreviews(),
@@ -1020,7 +1038,7 @@ describe('PredictNext Order Preview request', () => {
       expect(resolutions).toHaveLength(1);
     });
 
-    it('with a lost response the backend received: observes it only after expiry, with the same Preview, and notifies once', async () => {
+    it('with a lost response the backend received: observes the same Preview and notifies once', async () => {
       const operations = new Set<string>();
       let commits = 0;
       let observations = 0;
@@ -1043,9 +1061,7 @@ describe('PredictNext Order Preview request', () => {
         }
         return { status: 404 };
       });
-      const { orderService, store, resolutions } = composeOrderFlow(harness, {
-        ambiguousCommitGraceMs: 100,
-      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
       await quoteBuy(orderService);
 
       const commit = orderService.commitPreview(
@@ -1054,15 +1070,7 @@ describe('PredictNext Order Preview request', () => {
         commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
       store.selectVenue('polymarket');
-      await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
-
-      // Ambiguous, not cancelled: nothing is read inside the validity
-      // window, where a missing operation would prove nothing.
-      const expiresAt = Date.parse(preview.expiresAt);
-      while (Date.now() < expiresAt) {
-        expect(observations).toBe(0);
-        await new Promise((resolve) => setTimeout(resolve, 20));
-      }
+      await expect(commit).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
 
       await until(() => resolutions.length === 1, 5_000);
       // One signed Commit, then a read of the same Preview reference.
@@ -1081,13 +1089,21 @@ describe('PredictNext Order Preview request', () => {
       expect(resolutions).toHaveLength(1);
     });
 
-    it('with a lost request the backend never received: concludes "not placed" after expiry, never a second Order', async () => {
+    it('keeps a lost POST unknown through observe404 beyond expiry, then accepts a late fill without another POST', async () => {
       let commits = 0;
       let observations = 0;
-      const preview = freshPreview(500);
-      const harness = buildPredictNextIntegrationHarness((url) => {
+      // This app targets ES2022, before Promise.withResolvers.
+      let releaseObservation!: () => void;
+      const observationGate = new Promise<void>((resolve) => {
+        releaseObservation = resolve;
+      });
+      let reportObservation!: () => void;
+      const observationStarted = new Promise<void>((resolve) => {
+        reportObservation = resolve;
+      });
+      const harness = buildPredictNextIntegrationHarness(async (url) => {
         if (String(url).endsWith('/orders/preview')) {
-          return { body: preview };
+          return { body: freshPreview(-60_000) };
         }
         if (isCommitUrl(url)) {
           commits += 1;
@@ -1095,32 +1111,46 @@ describe('PredictNext Order Preview request', () => {
         }
         if (isObserveUrl(url)) {
           observations += 1;
-          return { status: 404, body: { code: 'operation_not_found' } };
+          if (observations === 1) {
+            return { status: 404, body: { code: 'operation_not_found' } };
+          }
+          reportObservation();
+          await observationGate;
+          return { body: buyReceiptResponse };
         }
         return { status: 404 };
       });
-      const { orderService, store, resolutions } = composeOrderFlow(harness, {
-        ambiguousCommitGraceMs: 100,
-      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
       await quoteBuy(orderService);
+      await expect(
+        orderService.commitPreview(
+          KALSHI_VENUE_ID,
+          previewResponse.previewId,
+          commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+        ),
+      ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      store.selectVenue('polymarket');
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
+      ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      expect(resolutions).toEqual([]);
+      expect(commits).toBe(1);
 
-      const commit = orderService.commitPreview(
+      await observationStarted;
+      const repeatedApproval = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
       );
-      store.selectVenue('polymarket');
-      await expect(commit).rejects.toMatchObject({ code: 'NETWORK_ERROR' });
-
-      await until(() => resolutions.length === 1, 5_000);
-      expect(resolutions[0]).toMatchObject({
-        outcome: { status: 'not_placed', code: 'ORDER_NOT_FOUND' },
-        presented: false,
-      });
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      releaseObservation();
+      await expect(repeatedApproval).resolves.toMatchObject({ status: 'filled' });
+      expect(resolutions).toEqual([
+        expect.objectContaining({
+          outcome: expect.objectContaining({ status: 'settled' }),
+          presented: false,
+        }),
+      ]);
       expect(commits).toBe(1);
-      expect(observations).toBe(1);
-      expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
+      expect(observations).toBe(2);
     });
   });
 

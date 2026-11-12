@@ -31,6 +31,8 @@ interface OrderApprovalProps {
   isExpired: boolean;
   /** The sheet is stale: no approval, refresh or edit may run. */
   isDisabled?: boolean;
+  /** A dispatched order can only be observed, never approved or edited again. */
+  isObserving?: boolean;
   onApprove: () => void;
   onBack: () => void;
   onRefresh: () => void;
@@ -39,7 +41,7 @@ interface OrderApprovalProps {
 /**
  * The explicit approval step between the quoted Order Preview and its
  * Commit: the quoted values, with the total replaced by the bound the
- * phone signs (maximum cost for a buy, minimum proceeds for a sell), and
+ * phone signs (maximum buy cost or conditional full-fill sell proceeds), and
  * the expiry. An expired Preview degrades to a re-quote affordance, never
  * a failure.
  */
@@ -48,6 +50,7 @@ export const OrderApproval = ({
   display,
   isExpired,
   isDisabled = false,
+  isObserving = false,
   onApprove,
   onBack,
   onRefresh,
@@ -68,7 +71,18 @@ export const OrderApproval = ({
         ),
       })}
     </Text>
-    {isExpired ? (
+    {isObserving ? (
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        isFullWidth
+        onPress={onApprove}
+        isDisabled={isDisabled}
+        testID={PredictOrderFlowTestIds.KEEP_CHECKING}
+      >
+        {strings('predict_next.order_receipt.keep_checking')}
+      </Button>
+    ) : isExpired ? (
       <>
         <Text
           variant={TextVariant.BodySm}

@@ -134,8 +134,7 @@ interface OrderReceiptOutcomeProps {
  * re-quote affordance. `rejected` states that the venue refused the Order
  * and nothing changed, with a re-quote affordance. `pending`, `submitted`,
  * and `reconciliation_required` mean the backend is still resolving the
- * true outcome; the keep-checking affordance re-POSTs the idempotent Commit
- * to observe it.
+ * true outcome; the keep-checking affordance reads the existing operation.
  *
  * A sell never renders a profit or loss figure: canonical Positions carry
  * no cost basis.
@@ -309,8 +308,8 @@ export const OrderReceiptOutcome = ({
         </Box>
       );
     case 'needs_manual_review':
-      // Terminal and unresolved: the scan is too old to sign, so re-POSTing
-      // cannot observe the outcome. Point at History instead of offering it.
+      // Unresolved financial outcome: automatic scans have stopped. Do not
+      // invite a new order or imply the original order was not filled.
       return (
         <Box
           twClassName="items-center gap-3 py-6"
@@ -380,4 +379,6 @@ export const OrderReceiptOutcome = ({
         </Box>
       );
   }
+  const unhandledStatus: never = receipt.status;
+  throw new Error(`Unhandled Predict order receipt status: ${unhandledStatus}`);
 };

@@ -52,24 +52,13 @@ const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
   2_000, 5_000, 10_000, 20_000, 30_000,
 ];
 
-/** How long after its first dispatch an unresolved operation is observed in
- * the background. After that its outcome surfaces through the Balance,
- * Positions and Activity reads. */
+/** How long to observe an unresolved operation in the background before
+ * pausing. A local deadline never proves an order's financial outcome. */
 const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
 
 /** Most background observations of one operation, even if the window is
  * never hit. One may sign a venue order scan while the backend reconciles. */
 const MAX_BACKGROUND_OBSERVATIONS = 12;
-
-/**
- * How long after a Preview's expiry the background waits before it reads a
- * Commit that never returned a Receipt. A Commit sent before expiry may
- * still create the operation until then, so only a read after the grace
- * that finds no operation proves none exists. The grace covers a first
- * request the backend was still revalidating at the expiry instant, plus
- * modest clock skew.
- */
-const AMBIGUOUS_COMMIT_GRACE_MS = 15_000;
 
 /** What the phone signs for one commit call. */
 export interface PredictOrderCommitSigning {
@@ -91,8 +80,7 @@ type OrderOperationState =
    * backend: submitted or ambiguous, never cancellable. Only the same
    * Preview reference may be observed. */
   | 'dispatched'
-  /** A terminal Receipt, or a conclusive backend answer that no operation
-   * exists, ended it. */
+  /** A receipt or a proven-unsent first invocation ended the workflow. */
   | 'resolved';
 
 /** How an Order operation ended, as far as this process observed it. */
@@ -122,9 +110,8 @@ interface OrderOperation {
   readonly contextEpoch: number;
   /** What the Commit of this Preview signs. */
   signing?: PredictOrderCommitSigning;
-  /** The signed Commit was handed to the transport. Every later call
-   * observes the receipt instead; it is reset only when the backend proved
-   * nothing was created, so a re-approval may sign again. */
+  /** Once dispatched, later calls observe only unless the first invocation
+   * was explicitly proven not relayed. Observation errors never reset it. */
   posted: boolean;
   state: OrderOperationState;
   /** When the first Commit was dispatched. */
@@ -152,48 +139,12 @@ const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
 const isTerminalReceipt = (receipt: PredictOrderReceipt): boolean =>
   TERMINAL_RECEIPT_STATUSES.includes(receipt.status);
 
-/**
- * The Commit route's canonical failure codes. The backend documents every
- * one as a pre-operation failure: it revalidates before it creates the
- * operation, so nothing was submitted to the Venue.
- */
-const PRE_OPERATION_COMMIT_CODES: ReadonlySet<string> = new Set([
-  'operation_not_found',
-  'preview_not_found',
-  'preview_expired',
-  'market_not_found',
-  'market_not_tradeable',
-  'balance_unavailable',
-  'position_unavailable',
-  'insufficient_balance',
-  'insufficient_position',
-  'venue_unavailable',
-]);
-
-/**
- * The Commit route answered with a canonical failure code. It looks the
- * Preview's operation up first, so for the same Predict User this proves no
- * operation exists for the Preview.
- */
-const isCanonicalCommitFailure = (error: PredictError): boolean => {
-  const { bodyCode } = error.metadata ?? {};
-  return (
-    typeof bodyCode === 'string' && PRE_OPERATION_COMMIT_CODES.has(bodyCode)
-  );
-};
-
-/**
- * The backend answered that this request created nothing: a canonical
- * Commit failure code, or a 401 from the auth guard that runs before the
- * Commit route. Everything else, including network failures, timeouts,
- * aborts, 5xx without a canonical code and unparseable responses, leaves the
- * operation ambiguous.
- */
-const isPreOperationFailure = (error: unknown): error is PredictError =>
+/** Evidence applies only to the first mutation invocation, never an observe
+ * failure or an earlier ambiguous submission. HTTP status alone is not proof. */
+const isUnsentCommitFailure = (error: unknown): error is PredictError =>
   error instanceof PredictError &&
-  (error.metadata?.requestSent === false ||
-    error.metadata?.status === 401 ||
-    isCanonicalCommitFailure(error));
+  error.metadata?.phase === 'commit' &&
+  error.metadata?.mutationRelay === 'not_relayed_this_invocation';
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -255,8 +206,6 @@ export interface PredictOrderServiceOptions {
   backgroundObservationWindowMs?: number;
   /** Injectable background observation cap for tests. */
   maxBackgroundObservations?: number;
-  /** Injectable post-expiry grace for tests. */
-  ambiguousCommitGraceMs?: number;
 }
 
 /**
@@ -272,17 +221,14 @@ export interface PredictOrderServiceOptions {
  * cancels it and its Commit is refused locally. After that, the Commit may
  * have reached the backend: it is submitted or ambiguous, never cancelled.
  * The Commit is signed and POSTed once; afterwards the operation is only
- * read (GET by Preview reference), which never submits. A canonical
- * backend failure code proves no operation exists, which puts a Preview
- * with no ambiguous history back before the boundary, so a re-approval
- * signs a fresh Commit.
+ * read (GET by Preview reference), which never submits. Only explicit
+ * not-relayed evidence from the first mutation attempt allows re-approval.
+ * An observation error, missing operation or local expiry never resolves
+ * an earlier dispatch: it may still land.
  *
- * **Observation.** An unresolved operation keeps being observed in the
- * background, whether or not a screen still shows it and whichever Venue is
- * active. When the Commit never returned a Receipt, the background waits
- * until the Preview has expired before it reads, because only then can a
- * missing operation prove the Commit created none. While the backend
- * reconciles an ambiguous submission, a read signs its venue order scan.
+ * **Observation.** Unresolved operations are observed with bounded work,
+ * whether or not a screen still shows them. Exhausting the local window
+ * pauses observation without asserting a financial outcome.
  *
  * **Identity.** Observation is bound to the Predict User who approved the
  * Preview. {@link PredictOrderService.abandonCommits} forgets every Preview,
@@ -301,7 +247,6 @@ export class PredictOrderService {
   readonly #backgroundObservationDelaysMs: readonly number[];
   readonly #backgroundObservationWindowMs: number;
   readonly #maxBackgroundObservations: number;
-  readonly #ambiguousCommitGraceMs: number;
   readonly #operations = new Map<string, OrderOperation>();
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
   readonly #inFlightQuotes = new Set<AbortController>();
@@ -318,7 +263,6 @@ export class PredictOrderService {
     backgroundObservationDelaysMs = BACKGROUND_OBSERVATION_DELAYS_MS,
     backgroundObservationWindowMs = BACKGROUND_OBSERVATION_WINDOW_MS,
     maxBackgroundObservations = MAX_BACKGROUND_OBSERVATIONS,
-    ambiguousCommitGraceMs = AMBIGUOUS_COMMIT_GRACE_MS,
   }: PredictOrderServiceOptions) {
     this.#messenger = messenger;
     this.#trading = trading;
@@ -327,7 +271,6 @@ export class PredictOrderService {
     this.#backgroundObservationDelaysMs = backgroundObservationDelaysMs;
     this.#backgroundObservationWindowMs = backgroundObservationWindowMs;
     this.#maxBackgroundObservations = maxBackgroundObservations;
-    this.#ambiguousCommitGraceMs = ambiguousCommitGraceMs;
 
     messenger.registerActionHandler(
       'PredictOrderService:requestQuote',
@@ -512,7 +455,7 @@ export class PredictOrderService {
     for (const [previewId, operation] of this.#operations) {
       if (
         (operation.state === 'quoted' || operation.state === 'cancelled') &&
-        operation.expiresAt + this.#ambiguousCommitGraceMs < now
+        operation.expiresAt < now
       ) {
         this.#operations.delete(previewId);
       }
@@ -561,7 +504,6 @@ export class PredictOrderService {
       this.#commitAndObserve(
         operation,
         generation,
-        startedAt,
         transport.signal,
         maxObservations,
       ),
@@ -589,7 +531,6 @@ export class PredictOrderService {
   async #commitAndObserve(
     operation: OrderOperation,
     generation: number,
-    startedAt: number,
     signal: AbortSignal,
     maxObservations: number,
   ): Promise<PredictOrderReceipt> {
@@ -606,7 +547,16 @@ export class PredictOrderService {
       );
     } catch (error) {
       if (generation === this.#commitGeneration) {
-        this.#handleCommitFailure(operation, error, startedAt);
+        const unsent = isUnsentCommitFailure(error) && !operation.ambiguous;
+        this.#handleCommitFailure(operation, error);
+        if (!unsent) {
+          throw PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+            metadata:
+              error instanceof PredictError
+                ? { ...error.metadata, causeCode: error.code }
+                : undefined,
+          });
+        }
       }
       throw error;
     }
@@ -649,9 +599,15 @@ export class PredictOrderService {
     this.#assertNotAbandoned(generation);
     let receipt: PredictOrderReceipt;
     if (operation.posted) {
-      receipt = await this.#trading.observeOrder(operation.previewId, {
-        signal,
-      });
+      try {
+        receipt = await this.#trading.observeOrder(operation.previewId, {
+          signal,
+        });
+      } catch (error) {
+        // Even not-relayed mutation metadata cannot resolve an observation.
+        operation.ambiguous = true;
+        throw error;
+      }
     } else {
       const signing = operation.signing;
       if (!signing) {
@@ -671,33 +627,17 @@ export class PredictOrderService {
   #handleCommitFailure(
     operation: OrderOperation,
     error: unknown,
-    startedAt: number,
   ): void {
     if (operation.state !== 'dispatched') {
       return;
     }
-    if (!isPreOperationFailure(error)) {
-      // The request may have reached the backend: keep observing.
+    if (operation.ambiguous || !isUnsentCommitFailure(error)) {
       operation.ambiguous = true;
       return;
     }
-    const mayStillLand = operation.receiptSeen || operation.ambiguous;
-    const sentAfterGrace =
-      startedAt >= operation.expiresAt + this.#ambiguousCommitGraceMs;
-    // An earlier request may have created the operation. Only the Commit
-    // route's own refusal, sent once the Preview has expired, proves it did
-    // not: a Receipt already proves it did, and a 401 comes from the auth
-    // guard (or a token the client could not get) before any lookup.
-    const provesNoOperation =
-      !operation.receiptSeen &&
-      sentAfterGrace &&
-      isCanonicalCommitFailure(error);
-    if (mayStillLand && !provesNoOperation) {
-      return;
-    }
     const canReturnBeforeBoundary =
-      !mayStillLand &&
       error.code !== PredictErrorCode.PREVIEW_EXPIRED &&
+      error.code !== PredictErrorCode.ORDER_PREVIEW_MISMATCH &&
       operation.contextEpoch === this.#contextEpoch &&
       operation.presenters.size > 0;
     if (canReturnBeforeBoundary) {
@@ -760,11 +700,6 @@ export class PredictOrderService {
     const delay =
       delays[Math.min(operation.backgroundObservations, delays.length - 1)] ??
       COMMIT_OBSERVATION_DELAY_MS;
-    // With no Receipt, the operation may not exist yet, and a read that
-    // finds none inside the validity window proves nothing.
-    const earliest = operation.receiptSeen
-      ? now
-      : operation.expiresAt + this.#ambiguousCommitGraceMs;
     operation.backgroundObservations += 1;
     const observe = () => {
       operation.backgroundTimer = undefined;
@@ -774,22 +709,10 @@ export class PredictOrderService {
       ) {
         return;
       }
-      // Timers run on the event loop's clock, which can trail `Date.now()`
-      // under load, so one may fire just before `earliest`. A refusal to a
-      // read sent then proves nothing (`sentAfterGrace` is false) and
-      // would cost another round trip, so wait out the remainder instead.
-      const remaining = earliest - Date.now();
-      if (remaining > 0) {
-        operation.backgroundTimer = setTimeout(observe, remaining);
-        return;
-      }
       // Failures are handled inside; the background has no caller.
       this.#dispatch(operation, 0).catch(() => undefined);
     };
-    operation.backgroundTimer = setTimeout(
-      observe,
-      Math.max(delay, earliest - now),
-    );
+    operation.backgroundTimer = setTimeout(observe, delay);
   }
 
   #clearBackgroundTimer(operation: OrderOperation): void {

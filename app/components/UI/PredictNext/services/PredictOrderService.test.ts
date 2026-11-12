@@ -155,7 +155,6 @@ const serviceWith = (
       PredictOrderServiceOptions,
       | 'backgroundObservationDelaysMs'
       | 'backgroundObservationWindowMs'
-      | 'ambiguousCommitGraceMs'
     >
   > = {},
 ) => {
@@ -265,7 +264,15 @@ const settleWithFakeTimers = async <T>(promise: Promise<T>): Promise<T> => {
 
 /** A canonical pre-operation failure: the backend body carried its code. */
 const preOperationFailure = (code: PredictErrorCode, bodyCode: string) =>
-  PredictError.from(code, { metadata: { status: 422, bodyCode } });
+  PredictError.from(code, {
+    metadata: {
+      status: 422,
+      bodyCode,
+      phase: 'commit',
+      mutationRelay: 'not_relayed_this_invocation',
+      operationOutcome: 'unknown',
+    },
+  });
 
 /** A failure that leaves the Commit ambiguous: no answer came back. */
 const lostResponse = () => PredictError.from(PredictErrorCode.NETWORK_ERROR);
@@ -514,19 +521,35 @@ describe('PredictOrderService', () => {
       expect(observeOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('propagates commit failures untouched', async () => {
-      venueCall.mockRejectedValue(
-        PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE),
+    it('keeps a failed mutation financially unknown while preserving its cause and observe-only history', async () => {
+      const metadata = {
+        phase: 'commit',
+        mutationRelay: 'unknown',
+        operationOutcome: 'unknown',
+        status: 503,
+        bodyCode: 'upstream_timeout',
+        requestSent: true,
+      };
+      venueCall.mockRejectedValueOnce(
+        PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, { metadata }),
       );
+      const orderService = await quotedService();
 
       await expect(
-        (await quotedService()).commitPreview(
-          KALSHI_VENUE_ID,
-          'preview-1',
-          SIGNING,
-        ),
-      ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
-      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        metadata: { ...metadata, causeCode: PredictErrorCode.VENUE_UNAVAILABLE },
+      });
+      expect(invalidateQueries).not.toHaveBeenCalled();
+      expect(orderResolved).not.toHaveBeenCalled();
+
+      venueCall.mockResolvedValueOnce(receipt);
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).resolves.toEqual(receipt);
+      expect(commitOrder).toHaveBeenCalledTimes(1);
+      expect(observeOrder).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -865,6 +888,33 @@ describe('PredictOrderService', () => {
       });
     });
   });
+  it.each([
+    PredictErrorCode.UNAUTHENTICATED,
+    PredictErrorCode.VENUE_SIGNING_REFUSED,
+  ])('permits explicit re-approval after a first %s refusal before mutation dispatch', async (code) => {
+    venueCall.mockRejectedValueOnce(
+      PredictError.from(code, {
+        metadata: {
+          phase: 'commit',
+          requestSent: false,
+          mutationRelay: 'not_relayed_this_invocation',
+          operationOutcome: 'unknown',
+        },
+      }),
+    );
+    venueCall.mockResolvedValueOnce(receipt);
+    const orderService = await quotedService();
+    orderService.presentOperation('preview-1', jest.fn());
+    await expect(
+      orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+    ).rejects.toMatchObject({ code });
+    expect(orderResolved).not.toHaveBeenCalled();
+    await expect(
+      orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+    ).resolves.toEqual(receipt);
+    expect(commitOrder).toHaveBeenCalledTimes(2);
+    expect(observeOrder).not.toHaveBeenCalled();
+  });
 
   describe('orderResolved', () => {
     it('is published once per operation, however often it is re-committed', async () => {
@@ -1002,189 +1052,71 @@ describe('PredictOrderService', () => {
       expect(orderResolved).toHaveBeenCalledTimes(1);
     });
 
-    it('waits until the Preview has expired before observing a Commit that returned no receipt', async () => {
+    it('observes a lost POST through 404 beyond expiry and resolves only on a late fill', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
       venueCall.mockRejectedValueOnce(lostResponse());
-      venueCall.mockResolvedValueOnce(receiptWith({ status: 'filled' }));
+      const missing = PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+        metadata: {
+          status: 404,
+          bodyCode: 'operation_not_found',
+          phase: 'observe',
+          mutationRelay: 'not_a_mutation',
+          operationOutcome: 'unknown',
+        },
+      });
+      venueCall.mockRejectedValue(missing);
       const orderService = await quote(
-        serviceWith(0, {
-          backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
-        }),
+        serviceWith(0, { backgroundObservationDelaysMs: [20_000] }),
       );
 
       await expect(
-        settleWithFakeTimers(
-          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-        ),
-      ).rejects.toMatchObject({ code: PredictErrorCode.NETWORK_ERROR });
-
-      // Inside the validity window a missing operation proves nothing, so
-      // nothing is read.
-      await jest.advanceTimersByTimeAsync(14_000);
-      expect(venueCall).toHaveBeenCalledTimes(1);
-
-      // After expiry plus grace the read is conclusive.
-      await jest.advanceTimersByTimeAsync(1_000);
-      expect(venueCall).toHaveBeenCalledTimes(2);
-      expect(commitOrder).toHaveBeenCalledTimes(1);
-      expect(observeOrder).toHaveBeenLastCalledWith('preview-1', commitSignal);
-      expect(orderResolved).toHaveBeenCalledTimes(1);
-      expect(orderResolved).toHaveBeenCalledWith(
-        expect.objectContaining({
-          outcome: {
-            status: 'settled',
-            receipt: receiptWith({ status: 'filled' }),
-          },
-        }),
-      );
-    });
-
-    it('resolves an ambiguous Commit as not placed when the post-expiry observation finds no operation', async () => {
-      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
-      venueCall.mockRejectedValueOnce(lostResponse());
-      venueCall.mockRejectedValueOnce(
-        preOperationFailure(
-          PredictErrorCode.PREVIEW_EXPIRED,
-          'preview_expired',
-        ),
-      );
-      const orderService = await quote(
-        serviceWith(0, {
-          backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
-        }),
-      );
-
-      await settleWithFakeTimers(
         orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).catch(() => undefined);
-      await jest.advanceTimersByTimeAsync(15_000);
-
-      expect(venueCall).toHaveBeenCalledTimes(2);
-      expect(orderResolved).toHaveBeenCalledTimes(1);
-      expect(orderResolved).toHaveBeenCalledWith(
-        expect.objectContaining({
-          outcome: {
-            status: 'not_placed',
-            code: PredictErrorCode.PREVIEW_EXPIRED,
-          },
-        }),
-      );
-      await jest.advanceTimersByTimeAsync(60_000);
-      expect(venueCall).toHaveBeenCalledTimes(2);
-    });
-
-    it('resolves an ambiguous Commit as not placed when the post-expiry read finds no operation', async () => {
-      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
-      venueCall.mockRejectedValueOnce(lostResponse());
-      venueCall.mockRejectedValueOnce(
-        PredictError.from(PredictErrorCode.ORDER_NOT_FOUND, {
-          metadata: { status: 404, bodyCode: 'operation_not_found' },
-        }),
-      );
-      const orderService = await quote(
-        serviceWith(0, {
-          backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
-        }),
-      );
-
-      await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).catch(() => undefined);
-      await jest.advanceTimersByTimeAsync(15_000);
-
-      expect(commitOrder).toHaveBeenCalledTimes(1);
+      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+      await jest.advanceTimersByTimeAsync(20_000);
       expect(observeOrder).toHaveBeenCalledTimes(1);
-      expect(orderResolved).toHaveBeenCalledWith(
-        expect.objectContaining({
-          outcome: {
-            status: 'not_placed',
-            code: PredictErrorCode.ORDER_NOT_FOUND,
-          },
-        }),
-      );
-      await jest.advanceTimersByTimeAsync(60_000);
-      expect(venueCall).toHaveBeenCalledTimes(2);
-    });
+      expect(orderResolved).not.toHaveBeenCalled();
+      expect(invalidateQueries).not.toHaveBeenCalled();
 
-    it('holds a post-expiry observation whose timer fires before the grace ends by the wall clock', async () => {
-      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
-      const graceEndsAt = Date.parse(preview.expiresAt) + 5_000;
-      const observedAt: number[] = [];
-      venueCall.mockRejectedValueOnce(lostResponse());
-      venueCall.mockImplementationOnce(async () => {
-        observedAt.push(Date.now());
-        throw preOperationFailure(
-          PredictErrorCode.PREVIEW_EXPIRED,
-          'preview_expired',
-        );
-      });
-      const orderService = await quote(
-        serviceWith(0, {
-          backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
-        }),
-      );
-      await settleWithFakeTimers(
+      // Repeated approval after dispatch is still a GET, even after expiry.
+      await expect(
         orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).catch(() => undefined);
-
-      // The event loop's clock runs ahead of the wall clock, so the timer
-      // fires while `Date.now()` is still inside the grace.
-      jest.setSystemTime(Date.now() - 5);
-      await jest.advanceTimersByTimeAsync(graceEndsAt - Date.now() - 5);
-      expect(venueCall).toHaveBeenCalledTimes(1);
-
-      await jest.advanceTimersByTimeAsync(5);
-      expect(observedAt).toStrictEqual([graceEndsAt]);
-      expect(orderResolved).toHaveBeenCalledTimes(1);
-      expect(orderResolved).toHaveBeenCalledWith(
-        expect.objectContaining({
-          outcome: {
-            status: 'not_placed',
-            code: PredictErrorCode.PREVIEW_EXPIRED,
-          },
-        }),
-      );
-      await jest.advanceTimersByTimeAsync(60_000);
-      expect(venueCall).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not conclude "not placed" from a post-expiry 401 after an ambiguous Commit', async () => {
-      jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
-      venueCall.mockRejectedValueOnce(lostResponse());
-      // The auth guard (or a token the client could not get, e.g. a locked
-      // wallet) answers before the Commit route looks the operation up.
-      venueCall.mockRejectedValueOnce(
-        PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
-          metadata: { status: 401 },
-        }),
-      );
-      venueCall.mockResolvedValueOnce(receiptWith({ status: 'filled' }));
-      const orderService = await quote(
-        serviceWith(0, {
-          backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
-        }),
-      );
-
-      await settleWithFakeTimers(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).catch(() => undefined);
-      await jest.advanceTimersByTimeAsync(15_000);
-      expect(venueCall).toHaveBeenCalledTimes(2);
+      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+      expect(commitOrder).toHaveBeenCalledTimes(1);
       expect(orderResolved).not.toHaveBeenCalled();
 
-      await jest.advanceTimersByTimeAsync(1_000);
-      expect(venueCall).toHaveBeenCalledTimes(3);
+      venueCall.mockResolvedValue(receiptWith({ status: 'filled' }));
+      await jest.advanceTimersByTimeAsync(20_000);
       expect(orderResolved).toHaveBeenCalledTimes(1);
       expect(orderResolved).toHaveBeenCalledWith(
         expect.objectContaining({
-          outcome: expect.objectContaining({ status: 'settled' }),
+          outcome: { status: 'settled', receipt: receiptWith({ status: 'filled' }) },
         }),
       );
+      expect(commitOrder).toHaveBeenCalledTimes(1);
+      expect(invalidateQueries).toHaveBeenCalledTimes(4);
+    });
+
+    it.each([
+      PredictErrorCode.UNAUTHENTICATED,
+      PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+      PredictErrorCode.PREVIEW_EXPIRED,
+    ])('never uses a later %s refusal to erase an earlier dispatch', async (code) => {
+      venueCall.mockRejectedValueOnce(lostResponse());
+      venueCall.mockRejectedValueOnce(preOperationFailure(code, 'venue_preview_mismatch'));
+      venueCall.mockResolvedValueOnce(receiptWith({ status: 'filled' }));
+      const orderService = await quotedService();
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+      expect(orderResolved).not.toHaveBeenCalled();
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).resolves.toMatchObject({ status: 'filled' });
+      expect(commitOrder).toHaveBeenCalledTimes(1);
+      expect(observeOrder).toHaveBeenCalledTimes(2);
     });
 
     it('never concludes "not placed" once a Receipt has been seen', async () => {
@@ -1205,7 +1137,6 @@ describe('PredictOrderService', () => {
       const orderService = await quote(
         serviceWith(0, {
           backgroundObservationDelaysMs: [20_000],
-          ambiguousCommitGraceMs: 5_000,
         }),
       );
 
@@ -1242,7 +1173,6 @@ describe('PredictOrderService', () => {
       const orderService = await quote(
         serviceWith(0, {
           backgroundObservationDelaysMs: [1_000],
-          ambiguousCommitGraceMs: 5_000,
         }),
       );
 
