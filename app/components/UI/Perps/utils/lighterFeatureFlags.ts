@@ -27,10 +27,11 @@ export function isLighterProviderEnabled(
  * build gate: both this env and the provider flag must be on.
  */
 export function isPerpsLighterConfirmationEnabled(
-  environment: LighterConfirmationEnvironment = {
+  environment?: LighterConfirmationEnvironment,
+): boolean {
+  const resolvedEnvironment = environment ?? {
     MM_PERPS_LIGHTER_CONFIRMATION_ENABLED:
       process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED,
-  },
-): boolean {
-  return environment.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED === 'true';
+  };
+  return resolvedEnvironment.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED === 'true';
 }

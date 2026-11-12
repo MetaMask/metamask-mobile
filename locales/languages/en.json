@@ -10404,7 +10404,6 @@
       "pay_with": "Pay with",
       "payment_method": "Payment method",
       "receive_as": "Receive",
-      "receive_to": "Receive to",
       "select_payment_method": "Select payment method",
       "select_token": "Select token",
       "from": "From",
@@ -10452,8 +10451,9 @@
     },
     "perps_receive_to": {
       "section": "Perps",
-      "hyperliquid": "Perps - Hyperliquid",
-      "lighter": "Perps - Lighter",
+      "hyperliquid": "USDC on Hyperliquid",
+      "lighter": "USDC on Lighter",
+      "default": "Default",
       "available": "{{amount}} available"
     },
     "tooltip": {

@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useRef,
+  useState,
 } from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -63,7 +64,11 @@ import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
-import { PerpsReceiveToRow } from '../../rows/perps-receive-to-row';
+import {
+  DEFAULT_PERPS_RECEIVE_DESTINATION,
+  PerpsReceiveToRow,
+  type PerpsReceiveDestination,
+} from '../../rows/perps-receive-to-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
@@ -209,6 +214,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       isMembershipSubscription && amountStage === CustomAmountStage.AmountInput
         ? CustomAmountStage.NoQuote
         : amountStage;
+
+    const [perpsReceiveDestination, setPerpsReceiveDestination] =
+      useState<PerpsReceiveDestination>(DEFAULT_PERPS_RECEIVE_DESTINATION);
 
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
@@ -529,6 +537,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               <PredictAccountPickerRow />
               {disablePay !== true &&
                 (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
             </>
           )}
           {stage !== CustomAmountStage.AmountInput && (
@@ -544,7 +556,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              <PerpsReceiveToRow />
+              <PerpsReceiveToRow
+                destination={perpsReceiveDestination}
+                onDestinationChange={setPerpsReceiveDestination}
+              />
               {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}

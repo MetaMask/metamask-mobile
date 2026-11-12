@@ -1,22 +1,24 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Modal, Pressable } from 'react-native';
+import { Modal } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { USDC_SYMBOL, USDC_TOKEN_ICON_URL } from '@metamask/perps-controller';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
   BottomSheet,
   BottomSheetHeader,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  KeyValueSelect,
   ListItemSelect,
+  RadioButton,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -24,6 +26,9 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
+import images from '../../../../../../images/image-icons';
+import LighterLogo from 'images/lighter.svg';
+import type { SvgProps } from 'react-native-svg';
 import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   isLighterProviderEnabled,
@@ -32,54 +37,78 @@ import {
 import { PerpsReceiveToSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
-type PerpsReceiveDestination = 'hyperliquid' | 'lighter';
+export type PerpsReceiveDestination = 'hyperliquid' | 'lighter';
+
+const DESTINATIONS: PerpsReceiveDestination[] = ['hyperliquid', 'lighter'];
+
+export const DEFAULT_PERPS_RECEIVE_DESTINATION: PerpsReceiveDestination =
+  'hyperliquid';
 
 /**
  * Display amounts from the deposit mock. This task does not read protocol
  * balances, so these stay constant until a later ticket wires them.
  */
 const PLACEHOLDER_AVAILABLE_BALANCE: Record<PerpsReceiveDestination, string> = {
-  hyperliquid: '$780.01',
-  lighter: '$15.88',
+  hyperliquid: '$4,892.06',
+  lighter: '$4,718.18',
 };
 
-const DESTINATION_ICON: Record<PerpsReceiveDestination, IconName> = {
-  hyperliquid: IconName.Chart,
-  lighter: IconName.Candlestick,
+// Bundled images resolve to a numeric asset id.
+const HYPERLIQUID_BADGE_SRC = images.HYPE as number;
+
+// The SVG import requires a `name` prop; the design-system badge does not pass one.
+const LighterBadgeSrc = (props: SvgProps) => (
+  <LighterLogo {...props} name="Lighter" />
+);
+
+const DESTINATION_NAME: Record<PerpsReceiveDestination, string> = {
+  hyperliquid: 'Hyperliquid',
+  lighter: 'Lighter',
 };
 
-function DestinationIcon({
+function DestinationAvatar({
   destination,
+  size = AvatarTokenSize.Md,
 }: {
   destination: PerpsReceiveDestination;
+  size?: AvatarTokenSize;
 }) {
   return (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="h-6 w-6 rounded-full bg-muted"
+    <BadgeWrapper
+      badge={
+        <BadgeNetwork
+          name={DESTINATION_NAME[destination]}
+          src={
+            destination === 'hyperliquid'
+              ? HYPERLIQUID_BADGE_SRC
+              : LighterBadgeSrc
+          }
+        />
+      }
     >
-      <Icon
-        name={DESTINATION_ICON[destination]}
-        size={IconSize.Sm}
-        color={
-          destination === 'hyperliquid'
-            ? IconColor.SuccessDefault
-            : IconColor.IconDefault
-        }
+      <AvatarToken
+        name={USDC_SYMBOL}
+        src={{ uri: USDC_TOKEN_ICON_URL }}
+        size={size}
       />
-    </Box>
+    </BadgeWrapper>
   );
 }
 
-export const PerpsReceiveToRow: React.FC = () => {
+interface PerpsReceiveToRowProps {
+  destination: PerpsReceiveDestination;
+  onDestinationChange: (destination: PerpsReceiveDestination) => void;
+}
+
+export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
+  destination,
+  onDestinationChange,
+}) => {
   const transactionMeta = useTransactionMetadataRequest();
   const providerFlagEnabled = useSelector(
     selectPerpsLighterProviderEnabledFlag,
   );
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [destination, setDestination] =
-    useState<PerpsReceiveDestination>('hyperliquid');
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
   const isVisible =
@@ -92,50 +121,48 @@ export const PerpsReceiveToRow: React.FC = () => {
     setIsSheetVisible(false);
   }, []);
 
-  const handleSelect = useCallback((next: PerpsReceiveDestination) => {
-    setDestination(next);
-    sheetRef.current?.onCloseBottomSheet();
-    setIsSheetVisible(false);
-  }, []);
+  const handleSelect = useCallback(
+    (next: PerpsReceiveDestination) => {
+      onDestinationChange(next);
+      sheetRef.current?.onCloseBottomSheet();
+      setIsSheetVisible(false);
+    },
+    [onDestinationChange],
+  );
 
   if (!isVisible) {
     return null;
   }
 
+  const rowLabel = strings('confirm.label.to');
   const selectedLabel = strings(`confirm.perps_receive_to.${destination}`);
+  const selectedBalance = PLACEHOLDER_AVAILABLE_BALANCE[destination];
 
   return (
     <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={strings('confirm.label.receive_to')}
-        onPress={() => setIsSheetVisible(true)}
-        testID={PerpsReceiveToSelectorsIDs.ROW}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="min-h-[34px] px-2 pb-2.5"
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('confirm.label.receive_to')}
-          </Text>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
-          >
-            <DestinationIcon destination={destination} />
-            <Text variant={TextVariant.BodyMd}>{selectedLabel}</Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
+      <Box>
+        <KeyValueSelect
+          accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
+          keyLabel={rowLabel}
+          onPress={() => setIsSheetVisible(true)}
+          selectButtonProps={{}}
+          testID={PerpsReceiveToSelectorsIDs.ROW}
+          value={selectedLabel}
+          valueStartAccessory={
+            <DestinationAvatar
+              destination={destination}
+              size={AvatarTokenSize.Sm}
             />
-          </Box>
-        </Box>
-      </Pressable>
+          }
+        />
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="self-end pr-4"
+        >
+          {`(${selectedBalance})`}
+        </Text>
+      </Box>
       {isSheetVisible && (
         <Modal
           visible
@@ -150,33 +177,58 @@ export const PerpsReceiveToRow: React.FC = () => {
               testID={PerpsReceiveToSelectorsIDs.SHEET}
               onClose={closeSheet}
             >
-              <BottomSheetHeader onBack={closeSheet} onClose={closeSheet}>
-                {strings('confirm.label.receive_to')}
+              <BottomSheetHeader onClose={closeSheet}>
+                {rowLabel}
               </BottomSheetHeader>
-              <Box twClassName="px-4 pt-3">
+              <Box twClassName="px-4 pt-3 pb-2">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
+                  twClassName="uppercase"
                 >
                   {strings('confirm.perps_receive_to.section')}
                 </Text>
               </Box>
-              {(['hyperliquid', 'lighter'] as const).map((option) => (
-                <ListItemSelect
-                  key={option}
-                  title={strings(`confirm.perps_receive_to.${option}`)}
-                  description={strings('confirm.perps_receive_to.available', {
-                    amount: PLACEHOLDER_AVAILABLE_BALANCE[option],
-                  })}
-                  startAccessory={<DestinationIcon destination={option} />}
-                  isSelected={option === destination}
-                  showSelectedIcon={false}
-                  onPress={() => handleSelect(option)}
-                  testID={`${PerpsReceiveToSelectorsIDs.OPTION}-${option}`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: option === destination }}
-                />
-              ))}
+              <Box twClassName="px-4 pb-4" gap={2}>
+                {DESTINATIONS.map((option) => {
+                  const isSelected = option === destination;
+                  return (
+                    <ListItemSelect
+                      key={option}
+                      title={strings(`confirm.perps_receive_to.${option}`)}
+                      titleEndAccessory={
+                        option === DEFAULT_PERPS_RECEIVE_DESTINATION ? (
+                          <Tag severity={TagSeverity.Neutral}>
+                            {strings('confirm.perps_receive_to.default')}
+                          </Tag>
+                        ) : undefined
+                      }
+                      description={strings(
+                        'confirm.perps_receive_to.available',
+                        { amount: PLACEHOLDER_AVAILABLE_BALANCE[option] },
+                      )}
+                      startAccessory={
+                        <DestinationAvatar destination={option} />
+                      }
+                      endAccessory={
+                        <RadioButton
+                          isChecked={isSelected}
+                          isReadOnly
+                          touchableOpacityProps={{ accessible: false }}
+                        />
+                      }
+                      isSelected={isSelected}
+                      onPress={() => handleSelect(option)}
+                      twClassName={`rounded-xl border bg-muted ${
+                        isSelected ? 'border-default' : 'border-transparent'
+                      }`}
+                      testID={`${PerpsReceiveToSelectorsIDs.OPTION}-${option}`}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: isSelected }}
+                    />
+                  );
+                })}
+              </Box>
             </BottomSheet>
           </Box>
         </Modal>

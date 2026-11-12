@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/transaction-controller';
 
@@ -7,7 +7,11 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { PerpsReceiveToSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { PerpsReceiveToRow } from './perps-receive-to-row';
+import {
+  DEFAULT_PERPS_RECEIVE_DESTINATION,
+  PerpsReceiveToRow,
+  type PerpsReceiveDestination,
+} from './perps-receive-to-row';
 
 /**
  * Unit coverage, not a component-view test. The row is local UI on the deposit
@@ -30,6 +34,18 @@ const ORIGINAL_CONFIRMATION_ENV =
   process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED;
 const ORIGINAL_PROVIDER_ENV = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 
+function ControlledRow() {
+  const [destination, setDestination] = useState<PerpsReceiveDestination>(
+    DEFAULT_PERPS_RECEIVE_DESTINATION,
+  );
+  return (
+    <PerpsReceiveToRow
+      destination={destination}
+      onDestinationChange={setDestination}
+    />
+  );
+}
+
 function renderRow(
   remoteEnabled: boolean | undefined = true,
   transactionType: TransactionType = TransactionType.perpsDeposit,
@@ -51,7 +67,7 @@ function renderRow(
         }),
   };
 
-  return renderWithProvider(<PerpsReceiveToRow />, {
+  return renderWithProvider(<ControlledRow />, {
     state: {
       engine: {
         backgroundState: {
@@ -79,12 +95,21 @@ describe('PerpsReceiveToRow', () => {
   });
 
   it('selects Lighter in the sheet and updates the row label only', () => {
-    const { getByTestId, getByText, queryByTestId } = renderRow();
+    const { getByLabelText, getByTestId, getByText, queryByTestId } =
+      renderRow();
 
-    expect(getByText(strings('confirm.label.receive_to'))).toBeOnTheScreen();
+    expect(getByText(strings('confirm.label.to'))).toBeOnTheScreen();
+    expect(
+      getByLabelText(
+        `${strings('confirm.label.to')}, ${strings(
+          'confirm.perps_receive_to.hyperliquid',
+        )}, $4,892.06`,
+      ),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('confirm.perps_receive_to.hyperliquid')),
     ).toBeOnTheScreen();
+    expect(getByText('($4,892.06)')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsReceiveToSelectorsIDs.ROW));
 
@@ -93,13 +118,16 @@ describe('PerpsReceiveToRow', () => {
       getByText(strings('confirm.perps_receive_to.section')),
     ).toBeOnTheScreen();
     expect(
+      getByText(strings('confirm.perps_receive_to.default')),
+    ).toBeOnTheScreen();
+    expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$780.01' }),
+        strings('confirm.perps_receive_to.available', { amount: '$4,892.06' }),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$15.88' }),
+        strings('confirm.perps_receive_to.available', { amount: '$4,718.18' }),
       ),
     ).toBeOnTheScreen();
 
@@ -110,6 +138,14 @@ describe('PerpsReceiveToRow', () => {
     expect(queryByTestId(PerpsReceiveToSelectorsIDs.SHEET)).toBeNull();
     expect(
       getByText(strings('confirm.perps_receive_to.lighter')),
+    ).toBeOnTheScreen();
+    expect(getByText('($4,718.18)')).toBeOnTheScreen();
+    expect(
+      getByLabelText(
+        `${strings('confirm.label.to')}, ${strings(
+          'confirm.perps_receive_to.lighter',
+        )}, $4,718.18`,
+      ),
     ).toBeOnTheScreen();
   });
 
