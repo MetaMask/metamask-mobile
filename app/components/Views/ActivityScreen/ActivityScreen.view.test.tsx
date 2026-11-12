@@ -910,103 +910,100 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     const mintHash = '0xactivitycvnftmint';
     const zeroAddress = '0x0000000000000000000000000000000000000000';
 
-    setupAccountsTransactionsApiMock(
-      [
-        {
-          hash: receiveEthHash,
-          timestamp: new Date(1_716_367_800_000).toISOString(),
-          chainId: 1,
-          from: ACTIVITY_CV_RECIPIENT,
-          to: ACTIVITY_CV_ACCOUNT,
-          value: '1000000000000000000',
-          valueTransfers: [
-            {
-              from: ACTIVITY_CV_RECIPIENT,
-              to: ACTIVITY_CV_ACCOUNT,
-              amount: '1000000000000000000',
-              symbol: 'ETH',
-              decimal: 18,
-            },
-          ],
-          isError: false,
-          transactionCategory: 'STANDARD',
-        },
-        {
-          hash: receiveUsdcHash,
-          timestamp: new Date(1_716_367_801_000).toISOString(),
-          chainId: 1,
-          from: ACTIVITY_CV_RECIPIENT,
-          to: ACTIVITY_CV_ACCOUNT,
-          value: '0',
-          valueTransfers: [
-            {
-              from: ACTIVITY_CV_RECIPIENT,
-              to: ACTIVITY_CV_ACCOUNT,
-              amount: '1000000',
-              symbol: 'USDC',
-              decimal: 6,
-              name: 'USD Coin',
-              transferType: 'ERC20',
-            },
-          ],
-          isError: false,
-          transactionCategory: 'TRANSFER',
-        },
-        {
-          hash: apiSwapHash,
-          timestamp: new Date(1_716_367_802_000).toISOString(),
-          chainId: 1,
-          from: ACTIVITY_CV_ACCOUNT,
-          to: ACTIVITY_CV_ACCOUNT,
-          value: '0',
-          valueTransfers: [
-            {
-              from: ACTIVITY_CV_ACCOUNT,
-              to: ACTIVITY_CV_RECIPIENT,
-              amount: '1000000000000000000',
-              decimal: 18,
-              symbol: 'ETH',
-              name: 'Ether',
-              transferType: 'normal',
-            },
-            {
-              from: ACTIVITY_CV_RECIPIENT,
-              to: ACTIVITY_CV_ACCOUNT,
-              amount: '1000000',
-              decimal: 6,
-              contractAddress: USDC_MAINNET,
-              symbol: 'USDC',
-              name: 'USD Coin',
-              transferType: 'erc20',
-            },
-          ],
-          isError: false,
-          transactionCategory: 'EXCHANGE',
-        },
-        {
-          hash: mintHash,
-          timestamp: new Date(1_716_367_803_000).toISOString(),
-          chainId: 1,
-          from: ACTIVITY_CV_ACCOUNT,
-          to: ACTIVITY_CV_NFT_CONTRACT,
-          value: '0',
-          valueTransfers: [
-            {
-              from: zeroAddress,
-              to: ACTIVITY_CV_ACCOUNT,
-              contractAddress: ACTIVITY_CV_NFT_CONTRACT,
-              tokenId: '1',
-              name: ACTIVITY_CV_NFT_COLLECTION_NAME,
-              symbol: 'PUNK',
-              transferType: 'erc721',
-            },
-          ],
-          isError: false,
-          transactionCategory: 'TRANSFER',
-        },
-      ],
-      ACTIVITY_CV_ACCOUNT,
-    );
+    setupAccountsTransactionsApiMock([
+      {
+        hash: receiveEthHash,
+        timestamp: new Date(1_716_367_800_000).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_RECIPIENT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '1000000000000000000',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_RECIPIENT,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000000000000000',
+            symbol: 'ETH',
+            decimal: 18,
+          },
+        ],
+        isError: false,
+        transactionCategory: 'STANDARD',
+      },
+      {
+        hash: receiveUsdcHash,
+        timestamp: new Date(1_716_367_801_000).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_RECIPIENT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_RECIPIENT,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000',
+            symbol: 'USDC',
+            decimal: 6,
+            name: 'USD Coin',
+            transferType: 'ERC20',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'TRANSFER',
+      },
+      {
+        hash: apiSwapHash,
+        timestamp: new Date(1_716_367_802_000).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: ACTIVITY_CV_ACCOUNT,
+            to: ACTIVITY_CV_RECIPIENT,
+            amount: '1000000000000000000',
+            decimal: 18,
+            symbol: 'ETH',
+            name: 'Ether',
+            transferType: 'normal',
+          },
+          {
+            from: ACTIVITY_CV_RECIPIENT,
+            to: ACTIVITY_CV_ACCOUNT,
+            amount: '1000000',
+            decimal: 6,
+            contractAddress: USDC_MAINNET,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            transferType: 'erc20',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'EXCHANGE',
+      },
+      {
+        hash: mintHash,
+        timestamp: new Date(1_716_367_803_000).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_NFT_CONTRACT,
+        value: '0',
+        valueTransfers: [
+          {
+            from: zeroAddress,
+            to: ACTIVITY_CV_ACCOUNT,
+            contractAddress: ACTIVITY_CV_NFT_CONTRACT,
+            tokenId: '1',
+            name: ACTIVITY_CV_NFT_COLLECTION_NAME,
+            symbol: 'PUNK',
+            transferType: 'erc721',
+          },
+        ],
+        isError: false,
+        transactionCategory: 'TRANSFER',
+      },
+    ]);
 
     const state = initialStateActivityWithLocalTransactions([
       sendEth,
@@ -1245,22 +1242,19 @@ describeForPlatforms('ActivityScreen — transaction rows', () => {
     const swapHash = swapTransaction.hash as string;
     const aggregator = '0x1111111254eeb25477b68fb85ed929f73a960582';
 
-    setupAccountsTransactionsApiMock(
-      [
-        {
-          hash: swapHash,
-          timestamp: new Date(swapTransaction.time).toISOString(),
-          chainId: 1,
-          from: ACTIVITY_CV_ACCOUNT,
-          to: aggregator,
-          value: '0',
-          valueTransfers: [],
-          isError: false,
-          transactionCategory: 'CONTRACT_CALL',
-        },
-      ],
-      ACTIVITY_CV_ACCOUNT,
-    );
+    setupAccountsTransactionsApiMock([
+      {
+        hash: swapHash,
+        timestamp: new Date(swapTransaction.time).toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: aggregator,
+        value: '0',
+        valueTransfers: [],
+        isError: false,
+        transactionCategory: 'CONTRACT_CALL',
+      },
+    ]);
 
     const state = initialStateActivityWithLocalTransactions([swapTransaction])
       .withOverrides({

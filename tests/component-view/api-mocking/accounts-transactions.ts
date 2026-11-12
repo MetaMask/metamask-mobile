@@ -9,6 +9,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import type { V5TransactionRecord } from '@metamask/core-backend';
+import { ACTIVITY_CV_ACCOUNT } from '../presets/activity';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
   clearAllNockMocks,
@@ -139,17 +140,11 @@ function mockAccountsApiGet(path: string, body: object): void {
 
 export function setupAccountsTransactionsApiMock(
   transactions: MockAccountsApiTransaction[],
-  subjectAddress?: string,
+  subjectAddress = ACTIVITY_CV_ACCOUNT,
 ): void {
-  if (transactions.length > 0 && !subjectAddress) {
-    throw new Error(
-      'setupAccountsTransactionsApiMock requires the viewing account',
-    );
-  }
-
   mockAccountsApiGet(
     TRANSACTIONS_PATH,
-    buildTransactionsResponse(transactions, subjectAddress ?? ''),
+    buildTransactionsResponse(transactions, subjectAddress),
   );
 }
 
