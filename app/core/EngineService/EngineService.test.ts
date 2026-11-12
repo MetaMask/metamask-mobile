@@ -197,6 +197,19 @@ jest.mock('../Engine', () => {
   };
 });
 
+// Redux-update subscriptions have 2 args; persistence subscriptions have 3.
+const getReduxUpdateListener = (eventName: string): (() => void) => {
+  const call = (
+    Engine.controllerMessenger.subscribe as unknown as jest.Mock
+  ).mock.calls.find(
+    (args: unknown[]) => args[0] === eventName && args.length === 2,
+  ) as [string, () => void] | undefined;
+  if (!call) {
+    throw new Error(`No Redux update subscription for ${eventName}`);
+  }
+  return call[1];
+};
+
 describe('EngineService', () => {
   let engineService: EngineService;
   let mockDispatch: jest.Mock;
@@ -493,44 +506,65 @@ describe('EngineService', () => {
       eventNames.splice(eventNames.indexOf('BridgeController:stateChange'), 1);
     });
 
-    it.each([
-      [1, 'treatment', true],
-      [2, 'treatment', false],
-      [1, 'control', false],
-    ])(
-      'with %i quotes and variant %s, dispatches immediately: %s',
-      async (quoteCount, variant, isImmediate) => {
-        ReduxService.store = {
-          ...ReduxService.store,
-          getState: () => ({
-            engine: {
-              backgroundState: {
-                RemoteFeatureFlagController: {
-                  remoteFeatureFlags: {
-                    swapsSWAPS5043AbtestFirstQuoteFlush: { name: variant },
-                  },
+    const bridgeUpdate = {
+      type: UPDATE_BG_STATE_KEY,
+      payload: { key: 'BridgeController' },
+    };
+
+    const startWithBridgeQuotes = async (
+      quoteCount: number,
+      variant: string,
+    ): Promise<() => void> => {
+      ReduxService.store = {
+        ...ReduxService.store,
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsSWAPS5043AbtestFirstQuoteFlush: { name: variant },
                 },
               },
             },
-          }),
-        } as unknown as ReduxStore;
-        await engineService.start();
-        (
-          Engine.context as unknown as Record<string, unknown>
-        ).BridgeController = {
+          },
+        }),
+      } as unknown as ReduxStore;
+      await engineService.start();
+      (Engine.context as unknown as Record<string, unknown>).BridgeController =
+        {
           state: { quotes: new Array(quoteCount).fill({}) },
         };
-        const [, emitStateChange] = (
-          Engine.controllerMessenger.subscribe as unknown as jest.Mock
-        ).mock.calls.find(
-          (call: unknown[]) =>
-            call[0] === 'BridgeController:stateChange' && call.length === 2,
-        ) as [string, () => void];
-        mockDispatch.mockClear();
+      mockDispatch.mockClear();
+      return getReduxUpdateListener('BridgeController:stateChange');
+    };
+
+    it('dispatches the first BridgeController quote immediately for treatment', async () => {
+      const emitStateChange = await startWithBridgeQuotes(1, 'treatment');
+
+      emitStateChange();
+
+      expect(mockDispatch).toHaveBeenCalledWith(bridgeUpdate);
+    });
+
+    it.each([
+      [2, 'treatment'],
+      [1, 'control'],
+    ])(
+      'holds the BridgeController update with %i quotes for %s until the batch timer fires',
+      async (quoteCount, variant) => {
+        const emitStateChange = await startWithBridgeQuotes(
+          quoteCount,
+          variant,
+        );
 
         emitStateChange();
+        expect(mockDispatch).not.toHaveBeenCalled();
 
-        expect(mockDispatch).toHaveBeenCalledTimes(isImmediate ? 1 : 0);
+        jest.advanceTimersByTime(250);
+
+        await waitFor(() =>
+          expect(mockDispatch).toHaveBeenCalledWith(bridgeUpdate),
+        );
       },
     );
   });
@@ -609,7 +643,6 @@ describe('EngineService', () => {
       await engineService.start();
 
       const mockEngine = Engine as unknown as MockEngineType;
-      const mockSubscribe = mockEngine.controllerMessenger.subscribe;
 
       // Mock missing vault metadata
       const originalContext = mockEngine.context;
@@ -621,19 +654,8 @@ describe('EngineService', () => {
         },
       };
 
-      // Find a Redux update subscription (not persistence subscription)
-      type SubscribeCall =
-        | [string, () => void]
-        | [string, () => void, () => unknown];
-      const reduxUpdateCall = mockSubscribe.mock.calls.find(
-        (call: unknown[]) =>
-          call[0] === 'KeyringController:stateChange' && call.length === 2, // Redux update has 2 args, persistence has 3
-      ) as SubscribeCall;
-      expect(reduxUpdateCall).toBeDefined();
-
       // Act - trigger the callback
-      const callback = reduxUpdateCall[1];
-      callback();
+      getReduxUpdateListener('KeyringController:stateChange')();
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
