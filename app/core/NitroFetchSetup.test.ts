@@ -370,7 +370,7 @@ describe('NitroFetchSetup', () => {
           ]);
         } finally {
           Date.now = originalDateNow;
-          mockNitroFetch.mockResolvedValue({ ok: true, status: 200 });
+          mockNitroFetch.mockResolvedValue(new Response(null, { status: 200 }));
         }
       };
 
