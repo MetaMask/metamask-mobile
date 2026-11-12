@@ -47,7 +47,7 @@ const LABEL_TEXT_PROPS = {
   color: TextColor.PrimaryDefault,
   fontFamily: FontFamily.Default,
   fontWeight: FontWeight.Bold,
-  variant: TextVariant.BodySm,
+  variant: TextVariant.BodyMd,
 } as const;
 
 export const PENDING_POSTS_SLOTS_PROBE_TEST_ID =
@@ -187,12 +187,12 @@ const PendingPostsButton = ({
             : [tw.style('rounded-full bg-background-section'), shadows.size.sm]
         }
       >
-        <CapsuleGlass twClassName="h-8">
+        <CapsuleGlass>
           <ButtonBase
             accessibilityLabel={getPendingPostsAccessibilityLabel(
               pendingNewCount,
             )}
-            size={ButtonBaseSize.Sm}
+            size={ButtonBaseSize.Md}
             onPress={handlePress}
             twClassName={(pressed) => {
               if (isMaterialSurface) {
