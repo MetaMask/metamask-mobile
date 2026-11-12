@@ -1048,7 +1048,7 @@ const OutcomeButtons = React.memo(
 
     if (compact) {
       return (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-3">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
           {buttons}
         </Box>
       );
@@ -1057,7 +1057,7 @@ const OutcomeButtons = React.memo(
     return (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-3"
+        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
       >
         {buttons}
       </Box>

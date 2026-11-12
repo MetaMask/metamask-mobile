@@ -203,7 +203,7 @@ const CashTokensFullView = () => {
         </ScrollView>
       )}
       {isMoneyHubEnabled && (
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4 gap-3">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-4 gap-2">
           <Box twClassName="flex-1">
             <Button
               testID={CashTokensFullViewTestIds.SWAP_BUTTON}

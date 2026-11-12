@@ -21,7 +21,7 @@ const styleSheet = () =>
       paddingTop: 0,
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 12,
+      gap: 8,
     },
     buttonWrapper: {
       flex: 1,

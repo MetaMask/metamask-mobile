@@ -8,7 +8,7 @@ const styleSheet = () =>
     },
     footer: {
       flexDirection: 'row',
-      gap: 12,
+      gap: 8,
       paddingHorizontal: 24,
       paddingBottom: 24,
     },

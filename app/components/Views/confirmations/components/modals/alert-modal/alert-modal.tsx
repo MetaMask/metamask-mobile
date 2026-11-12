@@ -175,16 +175,19 @@ const Buttons: React.FC<ButtonsProps> = ({
   return (
     <View style={styles.buttonsContainer}>
       {isDangerAlert && (
-        <Button
-          onPress={onClose}
-          style={styles.footerButton}
-          size={ButtonSize.Lg}
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          testID={AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON}
-        >
-          {strings('alert_system.alert_modal.close_btn')}
-        </Button>
+        <>
+          <Button
+            onPress={onClose}
+            style={styles.footerButton}
+            size={ButtonSize.Lg}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            testID={AlertModalSelectorsIDs.ALERT_MODAL_CLOSE_BUTTON}
+          >
+            {strings('alert_system.alert_modal.close_btn')}
+          </Button>
+          <View style={styles.buttonDivider} />
+        </>
       )}
       <Button
         onPress={onAcknowledge}
@@ -198,16 +201,19 @@ const Buttons: React.FC<ButtonsProps> = ({
         {primaryButtonLabel}
       </Button>
       {action ? (
-        <Button
-          onPress={() => onHandleActionClick(action.callback)}
-          style={styles.footerButton}
-          size={ButtonSize.Lg}
-          variant={ButtonVariant.Primary}
-          isFullWidth
-          testID={AlertModalSelectorsIDs.ALERT_MODAL_ACTION_BUTTON}
-        >
-          {action.label}
-        </Button>
+        <>
+          <View style={styles.buttonDivider} />
+          <Button
+            onPress={() => onHandleActionClick(action.callback)}
+            style={styles.footerButton}
+            size={ButtonSize.Lg}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            testID={AlertModalSelectorsIDs.ALERT_MODAL_ACTION_BUTTON}
+          >
+            {action.label}
+          </Button>
+        </>
       ) : null}
     </View>
   );

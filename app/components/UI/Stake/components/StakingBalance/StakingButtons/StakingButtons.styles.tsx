@@ -5,7 +5,7 @@ const styleSheet = () =>
     balanceButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 12,
+      gap: 8,
       marginTop: 16,
     },
     balanceActionButton: {

@@ -18,7 +18,9 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonsContainer: {
       flexDirection: 'row',
       paddingVertical: 16,
-      gap: 12,
+    },
+    buttonDivider: {
+      width: 8,
     },
     headerText: {
       fontWeight: 'bold',

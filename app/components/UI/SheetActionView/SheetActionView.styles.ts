@@ -5,7 +5,7 @@ const createStyles = () =>
     actionsContainer: {
       flexDirection: 'row',
       padding: 16,
-      gap: 12,
+      gap: 8,
     },
     cancelButton: { flex: 1 },
     confirmButton: { flex: 1 },

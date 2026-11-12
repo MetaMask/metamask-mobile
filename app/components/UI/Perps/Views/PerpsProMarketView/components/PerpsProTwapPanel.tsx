@@ -202,7 +202,7 @@ const PerpsProTwapPanel = ({
     pageCount > 1 ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="items-center gap-3 px-2"
+        twClassName="items-center gap-2 px-2"
       >
         <Button
           variant={ButtonVariant.Secondary}

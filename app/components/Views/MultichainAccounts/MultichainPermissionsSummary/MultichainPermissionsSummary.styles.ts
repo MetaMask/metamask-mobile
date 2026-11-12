@@ -41,7 +41,7 @@ const createStyles = (params: { theme: Theme }) => {
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
-      gap: 12,
+      gap: 8,
       marginTop: 8,
       paddingHorizontal: 16,
       marginBottom: Platform.OS === 'android' ? 16 : 0,

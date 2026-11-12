@@ -40,7 +40,7 @@ export default (colors: ThemeColors) =>
     buttonsContainer: {
       flexDirection: 'row',
       paddingTop: 24,
-      gap: 12,
+      gap: 8,
     },
     button: {
       flex: 1,

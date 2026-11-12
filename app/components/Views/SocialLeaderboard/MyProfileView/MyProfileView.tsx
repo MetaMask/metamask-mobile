@@ -1156,7 +1156,7 @@ const MyProfileView: React.FC = () => {
               }
             >
               {isOwner ? (
-                <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+                <Box flexDirection={BoxFlexDirection.Row} gap={2}>
                   {isPrivate ? null : (
                     <Box twClassName="flex-1">
                       <Button
