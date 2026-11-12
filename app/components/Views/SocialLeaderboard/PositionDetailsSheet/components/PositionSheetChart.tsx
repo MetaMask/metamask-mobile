@@ -22,6 +22,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   buildChartScale,
@@ -34,6 +39,8 @@ import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
 export const POSITION_SHEET_CHART_HEIGHT = 280;
+/** Hold before scrubbing starts, so a drag that begins on the chart still scrolls the sheet. */
+export const SCRUB_LONG_PRESS_MS = 200;
 const CHART_INSET_TOP = 24;
 const CHART_INSET_BOTTOM = 24;
 const LINE_WIDTH = 2;
@@ -52,8 +59,8 @@ const TOOLTIP_EDGE_INSET = 8;
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 /** Full-height band between two x positions, for the scrub clip paths. */
-const rectPath = (fromX: number, toX: number): string =>
-  `M${fromX},0 H${Math.max(toX, fromX)} V${POSITION_SHEET_CHART_HEIGHT} H${fromX} Z`;
+const rectPath = (fromX: number, toX: number, height: number): string =>
+  `M${fromX},0 H${Math.max(toX, fromX)} V${height} H${fromX} Z`;
 
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
@@ -65,6 +72,8 @@ export interface PositionSheetChartProps {
   overlayStyle: React.ComponentProps<typeof Animated.View>['style'];
   /** Called with the scrubbed point, or `null` when the finger lifts. */
   onScrub: (point: TokenPrice | null) => void;
+  /** Plot height. Defaults to `POSITION_SHEET_CHART_HEIGHT`. */
+  height?: number;
 }
 
 /**
@@ -80,6 +89,7 @@ const PositionSheetChart = ({
   lineProgress,
   overlayStyle,
   onScrub,
+  height = POSITION_SHEET_CHART_HEIGHT,
 }: PositionSheetChartProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -99,12 +109,12 @@ const PositionSheetChart = ({
         values,
         frame: {
           width,
-          height: POSITION_SHEET_CHART_HEIGHT,
+          height,
           insetTop: CHART_INSET_TOP,
           insetBottom: CHART_INSET_BOTTOM,
         },
       }),
-    [values, width],
+    [values, width, height],
   );
 
   const points = useMemo(
@@ -124,10 +134,12 @@ const PositionSheetChart = ({
   );
 
   // The gesture is built once; its handlers read the latest data from here.
-  const scrubStateRef = useRef({ scale, prices, onScrub });
-  scrubStateRef.current = { scale, prices, onScrub };
+  const scrubStateRef = useRef({ scale, prices, points, markerXs, onScrub });
+  scrubStateRef.current = { scale, prices, points, markerXs, onScrub };
+  const scrubMarkerRef = useRef(-1);
 
-  // Horizontal-only activation so a vertical drag still swipes the sheet.
+  // A brief hold starts scrubbing. Moving before then fails the pan, so the
+  // sheet scrolls or drags as usual. Once active, vertical drift keeps scrubbing.
   const scrubGesture = useMemo(() => {
     const updateScrub = (x: number) => {
       const state = scrubStateRef.current;
@@ -135,15 +147,26 @@ const PositionSheetChart = ({
       const index = state.scale.indexAtX(x);
       setScrubIndex(index);
       state.onScrub(state.prices[index] ?? null);
+      const point = state.points[index];
+      const markerIndex = point
+        ? findNearestMarkerIndex(state.markerXs, point.x, MARKER_HIT_SLOP)
+        : -1;
+      if (markerIndex !== scrubMarkerRef.current) {
+        scrubMarkerRef.current = markerIndex;
+        if (markerIndex >= 0) void playSelection()?.catch(() => undefined);
+      }
     };
     return Gesture.Pan()
       .withTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB)
       .runOnJS(true)
-      .activeOffsetX([-6, 6])
-      .failOffsetY([-12, 12])
-      .onStart((event) => updateScrub(event.x))
+      .activateAfterLongPress(SCRUB_LONG_PRESS_MS)
+      .onStart((event) => {
+        void playImpact(ImpactMoment.ChartCrosshair)?.catch(() => undefined);
+        updateScrub(event.x);
+      })
       .onUpdate((event) => updateScrub(event.x))
       .onFinalize(() => {
+        scrubMarkerRef.current = -1;
         setScrubIndex(-1);
         scrubStateRef.current.onScrub(null);
       });
@@ -242,7 +265,7 @@ const PositionSheetChart = ({
           >
             <SkeletonPlaceholder.Item
               width={Math.max(width - CHART_HORIZONTAL_INSET * 2, 0)}
-              height={POSITION_SHEET_CHART_HEIGHT}
+              height={height}
               marginLeft={CHART_HORIZONTAL_INSET}
               borderRadius={6}
             />
@@ -256,15 +279,15 @@ const PositionSheetChart = ({
       <>
         <Svg
           width={width}
-          height={POSITION_SHEET_CHART_HEIGHT}
+          height={height}
           testID={PositionDetailsSheetSelectorsIDs.CHART_LINE}
         >
           <Defs>
             <ClipPath id={`${clipId}-active`}>
-              <Path d={rectPath(0, scrubX)} />
+              <Path d={rectPath(0, scrubX, height)} />
             </ClipPath>
             <ClipPath id={`${clipId}-inactive`}>
-              <Path d={rectPath(scrubX, width)} />
+              <Path d={rectPath(scrubX, width, height)} />
             </ClipPath>
           </Defs>
           <AnimatedPath
@@ -293,7 +316,7 @@ const PositionSheetChart = ({
                 x1={scrubPoint.x}
                 x2={scrubPoint.x}
                 y1={0}
-                y2={POSITION_SHEET_CHART_HEIGHT}
+                y2={height}
                 stroke={colors.icon.alternative}
                 strokeWidth={1}
                 strokeDasharray="4 4"
@@ -376,7 +399,7 @@ const PositionSheetChart = ({
         <View
           testID={PositionDetailsSheetSelectorsIDs.CHART}
           onLayout={handleLayout}
-          style={{ height: POSITION_SHEET_CHART_HEIGHT }}
+          style={{ height }}
         >
           {width > 0 ? renderChartBody() : null}
         </View>
