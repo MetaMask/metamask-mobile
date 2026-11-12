@@ -89,12 +89,10 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
-// Extracted because React Compiler (BuildHIR) cannot lower a throw written inside a try/catch.
 function failRequest(message: string): never {
   throw new Error(message);
 }
 
-// Extracted because React Compiler cannot lower value blocks written inside a try/catch.
 const requestAlertDeletion = (
   priceAlert: Alert,
   isPerpsMode: boolean,
