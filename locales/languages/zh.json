@@ -131,7 +131,7 @@
       "title": "资金不足"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "您的 Money Account 中还没有可发送的资金。请先添加资金。"
     },
     "fiat_buy_amount_limit": {
       "title": "金额超出范围"
@@ -1152,7 +1152,8 @@
       "moonpay_privacy_policy_link": "MoonPay 隐私政策",
       "moonpay_terms_link": "MoonPay 条款和条件",
       "powered_by": "技术支持：",
-      "button": "获取账户详情"
+      "button": "获取账户详情",
+      "feature_arrives_title_pix": "几秒内到账"
     },
     "verify_identity": {
       "title": "验证您的身份",
@@ -1170,7 +1171,21 @@
       "terms_sheet_description": "为验证您的身份，您的信息将安全地共享给以下服务提供商。继续之前，请查看提供商的政策和条款。",
       "metamask_privacy_policy": "MetaMask 隐私政策",
       "metamask_terms": "MetaMask 条款和条件",
-      "terms_sheet_button": "同意并开始验证"
+      "terms_sheet_button": "同意并开始验证",
+      "subtitle": "这通常需要几分钟。您需要准备政府签发的身份证件。",
+      "step_indicator": "第 {{current}} 步（共 {{total}} 步）",
+      "partner_title": "我们与 idOS 合作验证您的身份。",
+      "benefit_reuse_title": "验证一次，后续再使用。",
+      "benefit_reuse_description": "MetaMask 会安全存储您已验证身份的加密副本，以便您更快地注册其他合作伙伴的服务。",
+      "benefit_control_title": "您掌控自己的数据。",
+      "benefit_control_description": "只有在您同意时，我们才会与合作伙伴共享您已验证的身份。",
+      "benefit_delete_title": "可随时删除。",
+      "benefit_delete_description": "您可以随时在设置中删除已验证的身份。",
+      "agreement": "继续即表示我同意 MetaMask {{termsOfUse}}，确认 MetaMask {{privacyNotice}}，并同意 MetaMask 存储我的信息并将其传输给 idOS。",
+      "agreement_terms_of_use": "使用条款",
+      "agreement_privacy_notice": "隐私声明",
+      "agree_and_continue_button": "同意并继续",
+      "learn_more": "了解更多。"
     },
     "kyc_email": {
       "error_title": "无法开始验证",
@@ -1190,7 +1205,9 @@
     "kyc_taking_longer": {
       "title": "正在验证您的身份",
       "description": "大多数检查大约会在 10 秒内完成。您可以稍后回来，检查完成后我们会通知您。",
-      "button": "稍后回来"
+      "button": "稍后回来",
+      "description_few_minutes": "大多数检查会在几分钟内完成。您可以稍后回来。完成后我们会通知您。",
+      "done_button": "已完成"
     },
     "identity_verified": {
       "title": "身份已验证",
@@ -1198,8 +1215,8 @@
       "button": "继续"
     },
     "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
+      "title": "正在创建您的账户……",
+      "description": "大多数账户会立即创建。",
       "awaiting_provider": "正在等待 MoonPay 批准您的账户"
     },
     "kyc_rejected": {
@@ -1253,7 +1270,7 @@
     "vba_details": {
       "title": "使用 Pix 添加资金",
       "description": "直接从您的银行添加资金。资金通常会在几分钟内到账您的 Money Account。",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure": "巴西的虚拟资产服务由受监管的第三方提供商提供。",
       "provider_disclosure_link": "了解更多。",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix 密钥",
@@ -1271,6 +1288,25 @@
       "load_error": "无法刷新存款。我们会再试一次。",
       "setup_error": "无法创建您的账户。",
       "retry": "请重试"
+    },
+    "partner_terms": {
+      "title": "我们的验证合作伙伴",
+      "description": "idOS 将验证您的身份。idOS 委托 Sumsub 完成验证。",
+      "section_title": "条款和隐私",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "我确认我的个人数据将按照 {{notice}} 中所述进行处理。",
+      "sumsub_acknowledgement_us_residents": " 仅适用于美国居民：我确认已阅读 {{privacyNotice}}，并同意按照 {{biometricsConsent}} 中所述处理我的生物识别信息和生物识别标识符。",
+      "sumsub_notice": "Sumsub 个人数据处理通知",
+      "sumsub_privacy_notice": "隐私声明",
+      "sumsub_biometrics_consent": "Sumsub 生物识别处理同意书",
+      "biometric_consent": "我明确同意 idOS Association 处理我的面部图像及由此衍生的生物识别数据，以验证我的身份，具体如 {{privacyNotice}} 所述。",
+      "biometric_consent_privacy_notice": "idOS 隐私声明",
+      "agreement": "点击“同意并继续”，即表示我同意 {{termsAndConditions}}。",
+      "agreement_terms": "idOS 条款和条件",
+      "scroll_to_continue_button": "滚动以继续",
+      "agree_to_consent_above_button": "同意上述授权",
+      "button": "同意并继续"
     }
   },
   "social": {
@@ -1280,9 +1316,9 @@
   },
   "social_leaderboard": {
     "account_disabled": {
-      "title": "Your account is temporarily disabled",
-      "reason": "Reason: {{reason}}",
-      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "title": "您的账户已暂时停用",
+      "reason": "原因：{{reason}}",
+      "contact_support_description": "请通过 {{email}} 或应用内联系支持团队寻求帮助。",
       "contact_support": "联系支持团队"
     },
     "entry_options": {
@@ -1426,7 +1462,7 @@
       "sub_header": {
         "at_connector": "于",
         "market_cap_suffix": "市值",
-        "size_at_price": "{{size}} 价格为 {{price}}",
+        "size_at_price": "{{size}}，价格为 {{price}}",
         "size_at_market_cap": "{{size}}，市值 {{marketCap}} {{abbreviation}}"
       },
       "trader_stats": {
@@ -1447,7 +1483,8 @@
         "buy": "买入",
         "sell": "卖出",
         "closed_ago": "已平仓 · {{age}}",
-        "sold_ago": "已卖出 · {{age}}"
+        "sold_ago": "已卖出 · {{age}}",
+        "opened_ago": "已开立 · {{age}}"
       }
     },
     "translation": {
@@ -1639,19 +1676,19 @@
       "developer": "合约创建者——已排除",
       "excluded": "不计入盈亏",
       "short": {
-        "insider": "Insider",
-        "creator": "Creator",
-        "excluded": "Excluded"
+        "insider": "内部人员",
+        "creator": "创建者",
+        "excluded": "不计入"
       },
       "accessibility": {
-        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
-        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
-        "direction_up": "up",
-        "direction_down": "down",
-        "direction_flat": "unchanged",
-        "reason_insider": "insider",
-        "reason_creator": "creator",
-        "reason_excluded": "excluded"
+        "not_counted": "{{symbol}}，{{value}}，{{direction}} {{percent}}，不计入盈亏，{{reason}}",
+        "not_counted_without_change": "{{symbol}}，{{value}}，不计入盈亏，{{reason}}",
+        "direction_up": "上涨",
+        "direction_down": "下跌",
+        "direction_flat": "未更改",
+        "reason_insider": "内部人员",
+        "reason_creator": "创建者",
+        "reason_excluded": "不计入"
       }
     },
     "trader_profile": {
@@ -1723,7 +1760,7 @@
       "posts": "帖子",
       "section_tokens": "代币",
       "section_perpetuals": "永续合约",
-      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_in_pnl": "不计入盈亏",
       "empty_open": "无未平仓仓位",
       "empty_closed": "暂无已平仓仓位",
       "empty_open_tokens": "暂无未平仓代币",
@@ -1731,13 +1768,25 @@
       "empty_open_perps": "暂无未平仓永续合约",
       "empty_closed_perps": "暂无已平仓永续合约",
       "empty_title": "暂无帖子",
-      "joined": "加入于 {{time}}",
+      "joined": "加入于 {{time}} 前",
       "x_link": "X",
       "load_profile_error": "无法加载您的个人资料。",
       "no_profile_title": "创建您的个人资料",
       "no_profile_description": "领取用户名以显示在动态中。",
       "create_profile": "创建个人资料",
-      "retry": "请重试"
+      "retry": "请重试",
+      "not_counted_section_a11y_one": "不计入盈亏，1 个仓位。了解原因",
+      "not_counted_section_a11y_other": "不计入盈亏，{{count}} 个仓位。了解原因",
+      "not_counted_sheet_title": "为什么有些仓位不计入",
+      "not_counted_sheet_insider_label": "内部人员",
+      "not_counted_sheet_insider_body": "此交易者在该代币公开之前通过分配获得了代币。",
+      "not_counted_sheet_insider_body_owner": "您在该代币公开之前通过分配获得了代币。",
+      "not_counted_sheet_developer_label": "合约创建者",
+      "not_counted_sheet_developer_body": "此交易者部署了该代币的合约。",
+      "not_counted_sheet_developer_body_owner": "您已部署该代币的合约。",
+      "not_counted_sheet_unsupported_label": "不支持的代币",
+      "not_counted_sheet_unsupported_body": "我们无法追踪不支持的代币盈亏，例如借贷池中的保证金。",
+      "not_counted_sheet_dismiss": "知道了"
     },
     "terms": {
       "title": "我们的使用条款已更新",
@@ -1820,8 +1869,8 @@
       "linked_social_account": "关联的社交账户",
       "save": "保存",
       "save_error": "无法保存更改。请检查网络连接后重试。",
-      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
-      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "bio_prohibited": "此简介中的部分内容无法使用。请编辑后重试。",
+      "display_name_unavailable": "此名称不可用。请尝试其他名称。",
       "username_unavailable": "此用户名不可用。请选择其他用户名。",
       "username_too_short": "至少使用 {{min}} 个字符。",
       "username_too_long": "最多使用 {{max}} 个字符。",
@@ -1832,7 +1881,8 @@
       "trading_activity_footnote": "更改会立即生效。无论哪种方式，您的身份和社交内容都会保持可见。",
       "trading_activity_info": "关于交易活动的更多信息",
       "linked_account_footnote": "使用此账户进行的交易将显示在您的动态和排行榜中。",
-      "avatar_accessibility_label": "您的个人资料头像"
+      "avatar_accessibility_label": "您的个人资料头像",
+      "linked_account_cooldown": "您只能每 {{days}} 天更改一次关联账户。"
     },
     "position_sheet": {
       "title": "{{username}} 的交易",
@@ -1840,9 +1890,9 @@
       "following": "正在关注",
       "today": "今天",
       "market_cap_suffix": "（市值）",
-      "posts_tab": "Posts ({{count}})",
-      "transactions_tab": "Transactions ({{count}})",
-      "no_posts": "No posts on this trade yet",
+      "posts_tab": "帖子（{{count}}）",
+      "transactions_tab": "交易（{{count}}）",
+      "no_posts": "此交易暂无帖子",
       "level": {
         "entry": "入场价",
         "exit": "退出",
@@ -1875,7 +1925,9 @@
         "spot_added": "已继续买入",
         "spot_reduced": "卖出一部分",
         "spot_closed": "全部卖出"
-      }
+      },
+      "open_asset_accessibility_hint": "打开资产页面",
+      "open_market_accessibility_hint": "打开市场详情"
     },
     "trader_position": {
       "market_cap": "市值",
@@ -2334,7 +2386,7 @@
         "mark_price": "标记价格",
         "tp_sl": "止盈/止损",
         "liq_price": "清算价格",
-        "funding": "Funding",
+        "funding": "资金",
         "isolated": "逐仓",
         "cross": "全仓",
         "close": "关闭",
@@ -2345,7 +2397,7 @@
         "size": "规模",
         "order_value": "订单价值",
         "price": "价格",
-        "reduce_only": "仅减仓",
+        "reduce_only": "只减仓",
         "tp_sl": "止盈/止损",
         "trigger_condition": "触发条件",
         "cancel": "取消",
@@ -2369,7 +2421,7 @@
         "average_price": "平均成交价",
         "progress": "进度",
         "elapsed": "已用时间",
-        "reduce_only": "仅减仓",
+        "reduce_only": "只减仓",
         "randomize": "随机化",
         "terminate": "终止",
         "status_active": "已激活",
@@ -2396,16 +2448,16 @@
       "trigger_price": "触发价格",
       "liquidation_price": "清算价格",
       "fees": "费用",
-      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
+      "fees_taker_maker": "吃单 {{taker}}% / 挂单 {{maker}}%",
       "estimated_points": "预计积分",
       "market": "市价",
-      "limit": "限制",
+      "limit": "限价",
       "open_orders": "订单",
       "max": "最大值",
       "cancel_order": "取消订单",
       "no_orders": "您暂无未平仓订单",
       "filled": "已成交",
-      "reduce_only": "仅减仓",
+      "reduce_only": "只减仓",
       "yes": "是",
       "status": {
         "open": "未平仓",
@@ -2535,7 +2587,7 @@
           "description": "以最佳可用价格立即执行"
         },
         "limit": {
-          "title": "限制",
+          "title": "限价",
           "description": "以您指定的价格或更优价格执行"
         },
         "scale": {
@@ -2664,7 +2716,8 @@
       "updating_your_order": "正在更新您的订单",
       "order_updated": "订单已更新",
       "order_update_failed": "更新订单失败",
-      "order_update_failed_subtitle": "您的订单仍以之前的价格和规模保持未平仓状态。"
+      "order_update_failed_subtitle": "您的订单仍以之前的价格和规模保持未平仓状态。",
+      "order_update_post_only_would_cross": "您的订单已取消，因为新价格会跨越买卖差价。请以不同价格重新下单，或改为非仅挂单订单。"
     },
     "slippage": {
       "config_title": "设置滑移",
@@ -2707,7 +2760,7 @@
       "size": "规模",
       "original_size": "原始规模",
       "order_value": "订单价值",
-      "reduce_only": "仅减仓",
+      "reduce_only": "只减仓",
       "yes": "是",
       "no": "否",
       "price_above": "价格高于 {{price}}",
@@ -2928,7 +2981,7 @@
         "scaleCountInvalid": "分段委托数量无效",
         "scaleSizeTooSmall": "每个分段委托低于最小订单数量",
         "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
-        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
+        "scaleNotionalTooSmall": "每个分段委托低于交易所最小订单价值",
         "chaseIntervalInvalid": "追踪间隔无效",
         "chaseDurationInvalid": "追踪时长无效",
         "chaseLimitReached": "已有过多正在运行的追踪订单",
@@ -2994,7 +3047,9 @@
       "marginValidation": {
         "exceedsMaxRemovable": "金额超出最大可移除保证金",
         "insufficientMargin": "仓位没有足够保证金进行此次削减"
-      }
+      },
+      "postOnlyWindow": "网络升级后交易暂时受限，将很快恢复。请几分钟后重试。",
+      "postOnlyWouldCross": "此价格会跨越买卖差价，因此只挂单订单未下达。请调整价格，或使用非仅挂单订单。"
     },
     "position": {
       "title": "头寸",
@@ -3338,7 +3393,7 @@
       "filter_by": "筛选方式",
       "forex": "外汇",
       "watchlist": "关注列表",
-      "markets": "市场",
+      "markets": "行情",
       "explore_markets": "探索市场",
       "explore": "探索",
       "see_more": "查看更多",
@@ -3518,11 +3573,11 @@
       "tabs": {
         "trades": "交易",
         "orders": "订单",
-        "funding": "添加资金",
+        "funding": "资金费",
         "withdraw": "提取",
         "deposit": "保证金",
         "deposits": "保证金",
-        "funding_description": "资金历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
+        "funding_description": "资金费历史记录是根据您持仓的资金费率计算得出的已支付或已收取费用的汇总。"
       },
       "not_found": "交易未找到",
       "unknown_pnl": "未知",
@@ -3667,7 +3722,7 @@
     "tp_on_chart": "图表显示止盈",
     "sl_on_chart": "图表显示止损",
     "pnl_hero_card": {
-      "title": "盈亏核心数据",
+      "title": "盈亏英雄卡",
       "header_title": "分享您的交易",
       "share_button": "共享",
       "share_message_without_referral_code": "在 MetaMask 交易 {{asset}} 永续合约。",
@@ -3742,8 +3797,8 @@
     "unavailable_in_region": "您所在区域不可用",
     "home_title": "预测",
     "venue_selector": {
-      "button_label": "Choose a prediction market",
-      "title": "Prediction market",
+      "button_label": "选择一个预测市场",
+      "title": "预测市场",
       "venues": {
         "polymarket": "Polymarket",
         "kalshi": "Kalshi"
@@ -3758,24 +3813,32 @@
       "your_positions": "您的仓位",
       "game_lines": "比赛盘口",
       "outcomes": "结局",
-      "view_all_markets": "View all {{count}} markets",
+      "view_all_markets": "查看全部 {{count}} 个市场",
       "market_layout": {
         "moneyline": "胜负盘",
         "spread": "买卖差价",
         "total_points": "总积分",
-        "team_total": "Team total",
-        "player_props": "Player props",
-        "anytime_touchdown": "Anytime touchdown",
-        "rushing_yards": "Rushing yards",
-        "receiving_yards": "Receiving yards",
-        "passing_yards": "Passing yards",
-        "full_game": "Full game",
-        "first_half": "1st half",
-        "second_half": "2nd half",
-        "q1": "1st quarter",
-        "q2": "2nd quarter",
-        "q3": "3rd quarter",
-        "q4": "4th quarter"
+        "team_total": "球队总分",
+        "player_props": "球员专项",
+        "anytime_touchdown": "任意时刻达阵",
+        "rushing_yards": "冲球码数",
+        "receiving_yards": "接球码数",
+        "passing_yards": "传球码数",
+        "full_game": "全场",
+        "first_half": "上半场",
+        "second_half": "下半场",
+        "q1": "第 1 节",
+        "q2": "第 2 节",
+        "q3": "第 3 节",
+        "q4": "第 4 节"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "获胜概率 {{percent}}%",
+        "buy": "买入 {{price}}",
+        "buy_price_unavailable": "买入，价格不可用",
+        "holding": "以 {{price}} 买入 {{shares}} 份",
+        "holding_shares": "{{shares}} 份额"
       }
     },
     "search": {
@@ -3864,7 +3927,7 @@
       "refresh": "刷新",
       "retry": "请重试",
       "review": "查看订单",
-      "venue_changed": "Your prediction market changed. Close this order to continue."
+      "venue_changed": "您的预测市场已变更。请关闭此订单以继续。"
     },
     "order_approval": {
       "title": "查看您的订单",
@@ -3897,8 +3960,12 @@
       "requote": "请重试"
     },
     "order_notification": {
-      "not_placed_title": "Order not placed",
-      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+      "not_placed_title": "订单未下达",
+      "not_placed_description": "您的余额未发生任何变动。请获取最新报价后重试。"
+    },
+    "home_section": {
+      "position_info": "针对 {{outcome}}，下注 {{costBasis}} 以赢得 {{payout}}",
+      "pnl_unavailable": "不可用"
     }
   },
   "predict": {
@@ -3957,7 +4024,7 @@
       "price_unavailable": "价格不可用",
       "option_accessibility_label": "{{team}} 的市场选项，分项 {{line}}，价格 {{price}}",
       "outcome_accessibility_label": "{{team}}，分项 {{line}}，价格 {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}，{{price}}"
     },
     "rules": {
       "event_accessibility_label": "查看活动规则",
@@ -4338,7 +4405,7 @@
       "claim_detail": "已领取收益",
       "not_available": "不适用",
       "date": "日期",
-      "market": "市价",
+      "market": "市场",
       "outcome": "结局",
       "predicted_amount": "预测金额",
       "shares_bought": "已买入股",
@@ -4663,8 +4730,8 @@
     "sort_name": "名称",
     "sort_high_to_low": "从高到低",
     "sort_low_to_high": "从低到高",
-    "sort_a_to_z": "A to Z",
-    "sort_z_to_a": "Z to A",
+    "sort_a_to_z": "A 到 Z",
+    "sort_z_to_a": "Z 到 A",
     "sort_apply": "应用",
     "sort_reset": "重置",
     "add_to_get_started": "请添加加密货币以开始",
@@ -4806,7 +4873,7 @@
       "all": "全部类型",
       "transactions": "交易",
       "buy_sell": "买入/卖出",
-      "limit_orders": "Limit orders",
+      "limit_orders": "限价订单",
       "perps": "永续合约",
       "predictions": "预测",
       "metamask_card": "卡"
@@ -4851,7 +4918,7 @@
         "action": "充值"
       },
       "limit_orders": {
-        "description": "Your filled limit orders will show up here.",
+        "description": "您已成交的限价订单将显示在此处。",
         "action": "兑换代币"
       },
       "metamask_card": {
@@ -5226,7 +5293,7 @@
     "card_update_badge": "更新",
     "settings": "设置",
     "networks": "网络",
-    "log_out": "注销",
+    "log_out": "锁定",
     "notifications": "通知",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "加入 MetaMask Orange",
@@ -6173,7 +6240,7 @@
     "balance": "余额。请参阅支持文章",
     "position_pnl": {
       "your_position": "您的排名",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "未实现盈亏",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6357,97 +6424,97 @@
   },
   "token_details_v1": {
     "security_pill": {
-      "screened": "Screened",
+      "screened": "已筛选",
       "flags": {
-        "one": "{{count}} flag",
-        "other": "{{count}} flags"
+        "one": "{{count}} 个标记",
+        "other": "{{count}} 个标记"
       },
       "high_risk": "高风险",
-      "unscreened": "Unscreened",
+      "unscreened": "未筛选",
       "pending": "待定",
-      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+      "accessibility_label": "安全性：{{verdict}}。打开安全标签页"
     },
     "social": {
-      "website": "Open website",
-      "x": "Open on X",
-      "telegram": "Open on Telegram",
-      "search_on_x": "Search on X",
-      "copy_address": "Copy contract address {{address}}"
+      "website": "打开网站",
+      "x": "在 X 打开",
+      "telegram": "在 Telegram 打开",
+      "search_on_x": "在 X 搜索",
+      "copy_address": "复制合约地址 {{address}}"
     },
     "age": {
-      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "accessibility_label": "代币时长 {{age}}。了解代币时长。",
       "explainer": {
         "title": "代币年龄",
-        "description": "Time since token creation. Seconds, minutes, hours, then days."
+        "description": "代币创建至今的时间。依次为秒、分钟、小时，然后是天。"
       }
     },
     "stats": {
-      "market_cap": "MCap",
+      "market_cap": "市值",
       "liquidity": "流动性",
-      "volume_24h": "24h Vol",
+      "volume_24h": "24小时交易量",
       "holders": "持有者",
-      "top_10": "Top 10",
-      "liquidity_to_market_cap": "Liq/MC",
-      "tax": "Tax",
-      "high_low_24h": "24h high/low",
+      "top_10": "前10名",
+      "liquidity_to_market_cap": "流动性/市值",
+      "tax": "税费",
+      "high_low_24h": "24小时最高/最低",
       "circulating_supply": "流通供应量",
-      "explain": "{{stat}}. Learn what this means",
+      "explain": "{{stat}}。了解其含义",
       "explainers": {
         "market_cap": {
-          "title": "Market capitalization",
-          "description": "Current market capitalization of the circulating token supply."
+          "title": "市值",
+          "description": "当前流通代币供应量的市场总值。"
         },
         "liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token's trading pools."
+          "title": "总流动性",
+          "description": "该代币交易池中当前可用的价值。"
         },
         "volume_24h": {
-          "title": "24-hour trading volume",
-          "description": "Value traded over the last 24 hours."
+          "title": "24小时交易量",
+          "description": "过去 24 小时内交易的价值。"
         },
         "holders": {
           "title": "持有者",
-          "description": "Number of unique addresses holding this token."
+          "description": "持有该代币的唯一地址数量。"
         },
         "top_10": {
           "title": "前十大持有者",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+          "description": "前 10 个钱包持有的份额，不包括资金池、路由合约和销毁地址。"
         },
         "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+          "title": "流动性与市值之比",
+          "description": "总流动性除以市值。这是独立统计数据，不属于 Blockaid 判定的一部分。"
         },
         "tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          "title": "买卖税",
+          "description": "为 EVM 代币报告的买入和卖出费用。数据缺失并不意味着费用为零。"
         },
         "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          "title": "24小时最高价和最低价",
+          "description": "过去 24 小时内的最高和最低成交价，按此顺序显示。"
         },
         "circulating_supply": {
           "title": "流通供应量",
-          "description": "Amount of this token currently circulating."
+          "description": "该代币当前流通的数量。"
         },
         "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
+          "title": "流动性池代币已销毁或锁定",
+          "description": "主池流动性中销毁或锁定的份额。"
         },
         "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
+          "title": "主池",
+          "description": "为该代币报告的主要交易池。"
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
+          "title": "成交量标记",
+          "description": "当 Blockaid 检测到人为交易活动的迹象（如洗售交易或虚假成交量）时，会出现这些标记。"
         },
         "listed_on_exchange": {
           "title": "已上线交易所",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          "description": "Blockaid 是否报告该代币已在领先的中心化交易所上市。"
         },
         "created": {
           "title": "已创建",
-          "description": "Date the token contract was created, when reported by its source."
+          "description": "代币合约的创建日期，由其来源报告。"
         }
       }
     },
@@ -6479,40 +6546,40 @@
       "title": "{{symbol}} 活动"
     },
     "security_tab": {
-      "explain": "What does {{term}} mean?",
-      "contract_details_link": "See all contract security checks",
+      "explain": "{{term}} 是什么意思？",
+      "contract_details_link": "查看所有合约安全检查",
       "sections": {
         "contract": "合约",
-        "contract_checks": "Contract checks",
-        "additional_checks": "Additional checks",
+        "contract_checks": "合约检查",
+        "additional_checks": "额外检查",
         "holders": "持有者",
         "liquidity": "流动性",
         "trading": "交易",
         "origin": "来源"
       },
       "checks": {
-        "no_honeypot": "No honeypot",
-        "contract_verified": "Contract verified",
-        "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "is_mintable": "Is mintable"
+        "no_honeypot": "非蜜罐",
+        "contract_verified": "合约已验证",
+        "renounced": "已放弃权限",
+        "no_blacklist": "无黑名单",
+        "is_mintable": "可增发"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Honeypot not detected",
-          "fail": "Honeypot detected"
+          "pass": "未检测到蜜罐",
+          "fail": "检测到蜜罐"
         },
         "contract_verified": {
           "pass": "是",
           "fail": "否"
         },
         "renounced": {
-          "pass": "Renounced",
-          "fail": "Not renounced"
+          "pass": "已放弃权限",
+          "fail": "未放弃权限"
         },
         "no_blacklist": {
-          "pass": "No controls",
-          "fail": "Control detected"
+          "pass": "无控制",
+          "fail": "检测到控制"
         },
         "is_mintable": {
           "pass": "是",
@@ -6522,127 +6589,127 @@
       "values": {
         "yes": "是",
         "no": "否",
-        "none_detected": "None detected",
+        "none_detected": "未检测到",
         "detected": {
-          "one": "{{count}} detected",
-          "other": "{{count}} detected"
+          "one": "检测到 {{count}} 项",
+          "other": "检测到 {{count}} 项"
         }
       },
       "risk_banner": {
-        "one": "We found {{count}} risk",
-        "other": "We found {{count}} risks"
+        "one": "我们发现 {{count}} 项风险",
+        "other": "我们发现 {{count}} 项风险"
       },
       "risks": {
         "default": {
-          "title": "Risk detected"
+          "title": "检测到风险"
         },
         "known_malicious": {
           "title": "已知恶意",
-          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+          "description": "Blockaid 已识别出已知恶意活动或受损的代币合约。"
         },
         "dangerous_contract_behavior": {
-          "title": "Dangerous contract behavior",
-          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+          "title": "危险的合约行为",
+          "description": "该合约包含可疑代码、特权后门，或与其预期操作不符的行为。"
         },
         "impersonation_risk": {
-          "title": "Impersonation risk",
-          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+          "title": "仿冒风险",
+          "description": "该代币可能模仿合法代币的名称、符号、品牌或识别特征。"
         },
         "rug_pull": {
-          "title": "Rug pull detected",
-          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+          "title": "检测跑路",
+          "description": "Blockaid 已识别出该代币创建者有策划恶意跑路和蜜罐骗局的历史。"
         },
         "exit_scam_risk": {
-          "title": "Exit scam risk",
-          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+          "title": "退出骗局风险",
+          "description": "创建者或内部人员的行为表明存在以牺牲持有者为代价提取价值的风险。"
         },
         "high_token_fees": {
-          "title": "High token fees",
-          "description": "The token's transfer, buy, or sell fees are unusually high."
+          "title": "高代币费用",
+          "description": "该代币的转账、买入或卖出费用异常高。"
         },
         "low_liquidity_risk": {
-          "title": "Low liquidity risk",
-          "description": "Limited liquidity could make the token price volatile."
+          "title": "低流动性风险",
+          "description": "流动性有限可能导致该代币价格波动较大。"
         },
         "concentrated_ownership": {
-          "title": "Concentrated ownership",
-          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+          "title": "持仓集中",
+          "description": "少数持有者控制了大量供应量，增加了价格操纵和抛售压力风险。"
         },
         "wash_trading": {
-          "title": "Wash trading activity",
-          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+          "title": "洗售交易活动",
+          "description": "人为交易或交易账户可能正在夸大该代币的活动或成交量。"
         },
         "sniped_at_launch": {
-          "title": "Sniped at launch",
-          "description": "One or more wallets acquired supply in the same block as the token's creation."
+          "title": "上线时遭抢先买入",
+          "description": "一个或多个钱包在代币创建的同一区块中获得了供应量。"
         },
         "suspicious_creator": {
-          "title": "Suspicious creator",
-          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+          "title": "可疑创建者",
+          "description": "创建者的声誉或该代币的资金轨迹引发额外风险担忧。"
         },
         "sanctioned_creator": {
           "title": "受制裁的创建者",
-          "description": "The token's creator is sanctioned by a government or financial institution."
+          "description": "该代币的创建者受到政府或金融机构制裁。"
         },
         "suspicious_airdrop": {
           "title": "可疑空投",
-          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+          "description": "该代币的链上空投活动或元数据可能具有欺骗性或垃圾信息特征。"
         },
         "liquidity_withdrawal_risk": {
-          "title": "Liquidity withdrawal risk",
-          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+          "title": "流动性撤出风险",
+          "description": "锁定的流动性不足，或迁移解锁可能允许运营者撤出流动性。"
         }
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now",
+        "age_clause": "· {{count}} 分钟前更新",
+        "age_clause_just_now": "· 刚刚更新",
         "explainer": {
-          "title": "Security verification",
-          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+          "title": "安全验证",
+          "description": "安全验证检查由 Blockaid 基于链上历史完成。这些信息仅供您参考，不构成财务、法律或投资建议。验证不代表 MetaMask 提供保证。"
         }
       },
       "stats": {
         "holders": "持有者",
-        "top_ten": "Top 10",
-        "total_liquidity": "Total liquidity",
-        "liquidity_to_market_cap": "Liq/MC",
-        "lp_burned_locked": "LP burned/locked",
-        "primary_pool": "Primary pool",
-        "buy_sell_tax": "Buy/sell tax",
-        "volume_flags": "Volume flags",
+        "top_ten": "前 10 名",
+        "total_liquidity": "总流动性",
+        "liquidity_to_market_cap": "流动性/市值",
+        "lp_burned_locked": "LP 已销毁/锁定",
+        "primary_pool": "主池",
+        "buy_sell_tax": "买卖税",
+        "volume_flags": "成交量标记",
         "listed_on_exchange": "已上线交易所",
         "created": "已创建"
       },
       "holders": {
-        "top_ten": "Top 10",
-        "remaining": "Remaining holders"
+        "top_ten": "前 10 名",
+        "remaining": "其余持有者"
       },
       "explainers": {
         "no_honeypot": {
-          "title": "No honeypot",
-          "description": "Whether the token can be sold."
+          "title": "非蜜罐",
+          "description": "该代币是否可以卖出。"
         },
         "contract_verified": {
-          "title": "Contract verified",
-          "description": "Whether the contract source is reported as verified."
+          "title": "合约已验证",
+          "description": "合约源代码是否报告为已验证。"
         },
         "renounced": {
-          "title": "Renounced",
-          "description": "Whether contract ownership has been renounced."
+          "title": "已放弃权限",
+          "description": "合约所有权是否已放弃。"
         },
         "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
+          "title": "无黑名单",
+          "description": "某个地址是否可以禁止交易。"
         },
         "is_mintable": {
-          "title": "Is mintable",
-          "description": "Whether a token can mint additional supply."
+          "title": "可增发",
+          "description": "代币是否可以增发额外供应量。"
         }
       }
     },
     "contract_security": {
-      "title": "Contract security"
+      "title": "合约安全"
     },
     "tab_placeholder": "即将推出"
   },
@@ -9543,8 +9610,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "title": "转换为数字美元",
+        "description": "从您的银行发送 BRL、USD 或 EUR，即可在您的 Money Account 中获得 mUSD。无手续费。",
         "cta": "开始使用"
       },
       "account_is_ready": {
@@ -9567,6 +9634,11 @@
         "description": "我们目前无法提供银行转账。请联系支持团队寻求帮助。",
         "cta": "了解更多。",
         "dismiss": "关闭"
+      },
+      "identity_verified": {
+        "title": "身份已验证",
+        "description": "接下来，获取您的虚拟账户详情，以便从您的银行添加资金。",
+        "cta": "获取账户详情"
       }
     },
     "first_time_deposit": {
@@ -9698,7 +9770,8 @@
       "add_musd": "添加 mUSD",
       "receive_external": "外部地址",
       "coming_soon": "即将推出",
-      "new_badge": "新增"
+      "new_badge": "新增",
+      "no_fees": "无手续费"
     },
     "more_sheet": {
       "title": "展开",
@@ -9817,9 +9890,9 @@
     "transaction": {
       "deposited": "已存款",
       "bank_transfer": "银行转账",
-      "microdeposit": "Verification deposit",
-      "microdeposit_from": "From {{name}}",
-      "microdeposit_from_bank": "From your bank",
+      "microdeposit": "验证保证金",
+      "microdeposit_from": "来自 {{name}}",
+      "microdeposit_from_bank": "来自您的银行",
       "received": "已收到",
       "sent": "已发送",
       "card_transaction": "卡交易",
@@ -10253,7 +10326,7 @@
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
       "predict_withdraw": "提取",
-      "money_account_deposit_header": "Add to MetaMask Money",
+      "money_account_deposit_header": "添加到 MetaMask Money",
       "money_account_send": "发送"
     },
     "sub_title": {
@@ -10288,7 +10361,13 @@
       "title": {
         "transaction_fee": "交易费用"
       },
-      "network_fee": "网络费用取决于网络的繁忙程度及交易的复杂程度。"
+      "network_fee": "网络费用取决于网络的繁忙程度及交易的复杂程度。",
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask 会为您兑换成您想要的代币。"
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask 会为您兑换成您想要的代币。"
+      }
     },
     "spending_cap": "支出上限",
     "withdraw": "提取",
@@ -10387,7 +10466,7 @@
     "available_balance": "可用余额: ",
     "edit_amount_done": "继续",
     "deposit_edit_amount_done": "充值",
-    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
+    "deposit_edit_amount_convert_token": "兑换 {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "提取",
     "deposit_edit_amount_money_account_send": "发送",
     "deposit_edit_amount_musd_conversion": "兑换为 mUSD",
@@ -10473,7 +10552,7 @@
       "from_market_above": "（较市场价 +{{percent}}%）",
       "from_market_above_capped": "（较市场价 >+{{percent}}%）",
       "trigger_price_near_market": "触发价格距市场价仅 {{percent}}%，您的订单可能立即成交。",
-      "market": "市场型",
+      "market": "市价",
       "custom": "自定义",
       "expires": "过期时间",
       "expiration": "过期时间",
@@ -10522,8 +10601,8 @@
       "order_created_description": "成交后我们会通知您。",
       "order_canceled_title": "订单已取消",
       "usd_price_notice": "价格以您选择的货币显示，但您的订单会根据创建订单时的汇率以 USD 下达。当前汇率：1 USD = {{rate}} {{currency}}。",
-      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
-      "swap_into_token": "Swap into {{symbol}}",
+      "insufficient_balance_warning": "您的 {{symbol}} 余额过低，无法完成此订单。如果在您的触发条件满足时余额仍然过低，该订单将无法执行。",
+      "swap_into_token": "兑换为 {{symbol}}",
       "activity_title_filled": "已将 {{source}} 兑换为 {{dest}}",
       "activity_title_expired": "{{source}} 到 {{dest}} 已过期",
       "activity_title_canceled": "{{source}} 到 {{dest}} 已取消",
@@ -10542,8 +10621,8 @@
       "confirm": "确认",
       "preview_order": "预览订单",
       "confirm_title": "确认定期订单",
-      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
-      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "unsupported_fee_token_pair": "此代币对不支持定期兑换。如需继续，请至少将其中一个代币更改为：{{supportedTokens}}",
+      "fee_tokens_unavailable": "无法加载支持的费用代币。请重试。",
       "try_again": "请重试",
       "order_created_toast_title": "订单已创建",
       "order_created_toast_body": "成交后我们会通知您。",
@@ -10556,9 +10635,9 @@
       "expires_after": "过期时间",
       "slippage_all_orders": "滑移（所有订单）",
       "est_network_fee_per_order": "预估网络费用（每笔订单）",
-      "account_upgrade_fee": "Account upgrade fee",
-      "account_upgrade_fee_info_title": "Account upgrade fee",
-      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
+      "account_upgrade_fee": "账户升级费",
+      "account_upgrade_fee_info_title": "账户升级费",
+      "account_upgrade_fee_info_body": "升级到智能账户后，您就可以执行定期兑换。与所有链上操作一样，这会产生少量网络费。",
       "got_it": "知道了",
       "repeat_info_title": "重复订单",
       "repeat_info_body": "我们在时间和规模上随机化您的订单，从而使您的兑换不会遵循可预测的模式。",
@@ -10566,7 +10645,7 @@
       "max_is": "最大值为 {{max}}",
       "price_range": {
         "label": "价格范围",
-        "input_label": "Price range (optional)",
+        "input_label": "价格范围（可选）",
         "not_set": "未设置",
         "token": "代币",
         "price": "价格",
@@ -10803,7 +10882,7 @@
     "quote_stream_complete_rwa_market_unavailable": "该资产市场当前暂不可用。请稍后重试。",
     "max": "最大值",
     "approval_needed": "批准代币用于兑换。",
-    "tooltip_accessibility_hint": "Shows more information",
+    "tooltip_accessibility_hint": "显示更多信息",
     "approval_tooltip_title": "授予精确访问权限",
     "approval_tooltip_content": "您正在授权动用指定金额（{{amount}} {{symbol}}）。该合约将无法动用超出此额度的任何资金。",
     "minimum_received": "最低收款",
@@ -12535,7 +12614,7 @@
       "total_participants": "总参与人数",
       "total_volume": "总交易量",
       "top_return": "最高收益",
-      "top_pnl": "最高盈亏（PnL）",
+      "top_pnl": "盈亏榜首",
       "total_yield": "总收益",
       "total_winners": "获奖者总数"
     },
@@ -12645,7 +12724,7 @@
       "performance_title": "表现",
       "label_rank": "排名",
       "label_your_rank": "您的排名",
-      "label_pnl": "盈亏",
+      "label_pnl": "损益",
       "label_volume": "交易量",
       "label_notional_volume": "名义交易量",
       "pending": "待定",
@@ -12661,7 +12740,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker 极速追踪",
       "stats_notional_volume_threshold": "需要 {{amount}} 美元",
       "stats_qualified_title": "您已具备资格",
-      "stats_qualified_description": "在比赛结束前继续交易，提升您的盈亏（PnL）表现并冲击排行榜。",
+      "stats_qualified_description": "继续交易以改善您的盈亏，并在竞赛结束前提高排行榜名次。",
       "stats_qualify_for_rank_title": "获得排行榜资格",
       "stats_qualify_for_rank_description": "还需完成{{notionalRemaining}}名义交易量即可获得资格。",
       "stats_error_title": "无法加载统计数据",
@@ -13484,16 +13563,16 @@
       }
     },
     "payment": {
-      "processing_title": "Processing payment",
+      "processing_title": "正在处理付款",
       "processing_body": "这可能需要几分钟时间。",
-      "active_title": "Your membership is active",
-      "view_membership": "View membership",
+      "active_title": "您的会员资格已激活",
+      "view_membership": "查看会员资格",
       "failed_title": "付款失败",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "将资金转入您的 Money Account，以继续享受您的权益。",
       "try_again": "请重试"
     },
     "success": {
-      "title": "You just leveled up",
+      "title": "您刚刚已升级",
       "description": "开始赚取收益吧。",
       "cta": "继续"
     }
