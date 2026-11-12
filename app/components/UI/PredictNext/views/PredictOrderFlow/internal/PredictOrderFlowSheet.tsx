@@ -51,6 +51,7 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
+  PredictOrderReview,
   PredictOutcomeSide,
   PredictVenueId,
 } from '../../../types';
@@ -70,9 +71,6 @@ import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
 import { OrderSummaryRows } from './OrderSummaryRows';
-import { commitSigningFor } from '../../../auth/signing/orderCommit';
-import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
-import { previewOperation } from '../../../auth/previewOperation';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
 const QUOTE_DEBOUNCE_MS = 500;
@@ -150,15 +148,6 @@ export const PredictOrderFlowSheet = ({
   const [quoteNonce, setQuoteNonce] = useState(0);
   const [isKeypadOpen, setIsKeypadOpen] = useState(false);
   const [preview, setPreview] = useState<PredictOrderPreview | null>(null);
-  /** The signing snapshot pinned when this Preview was quoted: the
-   * idempotency key the preview stored plus the amount/contracts the User
-   * entered then. Amount/contracts state can drift after the quote, so the
-   * commit signs what was quoted, never what is typed now. */
-  const [quoteSigning, setQuoteSigning] = useState<{
-    idempotencyKey: string;
-    amount?: string;
-    contracts?: string;
-  } | null>(null);
   const [quoteError, setQuoteError] = useState<PredictError | null>(null);
   const [isQuoting, setIsQuoting] = useState(false);
   const [isBreakdownVisible, setIsBreakdownVisible] = useState(false);
@@ -265,7 +254,6 @@ export const PredictOrderFlowSheet = ({
     }
     requestIdRef.current += 1;
     setPreview(null);
-    setQuoteSigning(null);
     setQuoteError(null);
     setIsQuoting(false);
     setIsKeypadOpen(false);
@@ -322,7 +310,6 @@ export const PredictOrderFlowSheet = ({
     if (!isQuotable) {
       setIsQuoting(false);
       setPreview(null);
-      setQuoteSigning(null);
       setQuoteError(null);
       return;
     }
@@ -351,13 +338,6 @@ export const PredictOrderFlowSheet = ({
               contracts: contracts as PredictAmount,
               idempotencyKey,
             };
-      // Pin the signing snapshot at quote time: the commit signs the
-      // amount the User saw quoted, even if the inputs drift afterwards.
-      setQuoteSigning(
-        intent.action === 'buy'
-          ? { idempotencyKey, amount }
-          : { idempotencyKey, contracts },
-      );
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
         .then((quote) => {
@@ -452,28 +432,18 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, [isStale, releasePresentation]);
 
-  /** What the Commit of this Preview signs: the quoted inputs pinned at
-   * quote time plus the venue values from the quote. Undefined when the
-   * quote cannot be signed. */
-  const signing = useMemo(
-    () =>
-      preview && quoteSigning
-        ? commitSigningFor(intent, quoteSigning, preview)
-        : undefined,
-    [intent, preview, quoteSigning],
-  );
 
   /** The worst case the phone would sign, from the profile's invariant: the
    * figures the approval shows. Undefined while it is computed or when the
    * profile refuses the order, which keeps Confirm disabled. */
-  const [signedDisplay, setSignedDisplay] = useState<InvariantDisplay>();
+  const [signedDisplay, setSignedDisplay] = useState<PredictOrderReview>();
   useEffect(() => {
     setSignedDisplay(undefined);
-    if (!signing) {
+    if (!preview) {
       return undefined;
     }
     let current = true;
-    previewOperation('order.place', signing)
+    service.reviewPreview(intent.venueId, preview.previewId)
       .then((display) => {
         if (current) {
           setSignedDisplay(display);
@@ -490,7 +460,7 @@ export const PredictOrderFlowSheet = ({
     return () => {
       current = false;
     };
-  }, [signing]);
+  }, [intent.venueId, preview, service]);
 
   const handleReview = useCallback(() => {
     if (!canReview) {
@@ -509,7 +479,7 @@ export const PredictOrderFlowSheet = ({
     if (phase !== 'approval' || !preview || isStale) {
       return;
     }
-    if (!signing || !signedDisplay) {
+    if (!signedDisplay) {
       // Nothing the phone checked can be signed: Confirm stays disabled,
       // and this is the same refusal if it is reached anyway.
       setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
@@ -531,7 +501,7 @@ export const PredictOrderFlowSheet = ({
       const committed = await service.commitPreview(
         intent.venueId,
         preview.previewId,
-        signing,
+        { kind: 'user-approved' },
       );
       setReceipt(committed);
       setPhase('receipt');
@@ -563,7 +533,6 @@ export const PredictOrderFlowSheet = ({
     preview,
     service,
     signedDisplay,
-    signing,
   ]);
 
   /** Observes an unresolved receipt by reading it again; observing never

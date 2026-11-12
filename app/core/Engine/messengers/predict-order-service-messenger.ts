@@ -54,6 +54,8 @@ export type PredictOrderServiceInitMessenger = Messenger<
       {
         type:
           | 'PredictDeviceAuthService:signOperation'
+          | 'PredictDeviceAuthService:previewOperation'
+          | 'PredictDeviceAuthService:getApprovalGeneration'
           | 'PredictDeviceAuthService:signRead'
           | 'PredictDeviceAuthService:invalidateA2t';
       }
@@ -84,6 +86,8 @@ export const getPredictOrderServiceInitMessenger = (
       'AuthenticationController:getState',
       'KeyringController:getState',
       'PredictDeviceAuthService:signOperation',
+      'PredictDeviceAuthService:previewOperation',
+      'PredictDeviceAuthService:getApprovalGeneration',
       'PredictDeviceAuthService:signRead',
       'PredictDeviceAuthService:invalidateA2t',
     ],

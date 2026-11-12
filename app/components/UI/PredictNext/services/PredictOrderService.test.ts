@@ -5,7 +5,6 @@ import {
 } from '@metamask/messenger';
 
 import { PredictError, PredictErrorCode } from '../errors';
-import type { SignOperationInput } from '../auth/signing/signOperationTypes';
 import {
   isPreviewExpired,
   PREDICT_ORDER_SERVICE_NAME,
@@ -16,6 +15,7 @@ import {
   PredictOrderService,
 } from './PredictOrderService';
 import {
+  type PredictOrderApproval,
   type PredictBuyOrderReceipt,
   type PredictDecimal,
   type PredictEntityId,
@@ -25,10 +25,11 @@ import {
   type PredictAmount,
   type PredictSignedAmount,
   type PredictTimestamp,
+  type PredictOrderReview,
 } from '../types';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
-const SIGNING = { inputs: {}, values: { price: '0.50', count: '10' } };
+const SIGNING: PredictOrderApproval = { kind: 'user-approved' };
 
 const preview: PredictOrderPreview = {
   previewId: 'preview-1',
@@ -120,13 +121,13 @@ const previewOrder = jest.fn<
  * Commit's signed intent, undefined for an observation. */
 const venueCall = jest.fn<
   Promise<PredictOrderReceipt>,
-  [string, SignOperationInput | undefined, { signal?: AbortSignal }?]
+  [string, PredictOrderApproval | undefined, { signal?: AbortSignal }?]
 >();
 /** The signed Commit POST: sent once per approval. */
 const commitOrder = jest.fn(
   (
     previewId: string,
-    signing: SignOperationInput | undefined,
+    signing: PredictOrderApproval | undefined,
     options?: { signal?: AbortSignal },
   ) => venueCall(previewId, signing, options),
 );
@@ -138,6 +139,11 @@ const observeOrder = jest.fn(
 const invalidateQueries = jest.fn<Promise<void>, []>();
 const trading = {
   previewOrder,
+  reviewOrder: jest.fn().mockResolvedValue({
+    previewId: 'preview-1', maxCost: '4.20', contracts: '10.00',
+    payout: '10.00', proceedsIfFullyFilled: '3.80',
+  }),
+  invalidatePreviews: jest.fn(),
   commitOrder,
   observeOrder,
   listUnresolvedOrders: jest.fn().mockResolvedValue({ operations: [] }),
@@ -242,6 +248,7 @@ const quote = async (
     KALSHI_VENUE_ID,
     quoted.action === 'buy' ? buyQuoteParams : sellQuoteParams,
   );
+  await orderService.reviewPreview(KALSHI_VENUE_ID, quoted.previewId);
   return orderService;
 };
 
@@ -662,7 +669,7 @@ describe('PredictOrderService', () => {
       venueCall.mockImplementation(
         (
           _previewId: string,
-          _signing: SignOperationInput | undefined,
+          _signing: PredictOrderApproval | undefined,
           options,
         ) => {
           signal = options?.signal;
@@ -724,6 +731,30 @@ describe('PredictOrderService', () => {
       expect(venueCall).toHaveBeenCalledTimes(1);
       expect(invalidateQueries).toHaveBeenCalledTimes(0);
     });
+  });
+  it('requires checked review and a fresh explicit approval for a never-dispatched preview', async () => {
+    const orderService = service();
+    await orderService.requestQuote(KALSHI_VENUE_ID, buyQuoteParams);
+
+    await expect(orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId, SIGNING)).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
+    await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    await expect(orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId)).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+
+    expect(commitOrder).not.toHaveBeenCalled();
+  });
+
+  it('drops review results when its quoted context is revoked during rendering', async () => {
+    const orderService = service();
+    await orderService.requestQuote(KALSHI_VENUE_ID, buyQuoteParams);
+    const held = Promise.withResolvers<PredictOrderReview>();
+    trading.reviewOrder.mockReturnValueOnce(held.promise);
+    const review = orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+
+    orderService.cancelUncommittedPreviews();
+    held.resolve({ previewId: preview.previewId, maxCost: '4.20', contracts: '10.00', payout: '10.00', proceedsIfFullyFilled: '3.80' });
+
+    await expect(review).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+    expect(trading.invalidatePreviews).toHaveBeenCalled();
   });
   describe('submission boundary', () => {
     it('refuses a Commit for a Preview it never quoted, without a request', async () => {

@@ -9,7 +9,8 @@ const setup = () => {
   let sessionChanged = () => undefined;
   let appChanged: (state: AppStateStatus) => void = () => undefined;
   let networkChanged: (state: NetInfoState) => void = () => undefined;
-  const service = { resumeRecovery: jest.fn().mockResolvedValue(undefined), suspendRecovery: jest.fn() };
+  let serviceGeneration = 0;
+  const service = { resumeRecovery: jest.fn().mockResolvedValue(undefined), suspendRecovery: jest.fn(), getRecoveryGeneration: () => serviceGeneration };
   const getIdentityScope = jest.fn().mockResolvedValue('canonical-user-one');
   const removeApp = jest.fn();
   const removeNetwork = jest.fn();
@@ -33,6 +34,7 @@ const setup = () => {
     unlock: () => { unlocked = true; sessionChanged(); },
     signOut: () => { signedIn = false; sessionChanged(); },
     disable: () => { enabled = false; sessionChanged(); },
+    reset: () => { serviceGeneration += 1; },
     app: (state: AppStateStatus) => appChanged(state),
     network: (online: boolean) => networkChanged({ isConnected: online, isInternetReachable: online } as NetInfoState),
   };
@@ -72,6 +74,21 @@ describe('order recovery lifecycle', () => {
     lifecycle.unlock();
     await settle();
     expect(lifecycle.service.resumeRecovery).toHaveBeenCalledTimes(2);
+    lifecycle.dispose();
+  });
+
+  it('does not restore an identity lookup that completes after wallet reset', async () => {
+    const lifecycle = setup();
+    await settle();
+    const held = Promise.withResolvers<string>();
+    lifecycle.getIdentityScope.mockReturnValueOnce(held.promise);
+    lifecycle.app('active');
+
+    lifecycle.reset();
+    held.resolve('deleted-wallet-user');
+    await settle();
+
+    expect(lifecycle.service.resumeRecovery).toHaveBeenCalledTimes(1);
     lifecycle.dispose();
   });
 

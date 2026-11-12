@@ -46,26 +46,57 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
 };
 
-const invoke = (phase: PredictErrorPhase, error: PredictHttpError) => {
+const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
+  const params = {
+    marketId: 'market-1' as PredictEntityId,
+    side: 'yes' as const,
+    action: 'buy' as const,
+    amount: '1.00',
+    idempotencyKey: '0195dbde-a21b-4000-8000-000000000001',
+  };
   const reject = jest.fn().mockRejectedValue(error);
   const client = {
-    fetchOrderPreview: reject,
+    fetchOrderPreview:
+      phase === 'commit'
+        ? jest.fn().mockResolvedValue({
+            previewId: 'preview-1',
+            venueId: 'kalshi',
+            marketId: params.marketId,
+            side: params.side,
+            action: params.action,
+            requestedAmount: params.amount,
+            orderAmount: '0.50',
+            estimatedContracts: 1,
+            averagePrice: '0.5000',
+            limitPrice: '0.5000',
+            fee: '0',
+            feeBreakdown: [{ source: 'venue', amount: '0' }],
+            totalDebit: '0.50',
+            potentialPayout: '1.00',
+            potentialProfit: '0.50',
+            expiresAt: '2099-01-01T00:00:00.000Z',
+          })
+        : reject,
     commitOrder: reject,
     observeOrder: reject,
     fetchBalance: reject,
   } as unknown as PredictApiReadTransport;
-  const adapter = new KalshiRemoteAdapter(client);
+  const adapter = new KalshiRemoteAdapter(client, {
+    getApprovalGeneration: () => 0,
+    previewOperation: async () => ({
+      maxCost: '1.00',
+      contracts: '1.00',
+      payout: '1.00',
+      minProceeds: '0',
+    }),
+  });
   switch (phase) {
     case 'preview':
-      return adapter.trading.previewOrder({
-        marketId: 'market-1' as PredictEntityId,
-        side: 'yes',
-        action: 'buy',
-        amount: '1.00',
-        idempotencyKey: '0195dbde-a21b-4000-8000-000000000001',
-      });
+      return adapter.trading.previewOrder(params);
     case 'commit':
-      return adapter.trading.commitOrder('preview-1', { inputs: {}, values: {} });
+      await adapter.trading.previewOrder(params);
+      await adapter.trading.reviewOrder('preview-1');
+      return adapter.trading.commitOrder('preview-1', { kind: 'user-approved' });
     case 'observe':
       return adapter.trading.observeOrder('preview-1');
     case 'signed_read':

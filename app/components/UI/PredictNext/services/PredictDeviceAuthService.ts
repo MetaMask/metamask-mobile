@@ -101,11 +101,17 @@ export interface PredictDeviceAuthServiceResetAction {
   handler: () => Promise<void>;
 }
 
+export interface PredictDeviceAuthServiceGetApprovalGenerationAction {
+  type: 'PredictDeviceAuthService:getApprovalGeneration';
+  handler: () => number | undefined;
+}
+
 export type PredictDeviceAuthServiceActions =
   | PredictDeviceAuthServiceEnsureDeviceKeyAction
   | PredictDeviceAuthServiceGetA2tAction
   | PredictDeviceAuthServiceSignOperationAction
   | PredictDeviceAuthServicePreviewOperationAction
+  | PredictDeviceAuthServiceGetApprovalGenerationAction
   | PredictDeviceAuthServiceSignReadAction
   | PredictDeviceAuthServicePrefetchAction
   | PredictDeviceAuthServiceInvalidateA2tAction
@@ -167,6 +173,7 @@ export class PredictDeviceAuthService {
   readonly #deps: PredictDeviceAuthServiceDependencies;
   #active: PredictDeviceAuthBinding | undefined;
   #generation = 0;
+  #approvalGeneration = 0;
   #resetsInProgress = 0;
 
   constructor(
@@ -190,6 +197,10 @@ export class PredictDeviceAuthService {
     messenger.registerActionHandler(
       'PredictDeviceAuthService:previewOperation',
       this.previewOperation.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictDeviceAuthService:getApprovalGeneration',
+      this.getApprovalGeneration.bind(this),
     );
     messenger.registerActionHandler(
       'PredictDeviceAuthService:signRead',
@@ -231,6 +242,14 @@ export class PredictDeviceAuthService {
     return this.#canSign(snapshot, key) ? a2t : undefined;
   }
 
+  /** Quotes bind to approval revocations, not ordinary A2T renewal. */
+  getApprovalGeneration(): number | undefined {
+    const snapshot = this.#captureSession();
+    return snapshot && this.#isCurrent(snapshot) && this.#deps.isSignedIn()
+      ? this.#approvalGeneration
+      : undefined;
+  }
+
   /**
    * Renders the intent from the active signing profile exactly as
    * `signOperation` would, and returns the worst-case figures its invariant
@@ -243,8 +262,15 @@ export class PredictDeviceAuthService {
     intent: string,
     input: SignOperationInput = {},
   ): Promise<InvariantDisplay | undefined> {
-    const profile = await loadVenueProfile();
-    if (!profile) {
+    const snapshot = this.#captureSession();
+    const profile = snapshot ? await loadVenueProfile() : undefined;
+    if (
+      !snapshot ||
+      !profile ||
+      !this.#isCurrent(snapshot) ||
+      (input.approvalGeneration !== undefined &&
+        input.approvalGeneration !== this.#approvalGeneration)
+    ) {
       return undefined;
     }
     const requests = this.#renderIntent(profile, intent, input);
@@ -267,6 +293,12 @@ export class PredictDeviceAuthService {
     input: SignOperationInput = {},
   ): Promise<SignedOperation | undefined> {
     const snapshot = this.#captureSession();
+    if (
+      input.approvalGeneration !== undefined &&
+      input.approvalGeneration !== this.#approvalGeneration
+    ) {
+      return undefined;
+    }
     const profile = snapshot ? await loadVenueProfile() : undefined;
     if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
@@ -458,6 +490,7 @@ export class PredictDeviceAuthService {
 
   /** Drops the in-memory session and device key. The pinned intents stay. */
   clear(): void {
+    this.#approvalGeneration += 1;
     this.#generation += 1;
     this.#active?.session.clear();
     this.#active?.deviceKey.clear();
@@ -482,6 +515,7 @@ export class PredictDeviceAuthService {
     const active = this.#active;
     this.#active = undefined;
     this.#generation += 1;
+    this.#approvalGeneration += 1;
     const logFailure = (error: unknown): void => {
       Logger.error(
         ensureError(error, 'PredictDeviceAuthService.reset'),

@@ -343,15 +343,19 @@ const replaceAmount = (previous: string, next: string) => {
   }
 };
 
-const stubEchoingPreview = () =>
+const stubEchoingPreview = () => {
+  let quoteNumber = 0;
   stubFetch((_url, init) => {
     const body = JSON.parse(String(init?.body)) as { amount: string };
+    quoteNumber += 1;
     return {
       body: makePreview({
+        previewId: `${String(quoteNumber).padStart(8, '0')}-1111-4222-8333-444455556666`,
         requestedAmount: Number(body.amount).toFixed(2),
       }),
     };
   });
+};
 
 describe('PredictOrderFlow', () => {
   beforeEach(() => {
@@ -1173,6 +1177,36 @@ describe('PredictOrderFlow', () => {
     ).toHaveTextContent('$20');
   }, 30000);
 
+  it('approves only the checked preview identity without sending venue rendering inputs through the view', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+    const service = Engine.context.PredictOrderService;
+    const commit = jest.spyOn(service, 'commitPreview');
+
+    await reviewOrder();
+    expect(commit).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+    await waitFor(() => expect(commitCalls()).toHaveLength(1));
+
+    expect(commit).toHaveBeenCalledWith(
+      KALSHI_VENUE_ID,
+      'b3c2a1d0-1111-4222-8333-444455556666',
+      { kind: 'user-approved' },
+    );
+    expect(commitCalls()[0]?.body).toMatchObject({
+      ticker: 'KXTEST-26-A', count: '41.00', price: '0.4651',
+    });
+  });
+
+  it('refuses approval after the reviewed preview is revoked by the service lifecycle', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+    await reviewOrder();
+
+    Engine.context.PredictOrderService.cancelUncommittedPreviews();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+
+    await screen.findByTestId(PredictOrderFlowTestIds.EXPIRED);
+    expect(commitCalls()).toHaveLength(0);
+  });
   it('degrades an expired preview in the approval step to a re-quote affordance', async () => {
     stubFetch(() => ({
       body: makePreview({

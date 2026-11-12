@@ -3,7 +3,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type { PredictOrderService } from '../PredictOrderService';
 
 export interface OrderRecoveryLifecycleOptions {
-  service: Pick<PredictOrderService, 'resumeRecovery' | 'suspendRecovery'>;
+  service: Pick<PredictOrderService, 'resumeRecovery' | 'suspendRecovery' | 'getRecoveryGeneration'>;
   isUnlocked: () => boolean;
   isSignedIn: () => boolean;
   isEnabled: () => boolean;
@@ -37,8 +37,9 @@ export const bindOrderRecoveryLifecycle = ({
       service.suspendRecovery();
       return;
     }
+    const serviceGeneration = service.getRecoveryGeneration();
     getIdentityScope().then((scope) => {
-      if (captured !== generation || !eligible()) {
+      if (captured !== generation || serviceGeneration !== service.getRecoveryGeneration() || !eligible()) {
         return;
       }
       if (scope) {
@@ -47,7 +48,7 @@ export const bindOrderRecoveryLifecycle = ({
         service.suspendRecovery();
       }
     }).catch(() => {
-      if (captured === generation) {
+      if (captured === generation && serviceGeneration === service.getRecoveryGeneration()) {
         service.suspendRecovery();
       }
     });

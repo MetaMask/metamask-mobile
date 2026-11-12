@@ -1,4 +1,3 @@
-import type { SignOperationInput } from '../auth/signing/signOperationTypes';
 import type {
   FetchFeedParams,
   FetchPortfolioPageParams,
@@ -12,6 +11,8 @@ import type {
   PredictFeedId,
   PredictMarketHistory,
   PredictMarketHistoryRange,
+  PredictOrderApproval,
+  PredictOrderReview,
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
@@ -50,13 +51,15 @@ export interface VenueTradingAdapter {
     params: PredictOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<PredictOrderPreview>;
-  /** Commits an approved Order Preview and returns its canonical Order
-   * Receipt. Sends the `create_order` bytes the phone renders and signs
-   * from `signing`. Only the first dispatch may submit; all recovery uses
-   * observeOrder and never reconstructs an approval. */
+  /** Checks the pinned Preview and returns its user-facing signing bounds. */
+  reviewOrder(previewId: string): Promise<PredictOrderReview>;
+  /** Revokes all locally pinned quotes without affecting observe-only recovery. */
+  invalidatePreviews(): void;
+  /** Commits only the adapter's pinned quote after explicit user approval.
+   * The adapter owns venue conversion; product callers supply no signed data. */
   commitOrder(
     previewId: string,
-    signing: SignOperationInput,
+    approval: PredictOrderApproval,
     options?: PredictReadOptions,
   ): Promise<PredictOrderReceipt>;
   /** The operation's canonical Order Receipt. Never submits; while the

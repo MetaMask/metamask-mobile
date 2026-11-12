@@ -16,10 +16,7 @@ import type { RootState } from '../../../../reducers';
 import type { PredictConfig } from '../config/predictConfig';
 import { subscribeToActiveVenueChanges } from '../implementation/subscribeToActiveVenueChanges';
 import type { PredictConfiguredVenue } from '../implementation/types';
-import { amountToCents, venueOrderValues } from '../auth/signing/orderCommit';
-import type { PredictOrderPreview } from '../types';
 import type {
-  PredictOrderCommitSigning,
   PredictOrderServiceOrderResolvedEvent,
 } from './PredictOrderService';
 
@@ -207,23 +204,29 @@ describe('PredictNext Order Preview request', () => {
 
   /** Quotes the buy fixture: a Commit is only sent for a Preview the
    * service quoted for the current Predict User. */
-  const quoteBuy = (orderService: PredictOrderService) =>
-    orderService.requestQuote(KALSHI_VENUE_ID, {
+  const quoteBuy = async (orderService: PredictOrderService) => {
+    const preview = await orderService.requestQuote(KALSHI_VENUE_ID, {
       marketId: 'KXTEST-26-A' as never,
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
       idempotencyKey: previewResponse.previewId,
     });
+    await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    return preview;
+  };
 
-  const quoteSell = (orderService: PredictOrderService) =>
-    orderService.requestQuote(KALSHI_VENUE_ID, {
+  const quoteSell = async (orderService: PredictOrderService) => {
+    const preview = await orderService.requestQuote(KALSHI_VENUE_ID, {
       marketId: 'KXTEST-26-A' as never,
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
       idempotencyKey: sellPreviewResponse.previewId,
     });
+    await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    return preview;
+  };
 
   /** The exact bodies POSTed to the commit route, in send order. */
   const commitBodies = (
@@ -233,33 +236,6 @@ describe('PredictNext Order Preview request', () => {
       .filter(([url]) => isCommitUrl(url))
       .map(([, init]) => JSON.parse(String(init?.body)));
 
-  /** The intent the Order sheet hands the service at approval: the amount or
-   * contract count the User saw quoted, plus the wire figures the venue order
-   * signs. A Commit is refused without it, so every Commit here passes one. */
-  const commitSigning = (
-    action: 'buy' | 'sell',
-    preview: PredictOrderPreview,
-    amountOrContracts: { amount: string } | { contracts: string },
-  ): PredictOrderCommitSigning => {
-    const values = venueOrderValues(action, preview.side, preview);
-    if (!values) {
-      throw new Error('preview lacks the wire figures to sign');
-    }
-    const common = {
-      marketId: preview.marketId,
-      idempotencyKey: preview.previewId,
-      action,
-      outcome: preview.side,
-    };
-    const inputs =
-      'amount' in amountOrContracts
-        ? {
-            ...common,
-            amountCents: amountToCents(amountOrContracts.amount) as number,
-          }
-        : { ...common, contracts: amountOrContracts.contracts };
-    return { inputs, values, confirmed: true };
-  };
 
   it('requests a Preview through the authenticated transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness((url, init) =>
@@ -533,7 +509,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       sellReceiptResponse.previewId,
-      commitSigning('sell', sellPreviewResponse as never, { contracts: '70' }),
+      ({ kind: 'user-approved' } as const),
     );
 
     expect(receipt).toMatchObject({
@@ -642,7 +618,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       buyReceiptResponse.previewId,
-      commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+      ({ kind: 'user-approved' } as const),
     );
 
     expect(receipt).toMatchObject({
@@ -748,7 +724,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         buyReceiptResponse.previewId,
-        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+        ({ kind: 'user-approved' } as const),
       );
       await until(() => observeCalls === 1);
 
@@ -976,7 +952,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+        ({ kind: 'user-approved' } as const),
       );
       await until(() => commits === 1);
       // The Commit is on the wire when the Active Venue changes.
@@ -1067,7 +1043,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+        ({ kind: 'user-approved' } as const),
       );
       store.selectVenue('polymarket');
       await expect(commit).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
@@ -1092,6 +1068,8 @@ describe('PredictNext Order Preview request', () => {
     it('keeps a lost POST unknown through observe404 beyond expiry, then accepts a late fill without another POST', async () => {
       let commits = 0;
       let observations = 0;
+      let expired = false;
+      jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + (expired ? 60_000 : 0));
       // This app targets ES2022, before Promise.withResolvers.
       let releaseObservation!: () => void;
       const observationGate = new Promise<void>((resolve) => {
@@ -1103,7 +1081,7 @@ describe('PredictNext Order Preview request', () => {
       });
       const harness = buildPredictNextIntegrationHarness(async (url) => {
         if (String(url).endsWith('/orders/preview')) {
-          return { body: freshPreview(-60_000) };
+          return { body: freshPreview(30_000) };
         }
         if (isCommitUrl(url)) {
           commits += 1;
@@ -1126,9 +1104,10 @@ describe('PredictNext Order Preview request', () => {
         orderService.commitPreview(
           KALSHI_VENUE_ID,
           previewResponse.previewId,
-          commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+          ({ kind: 'user-approved' } as const),
         ),
       ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      expired = true;
       store.selectVenue('polymarket');
       await expect(
         orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
@@ -1158,7 +1137,7 @@ describe('PredictNext Order Preview request', () => {
     it("never sends the previous person's Preview with the next person's bearer token", async () => {
       const harness = buildPredictNextIntegrationHarness((url) =>
         String(url).endsWith('/orders/preview')
-          ? { body: previewResponse }
+          ? { body: { ...previewResponse, expiresAt: new Date(Date.now() + 30_000).toISOString() } }
           : { body: buyReceiptResponse },
       );
       const orderService = buildService(harness);
@@ -1175,7 +1154,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        commitSigning('buy', previewResponse as never, { amount: '20.00' }),
+        ({ kind: 'user-approved' } as const),
       );
       orderService.abandonCommits();
       issueToken('next-person-token');

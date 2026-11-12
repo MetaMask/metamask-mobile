@@ -18,7 +18,7 @@ const receipt = {
   quotedContracts: 10, requestedMaxSpend: '4', venueOrderId: 'venue-one',
   filledContracts: '10', actualSpend: '4', averageFillPrice: '0.40', fee: '0', payoutExposure: '10',
 } as PredictOrderReceipt;
-const signing = { inputs: {}, values: { price: '0.40', count: '10' }, confirmed: true };
+const signing = { kind: 'user-approved' as const };
 const reference = { identityScope: 'user-one', venueId: KALSHI_VENUE_ID, previewId: 'preview-one', dispatchedAt: 1, recoveryState: 'unresolved' as const };
 const memory = () => {
   let raw: string | null = null;
@@ -39,6 +39,8 @@ const setup = (journal: OrderDispatchJournal, options: Partial<PredictOrderServi
   root.subscribe('PredictOrderService:orderResolved', resolved);
   const trading = {
     previewOrder: jest.fn().mockResolvedValue(preview),
+    reviewOrder: jest.fn().mockResolvedValue({ previewId: preview.previewId, maxCost: '4.20', contracts: '10.00', payout: '10.00', proceedsIfFullyFilled: '3.80' }),
+    invalidatePreviews: jest.fn(),
     commitOrder: jest.fn().mockResolvedValue(receipt),
     observeOrder: jest.fn().mockRejectedValue(PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN)),
     listUnresolvedOrders: jest.fn().mockResolvedValue({ operations: [] }),
@@ -47,7 +49,11 @@ const setup = (journal: OrderDispatchJournal, options: Partial<PredictOrderServi
   instances.push(service);
   return { service, trading, resolved, invalidated };
 };
-const quote = (service: PredictOrderService) => service.requestQuote(KALSHI_VENUE_ID, { marketId: preview.marketId, side: 'yes', amount: '4', idempotencyKey: 'client-key' });
+const quote = async (service: PredictOrderService) => {
+  const quoted = await service.requestQuote(KALSHI_VENUE_ID, { marketId: preview.marketId, side: 'yes', action: 'buy', amount: '4' as never, idempotencyKey: 'client-key' });
+  await service.reviewPreview(KALSHI_VENUE_ID, quoted.previewId);
+  return quoted;
+};
 
 beforeEach(() => { jest.useFakeTimers(); });
 afterEach(() => { instances.splice(0).forEach((service) => service.destroy()); jest.useRealTimers(); });
@@ -261,5 +267,121 @@ describe('Predict order durable recovery', () => {
     trading.observeOrder.mockResolvedValueOnce(receipt);
     await service.resumeRecovery('user-one');
     expect(trading.observeOrder).toHaveBeenCalledTimes(2);
+  });
+  it('blocks recovery and approval while reset clears the journal and drops an old discovery result', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    const { service, trading } = setup(journal);
+    const list = Promise.withResolvers<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
+    const listed = Promise.withResolvers<void>();
+    trading.listUnresolvedOrders.mockImplementationOnce(() => {
+      listed.resolve();
+      return list.promise;
+    });
+    const recovery = service.resumeRecovery('user-one');
+    await listed.promise;
+    const clear = Promise.withResolvers<void>();
+    const clearing = Promise.withResolvers<void>();
+    const originalClear = journal.clear;
+    jest.spyOn(journal, 'clear').mockImplementationOnce(async () => {
+      clearing.resolve();
+      await clear.promise;
+      await originalClear();
+    });
+
+    const reset = service.reset();
+    await clearing.promise;
+    await service.resumeRecovery('user-one');
+    await expect(service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing)).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+    list.resolve({ operations: [{ previewId: preview.previewId, receipt, createdAt: '2026-11-12T00:00:00.000Z', submittedAt: null }] });
+    await recovery.catch(() => undefined);
+    clear.resolve();
+    await reset;
+
+    expect(trading.listUnresolvedOrders).toHaveBeenCalledTimes(1);
+    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([]);
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
+    expect(trading.commitOrder).not.toHaveBeenCalled();
+    expect(trading.observeOrder).not.toHaveBeenCalled();
+  });
+
+  it.each(['submitted', 'needs_manual_review'] as const)(
+    'does not resurrect a resolved order from a delayed discovery page reporting %s',
+    async (status) => {
+      const journal = createOrderDispatchJournal(memory());
+      const { service, trading, resolved } = setup(journal);
+      await service.resumeRecovery('user-one');
+      await quote(service);
+      const list = Promise.withResolvers<{ operations: { previewId: string; receipt: PredictOrderReceipt; createdAt: string; submittedAt: null }[] }>();
+      const listed = Promise.withResolvers<void>();
+      trading.listUnresolvedOrders.mockImplementationOnce(() => {
+        listed.resolve();
+        return list.promise;
+      });
+      const recovery = service.refreshRecovery(KALSHI_VENUE_ID);
+      await listed.promise;
+      await service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
+      expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
+
+      list.resolve({ operations: [{ previewId: preview.previewId, receipt: { ...receipt, status }, createdAt: '2026-11-12T00:00:00.000Z', submittedAt: null }] });
+      await recovery;
+
+      expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([]);
+      expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
+      expect(resolved).toHaveBeenCalledTimes(1);
+      expect(trading.observeOrder).not.toHaveBeenCalled();
+    },
+  );
+  it('retains the manual-review marker when discovery persistence overlaps terminal manual storage', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    const { service, trading } = setup(journal);
+    await service.resumeRecovery('user-one');
+    await quote(service);
+    const discovered = Promise.withResolvers<void>();
+    const releaseDiscovery = Promise.withResolvers<void>();
+    const manualStarted = Promise.withResolvers<void>();
+    const releaseManual = Promise.withResolvers<void>();
+    const manualReasserted = Promise.withResolvers<void>();
+    const put = journal.put;
+    let holdDiscovery = true;
+    let manualWrites = 0;
+    jest.spyOn(journal, 'put').mockImplementation(async (entry) => {
+      if (entry.recoveryState === 'manual_review') {
+        manualWrites += 1;
+        if (manualWrites === 1) {
+          manualStarted.resolve();
+          await releaseManual.promise;
+        } else {
+          manualReasserted.resolve();
+        }
+      } else if (holdDiscovery) {
+        holdDiscovery = false;
+        discovered.resolve();
+        await releaseDiscovery.promise;
+      }
+      await put(entry);
+    });
+    trading.listUnresolvedOrders.mockResolvedValueOnce({ operations: [{
+      previewId: preview.previewId,
+      receipt: { ...receipt, status: 'submitted' },
+      createdAt: '2026-11-12T00:00:00.000Z', submittedAt: null,
+    }] });
+    const recovery = service.refreshRecovery(KALSHI_VENUE_ID);
+    await discovered.promise;
+    trading.commitOrder.mockResolvedValueOnce({ ...receipt, status: 'needs_manual_review' });
+    const commit = service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
+    await manualStarted.promise;
+
+    releaseDiscovery.resolve();
+    await manualReasserted.promise;
+    releaseManual.resolve();
+    await recovery;
+    await commit;
+
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([
+      expect.objectContaining({ previewId: preview.previewId, recoveryState: 'manual_review' }),
+    ]);
+    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([
+      { previewId: preview.previewId, status: 'needs_manual_review' },
+    ]);
   });
 });

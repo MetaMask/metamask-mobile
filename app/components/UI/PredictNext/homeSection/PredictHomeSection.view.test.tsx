@@ -804,22 +804,11 @@ describe('PredictHomeSection', () => {
             idempotencyKey: 'c4d5e6f0-1111-4222-8333-444455556666',
           },
         );
+        await trading.orderService.reviewPreview('kalshi' as PredictVenueId, preview.previewId);
         await trading.orderService.commitPreview(
           'kalshi' as PredictVenueId,
           preview.previewId,
-          {
-            // The sheet pins this snapshot at quote time; committing without
-            // it is refused, so the test supplies the same shape it builds.
-            inputs: {
-              marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
-              idempotencyKey: 'b3c2a1d0-1111-4222-8333-444455556666',
-              action: 'sell',
-              outcome: 'yes',
-              contracts: '70',
-            },
-            values: { count: '70.00', price: '0.4000' },
-            confirmed: true,
-          },
+          { kind: 'user-approved' },
         );
       });
 

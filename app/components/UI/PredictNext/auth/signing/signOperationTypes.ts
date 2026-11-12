@@ -23,6 +23,8 @@ export interface SignedOperation {
 
 /** What a signed intent is rendered from. */
 export interface SignOperationInput {
+  /** Engine approval-revocation generation pinned by the venue adapter. */
+  approvalGeneration?: number;
   /** What the user typed or confirmed, or what the phone generated. */
   inputs?: TemplateInputs;
   /** Locally computed values (`price`, `count`). Never serialized into the

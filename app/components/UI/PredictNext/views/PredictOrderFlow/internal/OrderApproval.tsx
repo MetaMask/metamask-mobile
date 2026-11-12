@@ -10,8 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import I18n, { strings } from '../../../../../../../locales/i18n';
-import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
-import type { PredictOrderPreview } from '../../../types';
+import type { PredictOrderPreview, PredictOrderReview } from '../../../types';
 
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
@@ -26,7 +25,7 @@ interface OrderApprovalProps {
   /** The worst case the phone signs, from the profile's invariant. Until it
    * is known (or when the profile refuses the quote) Approve is disabled:
    * the user approves what is signed, not only what was quoted. */
-  display?: InvariantDisplay;
+  display?: PredictOrderReview;
   /** Whether the Preview can no longer be committed, locally or at the venue. */
   isExpired: boolean;
   /** The sheet is stale: no approval, refresh or edit may run. */

@@ -138,6 +138,12 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       invalidateSigningSession: () =>
         initMessenger.call('PredictDeviceAuthService:invalidateA2t'),
     }),
+    {
+      getApprovalGeneration: () =>
+        initMessenger.call('PredictDeviceAuthService:getApprovalGeneration'),
+      previewOperation: (intent, input) =>
+        initMessenger.call('PredictDeviceAuthService:previewOperation', intent, input),
+    },
   );
   const controller = new PredictOrderService({
     messenger: controllerMessenger,

@@ -6,6 +6,8 @@ import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
 import type {
+  PredictOrderApproval,
+  PredictOrderReview,
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
@@ -14,10 +16,6 @@ import type {
 } from '../types';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import type { VenueTradingAdapter } from '../adapters/types';
-import type {
-  TemplateInputs,
-  TemplateValues,
-} from '../auth/signing/profileTemplates';
 import { withPredictNextTrace } from './withPredictNextTrace';
 import type {
   OrderDispatchJournal,
@@ -64,12 +62,6 @@ const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
  * never hit. One may sign a venue order scan while the backend reconciles. */
 const MAX_BACKGROUND_OBSERVATIONS = 12;
 
-/** What the phone signs for one commit call. */
-export interface PredictOrderCommitSigning {
-  inputs: TemplateInputs;
-  values: TemplateValues;
-  confirmed?: boolean;
-}
 
 /**
  * Where one Order Preview stands relative to the submission boundary.
@@ -112,8 +104,7 @@ interface OrderOperation {
   readonly expiresAt: number;
   /** The context the Preview was quoted under. */
   readonly contextEpoch: number;
-  /** What the Commit of this Preview signs. */
-  signing?: PredictOrderCommitSigning;
+  reviewed: boolean;
   /** Once dispatched, later calls observe only unless the first invocation
    * was explicitly proven not relayed. Observation errors never reset it. */
   posted: boolean;
@@ -164,12 +155,20 @@ export interface PredictOrderServiceRequestQuoteAction {
   ) => Promise<PredictOrderPreview>;
 }
 
+export interface PredictOrderServiceReviewPreviewAction {
+  type: 'PredictOrderService:reviewPreview';
+  handler: (
+    venueId: PredictVenueId,
+    previewId: string,
+  ) => Promise<PredictOrderReview>;
+}
+
 export interface PredictOrderServiceCommitPreviewAction {
   type: 'PredictOrderService:commitPreview';
   handler: (
     venueId: PredictVenueId,
     previewId: string,
-    signing?: PredictOrderCommitSigning,
+    approval?: PredictOrderApproval,
   ) => Promise<PredictOrderReceipt>;
 }
 
@@ -190,6 +189,7 @@ export interface PredictOrderServiceRefreshRecoveryAction {
 
 export type PredictOrderServiceActions =
   | PredictOrderServiceRequestQuoteAction
+  | PredictOrderServiceReviewPreviewAction
   | PredictOrderServiceCommitPreviewAction
   | PredictOrderServiceGetRecoveryAction
   | PredictOrderServiceRefreshRecoveryAction
@@ -299,6 +299,7 @@ export class PredictOrderService {
   #discoveryComplete = false;
   #recoveryActive = false;
   #destroyed = false;
+  #resetsInProgress = 0;
   #cleanupLifecycle?: () => void;
 
   constructor({
@@ -323,6 +324,10 @@ export class PredictOrderService {
     messenger.registerActionHandler(
       'PredictOrderService:requestQuote',
       this.requestQuote.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictOrderService:reviewPreview',
+      this.reviewPreview.bind(this),
     );
     messenger.registerActionHandler(
       'PredictOrderService:commitPreview',
@@ -350,6 +355,9 @@ export class PredictOrderService {
     options?: { signal?: AbortSignal },
   ): Promise<PredictOrderPreview> {
     this.#assertVenue(venueId);
+    if (this.#resetsInProgress > 0) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+    }
     const generation = this.#commitGeneration;
     const contextEpoch = this.#contextEpoch;
     const controller = new AbortController();
@@ -387,6 +395,28 @@ export class PredictOrderService {
     }
   }
 
+  async reviewPreview(
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<PredictOrderReview> {
+    this.#assertVenue(venueId);
+    const operation = this.#operations.get(previewId);
+    const generation = this.#commitGeneration;
+    const contextEpoch = this.#contextEpoch;
+    if (
+      this.#resetsInProgress > 0 ||
+      !operation ||
+      operation.state !== 'quoted' ||
+      operation.expiresAt <= Date.now()
+    ) {
+      throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
+    }
+    const review = await this.#trading.reviewOrder(previewId);
+    this.#assertQuoteContext(generation, contextEpoch);
+    operation.reviewed = true;
+    return review;
+  }
+
   /**
    * Commits an approved Order Preview and resolves with its canonical Order
    * Receipt. Repeated calls for one Preview coalesce into the single
@@ -401,20 +431,20 @@ export class PredictOrderService {
    * the submission boundary run synchronously with the caller's approval,
    * so no context change can land between them.
    *
-   * `signing` is the intent the phone signs. A later call for the same
-   * Preview reuses the signing the caller last passed when he omits it.
+   * Only the actual approval event permits first dispatch. Omission means
+   * observation of an already dispatched operation, never a reused approval.
    */
   commitPreview(
     venueId: PredictVenueId,
     previewId: string,
-    signing?: PredictOrderCommitSigning,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     if (venueId !== this.#venueId) {
       return Promise.reject(
         PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE),
       );
     }
-    if (this.#journal && !this.#sessionAvailable) {
+    if (this.#resetsInProgress > 0 || (this.#journal && !this.#sessionAvailable)) {
       return Promise.reject(PredictError.from(PredictErrorCode.UNAUTHENTICATED));
     }
     const inFlight = this.#inFlightCommits.get(previewId);
@@ -435,15 +465,15 @@ export class PredictOrderService {
         PredictError.from(PredictErrorCode.PREVIEW_EXPIRED),
       );
     }
-    if (signing) {
-      operation.signing = signing;
+    if (!operation.posted && !operation.reviewed) {
+      return Promise.reject(PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED));
     }
-    if (!operation.posted && !operation.signing) {
+    if (!operation.posted && approval?.kind !== 'user-approved') {
       return Promise.reject(
         PredictError.from(PredictErrorCode.INVALID_RESPONSE),
       );
     }
-    return this.#dispatch(operation);
+    return this.#dispatch(operation, MAX_COMMIT_OBSERVATIONS, approval);
   }
 
   /**
@@ -455,6 +485,7 @@ export class PredictOrderService {
   cancelUncommittedPreviews(): void {
     this.#contextEpoch += 1;
     this.#abortInFlightQuotes();
+    this.#trading.invalidatePreviews();
     for (const operation of this.#operations.values()) {
       if (operation.state === 'quoted') {
         operation.state = 'cancelled';
@@ -494,6 +525,7 @@ export class PredictOrderService {
    */
   abandonCommits(): void {
     this.#commitGeneration += 1;
+    this.#trading.invalidatePreviews();
     this.#recoveryActive = false;
     this.#recoveryAbort?.abort();
     this.#recoveryAbort = undefined;
@@ -516,9 +548,14 @@ export class PredictOrderService {
     this.#publishRecovery();
   }
 
+  /** Invalidates identity lookups started before a wallet reset. */
+  getRecoveryGeneration(): number {
+    return this.#commitGeneration;
+  }
+
   /** Runtime lifecycle owns the authenticated canonical Predict User scope. */
   resumeRecovery(identityScope: string): Promise<void> {
-    if (this.#destroyed || !this.#journal || !identityScope) {
+    if (this.#destroyed || this.#resetsInProgress > 0 || !this.#journal || !identityScope) {
       return Promise.resolve();
     }
     if (this.#identityScope !== identityScope) {
@@ -548,10 +585,17 @@ export class PredictOrderService {
   }
 
   async reset(): Promise<void> {
+    this.#resetsInProgress += 1;
     this.suspendRecovery();
-    await this.#journal?.clear();
-    this.#identityScope = undefined;
-    this.#discoveryCursor = undefined;
+    try {
+      await this.#journal?.clear();
+    } finally {
+      // Also fence lifecycle callbacks and reads that completed during reset.
+      this.suspendRecovery();
+      this.#identityScope = undefined;
+      this.#discoveryCursor = undefined;
+      this.#resetsInProgress -= 1;
+    }
   }
 
   setLifecycleCleanup(cleanup: () => void): void {
@@ -609,6 +653,7 @@ export class PredictOrderService {
       previewId: reference.previewId,
       expiresAt: 0,
       contextEpoch: this.#contextEpoch,
+      reviewed: false,
       posted: true,
       state: reference.recoveryState === 'manual_review' ? 'resolved' : 'dispatched',
       dispatchedAt: reference.dispatchedAt,
@@ -647,6 +692,10 @@ export class PredictOrderService {
           this.#assertNotAbandoned(generation);
           const known = new Map(references.map((reference) => [reference.previewId, reference]));
           for (const entry of page.operations) {
+            const before = this.#operations.get(entry.previewId);
+            if (before?.state === 'resolved' || before?.lastReceipt && isTerminalReceipt(before.lastReceipt)) {
+              continue;
+            }
             const reference: OrderDispatchReference = {
               identityScope,
               venueId: this.#venueId,
@@ -658,6 +707,17 @@ export class PredictOrderService {
             };
             await this.#journal.put(reference);
             this.#assertNotAbandoned(generation);
+            const after = this.#operations.get(entry.previewId);
+            if (after?.state === 'resolved' || after?.lastReceipt && isTerminalReceipt(after.lastReceipt)) {
+              if (after.lastReceipt?.status === 'needs_manual_review' || after.recoveryState === 'manual_review') {
+                await this.#journal.put({ ...reference, recoveryState: 'manual_review' });
+                this.#assertNotAbandoned(generation);
+              } else {
+                await this.#journal.remove(identityScope, this.#venueId, entry.previewId);
+                this.#assertNotAbandoned(generation);
+              }
+              continue;
+            }
             const operation = this.#restoreReference(reference);
             operation.lastReceipt = entry.receipt;
             if (reference.recoveryState === 'manual_review') {
@@ -786,6 +846,7 @@ export class PredictOrderService {
       previewId: preview.previewId,
       expiresAt: Number.isFinite(expiresAt) ? expiresAt : now,
       contextEpoch,
+      reviewed: false,
       state: 'quoted',
       receiptSeen: false,
       ambiguous: false,
@@ -802,6 +863,7 @@ export class PredictOrderService {
   #dispatch(
     operation: OrderOperation,
     maxObservations = MAX_COMMIT_OBSERVATIONS,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     const { previewId } = operation;
     const generation = this.#commitGeneration;
@@ -824,6 +886,7 @@ export class PredictOrderService {
         generation,
         transport.signal,
         maxObservations,
+        approval,
       ),
       abandonment,
     ]);
@@ -851,6 +914,7 @@ export class PredictOrderService {
     generation: number,
     signal: AbortSignal,
     maxObservations: number,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     let receipt: PredictOrderReceipt;
     try {
@@ -861,7 +925,7 @@ export class PredictOrderService {
           op: TraceOperation.PredictOrderSubmission,
           tags: { venueId: this.#venueId },
         },
-        () => this.#observe(operation, generation, signal, maxObservations),
+        () => this.#observe(operation, generation, signal, maxObservations, approval),
       );
     } catch (error) {
       if (generation === this.#commitGeneration) {
@@ -899,8 +963,9 @@ export class PredictOrderService {
     generation: number,
     signal: AbortSignal,
     maxObservations: number,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
-    const receipt = await this.#commitOnce(operation, generation, signal);
+    const receipt = await this.#commitOnce(operation, generation, signal, approval);
     if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
       return receipt;
     }
@@ -916,6 +981,7 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     this.#assertNotAbandoned(generation);
     let receipt: PredictOrderReceipt;
@@ -930,8 +996,7 @@ export class PredictOrderService {
         throw error;
       }
     } else {
-      const signing = operation.signing;
-      if (!signing) {
+      if (approval?.kind !== 'user-approved') {
         throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
       }
       if (this.#journal) {
@@ -964,7 +1029,7 @@ export class PredictOrderService {
         this.#publishRecovery();
       }
       operation.posted = true;
-      receipt = await this.#trading.commitOrder(operation.previewId, signing, {
+      receipt = await this.#trading.commitOrder(operation.previewId, approval, {
         signal,
       });
     }
@@ -1140,6 +1205,7 @@ export class PredictOrderService {
     this.#messenger.unregisterActionHandler('PredictOrderService:getRecovery');
     this.#messenger.unregisterActionHandler('PredictOrderService:refreshRecovery');
     this.#messenger.unregisterActionHandler('PredictOrderService:requestQuote');
+    this.#messenger.unregisterActionHandler('PredictOrderService:reviewPreview');
     this.#messenger.unregisterActionHandler(
       'PredictOrderService:commitPreview',
     );

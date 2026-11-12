@@ -10,8 +10,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import type {
   PredictOrderPreview,
   PredictOrderPreviewFeeSource,
+  PredictOrderReview,
 } from '../../../types';
-import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
 
@@ -191,7 +191,7 @@ const SellPreviewRows = ({
 
 /** The signed buy tail: the invariant's worst-case cost the phone signs,
  * replacing the quoted Total; profit is measured against it. */
-const BuySignedTail = ({ display }: { display: InvariantDisplay }) => {
+const BuySignedTail = ({ display }: { display: PredictOrderReview }) => {
   const profit = (Number(display.payout) - Number(display.maxCost)).toFixed(2);
   return (
     <>
@@ -216,11 +216,11 @@ const BuySignedTail = ({ display }: { display: InvariantDisplay }) => {
 
 /** The signed sell total assumes every offered contract fills. IOC orders
  * can fill only part of the count, or none of it. */
-const SellSignedTail = ({ display }: { display: InvariantDisplay }) => (
+const SellSignedTail = ({ display }: { display: PredictOrderReview }) => (
   <>
     <EmphasizedTotalRow
       label={strings('predict_next.order_preview.proceeds_if_fully_filled')}
-      value={formatUsd(display.minProceeds)}
+      value={formatUsd(display.proceedsIfFullyFilled)}
       testID={PredictOrderFlowTestIds.NET_PROCEEDS}
     />
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -237,7 +237,7 @@ export const OrderPreviewRows = ({
   display,
 }: {
   preview: PredictOrderPreview;
-  display?: InvariantDisplay;
+  display?: PredictOrderReview;
 }) => {
   if (preview.action === 'buy') {
     return (

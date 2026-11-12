@@ -1,6 +1,10 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { PredictError, PredictErrorCode } from '../errors';
+import { portfolioQueries } from '../queries/portfolioQueries';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 import { KalshiDemoOnboardingGate } from './KalshiDemoOnboardingGate';
 
@@ -61,16 +65,21 @@ jest.mock('./internal/KalshiDemoOnboardingModal', () => {
   };
 });
 
+const queryClient = new QueryClient();
+
 const renderGate = () =>
   render(
-    <KalshiDemoOnboardingGate>
-      <Text testID="child">child</Text>
-    </KalshiDemoOnboardingGate>,
+    <QueryClientProvider client={queryClient}>
+      <KalshiDemoOnboardingGate>
+        <Text testID="child">child</Text>
+      </KalshiDemoOnboardingGate>
+    </QueryClientProvider>,
   );
 
 describe('KalshiDemoOnboardingGate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    queryClient.clear();
     mockState.signedIn = true;
     mockState.unlocked = true;
     mockState.authProfile = { id: 'kalshi-a2t-v1' };
@@ -123,5 +132,25 @@ describe('KalshiDemoOnboardingGate', () => {
       expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
       view.unmount();
     }
+  });
+
+  it('reopens a hidden flow when a real portfolio query reports account not enabled', () => {
+    mockUseOnboarding.mockReturnValue({ state: { step: 'hidden' } });
+    const view = renderGate();
+    expect(view.queryByTestId('demo-modal')).not.toBeOnTheScreen();
+    mockUseOnboarding.mockReturnValue({ state: { step: 'link' } });
+
+    act(() => {
+      queryClient.getQueryCache().build(queryClient, {
+        queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).family,
+        queryFn: async () => undefined,
+      }).setState({
+        status: 'error',
+        error: PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED),
+      });
+    });
+
+    expect(view.getByTestId('demo-modal')).toBeOnTheScreen();
+    expect(mockCreateClient).toHaveBeenCalledTimes(1);
   });
 });

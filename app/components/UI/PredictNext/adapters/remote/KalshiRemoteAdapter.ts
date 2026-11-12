@@ -23,7 +23,14 @@ import {
   predictErrorEvidence,
   type PredictErrorPhase,
 } from '../../errors/apiErrorEvidence';
-import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
+import type {
+  FetchOrderPreviewParams,
+  PredictOrderReview,
+  PredictVenueId,
+} from '../../types';
+import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
+import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
+import { kalshiOrderSigningInput, type KalshiOrderSigningInput } from './kalshiOrderSigning';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -146,15 +153,64 @@ const mapError = (
  * intent. */
 export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
+export interface KalshiOrderSigningDependencies {
+  getApprovalGeneration: () => number | undefined;
+  previewOperation: (
+    intent: 'order.place',
+    input: SignOperationInput,
+  ) => Promise<InvariantDisplay | undefined>;
+}
+
+interface PinnedOrderPreview {
+  expiresAt: number;
+  approvalGeneration: number | undefined;
+  signing: KalshiOrderSigningInput | undefined;
+  snapshot: string;
+  review?: PredictOrderReview;
+}
+
+const MAX_PINNED_PREVIEWS = 32;
+
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
   readonly marketData: VenueMarketDataAdapter;
   readonly portfolio: VenuePortfolioAdapter;
   readonly trading: VenueTradingAdapter;
+  readonly #previews = new Map<string, PinnedOrderPreview>();
+  #previewGeneration = 0;
 
-  constructor(client: PredictApiReadTransport) {
+  constructor(
+    client: PredictApiReadTransport,
+    signing?: KalshiOrderSigningDependencies,
+  ) {
+    const currentPreview = (previewId: string): PinnedOrderPreview => {
+      const pinned = this.#previews.get(previewId);
+      if (!pinned || pinned.expiresAt <= Date.now()) {
+        this.#previews.delete(previewId);
+        throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
+          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+        });
+      }
+      if (pinned.approvalGeneration === undefined ||
+        pinned.approvalGeneration !== signing?.getApprovalGeneration()) {
+        this.#previews.delete(previewId);
+        throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
+          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+        });
+      }
+      if (!pinned.signing) {
+        throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
+          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+        });
+      }
+      return pinned;
+    };
     this.trading = {
       previewOrder: async (params, options) => {
+        // Copy before the network await: later form edits are not approval.
+        params = { ...params };
+        const generation = this.#previewGeneration;
+        const approvalGeneration = signing?.getApprovalGeneration();
         try {
           // Version tolerance (ADR-0001): the deployed backend's strict
           // request schema rejects unknown keys, so a buy keeps the exact
@@ -206,19 +262,79 @@ export class KalshiRemoteAdapter {
           if (!isQuotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
+          if (generation !== this.#previewGeneration ||
+            approvalGeneration !== signing?.getApprovalGeneration()) {
+            throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
+          }
+          for (const [id, pinned] of this.#previews) {
+            if (pinned.expiresAt <= Date.now()) {
+              this.#previews.delete(id);
+            }
+          }
+          const snapshot = JSON.stringify({ params, preview: result });
+          const existing = this.#previews.get(result.previewId);
+          if (existing && (existing.snapshot !== snapshot ||
+            existing.approvalGeneration !== approvalGeneration)) {
+            this.#previews.delete(result.previewId);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          if (!this.#previews.has(result.previewId)) {
+            while (this.#previews.size >= MAX_PINNED_PREVIEWS) {
+              const oldest = this.#previews.keys().next().value;
+              if (oldest !== undefined) this.#previews.delete(oldest);
+            }
+            this.#previews.set(result.previewId, {
+              expiresAt: Date.parse(result.expiresAt),
+              approvalGeneration,
+              signing: kalshiOrderSigningInput(params, result),
+              snapshot,
+            });
+          }
           return result;
         } catch (error) {
           return mapError(error, 'preview');
         }
       },
+      invalidatePreviews: () => {
+        this.#previewGeneration += 1;
+        this.#previews.clear();
+      },
+      reviewOrder: async (previewId) => {
+        const pinned = currentPreview(previewId);
+        const display = await signing?.previewOperation('order.place', {
+          ...pinned.signing,
+          approvalGeneration: pinned.approvalGeneration,
+        });
+        if (currentPreview(previewId) !== pinned || !display) {
+          throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED);
+        }
+        pinned.review = {
+          previewId,
+          maxCost: display.maxCost,
+          contracts: display.contracts,
+          payout: display.payout,
+          proceedsIfFullyFilled: display.minProceeds,
+        };
+        return { ...pinned.review };
+      },
       // One signed submission per invocation; observation is observeOrder.
-      commitOrder: async (previewId, signing, options) => {
+      commitOrder: async (previewId, approval, options) => {
         try {
+          const pinned = currentPreview(previewId);
+          if (approval.kind !== 'user-approved' || !pinned.review) {
+            throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
+              metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+            });
+          }
           const value = await client.commitOrder(
             this.venueId,
             { previewId },
             options,
-            signing,
+            {
+              ...pinned.signing,
+              approvalGeneration: pinned.approvalGeneration,
+              confirmed: true,
+            },
           );
           const result = parsePredictOrderReceipt(value);
           if (

@@ -401,6 +401,21 @@ export type PredictOrderPreview =
   | PredictBuyOrderPreview
   | PredictSellOrderPreview;
 
+/** Emitted only by the user's explicit approval of the displayed Preview. */
+export interface PredictOrderApproval {
+  readonly kind: 'user-approved';
+}
+
+/** Venue-neutral bounds checked by the phone for the exact quoted Order. */
+export interface PredictOrderReview {
+  readonly previewId: string;
+  readonly maxCost: string;
+  readonly contracts: string;
+  readonly payout: string;
+  /** Sell proceeds for the full count; partial or no fill can produce less. */
+  readonly proceedsIfFullyFilled: string;
+}
+
 /** Wire-shape body for committing an approved Order Preview. Strictly the
  * Preview reference only: the backend derives every executable detail from
  * the stored, expiring Order Preview, so the client can never alter Market,
@@ -412,17 +427,16 @@ export interface FetchOrderCommitParams {
 /** Status of a committed Order operation, as projected by the backend onto
  * the canonical Order Receipt. `pending` and `submitted` are in-progress
  * projections: the backend has accepted the Commit and is still working, so
- * keep observing by committing the same Order Preview again — the Commit is
- * idempotent by `previewId`. `filled` is a complete fill of the quoted
+ * keep observing with the receipt GET, never another POST. `filled` is a
+ * complete fill of the quoted
  * contracts. `partially_filled` is a non-zero partial fill: a success
  * rendered with honest partial-fill copy. `not_filled` is the canonical
  * outcome for zero fills; nothing was spent and no Position changed.
  * `rejected` means the Venue refused the Order; nothing was filled.
  * `reconciliation_required` means the backend is still resolving the true
- * outcome; render it like an in-progress status and re-observe by committing
- * the same Order Preview again.
+ * outcome; render it like an in-progress status and re-observe with GET.
  * `needs_manual_review` means the order scan is too old to sign. The outcome
- * is unknown, and committing again will not look any further. */
+ * is unknown; retain its recovery reference without automatic scanning. */
 export type PredictOrderReceiptStatus =
   | 'pending'
   | 'submitted'
@@ -487,6 +501,19 @@ export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
 export type PredictOrderReceipt =
   | PredictBuyOrderReceipt
   | PredictSellOrderReceipt;
+
+/** Owner-scoped discovery of financially unresolved operations. */
+export interface PredictUnresolvedOrder {
+  previewId: string;
+  receipt: PredictOrderReceipt;
+  createdAt: PredictTimestamp;
+  submittedAt: PredictTimestamp | null;
+}
+
+export interface PredictUnresolvedOrdersPage {
+  operations: readonly PredictUnresolvedOrder[];
+  nextCursor?: string;
+}
 
 export interface FetchPortfolioPageParams {
   cursor?: string;
@@ -638,10 +665,14 @@ export interface PredictPositionsPage {
 export interface PredictActivityPage {
   venueId: PredictVenueId;
   activity: PredictActivityEntry[];
+  /** Opaque continuation; it can be present even when activity is empty. */
   nextCursor?: string;
   /** Present when the page reaches history the Venue has archived:
    * Settlements before this instant may be missing. Trades stay complete. */
   settlementsCompleteFrom?: PredictTimestamp;
+  /** Explicit demo-only Trades fallback. Production permission failures are
+   * errors, not a successful page with silently missing Settlements. */
+  settlementsDegradedReason?: 'venue_permission_denied';
 }
 
 export interface PredictReadOptions {

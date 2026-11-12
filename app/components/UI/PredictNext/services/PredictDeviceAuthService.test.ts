@@ -172,6 +172,7 @@ describe('PredictDeviceAuthService', () => {
       'PredictDeviceAuthService:getA2t',
       'PredictDeviceAuthService:signOperation',
       'PredictDeviceAuthService:previewOperation',
+      'PredictDeviceAuthService:getApprovalGeneration',
       'PredictDeviceAuthService:signRead',
       'PredictDeviceAuthService:prefetch',
       'PredictDeviceAuthService:invalidateA2t',
@@ -854,5 +855,20 @@ describe('PredictDeviceAuthService revocation races', () => {
     await expect(service.ensureDeviceKey()).resolves.toEqual(
       DEVICE_PUBLIC_MATERIAL,
     );
+  });
+
+  it('retains quote approval across A2T renewal but refuses it after a lifecycle clear', async () => {
+    const { service } = createService();
+    const approvalGeneration = service.getApprovalGeneration();
+    const input = { ...order, approvalGeneration };
+    service.invalidateA2t();
+
+    await expect(service.previewOperation('order.place', input)).resolves.toBeDefined();
+    expect(service.getApprovalGeneration()).toBe(approvalGeneration);
+    service.clear();
+
+    await expect(service.previewOperation('order.place', input)).resolves.toBeUndefined();
+    await expect(service.signOperation('order.place', input)).resolves.toBeUndefined();
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
   });
 });

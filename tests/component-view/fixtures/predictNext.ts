@@ -735,16 +735,12 @@ const renderIntent = async (
   );
 };
 
-/**
- * Installs the Engine's `PredictDeviceAuthService.previewOperation` the order
- * sheet calls for its signed figures: the bundled profile's real invariant,
- * with no device key. Call it in `beforeEach` of any view test that approves
- * an order.
- */
+/** Installs the Engine rendering seam used by the adapter's review dependency. */
 export const installPredictNextPreviewOperation = (): void => {
   (
     Engine.context as unknown as Record<string, unknown>
   ).PredictDeviceAuthService = {
+    getApprovalGeneration: () => 0,
     previewOperation: async (
       operation: string,
       input?: Parameters<SignOperation>[1],
@@ -753,31 +749,7 @@ export const installPredictNextPreviewOperation = (): void => {
 };
 
 const signOperation: SignOperation = async (operation, input) => {
-  const profile = await loadVenueProfile();
-  const intent = profile?.intents.find(({ id }) => id === operation);
-  const payloadName = intent?.payloads[0];
-  const payload = payloadName && profile?.payloads[payloadName];
-  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
-    throw new Error(`Missing fixture signing template for ${operation}`);
-  }
-  const rendered = renderRequest(
-    payloadName,
-    {
-      class: 'mutation',
-      method: payload.method,
-      path: payload.path,
-      body: payload.body
-        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
-        : undefined,
-      idempotencyKey: payload.idempotencyKey,
-      invariants: payload.invariants,
-    },
-    {
-      inputs: input?.inputs ?? {},
-      values: input?.values ?? {},
-      nowMs: Date.now(),
-    },
-  );
+  const rendered = await renderIntent(operation, input);
   return {
     header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
     body: rendered.body,
@@ -796,7 +768,7 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
-  // The order sheet asks the Engine for the signed figures before Approve.
+  // The adapter asks the Engine for checked review figures before approval.
   installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
@@ -813,6 +785,10 @@ export const composePredictNextOrderService = (
       signOperation,
       invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) => renderIntent(operation, input).then((request) => request.display),
+    },
   );
   return new PredictOrderService({
     messenger,
@@ -843,6 +819,10 @@ export const composePredictNextPortfolioTrading = () => {
       signOperation,
       invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) => renderIntent(operation, input).then((request) => request.display),
+    },
   );
   const portfolioService = new PredictPortfolioService({
     messenger: getPredictPortfolioServiceMessenger(

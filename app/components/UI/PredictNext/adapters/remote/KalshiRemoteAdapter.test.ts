@@ -5,9 +5,21 @@ import type {
   PredictFeedId,
   PredictMarketHistoryRange,
 } from '../../types';
+import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
+import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 
-const SIGN_SIGNING = { inputs: {}, values: {} };
+const USER_APPROVAL = { kind: 'user-approved' as const };
+const REVIEW_DISPLAY = {
+  maxCost: '20.99',
+  contracts: '43.00',
+  payout: '43.00',
+  minProceeds: '19.00',
+};
+const reviewOperation = jest.fn<
+  Promise<InvariantDisplay | undefined>,
+  ['order.place', SignOperationInput]
+>();
 
 import {
   type PredictApiReadTransport,
@@ -83,10 +95,16 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
 describe('KalshiRemoteAdapter', () => {
   let client: jest.Mocked<PredictApiReadTransport>;
   let adapter: KalshiRemoteAdapter;
+  let approvalGeneration: number | undefined;
 
   beforeEach(() => {
+    approvalGeneration = 0;
+    reviewOperation.mockReset().mockResolvedValue({ ...REVIEW_DISPLAY });
     client = createClient();
-    adapter = new KalshiRemoteAdapter(client);
+    adapter = new KalshiRemoteAdapter(client, {
+      getApprovalGeneration: () => approvalGeneration,
+      previewOperation: reviewOperation,
+    });
   });
 
   it('serves the static Kalshi catalog without a network read', async () => {
@@ -811,7 +829,20 @@ describe('KalshiRemoteAdapter', () => {
       idempotencyKey: 'c4d5e6f0-1111-4222-8333-444455556666',
     };
 
+    beforeEach(async () => {
+      jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse('2026-03-01T12:00:00.000Z'));
+      client.fetchOrderPreview.mockResolvedValue(previewPayload);
+      await adapter.trading.previewOrder(previewParams);
+      await adapter.trading.reviewOrder(previewPayload.previewId);
+      client.fetchOrderPreview.mockClear();
+      reviewOperation.mockClear();
+    });
+    afterEach(() => jest.restoreAllMocks());
+
     it('sends the sell intent through the transport unchanged', async () => {
+      adapter.trading.invalidatePreviews();
       client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
 
       await adapter.trading.previewOrder(sellPreviewParams);
@@ -824,6 +855,7 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     it('parses a canonical sell Order Preview for the exact intent', async () => {
+      adapter.trading.invalidatePreviews();
       client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
 
       const result = await adapter.trading.previewOrder(sellPreviewParams);
@@ -897,6 +929,7 @@ describe('KalshiRemoteAdapter', () => {
     });
 
     it('accepts an amount echo that differs only in trailing zeros', async () => {
+      adapter.trading.invalidatePreviews();
       client.fetchOrderPreview.mockResolvedValue({
         ...previewPayload,
         requestedAmount: '20.0000',
@@ -1028,12 +1061,255 @@ describe('KalshiRemoteAdapter', () => {
       netProceeds: '30.89',
     };
 
+    it.each(['count', 'price', 'idempotency', 'expiry', 'generation'] as const)(
+      'revokes the old review when the same preview identity changes %s',
+      async (drift) => {
+        const params = { ...previewParams };
+        const response = { ...previewPayload };
+        if (drift === 'count') response.estimatedContracts = 42;
+        if (drift === 'price') response.limitPrice = '0.4800';
+        if (drift === 'expiry') response.expiresAt = '2026-03-01T12:01:00.000Z';
+        if (drift === 'idempotency') {
+          params.idempotencyKey = 'c4d5e6f0-1111-4222-8333-444455556666';
+        }
+        if (drift === 'generation') approvalGeneration = 1;
+        client.fetchOrderPreview.mockResolvedValue(response);
+
+        await expect(adapter.trading.previewOrder(params)).rejects.toMatchObject({
+          code: PredictErrorCode.INVALID_RESPONSE,
+        });
+        await expect(
+          adapter.trading.reviewOrder(previewPayload.previewId),
+        ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+        await expect(
+          adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+        ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+        expect(reviewOperation).not.toHaveBeenCalled();
+        expect(client.commitOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it('keeps an unchanged same-preview response bound to its reviewed signing snapshot', async () => {
+      client.fetchOrderPreview.mockResolvedValue({ ...previewPayload });
+      await expect(adapter.trading.previewOrder({ ...previewParams })).resolves.toMatchObject({
+        previewId: previewPayload.previewId,
+        estimatedContracts: 43,
+        limitPrice: '0.4700',
+      });
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).resolves.toMatchObject({ status: 'submitted' });
+      expect(client.commitOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: previewPayload.previewId },
+        undefined,
+        expect.objectContaining({
+          inputs: expect.objectContaining({ idempotencyKey: previewParams.idempotencyKey }),
+          values: { count: '43.00', price: '0.4700' },
+          confirmed: true,
+        }),
+      );
+    });
+
+    it('pins quote-time inputs and values despite form and returned-preview drift', async () => {
+      adapter.trading.invalidatePreviews();
+      const params = { ...previewParams };
+      // The app targets ES2022, before Promise.withResolvers.
+      let resolveQuote!: (value: typeof previewPayload) => void;
+      client.fetchOrderPreview.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveQuote = resolve;
+        }),
+      );
+      const quoting = adapter.trading.previewOrder(params);
+      params.amount = '99' as never;
+      params.idempotencyKey = 'changed-after-quote-start';
+      params.marketId = 'changed-market' as PredictEntityId;
+      params.side = 'no' as typeof params.side;
+      resolveQuote(previewPayload);
+      const preview = await quoting;
+      preview.limitPrice = '0.9900';
+      preview.estimatedContracts = 1;
+      if (preview.action === 'buy') preview.requestedAmount = '99.00';
+
+      const review = await adapter.trading.reviewOrder(previewPayload.previewId);
+      Object.assign(review, { maxCost: '0.01', contracts: '999' });
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).resolves.toMatchObject({ status: 'submitted' });
+      expect(client.commitOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: previewPayload.previewId },
+        undefined,
+        {
+          inputs: {
+            marketId,
+            idempotencyKey: previewParams.idempotencyKey,
+            action: 'buy',
+            outcome: 'yes',
+            amountCents: 2000,
+          },
+          values: { count: '43.00', price: '0.4700' },
+          approvalGeneration: 0,
+          confirmed: true,
+        },
+      );
+    });
+
+    it('reviews without confirmation and grants confirmation only on actual approval', async () => {
+      adapter.trading.invalidatePreviews();
+      await adapter.trading.previewOrder(previewParams);
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+
+      const display = { ...REVIEW_DISPLAY };
+      reviewOperation.mockResolvedValueOnce(display);
+      const review = await adapter.trading.reviewOrder(previewPayload.previewId);
+      expect(review).toEqual({
+        previewId: previewPayload.previewId,
+        maxCost: display.maxCost,
+        contracts: display.contracts,
+        payout: display.payout,
+        proceedsIfFullyFilled: display.minProceeds,
+      });
+      const reviewInput = reviewOperation.mock.calls[0][1];
+      expect(reviewInput).not.toHaveProperty('confirmed');
+      expect(client.commitOrder).not.toHaveBeenCalled();
+
+      client.commitOrder.mockResolvedValue(receiptPayload);
+      await adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL);
+      expect(client.commitOrder.mock.calls[0][3]).toMatchObject({
+        ...reviewInput,
+        confirmed: true,
+      });
+    });
+
+    it('fails closed when no signing dependency is available', async () => {
+      const unsignedAdapter = new KalshiRemoteAdapter(client);
+      await unsignedAdapter.trading.previewOrder(previewParams);
+      await expect(
+        unsignedAdapter.trading.reviewOrder(previewPayload.previewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      await expect(
+        unsignedAdapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+
+      // Review discarded the unauthenticated pin. A separate adapter proves
+      // commit also fails closed when called directly on a fresh unsigned pin.
+      const directCommitAdapter = new KalshiRemoteAdapter(client);
+      await directCommitAdapter.trading.previewOrder(previewParams);
+      await expect(
+        directCommitAdapter.trading.commitOrder(
+          previewPayload.previewId,
+          USER_APPROVAL,
+        ),
+      ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it.each([1, undefined])('refuses a reviewed preview after auth generation becomes %s', async (generation) => {
+      approvalGeneration = generation;
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('rejects a quote completed after its auth generation was revoked', async () => {
+      adapter.trading.invalidatePreviews();
+      let resolveQuote!: (value: typeof previewPayload) => void;
+      client.fetchOrderPreview.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveQuote = resolve;
+        }),
+      );
+      const quoting = adapter.trading.previewOrder(previewParams);
+      approvalGeneration = 1;
+      resolveQuote(previewPayload);
+      await expect(quoting).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+      await expect(adapter.trading.reviewOrder(previewPayload.previewId)).rejects.toMatchObject({
+        code: PredictErrorCode.PREVIEW_EXPIRED,
+      });
+      expect(reviewOperation).not.toHaveBeenCalled();
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not expose a review completed after auth generation revocation', async () => {
+      let resolveReview!: (value: InvariantDisplay) => void;
+      reviewOperation.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveReview = resolve;
+        }),
+      );
+      const reviewing = adapter.trading.reviewOrder(previewPayload.previewId);
+      approvalGeneration = 1;
+      resolveReview(REVIEW_DISPLAY);
+      await expect(reviewing).rejects.toMatchObject({ code: PredictErrorCode.UNAUTHENTICATED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('invalidates a pending quote when its preview generation changes', async () => {
+      let resolveQuote!: (value: typeof previewPayload) => void;
+      client.fetchOrderPreview.mockImplementationOnce(
+        () => new Promise((resolve) => {
+          resolveQuote = resolve;
+        }),
+      );
+      const quoting = adapter.trading.previewOrder(previewParams);
+      adapter.trading.invalidatePreviews();
+      resolveQuote(previewPayload);
+      await expect(quoting).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('refuses expired approval at the exact preview expiry boundary', async () => {
+      jest.mocked(Date.now).mockReturnValue(Date.parse(previewPayload.expiresAt));
+      await expect(
+        adapter.trading.commitOrder(previewPayload.previewId, USER_APPROVAL),
+      ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+      expect(client.commitOrder).not.toHaveBeenCalled();
+    });
+
+    it('bounds pinned approval state at 32 previews and evicts the oldest', async () => {
+      let newestId = '';
+      for (let index = 0; index < 32; index += 1) {
+        newestId = `preview-${index}`;
+        client.fetchOrderPreview.mockResolvedValueOnce({
+          ...previewPayload,
+          previewId: newestId,
+        });
+        await adapter.trading.previewOrder(previewParams);
+      }
+      await expect(
+        adapter.trading.reviewOrder(previewPayload.previewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+      await expect(adapter.trading.reviewOrder('preview-0')).resolves.toMatchObject({
+        previewId: 'preview-0',
+      });
+      await expect(adapter.trading.reviewOrder(newestId)).resolves.toMatchObject({
+        previewId: newestId,
+      });
+      client.commitOrder.mockResolvedValue({ ...receiptPayload, previewId: newestId });
+      await expect(
+        adapter.trading.commitOrder(newestId, USER_APPROVAL),
+      ).resolves.toMatchObject({ previewId: newestId });
+    });
+
     it('parses a canonical sell Order Receipt for the committed preview', async () => {
+      adapter.trading.invalidatePreviews();
+      client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
+      await adapter.trading.previewOrder(sellPreviewParams);
+      await adapter.trading.reviewOrder(sellPreviewPayload.previewId);
       client.commitOrder.mockResolvedValue(sellReceiptPayload);
 
       const result = await adapter.trading.commitOrder(
         sellReceiptPayload.previewId,
-        SIGN_SIGNING,
+        USER_APPROVAL,
       );
 
       expect(result).toMatchObject({
@@ -1042,16 +1318,37 @@ describe('KalshiRemoteAdapter', () => {
         filledContracts: '70.00',
         netProceeds: '30.89',
       });
+      expect(client.commitOrder).toHaveBeenCalledWith(
+        adapter.venueId,
+        { previewId: sellReceiptPayload.previewId },
+        undefined,
+        {
+          inputs: {
+            marketId,
+            idempotencyKey: sellPreviewParams.idempotencyKey,
+            action: 'sell',
+            outcome: 'yes',
+            contracts: '70',
+          },
+          values: { count: '70.00', price: '0.4000' },
+          approvalGeneration: 0,
+          confirmed: true,
+        },
+      );
     });
 
     it('rejects a sell Order Receipt carrying buy-only fields', async () => {
+      adapter.trading.invalidatePreviews();
+      client.fetchOrderPreview.mockResolvedValue(sellPreviewPayload);
+      await adapter.trading.previewOrder(sellPreviewParams);
+      await adapter.trading.reviewOrder(sellPreviewPayload.previewId);
       client.commitOrder.mockResolvedValue({
         ...sellReceiptPayload,
         payoutExposure: '70.00',
       });
 
       await expect(
-        adapter.trading.commitOrder(sellReceiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(sellReceiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1062,7 +1359,7 @@ describe('KalshiRemoteAdapter', () => {
 
       const result = await adapter.trading.commitOrder(
         receiptPayload.previewId,
-        SIGN_SIGNING,
+        USER_APPROVAL,
       );
 
       expect(result.status).toBe('submitted');
@@ -1072,7 +1369,11 @@ describe('KalshiRemoteAdapter', () => {
         adapter.venueId,
         { previewId: receiptPayload.previewId },
         undefined,
-        SIGN_SIGNING,
+        expect.objectContaining({
+          inputs: expect.objectContaining({ marketId, amountCents: 2000 }),
+          values: { count: '43.00', price: '0.4700' },
+          confirmed: true,
+        }),
       );
     });
 
@@ -1117,7 +1418,7 @@ describe('KalshiRemoteAdapter', () => {
 
       await adapter.trading.commitOrder(
         receiptPayload.previewId,
-        SIGN_SIGNING,
+        USER_APPROVAL,
         { signal },
       );
 
@@ -1125,17 +1426,24 @@ describe('KalshiRemoteAdapter', () => {
         adapter.venueId,
         { previewId: receiptPayload.previewId },
         { signal },
-        SIGN_SIGNING,
+        expect.objectContaining({ confirmed: true }),
       );
     });
 
     it('rejects an Order Receipt bound to another preview', async () => {
+      const otherPreviewId = 'b3c2a1d0-1111-4222-8333-444455559999';
+      client.fetchOrderPreview.mockResolvedValue({
+        ...previewPayload,
+        previewId: otherPreviewId,
+      });
+      await adapter.trading.previewOrder(previewParams);
+      await adapter.trading.reviewOrder(otherPreviewId);
       client.commitOrder.mockResolvedValue(receiptPayload);
 
       await expect(
         adapter.trading.commitOrder(
-          'b3c2a1d0-1111-4222-8333-444455559999',
-          SIGN_SIGNING,
+          otherPreviewId,
+          USER_APPROVAL,
         ),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
@@ -1149,7 +1457,7 @@ describe('KalshiRemoteAdapter', () => {
       });
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1162,7 +1470,7 @@ describe('KalshiRemoteAdapter', () => {
       });
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
       );
@@ -1174,7 +1482,7 @@ describe('KalshiRemoteAdapter', () => {
       );
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({
           code: PredictErrorCode.MARKET_NOT_TRADEABLE,
@@ -1186,7 +1494,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(new PredictHttpError(401));
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
       );
@@ -1196,7 +1504,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(new PredictHttpError(503));
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toEqual(
         expect.objectContaining({ code: PredictErrorCode.VENUE_UNAVAILABLE }),
       );
@@ -1208,7 +1516,7 @@ describe('KalshiRemoteAdapter', () => {
       client.commitOrder.mockRejectedValue(abortError);
 
       await expect(
-        adapter.trading.commitOrder(receiptPayload.previewId, SIGN_SIGNING),
+        adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toBe(abortError);
     });
   });

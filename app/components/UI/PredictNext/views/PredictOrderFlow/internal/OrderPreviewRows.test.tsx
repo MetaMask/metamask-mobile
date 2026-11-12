@@ -2,8 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import type { InvariantDisplay } from '../../../auth/signing/profileTemplates';
-import type { PredictOrderPreview } from '../../../types';
+import type { PredictOrderPreview, PredictOrderReview } from '../../../types';
 import { OrderPreviewRows } from './OrderPreviewRows';
 import { PredictOrderFlowTestIds } from './PredictOrderFlow.testIds';
 
@@ -31,11 +30,12 @@ const sell = {
   estimatedNetProceeds: '3.90',
 } as unknown as PredictOrderPreview;
 
-const display: InvariantDisplay = {
+const display: PredictOrderReview = {
+  previewId: 'preview-1',
   maxCost: '4.80',
   contracts: '10.00',
   payout: '10.00',
-  minProceeds: '3.70',
+  proceedsIfFullyFilled: '3.70',
 };
 
 const textOf = (
