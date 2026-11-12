@@ -67,7 +67,7 @@ export const DeleteAccount = () => {
     try {
       await removeAccountsFromPermissions([toHex(account.address)]);
       await KeyringController.removeAccount(account.address);
-      navigation.navigate(Routes.WALLET_VIEW);
+      navigation.navigate(Routes.WALLET.HOME);
     } catch {
       setError(strings('multichain_accounts.delete_account.error'));
     }
