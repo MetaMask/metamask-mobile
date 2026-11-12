@@ -315,6 +315,53 @@ describe('useImmersveCardProvisioning', () => {
       expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps Continue disabled while a reconcile deferred after a result runs', async () => {
+      let resolveRecheck: (value: {
+        prerequisites: typeof kycPrerequisites;
+      }) => void = () => undefined;
+      controller.getSpendingPrerequisites
+        .mockResolvedValueOnce({ prerequisites: kycPrerequisites })
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveRecheck = resolve;
+          }),
+        );
+
+      const { result, rerender } = renderHook(() =>
+        useImmersveCardProvisioning(provisioningData, {
+          recheckOnFocus: true,
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.pendingAction?.type).toBe('kyc');
+        expect(result.current.isReconciling).toBe(false);
+      });
+
+      mockIsFocused = false;
+      mockSelectedCountry = 'NZ';
+      rerender(undefined);
+      expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(1);
+
+      mockIsFocused = true;
+      rerender(undefined);
+
+      await waitFor(() =>
+        expect(controller.getSpendingPrerequisites).toHaveBeenCalledTimes(2),
+      );
+      expect(result.current.isReconciling).toBe(true);
+      act(() => {
+        result.current.resumePendingAction();
+      });
+      expect(mockRoute).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveRecheck({ prerequisites: kycPrerequisites });
+      });
+
+      await waitFor(() => expect(result.current.isReconciling).toBe(false));
+    });
+
     it('does not poll while status is still reconciling', async () => {
       let resolvePrereqs!: (value: { prerequisites: never[] }) => void;
       controller.getSpendingPrerequisites.mockReturnValue(
