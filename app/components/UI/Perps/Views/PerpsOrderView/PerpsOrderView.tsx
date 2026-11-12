@@ -2993,6 +2993,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               showPercentageLabels
               disabled={isAmountDisabled}
               testID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER}
+              ignoreUntilLayout
+              layoutTestID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER_LAYOUT}
             />
           </View>
         )}

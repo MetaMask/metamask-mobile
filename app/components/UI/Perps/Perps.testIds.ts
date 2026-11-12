@@ -1091,6 +1091,7 @@ export const PerpsOrderViewSelectorsIDs = {
   FOOTER: 'perps-order-view-footer',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
   AMOUNT_SLIDER: 'perps-order-view-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-order-view-amount-slider-layout',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
@@ -1120,6 +1121,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  AMOUNT_SLIDER: 'perps-trade-sheet-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-trade-sheet-amount-slider-layout',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
   LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',
