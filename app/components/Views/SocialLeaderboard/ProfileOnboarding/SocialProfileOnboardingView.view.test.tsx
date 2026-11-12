@@ -304,6 +304,16 @@ const openManualUsernameStep = async () => {
   ).toBeOnTheScreen();
 };
 
+const submitDisplayName = (name: string) => {
+  fireEvent.changeText(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT),
+    name,
+  );
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+  );
+};
+
 const restoreProfileControllerMocks = () => {
   jest.mocked(Engine.context.ProfileController.createProfile).mockReset();
   jest
@@ -1076,16 +1086,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('stays on the username step when the display name is longer than 32 characters', async () => {
     await openManualUsernameStep();
-    fireEvent.changeText(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-      ),
-      'A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1),
-    );
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    submitDisplayName('A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1));
 
     expect(
       await screen.findByText(
@@ -1107,16 +1108,7 @@ describe('SocialProfileOnboardingView', () => {
       .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
       .mockRejectedValueOnce(new Error('offline'));
     await openManualUsernameStep();
-    fireEvent.changeText(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-      ),
-      'Laser Gains',
-    );
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    submitDisplayName('Laser Gains');
 
     expect(
       await screen.findByText(
@@ -1138,16 +1130,7 @@ describe('SocialProfileOnboardingView', () => {
 
   it('sends the trimmed display name when continue is pressed', async () => {
     await openManualUsernameStep();
-    fireEvent.changeText(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-      ),
-      '  Laser Gains  ',
-    );
-
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    submitDisplayName('  Laser Gains  ');
 
     expect(
       await screen.findByText(
@@ -1167,15 +1150,7 @@ describe('SocialProfileOnboardingView', () => {
       .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
       .mockResolvedValueOnce({ valid: false });
     await openManualUsernameStep();
-    fireEvent.changeText(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-      ),
-      'Bad Name',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    submitDisplayName('Bad Name');
     expect(
       await screen.findByText(
         strings('social_leaderboard.errors.display_name_invalid'),
@@ -1213,15 +1188,7 @@ describe('SocialProfileOnboardingView', () => {
           }),
       );
     await openManualUsernameStep();
-    fireEvent.changeText(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-      ),
-      'Bad Name',
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    submitDisplayName('Bad Name');
     await waitFor(() => {
       expect(
         Engine.context.ProfileService.checkDisplayNameValidity,
