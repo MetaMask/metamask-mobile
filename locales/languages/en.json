@@ -5441,6 +5441,12 @@
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
+    "groups": {
+      "general": "General",
+      "security_and_privacy": "Security and privacy",
+      "transactions_and_assets": "Transactions and assets",
+      "more": "More"
+    },
     "current_conversion": "Base currency",
     "current_language": "Current language",
     "ipfs_gateway": "IPFS gateway",
@@ -5521,6 +5527,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "General",
+    "preferences_and_display_title": "Preferences and display",
     "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
     "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
