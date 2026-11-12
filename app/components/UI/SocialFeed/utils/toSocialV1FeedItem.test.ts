@@ -582,6 +582,25 @@ describe('toSocialV1FeedItem', () => {
       expect(result.markPriceLabel).toBe(formatTradeUnitPrice(8_000));
     });
 
+    it('subtracts realized P&L so the mark tracks only the unrealized move', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          ...openLeveragedPerp,
+          // pnlValueUsd is unrealized + realized: 10,000 unrealized + 2,000
+          // realized. Marked at 12,000: 5 × (12,000 − 10,000) unrealized.
+          pnlValueUsd: 12_000,
+          realizedPnl: 2_000,
+          currentValueUSD: 18_250,
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsOpen');
+      if (result.variant !== 'perpsOpen') return;
+      expect(result.markPriceLabel).toBe(formatTradeUnitPrice(12_000));
+    });
+
     it('omits the mark when the row has no P&L', () => {
       const row = buildRow(
         mockPerpFeedItem({
