@@ -7,11 +7,7 @@ import { Skeleton } from '../../../../../../component-library/components-temp/Sk
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import {
-  AnimatedAmountDisplay,
-  getFontSizeForInputLength,
-  useAmountCursorStyle,
-} from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import {
   FontFamily,
   Text,
@@ -59,9 +55,6 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     typedText.length +
     assistiveText.length +
     INPUT_SIDE_MARGIN_CHARACTER_RESERVE;
-  const amountCursorStyle = useAmountCursorStyle(
-    getFontSizeForInputLength(amountLength),
-  );
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -100,7 +93,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
         cursorVisible
           ? {
               animated: true,
-              style: amountCursorStyle,
+              style: styles.cursor,
               testID: 'custom-amount-cursor',
             }
           : false
