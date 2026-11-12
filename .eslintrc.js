@@ -199,11 +199,13 @@ module.exports = {
         // Fast checks. These do not need type information. The options match
         // the shared config.
         //
-        // no-wrapper-object-types and prefer-enum-initializers are errors.
-        // Existing hits are in eslint-suppressions.json. no-empty-object-type
-        // stays a warning: its hits are interface aliases and generic
-        // defaults such as Props = {}. The style rules and no-unused-vars
-        // stay warnings for now.
+        // no-wrapper-object-types and prefer-enum-initializers are errors in
+        // @metamask/eslint-config-typescript, so this file does not set them.
+        // Their existing hits are in eslint-suppressions.json.
+        // no-empty-object-type is an error in that package too, and stays a
+        // warning here: its hits are interface aliases and generic defaults
+        // such as Props = {}. The style rules and no-unused-vars stay
+        // warnings for now.
         '@typescript-eslint/explicit-function-return-type': 'warn',
         '@typescript-eslint/naming-convention': [
           'warn',
@@ -281,8 +283,6 @@ module.exports = {
             ignoreRestSiblings: true,
           },
         ],
-        '@typescript-eslint/no-wrapper-object-types': 'error',
-        '@typescript-eslint/prefer-enum-initializers': 'error',
         // Slow type checks. The shared ESLint config turns these on, but they
         // need type information, so they stay off through the ESLint 9
         // upgrade. Turn them on in Oxlint and park existing hits in
@@ -1072,9 +1072,11 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // Fast checks. Existing hits are in eslint-suppressions.json.
+    // rules-of-hooks is an error from @react-native/eslint-config. Existing
+    // hits are in eslint-suppressions.json. no-loss-of-precision is an error
+    // from ESLint recommended, so this file does not set it. Its existing
+    // hits are parked too.
     'react-hooks/rules-of-hooks': 'error',
-    'no-loss-of-precision': 'error',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
