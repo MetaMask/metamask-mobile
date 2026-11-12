@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -15,6 +14,7 @@ import {
   type PredictOutcome,
   type PredictSportsLeague,
 } from '../../types';
+import type { PredictFeeCollection } from '../../types/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
@@ -31,6 +31,7 @@ import {
   calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
+  clearMarketTagSlugsCache,
   createApiKey,
   deriveApiKey,
   encodeRouterRedeem,
@@ -50,6 +51,7 @@ import {
   getPredictPositionStatus,
   getRawBalance,
   getTickSizeRoundConfig,
+  parseCryptoPriceProvider,
   parsePolymarketEvents,
   parsePolymarketMarket,
   parsePolymarketActivity,
@@ -389,6 +391,7 @@ describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();
+    clearMarketTagSlugsCache();
     mockSignTypedMessage.mockResolvedValue('0xsig');
     mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
     mockGetNetworkClientById.mockReturnValue({
@@ -3199,7 +3202,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3227,7 +3229,7 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+  it('returns zero fees when market fees are waived', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValue({
@@ -3256,16 +3258,72 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
       marketId: 'market-1',
       userBetAmount: 10,
     });
 
-    expect(result).toEqual({
-      fees: waivedFees,
-      originalFees: waivedFees,
+    expect(result).toEqual({ fees: waivedFees });
+  });
+
+  describe('fee waiver market lookup', () => {
+    const waiverFeeCollection: PredictFeeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.03,
+      waiveList: ['middle-east'],
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    it('fetches market tags once across repeated and overlapping previews', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          tags: [{ slug: 'middle-east' }],
+        }),
+      });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const results = await Promise.all([
+        calculateFees(params),
+        calculateFees(params),
+      ]);
+      results.push(await calculateFees(params));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      for (const { fees } of results) {
+        expect(fees.totalFee).toBe(0);
+      }
+    });
+
+    it('retries the market tags lookup after a failure', async () => {
+      mockFetch
+        .mockRejectedValueOnce(new Error('gamma unavailable'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            tags: [{ slug: 'middle-east' }],
+          }),
+        });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const failed = await calculateFees(params);
+      const retried = await calculateFees(params);
+
+      expect(failed.fees.totalFee).toBe(0.5);
+      expect(retried.fees.totalFee).toBe(0);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -3340,7 +3398,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3504,7 +3561,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       });
@@ -3830,6 +3886,44 @@ describe('polymarket utils', () => {
     );
   });
 
+  it.each([
+    { size: 4, expectedWorstFillPrice: 0.49 },
+    { size: 10, expectedWorstFillPrice: 0.45 },
+    { size: 12, expectedWorstFillPrice: 0.4 },
+  ])(
+    'reports $expectedWorstFillPrice as the worst fill price when selling $size shares',
+    async ({ size, expectedWorstFillPrice }) => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            bids: [
+              { price: '0.40', size: '100' },
+              { price: '0.45', size: '5' },
+              { price: '0.49', size: '5' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({}),
+        });
+
+      const preview = await previewOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        side: Side.SELL,
+        size,
+      });
+
+      expect(preview.sharePrice).toBe(0.49);
+      expect(preview.worstFillPrice).toBe(expectedWorstFillPrice);
+    },
+  );
+
   it('returns original fees for a membership sell preview', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -3868,7 +3962,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -4289,6 +4382,99 @@ describe('polymarket utils', () => {
 
     expect(parsePolymarketEvents([event], 'crypto')[0]).not.toHaveProperty(
       'twapWindowSeconds',
+    );
+  });
+});
+
+describe('parseCryptoPriceProvider', () => {
+  // resolutionSource values copied from live Gamma events on 2026-11-09.
+  it.each([
+    [
+      'btc-up-or-down-5m',
+      'https://data.chain.link/streams/btc-usd',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-15m',
+      'https://data.chain.link/streams/btc-usd-twap-60s-streams',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-4h',
+      'https://data.chain.link/streams/btc-usd-twap-60s-streams',
+      'chainlink',
+    ],
+    [
+      'btc-up-or-down-hourly',
+      'https://www.binance.com/en/trade/BTC_USDT',
+      'binance',
+    ],
+    [
+      'btc-up-or-down-daily',
+      'https://www.binance.com/en/trade/BTC_USDT',
+      'binance',
+    ],
+    [
+      'hype-up-or-down-hourly',
+      'https://www.binance.com/en/futures/HYPEUSDT',
+      'binance',
+    ],
+  ])('reads %s settled on %s as %s', (_series, resolutionSource, provider) => {
+    expect(parseCryptoPriceProvider({}, [{ resolutionSource }])).toBe(provider);
+  });
+
+  it.each([
+    ['a Pyth source', 'https://pythdata.app/explore/Equity.US.AAPL%2FUSD'],
+    ['a look-alike host', 'https://binance.com.example.org/trade'],
+    ['an empty source', ''],
+    ['no source', null],
+  ])('returns undefined for %s', (_case, resolutionSource) => {
+    expect(
+      parseCryptoPriceProvider({ resolutionSource }, [{ resolutionSource }]),
+    ).toBeUndefined();
+  });
+
+  it('prefers the market source over the event source', () => {
+    expect(
+      parseCryptoPriceProvider(
+        { resolutionSource: 'https://data.chain.link/streams/btc-usd' },
+        [{ resolutionSource: 'https://www.binance.com/en/trade/BTC_USDT' }],
+      ),
+    ).toBe('binance');
+  });
+
+  it('falls back to the event source when markets carry none', () => {
+    expect(
+      parseCryptoPriceProvider(
+        { resolutionSource: 'https://www.binance.com/en/trade/ETH_USDT' },
+        [{ resolutionSource: '' }],
+      ),
+    ).toBe('binance');
+  });
+
+  it('sets the provider on a parsed hourly crypto market', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-hourly-event',
+      slug: 'bitcoin-up-or-down-november-9-2026-1pm-et',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [
+        {
+          ...createPolymarketApiMarket(),
+          resolutionSource: 'https://www.binance.com/en/trade/BTC_USDT',
+        },
+      ],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')[0]).toEqual(
+      expect.objectContaining({ cryptoPriceProvider: 'binance' }),
     );
   });
 });

@@ -25,15 +25,12 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-} from '../components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -50,6 +47,34 @@ import { usePriceApiHost } from '../context/PriceApiHostContext';
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
 const mockUseMostRecentOrder = jest.fn();
+const getSelectedAccountByScopeStub = (scope: string) =>
+  scope.startsWith('eip155:')
+    ? { address: '0x1234567890123456789012345678901234567890' }
+    : { address: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61' };
+
+// Shared default useSelector implementation used by the beforeEach and reused by
+// helpers that only need to override a single flag. Keeping a single source of
+// truth guarantees factory selectors (e.g. selectSelectedInternalAccountByScope
+// returns a function) and the bridge/deposit selectors stay handled everywhere.
+const defaultSelectorImpl = (selector: unknown): unknown => {
+  if (selector === selectNetworkConfigurationByChainId)
+    return { name: 'Ethereum' };
+  if (selector === selectNetworkConfigurations)
+    return { '0x1': { nativeCurrency: 'ETH' } };
+  if (selector === selectCurrencyRates)
+    // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
+    return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
+  if (selector === getRampNetworks) return [];
+  if (selector === selectDepositActiveFlag) return false;
+  if (selector === selectDepositMinimumVersionFlag) return null;
+  if (selector === selectSelectedInternalAccountByScope)
+    return getSelectedAccountByScopeStub;
+  if (selector === selectBridgeLimitOrderFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  if (selector === selectBridgeRecurringBuyFeatureFlags)
+    return { enabled: true, enabledChainIds: ['eip155:1'] };
+  return undefined;
+};
 
 jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: () => 'HIGH',
@@ -154,6 +179,19 @@ jest.mock('../hooks/useTokenPrice', () => ({
 const mockUseTokenBalance = jest.fn();
 jest.mock('../hooks/useTokenBalance', () => ({
   useTokenBalance: () => mockUseTokenBalance(),
+}));
+
+const mockUseTraderPositionPnl = jest.fn(
+  (
+    _args?: unknown,
+  ): {
+    traderPositionPnl: Record<string, unknown> | undefined;
+  } => ({
+    traderPositionPnl: undefined,
+  }),
+);
+jest.mock('../TraderPositionPnl/useTraderPositionPnl', () => ({
+  useTraderPositionPnl: (args: unknown) => mockUseTraderPositionPnl(args),
 }));
 
 jest.mock('../../Assets/watchlist/components/WatchlistStarButton', () => {
@@ -381,6 +419,7 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({
     '0x1': { nativeCurrency: 'ETH' },
   })),
+  selectNetworkConfigurationsByCaipChainId: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
@@ -443,13 +482,6 @@ const defaultUseABTestImpl = (key: string) => {
   if (key === AMBIENT_PRICE_COLOR_AB_KEY) {
     return {
       variant: { useAmbientPriceColor: false },
-      variantName: 'control',
-      isActive: false,
-    };
-  }
-  if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-    return {
-      variant: { showMoneyDepositFooterCta: false },
       variantName: 'control',
       isActive: false,
     };
@@ -522,6 +554,11 @@ describe('TokenDetails', () => {
       isError: false,
     });
     mockBeforeRemoveListener = undefined;
+    // clearAllMocks keeps mockReturnValue, so reset the default each test to
+    // stop a per-test position from leaking into later suites.
+    mockUseTraderPositionPnl.mockReturnValue({
+      traderPositionPnl: undefined,
+    });
     mockUseABTest.mockImplementation(defaultUseABTestImpl);
     mockRouteParams.mockReturnValue(defaultRouteParams);
     mockAutoResolveMarketInsights = true;
@@ -571,25 +608,7 @@ describe('TokenDetails', () => {
       tokenFormattedBalance: '1.5 ETH',
     });
 
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectNetworkConfigurationByChainId)
-        return { name: 'Ethereum' };
-      if (selector === selectNetworkConfigurations)
-        return { '0x1': { nativeCurrency: 'ETH' } };
-      if (selector === selectCurrencyRates)
-        // conversionRate === usdConversionRate → 1:1 ratio, fiat value = USD value
-        return { ETH: { conversionRate: 1, usdConversionRate: 1 } };
-      if (selector === getRampNetworks) return [];
-      if (selector === selectDepositActiveFlag) return false;
-      if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectSelectedInternalAccountFormattedAddress)
-        return '0x1234567890123456789012345678901234567890';
-      if (selector === selectBridgeLimitOrderFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      if (selector === selectBridgeRecurringBuyFeatureFlags)
-        return { enabled: true, enabledChainIds: ['eip155:1'] };
-      return undefined;
-    });
+    mockUseSelector.mockImplementation(defaultSelectorImpl);
   });
 
   it('loads the most recent order for the current asset', () => {
@@ -611,6 +630,63 @@ describe('TokenDetails', () => {
     expect(mockUseTokenActions).toHaveBeenCalledWith(
       expect.objectContaining({ tdpVersion: 'v2' }),
     );
+  });
+
+  describe('trader position P&L footer', () => {
+    const applySelectorsWithMemeFlag = (flagEnabled: boolean) => {
+      // Delegate to the default selector impl so factory selectors (e.g.
+      // selectSelectedInternalAccountByScope returns a function) and the
+      // bridge/deposit selectors stay handled; only override the meme flag.
+      mockUseSelector.mockImplementation((selector) =>
+        selector === selectAssetsMemecoinTdpV1Enabled
+          ? flagEnabled
+          : defaultSelectorImpl(selector),
+      );
+    };
+
+    it('never mounts the position hook when the flag is off', () => {
+      applySelectorsWithMemeFlag(false);
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      // Flag off renders the plain footer, so the trader-position machinery
+      // (open position, profile, share-to-feed) is never mounted.
+      expect(mockUseTraderPositionPnl).not.toHaveBeenCalled();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
+
+    it('mounts the position hook and shows the line when the flag is on', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: {
+          positionValue: '$103.31',
+          pnl: { amount: '+$15.01', percentage: '+16.99%', isProfit: true },
+        },
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(mockUseTraderPositionPnl).toHaveBeenCalledWith(
+        expect.objectContaining({ tokenKey: expect.any(String) }),
+      );
+      expect(
+        getByTestId('token-details-trader-position-pnl'),
+      ).toBeOnTheScreen();
+    });
+
+    it('still shows the footer buttons and omits the line until the position resolves', () => {
+      applySelectorsWithMemeFlag(true);
+      mockUseTraderPositionPnl.mockReturnValue({
+        traderPositionPnl: undefined,
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      // Append-when-loaded: the footer buttons render immediately, only the
+      // position line waits for the position to resolve.
+      expect(queryByTestId('bottomsheetfooter')).toBeOnTheScreen();
+      expect(queryByTestId('token-details-trader-position-pnl')).toBeNull();
+    });
   });
 
   it('does not render a full-page loader when txLoading is true', () => {
@@ -730,38 +806,7 @@ describe('TokenDetails', () => {
   });
 
   describe('Swap/Buy sticky buttons', () => {
-    it('does not render Money Earn CTA in the control variant', () => {
-      mockUseMoneyAssetOverviewCtas.mockReturnValue({
-        apyPercent: 4,
-        footerLabelLocalized: 'Earn 4% APY',
-        isBalanceCtaLoading: false,
-        isBalanceCtaVisible: false,
-        isFooterCtaEligible: true,
-        isFooterCtaLoading: false,
-        isFooterCtaVisible: true,
-        onBalancePress: jest.fn(),
-        onFooterPress: jest.fn(),
-        projectedEarningsFormatted: '$4.00',
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(
-        queryByTestId('money-asset-overview-footer-cta'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders Money Earn CTA in the treatment variant when eligible', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-          return {
-            variant: { showMoneyDepositFooterCta: true },
-            variantName: 'treatment',
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImpl(key);
-      });
+    it('renders Money Earn CTA when eligible', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: 4,
         footerLabelLocalized: 'Earn 4% APY',
@@ -962,6 +1007,8 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectSelectedInternalAccountByScope)
+        return getSelectedAccountByScopeStub;
       return undefined;
     });
 
@@ -1137,6 +1184,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1240,6 +1289,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         return undefined;
       });
       mockUseTokenPrice.mockReturnValue({
@@ -1747,8 +1798,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectSelectedInternalAccountFormattedAddress)
-          return '0x1234567890123456789012345678901234567890';
+        if (selector === selectSelectedInternalAccountByScope)
+          return getSelectedAccountByScopeStub;
         if (selector === selectBridgeLimitOrderFeatureFlags)
           return { enabled: true, enabledChainIds: ['eip155:1'] };
         if (selector === selectBridgeRecurringBuyFeatureFlags)

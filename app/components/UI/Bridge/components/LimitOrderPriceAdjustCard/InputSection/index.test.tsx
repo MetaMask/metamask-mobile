@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image } from 'expo-image';
 import { fireEvent } from '@testing-library/react-native';
+import { Skeleton } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { initialState } from '../../../_mocks_/initialState';
@@ -320,6 +321,68 @@ describe('InputSection', () => {
         LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
       ).props.hitSlop,
     ).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+  });
+
+  describe('while the limit price is loading', () => {
+    it('renders a skeleton in place of the limit price input', () => {
+      const { getByTestId, queryByTestId, getByText } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      ).toBeNull();
+      expect(getByText(strings('bridge.limit.buy_when'))).toBeOnTheScreen();
+    });
+
+    it('sizes the skeleton to the space the amount row takes', () => {
+      const { getByTestId } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      // A 24px font gives a 30px line box, pulled in by 7px above and 2px
+      // below the digits.
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toHaveStyle({ height: 21 });
+    });
+
+    it('animates the skeleton by default', () => {
+      const { UNSAFE_getByType } = renderInputSection({
+        value: '',
+        isLoading: true,
+      });
+
+      expect(UNSAFE_getByType(Skeleton).props.autoPlay).toBe(true);
+    });
+
+    it('renders a static skeleton when the loading animation is off', () => {
+      const { UNSAFE_getByType } = renderInputSection({
+        value: '',
+        isLoading: true,
+        isLoadingAnimated: false,
+      });
+
+      expect(UNSAFE_getByType(Skeleton).props.autoPlay).toBe(false);
+    });
+
+    it('renders the limit price input once loading ends', () => {
+      const { getByTestId, queryByTestId } = renderInputSection({
+        isLoading: false,
+      });
+
+      expect(
+        getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT),
+      ).toHaveProp('value', '100');
+      expect(
+        queryByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.SKELETON),
+      ).toBeNull();
+    });
   });
 
   it('does not render the swap icon without a toggle handler', () => {

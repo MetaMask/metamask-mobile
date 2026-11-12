@@ -83,6 +83,25 @@ const TOTALS = {
   claimed: '10000000',
 };
 
+function renderedTestIds(node: unknown): string[] {
+  if (!node || typeof node === 'string') {
+    return [];
+  }
+  if (Array.isArray(node)) {
+    return node.flatMap(renderedTestIds);
+  }
+  if (typeof node !== 'object') {
+    return [];
+  }
+  const record = node as {
+    props?: { testID?: unknown };
+    children?: unknown[] | null;
+  };
+  const own =
+    typeof record.props?.testID === 'string' ? [record.props.testID] : [];
+  return [...own, ...(record.children ?? []).flatMap(renderedTestIds)];
+}
+
 const LABELS = {
   breakdown: 'Breakdown',
   recordedEarningsLabel: 'Recorded earnings',
@@ -140,6 +159,90 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(queryByText('Blocking reason')).not.toBeOnTheScreen();
     expect(queryByText('SUSPENDED')).not.toBeOnTheScreen();
     expect(getByText('Got it')).toBeOnTheScreen();
+  });
+
+  it('shows the balance rows without the paused explanation', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            variant: 'breakdown',
+            title: 'Breakdown',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.TITLE)).toHaveTextContent('Breakdown');
+    expect(queryByTestId(TEST_IDS.DESCRIPTION)).toBeNull();
+    expect(queryByTestId(TEST_IDS.DIVIDER)).toBeNull();
+    expect(queryByTestId(TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
+    expect(queryByText('You cannot claim rewards right now.')).toBeNull();
+    expect(getByText('Recorded earnings')).toBeOnTheScreen();
+    expect(getByText('$132.00')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
+  });
+
+  it('lists Pending above Held and hides zero Held, Blocked, and Voided', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            title: 'Claims paused',
+            description: 'You cannot claim rewards right now.',
+            totals: {
+              ...TOTALS,
+              held: '0',
+              blocked: '0',
+              voided: '0',
+            },
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(queryByTestId(`${TEST_IDS.TOTALS}-held`)).toBeNull();
+    expect(queryByTestId(`${TEST_IDS.TOTALS}-blocked`)).toBeNull();
+    expect(queryByTestId(`${TEST_IDS.TOTALS}-voided`)).toBeNull();
+    expect(queryByText('Held')).toBeNull();
+    expect(queryByText('Blocked')).toBeNull();
+    expect(queryByText('Voided')).toBeNull();
+    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(getByText('$0.00')).toBeOnTheScreen();
+
+    const pending = getByTestId(`${TEST_IDS.TOTALS}-pending`);
+    const claimed = getByTestId(`${TEST_IDS.TOTALS}-claimed`);
+    const claimable = getByTestId(`${TEST_IDS.TOTALS}-claimable`);
+    expect(claimable).toBeOnTheScreen();
+    expect(pending).toBeOnTheScreen();
+    expect(claimed).toBeOnTheScreen();
+  });
+
+  it('lists Pending before Held when both are positive', () => {
+    const { toJSON } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            title: 'Claims paused',
+            description: 'You cannot claim rewards right now.',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    const ids = renderedTestIds(toJSON());
+    const pendingIndex = ids.indexOf(`${TEST_IDS.TOTALS}-pending`);
+    const heldIndex = ids.indexOf(`${TEST_IDS.TOTALS}-held`);
+    expect(pendingIndex).toBeGreaterThanOrEqual(0);
+    expect(heldIndex).toBeGreaterThan(pendingIndex);
   });
 
   it('goes back when Got it is pressed', () => {

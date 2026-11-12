@@ -3,17 +3,7 @@ import {
   BottomSheetDialog,
   BottomSheetHeader,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
   IconName,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, {
@@ -28,39 +18,30 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
+import { useSocialBlockLists } from '../hooks/useSocialBlockLists';
 import {
-  getSocialEntryReportReasonTestId,
-  SocialEntryOptionsBottomSheetSelectorsIDs,
-} from './SocialEntryOptionsBottomSheet.testIds';
+  type SocialModerationTarget,
+  useSocialModerationActions,
+} from '../hooks/useSocialModerationActions';
+import { SocialEntryReportReason } from '../reportReasons';
+import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
+import SocialImpersonationSupport from './SocialImpersonationSupport';
+import SocialReportReasonPicker from './SocialReportReasonPicker';
+import { SocialEntryOptionsBottomSheetSelectorsIDs } from './SocialEntryOptionsBottomSheet.testIds';
 
-export enum SocialEntryReportReason {
-  Spam = 'spam',
-  Harassment = 'harassment',
-  Misleading = 'misleading',
-  Other = 'other',
-}
+export { SocialEntryReportReason };
 
-const REPORT_REASONS = [
-  SocialEntryReportReason.Spam,
-  SocialEntryReportReason.Harassment,
-  SocialEntryReportReason.Misleading,
-  SocialEntryReportReason.Other,
-] as const;
-
-export interface SocialEntryOptionsTarget {
-  postId: string;
-  authorId: string;
-  authorHandle: string;
-}
+export type SocialEntryOptionsTarget = SocialModerationTarget;
 
 export interface SocialEntryOptionsBottomSheetProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Whether the post can be reported: only a post with a comment can. */
+  canReport?: boolean;
+  /** Whether the post author can be blocked. */
+  canBlockUser?: boolean;
   onReport?: (reason: SocialEntryReportReason) => void;
   onHidePost?: () => void;
   onBlockUser?: () => void;
@@ -75,24 +56,37 @@ const SocialEntryOptionsContext =
   createContext<SocialEntryOptionsContextValue | null>(null);
 
 /**
- * Mocked moderation menu for Social V1. Actions only update in-memory UI state
- * until the social API supports reporting, hiding, and blocking.
+ * The post options sheet: report, hide the post, or block its author.
  */
 const SocialEntryOptionsBottomSheetInner: React.FC<
   Omit<SocialEntryOptionsBottomSheetProps, 'isOpen'>
-> = ({ onClose, onReport, onHidePost, onBlockUser }) => {
+> = ({
+  onClose,
+  onReport,
+  onHidePost,
+  onBlockUser,
+  canReport = true,
+  canBlockUser = true,
+}) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const [showReportReasons, setShowReportReasons] = useState(false);
+  const [step, setStep] = useState<'options' | 'reasons' | 'support'>(
+    'options',
+  );
   const [selectedReason, setSelectedReason] =
     useState<SocialEntryReportReason | null>(null);
 
   const handleReport = useCallback(() => {
-    setShowReportReasons(true);
+    setStep('reasons');
   }, []);
 
   const handleSubmitReport = useCallback(() => {
     if (!selectedReason) {
+      return;
+    }
+    // Impersonation is handled by customer support, not the social API.
+    if (selectedReason === SocialEntryReportReason.Impersonation) {
+      setStep('support');
       return;
     }
     onReport?.(selectedReason);
@@ -124,117 +118,66 @@ const SocialEntryOptionsBottomSheetInner: React.FC<
           <BottomSheetDialog
             onClose={onClose}
             testID={
-              showReportReasons
-                ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_SHEET
-                : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
+              step === 'support'
+                ? SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT
+                : step === 'reasons'
+                  ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_SHEET
+                  : SocialEntryOptionsBottomSheetSelectorsIDs.SHEET
             }
           >
             <BottomSheetHeader
               onClose={onClose}
               closeButtonProps={{
-                testID: showReportReasons
-                  ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_CLOSE_BUTTON
-                  : SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
+                testID:
+                  step === 'reasons'
+                    ? SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_REASON_CLOSE_BUTTON
+                    : SocialEntryOptionsBottomSheetSelectorsIDs.CLOSE_BUTTON,
               }}
             >
               {strings(
-                showReportReasons
-                  ? 'social_leaderboard.entry_options.report_reason_title'
-                  : 'social_leaderboard.entry_options.title',
+                step === 'support'
+                  ? 'social_leaderboard.entry_options.impersonation_support_title'
+                  : step === 'reasons'
+                    ? 'social_leaderboard.entry_options.report_reason_title'
+                    : 'social_leaderboard.entry_options.title',
               )}
             </BottomSheetHeader>
-            {showReportReasons ? (
-              <Box twClassName="px-4 pb-10">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  twClassName="mb-4"
-                >
-                  {strings(
-                    'social_leaderboard.entry_options.report_reason_description',
-                  )}
-                </Text>
-                <Box gap={4}>
-                  {REPORT_REASONS.map((reason) => {
-                    const isSelected = selectedReason === reason;
-                    return (
-                      <Pressable
-                        key={reason}
-                        onPress={() => setSelectedReason(reason)}
-                        style={({ pressed }) =>
-                          tw.style(pressed && 'opacity-70')
-                        }
-                        accessibilityRole="radio"
-                        accessibilityState={{ selected: isSelected }}
-                        testID={getSocialEntryReportReasonTestId(reason)}
-                      >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          gap={3}
-                          twClassName="py-1"
-                        >
-                          <Box
-                            twClassName={`h-6 w-6 rounded-full border ${
-                              isSelected
-                                ? 'border-primary-default'
-                                : 'border-muted'
-                            }`}
-                            alignItems={BoxAlignItems.Center}
-                            justifyContent={BoxJustifyContent.Center}
-                          >
-                            {isSelected ? (
-                              <Box twClassName="h-3 w-3 rounded-full bg-primary-default" />
-                            ) : null}
-                          </Box>
-                          <Text
-                            variant={TextVariant.BodyMd}
-                            fontWeight={FontWeight.Regular}
-                          >
-                            {strings(
-                              `social_leaderboard.entry_options.report_reasons.${reason}`,
-                            )}
-                          </Text>
-                        </Box>
-                      </Pressable>
-                    );
-                  })}
-                </Box>
-                <Box twClassName="mt-6">
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    isFullWidth
-                    isDisabled={selectedReason === null}
-                    onPress={handleSubmitReport}
-                    testID={
-                      SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT
-                    }
-                  >
-                    {strings('social_leaderboard.entry_options.submit_report')}
-                  </Button>
-                </Box>
-              </Box>
+            {step === 'support' ? (
+              <SocialImpersonationSupport onDismiss={onClose} />
+            ) : step === 'reasons' ? (
+              <SocialReportReasonPicker
+                selectedReason={selectedReason}
+                onSelectReason={setSelectedReason}
+                onSubmit={handleSubmitReport}
+              />
             ) : (
               <Box twClassName="pb-4">
-                <ActionListItem
-                  iconName={IconName.Flag}
-                  label={strings('social_leaderboard.entry_options.report')}
-                  onPress={handleReport}
-                  testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
-                />
+                {canReport ? (
+                  <ActionListItem
+                    iconName={IconName.Flag}
+                    label={strings('social_leaderboard.entry_options.report')}
+                    onPress={handleReport}
+                    testID={SocialEntryOptionsBottomSheetSelectorsIDs.REPORT}
+                  />
+                ) : null}
                 <ActionListItem
                   iconName={IconName.EyeSlash}
                   label={strings('social_leaderboard.entry_options.hide_post')}
                   onPress={handleHidePost}
                   testID={SocialEntryOptionsBottomSheetSelectorsIDs.HIDE_POST}
                 />
-                <ActionListItem
-                  iconName={IconName.UserCircle}
-                  label={strings('social_leaderboard.entry_options.block_user')}
-                  onPress={handleBlockUser}
-                  testID={SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER}
-                />
+                {canBlockUser ? (
+                  <ActionListItem
+                    iconName={IconName.UserCircle}
+                    label={strings(
+                      'social_leaderboard.entry_options.block_user',
+                    )}
+                    onPress={handleBlockUser}
+                    testID={
+                      SocialEntryOptionsBottomSheetSelectorsIDs.BLOCK_USER
+                    }
+                  />
+                ) : null}
               </Box>
             )}
           </BottomSheetDialog>
@@ -276,11 +219,22 @@ const SocialEntryOptionsBottomSheet: React.FC<
   return <SocialEntryOptionsBottomSheetInner {...innerProps} />;
 };
 
+const withId = (ids: Set<string>, id: string) => new Set(ids).add(id);
+
+const withoutId = (ids: Set<string>, id: string) => {
+  const next = new Set(ids);
+  next.delete(id);
+  return next;
+};
+
 const SocialEntryOptionsHost: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { toastRef } = useContext(ToastContext);
+  const { hidePost, blockUser, report } = useSocialModerationActions();
+  const { blockedProfileIds, blockedCommentIds } = useSocialBlockLists();
+  const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
   const [target, setTarget] = useState<SocialEntryOptionsTarget | null>(null);
+  // Hidden at once on the viewer's action, before the block lists refetch.
   const [hiddenPostIds, setHiddenPostIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -293,44 +247,47 @@ const SocialEntryOptionsHost: React.FC<{
   const onClose = useCallback(() => setTarget(null), []);
   const isEntryHidden = useCallback(
     (entry: SocialEntryOptionsTarget) =>
-      hiddenPostIds.has(entry.postId) || blockedAuthorIds.has(entry.authorId),
-    [blockedAuthorIds, hiddenPostIds],
+      hiddenPostIds.has(entry.postId) ||
+      blockedAuthorIds.has(entry.authorId) ||
+      blockedProfileIds.has(entry.authorId) ||
+      (entry.commentId !== undefined && blockedCommentIds.has(entry.commentId)),
+    [blockedAuthorIds, blockedCommentIds, blockedProfileIds, hiddenPostIds],
   );
-  const showConfirmation = useCallback(
-    (message: string) => {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: message, isBold: true }],
-        hasNoTimeout: false,
-      });
-    },
-    [toastRef],
+  const hidePostLocally = useCallback(
+    (postId: string) => ({
+      apply: () => setHiddenPostIds((current) => withId(current, postId)),
+      revert: () => setHiddenPostIds((current) => withoutId(current, postId)),
+    }),
+    [],
   );
   const handleHidePost = useCallback(() => {
-    if (!target) {
-      return;
+    if (target) {
+      hidePost(target, hidePostLocally(target.postId));
     }
-    setHiddenPostIds((current) => new Set(current).add(target.postId));
-    showConfirmation(
-      strings('social_leaderboard.entry_options.post_hidden_confirmation'),
-    );
-  }, [showConfirmation, target]);
+  }, [hidePost, hidePostLocally, target]);
   const handleBlockUser = useCallback(() => {
-    if (!target) {
-      return;
+    if (target) {
+      blockUser(target, {
+        apply: () =>
+          setBlockedAuthorIds((current) => withId(current, target.authorId)),
+        revert: () =>
+          setBlockedAuthorIds((current) => withoutId(current, target.authorId)),
+      });
     }
-    setBlockedAuthorIds((current) => new Set(current).add(target.authorId));
-    showConfirmation(
-      strings('social_leaderboard.entry_options.user_blocked_confirmation', {
-        username: target.authorHandle,
-      }),
-    );
-  }, [showConfirmation, target]);
-  const handleReport = useCallback(() => {
-    showConfirmation(
-      strings('social_leaderboard.entry_options.report_confirmation'),
-    );
-  }, [showConfirmation]);
+  }, [blockUser, target]);
+  const handleReport = useCallback(
+    (reason: SocialEntryReportReason) => {
+      if (target) {
+        report(target, reason, hidePostLocally(target.postId));
+      }
+    },
+    [hidePostLocally, report, target],
+  );
+  const canModerateAuthor = Boolean(
+    target &&
+      !isViewerProfileLoading &&
+      !isViewerSocialAuthor(target.authorId, profileId),
+  );
   const value = useMemo(() => ({ open, isEntryHidden }), [isEntryHidden, open]);
 
   return (
@@ -339,6 +296,8 @@ const SocialEntryOptionsHost: React.FC<{
       <SocialEntryOptionsBottomSheet
         isOpen={target !== null}
         onClose={onClose}
+        canReport={Boolean(target?.commentId) && canModerateAuthor}
+        canBlockUser={canModerateAuthor}
         onHidePost={handleHidePost}
         onBlockUser={handleBlockUser}
         onReport={handleReport}
@@ -379,11 +338,19 @@ export const useSocialEntryOptions = (
   isHidden: boolean;
 } => {
   const hosted = useContext(SocialEntryOptionsContext);
+  const { hidePost, blockUser, report } = useSocialModerationActions();
+  const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
   const [localOpen, setLocalOpen] = useState(false);
   const [isLocallyHidden, setIsLocallyHidden] = useState(false);
   const openLocal = useCallback(() => setLocalOpen(true), []);
   const closeLocal = useCallback(() => setLocalOpen(false), []);
-  const hideLocal = useCallback(() => setIsLocallyHidden(true), []);
+  const hideLocally = useMemo(
+    () => ({
+      apply: () => setIsLocallyHidden(true),
+      revert: () => setIsLocallyHidden(false),
+    }),
+    [],
+  );
 
   if (hosted) {
     return {
@@ -393,6 +360,10 @@ export const useSocialEntryOptions = (
     };
   }
 
+  const canModerateAuthor =
+    !isViewerProfileLoading &&
+    !isViewerSocialAuthor(target.authorId, profileId);
+
   return {
     open: openLocal,
     isHidden: isLocallyHidden,
@@ -400,13 +371,21 @@ export const useSocialEntryOptions = (
       <SocialEntryOptionsBottomSheet
         isOpen={localOpen}
         onClose={closeLocal}
-        onHidePost={hideLocal}
-        onBlockUser={hideLocal}
+        canReport={Boolean(target.commentId) && canModerateAuthor}
+        canBlockUser={canModerateAuthor}
+        onHidePost={() => hidePost(target, hideLocally)}
+        onBlockUser={() => blockUser(target, hideLocally)}
+        onReport={(reason) => report(target, reason, hideLocally)}
       />
     ),
   };
 };
 
+/**
+ * Whether a post is hidden for the viewer: by their own action this session,
+ * or by their block lists. Reads them from the {@link SocialEntryOptionsProvider}
+ * every feed is mounted under; without one nothing is hidden.
+ */
 export const useSocialEntryModeration = () => {
   const hosted = useContext(SocialEntryOptionsContext);
   return {

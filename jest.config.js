@@ -73,6 +73,11 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/authenticated-user-storage',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  // ESM-only; split out of @metamask/utils 12.0.1.
+  '@metamask/byte-utils',
+  '@metamask/error-utils',
+  '@metamask/node-utils',
+  '@metamask/type-utils',
   '@metamask/address-book-controller',
   // 3.x ships ESM-only under dist/*.js (2.x used a CJS build).
   '@metamask/analytics-controller',
@@ -95,11 +100,15 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  // 4.x ships ESM-only under dist/*.js.
+  '@metamask/eip-5792-middleware',
   // ESM-only; the Money MPC keyring V2 adapter.
   '@metamask/eth-money-mpc-keyring',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
+  // 6.x ships ESM-only under dist/*.js.
+  '@metamask/gator-permissions-controller',
   '@metamask/keyring-controller',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
@@ -112,6 +121,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
+  '@metamask/network-connection-banner-controller',
   '@metamask/network-controller',
   '@metamask/network-enablement-controller',
   '@metamask/notification-services-controller',
@@ -122,6 +132,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/profile-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
+  // 7.x ships ESM-only under dist/*.js.
+  '@metamask/remote-feature-flag-controller',
   '@metamask/sentinel-api-service',
   '@metamask/seedless-onboarding-controller',
   '@metamask/snap-account-service',
@@ -150,6 +162,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.
   '@metamask/utils',
+  // 2.1+ ships ESM-only under dist/*.js (2.0.x used a CJS build).
+  '@shopify/flash-list',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',
@@ -160,6 +174,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@metamask/eip1193-permission-middleware',
 ];
 
 const config = {

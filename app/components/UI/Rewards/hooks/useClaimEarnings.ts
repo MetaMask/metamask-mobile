@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { BtcAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  SolAccountType,
+  XlmAccountType,
+} from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
 import {
   setClaimLock,
@@ -17,7 +17,6 @@ import {
   selectClaimLock,
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
-  type MoneyDashboardPersona,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -34,10 +33,16 @@ import type {
   EarningsSummaryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import useRewardsToast from './useRewardsToast';
 import {
-  canClaimEarnings,
+  claimRewardsNotification,
+  clearSettledClaimBatchBanners,
+  queueClaimRewardsInPlaceOfSettledBanner,
+  suppressSettledClaimBatchBanner,
+} from '../utils/claimBatchNotifications';
+import { useClaimMechanisms } from './useFollowTradeClaimOpen';
+import {
+  claimRouteOptions,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimRoutesForSummary,
@@ -45,28 +50,20 @@ import {
   claimToastText,
   claimTypeForRoute,
   isClaimsPausedRefusal,
+  isTaxDeterminationRefusal,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
   signBitcoinClaimMessage,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   submitClaimVoucher,
   type ClaimRouteOutcome,
 } from '../utils/claimEarnings';
 import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
-
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-}
-
-function isClaimConfirmationActive(): boolean {
-  return (
-    NavigationService.navigation.getCurrentRoute()?.name ===
-    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
-  );
-}
 
 /** A mainnet `bc1q` or `bc1p` account this phone can BIP-322 sign. */
 function bitcoinAccountForEarningAddress(earningAddress: string) {
@@ -83,6 +80,42 @@ function bitcoinAccountForEarningAddress(earningAddress: string) {
     (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
     (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
   return typeMatches ? { account, bitcoin } : null;
+}
+
+/** A Solana account on this phone. The address is compared with its case. */
+function solanaAccountForEarningAddress(earningAddress: string) {
+  const address = solanaAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/** A Stellar account on this phone. A lowercase `G` address is not a match. */
+function stellarAccountForEarningAddress(earningAddress: string) {
+  const address = stellarAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
+  ) {
+    return null;
+  }
+  return { account, address };
 }
 
 function branchClaimKey(
@@ -122,27 +155,43 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
   ].join('|');
 }
 
+export interface ClaimEarningsOptions {
+  /**
+   * Leave follow-trade out. The tax sheet is already open and income is
+   * blocked, so submitting it comes back `TAX_DETERMINATION_REQUIRED` and
+   * would open that sheet again. Cashback still submits.
+   */
+  omitFollowTrade?: boolean;
+}
+
 /**
  * Claims referee cashback that reaches the summary minimum, signs the
- * challenges, and submits the voucher. One toast, after the batch is
- * submitted or the route has failed.
+ * challenges, and submits the voucher. The claim stays on the current
+ * screen. "Transaction submitted" is left as it is. The rewards line
+ * replaces the wallet's complete or failed banner, on success and when
+ * confirmation fails or times out.
  */
 export function useClaimEarnings(
   profileId: string,
   {
-    persona,
     onOpened,
     onSubmitted,
     onClaimsPaused,
+    onTaxRequired,
     summary: liveSummary = null,
   }: {
-    persona?: MoneyDashboardPersona;
     onOpened?: () => void;
     /**
      * A whole-claim refusal that leaves money in `held` or `blocked`. The
      * caller opens the Claims paused sheet. No error toast.
      */
     onClaimsPaused?: () => void;
+    /**
+     * Nothing was submitted and a route refused with
+     * `TAX_DETERMINATION_REQUIRED`. The caller opens the tax flow. No
+     * paused sheet and no error toast.
+     */
+    onTaxRequired?: () => void;
     /**
      * Runs after a confirmed claim, before Claim is enabled again. A rejection
      * means the balance on screen is still the pre-claim one, so Claim stays
@@ -156,13 +205,14 @@ export function useClaimEarnings(
     summary?: EarningsSummaryDto | null;
   } = {},
 ): {
-  claim: (summary: EarningsSummaryDto) => Promise<void>;
+  claim: (
+    summary: EarningsSummaryDto,
+    options?: ClaimEarningsOptions,
+  ) => Promise<void>;
   isClaiming: boolean;
   /** True until a refusal's `Retry-After` elapses. Claim stays disabled. */
   isClaimWaiting: boolean;
 } {
-  const navigation = useNavigation<AppNavigationProp>();
-  const { navigateToConfirmation } = useConfirmNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const dispatch = useDispatch();
@@ -193,6 +243,9 @@ export function useClaimEarnings(
   // the hook that is mounted now.
   const waitUntil = storeWait ?? claimWaitingUntil;
   const isClaimingRef = useRef(false);
+  const rewardsNotificationTimer = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   const claimWaitingUntilRef = useRef<number | null>(waitUntil);
   claimWaitingUntilRef.current = waitUntil;
 
@@ -231,25 +284,39 @@ export function useClaimEarnings(
     return () => clearTimeout(timer);
   }, [waitUntil, dispatch, profileId]);
 
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const claim = useCallback(
-    async (summary: EarningsSummaryDto) => {
+    async (summary: EarningsSummaryDto, options?: ClaimEarningsOptions) => {
       const waitingUntil = claimWaitingUntilRef.current;
+      const routeOptions = claimRouteOptions(
+        localizedText?.taxFormUrl,
+        followTradeClaimOpen,
+        revShareClaimOpen,
+      );
+      const routes = claimRoutesForSummary(summary, routeOptions).filter(
+        (route) =>
+          !(options?.omitFollowTrade && route === 'social-follow-trade'),
+      );
       if (
         !localizedText ||
         isClaimingRef.current ||
         claimLockRef.current != null ||
         (waitingUntil !== null && waitingUntil > Date.now()) ||
-        !canClaimEarnings(summary, persona)
+        routes.length === 0
       ) {
         return;
       }
       isClaimingRef.current = true;
       setIsClaiming(true);
+      if (rewardsNotificationTimer.current !== undefined) {
+        clearTimeout(rewardsNotificationTimer.current);
+        rewardsNotificationTimer.current = undefined;
+      }
       const summaryKey = earningsSummaryClaimKey(summary);
       let lockArmed = false;
       let holdForFreshSummary = false;
       const startedAt = Date.now();
-      const routes = claimRoutesForSummary(summary);
       let tracked = false;
       const durationMs = () => Math.max(0, Date.now() - startedAt);
       const trackFailed = (route: ClaimRouteSlug, failureReason: string) => {
@@ -309,6 +376,7 @@ export function useClaimEarnings(
         );
         lockArmed = true;
 
+        let submittedBatchId: string | undefined;
         const outcomes = await runEarningsClaim({
           moneyAccountAddress,
           routes,
@@ -319,7 +387,11 @@ export function useClaimEarnings(
               body,
             ),
           canSignEarningAddress: (earningAddress) => {
-            if (bitcoinAccountForEarningAddress(earningAddress)) {
+            if (
+              bitcoinAccountForEarningAddress(earningAddress) ||
+              solanaAccountForEarningAddress(earningAddress) ||
+              stellarAccountForEarningAddress(earningAddress)
+            ) {
               return true;
             }
             const from = evmAddressFromEarningAddress(earningAddress);
@@ -336,6 +408,18 @@ export function useClaimEarnings(
                 bitcoin.bitcoin,
                 message,
               );
+            }
+            const solana = solanaAccountForEarningAddress(earningAddress);
+            if (solana) {
+              return signSolanaClaimMessage(
+                solana.account.id,
+                solana.address,
+                message,
+              );
+            }
+            const stellar = stellarAccountForEarningAddress(earningAddress);
+            if (stellar) {
+              return signStellarClaimMessage(stellar.account.id, message);
             }
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from) {
@@ -355,22 +439,14 @@ export function useClaimEarnings(
             }
           },
           submitVoucher: async (voucher: ClaimVoucherDto) => {
-            navigateToConfirmation({
-              stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+            await submitClaimVoucher({
+              voucher,
+              vaultConfig,
+              moneyAccountAddress,
+              onBatchSubmitted: (batchId) => {
+                submittedBatchId = batchId;
+              },
             });
-            await waitForNextFrame();
-            try {
-              await submitClaimVoucher({
-                voucher,
-                vaultConfig,
-                moneyAccountAddress,
-              });
-            } catch (error) {
-              if (isClaimConfirmationActive()) {
-                navigation.goBack();
-              }
-              throw error;
-            }
           },
         });
 
@@ -387,22 +463,50 @@ export function useClaimEarnings(
 
         const key = claimToastKey(outcomes);
         const paid = outcomes.some((outcome) => outcome.submitted);
-        if (isClaimsPausedRefusal(outcomes)) {
+        const failedConfirmation = outcomes.some(
+          (outcome) =>
+            outcome.reason === 'CONFIRMATION_FAILED' ||
+            outcome.reason === 'CONFIRMATION_TIMEOUT',
+        );
+        if (isTaxDeterminationRefusal(outcomes)) {
+          onTaxRequired?.();
+        } else if (isClaimsPausedRefusal(outcomes)) {
           onClaimsPaused?.();
         } else if (
           key === 'claimSuccessToast' ||
-          key === 'claimPartialSuccessToast'
+          key === 'claimPartialSuccessToast' ||
+          failedConfirmation
         ) {
-          showToast(RewardsToastOptions.success(localizedText[key]));
+          const title = claimToastText(localizedText, outcomes);
+          if (submittedBatchId) {
+            suppressSettledClaimBatchBanner(submittedBatchId);
+          }
+          const batchId = submittedBatchId;
+          rewardsNotificationTimer.current =
+            queueClaimRewardsInPlaceOfSettledBanner(() => {
+              rewardsNotificationTimer.current = undefined;
+              if (batchId) {
+                for (const action of clearSettledClaimBatchBanners(batchId)) {
+                  dispatch(action);
+                }
+              }
+              dispatch(
+                claimRewardsNotification(
+                  `claim-rewards-${Date.now()}`,
+                  title,
+                  failedConfirmation ? 'error' : 'success',
+                ),
+              );
+            });
         } else {
           showToast(
             RewardsToastOptions.error(claimToastText(localizedText, outcomes)),
           );
         }
         // Refresh after a paid claim, including one that left money in
-        // `excluded[]`. The success toast already won. A failed refresh leaves
-        // the pre-claim balance on screen, so Claim stays disabled until a
-        // later summary replaces it.
+        // `excluded[]`. The rewards line replaces the wallet's settled
+        // banner. A failed refresh leaves the pre-claim balance on screen,
+        // so Claim stays disabled until a later summary replaces it.
         if (paid) {
           try {
             await onSubmitted?.();
@@ -466,15 +570,15 @@ export function useClaimEarnings(
     },
     [
       localizedText,
-      persona,
+      followTradeClaimOpen,
+      revShareClaimOpen,
       moneyAccount?.address,
       vaultConfig,
       isSponsorshipEnabled,
-      navigation,
-      navigateToConfirmation,
       onOpened,
       onSubmitted,
       onClaimsPaused,
+      onTaxRequired,
       showToast,
       RewardsToastOptions,
       dispatch,

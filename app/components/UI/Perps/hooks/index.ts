@@ -76,6 +76,7 @@ export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { usePerpsQuotedFeeReservation } from './usePerpsQuotedFeeReservation';
 export { usePerpsRebateQuote } from './usePerpsRebateQuote';
 export { usePerpsRewards } from './usePerpsRewards';
 export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
@@ -106,6 +107,8 @@ export {
 // A/B tests
 export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
+export { usePerpsFeeDisplayAbTest } from './usePerpsFeeDisplayAbTest';
+export { usePerpsLiveTradesAbTest } from './usePerpsLiveTradesAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

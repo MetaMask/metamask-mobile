@@ -1,6 +1,8 @@
 import { VbaIdentityVerificationRoutes, VbaOnboardingRoutes } from './routes';
 import { KYC_SCREEN_ID } from '../../../KYC/kycScreenPerformance';
 import { TraceName, TraceOperation } from '../../../../../util/trace';
+import { getVbaCufLifecycleContext } from './vbaCufLifecycle';
+import { VBA_CUF_TAG } from './vbaCufTags';
 
 export {
   SCREEN_CONTENT_STATE as VBA_SCREEN_CONTENT_STATE,
@@ -32,6 +34,9 @@ export const VBA_SCREEN_PERFORMANCE_CONFIG = {
   flow: 'vba',
   logMarker: '[VbaCUF]',
   screenIds: Object.values(VBA_SCREEN_ID),
+  getAdditionalTags: () => ({
+    [VBA_CUF_TAG.LIFECYCLE_CONTEXT]: getVbaCufLifecycleContext(),
+  }),
 };
 
 export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
@@ -40,6 +45,7 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
   [VbaOnboardingRoutes.EMAIL]: [VBA_SCREEN_ID.EMAIL_VERIFICATION],
   [VbaOnboardingRoutes.IDENTITY_VERIFICATION]: [
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
   ],
   [VbaOnboardingRoutes.KYC_PENDING]: [VBA_SCREEN_ID.KYC_PENDING],
@@ -59,6 +65,11 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
 export const VBA_IDENTITY_ROUTE_SCREEN_IDS = {
   [VbaIdentityVerificationRoutes.PROVIDER_TERMS]:
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+  // The verification-partners page. Its screen id predates the redesign, when
+  // the page was a bottom sheet; the emitted value is kept so existing
+  // dashboards keep resolving.
+  [VbaIdentityVerificationRoutes.PARTNER_TERMS]:
+    KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
   [VbaIdentityVerificationRoutes.PROVIDER]:
     KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
 } as const;
@@ -68,9 +79,11 @@ export const VBA_DETAILS_SCREEN_IDS = [
   VBA_SCREEN_ID.ACCOUNT_DETAILS,
 ] as const;
 
-export const VBA_MODAL_SCREEN_IDS = [
-  KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
-] as const;
+/**
+ * Screens that are only ever presented as modals. Empty since the provider
+ * terms became a page of the identity-verification stack.
+ */
+export const VBA_MODAL_SCREEN_IDS = [] as const;
 
 export const VBA_FLOW_SCREEN_IDS = [
   ...Object.values(VBA_SCREEN_ID),

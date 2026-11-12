@@ -3,7 +3,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  getNativeAssetForChainId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
@@ -23,8 +26,6 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     state,
     { chainId },
   );
-
-  const hasAccountsInScope = Object.keys(accountsBalanceInScope).length > 0;
 
   const accountIdWithNativeBalanceGreaterThanZero = Object.keys(
     accountsBalanceInScope,
@@ -55,11 +56,14 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     return;
   }
 
-  // if there are account in scope bu non of them have funds, navigate to ramps
+  // Pass the native asset to the Buy quote screen so it selects its currency.
+  const { assetId } = getNativeAssetForChainId(chainId);
+
   NavigationService.navigation.navigate(Routes.RAMP.BUY, {
-    screen: Routes.RAMP.GET_STARTED,
+    screen: Routes.RAMP.ID,
     params: {
-      chainId,
+      screen: Routes.RAMP.BUILD_QUOTE,
+      params: { assetId },
     },
   });
 }

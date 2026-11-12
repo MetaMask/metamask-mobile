@@ -21,8 +21,6 @@ const TIMEOUT = {
   NETWORK_SELECT: 10000,
   TOKEN_SELECT: 30000,
   KEYPAD_DIGIT: 10000,
-  /** Matches useSearchTokens debouncedSearch (300ms) + list settle. */
-  TOKEN_SEARCH_SETTLE: 1000,
   /** Overall Android Activity → Quote → Wallet dismiss retry budget. */
   ANDROID_SWAP_DISMISS: 12000,
 } as const;
@@ -115,6 +113,16 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
+  /**
+   * Non-interactive spot beside Rate. The Rate label opens a tooltip, and the
+   * rate value opens providers, so keypad dismissal taps this instead.
+   */
+  get quoteKeypadDismissTarget(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.QUOTE_KEYPAD_DISMISS_TARGET,
+    );
+  }
+
   /** Token selector testID - matches TokenSelectorItem's getAssetTestId(chainId-symbol). */
   getTokenElementId(chainId: string, symbol: string): string {
     return getAssetTestId(`${chainId}-${symbol}`);
@@ -172,48 +180,102 @@ class QuoteView {
     });
   }
 
-  async tapToken(chainId: string, symbol: string): Promise<void> {
-    let tokenElement = this.getTokenElement(chainId, symbol);
+  /**
+   * Token FlatList is mounted. There is no loading-spinner testID on this
+   * screen, so the list container is the ready signal (same role as
+   * NotificationMenuView.waitForListReady).
+   */
+  async waitForTokenListReady(): Promise<void> {
+    await Assertions.expectElementToExist(
+      Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_LIST),
+      {
+        timeout: TIMEOUT.TOKEN_SELECT,
+        description: 'Bridge token list',
+      },
+    );
+  }
 
-    // Prefer waiting first. Forced scroll on a not-yet-displayed iOS search
-    // hit burns maxScrolls against a stale element (CI fail).
-    try {
-      await Assertions.expectElementToBeVisible(tokenElement, {
-        timeout: 5000,
-        description: `Token ${symbol} visible without scroll`,
-      });
-    } catch {
-      // Keyboard / FlatList clipping can leave rows displayed:false even
-      // after search — force blur again, then wait.
-      await Gestures.dismissKeyboardAfterTokenSearch();
-      if (PlatformDetector.isAndroid()) {
-        try {
-          tokenElement = this.getTokenElement(chainId, symbol);
-          // Gestures.scrollToElement uses Detox direction semantics and inverts
-          // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-          // (matches prior AppiumGestures.scrollIntoView direction: 'up').
-          await Gestures.scrollToElement(
-            tokenElement,
-            Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
+  /**
+   * iOS `mobile: hideKeyboard` tapOutside fails on this TextFieldSearch
+   * ("Did not know how to dismiss the keyboard"), which leaves result rows
+   * displayed:false. The single-line search field blurs on submit, so press
+   * Return while the keyboard is up. Skip the press once it is already gone
+   * so a later scroll pass is not blocked by a missing Return key.
+   */
+  async blurTokenSearch(): Promise<void> {
+    if (!(await Gestures.isKeyboardShown())) {
+      return;
+    }
+    if (PlatformDetector.isAndroid()) {
+      await Gestures.hideKeyboard();
+      return;
+    }
+    await Gestures.tapKeyboardReturnKey('Return');
+  }
+
+  /**
+   * FlatList may not mount the row until it is scrolled into view. One long
+   * scroll budget fails at WDIO's scroll limit; retry short passes until the
+   * token-select timeout, resetting toward the top between attempts.
+   */
+  async scrollTokenIntoView(chainId: string, symbol: string): Promise<void> {
+    let attempt = 0;
+    await Utilities.executeWithRetry(
+      async () => {
+        if (attempt > 0) {
+          await Gestures.swipe(
+            Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_LIST),
+            'down',
             {
-              direction: 'down',
-              elemDescription: `Scroll to token symbol ${symbol}`,
+              speed: 'fast',
+              elemDescription: `Token list scroll toward top for ${symbol}`,
             },
           );
-        } catch {
-          // Token may already be visible after search filters the list.
         }
-      }
+        attempt += 1;
+        // 'down' is inverted for Appium scrollIntoView, so the list moves up.
+        // 10s is about 3 scrolls per pass.
+        await Gestures.scrollToElement(
+          this.getTokenElement(chainId, symbol),
+          Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
+          {
+            direction: 'down',
+            timeout: 10_000,
+            elemDescription: `Scroll to token symbol ${symbol}`,
+          },
+        );
+      },
+      {
+        timeout: TIMEOUT.TOKEN_SELECT,
+        interval: 1_000,
+        description: `Token ${symbol} visible in list`,
+      },
+    );
+  }
+
+  async tapToken(chainId: string, symbol: string): Promise<void> {
+    await this.waitForTokenListReady();
+    let tokenElement = this.getTokenElement(chainId, symbol);
+
+    // A short visible hit skips scroll. Search rows can be mounted but covered
+    // by the keyboard and stay displayed:false.
+    if (!(await Utilities.isElementVisible(tokenElement, 5000))) {
+      await this.blurTokenSearch();
+      tokenElement = this.getTokenElement(chainId, symbol);
+    }
+    if (!(await Utilities.isElementVisible(tokenElement, 5000))) {
+      await this.scrollTokenIntoView(chainId, symbol);
       tokenElement = this.getTokenElement(chainId, symbol);
       await Assertions.expectElementToBeVisible(tokenElement, {
         timeout: TIMEOUT.TOKEN_SELECT,
         description: `Token ${symbol} should be visible`,
       });
     }
+
     await Gestures.waitAndTap(tokenElement, {
       checkForDisplayed: true,
       checkEnabled: true,
-      delay: 1000,
+      delay: 0,
       elemDescription: `Select token symbol ${symbol}`,
     });
   }
@@ -223,11 +285,10 @@ class QuoteView {
       elemDescription: `Search Token with symbol ${symbol}`,
       hideKeyboard: false,
     });
-    // Wait for BridgeTokenSelector debouncedSearch (300ms) + result settle.
-    await sleep(TIMEOUT.TOKEN_SEARCH_SETTLE);
-    // iOS soft keyboard covers the list (rows stay displayed:false).
-    // tapOutside alone is flaky — also tap the pills strip to force blur.
-    await Gestures.dismissKeyboardAfterTokenSearch();
+    // No settle sleep here. The debounced search result is awaited by the
+    // retrying scroll in tapToken (scrollTokenIntoView), not by this method.
+    // Do not tap a screen percentage: ~28% hits network pills and ~42% hits token rows.
+    await this.blurTokenSearch();
   }
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
@@ -257,22 +318,23 @@ class QuoteView {
   }
 
   async dismissKeypad(): Promise<void> {
-    // Prefer the "Rate" label (not rate-arrow-button) when a quote is present —
-    // tapping BRIDGE_VIEW_SCROLL can open QuoteSelectorView (swap providers).
-    // When there is no quote (e.g. RWA geo-block), Rate is absent; fall back
-    // to the scroll view so the keypad can still be dismissed.
+    // The countdown is plain text, so the tap reaches the screen responder and
+    // closes the keypad. Rate opens a tooltip, the rate value opens providers,
+    // and the scroll view can open the quote selector. Static text can report
+    // enabled:false on iOS. If the timer is not mounted, the destination amount
+    // calls keypadRef.close() directly.
     try {
-      await Gestures.waitAndTap(this.rateLabel, {
+      await Gestures.waitAndTap(this.quoteKeypadDismissTarget, {
         checkForDisplayed: true,
-        checkEnabled: true,
+        checkEnabled: false,
         timeout: 5000,
-        elemDescription: 'Tap rate label to dismiss keypad',
+        elemDescription: 'Tap quote timer to dismiss keypad',
       });
     } catch {
-      await Gestures.waitAndTap(this.bridgeViewScroll, {
+      await Gestures.waitAndTap(this.destinationTokenInput, {
         checkForDisplayed: true,
-        checkEnabled: true,
-        elemDescription: 'Tap bridge scroll view to dismiss keypad',
+        checkEnabled: false,
+        elemDescription: 'Tap destination amount to dismiss keypad',
       });
     }
   }

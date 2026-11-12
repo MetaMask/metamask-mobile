@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, View } from 'react-native';
+import { View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   useFocusEffect,
@@ -14,6 +15,10 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
@@ -25,19 +30,19 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontFamily,
   FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import useCurrency from '../../../../Base/Keypad/useCurrency';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -50,7 +55,6 @@ import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -72,6 +76,12 @@ import {
   RAMP_SCREEN_CONTENT_STATE,
   RAMP_V2_SCREEN_ID,
 } from '../../constants/rampScreenPerformance';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { formatAmountWithLocaleSeparators } from '../../../Bridge/utils/formatAmountWithLocaleSeparators';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -134,11 +144,16 @@ export const createBuildQuoteNavDetails = (
 const DEFAULT_AMOUNT = 100;
 
 function BuildQuote() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useBlinkingCursor();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  const amountAnimationEnabled = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
@@ -335,25 +350,41 @@ function BuildQuote() {
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
+  const { decimalSeparator } = useCurrency(currency);
   const { currencyPrefix, currencySuffix } = useMemo(() => {
     const formatted = formatCurrency(1, currency, {
       currencyDisplay: 'narrowSymbol',
     });
-    // Match: prefix (non-digit chars), digits/separators, suffix (non-digit chars)
-    const match = formatted.match(/^([^\d]*?)[\d.,]+\s*([^\d\s].*)?$/);
+    // Keep locale spacing around suffix currencies while separating the digits
+    // so the input cursor remains immediately beside the editable amount.
+    const isDigit = (character: string) => character >= '0' && character <= '9';
+    const firstDigitIndex = [...formatted].findIndex(isDigit);
+    let lastDigitIndex = formatted.length - 1;
+
+    while (lastDigitIndex >= 0 && !isDigit(formatted[lastDigitIndex])) {
+      lastDigitIndex -= 1;
+    }
+
     return {
-      currencyPrefix: match?.[1] ?? '',
-      currencySuffix: match?.[2]?.trim() ?? '',
+      currencyPrefix:
+        firstDigitIndex >= 0 ? formatted.slice(0, firstDigitIndex) : '',
+      currencySuffix:
+        lastDigitIndex >= 0 ? formatted.slice(lastDigitIndex + 1) : '',
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    amount,
+    decimalSeparator,
+  );
 
   const amountDisplayString = useMemo(
-    () => `${currencyPrefix}${amount}${currencySuffix}`,
-    [currencyPrefix, currencySuffix, amount],
+    () => `${currencyPrefix}${formattedAmount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, formattedAmount],
   );
   const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
   const amountLineHeight = amountFontSize + 10;
+  const { styles } = useStyles(styleSheet, { amountFontSize });
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -711,6 +742,19 @@ function BuildQuote() {
       })
     : strings('fiat_on_ramp.no_quotes_available');
 
+  // Same line box as "Powered by …". An empty string collapses, which
+  // shortens the action section and shifts the centered amount.
+  const actionMessagePlaceholder = (
+    <Text
+      accessible={false}
+      testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
+      variant={TextVariant.BodySm}
+      style={styles.poweredByText}
+    >
+      {'\u00a0'}
+    </Text>
+  );
+
   const actionSectionMessage = (() => {
     if (rampsError) {
       return (
@@ -760,21 +804,27 @@ function BuildQuote() {
         </Text>
       );
     }
-    return (
-      <Text
-        testID={BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER}
-        variant={TextVariant.BodySm}
-        style={styles.poweredByText}
-      >
-        {''}
-      </Text>
-    );
+    return actionMessagePlaceholder;
   })();
+
+  const quickAmountsContent =
+    quickAmounts.length > 0 ? (
+      <>
+        {actionMessagePlaceholder}
+        <QuickAmounts
+          amounts={quickAmounts}
+          currency={currency}
+          onAmountPress={handleQuickAmountPress}
+        />
+      </>
+    ) : null;
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             selectedToken?.symbol
               ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
@@ -801,42 +851,31 @@ function BuildQuote() {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
-              <View style={styles.amountRow}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={
-                    amountInputHasError ? TextColor.ErrorDefault : undefined
-                  }
-                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  numberOfLines={1}
-                >
-                  {currencyPrefix}
-                  {amount}
-                </Text>
-                <Animated.View
-                  style={[
-                    styles.cursor,
-                    {
-                      height: Math.max(amountLineHeight - 4, 16),
-                      opacity: cursorOpacity,
-                    },
-                  ]}
-                />
-                {currencySuffix ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
-                    color={
-                      amountInputHasError ? TextColor.ErrorDefault : undefined
-                    }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  >
-                    {currencySuffix}
-                  </Text>
-                ) : null}
-              </View>
+              <AnimatedAmountDisplay
+                accessibilityLabel={amountDisplayString}
+                animated={amountAnimationEnabled}
+                color={
+                  amountInputHasError
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextDefault
+                }
+                containerStyle={styles.amountRow}
+                cursor={{
+                  animated: amountAnimationEnabled,
+                  style: styles.cursor,
+                  testID: BUILD_QUOTE_TEST_IDS.AMOUNT_CURSOR,
+                }}
+                fontFamily={FontFamily.Hero}
+                fontWeight={FontWeight.Regular}
+                prefix={currencyPrefix}
+                style={tw.style(
+                  `text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`,
+                )}
+                suffix={currencySuffix || undefined}
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                value={formattedAmount}
+                variant={TextVariant.BodyMd}
+              />
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||
@@ -897,13 +936,7 @@ function BuildQuote() {
                 )}
               </>
             ) : (
-              quickAmounts.length > 0 && (
-                <QuickAmounts
-                  amounts={quickAmounts}
-                  currency={currency}
-                  onAmountPress={handleQuickAmountPress}
-                />
-              )
+              quickAmountsContent
             )}
           </View>
           <Keypad

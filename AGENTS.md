@@ -99,9 +99,9 @@ scripts/                  # Build and automation scripts
 
 ## Development Guidelines
 
-Before the first edit on any change, follow `mms-planning` and do what it decides.
+For any test work, start with the `mms-mobile-testing` skill. It picks the layer and the references below. Running it is how a change gets a `## Test layer placement` section.
 
-**Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set, whose base skills `yarn install` installs for you (Cursor / Codex / Claude harnesses); `yarn skills` adds every domain:
+The `mms-*` skill set is installed by `yarn install` (base skills for Cursor / Codex / Claude harnesses), and `yarn skills` adds every domain. The guides below are references the skill opens after it picks a layer:
 
 | Guide                                                                                      | Scope                                                                        |
 | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
@@ -227,7 +227,7 @@ Three test types coexist in this repo:
 - **Component view tests** (`*.view.test.tsx`)
 - **E2E tests** (`tests/smoke-appium/`)
 
-For conventions and skill references for each type, read `tests/AGENTS.md`.
+For any test work, start with the `mms-mobile-testing` skill. It picks the layer and the references, and `tests/AGENTS.md` is the in-repo index for each type.
 
 ## A/B Testing Agent Standard
 

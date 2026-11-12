@@ -26,6 +26,9 @@ describe('socialActivityStorage', () => {
     it('returns true for Quick Buy social sources', () => {
       expect(isSocialTradeSource('profile_position')).toBe(true);
       expect(isSocialTradeSource('trader_feed')).toBe(true);
+      expect(isSocialTradeSource('social_trending')).toBe(true);
+      expect(isSocialTradeSource('social_following')).toBe(true);
+      expect(isSocialTradeSource('social_live_trades')).toBe(true);
     });
 
     it('returns true for Bridge social sources', () => {

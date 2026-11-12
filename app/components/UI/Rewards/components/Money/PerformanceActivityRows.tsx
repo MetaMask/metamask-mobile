@@ -3,7 +3,6 @@ import {
   AvatarIcon,
   AvatarIconSeverity,
   AvatarIconSize,
-  AvatarToken,
   AvatarTokenSize,
   Box,
   BoxAlignItems,
@@ -29,11 +28,9 @@ import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const PERFORMANCE_ACTIVITY_TEST_IDS = {
-  COMMISSION_ROW: 'performance-commission-row',
-  REBATE_ROW: 'performance-rebate-row',
-} as const;
+import PositionTokenAvatar from '../../../SocialFeed/components/PositionTokenAvatar';
+import { commissionTokenAvatar } from './commissionTokenAvatar';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows.testIds';
 
 function copiedTimesLabel(
   localizedText: ReferralLocalizedText,
@@ -58,10 +55,9 @@ export const PerformanceCommissionRow: React.FC<{
       twClassName="gap-3"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${item.id}`}
     >
-      <AvatarToken
-        name={name}
+      <PositionTokenAvatar
+        position={commissionTokenAvatar(item.token)}
         size={AvatarTokenSize.Md}
-        testID={`performance-commission-avatar-${item.id}`}
       />
       <Box twClassName="flex-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>

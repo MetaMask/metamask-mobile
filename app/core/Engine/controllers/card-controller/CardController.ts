@@ -1,5 +1,11 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { bytesToHex, numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  bytesToHex,
+  numberToHex,
+  parseCaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -81,8 +87,10 @@ import {
   type CreditWithdrawEstimationResponse,
   type CreditWithdrawParams,
   type CreditWithdrawResponse,
+  type CompleteMoneyAccountLinkParams,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
+  type PrepareMoneyAccountLinkParams,
   type ICardProvider,
   isCardAuthTokenError,
   CardProviderIds,
@@ -95,8 +103,9 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
-import { latestByUpdatedAt } from './utils/cardLinks';
+import { latestByUpdatedAt, pickRoutableCardLink } from './utils/cardLinks';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
@@ -107,12 +116,7 @@ import {
   ExternalTransactionReceiptTimeoutError,
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
-import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { capRedeemAmount } from './utils/redeemAmount';
-import {
-  MONEY_ACCOUNT_DELEGATION_NETWORK,
-  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-} from '../../../../components/UI/Card/util/vedaToken';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -164,6 +168,44 @@ const bucketRedeemAmount = (amount: string): string => {
 interface CardLinkWriteFields {
   address?: string;
   providerCardholderId?: string;
+  promptWalletProof?: boolean;
+}
+
+const HARDWARE_KEYRING_TYPES = new Set<string>([
+  'Ledger Hardware',
+  'QR Hardware Wallet Device',
+  'Trezor Hardware',
+  'Lattice Hardware',
+  'OneKey Hardware',
+]);
+
+function profileIdFromBearer(token: string): string | undefined {
+  const segment = token.split('.')[1];
+  if (!segment) return undefined;
+  try {
+    const json = JSON.parse(
+      Buffer.from(segment, 'base64url').toString('utf8'),
+    ) as { sub?: unknown };
+    return typeof json.sub === 'string' && json.sub ? json.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function cardLinkProofMessage(
+  profileId: string,
+  address: string,
+  issuedAt: string,
+): string {
+  const bare = address.includes(':')
+    ? address.slice(address.lastIndexOf(':') + 1)
+    : address;
+  return [
+    'MetaMask Card link',
+    `Profile: ${profileId.toLowerCase()}`,
+    `Address: ${bare.toLowerCase()}`,
+    `Issued at: ${issuedAt}`,
+  ].join('\n');
 }
 
 const isValidCardLinkField = (value: string | undefined): value is string =>
@@ -425,6 +467,11 @@ export class CardController extends BaseController<
   }
 
   #subscribeToEvents(): void {
+    this.messenger.subscribe('AuthenticationController:profileSignIn', () => {
+      if (this.resetInProgress) return;
+      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks');
+    });
+
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
@@ -606,6 +653,8 @@ export class CardController extends BaseController<
     if (providerChanged) {
       this.#invalidateAndClear();
     }
+    this.#cardLinkSeedAttempted = false;
+    this.#seedCardLinkIfNeededWithLogging();
   }
 
   #resolveProviderForCountry(country: string): CardProviderId {
@@ -714,13 +763,23 @@ export class CardController extends BaseController<
     // No argument: an entropy-source ID returns another profile's token.
     const getToken = () =>
       this.messenger.call('AuthenticationController:getBearerToken');
+    const token = await getToken();
     try {
-      return await call(await getToken());
+      return await call(token);
     } catch (error) {
-      if (error instanceof CardApiError && error.statusCode === 401) {
-        return await call(await getToken());
+      if (!(error instanceof CardApiError) || error.statusCode !== 401) {
+        throw error;
       }
-      throw error;
+      // getBearerToken returns the cached session until it is near expiry, so a
+      // rejected token comes back unchanged unless the session is invalidated.
+      let next = await getToken();
+      if (next === token) {
+        await this.messenger.call(
+          'AuthenticationController:refreshCanonicalProfileId',
+        );
+        next = await getToken();
+      }
+      return await call(next);
     }
   }
 
@@ -887,7 +946,20 @@ export class CardController extends BaseController<
   }
 
   async #doSeedCardLink(caipAccountId: string): Promise<void> {
+    const country = this.state.selectedCountry;
+    if (!country) return;
+
     this.#cardLinkSeedAttempted = true;
+    const providerForCountry = this.#resolveProviderForCountry(country);
+    if (country === 'GB' || providerForCountry !== CardProviderIds.Baanx) {
+      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+        provider: CardProviderIds.Baanx,
+        outcome: 'skipped',
+        skip_reason: country === 'GB' ? 'gb' : 'not_baanx',
+      });
+      return;
+    }
+
     const generation = this.#cardLinksGeneration;
     const outcome = await this.#writeCardLink(
       CardProviderIds.Baanx,
@@ -896,7 +968,10 @@ export class CardController extends BaseController<
       '#seedCardLinkIfNeeded',
     );
     if (outcome !== 'skipped') {
-      this.#trackCardLinkSeeded(outcome);
+      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+        provider: CardProviderIds.Baanx,
+        outcome,
+      });
     }
     if (generation !== this.#cardLinksGeneration) return;
     if (outcome === 'written' || outcome === 'rejected') {
@@ -906,13 +981,14 @@ export class CardController extends BaseController<
     }
   }
 
-  #trackCardLinkSeeded(outcome: 'written' | 'rejected' | 'failed'): void {
+  #trackCardLinkEvent(
+    event: IMetaMetricsEvent,
+    properties: Record<string, string>,
+  ): void {
     try {
       analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.CARD_LINK_SEEDED,
-        )
-          .addProperties({ provider: CardProviderIds.Baanx, outcome })
+        AnalyticsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
           .build(),
       );
     } catch (error) {
@@ -920,10 +996,59 @@ export class CardController extends BaseController<
         tags: { feature: 'card' },
         context: {
           name: 'CardController',
-          data: { method: '#trackCardLinkSeeded' },
+          data: { method: '#trackCardLinkEvent' },
         },
       });
     }
+  }
+
+  #getLinkedCardProviderId(): CardProviderId | null {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    return pickRoutableCardLink(this.state.cardLinks)?.provider ?? null;
+  }
+
+  /** The account whose hash matches the routable link's `linkedAccountRef`. */
+  async findLinkedAccountAddress(addresses?: string[]): Promise<string | null> {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
+    if (!ref) return null;
+
+    const candidates =
+      addresses ??
+      Object.values(
+        this.messenger.call('AccountsController:getState').internalAccounts
+          .accounts,
+      )
+        .filter((account) => isEthAccount(account))
+        .map((account) => account.address);
+
+    for (const address of candidates) {
+      if ((await this.#computeLinkedAccountRef(address)) === ref) {
+        return address;
+      }
+    }
+    return null;
+  }
+
+  async #resolveSignInForLinkedProvider(
+    providerId: CardProviderId,
+    deviceAddresses: string[],
+  ): Promise<CardSignInResolution | null> {
+    const provider = this.providers[providerId];
+    if (!provider) return null;
+
+    const option: CardSignInOption = {
+      providerId,
+      method: provider.capabilities.authMethod,
+    };
+    if (option.method === 'email_password') {
+      return { kind: 'email', option };
+    }
+
+    const address = await this.findLinkedAccountAddress(deviceAddresses);
+    return address
+      ? { kind: 'wallet', option, address, source: 'card_link' }
+      : null;
   }
 
   async recordProviderOnboardingStarted({
@@ -971,7 +1096,11 @@ export class CardController extends BaseController<
     await this.#writeCardLink(
       provider,
       status,
-      { address, providerCardholderId: cardholderId },
+      {
+        address,
+        providerCardholderId: cardholderId,
+        promptWalletProof: true,
+      },
       method,
     );
   }
@@ -1073,7 +1202,7 @@ export class CardController extends BaseController<
       if (generation !== this.#cardLinksGeneration) return 'skipped';
       if (!this.#isCardLinkApiEnabled()) return 'skipped';
 
-      const { address, providerCardholderId } =
+      const { address, providerCardholderId, promptWalletProof } =
         typeof fields === 'function' ? fields() : fields;
       const body: CardLinkWriteBody = { status };
       if (isValidCardLinkField(providerCardholderId)) {
@@ -1085,10 +1214,34 @@ export class CardController extends BaseController<
       if (isValidCardLinkField(linkedAccountRef)) {
         body.linkedAccountRef = linkedAccountRef;
       }
+      if (provider === CardProviderIds.Immersve && address) {
+        const walletProof = await this.#cardLinkWalletProof(
+          address,
+          promptWalletProof === true,
+        );
+        if (walletProof) {
+          body.walletProof = walletProof;
+        }
+      }
 
-      const link = await this.#withCardLinkBearer((token) =>
-        this.cardService.putCardLink(provider, body, token),
-      );
+      const put = (payload: CardLinkWriteBody) =>
+        this.#withCardLinkBearer((token) =>
+          this.cardService.putCardLink(provider, payload, token),
+        );
+      let link;
+      try {
+        link = await put(body);
+      } catch (error) {
+        if (
+          !body.walletProof ||
+          !(error instanceof CardApiError) ||
+          error.statusCode !== 400
+        ) {
+          throw error;
+        }
+        const { walletProof: _walletProof, ...unverified } = body;
+        link = await put(unverified);
+      }
       if (generation === this.#cardLinksGeneration) {
         this.update((s) => {
           s.cardLinks = [
@@ -1105,6 +1258,67 @@ export class CardController extends BaseController<
         ? 'rejected'
         : 'failed';
     }
+  }
+
+  async #cardLinkWalletProof(
+    address: string,
+    prompt: boolean,
+  ): Promise<{ message: string; signature: string } | undefined> {
+    if (!prompt) {
+      try {
+        if (this.#isHardwareAddress(address)) return undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    let token: string;
+    try {
+      token = await this.messenger.call(
+        'AuthenticationController:getBearerToken',
+      );
+    } catch {
+      return undefined;
+    }
+    const profileId = profileIdFromBearer(token);
+    const bare = address.includes(':')
+      ? address.slice(address.lastIndexOf(':') + 1)
+      : address;
+    if (!profileId || !bare) return undefined;
+
+    const message = cardLinkProofMessage(
+      profileId,
+      bare,
+      new Date().toISOString(),
+    );
+    try {
+      const signature = await this.messenger.call(
+        'KeyringController:signPersonalMessage',
+        {
+          data: `0x${Buffer.from(message, 'utf8').toString('hex')}`,
+          from: bare,
+        },
+      );
+      return /^0x[0-9a-fA-F]{130}$/.test(signature)
+        ? { message, signature }
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  #isHardwareAddress(address: string): boolean {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    const { keyrings } = this.messenger.call('KeyringController:getState');
+    return keyrings.some(
+      (keyring) =>
+        HARDWARE_KEYRING_TYPES.has(keyring.type) &&
+        keyring.accounts.some((account) => account.toLowerCase() === bare),
+    );
   }
 
   async #computeLinkedAccountRef(address: string): Promise<string | undefined> {
@@ -1611,6 +1825,37 @@ export class CardController extends BaseController<
     }
   }
 
+  #resolveSignInFromRecord(
+    record: CardSignInLink,
+    walletOption: CardSignInOption,
+    deviceAddresses: string[],
+  ): CardSignInResolution | null {
+    if (!this.#isAddressInList(record.address, deviceAddresses)) {
+      return {
+        kind: 'wallet_account_missing',
+        option: walletOption,
+        address: record.address,
+      };
+    }
+    if (record.status === 'completed' || record.status === 'linked') {
+      return {
+        kind: 'wallet',
+        option: walletOption,
+        address: record.address,
+        source: 'record',
+      };
+    }
+    if (record.status === 'started') {
+      return {
+        kind: 'resume',
+        option: walletOption,
+        address: record.address,
+        stage: record.stage ?? null,
+      };
+    }
+    return null;
+  }
+
   async resolveSignIn({
     country,
     candidateAddresses,
@@ -1633,29 +1878,24 @@ export class CardController extends BaseController<
     const emailOption = options.find((o) => o.method === 'email_password');
 
     if (routingEnabled && record && walletOption) {
-      if (!this.#isAddressInList(record.address, deviceAddresses)) {
-        return {
-          kind: 'wallet_account_missing',
-          option: walletOption,
-          address: record.address,
-        };
-      }
-      if (record.status === 'completed' || record.status === 'linked') {
-        return {
-          kind: 'wallet',
-          option: walletOption,
-          address: record.address,
-          source: 'record',
-        };
-      }
-      if (record.status === 'started') {
-        return {
-          kind: 'resume',
-          option: walletOption,
-          address: record.address,
-          stage: record.stage ?? null,
-        };
-      }
+      const fromRecord = this.#resolveSignInFromRecord(
+        record,
+        walletOption,
+        deviceAddresses,
+      );
+      if (fromRecord) return fromRecord;
+    }
+
+    const linkedProviderId = this.#getLinkedCardProviderId();
+    if (
+      linkedProviderId &&
+      options.some((option) => option.providerId === linkedProviderId)
+    ) {
+      const linkedResolution = await this.#resolveSignInForLinkedProvider(
+        linkedProviderId,
+        deviceAddresses,
+      );
+      if (linkedResolution) return linkedResolution;
     }
 
     if (options.length === 1 && emailOption) {
@@ -1763,24 +2003,37 @@ export class CardController extends BaseController<
       },
     );
 
-    const result = await this.submitCredentials({
+    return this.submitCredentials({
       type: 'siwe',
       signature,
     });
+  }
 
-    if (result.done && !this.getSignInLink()) {
-      this.#writeSignInLink({
-        providerId: option.providerId,
-        status: 'linked',
-        address,
-        providerUserId:
-          result.tokenSet?.providerUserId ??
-          result.tokenSet?.cardholderAccountId,
-        updatedAt: Date.now(),
-      });
+  /**
+   * Drops an in-progress login, including a half-finished MFA challenge,
+   * without clearing stored tokens. Also drops a migration that was waiting
+   * on that login, so the next ordinary sign-in does not write a started link.
+   */
+  abandonAuth(): void {
+    this.currentSession = null;
+    this.#migrationInProgress = false;
+  }
+
+  #linkWalletSignInIfMissing(
+    providerId: NonNullable<CardControllerState['activeProviderId']>,
+    address: string | null | undefined,
+    tokenSet: CardAuthTokens,
+  ): void {
+    if (!address || this.getSignInLink()) {
+      return;
     }
-
-    return result;
+    this.#writeSignInLink({
+      providerId,
+      status: 'linked',
+      address,
+      providerUserId: tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+      updatedAt: Date.now(),
+    });
   }
 
   #writeSignInLink(link: CardSignInLink): void {
@@ -1929,14 +2182,31 @@ export class CardController extends BaseController<
         'submitCredentials: no active provider',
       );
     }
-    const result = await provider.submitCredentials(
-      this.currentSession,
-      credentials,
-    );
+    const sessionAddress =
+      typeof this.currentSession._metadata?.address === 'string'
+        ? this.currentSession._metadata.address
+        : undefined;
+
+    let result: CardAuthResult;
+    try {
+      result = await provider.submitCredentials(
+        this.currentSession,
+        credentials,
+      );
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.AuthRestartRequired
+      ) {
+        this.currentSession = null;
+      }
+      throw error;
+    }
 
     if (result.nextStep) {
       this.currentSession = {
         ...this.currentSession,
+        id: result.nextSessionId ?? this.currentSession.id,
         currentStep: result.nextStep,
       };
     } else {
@@ -1970,29 +2240,36 @@ export class CardController extends BaseController<
         ] = { location: tokenSet.location };
       });
 
+      const completesWalletSignIn =
+        credentials.type === 'siwe' || credentials.type === 'mfa_code';
+      const linkAddress = completesWalletSignIn
+        ? (sessionAddress ??
+          tokenSet.accountAddress ??
+          this.#getSelectedEvmAddress())
+        : undefined;
+
       if (this.#migrationInProgress) {
         this.#migrationInProgress = false;
-        if (credentials.type === 'siwe') {
-          const address =
-            (typeof this.currentSession?._metadata?.address === 'string'
-              ? this.currentSession._metadata.address
-              : undefined) ??
-            tokenSet.accountAddress ??
-            this.#getSelectedEvmAddress();
-          if (address) {
-            this.#writeSignInLink({
-              providerId: pid,
-              status: 'started',
-              address,
-              providerUserId:
-                tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
-              stage: 'identity',
-              updatedAt: Date.now(),
-            });
-          }
+        if (completesWalletSignIn && linkAddress) {
+          this.#writeSignInLink({
+            providerId: pid,
+            status: 'started',
+            address: linkAddress,
+            providerUserId:
+              tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          });
         }
+      } else if (completesWalletSignIn) {
+        this.#linkWalletSignInIfMissing(pid, linkAddress, tokenSet);
       }
 
+      if (this.#isCardLinkApiEnabled() && this.state.cardLinks?.length === 0) {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN, {
+          provider: pid,
+        });
+      }
       if (pid === CardProviderIds.Baanx) {
         this.#recordProviderLoginWithLogging(pid, 'active');
       }
@@ -2015,6 +2292,23 @@ export class CardController extends BaseController<
     }
     const provider = this.getActiveProvider();
     await provider.executeStepAction?.(this.currentSession);
+  }
+
+  async requestEmailLoginCode(email: string): Promise<void> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: no active auth session',
+      );
+    }
+    const provider = this.getActiveProvider();
+    if (!provider.requestEmailLoginCode) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: provider does not support email codes',
+      );
+    }
+    await provider.requestEmailLoginCode(email);
   }
 
   async logout(): Promise<void> {
@@ -2165,6 +2459,15 @@ export class CardController extends BaseController<
     if (!isAuthenticated) return;
     this.#invalidateAndClear();
     await this.fetchCardHomeData({ force: true });
+    const home = this.state.cardHomeData as {
+      account?: { verificationStatus?: string };
+    } | null;
+    this.#recordProviderLoginWithLogging(
+      CardProviderIds.Baanx,
+      home?.account?.verificationStatus === 'VERIFIED'
+        ? 'active'
+        : 'onboarding',
+    );
   }
 
   // -- Token helpers --
@@ -2521,6 +2824,28 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
   }
 
+  /**
+   * Funding source id for this Money account address on the active provider's
+   * channel. Reuses a matching source, or creates one.
+   */
+  async resolveMoneyAccountFundingSourceId(
+    moneyAccountAddress: string,
+  ): Promise<string> {
+    const provider = this.getActiveProvider();
+    const resolveMoneyAccountFundingSource =
+      provider.resolveMoneyAccountFundingSource?.bind(provider);
+    if (!resolveMoneyAccountFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account funding source resolution not supported',
+      );
+    }
+    const source = await this.#withAuthRetry((tokens) =>
+      resolveMoneyAccountFundingSource(moneyAccountAddress, tokens),
+    );
+    return source.id;
+  }
+
   async createFundingSource(): Promise<CardFundingSourceResult> {
     const provider = this.getActiveProvider();
     const createFundingSource = provider.createFundingSource?.bind(provider);
@@ -2743,32 +3068,25 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Links a primary Money Account to Card by approving a Monad USDC allowance
-   * to the active provider's delegation contract and completing the provider's
-   * funding flow. The approval transaction is submitted via
+   * Links a primary Money account to Card by approving the provider's spender
+   * from the Money account and completing that provider's funding flow.
+   *
+   * Provider-specific work (Baanx delegation challenge and post-approval,
+   * Immersve funding source and card creation) lives in
+   * `prepareMoneyAccountLink` / `completeMoneyAccountLink`. The approval
+   * itself is always a gas-sponsored ERC-20 approve via
    * `TransactionController:addTransactionBatch` with `requireApproval: false`
-   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
-   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
-   * fee. This is the background linkage path UI hooks consume.
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal.
    *
-   * Pre-flight enforces one invariant before submission: the Monad gas
-   * sponsorship feature flag must be enabled (the relay must accept
-   * sponsorship for this chain).
+   * Pre-flight enforces one invariant before any provider call: Monad gas
+   * sponsorship must be enabled.
    *
-   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
-   * when the Money Account has no existing delegation, the hook auto-signs a
-   * 7702 authorization and bundles it in the same Sentinel relay request as
-   * the approve. No separate upgrade step is required here.
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`
+   * when the Money account has no existing delegation.
    *
-   * Race-safe by construction: subscribes to
-   * `TransactionController:transactionConfirmed` BEFORE submitting the
-   * transaction (see `awaitTransactionConfirmed`).
-   *
-   *
-   * @param params.moneyAccountAddress - The primary Money Account address.
-   * @param params.delegationAmountHuman - Allowance in human-readable units
-   * (e.g. `"2199023255551"`); converted to minimal units using the token's
-   * decimals. Pass `"0"` to revoke.
+   * @param params.moneyAccountAddress - The primary Money account address.
+   * @param params.delegationAmountHuman - Allowance in human-readable units.
+   * Pass `"0"` to revoke.
    */
   async linkMoneyAccountCard(params: {
     moneyAccountAddress: string;
@@ -2821,94 +3139,55 @@ export class CardController extends BaseController<
     // Fail fast before any transaction work when there is no usable session.
     await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (
-      !provider.fetchDelegationChallenge ||
-      !provider.approveFunding ||
-      !provider.generateCardDelegationSignatureMessage
-    ) {
+    const prepare = provider.prepareMoneyAccountLink?.bind(provider);
+    const complete = provider.completeMoneyAccountLink?.bind(provider);
+    if (!prepare || !complete) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Money account card delegation is not supported for this provider',
       );
     }
 
-    const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
-    if (!cardToken) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token unavailable',
-      );
-    }
+    const delegationSettings =
+      await this.#resolveMoneyAccountDelegationSettingsOrRefetch();
+    const preparation = await this.#withAuthRetry((tokens) =>
+      prepare(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          delegationSettings,
+        } satisfies PrepareMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
 
-    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
-    if (!tokenAddress) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token address missing',
-      );
-    }
-    if (!cardToken.delegationContract) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card delegation contract missing',
-      );
-    }
+    const chainNumber = Number(
+      parseCaipChainId(preparation.caipChainId).reference,
+    );
+    this.#assertGasSponsorship(chainNumber);
+
+    const signatureMessage = preparation.context.signatureMessage;
+    const sigHash = signatureMessage
+      ? await this.messenger.call('KeyringController:signPersonalMessage', {
+          data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+          from: fromAddress,
+        })
+      : undefined;
 
     const amountInMinimalUnits = toTokenMinimalUnit(
       delegationAmountHuman,
-      cardToken.decimals ?? 6,
+      preparation.decimals,
     ).toString();
     const data = encodeErc20ApproveCalldata(
-      cardToken.delegationContract,
+      preparation.spender,
       amountInMinimalUnits,
-    );
-
-    const chainNumber = parseInt(
-      cardToken.caipChainId?.split(':')[1] ?? '143',
-      10,
     );
     const hexChainId = numberToHex(chainNumber) as Hex;
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       hexChainId,
     );
-
-    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
-    // link approve is submitted with `isGasFeeSponsored: true`, so if the
-    // server-side sponsorship is disabled we must refuse before the relay
-    // call — otherwise the publish hook would reject and the user would see
-    // a generic link-failed toast with no actionable reason.
-    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
-      ReduxService.store.getState() as RootState,
-    )(hexChainId);
-    if (!isMonadSponsorshipEnabled) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Monad gas sponsorship unavailable',
-      );
-    }
-
-    // Public wrappers carry the 401 refresh-retry; the transaction flow in
-    // between can outlive the access token that passed the guard above.
-    const { delegationToken, nonce } = await this.fetchDelegationChallenge({
-      network: 'monad',
-      address: fromAddress,
-    });
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
+    const tokenAddress = preparation.tokenAddress;
 
     const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
       messenger: this
@@ -2947,16 +3226,18 @@ export class CardController extends BaseController<
 
     const txHash = confirmedMeta.hash ?? '';
 
-    await this.approveFunding({
-      address: fromAddress,
-      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
-      currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-      amount: delegationAmountHuman,
-      txHash,
-      sigHash,
-      sigMessage: signatureMessage,
-      token: delegationToken,
-    });
+    await this.#withAuthRetry((tokens) =>
+      complete(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          txHash,
+          sigHash,
+          context: preparation.context,
+        } satisfies CompleteMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
 
     try {
       await this.fetchCardHomeData({ force: true });
@@ -2968,13 +3249,39 @@ export class CardController extends BaseController<
     }
   }
 
-  async #resolveMoneyAccountCardTokenOrRefetch() {
+  #assertGasSponsorship(chainNumber: number): void {
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const isEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Gas sponsorship unavailable for chain ${chainNumber}`,
+      );
+    }
+  }
+
+  async #resolveMoneyAccountDelegationSettingsOrRefetch() {
     const fromState = () => {
       const data = this.state.cardHomeData as unknown as CardHomeData | null;
-      return resolveMoneyAccountCardToken(data?.delegationSettings ?? null);
+      return data?.delegationSettings ?? null;
     };
-    const existing = fromState();
-    if (existing) return existing;
+    const settings = fromState();
+
+    // Only providers that spend the Veda token need these settings. A
+    // persisted object without Monad/Veda is stale and has to be refreshed.
+    // Other providers ignore the settings, and a home-data fetch must not
+    // block their link.
+    if (
+      !this.getActiveProvider().capabilities.usesMoneyAccountDelegationSettings
+    ) {
+      return settings;
+    }
+
+    if (resolveMoneyAccountCardToken(settings)) {
+      return settings;
+    }
 
     await this.fetchCardHomeData({ force: true });
     return fromState();

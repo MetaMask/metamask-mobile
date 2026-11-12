@@ -149,7 +149,28 @@ describe('getVbaDestinationForSnapshot', () => {
           autorampStatus: 'ready',
         }),
       ],
+      [
+        'usable account after reinstall wiped local onboarding',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: false,
+          sessionDisclaimersComplete: false,
+          kycStatus: 'approved',
+          autorampStatus: 'ready',
+        }),
+      ],
       ['kyc rejected', snapshot({ kycStatus: 'rejected' })],
+      ['kyc retry', snapshot({ kycStatus: 'retry' })],
+      [
+        'kyc retry after the provider flow was abandoned',
+        snapshot({
+          sessionExists: true,
+          vendorDisclaimersComplete: true,
+          sessionDisclaimersComplete: true,
+          providerFlowStatus: 'abandoned',
+          kycStatus: 'retry',
+        }),
+      ],
     ];
 
     expect(
@@ -168,6 +189,8 @@ describe('getVbaDestinationForSnapshot', () => {
         "email and vendor terms done": "identityVerification",
         "empty": "vendorTerms",
         "kyc rejected": "kycRejected",
+        "kyc retry": "kycRejected",
+        "kyc retry after the provider flow was abandoned": "kycRejected",
         "needs wallet registration": "identityVerified",
         "provider done": "identityVerification",
         "session exists without vendor disclaimers recorded": "identityVerification",
@@ -177,9 +200,50 @@ describe('getVbaDestinationForSnapshot', () => {
         "sumsub submitted and account ready": "complete",
         "sumsub submitted before review": "kycPending",
         "sumsub submitted but kyc retry": "identityVerification",
+        "usable account after reinstall wiped local onboarding": "complete",
         "vendor terms done": "email",
       }
     `);
+  });
+
+  it('opens the completed account when a usable autoramp remains after reinstall', () => {
+    const facts = snapshot({
+      sessionExists: false,
+      vendorTermsAcceptedLocally: false,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      kycStatus: 'approved',
+      autorampStatus: 'ready',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('complete');
+  });
+
+  it('keeps a rejected applicant on the failure screen when an autoramp is ready', () => {
+    const facts = snapshot({
+      kycStatus: 'rejected',
+      autorampStatus: 'ready',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('kycRejected');
+  });
+
+  it('routes a reattached provider-pending session to the pending screen after reinstall', () => {
+    const facts = snapshot({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'pending',
+    });
+
+    const destination = getVbaDestinationForSnapshot(facts);
+
+    expect(destination).toBe('kycPending');
   });
 
   it('routes a missing snapshot to the recoverable error screen', () => {

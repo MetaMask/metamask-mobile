@@ -31,6 +31,7 @@ import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
+import { InsufficientBalanceBanner } from './InsufficientBalanceBanner';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -46,6 +47,7 @@ export const LimitOrderConfirmationModal = ({
   delegationFee,
   feeToken,
   usdExchangeRate,
+  insufficientBalance,
   primaryButton,
   error,
   onClose,
@@ -117,6 +119,10 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
+      <InsufficientBalanceBanner
+        insufficientBalance={insufficientBalance}
+        sourceTokenSymbol={sourceToken?.symbol ?? ''}
+      />
       {usdExchangeRate && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert

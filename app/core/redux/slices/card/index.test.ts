@@ -12,6 +12,8 @@ import cardReducer, {
   selectConsentSetId,
   setPendingMoneyAccountCardLink,
   selectPendingMoneyAccountCardLink,
+  setImmersveFundingSettling,
+  selectImmersveFundingSettling,
 } from '.';
 import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
@@ -25,8 +27,10 @@ const CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+  immersveFundingSettling: false,
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,8 +43,10 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
     immersveFundingSourceId: null,
   },
   pendingMoneyAccountCardLink: null,
+  immersveFundingSettling: false,
   cardArrivalAnimationSeen: false,
   cardArrivalPreviewRequested: false,
+  applePaySplashSeen: false,
 };
 
 describe('Card Selectors', () => {
@@ -147,8 +153,10 @@ describe('Card Reducer', () => {
           immersveFundingSourceId: null,
         },
         pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        immersveFundingSettling: false,
         cardArrivalAnimationSeen: true,
         cardArrivalPreviewRequested: false,
+        applePaySplashSeen: false,
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -181,6 +189,27 @@ describe('Card Reducer', () => {
           setPendingMoneyAccountCardLink(null),
         );
         expect(state.pendingMoneyAccountCardLink).toBeNull();
+      });
+    });
+
+    describe('setImmersveFundingSettling', () => {
+      it('stores and clears the session settling flag', () => {
+        const settling = cardReducer(
+          initialState,
+          setImmersveFundingSettling(true),
+        );
+        expect(settling.immersveFundingSettling).toBe(true);
+        expect(
+          selectImmersveFundingSettling({
+            card: settling,
+          } as unknown as RootState),
+        ).toBe(true);
+
+        const cleared = cardReducer(
+          settling,
+          setImmersveFundingSettling(false),
+        );
+        expect(cleared.immersveFundingSettling).toBe(false);
       });
     });
 

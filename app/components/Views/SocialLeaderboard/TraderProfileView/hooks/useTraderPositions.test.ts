@@ -1,7 +1,14 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import {
+  focusManager,
+  useInfiniteQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import type { PositionsResponse, Position } from '@metamask/social-controllers';
 import { addBreadcrumb } from '@sentry/react-native';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { useTraderPositions } from './useTraderPositions';
@@ -20,6 +27,17 @@ jest.mock('../../../../../util/Logger', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@tanstack/react-query', () => ({
+  focusManager: { isFocused: jest.fn(() => true) },
+  useInfiniteQuery: jest.fn(),
+  useQueryClient: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: { controllerMessenger: { call: jest.fn() } },
+}));
+
 jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
 }));
@@ -28,6 +46,42 @@ const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
 
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseInfiniteQuery = useInfiniteQuery as unknown as jest.Mock;
+const mockUseQueryClient = useQueryClient as unknown as jest.Mock;
+const mockIsFocused = focusManager.isFocused as unknown as jest.Mock;
+const mockEngineCall = Engine.controllerMessenger.call as unknown as jest.Mock;
+
+const mockSetQueryData = jest.fn();
+const mockQueryClient = { setQueryData: mockSetQueryData };
+
+const makeInfiniteQueryResult = (overrides: Record<string, unknown> = {}) => ({
+  data: undefined,
+  isLoading: false,
+  isFetchingNextPage: false,
+  hasNextPage: false,
+  fetchNextPage: jest.fn().mockResolvedValue(undefined),
+  refetch: jest.fn().mockResolvedValue(undefined),
+  error: null,
+  ...overrides,
+});
+
+/** Builds one API page whose positions are identified by `ids`. */
+const makePage = (
+  ids: string[],
+  hasMore = false,
+  nextPage?: number,
+): PositionsResponse =>
+  ({
+    positions: ids.map(
+      (id) =>
+        ({
+          positionId: id,
+          tokenAddress: `0x${id}`,
+          chain: 'ethereum',
+        }) as unknown as Position,
+    ),
+    pagination: { hasMore, nextPage },
+  }) as PositionsResponse;
 
 const makeQueryResult = (
   overrides: Partial<ReturnType<typeof useQuery>> = {},
@@ -83,6 +137,10 @@ describe('useTraderPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
+    mockUseInfiniteQuery.mockReturnValue(makeInfiniteQueryResult());
+    mockUseQueryClient.mockReturnValue(mockQueryClient);
+    mockIsFocused.mockReturnValue(true);
+    mockEngineCall.mockReset();
     mockAddBreadcrumb.mockClear();
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsUnlocked) return true;
@@ -546,6 +604,392 @@ describe('useTraderPositions', () => {
         const serialised = JSON.stringify(breadcrumb);
         expect(serialised).not.toContain('0xSensitiveAddress');
       });
+    });
+  });
+
+  describe('single-page mode (paginated omitted)', () => {
+    it('keeps the infinite queries disabled', () => {
+      renderHook(() => useTraderPositions('trader-1'));
+
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('reports no more pages and a no-op loadMore', () => {
+      const { result } = renderHook(() => useTraderPositions('trader-1'));
+
+      expect(result.current.hasMoreOpen).toBe(false);
+      expect(result.current.hasMoreClosed).toBe(false);
+      expect(result.current.isFetchingMoreOpen).toBe(false);
+      expect(result.current.isFetchingMoreClosed).toBe(false);
+      expect(() => result.current.loadMoreOpen?.()).not.toThrow();
+    });
+
+    it('does not poll the first page even when a refetch interval is set', () => {
+      jest.useFakeTimers();
+      renderHook(() =>
+        useTraderPositions('trader-1', { refetchInterval: 30_000 }),
+      );
+
+      jest.advanceTimersByTime(60_000);
+
+      expect(mockEngineCall).not.toHaveBeenCalled();
+      expect(mockSetQueryData).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+  });
+
+  describe('paginated mode', () => {
+    it('reads both tabs through infinite queries and disables the single-page queries', () => {
+      renderHook(() => useTraderPositions('trader-1', { paginated: true }));
+
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchOpenPositions',
+            { addressOrId: 'trader-1', limit: 100 },
+            'infinite',
+          ],
+          enabled: true,
+          initialPageParam: 1,
+        }),
+      );
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          queryKey: [
+            'SocialService:fetchClosedPositions',
+            { addressOrId: 'trader-1', sort: 'latest', limit: 100 },
+            'infinite',
+          ],
+          enabled: true,
+          initialPageParam: 1,
+        }),
+      );
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+      expect(mockUseQuery.mock.calls[1][0]).toEqual(
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('turns off focus and reconnect refetches on both infinite queries', () => {
+      renderHook(() => useTraderPositions('trader-1', { paginated: true }));
+
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
+      );
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          refetchOnWindowFocus: false,
+          refetchOnReconnect: false,
+        }),
+      );
+    });
+
+    it('does not forward the refetch interval to the infinite queries', () => {
+      renderHook(() =>
+        useTraderPositions('trader-1', {
+          paginated: true,
+          refetchInterval: 30_000,
+        }),
+      );
+
+      expect(mockUseInfiniteQuery.mock.calls[0][0]).not.toHaveProperty(
+        'refetchInterval',
+      );
+      expect(mockUseQuery.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ refetchInterval: undefined }),
+      );
+    });
+
+    it('stays disabled when the wallet is locked', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectIsUnlocked) return false;
+        return undefined;
+      });
+
+      renderHook(() => useTraderPositions('trader-1', { paginated: true }));
+
+      expect(mockUseInfiniteQuery).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ enabled: false }),
+      );
+    });
+
+    it('flattens loaded pages in order and drops duplicate positions', () => {
+      mockUseInfiniteQuery.mockReturnValueOnce(
+        makeInfiniteQueryResult({
+          data: {
+            pages: [makePage(['a', 'b'], true, 2), makePage(['b', 'c'])],
+            pageParams: [1, 2],
+          },
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      expect(
+        result.current.openPositions.map((position) => position.positionId),
+      ).toEqual(['a', 'b', 'c']);
+    });
+
+    it('reports hasMore per tab from the infinite queries', () => {
+      mockUseInfiniteQuery
+        .mockReturnValueOnce(makeInfiniteQueryResult({ hasNextPage: true }))
+        .mockReturnValueOnce(makeInfiniteQueryResult({ hasNextPage: false }));
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      expect(result.current.hasMoreOpen).toBe(true);
+      expect(result.current.hasMoreClosed).toBe(false);
+    });
+
+    it('loads the next open page when one is available', () => {
+      const fetchNextPage = jest.fn().mockResolvedValue(undefined);
+      mockUseInfiniteQuery.mockReturnValueOnce(
+        makeInfiniteQueryResult({ hasNextPage: true, fetchNextPage }),
+      );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      act(() => {
+        result.current.loadMoreOpen?.();
+      });
+
+      expect(fetchNextPage).toHaveBeenCalledTimes(1);
+      expect(fetchNextPage).toHaveBeenCalledWith({ cancelRefetch: false });
+    });
+
+    it('does not load more when no page is left', () => {
+      const fetchNextPage = jest.fn().mockResolvedValue(undefined);
+      mockUseInfiniteQuery.mockReturnValueOnce(
+        makeInfiniteQueryResult({ hasNextPage: false, fetchNextPage }),
+      );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      act(() => {
+        result.current.loadMoreOpen?.();
+      });
+
+      expect(fetchNextPage).not.toHaveBeenCalled();
+    });
+
+    it('does not start a second page while one is in flight', () => {
+      const fetchNextPage = jest.fn().mockResolvedValue(undefined);
+      mockUseInfiniteQuery.mockReturnValueOnce(
+        makeInfiniteQueryResult({
+          hasNextPage: true,
+          isFetchingNextPage: true,
+          fetchNextPage,
+        }),
+      );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      expect(result.current.isFetchingMoreOpen).toBe(true);
+      act(() => {
+        result.current.loadMoreOpen?.();
+      });
+
+      expect(fetchNextPage).not.toHaveBeenCalled();
+    });
+
+    it('logs the paginated open error under the open-positions operation', () => {
+      const error = new Error('page 2 failed');
+      mockUseInfiniteQuery.mockReturnValueOnce(
+        makeInfiniteQueryResult({ error }),
+      );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      expect(result.current.openError).toBe('page 2 failed');
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            operation: 'fetch_open_positions',
+          }),
+        }),
+      );
+    });
+
+    it('starts over at page 1 on refetch by dropping later pages first', async () => {
+      const refetchOpen = jest.fn().mockResolvedValue(undefined);
+      const refetchClosed = jest.fn().mockResolvedValue(undefined);
+      mockUseInfiniteQuery
+        .mockReturnValueOnce(makeInfiniteQueryResult({ refetch: refetchOpen }))
+        .mockReturnValueOnce(
+          makeInfiniteQueryResult({ refetch: refetchClosed }),
+        );
+
+      const { result } = renderHook(() =>
+        useTraderPositions('trader-1', { paginated: true }),
+      );
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(mockSetQueryData).toHaveBeenCalledTimes(2);
+      const [openKey, openUpdater] = mockSetQueryData.mock.calls[0];
+      expect(openKey).toEqual([
+        'SocialService:fetchOpenPositions',
+        { addressOrId: 'trader-1', limit: 100 },
+        'infinite',
+      ]);
+      const twoPages = {
+        pages: [makePage(['a']), makePage(['b'])],
+        pageParams: [1, 2],
+      };
+      expect(openUpdater(twoPages).pages).toHaveLength(1);
+      expect(refetchOpen).toHaveBeenCalledTimes(1);
+      expect(refetchClosed).toHaveBeenCalledTimes(1);
+    });
+
+    it('polls only page 1 for each tab on the interval', async () => {
+      jest.useFakeTimers();
+      const freshFirstPage = makePage(['fresh']);
+      mockEngineCall.mockResolvedValue(freshFirstPage);
+
+      renderHook(() =>
+        useTraderPositions('trader-1', {
+          paginated: true,
+          refetchInterval: 30_000,
+        }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'SocialService:fetchOpenPositions',
+        { addressOrId: 'trader-1', limit: 100, page: 1 },
+      );
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'SocialService:fetchClosedPositions',
+        { addressOrId: 'trader-1', sort: 'latest', limit: 100, page: 1 },
+      );
+      expect(mockSetQueryData).toHaveBeenCalledTimes(2);
+
+      const [, openUpdater] = mockSetQueryData.mock.calls[0];
+      const loaded = {
+        pages: [makePage(['old-1']), makePage(['older-2'])],
+        pageParams: [1, 2],
+      };
+      const updated = openUpdater(loaded);
+      expect(updated.pages[0]).toBe(freshFirstPage);
+      expect(updated.pages[1]).toBe(loaded.pages[1]);
+      expect(updated.pageParams).toEqual([1, 2]);
+      jest.useRealTimers();
+    });
+
+    it('skips the poll while the app is unfocused', async () => {
+      jest.useFakeTimers();
+      mockIsFocused.mockReturnValue(false);
+
+      renderHook(() =>
+        useTraderPositions('trader-1', {
+          paginated: true,
+          refetchInterval: 30_000,
+        }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockEngineCall).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('does not poll without a refetch interval', async () => {
+      jest.useFakeTimers();
+
+      renderHook(() => useTraderPositions('trader-1', { paginated: true }));
+
+      await act(async () => {
+        jest.advanceTimersByTime(120_000);
+      });
+
+      expect(mockEngineCall).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('stops polling on unmount', async () => {
+      jest.useFakeTimers();
+
+      const { unmount } = renderHook(() =>
+        useTraderPositions('trader-1', {
+          paginated: true,
+          refetchInterval: 30_000,
+        }),
+      );
+      unmount();
+
+      await act(async () => {
+        jest.advanceTimersByTime(60_000);
+      });
+
+      expect(mockEngineCall).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
+    it('logs a failed page-1 poll and leaves cached pages untouched', async () => {
+      jest.useFakeTimers();
+      const pollError = new Error('poll failed');
+      mockEngineCall.mockRejectedValue(pollError);
+
+      renderHook(() =>
+        useTraderPositions('trader-1', {
+          paginated: true,
+          refetchInterval: 30_000,
+        }),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockSetQueryData).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        pollError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            operation: 'refetch_positions',
+          }),
+        }),
+      );
+      jest.useRealTimers();
     });
   });
 });

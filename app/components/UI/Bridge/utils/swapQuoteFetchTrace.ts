@@ -13,6 +13,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import ReduxService from '../../../../core/redux';
+import type { RootState } from '../../../../reducers';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 
 export type SwapQuoteFetchTraceResult =
@@ -28,6 +29,51 @@ interface StartSwapQuoteFetchTraceParams {
 }
 
 let activeTraceId: string | undefined;
+let stopWatchingQuotes: (() => void) | undefined;
+
+const unwatchQuotes = (): void => {
+  try {
+    stopWatchingQuotes?.();
+  } catch {
+    // Telemetry only.
+  }
+  stopWatchingQuotes = undefined;
+};
+
+// Reads phase times from Redux after each dispatch, so nothing runs inside the
+// controller's quote processing. quotesLastFetched is set by the controller
+// just before it fetches; quotes present at span start are stale.
+const watchQuotePhases = (id: string, startTime: number): void => {
+  try {
+    const { store } = ReduxService;
+    const getBridgeState = () =>
+      (store.getState() as RootState).engine.backgroundState.BridgeController;
+    const staleQuotes = getBridgeState().quotes;
+    let requestSentMarked = false;
+    stopWatchingQuotes = store.subscribe(() => {
+      try {
+        const { quotes, quotesLastFetched } = getBridgeState();
+        const span = { name: TraceName.SwapQuoteFetch, id };
+        if (!requestSentMarked && (quotesLastFetched ?? 0) >= startTime) {
+          requestSentMarked = true;
+          annotateTraceByRequest(span, {
+            request_sent_ms: (quotesLastFetched ?? 0) - startTime,
+          });
+        }
+        if (quotes.length > 0 && quotes !== staleQuotes) {
+          annotateTraceByRequest(span, {
+            first_quote_in_state_ms: Date.now() - startTime,
+          });
+          unwatchQuotes();
+        }
+      } catch {
+        unwatchQuotes();
+      }
+    });
+  } catch {
+    stopWatchingQuotes = undefined;
+  }
+};
 
 const finishTrace = (
   result: SwapQuoteFetchTraceResult,
@@ -50,6 +96,7 @@ const finishTrace = (
     },
   });
   activeTraceId = undefined;
+  unwatchQuotes();
 };
 
 export const swapQuoteFetchTrace = {
@@ -74,6 +121,7 @@ export const swapQuoteFetchTrace = {
       swapType =
         srcChainIdInCaip === destChainIdInCaip ? 'single_chain' : 'crosschain';
     }
+    const startTime = Date.now();
     trace({
       name: TraceName.SwapQuoteFetch,
       op: TraceOperation.BridgeDataFetch,
@@ -89,18 +137,23 @@ export const swapQuoteFetchTrace = {
           dest_chain_id: destChainIdInCaip,
         }),
       },
-      startTime: Date.now(),
+      startTime,
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
-    annotateTraceByRequest(
-      { name: TraceName.SwapQuoteFetch, id },
-      {
-        first_quote_flush_enabled:
-          selectRemoteFeatureFlags(ReduxService.store.getState())
-            .bridgeFirstQuoteFlushEnabled === true,
-      },
-    );
+    try {
+      annotateTraceByRequest(
+        { name: TraceName.SwapQuoteFetch, id },
+        {
+          first_quote_flush_enabled:
+            selectRemoteFeatureFlags(ReduxService.store.getState())
+              .bridgeFirstQuoteFlushEnabled === true,
+        },
+      );
+    } catch {
+      // Telemetry only.
+    }
+    watchQuotePhases(id, startTime);
     return id;
   },
 

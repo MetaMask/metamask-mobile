@@ -8,11 +8,7 @@ import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import {
-  Button,
-  ButtonVariant,
-  HeaderStandard,
-} from '@metamask/design-system-react-native';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -25,6 +21,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { SDKSelectorsIDs } from '../SDK.testIds';
 import SDKSessionItem from './SDKSessionItem';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const createStyles = (
   colors: ThemeColors,
@@ -69,6 +67,7 @@ const createStyles = (
   });
 
 const SDKSessionsManager = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const safeAreaInsets = useSafeAreaInsets();
   const route =
     useRoute<RouteProp<{ params: { trigger?: number } }, 'params'>>();
@@ -153,7 +152,9 @@ const SDKSessionsManager = () => {
       style={styles.wrapper}
       testID={SDKSelectorsIDs.SESSION_MANAGER_CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.manage_sdk_connections_title')}
         onBack={handleBack}
         includesTopInset

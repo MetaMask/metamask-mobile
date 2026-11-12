@@ -8,6 +8,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -16,6 +17,8 @@ import {
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v4/multiaccount/transactions';
+const moneyTransactionsPath = (address: string): string =>
+  `/v1/accounts/${address}/transactions`;
 
 export interface MockAccountsApiTransaction {
   hash: string;
@@ -37,27 +40,74 @@ const defaultPageInfo = {
   endCursor: undefined as string | undefined,
 };
 
-export function setupAccountsTransactionsApiMock(
+const buildTransactionsResponse = (
   transactions: MockAccountsApiTransaction[],
-): void {
+) => ({
+  data: transactions,
+  pageInfo: {
+    ...defaultPageInfo,
+    count: transactions.length,
+  },
+});
+
+function mockAccountsApiGet(path: string, body: object): void {
   clearAllNockMocks();
   disableNetConnect();
 
-  nock(ACCOUNTS_API_ORIGIN)
-    .persist()
-    .get(TRANSACTIONS_PATH)
-    .query(true)
-    .reply(200, {
-      data: transactions,
-      pageInfo: {
-        ...defaultPageInfo,
-        count: transactions.length,
-      },
-    });
+  nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, body);
+  // Same payload as nock. undici fetch is not always settled by the interceptor.
+  stubFetchPath(ACCOUNTS_API_ORIGIN, path, body);
 }
 
-export function clearAccountsTransactionsApiMocks(): void {
+export function setupAccountsTransactionsApiMock(
+  transactions: MockAccountsApiTransaction[],
+): void {
+  mockAccountsApiGet(
+    TRANSACTIONS_PATH,
+    buildTransactionsResponse(transactions),
+  );
+}
+
+export interface MockMoneyActivityTransaction {
+  hash: string;
+  timestamp: string;
+  chainId: number;
+  blockNumber?: number;
+  from: string;
+  to: string;
+  isError?: boolean;
+  transactionType?: string;
+  methodId?: string;
+  valueTransfers?: {
+    from: string;
+    to: string;
+    amount: string;
+    decimal: number;
+    contractAddress: string;
+    symbol: string;
+  }[];
+}
+
+export function setupMoneyActivityApiMock(
+  address: string,
+  transactions: MockMoneyActivityTransaction[],
+): void {
+  mockAccountsApiGet(moneyTransactionsPath(address), {
+    data: transactions,
+    pageInfo: {
+      count: transactions.length,
+      hasNextPage: false,
+      cursor: undefined,
+    },
+  });
+}
+
+export function clearAccountsTransactionsApiMocks(address?: string): void {
+  restoreFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH);
+  if (address) {
+    restoreFetchPath(ACCOUNTS_API_ORIGIN, moneyTransactionsPath(address));
+  }
   // Re-enable net connect so later suites in the same Jest worker are not left
-  // blocked by disableNetConnect from setup.
+  // blocked by disableNetConnect in setup.
   teardownNock();
 }

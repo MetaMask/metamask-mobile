@@ -28,6 +28,7 @@ import {
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
+import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import { isActionableClaimablePosition } from '../../utils/positions';
@@ -91,6 +92,8 @@ import {
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
+  GetWithdrawSimulationParams,
+  GetWithdrawSimulationResponse,
 } from '../types';
 import {
   COLLATERAL_TOKEN_DECIMALS,
@@ -181,7 +184,10 @@ import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
-import { buildWithdrawTransaction } from './preflight/withdraw';
+import {
+  buildUnsignedWithdrawTransaction,
+  buildWithdrawTransaction,
+} from './preflight/withdraw';
 import {
   executeDepositWalletBatch,
   getDepositWalletRelayerTransactionId,
@@ -214,6 +220,49 @@ const PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS = 5;
  * response can never loop unbounded. 5 pages × 100 rows = 500 positions.
  */
 const PREDICT_POSITIONS_MAX_PAGES = 5;
+/**
+ * Data API v2 `bucket_seconds` bounds. Callers pass `fidelity` in minutes (the
+ * unit of the retired CLOB `/prices-history` route); it is converted to
+ * seconds and clamped to this range at the request boundary.
+ */
+const PRICE_HISTORY_MIN_BUCKET_SECONDS = 60;
+const PRICE_HISTORY_MAX_BUCKET_SECONDS = 86_400;
+/**
+ * Upper bound on cursor-followed pages per price-history read. A page holds up
+ * to 10,000 points and the chart buckets keep series far below that, so more
+ * than one page is already unusual; the cap only guards against a runaway walk.
+ */
+const PRICE_HISTORY_MAX_PAGES = 5;
+
+/** Data API v2 `/prices-history` response envelope (fields the app reads). */
+interface PolymarketPriceHistoryPage {
+  data?: { timestamp?: unknown; price?: unknown }[];
+  pagination?: { next_cursor?: string | null };
+}
+
+/** Error for a non-2xx `/v2/prices-history` response. */
+class PolymarketPriceHistoryHttpError extends Error {
+  readonly status: number;
+
+  readonly retryAfter: string | null;
+
+  constructor(status: number, retryAfter: string | null) {
+    super(`Failed to get price history (HTTP ${status})`);
+    this.name = 'PolymarketPriceHistoryHttpError';
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
+
+/** Converts a fidelity in minutes to a Data API v2 `bucket_seconds` value. */
+const fidelityToBucketSeconds = (fidelityMinutes: number): number =>
+  Math.min(
+    PRICE_HISTORY_MAX_BUCKET_SECONDS,
+    Math.max(
+      PRICE_HISTORY_MIN_BUCKET_SECONDS,
+      Math.round(fidelityMinutes * 60),
+    ),
+  );
 
 /**
  * Narrows the geoblock payload to the fields the app relies on. Returns `null`
@@ -297,8 +346,16 @@ export class PolymarketProvider implements PredictProvider {
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
   readonly #getFeatureFlags: () => PredictFeatureFlags;
+  readonly #getSelectedAddress: () => string | undefined;
 
-  #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
+  /**
+   * One API key derivation per address, stored as soon as it starts. Live
+   * crypto cards subscribe together, so concurrent callers must share the
+   * pending request rather than each prompting a signature and creating a
+   * duplicate CLOB key. A failed derivation is dropped so the next call
+   * retries.
+   */
+  #apiKeysByProtocolAddress: Map<string, Promise<ApiKeyCreds>> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   /**
@@ -321,10 +378,13 @@ export class PolymarketProvider implements PredictProvider {
 
   constructor({
     getFeatureFlags,
+    getSelectedAddress = () => undefined,
   }: {
     getFeatureFlags: () => PredictFeatureFlags;
+    getSelectedAddress?: () => string | undefined;
   }) {
     this.#getFeatureFlags = getFeatureFlags;
+    this.#getSelectedAddress = getSelectedAddress;
   }
 
   #getAccountStateCacheKey(ownerAddress: string): string {
@@ -1193,8 +1253,11 @@ export class PolymarketProvider implements PredictProvider {
       return cachedApiKey;
     }
 
-    const apiKeyCreds = await createApiKey({
+    const apiKeyCreds = createApiKey({
       address,
+    }).catch((error: unknown) => {
+      this.#apiKeysByProtocolAddress.delete(cacheKey);
+      throw error;
     });
     this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
@@ -1481,49 +1544,81 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('marketId parameter is required');
     }
 
-    try {
-      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-      const searchParams = new URLSearchParams({ market: marketId });
+    const searchParams = new URLSearchParams({ token_id: marketId });
 
-      if (typeof fidelity === 'number') {
-        searchParams.set('fidelity', String(fidelity));
-      }
+    // Data API v2 takes exactly one window form. An explicit range wins, as it
+    // did on the CLOB route; it is capped at 15 days, so long ranges (MAX)
+    // must use an interval preset.
+    if (startTs !== undefined && endTs !== undefined) {
+      searchParams.set('start', String(startTs));
+      searchParams.set('end', String(endTs));
+    } else if (interval) {
+      searchParams.set('interval', interval);
+    } else {
+      // Without a window the endpoint answers 400, so skip the request.
+      return [];
+    }
 
-      if (startTs !== undefined && endTs !== undefined) {
-        searchParams.set('startTs', String(startTs));
-        searchParams.set('endTs', String(endTs));
-      } else if (interval) {
-        searchParams.set('interval', interval);
-      }
-
-      const response = await fetchWithTimeout(
-        `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
-        {
-          method: 'GET',
-        },
+    // Omitting bucket_seconds lets the server size the bucket to the window.
+    if (
+      typeof fidelity === 'number' &&
+      Number.isFinite(fidelity) &&
+      fidelity > 0
+    ) {
+      searchParams.set(
+        'bucket_seconds',
+        String(fidelityToBucketSeconds(fidelity)),
       );
+    }
 
-      if (!response.ok) {
-        throw new Error('Failed to get price history');
-      }
+    try {
+      const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+      const points: PredictPriceHistoryPoint[] = [];
+      let cursor: string | null = null;
+      let pages = 0;
 
-      const data = (await response.json()) as {
-        history?: { t?: number; p?: number }[];
-      };
+      do {
+        // A cursor is only valid alongside the original query parameters.
+        const pageParams = new URLSearchParams(searchParams);
+        if (cursor) {
+          pageParams.set('cursor', cursor);
+        }
 
-      if (!Array.isArray(data?.history)) {
-        return [];
-      }
+        const response = await fetchWithTimeout(
+          `${DATA_API_ENDPOINT}/v2/prices-history?${pageParams.toString()}`,
+          { method: 'GET' },
+        );
 
-      return data.history
-        .filter(
-          (entry): entry is { t: number; p: number } =>
-            typeof entry?.t === 'number' && typeof entry?.p === 'number',
-        )
-        .map((entry) => ({
-          timestamp: entry.t,
-          price: entry.p,
-        }));
+        if (!response.ok) {
+          // 429 and 503 carry Retry-After. The call makes no further request;
+          // the next attempt comes from the UI (remount or timeframe change).
+          throw new PolymarketPriceHistoryHttpError(
+            response.status,
+            response.headers?.get('Retry-After') ?? null,
+          );
+        }
+
+        const page = (await response.json()) as PolymarketPriceHistoryPage;
+        if (!Array.isArray(page?.data)) {
+          break;
+        }
+
+        for (const entry of page.data) {
+          if (
+            typeof entry?.timestamp === 'number' &&
+            Number.isFinite(entry.timestamp) &&
+            typeof entry?.price === 'number' &&
+            Number.isFinite(entry.price)
+          ) {
+            points.push({ timestamp: entry.timestamp, price: entry.price });
+          }
+        }
+
+        cursor = page.pagination?.next_cursor ?? null;
+        pages += 1;
+      } while (cursor && pages < PRICE_HISTORY_MAX_PAGES);
+
+      return points;
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
@@ -1535,6 +1630,10 @@ export class PolymarketProvider implements PredictProvider {
           interval,
           startTs,
           endTs,
+          ...(error instanceof PolymarketPriceHistoryHttpError && {
+            status: error.status,
+            retryAfter: error.retryAfter,
+          }),
         }),
       );
 
@@ -1547,6 +1646,7 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<CryptoPriceHistoryPoint[]> {
     const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
       params;
+    const referenceWindow = resolveReferencePriceWindow(twapWindowSeconds);
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
@@ -1563,9 +1663,9 @@ export class PolymarketProvider implements PredictProvider {
       if (endDate) {
         searchParams.set('endDate', endDate);
       }
-      if (twapWindowSeconds !== undefined) {
+      if (referenceWindow !== undefined) {
         searchParams.set('twapEnabled', 'true');
-        searchParams.set('twapLookbackSeconds', twapWindowSeconds.toString());
+        searchParams.set('twapLookbackSeconds', referenceWindow.toString());
       }
 
       const response = await fetchWithTimeout(
@@ -1629,6 +1729,10 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoTargetPrice(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null> {
+    const referenceWindow = resolveReferencePriceWindow(
+      params.twapWindowSeconds,
+    );
+
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
       const queryParams = new URLSearchParams({
@@ -1637,12 +1741,9 @@ export class PolymarketProvider implements PredictProvider {
         variant: params.variant,
         endDate: params.endDate,
       });
-      if (params.twapWindowSeconds !== undefined) {
+      if (referenceWindow !== undefined) {
         queryParams.set('twapEnabled', 'true');
-        queryParams.set(
-          'twapLookbackSeconds',
-          params.twapWindowSeconds.toString(),
-        );
+        queryParams.set('twapLookbackSeconds', referenceWindow.toString());
       }
 
       const response = await fetchWithTimeout(
@@ -2785,6 +2886,7 @@ export class PolymarketProvider implements PredictProvider {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
         positions: claimPositions,
+        marketVersions,
       };
     } catch (error) {
       // Log error for debugging
@@ -3856,6 +3958,50 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  /**
+   * Builds the Safe withdraw call that `signWithdraw` would sign, with a
+   * pre-validated owner signature, so gas fee tokens can be quoted before the
+   * user signs. Deposit-wallet withdraws return `undefined` because the
+   * relayer pays their gas.
+   *
+   * @param params - The parameters.
+   * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+   * @param params.signer - The Safe owner.
+   * @returns The call to simulate, or `undefined` for deposit wallets.
+   */
+  public async getWithdrawSimulation({
+    amountRaw,
+    signer,
+  }: GetWithdrawSimulationParams): Promise<GetWithdrawSimulationResponse> {
+    const protocol = this.#getProtocol();
+    const accountState =
+      this.#getCachedAccountState(signer.address) ??
+      (await this.getAccountState({ ownerAddress: signer.address }));
+
+    if (accountState.walletType === 'deposit-wallet') {
+      return undefined;
+    }
+
+    const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+      safeAddress: accountState.address,
+      protocol,
+    });
+    const { to, data } = await buildUnsignedWithdrawTransaction({
+      signer,
+      safeAddress: accountState.address,
+      requestedAmountRaw: amountRaw,
+      protocol,
+      safeLegacyUsdceBalance,
+    });
+
+    return {
+      chainId: CHAIN_IDS.POLYGON,
+      from: signer.address as Hex,
+      to,
+      data,
+    };
+  }
+
   public subscribeToGameUpdates(
     gameId: string,
     callback: GameUpdateCallback,
@@ -3900,16 +4046,43 @@ export class PolymarketProvider implements PredictProvider {
     callback: CryptoPriceUpdateCallback,
     options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    return options
-      ? WebSocketManager.getInstance().subscribeToCryptoPrices(
-          symbols,
-          callback,
-          options,
-        )
-      : WebSocketManager.getInstance().subscribeToCryptoPrices(
-          symbols,
-          callback,
-        );
+    const websocketManager = WebSocketManager.getInstance();
+    let cancelled = false;
+    let unsubscribe = () => {
+      cancelled = true;
+    };
+    const address = this.#getSelectedAddress();
+    if (!address) {
+      DevLogger.log(
+        'PolymarketProvider: PolyBolt crypto prices need a selected account',
+      );
+      return unsubscribe;
+    }
+
+    this.getApiKey({ address })
+      .then((credentials) => {
+        if (cancelled) {
+          return;
+        }
+
+        websocketManager.useCryptoFeed({
+          mode: 'polybolt',
+          credentials,
+        });
+        unsubscribe = options
+          ? websocketManager.subscribeToCryptoPrices(symbols, callback, options)
+          : websocketManager.subscribeToCryptoPrices(symbols, callback);
+      })
+      .catch((error: unknown) => {
+        DevLogger.log('PolymarketProvider: PolyBolt API key request failed', {
+          error,
+        });
+      });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }
 
   public subscribeToConnectionStatus(

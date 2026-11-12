@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 
+import { buildRegressionActionsSlack } from './profiling-regression-actions.mjs';
 import { scenarioTeam } from './link-scenario-artifacts.mjs';
 
 export const SCHEDULED_BASELINE_HOURS = 7 * 24;
@@ -343,9 +344,20 @@ function findingComparison(finding) {
 }
 
 /**
+ * Findings that did not open a bug on this run: an issue that was already
+ * open, a create that failed, or a finding with no issue yet.
+ */
+function findingsWithoutNewBug(exception) {
+  return exception.findings.filter(
+    (finding) => !(finding.issue?.created && finding.issue?.url),
+  );
+}
+
+/**
  * Message for #metamask-performance when this run opened a bug. The owning
- * team is mentioned. A referenced issue, or a run with no issue, returns
- * null so that channel stays quiet.
+ * team is mentioned. A run that only references an existing issue, or that
+ * opened nothing, returns null. A mixed run still lists those other findings
+ * so the already-open issue stays linked.
  */
 export function buildPerformanceChannelSlack(exception) {
   const opened = openedBugs(exception);
@@ -378,9 +390,19 @@ export function buildPerformanceChannelSlack(exception) {
       `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
     );
   }
+  const others = findingsWithoutNewBug(exception);
+  if (others.length > 0) {
+    lines.push('', '*Also flagged*');
+    for (const finding of others) {
+      lines.push(
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · owner ${finding.owner}${issueSlackSuffix(finding.issue)}`,
+      );
+    }
+  }
   lines.push(
     '',
     `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
+    "_Jira:_ each new GitHub issue is synced to the owning team's Jira project and keeps its team label.",
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
@@ -465,4 +487,26 @@ export function buildScheduledExceptionMarkdown(exception) {
     );
   }
   return lines.join('\n');
+}
+
+/**
+ * #metamask-performance body for a scheduled finding.
+ *
+ * A newly opened bug uses the short review, which mentions the owning Slack
+ * group and links the GitHub issue. Other findings in that same run are
+ * listed under it, including an issue that was already open. A run with no
+ * new bug keeps the digest. An all-clear returns an empty string so nothing
+ * is sent.
+ */
+export function buildPerformanceChannelPost(exception, aiText = null) {
+  if (!exception?.meta?.hasFindings) {
+    return '';
+  }
+  const opened = buildPerformanceChannelSlack(exception);
+  const parts = [opened || buildScheduledExceptionSlack(exception)];
+  const proposal = buildRegressionActionsSlack(aiText);
+  if (proposal) {
+    parts.push('', proposal);
+  }
+  return parts.join('\n');
 }

@@ -25,7 +25,6 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
-import ToastService from '../../../core/ToastService/ToastService';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -48,8 +47,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -93,7 +90,8 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
-import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
+import { resolveTransactionUpdateErrorMessage } from '../../../util/confirmation/transactions';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
@@ -187,9 +185,7 @@ const Transactions = (props) => {
     refreshControlOffset,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
     accountImportTime,
-    groupEvmAccountAddress,
     networkConfigurationsByChainId,
-    allTokens,
     bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
@@ -479,7 +475,13 @@ const Transactions = (props) => {
   );
 
   const showTransactionUpdateErrorToast = (error) => {
-    ToastService.showToast(getTransactionUpdateErrorToastOptions(error));
+    toast({
+      title: strings('transaction_update_toast.title'),
+      description: resolveTransactionUpdateErrorMessage(error),
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   };
 
   const handleSpeedUpTransactionFailure = (error) => {
@@ -726,9 +728,7 @@ const Transactions = (props) => {
         tokenChainId={tokenChainId}
         navigation={navigation}
         accountImportTime={accountImportTime}
-        groupEvmAccountAddress={groupEvmAccountAddress}
         networkConfigurations={networkConfigurationsByChainId}
-        allTokens={allTokens}
         bridgeHistory={bridgeHistory}
       />
     ) : null;
@@ -959,9 +959,7 @@ Transactions.propTypes = {
     showHardwareWalletError: PropTypes.func,
   }),
   accountImportTime: PropTypes.number,
-  groupEvmAccountAddress: PropTypes.string,
   networkConfigurationsByChainId: PropTypes.object,
-  allTokens: PropTypes.object,
   bridgeHistory: PropTypes.object,
 };
 
@@ -988,13 +986,9 @@ const mapStateToProps = (state, ownProps) => {
     accountImportTime: isAssetDetails
       ? selectSelectedInternalAccount(state)?.metadata.importTime
       : undefined,
-    groupEvmAccountAddress: isAssetDetails
-      ? selectSelectedAccountGroupEvmInternalAccount(state)?.address
-      : undefined,
     networkConfigurationsByChainId: isAssetDetails
       ? selectEvmNetworkConfigurationsByChainId(state)
       : undefined,
-    allTokens: isAssetDetails ? selectAllTokens(state) : undefined,
     bridgeHistory: isAssetDetails
       ? selectBridgeHistoryForAccount(state)
       : undefined,

@@ -4,6 +4,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import { Text } from 'react-native';
 import {
   act,
   cleanup,
@@ -12,8 +13,10 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import {
+  calculatePositionSize,
   CandlePeriod,
   PERPS_ERROR_CODES,
+  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type CandleData,
   type PriceUpdate,
@@ -21,8 +24,11 @@ import {
   type OrderBookLevel,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   defaultPositionForViews,
   renderPerpsOrderView,
@@ -31,6 +37,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
+  PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
@@ -40,14 +47,19 @@ import {
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
+  createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
   formatPercentage,
   formatPerpsFiat,
+  formatPositionSize,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
 const TIMEOUT_MS = 5000;
 
@@ -113,6 +125,9 @@ const waitForDeferredOrderData = async () => {
   });
 };
 
+// A price or form change after the first validation keeps the CTA disabled
+// for the real ValidationDebounceMs (300ms) plus protocol validation, which a
+// loaded CV shard can stretch past waitFor's 1s default.
 const waitForEnabledPlaceOrderButton = async (
   testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
 ) => {
@@ -151,6 +166,16 @@ describe('PerpsOrderView', () => {
     jest
       .mocked(Engine.context.PerpsController.subscribeToOrderBook)
       .mockImplementation(() => () => undefined);
+    (Engine.context.PerpsController.placeOrder as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({
+        success: true,
+        orderId: 'component-view-order',
+      });
+    // Place-order confirmation waits on a module-level resolver. A prior case
+    // that leaves that waiter pending blocks the next submit, so the TP/SL
+    // error toast never replaces "Order submitted".
+    resetPerpsCufTraceForTests();
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
     ).mockResolvedValue({});
@@ -187,6 +212,21 @@ describe('PerpsOrderView', () => {
         marketData: [ethMarket],
       },
       extraRoutes: [marketDetailsRoute],
+    });
+    // The view clears the pending trade config only after the CUF confirm race
+    // settles. Deliver the fill on the next macrotask so the race resolves from
+    // the positions stream instead of its 1s wall-clock timeout.
+    const filledLong = createLongPositionForViews({
+      size: '0.048',
+      marginUsed: '30',
+      positionValue: '120',
+      leverage: { value: 4, type: 'isolated' },
+    });
+    placeOrder.mockImplementation(async () => {
+      setTimeout(() => {
+        stream.emitPositions([filledLong]);
+      }, 0);
+      return { success: true, orderId: 'component-view-order' };
     });
 
     expect(
@@ -245,6 +285,125 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
+  describe('Fee Display Format A/B test', () => {
+    const withFeeDisplayVariant = (variant: 'control' | 'treatment') => ({
+      engine: {
+        backgroundState: {
+          ...eligibleOverrides.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsTAT4046AbtestFeeDisplayFormat: variant,
+            },
+          },
+        },
+      },
+    });
+
+    it('keeps the $ fee row and requests a single quote for control', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0.00005,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('control'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent('$0.06');
+      });
+      expect(calculateFees).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      // Distinct taker/maker quotes, keyed on `isMaker`. A real HyperLiquid
+      // market order is always charged taker regardless of the `isMaker`
+      // flag it is sent — so if the opposite-side request kept `orderType:
+      // 'market'`, it would get this same taker quote back a second time,
+      // and the maker rate below would never be reachable from a market
+      // order. Keying the mock on `isMaker` (not `orderType`) reproduces
+      // that real provider behavior and proves the fix actually asks for
+      // `orderType: 'limit'` to reach the maker quote.
+      calculateFees.mockImplementation(
+        ({ isMaker }: { isMaker: boolean }) =>
+          Promise.resolve(
+            isMaker
+              ? { protocolFeeRate: 0.0009, metamaskFeeRate: 0.00024 } // maker: 0.114%
+              : { protocolFeeRate: 0.00118, metamaskFeeRate: 0.00025 }, // taker: 0.143%
+          ) as Promise<Record<string, unknown>>,
+      );
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('treatment'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_TAKER),
+        ).toHaveTextContent('Taker 0.143% /');
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE_MAKER),
+        ).toHaveTextContent('Maker 0.114%');
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(1, {
+        orderType: 'market',
+        isMaker: false,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      expect(calculateFees).toHaveBeenNthCalledWith(2, {
+        orderType: 'limit',
+        isMaker: true,
+        amount: '120',
+        symbol: 'ETH',
+      });
+      // The base FEES_VALUE id stays mounted (on the row container) so an
+      // E2E readiness wait keyed on it still resolves under treatment.
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows promotional pricing when Core returns a grant fee quote', async () => {
     const calculateFees = Engine.context.PerpsController
       .calculateFees as jest.Mock;
@@ -275,7 +434,10 @@ describe('PerpsOrderView', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.ORIGINAL_FEES_VALUE),
     ).toHaveTextContent('$1.45');
@@ -296,7 +458,9 @@ describe('PerpsOrderView', () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const updatePositionTPSL = Engine.context.PerpsController
         .updatePositionTPSL as jest.Mock;
-      updatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+      // Once is consumed by any earlier call in the same case, and the
+      // following call then resolves success and never shows the error toast.
+      updatePositionTPSL.mockResolvedValue({ success: false, error });
       const { stream } = renderPerpsOrderView({
         includeToasts: true,
         overrides: {
@@ -335,11 +499,20 @@ describe('PerpsOrderView', () => {
       });
       await waitForDeferredOrderData();
       emitEthPrice(stream);
-      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
+      await waitForEnabledPlaceOrderButton(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      // The separate TP/SL update runs only after pending take-profit is on
+      // the form. The place button can enable first; pressing then leaves the
+      // in-progress "Order submitted" toast up and never shows the error.
       await waitFor(() => {
         expect(
-          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled();
+          screen.getByText(
+            new RegExp(
+              `${strings('perps.order.tp')} (?!${strings('perps.order.off')})`,
+            ),
+          ),
+        ).toBeOnTheScreen();
       });
 
       await act(async () => {
@@ -370,6 +543,119 @@ describe('PerpsOrderView', () => {
       ).toBeOnTheScreen();
     },
   );
+
+  it('keeps a long order disabled when take profit is below the current price', async () => {
+    const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
+    const { stream } = renderPerpsOrderView({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: {
+              ...eligibleOverrides.engine.backgroundState.PerpsController,
+              tradeConfigurations: {
+                mainnet: {
+                  ETH: {
+                    pendingConfig: {
+                      takeProfitPrice: '2000',
+                      timestamp: Date.now(),
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByText(
+        strings('perps.tpsl.take_profit_wrong_side_warning', {
+          direction: strings('perps.tpsl.above'),
+          priceType: 'current',
+        }),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDisabled();
+
+    fireEvent.press(placeOrderButton);
+
+    expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('explains the post-only network-upgrade window when a market order is rejected', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    placeOrder.mockResolvedValue({
+      success: false,
+      error:
+        'order 0: Only post-only orders allowed immediately after network upgrade',
+    });
+    const { stream } = renderPerpsOrderView({
+      includeToasts: true,
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+      extraRoutes: [marketDetailsRoute],
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(
+      await screen.findByText(
+        strings('perps.errors.postOnlyWindow'),
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    ).toBeOnTheScreen();
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(strings('perps.order.order_failed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.order.your_funds_have_been_returned_to_you'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryAllByText(/only post-only orders allowed/i),
+    ).toHaveLength(0);
+    expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+  });
 
   it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
@@ -712,20 +998,32 @@ describe('PerpsOrderView', () => {
         extraRoutes: [marketDetailsRoute],
       });
 
-    const findEnabledSubmitButton = async () => {
-      const submitButton = await screen.findByTestId(
+    const findEnabledSubmitButton = () =>
+      waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
-      await waitFor(
-        () => {
-          expect(submitButton).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
+
+    it('shows promotional pricing when Core returns a grant fee quote', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+      const { stream } = renderTradeSheet();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.FEE_TEXT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(
+        strings('perps.trade_sheet.includes_fee_after_promo', {
+          originalFeePercentage: '0.145',
+          feePercentage: '0.070',
+        }),
       );
-      return submitButton;
-    };
+    });
 
     it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
       const spendableBalance = '250.5';
@@ -1044,6 +1342,367 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Typed amount stays after Done; a pre-layout 0% slider commit must not reset it.
+  describe('amount keypad commit', () => {
+    const SHORT_BALANCE = '13.67';
+    const SHORT_PRICE = '941.95';
+
+    const readDisplayedAmount = () =>
+      Number(
+        screen
+          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
+          .replace(/[^0-9.]/g, ''),
+      );
+
+    const waitForDisplayedAmount = (expected: number) =>
+      waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
+        timeout: TIMEOUT_MS,
+      });
+
+    const renderShortTradeSheet = async (amount: string) => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'short',
+          amount,
+          leverage: 10,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account: accountWithBalance(SHORT_BALANCE),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream, '-2.14', SHORT_PRICE);
+
+      expect(
+        await screen.findByTestId(
+          PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const amountSlider = () =>
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER);
+
+    const layOutAmountSlider = () => {
+      fireEvent(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT),
+        'layout',
+        {
+          nativeEvent: {
+            layout: { width: 320, height: 48, x: 0, y: 0 },
+          },
+        },
+      );
+    };
+
+    const openAmountKeypad = async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const pressKeypadDigit = (digit: '0' | '1' | '2') => {
+      const testId = {
+        '0': KeypadTestIds.KEY_0,
+        '1': KeypadTestIds.KEY_1,
+        '2': KeypadTestIds.KEY_2,
+      }[digit];
+
+      fireEvent.press(screen.getByTestId(testId));
+    };
+
+    const clearKeypadAmount = async () => {
+      const digits = String(Math.trunc(Math.abs(readDisplayedAmount()))).length;
+
+      for (let index = 0; index < digits; index += 1) {
+        fireEvent.press(screen.getByTestId(KeypadTestIds.DELETE_BUTTON));
+      }
+
+      await waitForDisplayedAmount(0);
+    };
+
+    const typeAmount = async (digits: readonly ('0' | '1' | '2')[]) => {
+      for (const digit of digits) {
+        pressKeypadDigit(digit);
+      }
+    };
+
+    const doneAmountKeypad = () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      );
+    };
+
+    // Done unmounts the keypad and mounts the slider under the finger that
+    // released the button. Android delivers that touch to the new track before
+    // it has a width, and a 0-width track maps the touch to 0%.
+    const deliverPreLayoutSliderTouch = () => {
+      fireEvent(amountSlider(), 'valueChange', 0);
+      fireEvent(amountSlider(), 'dragEnd', 0);
+    };
+
+    it('keeps a typed amount after Done when the size was first set with the slider', async () => {
+      await renderShortTradeSheet('0');
+      layOutAmountSlider();
+
+      fireEvent(amountSlider(), 'valueChange', 25);
+      fireEvent(amountSlider(), 'dragEnd', 25);
+
+      await waitFor(
+        () => {
+          expect(readDisplayedAmount()).toBeGreaterThan(0);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      await openAmountKeypad();
+      await clearKeypadAmount();
+      await typeAmount(['1', '0']);
+      await waitForDisplayedAmount(10);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(10);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(10);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+
+    it('keeps a typed amount after Done when the keypad is opened on an empty size', async () => {
+      await renderShortTradeSheet('0');
+      await openAmountKeypad();
+      await typeAmount(['2', '0']);
+      await waitForDisplayedAmount(20);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(20);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(20);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+  });
+
+  describe('fee-adjusted max size', () => {
+    const LEVERAGE = 4;
+    const BALANCE = 1000;
+    // Far above the ceiling, so the form settles on the max (the 100% slider).
+    const ABOVE_MAX_AMOUNT = '100000';
+    // Reserving 0.5% of notional at 4x leaves this ceiling; unreserved is ~3980.
+    const LOW_FEE_QUOTE = { protocolFeeRate: 0.0045, metamaskFeeRate: 0.0005 };
+    const HIGH_FEE_QUOTE = { protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 };
+    const budgetCeiling = (feeRate: number) =>
+      BALANCE / (1 / LEVERAGE + feeRate);
+
+    const mockQuote = (quote: object) =>
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(quote);
+
+    const renderWithAmount = async (amount: string) => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount,
+          leverage: LEVERAGE,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+    };
+
+    const renderAtMax = () => renderWithAmount(ABOVE_MAX_AMOUNT);
+
+    // The amount renders as one animated Text per glyph, so join their text.
+    const readDisplayedAmount = () =>
+      Number(
+        screen
+          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
+          .replace(/[^0-9.]/g, ''),
+      );
+
+    // Runs while the order form is still mounted, before the order is placed.
+    const expectNoBalanceError = () => {
+      const fundsMessage = strings(
+        'perps.order.validation.insufficient_funds_to_cover_trade',
+      );
+      expect(fundsMessage).not.toMatch(/^\[missing/);
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+      expect(screen.queryByText(fundsMessage)).toBeNull();
+    };
+
+    const waitForDisplayedAmount = (matches: (amount: number) => boolean) =>
+      waitFor(() => expect(matches(readDisplayedAmount())).toBe(true), {
+        timeout: TIMEOUT_MS,
+      });
+
+    const placeOrderAndReadAmount = async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const button = await waitForEnabledPlaceOrderButton();
+      expectNoBalanceError();
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1));
+      return Number(placeOrder.mock.calls[0][0].usdAmount);
+    };
+
+    it('sizes the max so margin plus fee fits the balance and keeps the CTA enabled', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+
+      await renderAtMax();
+      await waitForDisplayedAmount(
+        (amount) => amount <= budgetCeiling(0.005) && amount > 3800,
+      );
+      const displayedAmount = readDisplayedAmount();
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBe(displayedAmount);
+      expect(usdAmount / LEVERAGE + usdAmount * 0.005).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('keeps a partial size untouched by the fee reservation', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+
+      await renderWithAmount('2000');
+      await waitForEnabledPlaceOrderButton();
+
+      expect(readDisplayedAmount()).toBe(2000);
+      expect(await placeOrderAndReadAmount()).toBe(2000);
+    });
+
+    it('shrinks the max again when a refreshed quote raises the fee while at max', async () => {
+      mockQuote(LOW_FEE_QUOTE);
+      await renderAtMax();
+      await waitForDisplayedAmount(
+        (amount) =>
+          amount <= budgetCeiling(0.005) && amount > budgetCeiling(0.01),
+      );
+      const lowFeeMax = readDisplayedAmount();
+
+      // A new quote arrives with the next amount edit (the quote is keyed on it).
+      mockQuote(HIGH_FEE_QUOTE);
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          await screen.findByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_MAX),
+        );
+      });
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+        );
+      });
+
+      await waitForDisplayedAmount(
+        (amount) => amount < lowFeeMax && amount <= budgetCeiling(0.01),
+      );
+      const usdAmount = await placeOrderAndReadAmount();
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('holds the unreserved max while the quote is pending and shrinks it once it resolves', async () => {
+      let resolveQuote: (quote: object) => void = () => undefined;
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveQuote = resolve;
+          }),
+      );
+
+      await renderAtMax();
+      await waitForDisplayedAmount((amount) => amount > 3900);
+      expect(await waitForEnabledPlaceOrderButton()).toBeOnTheScreen();
+      expectNoBalanceError();
+
+      await act(async () => {
+        resolveQuote(HIGH_FEE_QUOTE);
+      });
+      await waitForDisplayedAmount(
+        (amount) => amount <= budgetCeiling(0.01) && amount > 3700,
+      );
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+    });
+
+    it('falls back to the unreserved max when the quote is rejected', async () => {
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockRejectedValue(new Error('fee quote unavailable'));
+
+      await renderAtMax();
+      await waitForDisplayedAmount((amount) => amount > 3900);
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBeGreaterThan(3900);
+    });
+  });
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
@@ -1071,13 +1730,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await waitFor(() => {
-      expect(placeOrderButton).not.toBeDisabled();
-    });
-    fireEvent.press(placeOrderButton);
+    fireEvent.press(await waitForEnabledPlaceOrderButton());
 
     expect(
       await screen.findByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
@@ -1272,11 +1925,7 @@ describe('PerpsOrderView', () => {
         await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
       ).toBeOnTheScreen();
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      await waitForEnabledPlaceOrderButton();
       expect(screen.queryByText(message)).not.toBeOnTheScreen();
       await act(async () => {
         fireEvent.press(
@@ -1310,11 +1959,9 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      // The price re-runs order validation behind its real 300ms debounce, so
+      // the CTA needs the file's async budget rather than waitFor's 1s default.
+      await waitForEnabledPlaceOrderButton();
       expect(
         Engine.context.PerpsController.subscribeToOrderBook,
       ).toHaveBeenCalled();
@@ -1324,6 +1971,339 @@ describe('PerpsOrderView', () => {
       expect(
         screen.queryByText(strings('perps.slippage.cannot_fill')),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('saved size unit on the real Trade sheet', () => {
+    const savedCoinSettings = {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            orderBookPreferences: {
+              currency: 'base' as const,
+              metric: 'total' as const,
+            },
+          },
+        },
+      },
+    };
+
+    const sizeUnitEvents = (
+      events: { name: string; properties: Record<string, unknown> }[],
+      name: string,
+    ) => events.filter((event) => event.name === name);
+
+    const orderBookCurrency = (store: {
+      getState: () => {
+        engine: {
+          backgroundState: {
+            PerpsController?: {
+              orderBookPreferences?: { currency?: string };
+            };
+          };
+        };
+      };
+    }) =>
+      store.getState().engine.backgroundState.PerpsController
+        ?.orderBookPreferences?.currency;
+
+    it('shows USD and reports usd before the price, then coin once the price can project it', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(considered[0].properties[PERPS_ANALYTICS_SIZE_UNIT]).toBe(
+            'usd',
+          );
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_fiat_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        await waitForEnabledPlaceOrderButton(
+          PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('reports usd on Considered after a pre-price USD edit once the price arrives', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '0',
+          leverage: 4,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+      fireEvent.press(await screen.findByTestId(KeypadTestIds.KEY_5));
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByRole('button', {
+          name: strings('perps.trade_sheet.show_asset_value'),
+        }),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          const considered = sizeUnitEvents(
+            events,
+            MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED.category,
+          );
+          expect(considered.length).toBeGreaterThan(0);
+          expect(
+            considered.every(
+              (event) => event.properties[PERPS_ANALYTICS_SIZE_UNIT] === 'usd',
+            ),
+          ).toBe(true);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      trackEventSpy.mockRestore();
+    });
+
+    it('keeps coin sizing after leaving the trade sheet for a tooltip', async () => {
+      const amount = '100';
+      const price = 2500;
+      const szDecimals = 2;
+      const coinAmount = formatPositionSize(
+        calculatePositionSize({
+          amount,
+          price,
+          szDecimals,
+        }),
+      );
+      const { stream, store } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount,
+          leverage: 4,
+          useBottomSheet: true,
+          defaultSzDecimals: szDecimals,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+      const unwire = wirePerpsControllerForStore(store);
+
+      try {
+        emitEthPrice(stream, '2', String(price));
+        // The header can paint a cached mid before order sizing has a price.
+        // The coin subtitle appears only once that price can project USD, which
+        // is also when the toggle is allowed to persist coin.
+        await screen.findByText(
+          `${coinAmount} ETH`,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_TOGGLE),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_ROW),
+        );
+
+        expect(
+          await screen.findByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+        );
+
+        expect(
+          await screen.findByRole('button', {
+            name: strings('perps.trade_sheet.show_fiat_value'),
+          }),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ).toHaveTextContent(coinAmount);
+        expect(
+          screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
+        ).toHaveTextContent('ETH');
+        expect(orderBookCurrency(store)).toBe('base');
+        expect(
+          screen.queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_SCREEN),
+        ).not.toBeOnTheScreen();
+      } finally {
+        unwire();
+      }
+    });
+
+    it('reports usd on the full-screen form when coin is saved', async () => {
+      const events: { name: string; properties: Record<string, unknown> }[] =
+        [];
+      const trackEventSpy = jest
+        .spyOn(analytics, 'trackEvent')
+        .mockImplementation((event) => {
+          events.push({
+            name: event.name,
+            properties: event.properties as Record<string, unknown>,
+          });
+        });
+
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...savedCoinSettings,
+        },
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      fireEvent.press(await waitForEnabledPlaceOrderButton());
+
+      await waitFor(() => {
+        const placeOrders = sizeUnitEvents(
+          events,
+          MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+        ).filter(
+          (event) =>
+            event.properties[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        );
+        expect(placeOrders).toEqual([
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+            }),
+          }),
+        ]);
+      });
+
+      trackEventSpy.mockRestore();
     });
   });
 });

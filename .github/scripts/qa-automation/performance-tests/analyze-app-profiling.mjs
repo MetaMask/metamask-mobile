@@ -50,6 +50,7 @@ import {
 } from './profiling-regression-issues.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
+  buildPerformanceChannelPost,
   buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
@@ -2674,8 +2675,10 @@ async function runScheduledExceptionAnalysis({
       callClaude,
     });
   }
-  // The issue carries the proposal, so it is opened after that pass. Slack
-  // then links the issue next to the finding it tracks.
+  // Scheduled findings on main open or comment on one GitHub issue per
+  // scenario. The team label is what routes that issue to the owning team's
+  // Jira project. The channel file is written after that sync so it can link
+  // the issue. An all-clear leaves the file absent.
   if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
     const synced = syncProfilingRegressionIssues({
       exception,
@@ -2692,6 +2695,17 @@ async function runScheduledExceptionAnalysis({
         `${issue.created ? '🆕 Opened' : '🔁 Referenced'} ${issue.url} — ${issue.title}`,
       );
     }
+  }
+  const channelPath = path.join(outputDirectory, 'performance-channel.md');
+  if (exception.meta.hasFindings && !args.dryRun) {
+    const channel = buildPerformanceChannelPost(exception, aiText);
+    if (channel) {
+      fs.writeFileSync(channelPath, `${channel}\n`);
+    } else if (fs.existsSync(channelPath)) {
+      fs.unlinkSync(channelPath);
+    }
+  } else if (fs.existsSync(channelPath)) {
+    fs.unlinkSync(channelPath);
   }
   console.log(
     `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,

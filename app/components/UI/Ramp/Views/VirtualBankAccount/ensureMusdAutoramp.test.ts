@@ -1,15 +1,21 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
+import { trackVbaEvent } from './vbaAnalytics';
 import {
   ensureMusdAutoramp,
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
+import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
 const mockCreate = jest.fn();
+const mockRefreshCustomerAbilities = jest.fn();
+const mockRailReadiness = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -18,14 +24,41 @@ jest.mock('../../../../../core/Engine', () => ({
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
       registerMoneyAccountWallet: (...args: unknown[]) => mockRegister(...args),
       createAutoramp: (...args: unknown[]) => mockCreate(...args),
+      refreshCustomerAbilities: (...args: unknown[]) =>
+        mockRefreshCustomerAbilities(...args),
     },
   },
+}));
+
+jest.mock('@metamask/ramps-controller', () => ({
+  ...jest.requireActual('@metamask/ramps-controller'),
+  getMusdAutorampDepositRailReadiness: (...args: unknown[]) =>
+    mockRailReadiness(...args),
+}));
+
+const ABILITIES = {
+  fiat_deposit: {},
+  fiat_payout: {},
+  currencies: [],
+  blocking_abilities: {},
+};
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'autoramp-setup-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 const setAutoramps = (
   autoramps: {
@@ -50,6 +83,8 @@ describe('ensureMusdAutoramp', () => {
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockRegister.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreate.mockResolvedValue({ id: 'ar-new', status: 'Created' });
+    mockRefreshCustomerAbilities.mockResolvedValue(ABILITIES);
+    mockRailReadiness.mockReturnValue('active');
   });
 
   it('waits for MoonPay after KYC, then registers and creates once', async () => {
@@ -66,6 +101,14 @@ describe('ensureMusdAutoramp', () => {
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
       'awaiting_provider',
     );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaAutorampSetup,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'autoramp-setup-id',
+      false,
+      'kyc_pending',
+    );
     expect(mockCreate).not.toHaveBeenCalled();
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
@@ -76,7 +119,7 @@ describe('ensureMusdAutoramp', () => {
     );
   });
 
-  it.each(['USD', 'EUR'] as const)(
+  it.each(['USD', 'BRL'] as const)(
     'creates the autoramp in %s',
     async (currency) => {
       await expect(ensureMusdAutoramp('0xabc', currency)).resolves.toBe(
@@ -278,6 +321,107 @@ describe('ensureMusdAutoramp', () => {
     );
   });
 
+  describe('deposit rail check', () => {
+    it('reads the rail from the refreshed abilities before creating', async () => {
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+      expect(mockRefreshCustomerAbilities).toHaveBeenCalledTimes(1);
+      expect(mockRailReadiness).toHaveBeenCalledWith(ABILITIES, 'USD');
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits instead of creating while the rail is pending', async () => {
+      mockRailReadiness.mockReturnValue('pending');
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('creates once the rail turns active', async () => {
+      mockRailReadiness
+        .mockReturnValueOnce('pending')
+        .mockReturnValueOnce('active');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks the rail before creating a second fiat', async () => {
+      setAutoramps([
+        {
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+      ]);
+      mockHydrate.mockResolvedValue({ autorampStatus: 'ready' });
+      mockRailReadiness.mockReturnValue('pending');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('surfaces a 422 account-creation error without creating when the rail is blocked', async () => {
+      mockRailReadiness.mockReturnValue('blocked');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'http', status: 422 },
+        }),
+      );
+      expect(mockCreate).not.toHaveBeenCalled();
+    });
+
+    it('tracks a blocked rail as a failed create', async () => {
+      mockRailReadiness.mockReturnValue('blocked');
+
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).rejects.toBeDefined();
+
+      expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({
+        category: 'Money VBA Autoramp Create Updated',
+      });
+      expect(buildProperties()).toMatchObject({
+        status: 'failed',
+        failure_reason: 'vba_create_failed',
+        currency_source: 'USD',
+      });
+    });
+
+    it('does not track while the rail is pending', async () => {
+      mockRailReadiness.mockReturnValue('pending');
+
+      await ensureMusdAutoramp('0xabc', 'USD');
+
+      expect(trackVbaEvent).not.toHaveBeenCalled();
+    });
+
+    it('creates as before when the abilities refresh fails', async () => {
+      mockRefreshCustomerAbilities.mockRejectedValue(new Error('404'));
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
+      expect(mockRailReadiness).not.toHaveBeenCalled();
+      expect(mockCreate).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: {
+            name: 'getRailReadiness',
+            data: { sourceCurrency: 'BRL' },
+          },
+        }),
+      );
+    });
+  });
+
   it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
     'surfaces the %s fiat status returned by account creation',
     async (status) => {
@@ -288,6 +432,59 @@ describe('ensureMusdAutoramp', () => {
           result: { kind: 'fiat', status },
         }),
       );
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({
+        category: 'Money VBA Autoramp Create Updated',
+      });
+      expect(buildProperties()).toMatchObject({
+        status: 'failed',
+        failure_reason: 'vba_create_failed',
+      });
     },
   );
+
+  it('tracks a succeeded create with the autoramp id and destination', async () => {
+    await ensureMusdAutoramp('0xabc', 'BRL');
+
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    expect(event).toMatchObject({
+      category: 'Money VBA Autoramp Create Updated',
+    });
+    expect(buildProperties()).toMatchObject({
+      status: 'succeeded',
+      autoramp_id: 'ar-new',
+      currency_destination_symbol: 'mUSD',
+      token_chain_id: 'eip155:143',
+      currency_source: 'BRL',
+    });
+  });
+
+  it('tracks a failed create once with a failure reason', async () => {
+    mockCreate.mockRejectedValue(new Error('create failed'));
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
+
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    const [, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    const properties = buildProperties();
+    expect(properties).toMatchObject({
+      status: 'failed',
+      failure_reason: 'vba_create_failed',
+      currency_source: 'BRL',
+    });
+    expect(properties).not.toHaveProperty('autoramp_id');
+  });
+
+  it('does not track when no create call is made', async () => {
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Approved' }]);
+
+    await ensureMusdAutoramp('0xabc', 'BRL');
+
+    expect(trackVbaEvent).not.toHaveBeenCalled();
+  });
 });

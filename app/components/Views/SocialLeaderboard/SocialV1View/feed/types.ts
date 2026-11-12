@@ -1,31 +1,7 @@
+import type { CaipAssetType } from '@metamask/utils';
 import type { PositionTokenAvatarData } from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
-import type { SocialV1FeedPost } from '../../../../UI/SocialFeed/types';
 
 export type SocialV1FeedTab = 'trending' | 'following';
-
-export interface UseSocialV1FeedResult {
-  posts: SocialV1FeedPost[];
-  /**
-   * The viewer's own new posts, to render above `posts` regardless of sort or
-   * filters. Following only; always empty on Trending.
-   */
-  pinnedPosts: SocialV1FeedPost[];
-  isLoading: boolean;
-  /** True while a follow-up page is being fetched. */
-  isFetchingNextPage: boolean;
-  /** True when another page can be requested. */
-  hasNextPage: boolean;
-  /** Request the next page; no-op if none remain or one is in flight. */
-  loadMore: () => void;
-  error: string | null;
-  /** Timestamp of the latest successful server response, including empty data. */
-  dataUpdatedAt?: number;
-  /**
-   * Reset to the first page and refetch -- also the recovery path after an
-   * error. Releases pinned posts the feed now serves or never will.
-   */
-  refresh: () => Promise<void>;
-}
 
 /** One chip in the feed's hot-tokens carousel. */
 export interface SocialV1HotToken {
@@ -40,27 +16,10 @@ export interface SocialV1HotToken {
   label: string;
   avatar: PositionTokenAvatarData;
   /**
-   * Chain name for `GET /v1/tokens/:chain/:contractAddress/feed`. Set from
-   * the first loaded row that has a contract. Absent for perp-only chips.
+   * Every asset the chip groups (spot and perp rows sharing the ticker), most
+   * frequent first, at most ten. Selecting the chip filters the feed to them.
    */
-  chain?: string;
-  /** Contract address paired with {@link chain}. Absent for perp-only chips. */
-  contractAddress?: string;
-}
-
-/**
- * Token-feed page the hot-token carousel loads for the selected chip.
- * `null` means the rail is not driving the feed (no selection, or a chip
- * with no contract).
- */
-export interface SocialV1TokenFeedState {
-  posts: SocialV1FeedPost[];
-  isLoading: boolean;
-  isFetchingNextPage: boolean;
-  hasNextPage: boolean;
-  loadMore: () => void;
-  error: string | null;
-  refresh: () => Promise<void>;
+  assetIds: CaipAssetType[];
 }
 
 export interface UseSocialV1HotTokensResult {

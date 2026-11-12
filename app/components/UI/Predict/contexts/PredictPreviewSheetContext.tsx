@@ -60,7 +60,10 @@ import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
-import { isPolymarketV2Outcome } from '../utils/marketVersion';
+import {
+  getPredictOutcomeVersion,
+  isPolymarketV2Outcome,
+} from '../utils/marketVersion';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be
@@ -454,6 +457,7 @@ export const PredictPreviewSheetProvider: React.FC<
       marketCategory: lastParams.market?.category,
       entryPoint: lastParams.entryPoint,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+      outcomeVersion: getPredictOutcomeVersion(lastParams.outcome),
     };
 
     if (isPaymentFailure) {

@@ -31,10 +31,10 @@ jest.mock('./tabs/NowTab', () => ({
     return null;
   },
 }));
-jest.mock('./tabs/MacroTab', () => ({
+jest.mock('./tabs/PerpsTab', () => ({
   __esModule: true,
   default: () => {
-    mockTrackTabRender('Macro');
+    mockTrackTabRender('Perps');
     return null;
   },
 }));
@@ -455,7 +455,9 @@ describe('TrendingView', () => {
     );
     fireEvent.press(searchButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('ExploreSearch');
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'explore',
+    });
   });
 
   it('tracks the search opened event with the explore entry point', () => {
@@ -478,6 +480,7 @@ describe('TrendingView', () => {
       interaction_type: 'opened',
       search_query: '',
       entry_point: 'explore',
+      search_session_id: expect.any(String),
     });
   });
 
@@ -491,11 +494,11 @@ describe('TrendingView', () => {
       });
       const nowRenderCountBeforeSwitch = mockTabRenderCounts.Now;
 
-      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-2'));
 
-      // The "Macro" tab (index 1) mounts once it becomes active.
+      // The "Perps" tab (index 2) mounts once it becomes active.
       await waitFor(() => {
-        expect(mockTabRenderCounts.Macro).toBeGreaterThanOrEqual(1);
+        expect(mockTabRenderCounts.Perps).toBeGreaterThanOrEqual(1);
       });
 
       // "Now" isn't a consumer of the active-tab context, so switching away

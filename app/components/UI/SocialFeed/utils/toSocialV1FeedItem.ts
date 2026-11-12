@@ -21,6 +21,7 @@ import { buildLivePriceSource } from '../live/buildLivePriceSource';
 import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
+import { readXHandle } from './xHandle';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -82,10 +83,12 @@ export const deriveExitPrice = (core: Position): number | null => {
     return null;
   }
 
-  const lastExit = exitFills.reduce((latest, trade) =>
-    tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
-      ? trade
-      : latest,
+  const lastExit = exitFills.reduce(
+    (latest, trade) =>
+      tradeTimestampToMs(trade.timestamp) > tradeTimestampToMs(latest.timestamp)
+        ? trade
+        : latest,
+    exitFills[0],
   );
 
   return toUnitPrice(lastExit);
@@ -119,7 +122,7 @@ export const deriveMarketCapPerPrice = (core: Position): number | null => {
   return null;
 };
 
-const toMarketCapLabel = (
+export const toMarketCapLabel = (
   marketCapPerPrice: number | null,
   price: number | null,
 ): string | undefined =>
@@ -205,7 +208,7 @@ const toSpotSide = (core: CoreFeedItem, action?: string): SocialV1SpotSide => {
   // No lifecycle action on older payloads: fall back to the latest fill's own
   // direction rather than defaulting to 'buy' and mislabelling a sale.
   const trades = core.trades ?? [];
-  const lastTrade = trades[trades.length - 1];
+  const lastTrade = trades.at(-1);
   return lastTrade?.direction === 'sell' ? 'sell' : 'buy';
 };
 
@@ -231,12 +234,12 @@ export function toSocialV1FeedItem(
     pnl30d: card.actor.pnl30d ?? null,
     tradeCount30d: card.actor.tradeCount30d ?? null,
     followerCount: card.actor.followerCount ?? null,
+    xHandle: readXHandle(card.actor.socialHandles),
   };
 
   const authorComment = readAuthorComment(core);
-  const { text: commentText } = splitKlipyGifFromCommentText(
-    authorComment?.text ?? '',
-  );
+  const { text: commentText, gifUrl: commentGifUrl } =
+    splitKlipyGifFromCommentText(authorComment?.text ?? '');
   const comment = commentText || undefined;
 
   // Display symbol for the title, raw market id for the avatar. `mapFeedItem`
@@ -253,13 +256,18 @@ export function toSocialV1FeedItem(
   const base = {
     id: item.id,
     author,
-    timestamp: item.timestamp,
+    // A comment card is a post made when the comment was written, which can be
+    // long after the trade it is about.
+    timestamp: authorComment
+      ? tradeTimestampToMs(authorComment.timestamp)
+      : item.timestamp,
     asset: {
       symbol: displaySymbol,
       ...(assetName ? { name: assetName } : {}),
       avatar: item.tokenAvatar,
     },
     comment,
+    ...(commentGifUrl ? { commentGifUrl } : {}),
     valueLabel: item.valueLabel,
     pnlLabel: item.pnlLabel,
     // Abbreviated: the open card puts this under the percent in a column capped

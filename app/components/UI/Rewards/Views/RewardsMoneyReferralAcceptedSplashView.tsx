@@ -1,6 +1,11 @@
-import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import {
+  CommonActions,
+  useNavigation,
+  type NavigationState,
+  type PartialState,
+} from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -25,6 +30,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsThemeImageComponent from '../components/ThemeImageComponent/RewardsThemeImageComponent';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import { clearPendingReferralCode } from '../../../../reducers/rewardsMoney';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
 
 export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
@@ -40,6 +46,31 @@ export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
 // The preset has no tracking-* utilities, and the uppercase eyebrow needs the
 // extra letter spacing to stay legible at BodySm.
 const eyebrowTrackingStyle = { letterSpacing: 0.8 };
+
+/**
+ * Screens at and below Home. Accept already popped Settings or the invite
+ * sheet, so the pre-accept Rewards home and the rewards flow can still sit
+ * above Home. Keeping those would make Back return to the old persona.
+ */
+function routesAtOrBelowHome(
+  routes: NavigationState['routes'] | undefined,
+): PartialState<NavigationState>['routes'] {
+  if (routes == null) {
+    return [];
+  }
+  const homeIndex = routes.findIndex(
+    (route) => route.name === Routes.HOME_TABS,
+  );
+  if (homeIndex === -1) {
+    return [];
+  }
+  // Home's nested state is a full NavigationState (`stale: false`). Reset
+  // accepts that at runtime, and its PartialState type only allows `stale: true`.
+  return routes.slice(
+    0,
+    homeIndex + 1,
+  ) as PartialState<NavigationState>['routes'];
+}
 
 /**
  * Formats a cashback window timestamp for the current locale.
@@ -120,22 +151,32 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     ],
   );
 
-  // The tab picked its home from the pre-accept persona and does not remount
-  // while this splash is the active screen. Popping back would reveal that
-  // earlier home, so every exit selects the Money dashboard explicitly.
   const showMoneyDashboard = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
+    const kept = routesAtOrBelowHome(navigation.getState()?.routes);
+    const routes: PartialState<NavigationState>['routes'] = [
+      ...kept,
+      {
+        name: Routes.REWARDS_VIEW,
+        params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
       },
-    });
+    ];
+    navigation.dispatch(
+      CommonActions.reset({
+        index: routes.length - 1,
+        routes,
+      }),
+    );
   }, [navigation]);
 
-  const handleDismiss = useCallback(() => {
-    showMoneyDashboard();
-  }, [showMoneyDashboard]);
+  // Closing returns to the screen the invite was offered over, such as a
+  // deeplink's destination.
+  const handleClose = useCallback(() => {
+    if (!navigation.canGoBack()) {
+      showMoneyDashboard();
+      return;
+    }
+    navigation.goBack();
+  }, [navigation, showMoneyDashboard]);
 
   const handleStartTrading = useCallback(() => {
     showMoneyDashboard();
@@ -155,7 +196,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Sm}
-          onPress={handleDismiss}
+          onPress={handleClose}
           accessibilityLabel={localizedText?.inviteAcceptedCloseA11y ?? ''}
           testID={REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.CLOSE}
         />
@@ -234,7 +275,7 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isFullWidth
-            onPress={handleDismiss}
+            onPress={showMoneyDashboard}
             testID={
               REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS.VIEW_REWARDS
             }
@@ -249,6 +290,18 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
 
 const RewardsMoneyReferralAcceptedSplashView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+
+  // The invite sheet leaves a deeplink's code pending through an accept, so
+  // the push pre-prompt only follows once this splash is gone. Clear every
+  // pending code here, not just the accepted one: the user is now a referee,
+  // so a newer code cannot be accepted and must not prompt again.
+  useEffect(
+    () => () => {
+      dispatch(clearPendingReferralCode());
+    },
+    [dispatch],
+  );
 
   return (
     <ErrorBoundary

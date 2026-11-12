@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +7,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -15,7 +14,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import VbaOnboardingError from '../../../KYC/components/OnboardingError';
+import KycOnboardingError from '../../../KYC/components/OnboardingError';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
 
 export type VbaOnboardingStubVariant = 'account_provisioning_error' | 'error';
 
@@ -31,7 +35,15 @@ interface VbaOnboardingStubProps {
 }
 
 const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
+
+  useEffect(() => {
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_ERROR_VIEWED, () =>
+      buildVbaBaseProperties({ screenName: `vba_${variant}` }),
+    );
+  }, [variant]);
+
   const tw = useTailwind();
   const [isContinuing, setIsContinuing] = useState(false);
 
@@ -51,7 +63,7 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
 
   if (variant === 'error') {
     return (
-      <VbaOnboardingError
+      <KycOnboardingError
         testID={`${VbaOnboardingStubSelectorsIDs.CONTAINER}-${variant}`}
         backButtonTestID={VbaOnboardingStubSelectorsIDs.BACK_BUTTON}
         title={strings('virtual_bank_account.error.title')}
@@ -70,7 +82,9 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: VbaOnboardingStubSelectorsIDs.BACK_BUTTON,

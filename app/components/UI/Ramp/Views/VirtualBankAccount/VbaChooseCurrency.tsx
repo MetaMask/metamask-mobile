@@ -6,7 +6,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -19,23 +18,24 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+  VBA_SOURCE_CURRENCIES,
   type VbaSourceCurrency,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
 import { openCompletedVbaAccount } from './hooks/useVbaOnboardingRouting';
 import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
   BRL: '🇧🇷',
   USD: '🇺🇸',
-  EUR: '🇪🇺',
 };
 
 const CURRENCY_NAME_KEYS: Record<VbaSourceCurrency, string> = {
   BRL: 'virtual_bank_account.choose_currency.currencies.brl',
   USD: 'virtual_bank_account.choose_currency.currencies.usd',
-  EUR: 'virtual_bank_account.choose_currency.currencies.eur',
 };
 
 const getCurrencyName = (currency: VbaSourceCurrency): string =>
@@ -43,10 +43,12 @@ const getCurrencyName = (currency: VbaSourceCurrency): string =>
 
 /**
  * Lets the user pick the account currency after identity verification. Only
- * shown when `moneyMovementNeobank.chooseCurrency` is true; otherwise the
- * account is created in the IP country's currency.
+ * shown when `moneyMovementNeobank.chooseCurrency` is true. The pick does not
+ * change the currency that gets created; that still comes from the open market
+ * for the effective location.
  */
 const VbaChooseCurrency = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
@@ -54,19 +56,18 @@ const VbaChooseCurrency = () => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleSelect = useCallback(
-    (currency: VbaSourceCurrency) => () => {
-      openCompletedVbaAccount(navigation, currency);
-    },
-    [navigation],
-  );
+  const handleSelect = useCallback(() => {
+    openCompletedVbaAccount(navigation);
+  }, [navigation]);
 
   return (
     <SafeAreaView
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: VbaChooseCurrencySelectorsIDs.BACK_BUTTON }}
         includesTopInset
@@ -95,12 +96,12 @@ const VbaChooseCurrency = () => {
           {strings('virtual_bank_account.choose_currency.description')}
         </Text>
         <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-          {VBA_CHOOSABLE_SOURCE_CURRENCIES.map((currency) => {
+          {VBA_SOURCE_CURRENCIES.map((currency) => {
             const name = getCurrencyName(currency);
             return (
               <Pressable
                 key={currency}
-                onPress={handleSelect(currency)}
+                onPress={handleSelect}
                 accessibilityRole="button"
                 accessibilityLabel={strings(
                   'virtual_bank_account.choose_currency.row_label',

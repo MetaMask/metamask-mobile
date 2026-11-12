@@ -140,6 +140,22 @@ describe('getActivityEmptyState', () => {
     );
 
     it.each([true, false])(
+      'LimitOrders returns themed copy + SwapLimitOrder (hasFunds=%s)',
+      (hasFunds) => {
+        expect(
+          getActivityEmptyState({
+            filter: ActivityTypeFilter.LimitOrders,
+            hasFunds,
+          }),
+        ).toEqual({
+          descriptionKey: 'activity_view.empty_state.limit_orders.description',
+          actionLabelKey: 'activity_view.empty_state.limit_orders.action',
+          action: ActivityEmptyStateAction.SwapLimitOrder,
+        });
+      },
+    );
+
+    it.each([true, false])(
       'MetamaskCard returns themed copy + OpenMetamaskCard (hasFunds=%s)',
       (hasFunds) => {
         expect(

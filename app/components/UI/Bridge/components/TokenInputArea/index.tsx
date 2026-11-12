@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -21,6 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
+  getFontFamily,
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -100,6 +100,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       backgroundColor: importedColors.transparent,
       flex: 1,
@@ -109,6 +110,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       transform: [{ translateY: -vars.fontSize * 0.08 }],
       ...(Platform.OS === 'android' && {
@@ -179,9 +181,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -389,10 +389,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,

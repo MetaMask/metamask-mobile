@@ -5,6 +5,7 @@ export enum SCREEN_NAMES {
   ASSET_DETAIL = 'asset_detail',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
+  MONEY_SPLASH = 'money_splash',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
   // Used for Money account withdrawals
@@ -62,6 +63,8 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_GET_STARTED_CARD = 'money_vba_get_started_card',
   /** ACCOUNT_IS_READY VBA identity-status card on Money Home (Figma node 2158-5306). */
   MONEY_VBA_ACCOUNT_READY_CARD = 'money_vba_account_ready_card',
+  /** IDENTITY_VERIFIED VBA card on Money Home: KYC approved, account not started (TRAM-4429). */
+  MONEY_VBA_IDENTITY_VERIFIED_CARD = 'money_vba_identity_verified_card',
   /** KYC_PENDING VBA identity-status card on Money Home (Figma node 2254-13372). */
   MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
   /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
@@ -134,10 +137,12 @@ export enum COMPONENT_NAMES {
   FAQ_ITEM = 'money_faq_item',
 
   // — EarnSection —
-  HOMEPAGE_EARN_SECTION = 'homepage_earn_section',
   EXPLORE_EARN_SECTION = 'explore_earn_section',
   EARN_SECTION_MONEY_CARD = 'earn_section_money_card',
 
   // — EarnSectionListView —
   MONEY_ACCOUNT_ROW = 'money_account_row',
+
+  // - Homepage Balance Breakdown -
+  MONEY_ROW_BALANCE_BREAKDOWN = 'money_row_balance_breakdown',
 }

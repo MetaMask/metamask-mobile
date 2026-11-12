@@ -16,7 +16,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import {
+  formatMusdBaseUnits,
+  isPositiveBaseUnits,
+} from '../../utils/formatUtils';
 
 export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
@@ -61,9 +64,14 @@ export interface ClaimsPausedLabels {
 
 export interface RewardsMoneyClaimsPausedModalParams {
   title: string;
-  description: string;
+  description?: string;
   totals?: ClaimsPausedTotals;
   labels?: ClaimsPausedLabels;
+  /**
+   * `breakdown` is the info sheet beside the earnings amount. It shows the
+   * same rows as the paused sheet, without the paused title and description.
+   */
+  variant?: 'paused' | 'breakdown';
 }
 
 function musdAmount(baseUnits: string | null | undefined): string {
@@ -91,19 +99,29 @@ const TOTAL_ROWS: {
     key: 'claimable',
     label: (labels) => labels.availableToClaim,
   },
+  { key: 'pending', label: (labels) => labels.pending },
   { key: 'held', label: (labels) => labels.held },
   { key: 'blocked', label: (labels) => labels.blocked },
   { key: 'voided', label: (labels) => labels.voided },
-  { key: 'pending', label: (labels) => labels.pending },
   { key: 'claimed', label: (labels) => labels.claimed },
 ];
+
+/** Held, blocked, and voided stay off the sheet when they are zero. */
+const HIDE_WHEN_ZERO = new Set<ClaimsPausedAmountKey>([
+  'held',
+  'blocked',
+  'voided',
+]);
 
 const ClaimsPausedTotalsRows: React.FC<{
   totals: ClaimsPausedTotals;
   labels: ClaimsPausedLabels;
 }> = ({ totals, labels }) => (
   <>
-    {TOTAL_ROWS.map((row) => (
+    {TOTAL_ROWS.filter(
+      (row) =>
+        !HIDE_WHEN_ZERO.has(row.key) || isPositiveBaseUnits(totals[row.key]),
+    ).map((row) => (
       <KeyValueRow
         key={row.key}
         variant={KeyValueRowVariant.Summary}
@@ -122,13 +140,21 @@ interface RewardsMoneyClaimsPausedModalProps {
 }
 
 /**
- * Claims paused sheet: the shared title and description, plus the root
- * summary totals. The under-review banner stays on the generic info sheet.
+ * Claims paused sheet, and the balance breakdown opened from the earnings
+ * amount. Both show the same root summary totals. The under-review banner
+ * stays on the generic info sheet.
  */
 const RewardsMoneyClaimsPausedModal: React.FC<
   RewardsMoneyClaimsPausedModalProps
 > = ({ route }) => {
-  const { title, description, totals, labels } = route.params;
+  const {
+    title,
+    description,
+    totals,
+    labels,
+    variant = 'paused',
+  } = route.params;
+  const isBalanceBreakdown = variant === 'breakdown';
   const navigation = useNavigation<AppNavigationProp>();
 
   const handleClose = useCallback(() => {
@@ -149,15 +175,17 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       >
         {title}
       </BottomSheetHeader>
-      <Box
-        twClassName="px-4"
-        testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {description}
-        </Text>
-      </Box>
-      {totals && labels ? (
+      {isBalanceBreakdown ? null : (
+        <Box
+          twClassName="px-4"
+          testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.DESCRIPTION}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {description}
+          </Text>
+        </Box>
+      )}
+      {!isBalanceBreakdown && totals && labels ? (
         <>
           <SectionDivider
             marginVertical={4}
@@ -175,8 +203,10 @@ const RewardsMoneyClaimsPausedModal: React.FC<
               {labels.breakdown}
             </Text>
           </Box>
-          <ClaimsPausedTotalsRows totals={totals} labels={labels} />
         </>
+      ) : null}
+      {totals && labels ? (
+        <ClaimsPausedTotalsRows totals={totals} labels={labels} />
       ) : null}
       <BottomSheetFooter
         primaryButtonProps={{

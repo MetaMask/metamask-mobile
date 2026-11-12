@@ -6,8 +6,9 @@ import SocialFeedContent from './SocialFeedContent';
 import SocialFeedVirtualized from './SocialFeedVirtualized';
 
 export type {
-  SocialFeedHeaderProps,
+  SocialFeedInlineRow,
   SocialFeedProps,
+  SocialFeedRefreshHandle,
   SocialFeedScrollMode,
 } from './SocialFeed.types';
 export {

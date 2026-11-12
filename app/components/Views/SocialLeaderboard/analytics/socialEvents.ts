@@ -11,8 +11,11 @@ export const SocialEvent = {
     REACTION_REMOVED: 'reaction_removed',
     REACTION_PICKER_OPENED: 'reaction_picker_opened',
     COPY_TRADE_TAPPED: 'copy_trade_tapped',
+    /** Copy trade tap sent to the terms or profile onboarding gate instead. */
+    COPY_TRADE_BLOCKED: 'copy_trade_blocked',
     POST_SUBMITTED: 'post_submitted',
     POST_FAILED: 'post_failed',
+    POST_SHARED: 'post_shared',
     GIF_PICKER_OPENED: 'gif_picker_opened',
     STEP_VIEWED: 'step_viewed',
     USERNAME_SHUFFLED: 'username_shuffled',
@@ -28,6 +31,9 @@ export const SocialEvent = {
     LEADERBOARD: 'social_leaderboard',
     LIVE_TRADES: 'social_live_trades',
     MY_PROFILE: 'my_profile',
+    /** Social V1 profile of another trader. */
+    TRADER_PROFILE: 'trader_profile',
+    POSITION_DETAILS_SHEET: 'position_details_sheet',
     MANAGE_PROFILE: 'manage_profile',
     PROFILE_ONBOARDING: 'profile_onboarding',
     POST_COMPOSER: 'post_composer',
@@ -66,6 +72,18 @@ export const SocialEvent = {
     EXPLORE_STOCKS: 'explore_stocks',
     PERPS_HOME: 'perps_home',
     PERP_ASSET_SCREEN: 'perp_asset_screen',
+    /**
+     * Feed tab that started a Social V1 action. Valid on Social Screen Viewed
+     * and Social UI Interaction only — not on leaderboard, profile, onboarding,
+     * trader-feed, or What's Happening events.
+     */
+    SOCIAL_TRENDING: 'social_trending',
+    SOCIAL_FOLLOWING: 'social_following',
+    SOCIAL_LIVE_TRADES: 'social_live_trades',
+  },
+  ShareDestination: {
+    EXTERNAL: 'external',
+    METAMASK_POST: 'metamask_post',
   },
   Outcome: {
     CONTENT: 'content',
@@ -77,6 +95,20 @@ export const SocialEvent = {
     CANCELLED: 'cancelled',
   },
   Trade: { PERPS: 'perps', SPOT: 'spot' },
+  Direction: { LONG: 'long', SHORT: 'short' },
+  PositionStatus: { OPEN: 'open', CLOSED: 'closed' },
+  BlockedReason: {
+    TERMS: 'terms',
+    PROFILE_ONBOARDING: 'profile_onboarding',
+  },
+  ComposerEntry: {
+    POST_TRADE_SPOT: 'post_trade_spot',
+    POST_TRADE_PERPS: 'post_trade_perps',
+    SOCIAL_FEED: 'social_feed',
+    MY_PROFILE: 'my_profile',
+    TOKEN_DETAILS: 'token_details',
+    PERPS_POSITION: 'perps_position',
+  },
   StreamState: { LIVE: 'live', PAUSED: 'paused' },
   Filter: {
     STREAM_STATE: 'stream_state',
@@ -105,6 +137,7 @@ export const SocialEvent = {
   },
   Step: {
     INTRO: 'intro',
+    TERMS: 'terms',
     USERNAME: 'username',
     X_IDENTITY: 'x_identity',
     AVATAR: 'avatar',
@@ -127,14 +160,37 @@ export type SocialFilterValue =
   | EventValue<'ProfileAsset'>;
 export type SocialReactionType = EventValue<'Reaction'>;
 export type SocialEventSource = EventValue<'Source'>;
-export interface SocialScreenViewedProperties {
+export type SocialShareDestination = EventValue<'ShareDestination'>;
+export type SocialDirection = EventValue<'Direction'>;
+export type SocialPositionStatus = EventValue<'PositionStatus'>;
+export type SocialBlockedReason = EventValue<'BlockedReason'>;
+export type SocialComposerEntry = EventValue<'ComposerEntry'>;
+/**
+ * Trader and position a Social event is about. The trader is the author of
+ * the post or the owner of the profile, never the viewer.
+ */
+export interface SocialPositionAnalyticsProperties {
+  trade_type?: SocialTradeType;
+  /** Display ticker or perps market of the position. */
+  asset?: string;
+  /** Perps only. */
+  direction?: SocialDirection;
+  position_status?: SocialPositionStatus;
+  trader_address?: string;
+  trader_username?: string;
+}
+export interface SocialScreenViewedProperties
+  extends SocialPositionAnalyticsProperties {
   screen_name: SocialScreenName;
   tab_name?: SocialTabName;
   source?: SocialEventSource;
   outcome?: Extract<EventValue<'Outcome'>, 'content' | 'empty' | 'error'>;
   step?: SocialOnboardingStep;
+  /** Composer views only. */
+  composer_entry?: SocialComposerEntry;
 }
-export interface SocialUIInteractionProperties {
+export interface SocialUIInteractionProperties
+  extends SocialPositionAnalyticsProperties {
   interaction_type: SocialInteractionType;
   screen_name: SocialScreenName;
   tab_name?: SocialTabName;
@@ -147,9 +203,21 @@ export interface SocialUIInteractionProperties {
   filter_value?: SocialFilterValue;
   previous_filter_value?: SocialFilterValue;
   reaction_type?: SocialReactionType;
-  trade_type?: SocialTradeType;
   step?: SocialOnboardingStep;
   item_position?: number;
+  /** Only sent with `post_shared`. */
+  share_destination?: SocialShareDestination;
+  /** Only sent on the terms step. */
+  terms_version?: string;
+  /** Only sent with `copy_trade_blocked`. */
+  blocked_reason?: SocialBlockedReason;
+  /** Composer interactions only. */
+  composer_entry?: SocialComposerEntry;
+  /**
+   * `post_submitted` and `post_failed` only. A post always has a caption and
+   * a position, so the GIF is the only optional content.
+   */
+  has_gif?: boolean;
 }
 export const getSocialReactionType = (
   emoji: string,

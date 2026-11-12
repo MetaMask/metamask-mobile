@@ -102,6 +102,7 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 let mockMoneyAccountVisible = false;
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
@@ -298,8 +299,13 @@ jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
 });
 
 // Control carousel/braze banner flags per test (default off so existing tests are unaffected)
-const mockCarouselBannersEnabled = false;
+let mockCarouselBannersEnabled = false;
 const mockBrazeBannerHomeEnabled = false;
+let mockIsAccountGroupFunded = false;
+jest.mock('../../../selectors/assets/balances', () => ({
+  ...jest.requireActual('../../../selectors/assets/balances'),
+  selectIsAccountGroupFunded: () => mockIsAccountGroupFunded,
+}));
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
   selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
   selectContentfulCarouselEnabledFlag: jest.fn(() => false),
@@ -907,6 +913,8 @@ beforeEach(() => {
   mockHeaderNavBarVariantName = 'control';
   mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
+  mockCarouselBannersEnabled = false;
+  mockIsAccountGroupFunded = false;
 });
 
 describe('Wallet', () => {
@@ -2051,6 +2059,74 @@ describe('MoneyBalanceCard slot', () => {
   });
 });
 
+describe('Home growth banner during the onboarding checklist', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCarouselBannersEnabled = true;
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  const renderWithChecklistAtStep = (stepIndex: number) => {
+    const state = {
+      ...mockStateWalletHomePostOnboardingActive,
+      onboarding: {
+        ...mockStateWalletHomePostOnboardingActive.onboarding,
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
+      },
+    };
+    jest.mocked(useSelector).mockImplementation((callback) => callback(state));
+    return renderWalletWithRootState(state);
+  };
+
+  it('shows the growth banner on an unfunded account when the checklist is not showing', () => {
+    const { getByTestId } = render(Wallet);
+
+    expect(getByTestId(CAROUSEL_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it.each([
+    { stepIndex: 0, isFunded: false },
+    { stepIndex: 1, isFunded: false },
+    // Funds arrived after the fund step stopped watching the balance.
+    { stepIndex: 0, isFunded: true },
+  ])(
+    'hides the growth banner while the checklist shows step $stepIndex (funded: $isFunded)',
+    ({ stepIndex, isFunded }) => {
+      mockIsAccountGroupFunded = isFunded;
+
+      const { queryByTestId } = renderWithChecklistAtStep(stepIndex);
+
+      expect(queryByTestId(CAROUSEL_TEST_ID)).not.toBeOnTheScreen();
+    },
+  );
+
+  it('shows the growth banner on a funded account once the checklist is past the fund step', () => {
+    mockIsAccountGroupFunded = true;
+
+    const { getByTestId } = renderWithChecklistAtStep(1);
+
+    expect(getByTestId(CAROUSEL_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('passes no growth banner to the balance breakdown while the checklist shows the fund step', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
+
+    renderWithChecklistAtStep(0);
+
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: expect.objectContaining({
+          children: null,
+        }),
+      }),
+    );
+  });
+});
+
 describe('Header and Nav Bar refresh AB test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -2436,7 +2512,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the treatment avatar when Social V1 is enabled', () => {
+  it('opens the account hub from the treatment avatar when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2445,7 +2521,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
   it('opens rewards from the treatment gift icon', () => {
@@ -2468,7 +2544,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the account name above the balance when Social V1 is enabled', () => {
+  it('opens the account hub from the account name above the balance when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2477,16 +2553,17 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the Social header profile button', () => {
+  it('does not render a profile button in the Social header', () => {
     enableSocialLayout();
 
-    const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+    const { queryByTestId } = renderWithNavigationProp();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER);
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the account selector from the Social header account name', () => {
@@ -2501,13 +2578,24 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   });
 
-  it('does not render the settings menu in the Social header', () => {
+  it('renders the settings menu in the Social header', () => {
     enableSocialLayout();
 
-    const { queryByTestId } = renderWithNavigationProp();
+    const { getByTestId } = renderWithNavigationProp();
     expect(
-      queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the settings menu from the Social header hamburger', () => {
+    enableSocialLayout();
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
   });
 
   describe('Social V1 account picker row', () => {

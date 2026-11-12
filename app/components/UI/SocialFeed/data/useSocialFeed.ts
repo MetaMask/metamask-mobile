@@ -20,7 +20,9 @@ import {
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import { getRowSortTimestamp } from './socialFeedRealtime';
 import {
+  toSocialFeedItemMatcher,
   toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type SocialFeedRequest,
@@ -40,6 +42,12 @@ export interface UseSocialFeedOptions {
   enabled?: boolean;
   /** Items per page. Part of the cache key. */
   pageSize?: number;
+  /**
+   * How long loaded pages stay fresh. Defaults to TanStack's, or to never
+   * while realtime streams. A second observer of a streamed feed passes
+   * `Infinity` so it does not reload the pages under the reader.
+   */
+  staleTime?: number;
   /**
    * Keeps only matching posts. With realtime, also drops non-matching new
    * posts before they are held or counted. Memoize it.
@@ -111,11 +119,11 @@ const toTelemetryQueryParams = (
 
 /** Newest event first. Stable for equal timestamps (preserves API order). */
 const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
-  b.item.timestamp - a.item.timestamp;
+  getRowSortTimestamp(b) - getRowSortTimestamp(a);
 
 /**
- * Social feed for any {@link SocialFeedSource}: every trader, one token, one
- * perp market, or one trader.
+ * Social feed for any {@link SocialFeedSource}: a `fetchFeed` query (scope,
+ * chains, assets, trader), or a legacy token, perp or trader route.
  *
  * Owns the whole data path so a surface only has to say which feed it wants:
  * identifier normalisation, the unlock gate, cursor pagination, refresh to the
@@ -130,6 +138,7 @@ export const useSocialFeed = (
   const {
     enabled = true,
     pageSize = FEED_PAGE_LIMIT,
+    staleTime,
     filterPost,
     realtime = false,
     paused = false,
@@ -146,15 +155,20 @@ export const useSocialFeed = (
     [source],
   );
   const realtimeScope = useMemo(
-    () =>
-      realtime && source && request ? toSocialFeedRealtimeScope(source) : null,
-    [realtime, request, source],
+    () => (realtime ? toSocialFeedRealtimeScope(request) : null),
+    [realtime, request],
   );
+  const matchesItem = useMemo(
+    () => (realtimeScope ? toSocialFeedItemMatcher(request) : null),
+    [realtimeScope, request],
+  );
+  const resolvedStaleTime = staleTime ?? (realtimeScope ? Infinity : undefined);
   const queryKey = useMemo(
     () =>
       request ? buildSocialFeedQueryKey(request, pageSize) : IDLE_QUERY_KEY,
     [pageSize, request],
   );
+  const streamKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
 
   const query = useInfiniteQuery({
     queryKey,
@@ -194,7 +208,9 @@ export const useSocialFeed = (
     retry: false,
     // A stale refetch reloads every loaded page and moves rows under a reader
     // who scrolled down; realtime refreshes through its catch-up instead.
-    ...(realtimeScope ? { staleTime: Infinity } : {}),
+    ...(resolvedStaleTime !== undefined
+      ? { staleTime: resolvedStaleTime }
+      : {}),
   });
 
   useEffect(() => {
@@ -249,7 +265,7 @@ export const useSocialFeed = (
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
 
@@ -279,6 +295,8 @@ export const useSocialFeed = (
       nearTop,
       holdNewPosts,
       filterPost,
+      matchesItem,
+      streamKey,
     },
   );
   const filteredPosts = useMemo(

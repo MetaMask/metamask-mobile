@@ -103,6 +103,20 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/moneyBrandRefresh',
+  () => ({
+    selectMoneyBrandRefreshEnabled: () => false,
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => false,
+  }),
+);
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
@@ -252,6 +266,7 @@ jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
     loadMore: jest.fn(),
     isLoadingMore: false,
     isLoading: false,
+    isValuationSettling: false,
     error: false,
   }),
 }));
@@ -314,6 +329,36 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText(/-5\.38 mUSD/)).toBeTruthy();
     });
 
+    it('renders the live historical amount instead of the route snapshot', () => {
+      mockRouteParams = {
+        activity: {
+          ...card,
+          displayAmount: {
+            type: 'approximate',
+            value: '5381986',
+            decimals: 6,
+          },
+        },
+      };
+      mockApiActivity = [
+        {
+          ...card,
+          displayAmount: {
+            type: 'historical',
+            value: '1000000',
+            decimals: 6,
+          },
+        },
+      ];
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText(/-1\.00 mUSD/)).toBeTruthy();
+      expect(queryByText(/≈-5\.38 mUSD/)).toBeNull();
+    });
+
     it('renders the "You spent" label', () => {
       const { getByText } = render(<MoneyApiActivityDetailsView />);
       expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
@@ -356,6 +401,64 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText('transaction.transaction_id')).toBeTruthy();
       expect(getByText('1000131559458')).toBeTruthy();
       expect(getByTestId('card-transaction-details-copy-id')).toBeTruthy();
+    });
+
+    it.each([
+      ['declined', CardTransactionStatus.Failed, 'money.transaction.failed'],
+      [
+        'reversed',
+        CardTransactionStatus.Reversed,
+        'card.transactions.reversed',
+      ],
+    ])(
+      'reports a settled but %s purchase using the provider status',
+      (_label, status: CardTransactionStatus, expectedLabel: string) => {
+        // The transfer is on-chain, so the Accounts-API row alone reads as
+        // completed. The provider outcome is the truthful one.
+        mockRouteParams = {
+          activity: card,
+          enrichment: {
+            id: 'baanx-id',
+            providerId: 'baanx',
+            timestamp: card.time,
+            status,
+            type: CardTransactionType.Purchase,
+            isDebit: true,
+            billingAmount: { value: '5.38', currency: 'USD' },
+            fundingSources: [],
+          },
+        };
+
+        const { getByText, queryByText } = render(
+          <MoneyApiActivityDetailsView />,
+        );
+
+        expect(getByText(expectedLabel)).toBeTruthy();
+        expect(queryByText('money.api_activity_details.completed')).toBeNull();
+      },
+    );
+
+    it('still reports a completed purchase as completed', () => {
+      mockRouteParams = {
+        activity: card,
+        enrichment: {
+          id: 'baanx-id',
+          providerId: 'baanx',
+          timestamp: card.time,
+          status: CardTransactionStatus.Completed,
+          type: CardTransactionType.Purchase,
+          isDebit: true,
+          billingAmount: { value: '5.38', currency: 'USD' },
+          fundingSources: [],
+        },
+      };
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('money.api_activity_details.completed')).toBeTruthy();
+      expect(queryByText('money.transaction.failed')).toBeNull();
     });
 
     it('hides the transaction ID row when enrichment has no reference', () => {

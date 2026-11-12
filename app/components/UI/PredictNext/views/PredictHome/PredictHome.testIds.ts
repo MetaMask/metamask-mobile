@@ -13,8 +13,18 @@ export const PredictHomeTestIds = {
   BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
-  ADD_FUNDS: 'predict-next-home-add-funds',
-  WITHDRAW: 'predict-next-home-withdraw',
+  GET_STARTED_BANNER: 'predict-next-home-get-started-banner',
+  GET_STARTED_BANNER_IMAGE: 'predict-next-home-get-started-banner-image',
+  GET_STARTED_BANNER_DISMISS: 'predict-next-home-get-started-banner-dismiss',
+  SECTIONS_LOADING: 'predict-next-home-sections-loading',
+  SECTIONS_ERROR: 'predict-next-home-sections-error',
+  SECTIONS_RETRY: 'predict-next-home-sections-retry',
+  SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
+  CATEGORIES: 'predict-next-home-categories',
+  CATEGORIES_HEADER: 'predict-next-home-categories-header',
+  CATEGORIES_LIST: 'predict-next-home-categories-list',
+  categoryChip: (categoryId: string) =>
+    `predict-next-home-category-${categoryId}`,
   section: (feedScreenId: string) =>
     `predict-next-home-section-${feedScreenId}`,
   sectionHeader: (feedScreenId: string) =>
@@ -33,6 +43,9 @@ export const PredictHomeTestIds = {
     `predict-next-event-content-${venueId}-${eventId}`,
   outcome: (eventId: string, side: 'yes' | 'no') =>
     `predict-next-outcome-${eventId}-${side}`,
+  /** The yes Outcome price of one Market on a multi-row or featured card. */
+  marketOutcome: (eventId: string, marketId: string) =>
+    `predict-next-outcome-${eventId}-${marketId}-yes`,
   gameQuote: (eventId: string, selection: 'away' | 'home') =>
     `predict-next-game-quote-${eventId}-${selection}`,
   image: (eventId: string) => `predict-next-event-image-${eventId}`,

@@ -2,6 +2,7 @@ export const TraderProfileViewSelectorsIDs = {
   CONTAINER: 'trader-profile-container',
   BACK_BUTTON: 'trader-profile-back-button',
   SHARE_BUTTON: 'trader-profile-share-button',
+  SHARE_SPINNER: 'trader-profile-share-spinner',
   HEADER: 'trader-profile-header',
   HEADER_COMPACT_IDENTITY: 'trader-profile-header-compact-identity',
   PROFILE_HEADER: 'trader-profile-profile-header',
@@ -14,8 +15,10 @@ export const TraderProfileViewSelectorsIDs = {
   MUTE_CHIP: 'trader-profile-mute-chip',
   TAB_OPEN: 'trader-profile-tab-open',
   TAB_CLOSED: 'trader-profile-tab-closed',
+  TAB_POSTS: 'trader-profile-tab-posts',
   SORT_BUTTON: 'trader-profile-sort-button',
   ERROR_BANNER: 'trader-profile-error-banner',
   TWITTER_LINK: 'trader-profile-twitter-link',
   REFRESH_CONTROL: 'trader-profile-refresh-control',
+  SCROLL: 'trader-profile-scroll',
 } as const;

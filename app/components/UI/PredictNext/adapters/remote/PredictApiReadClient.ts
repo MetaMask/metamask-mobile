@@ -5,6 +5,7 @@ import type {
   FetchOrderCommitParams,
   FetchOrderPreviewParams,
   FetchPortfolioPageParams,
+  FetchPositionsParams,
   FetchSearchParams,
   PredictEntityId,
   PredictFeedId,
@@ -24,7 +25,11 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
   fetchPositions(
     venueId: PredictVenueId,
-    params: FetchPortfolioPageParams,
+    params: FetchPositionsParams,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  fetchPortfolioSummary(
+    venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchActivity(
@@ -69,6 +74,8 @@ export interface PredictApiReadTransport {
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
     range?: PredictMarketHistoryRange;
+    status?: string;
+    sort?: FetchPositionsParams['sort'];
   };
 
 export interface PredictApiReadClientOptions {
@@ -136,10 +143,26 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   fetchPositions(
     venueId: PredictVenueId,
-    params: FetchPortfolioPageParams,
+    { status, ...params }: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'positions'], params, options);
+    return this.#get(
+      ['v1', 'venues', venueId, 'positions'],
+      // The route takes the status filter as a comma-separated list.
+      { ...params, status: status?.length ? status.join(',') : undefined },
+      options,
+    );
+  }
+
+  fetchPortfolioSummary(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'portfolio', 'summary'],
+      undefined,
+      options,
+    );
   }
 
   fetchActivity(
@@ -296,6 +319,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
+    // A write aborted while its token resolved must not go out: the token
+    // may already belong to whoever replaced the Predict User.
+    if (options?.signal?.aborted) {
+      const aborted = new Error('The request was aborted.');
+      aborted.name = 'AbortError';
+      throw aborted;
+    }
     return this.#post(segments, body, bearerToken, options);
   }
 

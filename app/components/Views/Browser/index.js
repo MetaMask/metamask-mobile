@@ -51,10 +51,8 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
 import { getMountedTabIds } from './utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Component that wraps all the browser
@@ -412,6 +410,14 @@ export const BrowserPure = (props) => {
   const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
 
+    // Search pushes Browser onto the root stack (Globe from ExploreSearch).
+    // Back must return to Search — do not just hide the tabs overlay, which
+    // would reveal the active WebView (often portfolio.metamask.io).
+    if (route.params?.fromExploreSearch) {
+      navigation.goBack();
+      return;
+    }
+
     // Check if the active tab still exists in the tabs list
     const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
 
@@ -421,7 +427,13 @@ export const BrowserPure = (props) => {
     if (tabs.length === 0 || !activeTabExists) {
       navigation.navigate(Routes.TRENDING_VIEW);
     }
-  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
+  }, [
+    tabs,
+    activeTabId,
+    setShouldShowTabs,
+    navigation,
+    route.params?.fromExploreSearch,
+  ]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {

@@ -7,15 +7,19 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { Text, Button } from '@metamask/design-system-react-native';
 
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
   composePredictNextOrderService,
+  configurePredictNextCatalog,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   messengerCall,
+  mockPredictNextMessenger,
+  resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 /** An unresolved sell receipt: the venue has not reported fills yet. */
@@ -30,16 +34,15 @@ const makeUnresolvedSellReceipt = (status: string) =>
     netProceeds: null,
   });
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
+import type { PredictOrderService } from '../../services/PredictOrderService';
 import { PredictOrderFlowTestIds } from './internal/PredictOrderFlow.testIds';
 import {
   usePredictOrderFlow,
   type PredictOrderFlowIntent,
 } from './PredictOrderFlowProvider';
-import {
-  KALSHI_VENUE_ID,
-  type PredictDecimal,
-  type PredictEntityId,
-} from '../../types';
+import { type PredictDecimal, type PredictEntityId } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 
 // The provider resolves the Order workflow service from Engine.context, the
 // way the real Engine init composes it: the shared composer binds the
@@ -132,13 +135,16 @@ const previewCalls = (): { url: string; body: unknown }[] =>
       body: init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     }));
 
-const stubBalance = (venueStatus?: { termsUrl?: string }) =>
-  messengerCall.mockImplementation((action: string) => {
+const stubBalance = (
+  venueStatus?: { termsUrl?: string },
+  available = '123.12',
+) =>
+  mockPredictNextMessenger((action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
       return Promise.resolve({
         venueId: 'kalshi',
         currency: 'USD',
-        available: '123.12',
+        available,
       });
     }
     if (action === 'PredictMarketDataService:getVenueStatus') {
@@ -199,26 +205,100 @@ const sellProbeWithMax =
 const renderProbe = (Component: React.ComponentType = BuyProbe) =>
   renderPredictOrderFlow(Component);
 
+/** A $20 buy whose total debit fits the entered amount: 41 contracts for
+ * $19.07 plus a $0.82 fee is a $19.89 debit, so it is quoted in one pass. */
 const makePreview = (overrides: Record<string, unknown> = {}) => ({
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
   ...overrides,
 });
+
+const centsToUsd = (cents: number) => (cents / 100).toFixed(2);
+
+/**
+ * The predict-api buy quote against a flat order book, with the amount as a
+ * maximum spend fees included (va-mmcx-predict-api#82): whole contracts at
+ * `priceCents`, a fee of one venue cent and one MetaMask cent per contract
+ * (fee-schedule.ts), and when that debit exceeds the request, one more walk
+ * at the request minus that fee. A debit above the balance is rejected the
+ * way order-preview.service.ts rejects it: HTTP 422 `insufficient_balance`,
+ * with no quoted fee.
+ */
+const quoteFlatBook = (
+  amount: string,
+  { priceCents, balance }: { priceCents: number; balance: string },
+): FetchReply => {
+  const requestedCents = Math.round(Number(amount) * 100);
+  const walk = (spendCents: number) => Math.floor(spendCents / priceCents);
+  const firstContracts = walk(requestedCents);
+  const contracts =
+    firstContracts * (priceCents + 2) > requestedCents
+      ? walk(requestedCents - firstContracts * 2)
+      : firstContracts;
+  const costCents = contracts * priceCents;
+  const feeCents = contracts * 2;
+  const debitCents = costCents + feeCents;
+  if (debitCents > Math.round(Number(balance) * 100)) {
+    return {
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    };
+  }
+  return {
+    body: makePreview({
+      requestedAmount: centsToUsd(requestedCents),
+      orderAmount: centsToUsd(costCents),
+      estimatedContracts: contracts,
+      averagePrice: (priceCents / 100).toFixed(2),
+      fee: centsToUsd(feeCents),
+      feeBreakdown: [
+        { source: 'venue', amount: centsToUsd(contracts) },
+        { source: 'metamask', amount: centsToUsd(contracts) },
+      ],
+      totalDebit: centsToUsd(debitCents),
+      potentialPayout: centsToUsd(contracts * 100),
+      potentialProfit: centsToUsd(contracts * 100 - debitCents),
+    }),
+  };
+};
+
+/** Serves every preview from the flat-book quote, with the balance the
+ * sheet reads. */
+const stubFlatBook = ({
+  priceCents,
+  balance = '123.12',
+}: {
+  priceCents: number;
+  balance?: string;
+}) => {
+  stubBalance(undefined, balance);
+  stubFetch((_url, init) => {
+    const { amount } = JSON.parse(String(init?.body)) as { amount: string };
+    return quoteFlatBook(amount, { priceCents, balance });
+  });
+};
+
+/** The amounts the preview route was asked to quote, in order. */
+const requestedAmounts = () =>
+  previewCalls().map((call) => (call.body as { amount: string }).amount);
 
 const typeAmount = (amount: string) => {
   fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
@@ -250,6 +330,7 @@ const stubEchoingPreview = () =>
 describe('PredictOrderFlow', () => {
   beforeEach(() => {
     fetchMock.mockClear();
+    resetPredictNextCatalog();
     stubBalance();
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     (Engine.context as Record<string, unknown>).PredictOrderService =
@@ -257,21 +338,83 @@ describe('PredictOrderFlow', () => {
   });
 
   afterEach(() => {
+    // Background observation must not outlive its test.
+    (
+      Engine.context as unknown as { PredictOrderService: PredictOrderService }
+    ).PredictOrderService.destroy();
     jest.restoreAllMocks();
   });
 
-  const openSheet = (Component: React.ComponentType = BuyProbe) => {
+  /** Opens the sheet and waits for the Venue's capabilities to admit it. */
+  const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
   };
 
   const flushDebounce = () =>
     act(() => new Promise((resolve) => setTimeout(resolve, 600)));
 
+  /** Presses the probe and lets the Venue catalog read settle. */
+  const pressProbeAndSettle = async (Component: React.ComponentType) => {
+    renderProbe(Component);
+    fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getVenueCatalog',
+        'kalshi',
+      ),
+    );
+    await act(async () => undefined);
+  };
+
+  describe('Venue capability gate', () => {
+    it('opens a buy only when the Venue supports buy', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        actions: ['sell'],
+      });
+
+      await pressProbeAndSettle(BuyProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it('opens a Cash Out only when the Venue supports sell', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        actions: ['buy'],
+      });
+
+      await pressProbeAndSettle(SellProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['malformed', { venueId: 'kalshi', actions: ['buy'] }],
+      ['failing', new Error('Catalog unavailable')],
+    ])('opens nothing when the catalog is %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+
+      await pressProbeAndSettle(BuyProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   /** Drives the flow to the approval step: type the amount, wait for the
    * quote, and open the review. */
   const reviewOrder = async () => {
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -285,75 +428,275 @@ describe('PredictOrderFlow', () => {
     );
   };
 
+  /** A USD figure as rendered, in cents: '$1,234.56' or '$19.00 (50¢ avg)'. */
+  const shownCents = (node: { props: { children?: unknown } }) => {
+    const text = [node.props.children].flat().join('');
+    const match = /\$([\d,]+\.\d{2})/u.exec(text);
+    if (!match) {
+      throw new Error(`No USD amount in '${text}'`);
+    }
+    return Math.round(Number(match[1].replace(/,/gu, '')) * 100);
+  };
+
+  /**
+   * Opens the details sheet for the current quote and checks the money
+   * story: Fees plus You'll receive is the Total debit, that debit is
+   * within the entered amount, and the approval step charges exactly it.
+   * Ends on the approval step and returns the details figures in cents.
+   */
+  const expectBreakdownReconciles = async (entered: string) => {
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    const details = within(
+      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    );
+    const fee = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
+    );
+    const contracts = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
+    );
+    const total = shownCents(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
+    );
+    expect(fee + contracts).toBe(total);
+    expect(total).toBeLessThanOrEqual(Math.round(Number(entered) * 100));
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+    await screen.findByTestId(PredictOrderFlowTestIds.APPROVAL);
+    expect(
+      shownCents(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT)),
+    ).toBe(total);
+    return { fee, contracts, total };
+  };
+
+  describe('the entered amount is the maximum spend, fees included', () => {
+    it('keeps a typed $20 within $20: contracts plus fee is the approval debit', async () => {
+      // 40 contracts at 50 cents and their fee would be $20.80, so the API
+      // quotes 38: $19.00 plus a $0.76 fee.
+      stubFlatBook({ priceCents: 50 });
+
+      await openSheet();
+      typeAmount('20');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('20');
+
+      expect(breakdown).toEqual({ fee: 76, contracts: 1900, total: 1976 });
+      expect(requestedAmounts()).toEqual(['20']);
+    });
+
+    it('reconciles the $1 minimum', async () => {
+      // Two contracts at 50 cents and their fee would be $1.04, so the API
+      // quotes one: $0.50 plus a $0.02 fee.
+      stubFlatBook({ priceCents: 50 });
+
+      await openSheet();
+      typeAmount('1');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1');
+
+      expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
+      expect(requestedAmounts()).toEqual(['1']);
+    });
+
+    it('reconciles a cent-sized fee to the cent', async () => {
+      // $1.50 at 47 cents: three contracts for $1.41 and a $0.06 fee fit
+      // the amount, so nothing is taken back.
+      stubFlatBook({ priceCents: 47 });
+
+      await openSheet();
+      typeAmount('1.5');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1.5');
+
+      expect(breakdown).toEqual({ fee: 6, contracts: 141, total: 147 });
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FEE_COMPONENT('venue')),
+      ).toHaveTextContent('$0.03');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.FEE_COMPONENT('metamask')),
+      ).toHaveTextContent('$0.03');
+    });
+  });
+
   /** Drives the flow through approval into the commit. */
   const approveOrder = async () => {
     await reviewOrder();
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
   };
 
-  it('renders the event snapshot with the outcome priced in cents', async () => {
+  it('renders the event snapshot with the outcome label, the swap icon and no price', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     expect(
       screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
     ).toBeOnTheScreen();
+    const outcomeLabel = screen.getByTestId(
+      PredictOrderFlowTestIds.OUTCOME_LABEL,
+    );
+    expect(outcomeLabel).toHaveTextContent('Buffalo Bills', { exact: true });
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-    ).toHaveTextContent('Buffalo Bills · 53¢');
+      within(outcomeLabel).getByTestId(
+        PredictOrderFlowTestIds.OUTCOME_SWAP_ICON,
+      ),
+    ).toBeOnTheScreen();
 
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
-      ).toHaveTextContent('Buffalo Bills · 46.5¢'),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.OUTCOME_LABEL),
+    ).toHaveTextContent('Buffalo Bills', { exact: true });
   });
 
-  it('shows the Predict balance on the Pay with row', async () => {
+  it('shows the Predictions balance on the Pay with row', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     await flushDebounce();
 
     await waitFor(() =>
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
-      ).toHaveTextContent('Predict balance ($123.12)'),
+      ).toHaveTextContent('Predictions balance ($123.12)'),
     );
   });
 
-  it('requests a quote for the entered amount and renders the distinct canonical values in the breakdown', async () => {
+  it('formats the Pay with balance with a thousands separator', async () => {
+    stubBalance(undefined, '1000');
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.PAY_WITH),
+      ).toHaveTextContent('Predictions balance ($1,000.00)'),
+    );
+  });
+
+  it('shows no Total row and labels the primary action Buy', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
       expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
 
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$20.86',
-    );
-
-    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO));
     expect(
-      screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('Price details')).toBeOnTheScreen();
+      screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+    ).toHaveTextContent('Buy', { exact: true });
+    expect(screen.queryByText('Total')).toBeNull();
+    expect(screen.queryByText('Review order')).toBeNull();
+  });
+
+  it('opens the details sheet from To win with the quoted rows and their total', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await openSheet();
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+
+    const breakdown = screen.getByTestId(PredictOrderFlowTestIds.BREAKDOWN);
+    expect(breakdown).toBeOnTheScreen();
+    const details = within(breakdown);
+    expect(
+      details
+        .getAllByText(
+          /^(Odds|Contracts|Fees|You'll receive|Total debit|Est\. payout)$/u,
+        )
+        .map((label) => label.props.children),
+    ).toEqual([
+      'Odds',
+      'Contracts',
+      'Fees',
+      "You'll receive",
+      'Total debit',
+      'Est. payout',
+    ]);
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_ODDS),
+    ).toHaveTextContent('46.5%');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_CONTRACTS),
+    ).toHaveTextContent('41');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_FEES),
+    ).toHaveTextContent('$0.82');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_RECEIVE),
+    ).toHaveTextContent('$19.07 (46.5¢ avg)');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_TOTAL),
+    ).toHaveTextContent('$19.89');
+    expect(
+      details.getByTestId(PredictOrderFlowTestIds.DETAILS_PAYOUT),
+    ).toHaveTextContent('$41.00');
+
+    // No title, no close button, and none of the approval-only rows.
+    expect(details.queryByText('Price details')).toBeNull();
+    expect(details.queryByLabelText('Close')).toBeNull();
+    expect(details.queryByText('Potential profit')).toBeNull();
+    expect(details.queryByText('Exchange fee')).toBeNull();
+    expect(details.queryByText('MetaMask fee')).toBeNull();
+  });
+
+  it('keeps To win inert until a quote exists', async () => {
+    stubEchoingPreview();
+
+    await openSheet();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.TO_WIN));
+    expect(
+      screen.queryByTestId(PredictOrderFlowTestIds.BREAKDOWN),
+    ).not.toBeOnTheScreen();
+
+    typeAmount('20');
+    await flushDebounce();
+    await waitFor(() =>
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+    );
+    replaceAmount('20', '50');
+    // While the changed amount re-quotes, the line is a skeleton.
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
+  });
+
+  it('shows the full fee breakdown and total debit on the approval step', async () => {
+    stubFetch(() => ({ body: makePreview() }));
+
+    await reviewOrder();
+
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.AVERAGE_PRICE),
     ).toHaveTextContent('46.5¢');
     expect(screen.getByText('Exchange fee')).toBeOnTheScreen();
     expect(screen.getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
+    ).toHaveTextContent('$19.89');
   });
 
   it('sends the exact intent with the authenticated request', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -372,7 +715,7 @@ describe('PredictOrderFlow', () => {
   it('keeps the Review control disabled until a live quote arrives', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
 
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
@@ -386,21 +729,19 @@ describe('PredictOrderFlow', () => {
   it('re-quotes and discards the old preview when the amount changes', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
-      ).toBeOnTheScreen(),
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
     );
     expect(previewCalls()).toHaveLength(1);
 
     replaceAmount('20', '50');
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$50.00',
-    );
-    expect(screen.queryByTestId(PredictOrderFlowTestIds.TOTAL_INFO)).toBeNull();
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+    ).toHaveTextContent('$50');
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
 
     await flushDebounce();
     await waitFor(() => expect(previewCalls()).toHaveLength(2));
@@ -409,7 +750,7 @@ describe('PredictOrderFlow', () => {
   it('keeps Review disabled while a fresh quote loads for the changed amount', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     await waitFor(() =>
@@ -440,7 +781,7 @@ describe('PredictOrderFlow', () => {
         }),
     );
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
     replaceAmount('20', '0.50');
@@ -449,9 +790,9 @@ describe('PredictOrderFlow', () => {
     });
 
     expect(previewCalls()).toHaveLength(1);
-    expect(screen.getByTestId(PredictOrderFlowTestIds.TOTAL)).toHaveTextContent(
-      '$0.50',
-    );
+    expect(
+      screen.getByTestId(PredictOrderFlowTestIds.TO_WIN),
+    ).toHaveTextContent('To win $0.00');
     expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
     expect(screen.getByText(/Enter at least \$1/)).toBeOnTheScreen();
   });
@@ -459,7 +800,7 @@ describe('PredictOrderFlow', () => {
   it('canonicalizes the amount before quoting: no leading zeros reach the API', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('05');
     await flushDebounce();
 
@@ -476,45 +817,215 @@ describe('PredictOrderFlow', () => {
   it('treats partial input as typing, not as a minimum error', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     typeAmount('1.');
 
     expect(screen.queryByText(/Enter at least \$1/)).toBeNull();
     expect(previewCalls()).toHaveLength(0);
   });
 
-  it('adds quick amounts to the entered amount and quotes the sum', async () => {
-    stubEchoingPreview();
+  describe('quick amounts', () => {
+    const pressQuickAmount = (key: string) =>
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT(key)),
+      );
 
-    openSheet();
-    fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('5')),
-    );
-    fireEvent.press(
-      screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('10')),
-    );
-    expect(
-      screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
-    ).toHaveTextContent('$15');
+    /** Opens the sheet and waits for the balance to enable the chips. */
+    const openSheetWithBalance = async () => {
+      await openSheet();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
+        ).toBeEnabled(),
+      );
+    };
 
-    await flushDebounce();
-    await waitFor(() =>
+    it('renders 25%, 50%, 75% and Max, and no additive chips', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+
+      for (const label of ['25%', '50%', '75%', 'Max']) {
+        expect(screen.getByText(label)).toBeOnTheScreen();
+      }
+      for (const label of ['+5', '+10', '+50', '+100']) {
+        expect(screen.queryByText(label)).toBeNull();
+      }
+    });
+
+    it('sets the amount to a fraction of the balance instead of adding to it', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+      pressQuickAmount('25');
       expect(
-        screen.getByTestId(PredictOrderFlowTestIds.TOTAL_INFO),
-      ).toBeOnTheScreen(),
-    );
-    expect(previewCalls()).toHaveLength(1);
-    expect(previewCalls()[0]?.body).toEqual({
-      marketId: 'KXTEST-26-A',
-      side: 'yes',
-      amount: '15',
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$30.78');
+      pressQuickAmount('50');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$61.56');
+      pressQuickAmount('75');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$92.34');
+
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      expect(previewCalls()).toHaveLength(1);
+      expect(previewCalls()[0]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        amount: '92.34',
+      });
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.TO_WIN),
+      ).toHaveTextContent('To win $41.00');
+    });
+
+    it('replaces a typed amount and re-quotes', async () => {
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+      typeAmount('5');
+      await flushDebounce();
+      await waitFor(() => expect(previewCalls()).toHaveLength(1));
+
+      pressQuickAmount('50');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$61.56');
+      await flushDebounce();
+      await waitFor(() => expect(previewCalls()).toHaveLength(2));
+      expect(previewCalls()[1]?.body).toEqual({
+        marketId: 'KXTEST-26-A',
+        side: 'yes',
+        amount: '61.56',
+      });
+    });
+
+    it('sets Max to the whole balance and quotes a debit within it, fee included', async () => {
+      // The reviewer's case: $123.12 at 50 cents. The amount buys 246
+      // contracts whose $4.92 fee would make a $127.92 debit, so the API
+      // quotes 236 contracts for $118.00 plus a $4.72 fee.
+      stubFlatBook({ priceCents: 50, balance: '123.12' });
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$123.12');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('123.12');
+
+      expect(breakdown).toEqual({ fee: 472, contracts: 11800, total: 12272 });
+      expect(requestedAmounts()).toEqual(['123.12']);
+    });
+
+    it('renders a Max rejected with insufficient_balance once, with a Refresh, and never loops', async () => {
+      // Defensive: the balance can drop between the read behind Max and the
+      // quote. The API then answers with its real 422, which carries no fee.
+      stubBalance(undefined, '123.12');
+      stubFetch(() => ({
+        status: 422,
+        body: {
+          code: 'insufficient_balance',
+          message: 'Estimated total debit exceeds the available balance.',
+        },
+      }));
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      await flushDebounce();
+
+      expect(
+        await screen.findByText('Not enough balance for this order.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
+      ).toHaveTextContent('$123.12');
+
+      // Nothing re-requests on its own, and pressing Max again keeps the
+      // same amount without another request.
+      pressQuickAmount('max');
+      await flushDebounce();
+      await flushDebounce();
+      expect(requestedAmounts()).toEqual(['123.12']);
+
+      // Refresh asks once more for the same amount, never a smaller one.
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
+      await flushDebounce();
+      await waitFor(() =>
+        expect(requestedAmounts()).toEqual(['123.12', '123.12']),
+      );
+      await flushDebounce();
+      expect(requestedAmounts()).toEqual(['123.12', '123.12']);
+    });
+
+    it('keeps Max at the whole balance on a balance just above the minimum', async () => {
+      // $1.02 at 50 cents: two contracts and their fee would be $1.04, so
+      // the API quotes one. The amount stays $1.02: never below the $1
+      // minimum and never negative.
+      stubFlatBook({ priceCents: 50, balance: '1.02' });
+
+      await openSheetWithBalance();
+      pressQuickAmount('max');
+      await flushDebounce();
+
+      const breakdown = await expectBreakdownReconciles('1.02');
+
+      expect(breakdown).toEqual({ fee: 2, contracts: 50, total: 52 });
+      expect(requestedAmounts()).toEqual(['1.02']);
+    });
+
+    it('disables chips whose value falls below the minimum amount', async () => {
+      stubBalance(undefined, '2.00');
+      stubEchoingPreview();
+
+      await openSheetWithBalance();
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('25')),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('50')),
+      ).toBeEnabled();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('75')),
+      ).toBeEnabled();
+    });
+
+    it('disables every chip while the balance is unknown', async () => {
+      mockPredictNextMessenger((action: string) =>
+        action === 'PredictPortfolioService:getBalance'
+          ? new Promise(() => undefined)
+          : Promise.resolve(undefined),
+      );
+      stubEchoingPreview();
+
+      await openSheet();
+
+      for (const key of ['25', '50', '75', 'max']) {
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT(key)),
+        ).toBeDisabled();
+      }
     });
   });
 
   it('enters the amount on the in-sheet keypad', async () => {
     stubEchoingPreview();
 
-    openSheet();
+    await openSheet();
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.KEYPAD),
@@ -525,10 +1036,25 @@ describe('PredictOrderFlow', () => {
     ).toHaveTextContent('$0');
   });
 
+  it('puts the period and backspace keys on the same filled tile as the digits', async () => {
+    stubEchoingPreview();
+
+    await openSheet();
+    fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+
+    const background = (key: string) =>
+      StyleSheet.flatten(
+        screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)).props.style,
+      ).backgroundColor;
+    expect(background('1')).toBeDefined();
+    expect(background('.')).toBe(background('1'));
+    expect(background('delete')).toBe(background('1'));
+  });
+
   it('refuses to quote below the minimum amount', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('0.50');
     await flushDebounce();
     await flushDebounce();
@@ -538,28 +1064,29 @@ describe('PredictOrderFlow', () => {
   });
 
   it('marks an expired preview, refuses approval, and refreshes', async () => {
+    // The first quote is already expired when it is served, so the sheet
+    // reaches the expired state on the quote's own resolution rather than
+    // on a wall-clock expiry timer. The refresh returns a valid quote.
     stubFetch(() => ({
       body: makePreview({
-        expiresAt: new Date(Date.now() + 500).toISOString(),
+        expiresAt: new Date(
+          previewCalls().length === 1 ? Date.now() - 1000 : Date.now() + 60_000,
+        ).toISOString(),
       }),
     }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
-    await waitFor(() =>
-      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
-    );
 
-    await waitFor(() =>
-      expect(
-        screen.getByTestId(PredictOrderFlowTestIds.EXPIRED),
-      ).toBeOnTheScreen(),
-    );
+    expect(
+      await screen.findByTestId(PredictOrderFlowTestIds.EXPIRED),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.REVIEW)).toBeNull();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
 
     fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REFRESH));
     await flushDebounce();
@@ -575,7 +1102,7 @@ describe('PredictOrderFlow', () => {
       },
     }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -595,10 +1122,10 @@ describe('PredictOrderFlow', () => {
 
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.ESTIMATED_CONTRACTS),
-    ).toHaveTextContent('43');
+    ).toHaveTextContent('41');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.TOTAL_DEBIT),
-    ).toHaveTextContent('$20.86');
+    ).toHaveTextContent('$19.89');
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.EXPIRY),
     ).toBeOnTheScreen();
@@ -868,6 +1395,147 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()[0]?.body).toEqual(commitCalls()[1]?.body);
   }, 30000);
 
+  describe('Active Venue change', () => {
+    const engine = Engine as unknown as { state: Record<string, unknown> };
+    let originalEngineState: Record<string, unknown>;
+    beforeEach(() => {
+      originalEngineState = engine.state;
+    });
+    afterEach(() => {
+      engine.state = originalEngineState;
+    });
+
+    /** A rollout change that turns Kalshi off: Polymarket becomes active
+     * while this sheet, mounted outside the implementation switch, stays. */
+    const moveActiveVenueToPolymarket = (
+      view: ReturnType<typeof renderProbe>,
+    ) =>
+      act(() => {
+        const current = view.store.getState().engine.backgroundState
+          .RemoteFeatureFlagController as Record<string, unknown>;
+        engine.state = {
+          ...engine.state,
+          RemoteFeatureFlagController: {
+            ...current,
+            remoteFeatureFlags: {
+              ...(current.remoteFeatureFlags as Record<string, unknown>),
+              predictConfig: {
+                enabled: true,
+                venues: {
+                  polymarket: { enabled: true },
+                  kalshi: { enabled: false },
+                },
+                venueSelection: { enabled: false },
+              },
+            },
+          },
+        };
+        view.store.dispatch(
+          updateBgState({ key: 'RemoteFeatureFlagController' }),
+        );
+      });
+
+    it('drops an uncommitted quote and disables every action except closing', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).not.toBeOnTheScreen();
+      // The amount can no longer be edited, so nothing re-quotes the stale
+      // intent, and nothing was committed.
+      const quotes = previewCalls().length;
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.KEYPAD),
+      ).not.toBeOnTheScreen();
+      await flushDebounce();
+      expect(previewCalls()).toHaveLength(quotes);
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('drops an approval that was never committed', async () => {
+      stubFetch(() => ({ body: makePreview() }));
+      const view = renderProbe();
+      fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+      await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+      typeAmount('20');
+      await flushDebounce();
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+        ).toBeEnabled(),
+      );
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await screen.findByTestId(PredictOrderFlowTestIds.APPROVAL);
+
+      moveActiveVenueToPolymarket(view);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.VENUE_CHANGED),
+      ).toBeOnTheScreen();
+      expect(commitCalls()).toHaveLength(0);
+    });
+
+    it('keeps showing a committed operation but never re-approves it from a stale sheet', async () => {
+      stubFetch(() => ({ body: makePreview() }), {
+        commit: () => ({ status: 502, body: {} }),
+      });
+      const view = await (async () => {
+        const rendered = renderProbe();
+        fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+        await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+        typeAmount('20');
+        await flushDebounce();
+        await waitFor(() =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+          ).toBeEnabled(),
+        );
+        fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.REVIEW));
+        fireEvent.press(
+          await screen.findByTestId(PredictOrderFlowTestIds.APPROVE),
+        );
+        return rendered;
+      })();
+      // The response was lost: the Commit is ambiguous.
+      await screen.findByTestId(PredictOrderFlowTestIds.ERROR);
+      expect(commitCalls()).toHaveLength(1);
+
+      moveActiveVenueToPolymarket(view);
+
+      // Still shown, never cancelled, but the stale sheet cannot re-POST it.
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.APPROVE),
+      ).toBeDisabled();
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
+      expect(commitCalls()).toHaveLength(1);
+    });
+  });
+
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
     stubFetch(
       () => ({
@@ -914,7 +1582,7 @@ describe('PredictOrderFlow', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -929,12 +1597,14 @@ describe('PredictOrderFlow', () => {
     stubBalance({ termsUrl: undefined });
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
     expect(screen.queryByText('Learn more')).toBeNull();
-    expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+    expect(
+      screen.getByText("By continuing, you accept Kalshi's terms."),
+    ).toBeOnTheScreen();
   });
 
   it('does not break the Order flow when the terms URL fails to open', async () => {
@@ -942,7 +1612,7 @@ describe('PredictOrderFlow', () => {
     jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('cannot open'));
     stubFetch(() => ({ body: makePreview() }));
 
-    openSheet();
+    await openSheet();
     typeAmount('20');
     await flushDebounce();
 
@@ -980,7 +1650,7 @@ describe('PredictOrderFlow', () => {
      * the quote, and open the review. The count matches the stubbed
      * Preview's echoed `requestedContracts`. */
     const reviewSellOrder = async (count = '75') => {
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts(count);
       await flushDebounce();
       await waitFor(() =>
@@ -1004,7 +1674,7 @@ describe('PredictOrderFlow', () => {
     it('renders the held-quantity context with the bid priced in cents', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
 
       expect(
         screen.getByText('Buffalo Bills vs. Kansas City Chiefs'),
@@ -1021,10 +1691,36 @@ describe('PredictOrderFlow', () => {
       expect(screen.queryByTestId(PredictOrderFlowTestIds.TO_WIN)).toBeNull();
     });
 
-    it('enters whole contracts only: no decimal key and no leading zeros', () => {
+    it('keeps the Cash Out sheet as it was: no swap icon, Review order, generic terms, bare backspace', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
+
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.OUTCOME_SWAP_ICON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PredictOrderFlowTestIds.REVIEW),
+      ).toHaveTextContent('Review order', { exact: true });
+      expect(screen.getByText(/platform terms/)).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('75')),
+      ).toBeNull();
+
+      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
+      const background = (key: string) =>
+        StyleSheet.flatten(
+          screen.getByTestId(PredictOrderFlowTestIds.KEYPAD_KEY(key)).props
+            .style,
+        ).backgroundColor;
+      expect(background('1')).toBeDefined();
+      expect(background('delete')).toBeUndefined();
+    });
+
+    it('enters whole contracts only: no decimal key and no leading zeros', async () => {
+      stubEchoingSellPreview();
+
+      await openSheet(SellProbe);
       fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT));
 
       expect(
@@ -1041,7 +1737,7 @@ describe('PredictOrderFlow', () => {
     it('sends the sell intent with whole contracts to the preview route', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('70');
       await flushDebounce();
       await waitFor(() =>
@@ -1063,7 +1759,7 @@ describe('PredictOrderFlow', () => {
     it('sets quick-sell chips to floored whole contracts: 25%, 50%, and Max', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       pressQuickContract('quarter');
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.AMOUNT_INPUT),
@@ -1094,12 +1790,12 @@ describe('PredictOrderFlow', () => {
       });
     });
 
-    it('disables fraction chips that floor below one contract, keeping Max', () => {
+    it('disables fraction chips that floor below one contract, keeping Max', async () => {
       stubEchoingSellPreview();
 
       // 3 contracts: 25% floors to 0, which would only trigger the
       // minimum-count error, so it is disabled; Max always stays available.
-      openSheet(sellProbeWithMax(3));
+      await openSheet(sellProbeWithMax(3));
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
       ).toBeDisabled();
@@ -1108,10 +1804,10 @@ describe('PredictOrderFlow', () => {
       ).toBeEnabled();
     });
 
-    it('enables the 25% chip once its floored count reaches one contract', () => {
+    it('enables the 25% chip once its floored count reaches one contract', async () => {
       stubEchoingSellPreview();
 
-      openSheet(sellProbeWithMax(4));
+      await openSheet(sellProbeWithMax(4));
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('quarter')),
       ).toBeEnabled();
@@ -1161,7 +1857,7 @@ describe('PredictOrderFlow', () => {
     it('prevents an over-sell locally before any quote', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('80');
       await flushDebounce();
 
@@ -1185,7 +1881,7 @@ describe('PredictOrderFlow', () => {
     it('rejects a zero count with an inline message', async () => {
       stubEchoingSellPreview();
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('0');
       await flushDebounce();
 
@@ -1205,7 +1901,7 @@ describe('PredictOrderFlow', () => {
         },
       }));
 
-      openSheet(SellProbe);
+      await openSheet(SellProbe);
       typeContracts('70');
       await flushDebounce();
 

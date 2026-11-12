@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
   SocialFeedEventListener,
@@ -9,6 +10,7 @@ import { mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from './socialFeedRealtime';
+import { resetSocialRealtimeLeases } from './socialRealtimeLease';
 import { useSocialFeedRealtime } from './useSocialFeedRealtime';
 
 const mockAddListener = jest.fn();
@@ -40,6 +42,8 @@ interface HookProps {
   nearTop?: boolean;
   holdNewPosts?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  matchesItem?: (item: CoreFeedItem) => boolean;
+  streamKey?: string;
 }
 
 const NO_ROWS: TraderFeedRow[] = [];
@@ -75,6 +79,13 @@ const buildEvent = (
 const positionIds = (posts: SocialV1FeedPost[]) =>
   posts.map((post) => post.position?.positionId);
 
+const buildCall = (uid: string): AuthorComment => ({
+  uid,
+  text: 'this is alpha',
+  timestamp: 1_700_000_000,
+  engagement: { reactions: [], userReaction: null },
+});
+
 describe('useSocialFeedRealtime', () => {
   let listener: SocialFeedEventListener | undefined;
   let reconnectListener: (() => void) | undefined;
@@ -91,10 +102,21 @@ describe('useSocialFeedRealtime', () => {
         nearTop = true,
         holdNewPosts = false,
         filterPost,
+        matchesItem,
+        streamKey,
       }: HookProps) =>
         useSocialFeedRealtime(
           { rows, dataUpdatedAt, refresh },
-          { realtimeScope, active, paused, nearTop, holdNewPosts, filterPost },
+          {
+            realtimeScope,
+            active,
+            paused,
+            nearTop,
+            holdNewPosts,
+            filterPost,
+            matchesItem,
+            streamKey,
+          },
         ),
       { initialProps },
     );
@@ -118,6 +140,7 @@ describe('useSocialFeedRealtime', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSocialRealtimeLeases();
     listener = undefined;
     reconnectListener = undefined;
     refresh = jest.fn().mockResolvedValue(undefined);
@@ -149,7 +172,7 @@ describe('useSocialFeedRealtime', () => {
 
     expect(mockSetScopes).toHaveBeenCalledWith(['trending']);
     expect(mockAddReconnectListener).toHaveBeenCalledTimes(1);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 
   it('does not subscribe while inactive', () => {
@@ -180,6 +203,71 @@ describe('useSocialFeedRealtime', () => {
 
     expect(after).toBe(before);
     expect(afterChanged).not.toBe(beforeChanged);
+  });
+
+  it('keeps shown posts in place when a refresh returns one moved forward', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-a',
+    ]);
+  });
+
+  it('adds a late post at the top instead of between shown posts', () => {
+    const { result } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-c', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    emit(buildEvent('pos-b', { occurredAt: '2026-01-01T00:00:02Z' }));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-c',
+      'pos-a',
+    ]);
+  });
+
+  it('places rows by their own time again for another request', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+      streamKey: 'other',
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-a',
+      'pos-b',
+    ]);
   });
 
   it('adds a new post at the top with an entrance while live', () => {
@@ -241,6 +329,20 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(0);
   });
 
+  it('reveals posts held at the top past one drain batch and keeps the count at zero', async () => {
+    const { result } = renderRealtime({ holdNewPosts: true });
+    emitMany(5);
+    const heldCount = result.current?.realtime.pendingNewCount;
+
+    act(() => {
+      result.current?.realtime.revealPending();
+    });
+
+    expect(heldCount).toBe(5);
+    expect(result.current?.posts).toHaveLength(5);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
   it('holds new posts at the top when asked to, but applies updates', () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result } = renderRealtime({ rows, holdNewPosts: true });
@@ -253,6 +355,47 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.realtime.pendingNewCount).toBe(1);
   });
 
+  it('handles updates to loaded posts away from the top straight away', () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
+    const { result } = renderRealtime({ rows, nearTop: false });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
+    expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
+  it('handles a stale update to a loaded post away from the top without applying it', () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 3 })];
+    const { result } = renderRealtime({ rows, nearTop: false });
+    const before = result.current?.posts[0]?.position?.pnlValueUsd;
+
+    emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
+
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(before);
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
+  });
+
+  it('handles a held new post as new away from the top once its server copy loads', async () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
+    const { result, rerender } = renderRealtime({ nearTop: false });
+    emit(buildEvent('pos-a', { revision: 1 }));
+
+    rerender({ rows, nearTop: false });
+    emit(buildEvent('pos-a', { revision: 2 }));
+
+    expect(result.current?.posts).toEqual([]);
+    expect(result.current?.realtime.pendingNewCount).toBe(1);
+
+    rerender({ rows, nearTop: true });
+
+    await waitFor(() => expect(result.current?.posts).toHaveLength(1));
+    expect(result.current?.posts[0]?.realtimeEventId).toBe('event-pos-a');
+    expect(result.current?.realtime.pendingNewCount).toBe(0);
+  });
+
   it('drops new posts the filter rejects before holding or counting them', () => {
     const filterPost = (post: SocialV1FeedPost) =>
       post.position?.positionId !== 'pos-rejected';
@@ -262,6 +405,93 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-kept'));
 
     expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("drops new posts outside the request's slice before holding or counting them", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId !== 'pos-out';
+    const { result } = renderRealtime({ paused: true, matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("adds a new post in the request's slice at the top", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId === 'pos-in';
+    const { result } = renderRealtime({ matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-in']);
+  });
+
+  it("applies revisions to loaded posts without checking the request's slice", () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1, copyCount: 8 })];
+    const { result } = renderRealtime({ rows, matchesItem: () => false });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
+
+    expect(result.current?.posts[0]?.copyCount).toBe(9);
+  });
+
+  it('drops socket posts and catches up when the streamed request changes', async () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const { result, rerender } = renderRealtime({
+      rows,
+      dataUpdatedAt: 1,
+      streamKey: 'token-a',
+    });
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    emit(buildEvent('pos-b'));
+    const postsBefore = positionIds(result.current?.posts ?? []);
+
+    rerender({ rows, dataUpdatedAt: 1, streamKey: 'token-b' });
+
+    expect(postsBefore).toEqual(['pos-b', 'pos-a']);
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(2));
+  });
+
+  it('never renders socket posts of the previous request', () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const renderedPosts: (string | undefined)[][] = [];
+    const { rerender } = renderHook(
+      ({ streamKey }: { streamKey: string }) => {
+        const realtime = useSocialFeedRealtime(
+          { rows, dataUpdatedAt: 1, refresh },
+          {
+            realtimeScope: 'all',
+            active: true,
+            paused: false,
+            nearTop: true,
+            holdNewPosts: false,
+            streamKey,
+          },
+        );
+        renderedPosts.push(positionIds(realtime?.posts ?? []));
+        return realtime;
+      },
+      { initialProps: { streamKey: 'token-a' } },
+    );
+    emit(buildEvent('pos-b'));
+    const rendersBeforeChange = renderedPosts.length;
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(renderedPosts[rendersBeforeChange - 1]).toEqual(['pos-b', 'pos-a']);
+    renderedPosts
+      .slice(rendersBeforeChange)
+      .forEach((posts) => expect(posts).toEqual(['pos-a']));
+  });
+
+  it('does not catch up on a request change before its first page loads', () => {
+    const { rerender } = renderRealtime({ streamKey: 'token-a' });
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('filters the merged posts', () => {
@@ -277,21 +507,24 @@ describe('useSocialFeedRealtime', () => {
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-b']);
   });
 
-  it('holds updates to loaded posts while paused without counting them', async () => {
+  it('handles updates to loaded posts while paused without counting them', async () => {
     const rows = [buildRow({ positionId: 'pos-a', revision: 1 })];
     const { result, rerender } = renderRealtime({ rows, paused: true });
     emit(buildEvent('pos-a', { revision: 2, data: { pnlValueUsd: 99 } }));
-    const heldPnl = result.current?.posts[0]?.position?.pnlValueUsd;
-    const heldCount = result.current?.realtime.pendingNewCount;
 
-    rerender({ rows, paused: false });
-
-    expect(heldPnl).not.toBe(99);
-    expect(heldCount).toBe(0);
     await waitFor(() =>
       expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99),
     );
+    const pendingCount = result.current?.realtime.pendingNewCount;
+    const wasHeld = result.current?.realtime.hasPendingUpdate('pos-a');
+
+    rerender({ rows, paused: false });
+
+    expect(pendingCount).toBe(0);
+    expect(wasHeld).toBe(false);
+    expect(result.current?.posts[0]?.position?.pnlValueUsd).toBe(99);
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
+    expect(result.current?.realtime.hasPendingUpdate('pos-a')).toBe(false);
   });
 
   it('caps socket-only posts and refreshes to catch up', async () => {
@@ -389,13 +622,52 @@ describe('useSocialFeedRealtime', () => {
     expect(result.current?.posts[0]?.realtimeEventId).toBeUndefined();
   });
 
-  it('keeps socket posts while inactive', () => {
+  it('clears the rest authorComment when a realtime update carries a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
+  });
+
+  it('keeps the rest authorComment when a realtime update omits authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const rows = [
+      buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+    ];
+    const { result } = renderRealtime({ rows, dataUpdatedAt: 1_000 });
+
+    emit(buildEvent('pos-a', { revision: 2 }));
+
+    expect(result.current?.posts[0]?.commentId).toBe('call-rest');
+  });
+
+  it('clears the comment when a server row promotes a socket-only post with a null authorComment', () => {
+    const restCall = buildCall('call-rest');
+    const { result, rerender } = renderRealtime();
+    emit(buildEvent('pos-a', { revision: 2, data: { authorComment: null } }));
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', revision: 1, authorComment: restCall }),
+      ],
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    expect(result.current?.posts[0]?.commentId).toBeUndefined();
+  });
+
+  it('keeps socket posts while inactive', async () => {
     const { result, rerender } = renderRealtime();
     emit(buildEvent('pos-a'));
 
     rerender({ active: false });
 
     expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
-    expect(mockSetActive).toHaveBeenLastCalledWith(false);
+    await waitFor(() => expect(mockSetActive).toHaveBeenLastCalledWith(false));
   });
 });
