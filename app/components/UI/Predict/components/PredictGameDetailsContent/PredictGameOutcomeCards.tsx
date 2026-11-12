@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import type { PredictMarketGame, PredictOutcomeGroup } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import {
@@ -300,7 +301,7 @@ export const OutcomesContent = memo(
   }) => {
     if (group.subgroups && group.subgroups.length > 0) {
       return (
-        <>
+        <Box twClassName="w-full flex-col gap-3">
           {group.subgroups.map((subgroup, index) => (
             <SubgroupCards
               key={subgroup.key}
@@ -313,7 +314,7 @@ export const OutcomesContent = memo(
               onRegTimeInfoPress={onRegTimeInfoPress}
             />
           ))}
-        </>
+        </Box>
       );
     }
 
@@ -338,7 +339,7 @@ export const OutcomesContent = memo(
     }
 
     return (
-      <>
+      <Box twClassName="w-full flex-col gap-3">
         {group.outcomes.map((outcome, index) => (
           <SimpleOutcomeCard
             key={outcome.id}
@@ -352,7 +353,7 @@ export const OutcomesContent = memo(
             testID={`${group.key}-outcome-${index}`}
           />
         ))}
-      </>
+      </Box>
     );
   },
 );

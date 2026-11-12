@@ -58,7 +58,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
     onSelectLine !== undefined;
 
   return (
-    <Box testID={testID} twClassName="w-full bg-muted rounded-2xl p-4 mb-4">
+    <Box testID={testID} twClassName="w-full bg-muted rounded-2xl p-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
