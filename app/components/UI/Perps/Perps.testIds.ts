@@ -187,6 +187,15 @@ export const PerpsWatchlistSelectorsIDs = {
   SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
   SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
   SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+  INLINE_ROWS: 'perps-watchlist-inline-rows',
+} as const;
+
+export const PerpsTabSelectorsIDs = {
+  FILTERS: 'perps-tab-filters',
+  LOADING: 'perps-tab-loading',
+  MARKET_LIST: 'perps-tab-market-list',
+  SORT_SHEET: 'perps-tab-sort-sheet',
+  TRENDING_LISTS_HEADER: 'section-header-perps-trending-lists',
 } as const;
 
 // ========================================
