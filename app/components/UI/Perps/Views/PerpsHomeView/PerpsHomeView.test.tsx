@@ -36,6 +36,7 @@ import {
   PerpsHomeViewSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
 } from '../../Perps.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMocks';
 import {
   HOME_SCREEN_CONFIG,
   SUPPORT_CONFIG,
@@ -308,13 +309,9 @@ jest.mock('../../hooks/usePerpsProvider', () => ({
   })),
 }));
 
-const mockUsePerpsCrossMarginSummary = jest.fn(() => ({
-  isCrossMarginEnabled: false,
-  hasCrossExposure: false,
-  isInitialLoading: false,
-  accountRatio: undefined as number | undefined,
-  tone: undefined as 'safe' | 'warning' | 'danger' | undefined,
-}));
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
 jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
   usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
 }));

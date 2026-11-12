@@ -2250,11 +2250,14 @@ describe('Perps market details margin mode', () => {
     },
   };
 
-  const ethPosition = (type: 'cross' | 'isolated'): Position =>
+  const ethPosition = (
+    type: 'cross' | 'isolated',
+    liquidationPrice: string | null = type === 'cross' ? null : '1800',
+  ): Position =>
     createLongPositionForViews({
       symbol: 'ETH',
       leverage: { value: 3, type },
-      liquidationPrice: type === 'cross' ? null : '1800',
+      liquidationPrice,
     });
 
   it('labels a cross margin row and keeps it from opening adjust margin', async () => {
@@ -2301,15 +2304,7 @@ describe('Perps market details margin mode', () => {
     renderPerpsMarketDetailsView({
       crossMarginEnabled: true,
       overrides: eligible,
-      streamOverrides: {
-        positions: [
-          createLongPositionForViews({
-            symbol: 'ETH',
-            leverage: { value: 3, type: 'cross' },
-            liquidationPrice: '1800',
-          }),
-        ],
-      },
+      streamOverrides: { positions: [ethPosition('cross', '1800')] },
     });
 
     expect(

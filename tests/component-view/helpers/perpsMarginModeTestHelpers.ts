@@ -84,6 +84,10 @@ export async function confirmCrossMarginSheet() {
 
 /** Pick Cross in the open margin mode sheet and confirm its risks. */
 export async function selectCrossMarginMode() {
+  // The option starts disabled until the lock and market reads settle.
+  await waitFor(() =>
+    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
+  );
   fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
   await waitFor(() =>
     expect(screen.queryByTestId(marginIds.CONTAINER)).not.toBeOnTheScreen(),

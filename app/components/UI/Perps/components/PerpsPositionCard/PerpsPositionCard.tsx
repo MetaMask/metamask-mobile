@@ -26,13 +26,13 @@ import {
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import {
   getPerpsDisplaySymbol,
   type Order,
@@ -434,7 +434,8 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                     {strings('perps.position.card.margin_label')}
                   </Text>
                   {isCrossMarginEnabled && (
-                    <Tag
+                    <PerpsMarginModeTag
+                      marginMode={isCross ? 'cross' : 'isolated'}
                       testID={
                         isCross
                           ? getPerpsCrossMarginTagSelector(
@@ -443,13 +444,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                             )
                           : PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG
                       }
-                    >
-                      {strings(
-                        isCross
-                          ? 'perps.margin_mode.cross_title'
-                          : 'perps.margin_mode.isolated_title',
-                      )}
-                    </Tag>
+                    />
                   )}
                 </Box>
                 <SensitiveText

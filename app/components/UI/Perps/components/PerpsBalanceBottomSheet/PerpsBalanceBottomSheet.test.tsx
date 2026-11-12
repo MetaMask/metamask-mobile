@@ -6,6 +6,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMocks';
 
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
@@ -44,15 +45,9 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
-const mockCrossMarginSummary = {
-  hasCrossExposure: false,
+const mockCrossMarginSummary = createPerpsCrossMarginSummaryMock({
   isCrossMarginEnabled: true,
-  isInitialLoading: false,
-  accountRatio: undefined as number | undefined,
-  maintenanceMargin: undefined as number | undefined,
-  accountLeverage: undefined as number | undefined,
-  crossMarginUsage: undefined as number | undefined,
-};
+});
 
 jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
   usePerpsCrossMarginSummary: jest.fn(() => mockCrossMarginSummary),

@@ -11,7 +11,7 @@ import {
 import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
-  createFundedAccountForViews,
+  createCrossMarginAccountForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
@@ -144,15 +144,11 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
         },
       },
       streamOverrides: {
-        account: {
-          ...createFundedAccountForViews('1000'),
-          crossMarginSummary: {
-            accountValue: '1000',
-            maintenanceMargin: '800',
-            marginUsed: '800',
-            notional: '2000',
-          },
-        },
+        account: createCrossMarginAccountForViews({
+          maintenanceMargin: '800',
+          marginUsed: '800',
+          notional: '2000',
+        }),
       },
     });
 
@@ -178,9 +174,6 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
     );
 
     act(() => stream.emitPositions([]));
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
     await selectCrossMarginMode();
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),

@@ -45,9 +45,6 @@ describeForPlatforms('PerpsLeverageBottomSheet Cross margin', () => {
       expect(screen.queryByTestId(leverageIds.PICKER)).not.toBeOnTheScreen(),
     );
     await openMarginModeSheet();
-    await waitFor(() =>
-      expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-    );
     await selectCrossMarginMode();
 
     fireEvent.press(screen.getByTestId(formIds.LEVERAGE_BUTTON));

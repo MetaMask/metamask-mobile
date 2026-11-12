@@ -22,8 +22,6 @@ import {
   SegmentedControl,
   Skeleton,
   Slider,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -76,6 +74,7 @@ import {
 } from '../../utils/formatUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsInlineInfoScreen,
@@ -265,13 +264,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     mode,
     inputAmount: marginAmount,
   });
-  const marginModeLabel = isCrossMarginEnabled
-    ? strings(
-        (position?.leverage?.type ?? routePosition.leverage?.type) === 'cross'
-          ? 'perps.margin_mode.cross_title'
-          : 'perps.margin_mode.isolated_title',
-      )
-    : undefined;
+  const marginMode =
+    (position?.leverage?.type ?? routePosition.leverage?.type) === 'cross'
+      ? 'cross'
+      : 'isolated';
 
   const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
     freshMaxAmount,
@@ -695,15 +691,13 @@ const PerpsAdjustMarginBottomSheet: React.FC<
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.adjust_margin.margin_in_position')}
               keyEndAccessory={
-                marginModeLabel ? (
-                  <Tag
-                    severity={TagSeverity.Neutral}
+                isCrossMarginEnabled ? (
+                  <PerpsMarginModeTag
+                    marginMode={marginMode}
                     testID={
                       PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG
                     }
-                  >
-                    {marginModeLabel}
-                  </Tag>
+                  />
                 ) : undefined
               }
               value={renderTransitionValue(

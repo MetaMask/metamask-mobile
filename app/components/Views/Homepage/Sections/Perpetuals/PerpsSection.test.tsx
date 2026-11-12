@@ -12,6 +12,7 @@ import {
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { HomepagePerpsSelectorsIDs } from '../../Homepage.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../../../UI/Perps/__mocks__/perpsHooksMocks';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import type {
   PerpsLoadingLifecycle,
@@ -163,13 +164,7 @@ jest.mock('../../../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
     mockUsePerpsCrossMarginSummary(...args),
 }));
 
-const noCrossMarginSummary = {
-  isCrossMarginEnabled: false,
-  hasCrossExposure: false,
-  isInitialLoading: false,
-  accountRatio: undefined,
-  tone: undefined,
-};
+const noCrossMarginSummary = createPerpsCrossMarginSummaryMock();
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');

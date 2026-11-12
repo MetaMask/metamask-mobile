@@ -32,6 +32,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
@@ -194,10 +195,6 @@ const PerpsProPositionCard = ({
     pnlColor,
   } = getPerpsPositionHeaderDisplay(position);
 
-  const marginTypeLabel =
-    position.leverage.type === 'isolated'
-      ? strings('perps.pro_positions_panel.card.isolated')
-      : strings('perps.pro_positions_panel.card.cross');
   // The venue only adjusts isolated margin, whatever the cross margin flag.
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
@@ -397,8 +394,8 @@ const PerpsProPositionCard = ({
                 isHidden={privacyMode}
                 labelAccessory={
                   isCrossMarginEnabled ? (
-                    <Tag
-                      severity={TagSeverity.Neutral}
+                    <PerpsMarginModeTag
+                      marginMode={isCross ? 'cross' : 'isolated'}
                       testID={
                         isCross
                           ? getPerpsCrossMarginTagSelector(
@@ -407,9 +404,7 @@ const PerpsProPositionCard = ({
                             )
                           : undefined
                       }
-                    >
-                      {marginTypeLabel}
-                    </Tag>
+                    />
                   ) : undefined
                 }
                 onValuePress={

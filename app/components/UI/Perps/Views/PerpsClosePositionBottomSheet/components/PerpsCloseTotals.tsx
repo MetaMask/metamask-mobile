@@ -10,8 +10,6 @@ import {
   IconName,
   KeyValueRow,
   KeyValueRowVariant,
-  Tag,
-  TagSeverity,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
@@ -19,6 +17,7 @@ import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProMod
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
 import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../../constants/perpsConfig';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
@@ -84,18 +83,12 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
               gap={1}
               accessible={false}
             >
-              <Tag
-                severity={TagSeverity.Neutral}
+              <PerpsMarginModeTag
+                marginMode={marginMode}
                 testID={
                   PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG
                 }
-              >
-                {strings(
-                  marginMode === 'cross'
-                    ? 'perps.margin_mode.cross_title'
-                    : 'perps.margin_mode.isolated_title',
-                )}
-              </Tag>
+              />
               {/* The margin explainer says margin is the most you can lose,
                   which only holds for isolated margin. */}
               {marginMode === 'isolated' ? (

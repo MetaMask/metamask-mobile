@@ -32,6 +32,7 @@ import {
 } from '../../../../../../tests/component-view/platform';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
@@ -4702,15 +4703,11 @@ describe('PerpsProMarketView header actions', () => {
     renderPerpsProMarketView({
       crossMarginEnabled: true,
       streamOverrides: {
-        account: {
-          ...createFundedAccountForViews('1000'),
-          crossMarginSummary: {
-            accountValue: '1000',
-            maintenanceMargin: '800',
-            marginUsed: '800',
-            notional: '2000',
-          },
-        },
+        account: createCrossMarginAccountForViews({
+          maintenanceMargin: '800',
+          marginUsed: '800',
+          notional: '2000',
+        }),
       },
     });
 

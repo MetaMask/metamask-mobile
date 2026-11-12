@@ -76,14 +76,9 @@ const renderWithVariant = (
       minimumVersion: '0.0.0',
     };
   }
-  if (crossMarginFlag) {
-    remoteFeatureFlags.perpsCrossMarginEnabled = {
-      enabled: true,
-      minimumVersion: '0.0.0',
-    };
-  }
 
   const result = renderPerpsClosePositionRouter({
+    crossMarginEnabled: crossMarginFlag || undefined,
     initialParams: { position },
     overrides: Object.keys(remoteFeatureFlags).length
       ? ({

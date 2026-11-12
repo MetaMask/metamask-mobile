@@ -20,7 +20,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
-  PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
   PerpsTPSLViewSelectorsIDs as tpslIds,
 } from '../../Perps.testIds';
@@ -44,9 +43,6 @@ const selectCross = async () => {
   });
   unwire = wirePerpsControllerForStore(store);
   await openMarginModeSheet();
-  await waitFor(() =>
-    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-  );
   await selectCrossMarginMode();
   await waitFor(() =>
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(

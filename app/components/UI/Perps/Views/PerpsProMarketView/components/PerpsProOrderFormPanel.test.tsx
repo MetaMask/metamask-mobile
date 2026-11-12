@@ -10,6 +10,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsProOrderFormPanel from './PerpsProOrderFormPanel';
+import { createPerpsCrossMarginSummaryMock } from '../../../__mocks__/perpsHooksMocks';
 
 jest.mock('../../../components/PerpsRebateBanner', () => ({
   __esModule: true,
@@ -55,10 +56,7 @@ jest.mock('../../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: (params: unknown) => mockUsePerpsProvider(params),
 }));
 
-const mockCrossMarginSummary: {
-  accountRatio: number | undefined;
-  tone: 'safe' | 'warning' | 'danger' | undefined;
-} = { accountRatio: undefined, tone: undefined };
+const mockCrossMarginSummary = createPerpsCrossMarginSummaryMock();
 jest.mock('../../../hooks/usePerpsCrossMarginSummary', () => ({
   usePerpsCrossMarginSummary: () => mockCrossMarginSummary,
 }));

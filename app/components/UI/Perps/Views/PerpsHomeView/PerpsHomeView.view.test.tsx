@@ -34,6 +34,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
   createHomeExploreAssignmentForViews,
@@ -2445,15 +2446,12 @@ describe('Perps home cross margin risk', () => {
     maintenanceMargin: string,
     marginUsed: string,
     notional: string,
-  ) => ({
-    ...createFundedAccountForViews('1000'),
-    crossMarginSummary: {
-      accountValue: '1000',
+  ) =>
+    createCrossMarginAccountForViews({
       maintenanceMargin,
       marginUsed,
       notional,
-    },
-  });
+    });
 
   const renderCrossHome = (
     account: ReturnType<typeof fundedCrossAccount>,

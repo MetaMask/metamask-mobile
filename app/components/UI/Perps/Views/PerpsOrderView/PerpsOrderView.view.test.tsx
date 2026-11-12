@@ -1706,6 +1706,27 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  const existingCrossPositionStream = {
+    account,
+    positions: [
+      {
+        ...defaultPositionForViews,
+        // The venue reports a liquidation price; the order form still
+        // withholds its own isolated estimate.
+        liquidationPrice: '1900',
+        leverage: { value: 10, type: 'cross' as const },
+      },
+    ],
+    orders: [],
+    marketData: [ethMarket],
+  };
+  const existingCrossOrderParams = {
+    asset: 'ETH',
+    direction: 'long' as const,
+    amount: '120',
+    leverage: 10,
+  };
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
@@ -1746,26 +1767,8 @@ describe('PerpsOrderView', () => {
     const { stream } = renderPerpsOrderView({
       overrides: eligibleOverrides,
       crossMarginEnabled: true,
-      initialParams: {
-        asset: 'ETH',
-        direction: 'long',
-        amount: '120',
-        leverage: 10,
-      },
-      streamOverrides: {
-        account,
-        positions: [
-          {
-            ...defaultPositionForViews,
-            // The venue reports a liquidation price; the order form still
-            // withholds its own isolated estimate.
-            liquidationPrice: '1900',
-            leverage: { value: 10, type: 'cross' },
-          },
-        ],
-        orders: [],
-        marketData: [ethMarket],
-      },
+      initialParams: existingCrossOrderParams,
+      streamOverrides: existingCrossPositionStream,
       extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
     });
 
@@ -1818,25 +1821,8 @@ describe('PerpsOrderView', () => {
     const { stream } = renderPerpsOrderView({
       overrides: eligibleOverrides,
       crossMarginEnabled: true,
-      initialParams: {
-        asset: 'ETH',
-        direction: 'long',
-        amount: '120',
-        leverage: 10,
-        useBottomSheet: true,
-      },
-      streamOverrides: {
-        account,
-        positions: [
-          {
-            ...defaultPositionForViews,
-            liquidationPrice: '1900',
-            leverage: { value: 10, type: 'cross' },
-          },
-        ],
-        orders: [],
-        marketData: [ethMarket],
-      },
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: existingCrossPositionStream,
     });
 
     await waitForDeferredOrderData();
