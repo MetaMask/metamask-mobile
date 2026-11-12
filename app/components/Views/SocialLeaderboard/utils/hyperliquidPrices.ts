@@ -93,6 +93,8 @@ export interface FetchHyperliquidPricesParams {
    * and tests stay deterministic.
    */
   nowMs: number;
+  /** Aborts the request. An abort is rethrown so the caller can retry. */
+  signal?: AbortSignal;
 }
 
 /**
@@ -100,8 +102,9 @@ export interface FetchHyperliquidPricesParams {
  * `candleSnapshot` REST endpoint and maps them to the chart's
  * `[timestamp, price]` tuples using each candle's close price.
  *
- * One-shot request (no WebSocket). Returns an empty array on any error or empty
- * response so the chart falls back to its no-data state rather than throwing.
+ * One-shot request (no WebSocket). Returns an empty array on an HTTP or parse
+ * error. An aborted request is rethrown so the caller can tell a timeout from
+ * an empty series.
  *
  * @param params - See {@link FetchHyperliquidPricesParams}.
  * @returns Historical prices ordered oldest-to-newest, or `[]`.
@@ -111,6 +114,7 @@ export async function fetchHyperliquidHistoricalPrices({
   interval,
   limit,
   nowMs,
+  signal,
 }: FetchHyperliquidPricesParams): Promise<TokenPrice[]> {
   if (!symbol) {
     return [];
@@ -129,6 +133,7 @@ export async function fetchHyperliquidHistoricalPrices({
         type: 'candleSnapshot',
         req: { coin: symbol, interval, startTime, endTime: nowMs },
       }),
+      signal,
     });
 
     if (!response.ok) {
@@ -144,6 +149,9 @@ export async function fetchHyperliquidHistoricalPrices({
       .map((candle) => [String(candle.t), Number(candle.c)] as TokenPrice)
       .filter((point) => Number.isFinite(point[1]));
   } catch (error) {
+    if (signal?.aborted) {
+      throw error;
+    }
     Logger.error(
       error as Error,
       `fetchHyperliquidHistoricalPrices: failed to fetch ${symbol} ${interval} candles`,

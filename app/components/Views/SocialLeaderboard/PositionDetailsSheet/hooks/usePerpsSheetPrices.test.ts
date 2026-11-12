@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { fetchHyperliquidHistoricalPrices } from '../../utils/hyperliquidPrices';
 import { NOW_MS } from '../positionDetailsSheet.fixtures';
 import { usePerpsSheetPrices } from './usePerpsSheetPrices';
@@ -30,12 +30,16 @@ describe('usePerpsSheetPrices', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.prices).toEqual([['1', 100]]);
     expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledWith({
-      symbol: 'BTC',
-      interval: '15m',
-      limit: 96,
-      nowMs: NOW_MS,
-    });
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'BTC',
+        interval: '15m',
+        limit: 96,
+        nowMs: NOW_MS,
+        signal: expect.any(AbortSignal),
+      }),
+    );
+    expect(result.current.isError).toBe(false);
   });
 
   it('clears prices when the candle fetch rejects', async () => {
@@ -51,7 +55,88 @@ describe('usePerpsSheetPrices', () => {
     );
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(result.current.prices).toEqual([]);
+    expect(result.current.isError).toBe(true);
+  });
+
+  it('retries an empty series once, then stops the chart waiting', async () => {
+    mockFetch.mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      usePerpsSheetPrices({
+        symbol: 'GOLD',
+        period: '1D',
+        nowMs: NOW_MS,
+        enabled: true,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(result.current.prices).toEqual([]);
+    expect(result.current.isError).toBe(true);
+  });
+
+  it('loads candles after a retry from the error state', async () => {
+    mockFetch.mockResolvedValue([]);
+
+    const { result } = renderHook(() =>
+      usePerpsSheetPrices({
+        symbol: 'GOLD',
+        period: '1D',
+        nowMs: NOW_MS,
+        enabled: true,
+      }),
+    );
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    mockFetch.mockResolvedValueOnce([['1', 42]]);
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => expect(result.current.prices).toEqual([['1', 42]]));
+    expect(result.current.isError).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stops loading when both attempts time out', async () => {
+    jest.useFakeTimers();
+    try {
+      mockFetch.mockImplementation(
+        ({ signal }: { signal?: AbortSignal }) =>
+          new Promise<never>((_resolve, reject) => {
+            signal?.addEventListener('abort', () => {
+              reject(new Error('aborted'));
+            });
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        usePerpsSheetPrices({
+          symbol: 'GOLD',
+          period: '1D',
+          nowMs: NOW_MS,
+          enabled: true,
+        }),
+      );
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isError).toBe(true);
+      expect(result.current.prices).toEqual([]);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('drops the previous candles as soon as the period changes', async () => {
@@ -94,6 +179,8 @@ describe('usePerpsSheetPrices', () => {
     );
 
     expect(mockFetch).not.toHaveBeenCalled();
-    expect(result.current).toEqual({ prices: [], isLoading: false });
+    expect(result.current.prices).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isError).toBe(false);
   });
 });

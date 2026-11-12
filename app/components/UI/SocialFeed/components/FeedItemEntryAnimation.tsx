@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import Animated, {
   LinearTransition,
   ReduceMotion,
+  useAnimatedStyle,
   useReducedMotion,
+  useSharedValue,
   withDelay,
   withSpring,
   withTiming,
@@ -139,6 +141,11 @@ export interface FeedItemEntryAnimationProps {
   children: React.ReactNode;
   /** Socket event id. A row mounted with one plays the entrance once; omit for cached rows. */
   eventId?: string;
+  /**
+   * Row identity in this cell. FlashList reuses the cell for the next post, so
+   * a new identity plays the entrance again. Omit for a row that never recycles.
+   */
+  itemKey?: string;
   /** Delay before the entrance starts, used to stagger bursts. */
   scheduleEntryDelay?: (eventId: string) => number;
   onAnimationComplete?: (eventId: string) => void;
@@ -153,13 +160,15 @@ export interface FeedItemEntryAnimationProps {
  * below glide down. FlashList positions cells absolutely, so the list springs
  * each cell's `top` with the same duration instead of `itemLayoutAnimation`.
  *
- * Entering animations only run on mount, so a row that is already on screen
- * when it gets an event id never animates; the id is marked played instead,
- * so a later remount does not animate either.
+ * Entering animations only run on mount. A row already on screen that later
+ * receives an event id is marked played instead. FlashList reuses the cell, so
+ * a new `itemKey` replays the entrance on this same view. A React key would
+ * unmount the card and throw away that recycling.
  */
 const FeedItemEntryAnimation: React.FC<FeedItemEntryAnimationProps> = ({
   children,
   eventId,
+  itemKey,
   scheduleEntryDelay,
   onAnimationComplete,
   reducedMotion = false,
@@ -168,27 +177,98 @@ const FeedItemEntryAnimation: React.FC<FeedItemEntryAnimationProps> = ({
   const systemReducedMotion = useReducedMotion();
   const latestOnComplete = useRef(onAnimationComplete);
   latestOnComplete.current = onAnimationComplete;
-  const [mountEventId] = useState(eventId);
+  const playReducedMotion = systemReducedMotion || reducedMotion;
+  const [mount] = useState(() => ({ itemKey, eventId }));
   const [entering] = useState(() =>
-    mountEventId
+    mount.eventId
       ? createFeedItemEntering({
-          eventId: mountEventId,
-          delayMs: Math.max(scheduleEntryDelay?.(mountEventId) ?? 0, 0),
-          reducedMotion: systemReducedMotion || reducedMotion,
+          eventId: mount.eventId,
+          delayMs: Math.max(scheduleEntryDelay?.(mount.eventId) ?? 0, 0),
+          reducedMotion: playReducedMotion,
           onComplete: (completedEventId) =>
             latestOnComplete.current?.(completedEventId),
         })
       : undefined,
   );
+  const shownRef = useRef(mount);
+  const opacity = useSharedValue(1);
+  const translateY = useSharedValue(0);
+  const scale = useSharedValue(1);
+  const replaying = useSharedValue(false);
+  const notifyComplete = useCallback((completedEventId: string) => {
+    latestOnComplete.current?.(completedEventId);
+  }, []);
 
-  useEffect(() => {
-    if (eventId && eventId !== mountEventId) {
-      latestOnComplete.current?.(eventId);
+  useLayoutEffect(() => {
+    const previous = shownRef.current;
+    if (previous.itemKey === itemKey) {
+      if (eventId && eventId !== previous.eventId) {
+        notifyComplete(eventId);
+        shownRef.current = { itemKey, eventId };
+      }
+      return;
     }
-  }, [eventId, mountEventId]);
+    shownRef.current = { itemKey, eventId };
+    if (!eventId) {
+      replaying.value = false;
+      opacity.value = 1;
+      translateY.value = 0;
+      scale.value = 1;
+      return;
+    }
+
+    const delayMs = Math.max(scheduleEntryDelay?.(eventId) ?? 0, 0);
+    const finish = (finished?: boolean) => {
+      'worklet';
+      if (finished) {
+        scheduleOnRN(notifyComplete, eventId);
+      }
+    };
+    // Pose first, then animate. Assigning the spring before the pose cancels it.
+    replaying.value = true;
+    opacity.value = 0;
+    translateY.value = playReducedMotion ? 0 : ENTRY_TRANSLATE_Y;
+    scale.value = playReducedMotion ? 1 : ENTRY_SCALE;
+    opacity.value = withDelay(
+      delayMs,
+      withTiming(
+        1,
+        playReducedMotion
+          ? {
+              duration: FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS,
+              reduceMotion: ReduceMotion.Never,
+            }
+          : { duration: FEED_ITEM_ENTRY_DURATION_MS * FADE_SHARE },
+        finish,
+      ),
+    );
+    if (!playReducedMotion) {
+      translateY.value = withDelay(delayMs, withSpring(0, ENTRY_SPRING));
+      scale.value = withDelay(delayMs, withSpring(1, ENTRY_SPRING));
+    }
+  }, [
+    eventId,
+    itemKey,
+    notifyComplete,
+    opacity,
+    playReducedMotion,
+    replaying,
+    scale,
+    scheduleEntryDelay,
+    translateY,
+  ]);
+
+  const replayedStyle = useAnimatedStyle(() =>
+    replaying.value
+      ? {
+          opacity: opacity.value,
+          transform: [{ translateY: translateY.value }, { scale: scale.value }],
+        }
+      : {},
+  );
 
   return (
-    <Animated.View testID={testID} entering={entering}>
+    <Animated.View testID={testID} entering={entering} style={replayedStyle}>
       {children}
     </Animated.View>
   );

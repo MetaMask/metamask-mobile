@@ -64,6 +64,14 @@ const LiveView: React.FC<LiveViewProps> = ({
     useSocialFeedPostNavigation('social_live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
+  // The pager mounts every page up front. Hold the feed query until Live
+  // has been opened once, then keep it warm.
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive]);
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
 
   useImperativeHandle(
@@ -143,6 +151,7 @@ const LiveView: React.FC<LiveViewProps> = ({
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
         scope="all"
+        enabled={hasBeenActive}
         location="social_live"
         analyticsSource={source}
         isActive={isActive}

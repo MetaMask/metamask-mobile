@@ -390,7 +390,7 @@ const MyProfileView: React.FC = () => {
   } = useTraderPositions(addressOrId ?? '', {
     enabled: !isContentHidden,
     paginated: isSocialV1,
-    refetchInterval: positionsRefreshIntervalMs,
+    refetchInterval: isFocused ? positionsRefreshIntervalMs : undefined,
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
   const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;

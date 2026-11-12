@@ -656,7 +656,9 @@ const PositionDetailsSheet = () => {
             />
             <PositionSheetChart
               prices={data.prices}
-              isLoading={isChartLoading}
+              isLoading={isChartLoading && !data.isPricesError}
+              isError={data.isPricesError}
+              onRetry={data.retryPrices}
               isTrendPositive={data.isTrendPositive}
               markers={data.markers}
               timeAxisLabels={data.timeAxisLabels}

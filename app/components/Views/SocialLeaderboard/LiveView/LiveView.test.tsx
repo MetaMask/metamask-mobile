@@ -186,6 +186,7 @@ describe('LiveView', () => {
         location: 'social_live',
         scrollMode: 'virtualized',
         realtime: true,
+        enabled: true,
         paused: false,
         requireSocialProfile: true,
         testID: LiveViewSelectorsIDs.CONTAINER,
@@ -198,6 +199,7 @@ describe('LiveView', () => {
     renderWithProvider(<LiveView isActive={false} />, { state });
 
     expect(lastFeedProps().realtime).toBe(false);
+    expect(lastFeedProps().enabled).toBe(false);
   });
 
   it('keeps every post with the default filters', () => {
