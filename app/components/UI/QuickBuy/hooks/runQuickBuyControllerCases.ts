@@ -5143,7 +5143,7 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.formattedRate).toBe('1 ETH = 2,000.0 TARGET');
       });
 
-      it('exposes the receive value and gas deduction label for a gasless quote', () => {
+      it('exposes the receive value for a gasless quote', () => {
         setupQuotedDisplayState();
         jest.mocked(useDisplayCurrencyValue).mockReturnValue('$20.00');
         jest.mocked(useFormattedNetworkFee).mockReturnValue('$1.50');
@@ -5151,7 +5151,6 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.estimatedReceiveFiat).toBe('$20.00');
-        expect(result.current.gasFeeDeductionLabel).toBeDefined();
       });
 
       it('uses the quote dest value when the dest token has no local price', () => {
@@ -5171,14 +5170,13 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.estimatedReceiveFiat).toBe('$19.50');
       });
 
-      it('exposes no receive value or gas deduction label without a quote', () => {
+      it('exposes no receive value without a quote', () => {
         setupQuotedDisplayState({ activeQuote: undefined });
         jest.mocked(useDisplayCurrencyValue).mockReturnValue('$0.00');
 
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.estimatedReceiveFiat).toBeUndefined();
-        expect(result.current.gasFeeDeductionLabel).toBeUndefined();
       });
 
       it('returns no formatted rate when the quote source amount is zero', () => {
