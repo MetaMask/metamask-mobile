@@ -23,17 +23,26 @@ import {
   CardEntryPoint,
   withCardProvider,
 } from '../../../util/metrics';
-import type { CardProvisioningView } from '../../../types';
+import type { CardProvisioningView, CardSetupStep } from '../../../types';
 import type { ImmersveNextAction } from '../../../util/immersvePrerequisites';
-import { useImmersveCardProvisioning } from './useImmersveCardProvisioning';
+import {
+  useImmersveCardProvisioning,
+  type CardProvisioningOptions,
+} from './useImmersveCardProvisioning';
 
-const ACTIONABLE_ACTIONS = new Set<ImmersveNextAction['type']>([
+const ACTIONABLE_ACTIONS = new Set<CardSetupStep>([
   'contact',
   'kyc',
   'expected_spend',
   'funding',
   'rejected',
 ]);
+
+function isCardSetupStep(
+  action: ImmersveNextAction,
+): action is Extract<ImmersveNextAction, { type: CardSetupStep }> {
+  return ACTIONABLE_ACTIONS.has(action.type as CardSetupStep);
+}
 
 /**
  * Centralizes Immersve Card Home "pending action" UX behind the shared
@@ -43,7 +52,10 @@ const ACTIONABLE_ACTIONS = new Set<ImmersveNextAction['type']>([
  * - actionable `pendingAction` from provisioning reconcile → resume via router
  * - `pending` (KYC under review) / no pending action → passive banners only
  */
-export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
+export function useImmersveEnableCard(
+  data: CardHomeData | null | undefined,
+  options?: CardProvisioningOptions,
+) {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
@@ -57,8 +69,13 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
   const { approveFunding, isApproving } =
     useImmersveMoneyAccountFundingApproval();
 
-  const { isReconciling, pendingAction, resumePendingAction, isProvisioning } =
-    useImmersveCardProvisioning(data);
+  const {
+    isReconciling,
+    pendingAction,
+    resumePendingAction,
+    isProvisioning,
+    markCardFlowOpened,
+  } = useImmersveCardProvisioning(data, options);
 
   const isAllowanceRevoked =
     isImmersve &&
@@ -66,10 +83,10 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
       (cardAlert) => cardAlert.type === 'allowance_revoked',
     );
 
-  const hasActionablePendingAction =
-    pendingAction !== null && ACTIONABLE_ACTIONS.has(pendingAction.type);
+  const setupStep: CardSetupStep | null =
+    pendingAction && isCardSetupStep(pendingAction) ? pendingAction.type : null;
 
-  const canEnableCard = isAllowanceRevoked || hasActionablePendingAction;
+  const canEnableCard = isAllowanceRevoked || setupStep !== null;
 
   const isKycUnderReview = pendingAction?.type === 'pending';
 
@@ -80,7 +97,7 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
     if (isReconciling) {
       return 'reconciling';
     }
-    if (hasActionablePendingAction) {
+    if (setupStep) {
       return 'hidden';
     }
     if (isKycUnderReview) {
@@ -135,9 +152,11 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
           )
           .build(),
       );
-      approveFunding(CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD).catch(
-        () => undefined,
-      );
+      approveFunding(
+        options?.navigateFromOutsideCard
+          ? CardEntryPoint.MONEY_HOME_METAMASK_CARD
+          : CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      ).catch(() => undefined);
       return;
     }
     resumePendingAction();
@@ -148,6 +167,7 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
     confirmLinkInBackground,
     pendingAction,
     approveFunding,
+    options?.navigateFromOutsideCard,
     trackEvent,
     createEventBuilder,
     navigation,
@@ -163,6 +183,7 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
     isKycUnderReview,
     hasPendingAction: Boolean(pendingAction),
     provisioningView,
+    setupStep,
     // The link flag clears before the effect drops this funding step. Keep the
     // button disabled through that commit so a second press cannot submit
     // another allowance.
@@ -171,5 +192,6 @@ export function useImmersveEnableCard(data: CardHomeData | null | undefined) {
         (isApproving ||
           (isFundingSettling && pendingAction?.type === 'funding')),
     ),
+    markCardFlowOpened,
   };
 }

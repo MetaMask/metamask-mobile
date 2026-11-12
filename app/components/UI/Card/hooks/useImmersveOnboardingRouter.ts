@@ -31,6 +31,7 @@ interface RouteContext {
   showAccountExistsToast?: boolean;
   /** Callers outside the OnboardingNavigator (CardAuthentication) hop via ONBOARDING.ROOT. */
   navigateFromRoot?: boolean;
+  navigateFromOutsideCard?: boolean;
   /**
    * Returning users with a card and a `funding` next-action land on Card Home
    * (Enable card / transaction history) instead of onboarding funding approval.
@@ -68,7 +69,9 @@ function destinationForAction(
         ? Routes.CARD.HOME
         : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
-      return Routes.CARD.ONBOARDING.KYC_FAILED;
+      return action.canRetry
+        ? Routes.CARD.ONBOARDING.KYC_PROCESSING
+        : Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
       return Routes.CARD.HOME;
     default:
@@ -79,12 +82,14 @@ function destinationForAction(
 /**
  * Maps a derived `ImmersveNextAction` to the screen where the user resumes
  * onboarding. Shared by SignUp (post-SIWE entry) and ImmersveKYCProcessing
- * (terminal transitions after polling) so the action→destination mapping lives
- * in one place.
+ * (Finish setup after an approved KYC) so the action→destination mapping
+ * lives in one place.
  *
- * Note: `kyc` and `pending` are handled in-screen by ImmersveKYCProcessing
- * (open the webview / keep polling); it must not pass those here or it would
- * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
+ * Note: `kyc`, `pending`, and `rejected` are handled in-screen by
+ * ImmersveKYCProcessing (open the webview, keep polling, or show the
+ * rejection). It must not pass `kyc` or `pending` here or it would navigate
+ * to itself. From SignUp they legitimately route to KYC_PROCESSING, and
+ * `rejected` routes to KYC_FAILED.
  *
  * Returning users with an existing card, and Money account countries, skip
  * the funding approval screen and land on Card Home. USDC on Base still
@@ -103,6 +108,7 @@ export const useImmersveOnboardingRouter = () => {
         countryKey,
         showAccountExistsToast,
         navigateFromRoot,
+        navigateFromOutsideCard,
         hasExistingCard,
         fundingAddress,
       } = ctx;
@@ -126,11 +132,30 @@ export const useImmersveOnboardingRouter = () => {
           .build(),
       );
 
+      const enterCardOnboarding = (
+        screen: string,
+        nestedParams?: Record<string, unknown>,
+      ) => {
+        navigation.navigate(Routes.CARD.ROOT, {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params:
+              nestedParams === undefined
+                ? { screen }
+                : { screen, params: nestedParams },
+          },
+          returnToCaller: true,
+        });
+      };
+
       const goToOnboarding = (
         screen: string,
         params: Record<string, unknown>,
       ) => {
-        if (navigateFromRoot) {
+        if (navigateFromOutsideCard) {
+          enterCardOnboarding(screen, params);
+        } else if (navigateFromRoot) {
           navigation.navigate(Routes.CARD.ONBOARDING.ROOT, { screen, params });
         } else {
           navigateWithDetails(navigation, [screen, params]);
@@ -138,6 +163,13 @@ export const useImmersveOnboardingRouter = () => {
       };
 
       const goToCardHome = () => {
+        if (navigateFromOutsideCard) {
+          navigation.navigate(Routes.CARD.ROOT, {
+            screen: Routes.CARD.HOME,
+            returnToCaller: true,
+          });
+          return;
+        }
         navigation.reset({
           index: 0,
           routes: [{ name: Routes.CARD.HOME }],
@@ -169,7 +201,17 @@ export const useImmersveOnboardingRouter = () => {
           });
           break;
         case 'rejected':
-          if (navigateFromRoot) {
+          if (action.canRetry) {
+            Engine.context.CardController.setSignInLinkStage('identity');
+            goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+              countryKey,
+              kycUrl: action.retryUrl,
+            });
+            break;
+          }
+          if (navigateFromOutsideCard) {
+            enterCardOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED);
+          } else if (navigateFromRoot) {
             navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
               screen: Routes.CARD.ONBOARDING.KYC_FAILED,
             });

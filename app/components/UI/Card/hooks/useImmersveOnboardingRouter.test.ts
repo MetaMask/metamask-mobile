@@ -241,12 +241,34 @@ describe('useImmersveOnboardingRouter', () => {
   });
 
   it('resets to KYC_FAILED when rejected', () => {
-    getRoute()({ type: 'rejected' });
+    getRoute()({ type: 'rejected', canRetry: false });
 
     expect(mockReset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: Routes.CARD.ONBOARDING.KYC_FAILED }],
     });
+  });
+
+  it('opens KYC processing with the retry link when the rejection can be retried', () => {
+    getRoute()(
+      {
+        type: 'rejected',
+        canRetry: true,
+        retryUrl: 'https://verify.immersve.com/retry',
+        reasons: ['ID_DOCUMENT_EXPIRED'],
+      },
+      { countryKey: 'GB' },
+    );
+
+    expect(mockSetSignInLinkStage).toHaveBeenCalledWith('identity');
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.KYC_PROCESSING,
+      {
+        countryKey: 'GB',
+        kycUrl: 'https://verify.immersve.com/retry',
+      },
+    );
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
   it('shows a toast and resets to Card Home when active', () => {
@@ -372,7 +394,10 @@ describe('useImmersveOnboardingRouter', () => {
     });
 
     it('navigates into ONBOARDING.ROOT KYC_FAILED for rejected (no parent reset)', () => {
-      getRoute()({ type: 'rejected' }, { navigateFromRoot: true });
+      getRoute()(
+        { type: 'rejected', canRetry: false },
+        { navigateFromRoot: true },
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
         screen: Routes.CARD.ONBOARDING.KYC_FAILED,
@@ -391,6 +416,109 @@ describe('useImmersveOnboardingRouter', () => {
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
       });
+    });
+  });
+
+  describe('navigateFromOutsideCard (caller outside the Card navigator)', () => {
+    const cardRootOnboarding = (
+      screen: string,
+      params?: Record<string, unknown>,
+    ) => [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.ONBOARDING.ROOT,
+          params: params === undefined ? { screen } : { screen, params },
+        },
+        returnToCaller: true,
+      },
+    ];
+
+    it('routes contact through the Card root to SignUp', () => {
+      getRoute()(
+        { type: 'contact', needsEmail: true, needsPhone: true },
+        { navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.SIGN_UP, {}),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('forwards the KYC url through the Card root', () => {
+      getRoute()(
+        { type: 'kyc', url: 'https://verify.immersve.com/abc' },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+          countryKey: 'GB',
+          kycUrl: 'https://verify.immersve.com/abc',
+        }),
+      );
+    });
+
+    it('routes expected spend through the Card root to KYC processing', () => {
+      getRoute()(
+        { type: 'expected_spend' },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+          countryKey: 'GB',
+          kycUrl: undefined,
+        }),
+      );
+    });
+
+    it('forwards the country through the Card root to funding approval', () => {
+      getRoute()(
+        {
+          type: 'funding',
+          write: {
+            abi: [],
+            contractAddress: '0x',
+            method: 'approve',
+            params: {},
+          },
+        },
+        { countryKey: 'GB', navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.FUNDING_APPROVAL, {
+          countryKey: 'GB',
+        }),
+      );
+    });
+
+    it('routes a rejected identity check through the Card root', () => {
+      getRoute()(
+        { type: 'rejected', canRetry: false },
+        { navigateFromOutsideCard: true },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        ...cardRootOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED),
+      );
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('opens Card Home through the Card root when the card is active', () => {
+      getRoute()(
+        { type: 'active' },
+        { navigateFromOutsideCard: true, showAccountExistsToast: false },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        returnToCaller: true,
+      });
+      expect(mockReset).not.toHaveBeenCalled();
     });
   });
 });

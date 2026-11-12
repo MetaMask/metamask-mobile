@@ -61,6 +61,34 @@ describe('buildLivePriceSource', () => {
     expect(source?.key).toBe('perp:xyz:NVDA');
   });
 
+  it('moves a perp by its leveraged size, not the margin-sized amount', () => {
+    const source = buildLivePriceSource(
+      mockPerpFeedItem({
+        isOpen: true,
+        positionAmount: 0.625,
+        positionAmountWithLeverage: 5,
+      }),
+      false,
+      derived,
+    );
+
+    expect(source?.positionAmount).toBe(5);
+  });
+
+  it('falls back to positionAmount when the leveraged size is missing', () => {
+    const source = buildLivePriceSource(
+      mockPerpFeedItem({
+        isOpen: true,
+        positionAmount: 5,
+        positionAmountWithLeverage: null,
+      }),
+      false,
+      derived,
+    );
+
+    expect(source?.positionAmount).toBe(5);
+  });
+
   it('skips closed positions', () => {
     expect(
       buildLivePriceSource(mockSpotFeedItem(), true, derived),

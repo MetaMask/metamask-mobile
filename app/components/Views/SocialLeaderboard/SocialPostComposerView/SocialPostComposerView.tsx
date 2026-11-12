@@ -65,6 +65,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   fireImpact,
   ImpactMoment,
@@ -103,13 +104,17 @@ import type {
 } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import AddPositionBottomSheet from './AddPositionBottomSheet';
+import PrivateComposerContent from './PrivateComposerContent';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import {
   SocialEvent,
   useSocialInteraction,
   useSocialScreenAnalytics,
 } from '../analytics';
-import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
+import {
+  resolvePostComposerAnalyticsSource,
+  resolvePostComposerEntry,
+} from './resolvePostComposerAnalyticsSource';
 
 const { Interaction, Outcome, Screen, ShareDestination, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
@@ -414,7 +419,7 @@ const ComposerPreview = ({
   );
 };
 
-const SocialPostComposerView: React.FC = () => {
+const SocialPostComposerEditor: React.FC = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
@@ -444,8 +449,14 @@ const SocialPostComposerView: React.FC = () => {
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
   const analyticsSource = resolvePostComposerAnalyticsSource(routeParams);
+  const composerEntry = resolvePostComposerEntry(routeParams);
+  const composerAnalytics = useMemo(
+    () => (composerEntry ? { composer_entry: composerEntry } : undefined),
+    [composerEntry],
+  );
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: analyticsSource,
+    properties: composerAnalytics,
   });
   const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
@@ -571,6 +582,7 @@ const SocialPostComposerView: React.FC = () => {
       return;
     }
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
+    const postContent = { has_gif: Boolean(gifUri) };
     fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     try {
@@ -679,6 +691,7 @@ const SocialPostComposerView: React.FC = () => {
       trackInteraction(Interaction.POST_SUBMITTED, {
         outcome: Outcome.SUCCESS,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+        ...postContent,
       });
       trackInteraction(Interaction.POST_SHARED, {
         share_destination: ShareDestination.METAMASK_POST,
@@ -694,6 +707,7 @@ const SocialPostComposerView: React.FC = () => {
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+        ...postContent,
       });
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -893,6 +907,11 @@ const SocialPostComposerView: React.FC = () => {
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );
+};
+
+const SocialPostComposerView: React.FC = () => {
+  const isPrivate = useSelector(selectIsProfileTradingActivityPrivate);
+  return isPrivate ? <PrivateComposerContent /> : <SocialPostComposerEditor />;
 };
 
 export default SocialPostComposerView;

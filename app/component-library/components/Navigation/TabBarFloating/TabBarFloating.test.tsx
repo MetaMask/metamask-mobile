@@ -373,6 +373,18 @@ describe('TabBarFloating', () => {
     });
   });
 
+  it('emits tabPress to the tapped tab so its screen can react to a re-tap', () => {
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(navigation.emit).toHaveBeenCalledWith({
+      type: 'tabPress',
+      target: '4',
+      canPreventDefault: true,
+    });
+  });
+
   it('plays the tab-change haptic on every tab press', () => {
     const { getByTestId } = renderBar();
 

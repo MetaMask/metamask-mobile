@@ -290,6 +290,10 @@ jest.mock('../../app/core/Engine', () => {
       },
       KycService: {
         getGeoCountry: jest.fn().mockResolvedValue('BR'),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        fetchIdosEnclaveJwks: jest.fn().mockResolvedValue({ keys: [] }),
+        fetchIdosRelayJwks: jest.fn().mockResolvedValue({ keys: [] }),
       },
       KycController: {
         readSessionStatus: jest.fn().mockReturnValue(null),

@@ -43,6 +43,25 @@ describe('FilterChipSection', () => {
     });
   });
 
+  it('keeps the same border width on selected and unselected chips', () => {
+    render(
+      <FilterChipSection
+        titleKey="social_leaderboard.shell.filters.section.asset"
+        options={options}
+        value="all"
+        onChange={jest.fn()}
+        testID="social-filters-type"
+      />,
+    );
+
+    expect(screen.getByTestId('social-filters-type-all')).toHaveStyle({
+      borderWidth: 1,
+    });
+    expect(screen.getByTestId('social-filters-type-tokens')).toHaveStyle({
+      borderWidth: 1,
+    });
+  });
+
   it('keeps 8px between the section label and the buttons', () => {
     render(
       <FilterChipSection
