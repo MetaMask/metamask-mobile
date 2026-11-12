@@ -200,7 +200,7 @@ const CardMessageBox = ({
       {(onConfirm || onDismiss) && (
         <Box
           flexDirection={BoxFlexDirection.Row}
-          gap={2}
+          gap={3}
           twClassName="mt-4"
           testID="card-message-box-actions"
         >

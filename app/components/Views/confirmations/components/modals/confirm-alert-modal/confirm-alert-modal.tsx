@@ -155,7 +155,6 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
               >
                 {strings('confirm.cancel')}
               </Button>
-              <View style={styles.buttonDivider} />
               <Button
                 onPress={handleConfirm}
                 style={styles.footerButton}

@@ -23,7 +23,7 @@ export default () =>
       marginTop: 32,
       flexDirection: 'row',
       justifyContent: 'space-evenly',
-      gap: 16,
+      gap: 12,
     },
     button: {
       flex: 1,

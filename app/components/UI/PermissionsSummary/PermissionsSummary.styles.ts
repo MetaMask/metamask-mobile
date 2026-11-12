@@ -52,7 +52,7 @@ const createStyles = (params: {
     actionButtonsContainer: {
       flex: 0,
       flexDirection: 'row',
-      gap: 16,
+      gap: 12,
       marginTop: 8,
       paddingHorizontal: 16,
       marginBottom: Platform.OS === 'android' ? 16 : 0,

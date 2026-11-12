@@ -838,7 +838,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               accessible={false}
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
+              gap={3}
             >
               {(
                 [

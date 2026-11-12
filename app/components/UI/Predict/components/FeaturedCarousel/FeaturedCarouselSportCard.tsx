@@ -331,7 +331,7 @@ const FeaturedCarouselSportCard: React.FC<FeaturedCarouselSportCardProps> = ({
             </Box>
           </Box>
 
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-3 gap-2">
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="mt-3 gap-3">
             {leftToken && (
               <Box twClassName="flex-1">
                 <Button

@@ -890,7 +890,7 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
               flexDirection={BoxFlexDirection.Row}
               paddingHorizontal={4}
               paddingTop={2}
-              gap={2}
+              gap={3}
             >
               {focusedPresets.map((percentage) => (
                 <Button

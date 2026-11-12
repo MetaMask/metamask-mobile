@@ -25,9 +25,10 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonsContainer: {
       flexDirection: 'row',
       marginHorizontal: 16,
+      gap: 12,
     },
-    cancelButton: { flex: 1, marginRight: 8 },
-    saveButton: { flex: 1, marginLeft: 8 },
+    cancelButton: { flex: 1 },
+    saveButton: { flex: 1 },
     saveButtonDisabled: { opacity: 0.5 },
   });
 };

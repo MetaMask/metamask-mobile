@@ -21,6 +21,7 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonsContainer: {
       flexDirection: 'row',
       paddingVertical: 16,
+      gap: 12,
     },
     headerText: {
       fontWeight: 'bold',
@@ -44,9 +45,6 @@ const styleSheet = (params: { theme: Theme }) => {
     iconWrapper: {
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    buttonDivider: {
-      width: 8,
     },
     checkboxText: {
       marginLeft: 8,

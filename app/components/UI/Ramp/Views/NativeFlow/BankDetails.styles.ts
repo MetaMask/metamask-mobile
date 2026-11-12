@@ -30,7 +30,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttonContainer: {
       flexDirection: 'row',
-      gap: 16,
+      gap: 12,
     },
     button: {
       flex: 1,

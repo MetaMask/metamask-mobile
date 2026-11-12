@@ -261,9 +261,9 @@ export const PrivateKeyList = () => {
           flexDirection={BoxFlexDirection.Row}
           justifyContent={BoxJustifyContent.Evenly}
           style={{ paddingBottom: passwordFooterPaddingBottom }}
-          twClassName="w-full shrink-0 border-t border-border-muted px-4 pt-4"
+          twClassName="w-full shrink-0 border-t border-border-muted px-4 pt-4 gap-3"
         >
-          <Box twClassName="mx-2 flex-1">
+          <Box twClassName="ml-2 flex-1">
             <Button
               size={ButtonSize.Lg}
               variant={ButtonVariant.Secondary}
@@ -274,7 +274,7 @@ export const PrivateKeyList = () => {
               {strings('multichain_accounts.private_key_list.cancel')}
             </Button>
           </Box>
-          <Box twClassName="mx-2 flex-1">
+          <Box twClassName="mr-2 flex-1">
             <Button
               size={ButtonSize.Lg}
               variant={ButtonVariant.Primary}

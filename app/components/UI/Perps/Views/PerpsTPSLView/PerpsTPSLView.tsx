@@ -1135,7 +1135,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     footerContent = (
       <>
         {reviewFooter}
-        <Box twClassName="flex-row gap-2 px-4 pt-3">
+        <Box twClassName="flex-row gap-3 px-4 pt-3">
           {keypadPresets.map((preset) => (
             <Button
               key={preset.key}

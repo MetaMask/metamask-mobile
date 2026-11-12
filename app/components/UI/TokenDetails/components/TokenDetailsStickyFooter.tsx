@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 12,
     paddingVertical: 4,
   },
   traderPositionFooter: {

@@ -41,7 +41,7 @@ const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
     },
     buttonsRow: {
       flexDirection: 'row',
-      columnGap: 16,
+      columnGap: 12,
     },
     button: {
       flex: 1,

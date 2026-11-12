@@ -452,7 +452,7 @@ const PerpsProPositionCard = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 px-4"
+          twClassName="gap-3 px-4"
         >
           <Button
             variant={ButtonVariant.Secondary}

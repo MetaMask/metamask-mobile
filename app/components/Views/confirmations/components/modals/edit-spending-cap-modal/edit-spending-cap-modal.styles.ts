@@ -5,7 +5,7 @@ const styleSheet = () =>
     buttonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: 16,
+      gap: 12,
     },
     button: {
       flex: 1,
