@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   HYPERLIQUID_CAIP2_CHAIN_ID,
   useSocialFeed,
@@ -13,10 +13,17 @@ const LIVE_TRADES_SOURCE: SocialFeedQuery = {
   chains: [HYPERLIQUID_CAIP2_CHAIN_ID],
 };
 
-export const isLiveTradePost = (post: SocialV1FeedPost): boolean =>
-  feedItemAssetClass(post.item) === 'perps' &&
-  (post.item.author.winRatePercent ?? 0) >
-    PERPS_LIVE_TRADES_CONFIG.MinWinRatePercent;
+export const isLiveTradePost = (post: SocialV1FeedPost): boolean => {
+  if (feedItemAssetClass(post.item) !== 'perps') {
+    return false;
+  }
+  const { winRatePercent } = post.item.author;
+  return (
+    winRatePercent !== null &&
+    Number.isFinite(winRatePercent) &&
+    winRatePercent > PERPS_LIVE_TRADES_CONFIG.MinWinRatePercent
+  );
+};
 
 /**
  * Posts not shown yet, newest capped at the list size, oldest first so the
@@ -34,6 +41,7 @@ export const selectNewLiveTrades = (
 export interface UsePerpsLiveTradesOptions {
   /** Streams and adds new trades only while true. */
   isActive: boolean;
+  isOffline: boolean;
 }
 
 export interface UsePerpsLiveTradesResult {
@@ -46,15 +54,18 @@ export interface UsePerpsLiveTradesResult {
 
 export const usePerpsLiveTrades = ({
   isActive,
+  isOffline,
 }: UsePerpsLiveTradesOptions): UsePerpsLiveTradesResult => {
-  const { posts, isLoading, error, refresh } = useSocialFeed(
+  const { posts, isLoading, error, refresh, dataUpdatedAt } = useSocialFeed(
     LIVE_TRADES_SOURCE,
-    { filterPost: isLiveTradePost, realtime: isActive },
+    { enabled: !isOffline, filterPost: isLiveTradePost, realtime: isActive },
   );
-  const [trades, setTrades] = useState<SocialV1FeedPost[] | null>(null);
+  const [shownIds, setShownIds] = useState<ReadonlySet<string> | null>(null);
   const [hasQueuedTrades, setHasQueuedTrades] = useState(false);
   const seenIdsRef = useRef<Set<string> | null>(null);
-  const queueRef = useRef<SocialV1FeedPost[]>([]);
+  const queueRef = useRef<string[]>([]);
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
 
   useEffect(() => {
     if (isLoading) {
@@ -64,50 +75,72 @@ export const usePerpsLiveTrades = ({
       if (posts.length === 0) {
         return;
       }
-      seenIdsRef.current = new Set(posts.map((post) => post.id));
-      setTrades(posts.slice(0, PERPS_LIVE_TRADES_CONFIG.MaxTrades));
+      const ids = posts.map((post) => post.id);
+      seenIdsRef.current = new Set(ids);
+      setShownIds(new Set(ids));
       return;
     }
     const seenIds = seenIdsRef.current;
-    const newTrades = selectNewLiveTrades(posts, seenIds);
+    const newIds = selectNewLiveTrades(posts, seenIds).map((post) => post.id);
     posts.forEach((post) => seenIds.add(post.id));
-    if (newTrades.length === 0) {
+    if (newIds.length === 0) {
       return;
     }
-    queueRef.current = [...queueRef.current, ...newTrades].slice(
+    queueRef.current = [...queueRef.current, ...newIds].slice(
       -PERPS_LIVE_TRADES_CONFIG.MaxTrades,
     );
     setHasQueuedTrades(true);
   }, [isLoading, posts]);
 
   useEffect(() => {
-    if (!hasQueuedTrades || !isActive) {
+    if (!hasQueuedTrades || !isActive || isOffline) {
       return undefined;
     }
     const intervalId = setInterval(() => {
-      const nextTrade = queueRef.current.shift();
-      if (nextTrade) {
-        setTrades((current) =>
-          [
-            nextTrade,
-            ...(current ?? []).filter((trade) => trade.id !== nextTrade.id),
-          ].slice(0, PERPS_LIVE_TRADES_CONFIG.MaxTrades),
-        );
+      const feedIds = new Set(postsRef.current.map((post) => post.id));
+      const queue = queueRef.current;
+      const nextIndex = queue.findIndex((id) => feedIds.has(id));
+      queueRef.current = nextIndex === -1 ? [] : queue.slice(nextIndex + 1);
+      if (nextIndex !== -1) {
+        const revealedId = queue[nextIndex];
+        setShownIds((current) => new Set(current).add(revealedId));
       }
       if (queueRef.current.length === 0) {
         setHasQueuedTrades(false);
       }
     }, PERPS_LIVE_TRADES_CONFIG.RevealIntervalMs);
     return () => clearInterval(intervalId);
-  }, [hasQueuedTrades, isActive]);
+  }, [hasQueuedTrades, isActive, isOffline]);
 
-  const visibleTrades =
-    trades ?? posts.slice(0, PERPS_LIVE_TRADES_CONFIG.MaxTrades);
+  const feedTrades = useMemo(
+    () =>
+      (shownIds ? posts.filter((post) => shownIds.has(post.id)) : posts).slice(
+        0,
+        PERPS_LIVE_TRADES_CONFIG.MaxTrades,
+      ),
+    [posts, shownIds],
+  );
+  const activeTradesRef = useRef<SocialV1FeedPost[] | null>(null);
+  if (isActive) {
+    activeTradesRef.current = feedTrades;
+  }
+  const trades = isActive
+    ? feedTrades
+    : (activeTradesRef.current ?? feedTrades);
+
+  const refreshWhenOnline = useCallback(async () => {
+    if (isOffline) {
+      return;
+    }
+    await refresh();
+  }, [isOffline, refresh]);
+
+  const isAwaitingOfflineData = isOffline && dataUpdatedAt === undefined;
 
   return {
-    trades: visibleTrades,
-    isLoading: isLoading && visibleTrades.length === 0,
+    trades,
+    isLoading: (isLoading || isAwaitingOfflineData) && trades.length === 0,
     error,
-    refresh,
+    refresh: refreshWhenOnline,
   };
 };

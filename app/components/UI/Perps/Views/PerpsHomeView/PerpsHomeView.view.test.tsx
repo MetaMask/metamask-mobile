@@ -938,6 +938,43 @@ describe('PerpsHomeView', () => {
         ).not.toBeOnTheScreen();
       });
 
+      it('does not request Live trades or show the empty state while Wi-Fi has no internet', async () => {
+        netInfoMock.__setMockNetInfo({
+          type: 'wifi',
+          isInternetReachable: false,
+        });
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        expect(
+          await screen.findByTestId(
+            PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+        expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+          'SocialService:fetchFeed',
+          expect.objectContaining({ scope: 'all' }),
+        );
+        expect(
+          screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(SOCIAL_FEED_RETRY_TEST_ID),
+        ).not.toBeOnTheScreen();
+      });
+
       it('switches from Live trades to Trending', async () => {
         setupLeaderboardApiMock({
           perpsTraders,

@@ -50,8 +50,8 @@ const PerpsLiveTrades: React.FC<PerpsLiveTradesProps> = ({
   const shouldAnimate = useMemo(() => getHardwareTier() !== 'LOW', []);
 
   const { trades, isLoading, error, refresh } = usePerpsLiveTrades({
-    isActive:
-      isNearViewport && isFocused && isAppActive && networkTier !== 'NONE',
+    isActive: isNearViewport && isFocused && isAppActive,
+    isOffline: networkTier === 'NONE',
   });
 
   if (isLoading) {
