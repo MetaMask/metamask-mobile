@@ -53,6 +53,89 @@ function symbolOrNull(symbol: string): string | null {
   return symbol;
 }
 
+type ActionKind =
+  | 'receive'
+  | 'cash-buy'
+  | 'view-explorer'
+  | 'remove-token'
+  | 'stellar-deactivate-trustline';
+
+interface ActionDescriptor {
+  kind: ActionKind;
+  label: string;
+  iconName: IconName;
+  testID: string;
+  isDisabled?: boolean;
+}
+
+interface BuildActionDescriptorsParams {
+  hasPerpsMarket: boolean;
+  hasBalance: boolean;
+  isBuyable: boolean;
+  hasOnReceive: boolean;
+  assetSymbol: string;
+  hasBlockExplorer: boolean;
+  showRemoveToken: boolean;
+  canDeactivate: boolean;
+  isDeactivating: boolean;
+}
+
+function buildActionDescriptors({
+  hasPerpsMarket,
+  hasBalance,
+  isBuyable,
+  hasOnReceive,
+  assetSymbol,
+  hasBlockExplorer,
+  showRemoveToken,
+  canDeactivate,
+  isDeactivating,
+}: BuildActionDescriptorsParams): ActionDescriptor[] {
+  const actions: ActionDescriptor[] = [];
+  if (hasPerpsMarket && hasBalance && hasOnReceive) {
+    actions.push({
+      kind: 'receive',
+      label: strings('asset_overview.receive_button'),
+      iconName: IconName.QrCode,
+      testID: 'more-actions-receive',
+    });
+  }
+  if (hasPerpsMarket && isBuyable) {
+    actions.push({
+      kind: 'cash-buy',
+      label: `Cash buy ${assetSymbol}`,
+      iconName: IconName.AttachMoney,
+      testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+    });
+  }
+  if (hasBlockExplorer) {
+    actions.push({
+      kind: 'view-explorer',
+      label: strings('asset_details.options.view_on_block'),
+      iconName: IconName.ArrowSquareOut,
+      testID: 'more-actions-view-explorer',
+    });
+  }
+  if (showRemoveToken) {
+    actions.push({
+      kind: 'remove-token',
+      label: strings('asset_details.options.remove_token'),
+      iconName: IconName.Trash,
+      testID: 'more-actions-remove-token',
+    });
+  }
+  if (canDeactivate) {
+    actions.push({
+      kind: 'stellar-deactivate-trustline',
+      label: strings('asset_details.options.deactivate_asset'),
+      iconName: IconName.Trash,
+      testID: 'more-actions-deactivate-asset',
+      isDisabled: isDeactivating,
+    });
+  }
+  return actions;
+}
+
 const MoreTokenActionsMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<MoreTokenActionsMenuRouteProp>();
@@ -249,59 +332,44 @@ const MoreTokenActionsMenu = () => {
     }),
   );
 
-  const showReceive = Boolean(hasPerpsMarket && hasBalance && onReceive);
-  const showCashBuy = Boolean(hasPerpsMarket && isBuyable);
-  const showBlockExplorer = Boolean(
+  const hasBlockExplorer = Boolean(
     explorer.getBlockExplorerName(asset.chainId),
   );
   const showRemoveToken = Boolean(
     !isNativeCurrency && tokenIsInAccount && !isMusdToken(asset.address),
   );
+  const actionDescriptors = buildActionDescriptors({
+    hasPerpsMarket,
+    hasBalance,
+    isBuyable,
+    hasOnReceive: Boolean(onReceive),
+    assetSymbol: asset.symbol,
+    hasBlockExplorer,
+    showRemoveToken,
+    canDeactivate,
+    isDeactivating,
+  });
+  const handlers: Record<ActionKind, () => void> = {
+    receive: handleReceive,
+    'cash-buy': handleBuy,
+    'view-explorer': handleViewOnBlockExplorer,
+    'remove-token': handleRemoveToken,
+    'stellar-deactivate-trustline': handleDeactivateTrustline,
+  };
 
   return (
     <BottomSheet ref={sheetRef}>
       <Box twClassName="py-4">
-        {showReceive ? (
+        {actionDescriptors.map((config) => (
           <ActionListItem
-            label={strings('asset_overview.receive_button')}
-            iconName={IconName.QrCode}
-            onPress={handleReceive}
-            testID="more-actions-receive"
+            key={config.kind}
+            label={config.label}
+            iconName={config.iconName}
+            onPress={handlers[config.kind]}
+            testID={config.testID}
+            isDisabled={config.isDisabled}
           />
-        ) : null}
-        {showCashBuy ? (
-          <ActionListItem
-            label={`Cash buy ${asset.symbol}`}
-            iconName={IconName.AttachMoney}
-            testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
-            onPress={handleBuy}
-          />
-        ) : null}
-        {showBlockExplorer ? (
-          <ActionListItem
-            label={strings('asset_details.options.view_on_block')}
-            iconName={IconName.ArrowSquareOut}
-            testID="more-actions-view-explorer"
-            onPress={handleViewOnBlockExplorer}
-          />
-        ) : null}
-        {showRemoveToken ? (
-          <ActionListItem
-            label={strings('asset_details.options.remove_token')}
-            iconName={IconName.Trash}
-            testID="more-actions-remove-token"
-            onPress={handleRemoveToken}
-          />
-        ) : null}
-        {canDeactivate ? (
-          <ActionListItem
-            label={strings('asset_details.options.deactivate_asset')}
-            iconName={IconName.Trash}
-            testID="more-actions-deactivate-asset"
-            isDisabled={isDeactivating}
-            onPress={handleDeactivateTrustline}
-          />
-        ) : null}
+        ))}
       </Box>
     </BottomSheet>
   );
