@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import ImmersveKYCProcessing from './ImmersveKYCProcessing';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -415,13 +415,83 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction(action);
     render(<ImmersveKYCProcessing />);
 
-    expect(mockExitCardFlow).toHaveBeenCalledWith({
-      fallback: 'card-home-pending',
-    });
+    expect(mockExitCardFlow).toHaveBeenCalledWith();
     expect(mockNotifyKycRejected).toHaveBeenCalledWith(action, {
       source: 'processing',
     });
     expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('keeps the retry webview open on a retryable rejection', () => {
+    const action: ImmersveNextAction = {
+      type: 'rejected',
+      canRetry: true,
+      retryUrl: 'https://verify.immersve.com/retry',
+      reasons: ['DOCUMENT_UNREADABLE'],
+    };
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/retry',
+    };
+    setNextAction(action);
+    const { rerender } = render(<ImmersveKYCProcessing />);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CARD.ONBOARDING.IMMERSVE_KYC,
+      {
+        url: 'https://verify.immersve.com/retry',
+        redirectUrl: KYC_REDIRECT_URL,
+      },
+    );
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+
+    act(() => {
+      mockCapturedOnClose?.();
+      setNextAction(action, null, true);
+    });
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycRejected).not.toHaveBeenCalled();
+
+    setNextAction(action);
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(mockExitCardFlow).toHaveBeenCalledWith();
+    expect(mockNotifyKycRejected).toHaveBeenCalledWith(action, {
+      source: 'processing',
+    });
+  });
+
+  it('leaves after the timeout when Immersve asks for an expected spend amount', () => {
+    setNextAction({ type: 'expected_spend' });
+    render(<ImmersveKYCProcessing />);
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS - 1);
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+
+    jest.advanceTimersByTime(1);
+
+    expect(mockExitCardFlow).toHaveBeenCalledWith({
+      fallback: 'card-home-pending',
+    });
+    expect(mockNotifyKycInReview).toHaveBeenCalledTimes(1);
+    expect(mockRoute).not.toHaveBeenCalled();
+  });
+
+  it('does not time out while the webview is open', () => {
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/xyz',
+    };
+    setNextAction({ type: 'pending' });
+    render(<ImmersveKYCProcessing />);
+
+    jest.advanceTimersByTime(POLLING_TIMEOUT_MS);
+
+    expect(mockExitCardFlow).not.toHaveBeenCalled();
+    expect(mockNotifyKycInReview).not.toHaveBeenCalled();
   });
 
   it('routes approved (active) through the onboarding router', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, StatusBar } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -64,7 +64,10 @@ const POLL_INTERVAL_MS = 3000;
  * terminal state.
  * - kyc (+url): open the Immersve KYC webview modal once.
  * - pending: spinner and poll every 3s. Still pending at 15s leaves with an in-progress toast.
+ * - expected_spend: there is no form here, so it leaves like a review once that timeout passes.
  * - rejected: leave with a toast that gives the reason. A permanent rejection also signs out.
+ * - Nothing acts on a result while the webview is open, so a retry stays on its
+ * webview until that webview closes and the next poll settles.
  * - active/funding (approved): route forward.
  */
 const ImmersveKYCProcessing = () => {
@@ -100,16 +103,25 @@ const ImmersveKYCProcessing = () => {
   const hasOpenedWebview = useRef(false);
   const hasStartedFundingApproval = useRef(false);
   const hasLeftRef = useRef(false);
+  // The open and the poll result can land in one commit. The later effect
+  // still sees the previous state, so the ref is what it reads.
+  const isWebviewOpenRef = useRef(false);
+  const [isWebviewOpen, setIsWebviewOpen] = useState(false);
+  const setWebviewOpen = useCallback((open: boolean) => {
+    isWebviewOpenRef.current = open;
+    setIsWebviewOpen(open);
+  }, []);
 
   const openKycWebview = useCallback(
     (url: string) => {
       hasOpenedWebview.current = true;
+      setWebviewOpen(true);
       navigation.navigate(Routes.CARD.ONBOARDING.IMMERSVE_KYC, {
         url,
         redirectUrl: KYC_REDIRECT_URL,
       });
     },
-    [navigation],
+    [navigation, setWebviewOpen],
   );
 
   const { nextAction, error, isLoading, refresh } =
@@ -157,13 +169,16 @@ const ImmersveKYCProcessing = () => {
   // prompt); otherwise route.
   useEffect(() => {
     setImmersveKycOnClose(() => {
+      setWebviewOpen(false);
       refresh().catch(() => undefined);
     });
     return () => clearImmersveKycOnClose();
-  }, [refresh]);
+  }, [refresh, setWebviewOpen]);
 
   useEffect(() => {
-    if (!nextAction) {
+    // A result must not run under the webview, or on the stale result from
+    // the render while the re-poll after a close is still in flight.
+    if (!nextAction || isWebviewOpen || isWebviewOpenRef.current || isLoading) {
       return;
     }
     const { type } = nextAction;
@@ -179,7 +194,7 @@ const ImmersveKYCProcessing = () => {
         return;
       }
       hasLeftRef.current = true;
-      exitCardFlow({ fallback: 'card-home-pending' });
+      exitCardFlow();
       notifyKycRejected(nextAction, { source: 'processing' }).catch(
         () => undefined,
       );
@@ -208,12 +223,20 @@ const ImmersveKYCProcessing = () => {
     isExpiring,
     exitCardFlow,
     notifyKycRejected,
+    isWebviewOpen,
+    isLoading,
   ]);
 
-  // 15s cutoff only while background checks are pending (not during the webview).
-  // Past that, the review is manual. Leave and let the home screens show it.
+  // 15s cutoff while background checks are pending, and when Immersve asks for
+  // an expected spend amount. There is no form here, so that must not sit on
+  // the spinner. Not while the webview is open. Past the cutoff, the review
+  // is manual. Leave and let the home screens show it.
   useEffect(() => {
-    if (nextAction?.type !== 'pending') {
+    if (
+      isWebviewOpen ||
+      isWebviewOpenRef.current ||
+      (nextAction?.type !== 'pending' && nextAction?.type !== 'expected_spend')
+    ) {
       return undefined;
     }
     const id = setTimeout(() => {
@@ -237,6 +260,7 @@ const ImmersveKYCProcessing = () => {
     return () => clearTimeout(id);
   }, [
     nextAction?.type,
+    isWebviewOpen,
     exitCardFlow,
     notifyKycInReview,
     trackEvent,
