@@ -748,7 +748,10 @@ describe('ImmersveKYCProcessing', () => {
     setNextAction(fundingAction);
     const { getByTestId } = render(<ImmersveKYCProcessing />);
 
-    expect(mockApproveFunding).toHaveBeenCalledWith('SIGN_UP');
+    expect(mockApproveFunding).toHaveBeenCalledWith(
+      'SIGN_UP',
+      expect.objectContaining({ holdToastsUntil: expect.any(Promise) }),
+    );
     expect(mockRoute).not.toHaveBeenCalled();
 
     fireEvent.press(getByTestId(CompleteSelectors.CONFIRM_BUTTON));
@@ -756,6 +759,31 @@ describe('ImmersveKYCProcessing', () => {
       countryKey: 'GB',
       showAccountExistsToast: false,
     });
+  });
+
+  it('holds the linking toasts until the screen blurs', async () => {
+    mockIsMoneyAccountCountry = true;
+    setNextAction(fundingAction);
+    render(<ImmersveKYCProcessing />);
+
+    const hold = mockApproveFunding.mock.calls[0][1]
+      .holdToastsUntil as Promise<void>;
+    let resolved = false;
+    hold
+      .then(() => {
+        resolved = true;
+      })
+      .catch(() => undefined);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(resolved).toBe(false);
+
+    blurScreen();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(resolved).toBe(true);
   });
 
   it('leaves Money account approval unstarted for an active card', () => {

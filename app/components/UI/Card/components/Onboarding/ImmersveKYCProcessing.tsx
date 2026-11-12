@@ -350,11 +350,17 @@ const ImmersveKYCProcessing = () => {
   // work again when the user comes back. The cleanup runs on blur.
   const isFinishingSetupRef = useRef(false);
   const [isFinishingSetup, setIsFinishingSetup] = useState(false);
+  // Resolves the promise that holds the linking toasts. Blur and unmount both
+  // run this cleanup, and nothing is pushed over this view for a Money account
+  // country, so a blur means the user has left.
+  const userLeftResolveRef = useRef<(() => void) | null>(null);
   useFocusEffect(
     useCallback(
       () => () => {
         isFinishingSetupRef.current = false;
         setIsFinishingSetup(false);
+        userLeftResolveRef.current?.();
+        userLeftResolveRef.current = null;
       },
       [],
     ),
@@ -688,8 +694,14 @@ const ImmersveKYCProcessing = () => {
     }
     // Money account approval has no screen of its own. Start it while You're
     // verified is on screen so Card Home mounts with the link already going.
+    // Toasts wait until the user leaves, so the success screen stays quiet.
     hasStartedFundingApproval.current = true;
-    approveFunding(CardEntryPoint.SIGN_UP).catch(() => undefined);
+    const userLeft = new Promise<void>((resolve) => {
+      userLeftResolveRef.current = resolve;
+    });
+    approveFunding(CardEntryPoint.SIGN_UP, {
+      holdToastsUntil: userLeft,
+    }).catch(() => undefined);
   }, [view, nextAction, isMoneyAccountCountry, approveFunding]);
 
   const handleReopen = useCallback(() => {
