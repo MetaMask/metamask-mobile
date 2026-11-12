@@ -325,7 +325,8 @@ const HotTokenTrack: React.FC<
  * frame keeps a native scroll gesture alive on PagerView page 0 and cancels
  * taps on the rest of Trending (reactions, overflow menu, Popular traders). A
  * pan on this rail still wins over the pager so scrubbing the chips does not
- * change tabs.
+ * change tabs. Lifting a finger coasts on the iOS scroll deceleration curve,
+ * in whichever direction the flick went, and the crawl resumes after it.
  *
  * Low-end hardware keeps the rail still, and its chips fade in place instead
  * of scattering. Reduce Motion gets the same fade, and the docked chip fades
@@ -457,7 +458,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         .failOffsetY([-12, 12])
         .onBegin(hold)
         .onUpdate((event) => scrubBy(event.translationX))
-        .onFinalize(release),
+        .onEnd((event) => release(event.velocityX))
+        .onFinalize(() => release()),
     [hold, isSelected, release, scrubBy],
   );
 
