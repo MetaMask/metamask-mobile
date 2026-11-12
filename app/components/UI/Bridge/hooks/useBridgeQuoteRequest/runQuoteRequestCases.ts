@@ -302,6 +302,7 @@ export const runQuoteRequestCases = ({
           data: {
             result: 'no_quotes',
             no_quote_reason: QuoteStreamCompleteReason.AMOUNT_TOO_LOW,
+            request_sent_ms: expect.any(Number),
           },
         }),
       );
@@ -322,7 +323,7 @@ export const runQuoteRequestCases = ({
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           id: startedTraceId,
-          data: { result: 'cancelled' },
+          data: { result: 'cancelled', request_sent_ms: expect.any(Number) },
         }),
       );
     });
@@ -354,6 +355,7 @@ export const runQuoteRequestCases = ({
           data: {
             result: 'no_quotes',
             no_quote_reason: QuoteStreamCompleteReason.SLIPPAGE_TOO_LOW,
+            request_sent_ms: expect.any(Number),
           },
         }),
       );
@@ -862,7 +864,7 @@ export const runQuoteRequestCases = ({
           expect.objectContaining({
             name: TraceName.SwapQuoteFetch,
             id: startedTraceId,
-            data: { result: 'cancelled' },
+            data: { result: 'cancelled', request_sent_ms: expect.any(Number) },
           }),
         );
       },

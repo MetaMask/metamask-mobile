@@ -89,6 +89,10 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         }
         throw error;
       }
+
+      if (options?.traceId && shouldTrace) {
+        swapQuoteFetchTrace.markRequestSent(options.traceId);
+      }
     },
     [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );

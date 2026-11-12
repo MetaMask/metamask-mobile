@@ -170,6 +170,10 @@ export const useBridgeQuoteRequest = (
         }
         throw error;
       }
+
+      if (traceId && shouldTrace) {
+        swapQuoteFetchTrace.markRequestSent(traceId);
+      }
     },
     [
       sourceToken,
