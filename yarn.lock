@@ -12212,10 +12212,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^7.3.0":
+"@metamask/solana-wallet-snap@file:../internal-snaps/packages/solana-wallet-snap::locator=metamask%40workspace%3A.":
   version: 7.3.0
-  resolution: "@metamask/solana-wallet-snap@npm:7.3.0"
-  checksum: 10/91306254161447d1661909966992f2268838c06d753fefa12ad5afb1c8292542c83c1a434f0c0f291df62fa077dcb6b52e47cb3bad9f3f0d8b66e2789175e401
+  resolution: "@metamask/solana-wallet-snap@file:../internal-snaps/packages/solana-wallet-snap#../internal-snaps/packages/solana-wallet-snap::hash=3f9c64&locator=metamask%40workspace%3A."
+  checksum: 10/355e5a537cbc33a6a6eaded28061596478b792d53fc68bbcaafe928c4b8bdd5433e7add03b5599eef42c54cbcdf39cdcfdb9ef7e320a5a441563bc71c301fd94
   languageName: node
   linkType: hard
 
@@ -38477,7 +38477,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
     "@metamask/social-controllers": "npm:^3.22.0"
-    "@metamask/solana-wallet-snap": "npm:^7.3.0"
+    "@metamask/solana-wallet-snap": "file:../internal-snaps/packages/solana-wallet-snap"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^2.1.0"

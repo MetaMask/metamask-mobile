@@ -1,7 +1,8 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { strings } from '../../../../locales/i18n';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { createPerpsCrossMarginSummaryMock } from '../../UI/Perps/__mocks__/perpsHooksMocks';
@@ -47,6 +48,8 @@ const defaultUseABTestImplementation = (key: string): MockABTestResult => {
 };
 
 // Mock navigation
+const mockRefreshCollectiblesCards = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -187,15 +190,12 @@ jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
   })),
 }));
 
-jest.mock(
-  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
-  () => ({
-    useHomepageSparklines: jest.fn(() => ({
-      sparklines: {},
-      refresh: jest.fn(),
-    })),
-  }),
-);
+jest.mock('./Sections/Perpetuals/hooks/useHomepageSparklines', () => ({
+  useHomepageSparklines: jest.fn(() => ({
+    sparklines: {},
+    refresh: jest.fn(),
+  })),
+}));
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
@@ -222,13 +222,51 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
 }));
 
 jest.mock('../../UI/Collectibles', () => ({
+  useRefreshPackPartnerCards: () => mockRefreshCollectiblesCards,
   selectCollectiblesEnabledFlag: jest.fn(() => false),
+  selectCollectiblesHasCompletedOnboarding: jest.fn(() => false),
+  usePackPartnerCards: jest.fn(() => ({
+    account: undefined,
+    cards: [],
+    isLoading: false,
+    isSyncing: false,
+    error: undefined,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  })),
+  CardTile: () => null,
 }));
 
-const mockCollectiblesSection = (enabled: boolean) => {
-  jest
-    .requireMock('../../UI/Collectibles')
-    .selectCollectiblesEnabledFlag.mockReturnValue(enabled);
+jest.mock(
+  '../../UI/Collectibles/providers/pack-partner/hooks/usePackPartnerPacks',
+  () => ({
+    usePackPartnerPacks: jest.fn(() => ({
+      packs: [],
+      isLoading: false,
+      error: undefined,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    })),
+  }),
+);
+
+const MOCK_COLLECTIBLES_SOLANA_ACCOUNT = {
+  id: 'collectibles-solana-account',
+  address: 'SoLAddress1111111111111111111111111111111111',
+};
+
+const mockCollectiblesSection = (
+  enabled: boolean,
+  { hasSolanaAccount = true }: { hasSolanaAccount?: boolean } = {},
+) => {
+  const collectiblesMock = jest.requireMock('../../UI/Collectibles');
+  collectiblesMock.selectCollectiblesEnabledFlag.mockReturnValue(enabled);
+  collectiblesMock.usePackPartnerCards.mockReturnValue({
+    account: hasSolanaAccount ? MOCK_COLLECTIBLES_SOLANA_ACCOUNT : undefined,
+    cards: [],
+    isLoading: false,
+    isSyncing: false,
+    error: undefined,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  });
 };
 
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
@@ -633,6 +671,18 @@ describe('Homepage', () => {
     await expect(result).resolves.toBeUndefined();
   });
 
+  it('refreshes the collection when its section is not mounted', async () => {
+    const ref = createRef<SectionRefreshHandle>();
+    renderWithProvider(<Homepage ref={ref} />, { state: stateWithPreferences });
+    mockRefreshCollectiblesCards.mockClear();
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefreshCollectiblesCards).toHaveBeenCalledTimes(1);
+  });
+
   describe('section indices — all flags enabled', () => {
     it('passes correct sectionIndex to each section when all flags are on', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -963,12 +1013,20 @@ describe('Homepage', () => {
       });
     });
 
-    it('renders the Collectibles section when its flag is enabled without a Solana account', () => {
+    it('renders the Collectibles section when its flag is enabled with a Solana account', () => {
       mockCollectiblesSection(true);
 
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      expect(screen.getByText('Collectibles')).toBeOnTheScreen();
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
+    });
+
+    it('shows the Collectibles section when the selected account group has no Solana account', () => {
+      mockCollectiblesSection(true, { hasSolanaAccount: false });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     });
 
     it('leaves Collectibles out of the sections when its flag is disabled', () => {
@@ -978,7 +1036,9 @@ describe('Homepage', () => {
 
       expect(callBySectionName('collectibles')).toBeUndefined();
       expect(callBySectionName('nfts')?.sectionIndex).toBe(4);
-      expect(screen.queryByText('Collectibles')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('collectibles.title')),
+      ).not.toBeOnTheScreen();
     });
   });
 

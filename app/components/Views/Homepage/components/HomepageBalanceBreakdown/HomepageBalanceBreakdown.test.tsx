@@ -19,6 +19,7 @@ import type {
   SliceData,
   SliceKey,
 } from '../../BalanceBreakdown/types';
+import { selectCollectiblesHasCompletedOnboarding } from '../../../../UI/Collectibles/selectors/onboarding';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -54,6 +55,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
 let mockPrivacyMode = false;
+let mockCollectiblesOnboarded = true;
 let mockIsWalletHomeOnboardingActive = false;
 let mockIsMoneyAccountGeoEligible = true;
 let mockMoneyAccountAccessBlockReason: 'geo_blocked' | undefined;
@@ -194,6 +196,10 @@ const breakdown: BreakdownData = {
     perps: makeSlice('perps'),
     predict: makeSlice('predict'),
     defi: makeSlice('defi'),
+    collectibles: makeSlice('collectibles', {
+      status: 'ineligible',
+      isVisible: false,
+    }),
   },
 };
 
@@ -254,10 +260,13 @@ describe('HomepageBalanceBreakdown', () => {
     );
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
+    mockCollectiblesOnboarded = true;
     mockIsWalletHomeOnboardingActive = false;
     mockIsMoneyAccountGeoEligible = true;
     mockMoneyAccountAccessBlockReason = undefined;
     jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectCollectiblesHasCompletedOnboarding)
+        return mockCollectiblesOnboarded;
       if (selector === selectPrivacyMode) return mockPrivacyMode;
       if (selector === selectIsMoneyAccountGeoEligible) {
         return mockIsMoneyAccountGeoEligible;
@@ -279,6 +288,38 @@ describe('HomepageBalanceBreakdown', () => {
     });
     jest.mocked(useBalanceBreakdown).mockReturnValue(breakdown);
   });
+
+  it.each([true, false])(
+    'opens My Collection with onboarding respected: %s',
+    (onboarded) => {
+      mockCollectiblesOnboarded = onboarded;
+      jest.mocked(useBalanceBreakdown).mockReturnValue({
+        ...breakdown,
+        slices: {
+          ...breakdown.slices,
+          collectibles: makeSlice('collectibles', { valueFiat: 13 }),
+        },
+      });
+      const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+      fireEvent.press(
+        getByTestId(HomepageBalanceBreakdownTestIds.ROW('collectibles')),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.COLLECTIBLES.ROOT,
+        onboarded
+          ? {
+              screen: Routes.COLLECTIBLES.HOME,
+              params: { initialTab: 'cards' },
+            }
+          : {
+              screen: Routes.COLLECTIBLES.ONBOARDING,
+              params: { destination: { kind: 'home', tab: 'cards' } },
+            },
+      );
+    },
+  );
 
   afterAll(() => {
     I18n.locale = originalLocale;
@@ -427,6 +468,7 @@ describe('HomepageBalanceBreakdown', () => {
         perps: makeSlice('perps', emptySlice),
         predict: makeSlice('predict', emptySlice),
         defi: makeSlice('defi', emptySlice),
+        collectibles: makeSlice('collectibles', emptySlice),
       },
     });
 
@@ -850,6 +892,10 @@ describe('HomepageBalanceBreakdown', () => {
         money: makeSlice('money', { status: 'loading' }),
         tokens: makeSlice('tokens', { status: 'error' }),
         defi: makeSlice('defi', { status: 'ineligible' }),
+        collectibles: makeSlice('collectibles', {
+          status: 'ineligible',
+          isVisible: false,
+        }),
       },
     });
 
@@ -929,6 +975,7 @@ describe('HomepageBalanceBreakdown', () => {
     const { getByTestId, rerender } = render(<HomepageBalanceBreakdown />);
 
     mockPrivacyMode = false;
+    mockCollectiblesOnboarded = true;
     rerender(<HomepageBalanceBreakdown />);
 
     expect(

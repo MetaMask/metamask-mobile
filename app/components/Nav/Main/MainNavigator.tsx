@@ -10,14 +10,18 @@ import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
 } from '@react-navigation/native-stack';
-import type { ParamListBase, RouteProp } from '@react-navigation/native';
+import {
+  getFocusedRouteNameFromRoute,
+  type ParamListBase,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import {
   createBottomTabNavigator,
   type BottomTabBarProps,
 } from '@react-navigation/bottom-tabs';
-import { createNativeBottomTabNavigator } from '@react-navigation/bottom-tabs/unstable';
+import { NativeFloatingTabs as NativeTab } from '../../../component-library/components/Navigation/TabBarFloating/NativeFloatingTabs';
 import Browser from '../../Views/Browser';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -266,7 +270,6 @@ import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDe
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
-const NativeTab = createNativeBottomTabNavigator();
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -1493,7 +1496,14 @@ const MainNavigator = () => {
         <NativeStack.Screen
           name={Routes.COLLECTIBLES.ROOT}
           component={CollectiblesScreenStack}
-          options={slideFromRightNativeOptions}
+          options={({ route }) => ({
+            ...slideFromRightNativeOptions,
+            // The parent stack must not intercept the reveal's cutting gesture.
+            ...(getFocusedRouteNameFromRoute(route) ===
+            Routes.COLLECTIBLES.REVEAL
+              ? { gestureEnabled: false, fullScreenGestureEnabled: false }
+              : {}),
+          })}
         />
       )}
       {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (

@@ -757,6 +757,11 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
   return { __esModule: true, default: singleton };
 });
 
+// WebView is a native renderer; keep feature controllers and animation logic real.
+jest.mock('@metamask/react-native-webview', () => ({
+  WebView: jest.requireActual('react-native').View,
+}));
+
 // Native deterministic version for gating logic
 jest.mock('react-native-device-info', () => ({
   __esModule: true,

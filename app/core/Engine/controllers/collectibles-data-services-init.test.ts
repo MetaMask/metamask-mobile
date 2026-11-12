@@ -21,15 +21,33 @@ import {
 } from '../../../components/UI/Collectibles/services/clients/PackPartnerApiClient';
 import type { CollectiblesOpening } from '../../../components/UI/Collectibles/types';
 import {
+  CollectiblesApiDataService,
+  type CollectiblesApiDataServiceActions,
+  type CollectiblesApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import {
+  CollectiblesSocialApiDataService,
+  type CollectiblesSocialApiDataServiceActions,
+  type CollectiblesSocialApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
+import {
   PackPartnerDataService,
   type PackPartnerDataServiceActions,
   type PackPartnerDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
 import { packPartnerQueries } from '../../../components/UI/Collectibles/services/data/packPartnerQueries';
-import { getPackPartnerDataServiceMessenger } from '../messengers/collectibles-data-services-messenger';
+import {
+  getCollectiblesApiDataServiceMessenger,
+  getCollectiblesSocialApiDataServiceMessenger,
+  getPackPartnerDataServiceMessenger,
+} from '../messengers/collectibles-data-services-messenger';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
-import { packPartnerDataServiceInit } from './collectibles-data-services-init';
+import {
+  collectiblesApiDataServiceInit,
+  collectiblesSocialApiDataServiceInit,
+  packPartnerDataServiceInit,
+} from './collectibles-data-services-init';
 
 jest.mock(
   '../../../components/UI/Collectibles/services/clients/PackPartnerApiClient',
@@ -187,5 +205,57 @@ describe('packPartnerDataServiceInit', () => {
     });
 
     expect(api.getWalletCards).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('collectiblesApiDataServiceInit', () => {
+  it('creates the Collectibles API data service, with its injected API client', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesApiDataServiceActions,
+      CollectiblesApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const request = {
+      ...buildRequest(rootMessenger),
+      controllerMessenger:
+        getCollectiblesApiDataServiceMessenger(rootMessenger),
+    };
+    const { controller } = collectiblesApiDataServiceInit(request);
+
+    const read = rootMessenger.call(
+      'CollectiblesApiDataService:getPackInsights',
+      `${PACK_PARTNER_ENVIRONMENT}:public`,
+      { packTypes: ['pack_partner:pokemon_25'] },
+    );
+
+    expect(controller).toBeInstanceOf(CollectiblesApiDataService);
+    await expect(read).resolves.toBeDefined();
+    controller.destroy();
+  });
+});
+
+describe('collectiblesSocialApiDataServiceInit', () => {
+  it('creates the Social data service, with its injected API client', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesSocialApiDataServiceActions,
+      CollectiblesSocialApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const request = {
+      ...buildRequest(rootMessenger),
+      controllerMessenger:
+        getCollectiblesSocialApiDataServiceMessenger(rootMessenger),
+    };
+    const { controller } = collectiblesSocialApiDataServiceInit(request);
+
+    const read = rootMessenger.call(
+      'CollectiblesSocialApiDataService:getProfile',
+      `${PACK_PARTNER_ENVIRONMENT}:public`,
+      { profileId: 'collector' },
+    );
+
+    expect(controller).toBeInstanceOf(CollectiblesSocialApiDataService);
+    await expect(read).resolves.toBeDefined();
+    controller.destroy();
   });
 });

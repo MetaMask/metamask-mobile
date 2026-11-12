@@ -5,7 +5,7 @@ const PREV_TOTAL_EPS = 1e-9;
 /**
  * Combined hero line for Total Balance: tokens (assets controller 24h) + perps.
  * Perps uses account value − 24h snapshot only when the Redux baseline is
- * trustworthy. Predict / DeFi / Money are included in total value but treated
+ * trustworthy. Predict / DeFi / Money / Collectibles are included in total value but treated
  * as flat because they do not expose comparable 24h history.
  */
 export function computeAggregateHero24hDelta(params: {

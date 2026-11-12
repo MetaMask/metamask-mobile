@@ -11,7 +11,7 @@ import {
 } from 'react-native-device-info';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import RNFS from 'react-native-fs';
-import Logger from '../../util/Logger';
+import Logger from '../Logger';
 import { RootState } from '../../reducers';
 import { analytics } from '../analytics/analytics';
 import {

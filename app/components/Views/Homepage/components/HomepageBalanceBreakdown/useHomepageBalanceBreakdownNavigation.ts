@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { selectCollectiblesHasCompletedOnboarding } from '../../../../UI/Collectibles/selectors/onboarding';
+import type {
+  CollectiblesEntryDestination,
+  CollectiblesHomeParams,
+} from '../../../../UI/Collectibles/types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useMoneyHomeNavigation } from '../../../../UI/Money/hooks/useMoneyHomeNavigation';
@@ -21,6 +27,7 @@ const BALANCE_BREAKDOWN_SECTION_NAMES: Record<SliceKey, string> = {
   perps: 'perpetuals',
   predict: 'predictions',
   defi: 'defi',
+  collectibles: 'collectibles',
 };
 
 interface UseHomepageBalanceBreakdownNavigationArgs {
@@ -31,6 +38,9 @@ export function useHomepageBalanceBreakdownNavigation({
   transactionActiveAbTests,
 }: UseHomepageBalanceBreakdownNavigationArgs = {}) {
   const navigation = useNavigation();
+  const hasCompletedCollectiblesOnboarding = useSelector(
+    selectCollectiblesHasCompletedOnboarding,
+  );
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
   const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const { navigateToPerpsHome } = usePerpsNavigationHandlers({
@@ -77,6 +87,27 @@ export function useHomepageBalanceBreakdownNavigation({
             transactionActiveAbTests,
           });
           break;
+        case 'collectibles':
+          navigation.navigate(
+            Routes.COLLECTIBLES.ROOT,
+            hasCompletedCollectiblesOnboarding
+              ? {
+                  screen: Routes.COLLECTIBLES.HOME,
+                  params: {
+                    initialTab: 'cards',
+                  } satisfies CollectiblesHomeParams,
+                }
+              : {
+                  screen: Routes.COLLECTIBLES.ONBOARDING,
+                  params: {
+                    destination: {
+                      kind: 'home',
+                      tab: 'cards',
+                    } satisfies CollectiblesEntryDestination,
+                  },
+                },
+          );
+          break;
         case 'defi':
           navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW, {
             analyticsContext,
@@ -91,6 +122,7 @@ export function useHomepageBalanceBreakdownNavigation({
       navigateToPerpsHome,
       navigateToMoneyHome,
       navigation,
+      hasCompletedCollectiblesOnboarding,
       openPredict,
       trackEvent,
       transactionActiveAbTests,

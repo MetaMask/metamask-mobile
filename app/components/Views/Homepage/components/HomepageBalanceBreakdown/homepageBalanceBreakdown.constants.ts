@@ -7,6 +7,7 @@ const SLICE_LABEL_KEYS = {
   perps: 'homepage.sections.perps',
   predict: 'homepage.sections.predictions',
   defi: 'homepage.sections.defi',
+  collectibles: 'collectibles.title',
 } as const;
 
 export const getSliceLabel = (key: SliceKey): string =>

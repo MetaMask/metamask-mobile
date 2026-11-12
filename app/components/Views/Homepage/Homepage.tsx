@@ -27,7 +27,10 @@ import {
   PredictHomeSection,
   selectPredictAvailability,
 } from '../../UI/PredictNext';
-import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles';
+import {
+  selectCollectiblesEnabledFlag,
+  useRefreshPackPartnerCards,
+} from '../../UI/Collectibles';
 import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
@@ -271,18 +274,24 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       [enabledSections],
     );
 
+    const refreshCollectiblesCards = useRefreshPackPartnerCards(
+      isCollectiblesEnabled,
+    );
+
     const refresh = useCallback(async () => {
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
-        collectiblesSectionRef.current?.refresh(),
+        collectiblesSectionRef.current
+          ? collectiblesSectionRef.current.refresh()
+          : refreshCollectiblesCards(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
         defiSectionRef.current?.refresh(),
         nftsSectionRef.current?.refresh(),
       ]);
-    }, []);
+    }, [refreshCollectiblesCards]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 

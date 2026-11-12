@@ -2,7 +2,7 @@
 
 ## What is persisted
 
-`CollectiblesController` persists one journal per account: pack purchases keyed by memo and manual buybacks keyed by mint. It holds only the references needed to resume observation. Offers are transient server reads. The last successful complete owned-card response is separately persisted by `PackPartnerDataService` through the standard `StorageService` for offline display; it is never part of the controller journal or proof for a financial action. See [the owned collection snapshot policy](README.md).
+`CollectiblesController` persists one journal per account: pack purchases keyed by memo and manual buybacks keyed by mint. It holds only the references needed to resume observation. Offers are transient server reads. The last successful complete owned-card response is separately persisted by `PackPartnerDataService` through the standard `StorageService` for offline display; it is never part of the controller journal or proof for a financial action. See [the owned collection snapshot policy](README.md#owned-collection-offline-snapshot).
 
 | State                      | Persisted information                                                                   | Recovery                                                             |
 | -------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |

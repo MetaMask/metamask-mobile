@@ -1317,6 +1317,68 @@ describe('MainNavigator', () => {
       expect(collectiblesScreen).toBeUndefined();
     });
 
+    // Native gesture recognizers aren't exercised by the Jest navigation stack.
+    it('blocks parent swipes during reveal and restores them on other Collectibles screens', () => {
+      mockSelectCollectiblesEnabledFlag.mockReturnValue(true);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const collectiblesScreen = container.root.find(
+        (child) =>
+          child.type?.toString?.() === 'Screen' &&
+          child.props.name === Routes.COLLECTIBLES.ROOT,
+      );
+      const route = {
+        key: Routes.COLLECTIBLES.ROOT,
+        name: Routes.COLLECTIBLES.ROOT,
+        state: {
+          index: 1,
+          routes: [
+            { key: Routes.COLLECTIBLES.HOME, name: Routes.COLLECTIBLES.HOME },
+            {
+              key: Routes.COLLECTIBLES.REVEAL,
+              name: Routes.COLLECTIBLES.REVEAL,
+            },
+          ],
+        },
+      };
+
+      const revealOptions = collectiblesScreen.props.options({ route });
+      const homeOptions = collectiblesScreen.props.options({
+        route: { ...route, state: { ...route.state, index: 0 } },
+      });
+
+      expect(revealOptions).toEqual({
+        ...slideFromRightNativeOptions,
+        gestureEnabled: false,
+        fullScreenGestureEnabled: false,
+      });
+      expect(homeOptions).toEqual(slideFromRightNativeOptions);
+    });
+
+    it('blocks parent swipes when reveal is the initial nested destination', () => {
+      mockSelectCollectiblesEnabledFlag.mockReturnValue(true);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const collectiblesScreen = container.root.find(
+        (child) =>
+          child.type?.toString?.() === 'Screen' &&
+          child.props.name === Routes.COLLECTIBLES.ROOT,
+      );
+
+      const options = collectiblesScreen.props.options({
+        route: {
+          key: Routes.COLLECTIBLES.ROOT,
+          name: Routes.COLLECTIBLES.ROOT,
+          params: { screen: Routes.COLLECTIBLES.REVEAL },
+        },
+      });
+
+      expect(options.gestureEnabled).toBe(false);
+      expect(options.fullScreenGestureEnabled).toBe(false);
+    });
+
     it('includes Market Insights view when feature flag is enabled', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
 

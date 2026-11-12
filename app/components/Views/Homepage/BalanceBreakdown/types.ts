@@ -1,4 +1,10 @@
-export type SliceKey = 'tokens' | 'money' | 'perps' | 'predict' | 'defi';
+export type SliceKey =
+  | 'tokens'
+  | 'money'
+  | 'perps'
+  | 'predict'
+  | 'defi'
+  | 'collectibles';
 
 export type SliceStatus = 'loading' | 'ready' | 'error' | 'ineligible';
 

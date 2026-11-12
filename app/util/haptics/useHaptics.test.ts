@@ -143,4 +143,30 @@ describe('useHaptics', () => {
 
     expect(notificationAsync).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['reduced haptics', false, false],
+    ['kill switch', true, true],
+  ] as const)(
+    'stops Collectibles impacts when %s becomes active',
+    async (_gate, hapticsEnabled, killSwitchActive) => {
+      setupSelectors(true, false);
+      const { result, rerender } = renderHook(() => useHaptics());
+      await act(async () => {
+        await result.current.playImpact(ImpactMoment.CollectiblesCut);
+      });
+      expect(impactAsync).toHaveBeenCalledTimes(1);
+      jest.clearAllMocks();
+      setupSelectors(hapticsEnabled, killSwitchActive);
+
+      rerender();
+      await act(async () => {
+        await result.current.playImpact(ImpactMoment.CollectiblesCut);
+        await result.current.playImpact(ImpactMoment.CollectiblesOpen);
+        await result.current.playImpact(ImpactMoment.CollectiblesRevealEpic);
+      });
+
+      expect(impactAsync).not.toHaveBeenCalled();
+    },
+  );
 });

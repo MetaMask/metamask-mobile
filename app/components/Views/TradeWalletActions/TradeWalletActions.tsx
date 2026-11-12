@@ -86,6 +86,8 @@ import {
   selectPredictAvailability,
   usePredictEntryActions,
 } from '../../UI/PredictNext';
+import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import { selectCollectiblesHasCompletedOnboarding } from '../../UI/Collectibles/selectors/onboarding';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
@@ -303,6 +305,10 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const { openPredict } = usePredictEntryActions();
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
+  const hasCompletedCollectiblesOnboarding = useSelector(
+    selectCollectiblesHasCompletedOnboarding,
+  );
 
   const { getTarget } = usePerpsHeaderEntryNavigation();
 
@@ -416,6 +422,22 @@ function TradeWalletActions() {
     handleNavigateBack();
   }, [handleNavigateBack, openPredict]);
 
+  const onCollectibles = useCallback(() => {
+    onActionSelected(() => {
+      if (!hasCompletedCollectiblesOnboarding) {
+        navigate(Routes.COLLECTIBLES.ROOT, {
+          screen: Routes.COLLECTIBLES.ONBOARDING,
+          params: { destination: { kind: 'home', tab: 'home' } },
+        });
+        return;
+      }
+      navigate(Routes.COLLECTIBLES.ROOT, {
+        screen: Routes.COLLECTIBLES.HOME,
+        params: { initialTab: 'home' },
+      });
+    });
+  }, [hasCompletedCollectiblesOnboarding, navigate, onActionSelected]);
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -493,6 +515,15 @@ function TradeWalletActions() {
           onPress={onPredict}
           testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
           isDisabled={!canSignTransactions}
+        />
+      )}
+      {isCollectiblesEnabled && (
+        <ActionListItem
+          label={strings('collectibles.title')}
+          description={strings('collectibles_discovery.trade_description')}
+          iconName={IconName.Card}
+          onPress={onCollectibles}
+          testID={WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON}
         />
       )}
       <EarnTradeMenuRow

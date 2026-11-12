@@ -1,4 +1,8 @@
-import { packPartnerDataServiceInit } from './controllers/collectibles-data-services-init';
+import {
+  packPartnerDataServiceInit,
+  collectiblesApiDataServiceInit,
+  collectiblesSocialApiDataServiceInit,
+} from './controllers/collectibles-data-services-init';
 /* eslint-disable @typescript-eslint/no-shadow */
 import {
   AppState,
@@ -66,7 +70,7 @@ import { captureException } from '@sentry/react-native';
 import {
   networkIdUpdated,
   networkIdWillUpdate,
-} from '../../core/redux/slices/inpageProvider';
+} from '../redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { zeroAddress } from 'ethereumjs-util';
 import { toHex } from '@metamask/controller-utils';
@@ -358,6 +362,8 @@ export class Engine {
         PredictController: predictControllerInit,
         PackPartnerDataService: packPartnerDataServiceInit,
         CollectiblesController: collectiblesControllerInit,
+        CollectiblesApiDataService: collectiblesApiDataServiceInit,
+        CollectiblesSocialApiDataService: collectiblesSocialApiDataServiceInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
@@ -661,6 +667,10 @@ export class Engine {
       PerpsController: perpsController,
       PredictController: predictController,
       PackPartnerDataService: messengerClientsByName.PackPartnerDataService,
+      CollectiblesApiDataService:
+        messengerClientsByName.CollectiblesApiDataService,
+      CollectiblesSocialApiDataService:
+        messengerClientsByName.CollectiblesSocialApiDataService,
       CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
@@ -1360,6 +1370,8 @@ export class Engine {
     CollectiblesController.clearState();
     const collectiblesCacheReset =
       this.context.PackPartnerDataService.clearCache();
+    this.context.CollectiblesApiDataService.clearCache();
+    this.context.CollectiblesSocialApiDataService.clearCache();
     await Promise.all([collectiblesCacheReset, SnapController.clearState()]);
 
     // Clear selected network

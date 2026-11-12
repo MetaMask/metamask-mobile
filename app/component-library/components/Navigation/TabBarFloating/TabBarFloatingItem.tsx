@@ -52,7 +52,7 @@ const TabBarFloatingItem = ({
       )}
       testID={testID}
       accessibilityLabel={label}
-      accessibilityRole="button"
+      accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
       accessible
     >

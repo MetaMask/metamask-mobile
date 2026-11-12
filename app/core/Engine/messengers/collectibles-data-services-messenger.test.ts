@@ -10,10 +10,22 @@ import {
 import { PACK_PARTNER_ENVIRONMENT } from '../../../components/UI/Collectibles/providers/pack-partner/constants';
 import type { CollectiblesOpening } from '../../../components/UI/Collectibles/types';
 import type {
+  CollectiblesApiDataServiceActions,
+  CollectiblesApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import type {
+  CollectiblesSocialApiDataServiceActions,
+  CollectiblesSocialApiDataServiceEvents,
+} from '../../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
+import type {
   PackPartnerDataServiceActions,
   PackPartnerDataServiceEvents,
 } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
-import { getPackPartnerDataServiceMessenger } from './collectibles-data-services-messenger';
+import {
+  getCollectiblesApiDataServiceMessenger,
+  getCollectiblesSocialApiDataServiceMessenger,
+  getPackPartnerDataServiceMessenger,
+} from './collectibles-data-services-messenger';
 
 /** Granular cache event of one PackPartner read, by query hash. */
 const CACHE_UPDATED_EVENT: `PackPartnerDataService:cacheUpdated:${string}` =
@@ -62,5 +74,53 @@ describe('getPackPartnerDataServiceMessenger', () => {
       type: 'removed',
       state: null,
     });
+  });
+});
+
+describe('getCollectiblesApiDataServiceMessenger', () => {
+  it('exposes registered Collectibles API reads to the root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesApiDataServiceActions,
+      CollectiblesApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const serviceMessenger =
+      getCollectiblesApiDataServiceMessenger(rootMessenger);
+    serviceMessenger.registerActionHandler(
+      'CollectiblesApiDataService:getPackInsights',
+      jest.fn().mockResolvedValue('pack-insights'),
+    );
+
+    const result = await rootMessenger.call(
+      'CollectiblesApiDataService:getPackInsights',
+      'mainnet:public',
+      { packTypes: ['pack_partner:pokemon_25'] },
+    );
+
+    expect(result).toBe('pack-insights');
+  });
+});
+
+describe('getCollectiblesSocialApiDataServiceMessenger', () => {
+  it('exposes registered Social reads to the root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      CollectiblesSocialApiDataServiceActions,
+      CollectiblesSocialApiDataServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const serviceMessenger =
+      getCollectiblesSocialApiDataServiceMessenger(rootMessenger);
+    serviceMessenger.registerActionHandler(
+      'CollectiblesSocialApiDataService:getProfile',
+      jest.fn().mockResolvedValue(null),
+    );
+
+    const result = await rootMessenger.call(
+      'CollectiblesSocialApiDataService:getProfile',
+      'mainnet:public',
+      { profileId: 'collector' },
+    );
+
+    expect(result).toBeNull();
   });
 });

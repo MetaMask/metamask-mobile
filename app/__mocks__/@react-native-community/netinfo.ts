@@ -1,4 +1,5 @@
-export const fetch = jest.fn();
+const fetchMock = jest.fn();
+export { fetchMock as fetch };
 export const addEventListener = jest.fn(() => jest.fn());
 
 export const NetInfoStateType = {
@@ -34,7 +35,7 @@ export const __resetMockNetInfo = (): void => {
 };
 
 export default {
-  fetch,
+  fetch: fetchMock,
   addEventListener,
   useNetInfo,
   __setMockNetInfo,

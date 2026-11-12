@@ -3,6 +3,7 @@ import { useTokensSlice } from './slices/useTokensSlice';
 import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
+import { useCollectiblesSlice } from './slices/useCollectiblesSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
 import { useFiatNormalizer } from './useFiatNormalizer';
 import { SLICE_ORDER } from '../constants';
@@ -83,6 +84,7 @@ export function useBalanceBreakdown(): BreakdownData {
   const perpsSlice = usePerpsSlice(toUserCurrency);
   const predictSlice = usePredictSlice(toUserCurrency);
   const defiSlice = useDefiSlice(toUserCurrency);
+  const collectiblesSlice = useCollectiblesSlice(toUserCurrency);
 
   const slicesRaw: Record<SliceKey, BalanceSlice> = useMemo(
     () => ({
@@ -91,8 +93,16 @@ export function useBalanceBreakdown(): BreakdownData {
       perps: perpsSlice,
       predict: predictSlice,
       defi: defiSlice,
+      collectibles: collectiblesSlice,
     }),
-    [tokensSlice, moneySlice, perpsSlice, predictSlice, defiSlice],
+    [
+      tokensSlice,
+      moneySlice,
+      perpsSlice,
+      predictSlice,
+      defiSlice,
+      collectiblesSlice,
+    ],
   );
 
   const { slices, totalFiat } = useMemo(

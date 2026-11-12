@@ -50,6 +50,12 @@ const CATALOG_IMPACT_MOMENTS_ORDERED: readonly HapticImpactMoment[] = [
   ImpactMoment.PullToRefresh,
   ImpactMoment.ChartCrosshair,
   ImpactMoment.FollowToggle,
+  ImpactMoment.CollectiblesCut,
+  ImpactMoment.CollectiblesOpen,
+  ImpactMoment.CollectiblesRevealCommon,
+  ImpactMoment.CollectiblesRevealUncommon,
+  ImpactMoment.CollectiblesRevealRare,
+  ImpactMoment.CollectiblesRevealEpic,
 ];
 
 const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
@@ -79,6 +85,18 @@ const IMPACT_MOMENT_LABEL_KEYS: Record<HapticImpactMoment, string> = {
     'app_settings.developer_options.haptics.impacts.chart_crosshair',
   [ImpactMoment.FollowToggle]:
     'app_settings.developer_options.haptics.impacts.follow_toggle',
+  [ImpactMoment.CollectiblesCut]:
+    'app_settings.developer_options.haptics.impacts.collectibles_cut',
+  [ImpactMoment.CollectiblesOpen]:
+    'app_settings.developer_options.haptics.impacts.collectibles_open',
+  [ImpactMoment.CollectiblesRevealCommon]:
+    'app_settings.developer_options.haptics.impacts.collectibles_reveal_common',
+  [ImpactMoment.CollectiblesRevealUncommon]:
+    'app_settings.developer_options.haptics.impacts.collectibles_reveal_uncommon',
+  [ImpactMoment.CollectiblesRevealRare]:
+    'app_settings.developer_options.haptics.impacts.collectibles_reveal_rare',
+  [ImpactMoment.CollectiblesRevealEpic]:
+    'app_settings.developer_options.haptics.impacts.collectibles_reveal_epic',
 };
 
 const RAW_IMPACT_STYLE_ORDER: readonly ImpactFeedbackStyle[] = [

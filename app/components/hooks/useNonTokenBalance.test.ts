@@ -85,6 +85,7 @@ describe('useAccountListBalance', () => {
         perps: primitiveValue,
         predict: primitiveValue,
         defi: primitiveValue,
+        collectibles: 0,
       };
 
       return {

@@ -48,7 +48,7 @@ export type HapticNotificationMoment =
 /**
  * Impact-style haptic moments.
  *
- * Each entry maps to a single `ImpactFeedbackStyle` inside `play.ts`.
+ * Each entry maps to a single `ImpactFeedbackStyle` inside `vendorPlayback.ts`.
  * The underlying style is never exposed to call sites.
  */
 export const ImpactMoment = {
@@ -113,6 +113,28 @@ export const ImpactMoment = {
 
   /** Social follow / unfollow toggle — Light impact. */
   FollowToggle: 'followToggle',
+
+  /** Pack cutting progress — Rigid ticks at discrete gesture thresholds. */
+  CollectiblesCut: 'collectiblesCut',
+
+  /** Pack seal separates — Heavy impact paired with the opening animation. */
+  CollectiblesOpen: 'collectiblesOpen',
+
+  /**
+   * Common card reveal — Soft impacts paired with the opening burst.
+   * Reveal styles rise with rarity (Soft, Medium, Rigid, Heavy); the reveal
+   * animation adds pulse density. Design sign-off and device QA are pending.
+   */
+  CollectiblesRevealCommon: 'collectiblesRevealCommon',
+
+  /** Uncommon card reveal — Medium impacts paired with the opening burst. */
+  CollectiblesRevealUncommon: 'collectiblesRevealUncommon',
+
+  /** Rare card reveal — Rigid impacts paired with the opening burst. */
+  CollectiblesRevealRare: 'collectiblesRevealRare',
+
+  /** Epic card reveal — Heavy impacts paired with the densest opening burst. */
+  CollectiblesRevealEpic: 'collectiblesRevealEpic',
 } as const;
 
 export type HapticImpactMoment =

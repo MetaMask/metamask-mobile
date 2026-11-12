@@ -7,6 +7,7 @@ export const SLICE_ORDER: SliceKey[] = [
   'perps',
   'predict',
   'defi',
+  'collectibles',
 ];
 
 export const PERPS_HOMEPAGE_THROTTLE_MS = 1000;

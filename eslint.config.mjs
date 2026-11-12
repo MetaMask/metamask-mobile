@@ -66,6 +66,8 @@ const typescriptBlocks = (
 // ESLint 9 does not read .eslintignore. These are the patterns from that file
 // plus ignorePatterns in .eslintrc.js.
 const ignores = [
+  '**/scripts/collectibles-motion/**',
+  '**/app/components/UI/Collectibles/components/CollectiblesMotion/collectiblesMotion.generated.ts',
   '**/scripts/inpage-bridge/**',
   '**/app/core/InpageBridgeWeb3.js',
   '**/app/components/UI/Charts/AdvancedChart/webview/chartLogic.js',

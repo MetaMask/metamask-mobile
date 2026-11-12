@@ -3,6 +3,16 @@ import {
   type PackPartnerDataServiceActions,
   type PackPartnerDataServiceEvents,
 } from '../../components/UI/Collectibles/services/data/PackPartnerDataService';
+import {
+  CollectiblesApiDataService,
+  type CollectiblesApiDataServiceActions,
+  type CollectiblesApiDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import {
+  CollectiblesSocialApiDataService,
+  type CollectiblesSocialApiDataServiceActions,
+  type CollectiblesSocialApiDataServiceEvents,
+} from '../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
 // The `SamplePetnamesController` is only registered when
 // `INCLUDE_SAMPLE_FEATURE=true` (see Engine.ts and messengers/index.ts), so
 // this import must stay `import type` to avoid pulling the runtime module
@@ -731,6 +741,8 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | PackPartnerDataServiceActions
+  | CollectiblesApiDataServiceActions
+  | CollectiblesSocialApiDataServiceActions
   | CollectiblesControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
@@ -850,6 +862,8 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | PackPartnerDataServiceEvents
+  | CollectiblesApiDataServiceEvents
+  | CollectiblesSocialApiDataServiceEvents
   | CollectiblesControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
@@ -1003,6 +1017,8 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   PackPartnerDataService: PackPartnerDataService;
+  CollectiblesApiDataService: CollectiblesApiDataService;
+  CollectiblesSocialApiDataService: CollectiblesSocialApiDataService;
   CollectiblesController: CollectiblesController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
@@ -1200,6 +1216,8 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'PackPartnerDataService'
+  | 'CollectiblesApiDataService'
+  | 'CollectiblesSocialApiDataService'
   | 'CollectiblesController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'

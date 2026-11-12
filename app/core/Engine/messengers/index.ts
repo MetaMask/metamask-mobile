@@ -1,4 +1,8 @@
-import { getPackPartnerDataServiceMessenger } from './collectibles-data-services-messenger';
+import {
+  getPackPartnerDataServiceMessenger,
+  getCollectiblesApiDataServiceMessenger,
+  getCollectiblesSocialApiDataServiceMessenger,
+} from './collectibles-data-services-messenger';
 import { noop } from 'lodash';
 import {
   getAccountTreeControllerInitMessenger,
@@ -307,6 +311,14 @@ export const MESSENGER_FACTORIES = {
   },
   PackPartnerDataService: {
     getMessenger: getPackPartnerDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesApiDataService: {
+    getMessenger: getCollectiblesApiDataServiceMessenger,
+    getInitMessenger: noop,
+  },
+  CollectiblesSocialApiDataService: {
+    getMessenger: getCollectiblesSocialApiDataServiceMessenger,
     getInitMessenger: noop,
   },
   CollectiblesController: {

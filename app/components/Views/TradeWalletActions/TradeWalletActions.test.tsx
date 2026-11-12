@@ -32,6 +32,8 @@ import {
   PredictEventValues,
   selectPredictAvailability,
 } from '../../UI/PredictNext';
+import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import { selectCollectiblesHasCompletedOnboarding } from '../../UI/Collectibles/selectors/onboarding';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import TradeWalletActions, {
@@ -181,6 +183,13 @@ jest.mock(
   '../../UI/PredictNext/availability/selectPredictAvailability',
   () => ({ selectPredictAvailability: jest.fn() }),
 );
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  selectCollectiblesEnabledFlag: jest.fn(),
+}));
+jest.mock('../../UI/Collectibles/selectors/onboarding', () => ({
+  selectCollectiblesHasCompletedOnboarding: jest.fn(),
+}));
 
 jest.mock('../../UI/Earn/selectors/eligibility', () => ({
   selectIsEarnSectionEligible: jest.fn(),
@@ -536,6 +545,10 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectCollectiblesEnabledFlag).mockReturnValue(false);
+    jest
+      .mocked(selectCollectiblesHasCompletedOnboarding)
+      .mockReturnValue(false);
     mockParentCanGoBack = true;
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     jest.mocked(selectEarnTradeMenuRowRedesignEnabled).mockReturnValue(false);
@@ -614,7 +627,46 @@ describe('TradeWalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     ).toBeNull();
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON),
+    ).toBeNull();
   });
+
+  it.each([false, true])(
+    'opens Collectibles after dismissing the tray, preserving the onboarding gate (completed=%s)',
+    async (completed) => {
+      jest.mocked(selectCollectiblesEnabledFlag).mockReturnValue(true);
+      jest
+        .mocked(selectCollectiblesHasCompletedOnboarding)
+        .mockReturnValue(completed);
+      const { getByTestId } = renderScreen(
+        TradeWalletActions,
+        { name: 'TradeWalletActions' },
+        { state: mockInitialState },
+      );
+
+      await pressActionButton(
+        getByTestId,
+        WalletActionsBottomSheetSelectorsIDs.COLLECTIBLES_BUTTON,
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.COLLECTIBLES.ROOT,
+        completed
+          ? {
+              screen: Routes.COLLECTIBLES.HOME,
+              params: { initialTab: 'home' },
+            }
+          : {
+              screen: Routes.COLLECTIBLES.ONBOARDING,
+              params: { destination: { kind: 'home', tab: 'home' } },
+            },
+      );
+      expect(mockParentGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+    },
+  );
 
   it('renders the notched bottom edge by default', () => {
     const { getByTestId } = renderScreen(

@@ -4,13 +4,23 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { renderHook } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+  type ParamListBase,
+} from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SolAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RootState } from '../../../../reducers';
+import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { createMockSnapInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import configureStore from '../../../../util/test/configureStore';
-import type { DeepPartial } from '../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../../util/test/renderWithProvider';
 import { SOLANA_USDC_ASSET_ID } from '../providers/pack-partner/constants';
 import { parseUsdcAmount } from '../providers/pack-partner/utils/format';
 import type {
@@ -28,6 +38,7 @@ export {
   serveBuybackOffers,
   serveOwnedCards,
   serveRecentOpenings,
+  setCollectiblesFixtureClients,
 } from '../../../../../tests/component-view/fixtures/collectibles-data-services';
 
 export const MOCK_INTERNAL_ACCOUNT: InternalAccount =
@@ -167,6 +178,63 @@ export const createTestState = ({
   },
 });
 
+/** Store of a rendered screen, as returned by the render helpers. */
+interface JournalStore {
+  getState: () => RootState;
+  dispatch: (action: ReturnType<typeof updateBgState>) => unknown;
+}
+
+/**
+ * Publishes MOCK_ACCOUNT's PackPartner journal as the controller does after
+ * a workflow transition. A part left out keeps its current value.
+ *
+ * @param store - Store of the rendered screen.
+ * @param journal - New purchases and buybacks of MOCK_ACCOUNT.
+ * @param journal.operations - Pack operations.
+ * @param journal.sales - Buyback operations.
+ */
+export const publishPackPartnerJournal = (
+  store: JournalStore,
+  {
+    operations,
+    sales,
+  }: {
+    operations?: CollectiblesPackOperation[];
+    sales?: CollectiblesBuybackOperation[];
+  },
+): void => {
+  const current =
+    store.getState().engine.backgroundState.CollectiblesController;
+  const { packPartner } = current;
+  Object.assign(Engine, {
+    state: {
+      CollectiblesController: {
+        ...current,
+        packPartner: {
+          ...packPartner,
+          ...(operations && {
+            operations: {
+              ...packPartner.operations,
+              [MOCK_ACCOUNT.address]: Object.fromEntries(
+                operations.map((operation) => [operation.memo, operation]),
+              ),
+            },
+          }),
+          ...(sales && {
+            sales: {
+              ...packPartner.sales,
+              [MOCK_ACCOUNT.address]: Object.fromEntries(
+                sales.map((sale) => [sale.mint, sale]),
+              ),
+            },
+          }),
+        },
+      },
+    },
+  });
+  store.dispatch(updateBgState({ key: 'CollectiblesController' }));
+};
+
 const queryClients = new Set<QueryClient>();
 afterEach(() => {
   queryClients.forEach((client) => client.clear());
@@ -209,6 +277,60 @@ export const renderHookWithQueryClient = <Result,>(
     </Provider>
   );
   return { ...renderHook(hook, { wrapper }), store, queryClient };
+};
+
+/** renderWithProvider + a fresh QueryClientProvider. */
+export const renderWithQueryClient = (
+  component: React.ReactElement,
+  {
+    state = createTestState(),
+    queryClient = createTestQueryClient(),
+  }: { state?: DeepPartial<RootState>; queryClient?: QueryClient } = {},
+) => {
+  queryClients.add(queryClient);
+  return renderWithProvider(
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
+    { state },
+  );
+};
+
+/**
+ * Renders a screen in a real native stack (so `useRoute` params work) with a
+ * QueryClientProvider. The returned `navigationRef` can change the params.
+ */
+export const renderScreenWithQueryClient = (
+  Component: React.ComponentType,
+  {
+    name,
+    params,
+    state = createTestState(),
+    queryClient = createTestQueryClient(),
+  }: {
+    name: string;
+    params?: object;
+    state?: DeepPartial<RootState>;
+    queryClient?: QueryClient;
+  },
+) => {
+  queryClients.add(queryClient);
+  const Stack = createNativeStackNavigator();
+  const navigationRef = createNavigationContainerRef<ParamListBase>();
+  const result = renderWithProvider(
+    <NavigationContainer ref={navigationRef}>
+      <QueryClientProvider client={queryClient}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name={name}
+            component={Component}
+            initialParams={params}
+          />
+        </Stack.Navigator>
+      </QueryClientProvider>
+    </NavigationContainer>,
+    { state },
+    false,
+  );
+  return { ...result, navigationRef, queryClient };
 };
 
 // Native network boundary: feature tests start online unless a scenario says otherwise.

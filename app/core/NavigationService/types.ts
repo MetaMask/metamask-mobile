@@ -1044,7 +1044,13 @@ export type RootStackParamList = {
 
   // Collectibles routes — `Collectibles` is a nested stack navigator.
   Collectibles: NavigatorScreenParams<CollectiblesStackParamList> | undefined;
+  CollectiblesOnboarding: CollectiblesStackParamList['CollectiblesOnboarding'];
   CollectiblesHome: CollectiblesStackParamList['CollectiblesHome'];
+  CollectiblesExplore: CollectiblesStackParamList['CollectiblesExplore'];
+  CollectiblesSearch: CollectiblesStackParamList['CollectiblesSearch'];
+  CollectiblesPack: CollectiblesStackParamList['CollectiblesPack'];
+  CollectiblesReveal: CollectiblesStackParamList['CollectiblesReveal'];
+  CollectiblesCard: CollectiblesStackParamList['CollectiblesCard'];
 
   // Social Leaderboard routes
   SocialV0View:

@@ -14,3 +14,4 @@ scripts
 .prettierignore
 locales
 .rnstorybook/storybook.requires.ts
+/app/components/UI/Collectibles/components/CollectiblesMotion/collectiblesMotion.generated.ts

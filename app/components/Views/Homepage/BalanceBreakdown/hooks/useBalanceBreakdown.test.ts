@@ -4,6 +4,7 @@ import { useTokensSlice } from './slices/useTokensSlice';
 import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
+import { useCollectiblesSlice } from './slices/useCollectiblesSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
@@ -11,6 +12,9 @@ const mockUseMoneySlice = jest.mocked(useMoneySlice);
 const mockUsePerpsSlice = jest.mocked(usePerpsSlice);
 const mockUsePredictSlice = jest.mocked(usePredictSlice);
 const mockUseDefiSlice = jest.mocked(useDefiSlice);
+jest.mock('./slices/useCollectiblesSlice', () => ({
+  useCollectiblesSlice: jest.fn(),
+}));
 // Mock all slice hooks to control their output
 jest.mock('./slices/useTokensSlice', () => ({
   useTokensSlice: jest.fn(),
@@ -35,7 +39,7 @@ jest.mock('./useFiatNormalizer', () => ({
 }));
 
 function makeSlice(
-  key: 'tokens' | 'money' | 'perps' | 'predict' | 'defi',
+  key: 'tokens' | 'money' | 'perps' | 'predict' | 'defi' | 'collectibles',
   valueFiat: number,
   status: 'ready' | 'loading' | 'error' | 'ineligible' = 'ready',
 ) {
@@ -51,6 +55,9 @@ function makeSlice(
 describe('useBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useCollectiblesSlice)
+      .mockReturnValue(makeSlice('collectibles', 0, 'ineligible'));
     mockUseTokensSlice.mockReturnValue(
       makeSlice('tokens', 50000) as ReturnType<typeof useTokensSlice>,
     );
@@ -65,6 +72,17 @@ describe('useBalanceBreakdown', () => {
     );
     mockUseDefiSlice.mockReturnValue(
       makeSlice('defi', 10000) as ReturnType<typeof useDefiSlice>,
+    );
+  });
+
+  it('includes insured collection value in the total and allocation', () => {
+    jest
+      .mocked(useCollectiblesSlice)
+      .mockReturnValue(makeSlice('collectibles', 500));
+    const { result } = renderHook(() => useBalanceBreakdown());
+    expect(result.current.hero.totalFiat).toBe(110500);
+    expect(result.current.slices.collectibles.percentOfTotal).toBeCloseTo(
+      500 / 110500,
     );
   });
 

@@ -6,7 +6,15 @@ declare module 'react-native-safe-area-context/src/SafeArea.types';
 
 // This file contains type declarations for asset types.
 // Ex. This makes it so that when you import CloseIcon from './close-icon.svg, CloseIcon, will be detected as a React.FC component.
-declare module '*.mp4';
+declare module '*.mp4' {
+  const content: number;
+  export default content;
+}
+
+declare module '*.jpg' {
+  const content: import('react-native').ImageRequireSource;
+  export default content;
+}
 
 declare module '@metamask/react-native-payments/lib/js/__mocks__';
 
@@ -30,6 +38,11 @@ declare module 'images/image-icons' {
 declare module '*.png' {
   import { ImageSourcePropType } from 'react-native';
   const content: ImageSourcePropType;
+  export default content;
+}
+
+declare module '*.webp' {
+  const content: import('react-native').ImageRequireSource;
   export default content;
 }
 

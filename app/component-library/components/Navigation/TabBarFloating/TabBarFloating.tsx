@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
 
 import React, { useCallback, useEffect, useRef } from 'react';
-import { LayoutChangeEvent, View, type ViewStyle } from 'react-native';
+import { LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -23,15 +22,11 @@ import { navigateToSocialTab } from '../../../../components/Views/SocialLeaderbo
 import { TabBarIconKey, TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
-import TabBarFloatingSurface from './TabBarFloatingSurface';
+import FloatingTabBarLayout from './FloatingTabBarLayout';
 import TabBarFloatingTradeButton from './TabBarFloatingTradeButton';
-import { useBlurMaterial } from '../../../hooks/useBlurMaterial';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
-  TAB_BAR_FLOATING_GAP,
-  TAB_BAR_FLOATING_HEIGHT,
-  TAB_BAR_FLOATING_HORIZONTAL_INSET,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from './TabBarFloating.utils';
@@ -52,13 +47,6 @@ export interface TabBarFloatingProps extends TabBarProps {
 
 type TabBarFloatingRoute = TabBarProps['state']['routes'][number];
 
-/** Lays the pill and the search circle side by side. */
-const ROW_STYLE: ViewStyle = {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: TAB_BAR_FLOATING_GAP,
-};
-
 /**
  * Treatment bottom navigation for the Header & NavBar refresh experiment
  * tabs sit in a floating rounded pill with a separate circular
@@ -72,7 +60,6 @@ const TabBarFloating = ({
   onHeightChange,
   trailingAction = 'search',
 }: TabBarFloatingProps) => {
-  const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
 
   const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
@@ -91,8 +78,6 @@ const TabBarFloating = ({
   );
 
   useEffect(() => () => onHeightChange?.(0), [onHeightChange]);
-
-  const { isBlurAvailable, colorScheme } = useBlurMaterial();
 
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
@@ -197,56 +182,31 @@ const TabBarFloating = ({
   );
 
   return (
-    <View
-      style={[
-        tw.style('absolute bottom-0 left-0 right-0'),
-        {
-          paddingBottom: bottomPadding,
-          paddingHorizontal: TAB_BAR_FLOATING_HORIZONTAL_INSET,
-        },
-      ]}
-      testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
+    <FloatingTabBarLayout
+      bottomPadding={bottomPadding}
       onLayout={handleLayout}
+      trailingAction={
+        trailingAction === 'trade' ? (
+          <TabBarFloatingTradeButton
+            testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
+          />
+        ) : (
+          <ButtonIcon
+            iconName={IconName.Search}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
+            onPress={handleSearchPress}
+            testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+            accessibilityLabel={strings('wallet.search_accessibility_label')}
+            twClassName="h-full w-full rounded-full bg-transparent"
+          />
+        )
+      }
     >
-      <View style={ROW_STYLE}>
-        <TabBarFloatingSurface
-          isBlurAvailable={isBlurAvailable}
-          colorScheme={colorScheme}
-          twClassName="flex-1 flex-row items-center rounded-full p-1"
-          style={{ height: TAB_BAR_FLOATING_HEIGHT }}
-          testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
-        >
-          {state.routes.map((route: TabBarFloatingRoute, index: number) =>
-            renderTabBarItem(route, index),
-          )}
-        </TabBarFloatingSurface>
-        <TabBarFloatingSurface
-          isBlurAvailable={isBlurAvailable}
-          colorScheme={colorScheme}
-          twClassName="items-center justify-center rounded-full"
-          style={{
-            height: TAB_BAR_FLOATING_HEIGHT,
-            width: TAB_BAR_FLOATING_HEIGHT,
-          }}
-        >
-          {trailingAction === 'trade' ? (
-            <TabBarFloatingTradeButton
-              testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
-            />
-          ) : (
-            <ButtonIcon
-              iconName={IconName.Search}
-              iconProps={{ color: IconColor.IconDefault }}
-              size={ButtonIconSize.Md}
-              onPress={handleSearchPress}
-              testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
-              accessibilityLabel={strings('wallet.search_accessibility_label')}
-              twClassName="h-full w-full rounded-full bg-transparent"
-            />
-          )}
-        </TabBarFloatingSurface>
-      </View>
-    </View>
+      {state.routes.map((route: TabBarFloatingRoute, index: number) =>
+        renderTabBarItem(route, index),
+      )}
+    </FloatingTabBarLayout>
   );
 };
 

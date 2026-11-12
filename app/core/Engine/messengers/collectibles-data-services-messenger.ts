@@ -5,6 +5,8 @@ import {
 } from '@metamask/messenger';
 import type { RootMessenger } from '../types';
 import type { PackPartnerDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/PackPartnerDataService';
+import type { CollectiblesApiDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/CollectiblesApiDataService';
+import type { CollectiblesSocialApiDataServiceMessenger } from '../../../components/UI/Collectibles/services/data/CollectiblesSocialApiDataService';
 import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-service';
 export const getPackPartnerDataServiceMessenger = (
   root: RootMessenger<
@@ -27,3 +29,22 @@ export const getPackPartnerDataServiceMessenger = (
   });
   return messenger;
 };
+
+export const getCollectiblesApiDataServiceMessenger = (
+  root: RootMessenger<
+    MessengerActions<CollectiblesApiDataServiceMessenger>,
+    MessengerEvents<CollectiblesApiDataServiceMessenger>
+  >,
+): CollectiblesApiDataServiceMessenger =>
+  new Messenger({ namespace: 'CollectiblesApiDataService', parent: root });
+
+export const getCollectiblesSocialApiDataServiceMessenger = (
+  root: RootMessenger<
+    MessengerActions<CollectiblesSocialApiDataServiceMessenger>,
+    MessengerEvents<CollectiblesSocialApiDataServiceMessenger>
+  >,
+): CollectiblesSocialApiDataServiceMessenger =>
+  new Messenger({
+    namespace: 'CollectiblesSocialApiDataService',
+    parent: root,
+  });

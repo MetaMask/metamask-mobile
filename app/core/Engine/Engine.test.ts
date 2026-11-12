@@ -1378,9 +1378,11 @@ describe('Engine', () => {
         engine.context.CollectiblesController,
         'clearState',
       );
-      const clearReads = [engine.context.PackPartnerDataService].map(
-        (service) => jest.spyOn(service, 'clearCache'),
-      );
+      const clearReads = [
+        engine.context.PackPartnerDataService,
+        engine.context.CollectiblesApiDataService,
+        engine.context.CollectiblesSocialApiDataService,
+      ].map((service) => jest.spyOn(service, 'clearCache'));
       engine.context.CollectiblesController.completeOnboarding();
 
       const reset = engine.resetState();
