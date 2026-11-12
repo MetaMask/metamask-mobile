@@ -204,13 +204,13 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('keeps the Money deposit Braze campaign default-off', () => {
+    it('enables the Money deposit Braze campaign at 8.18.0+', () => {
       expect(
         getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
           ?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.18.0',
       });
     });
 
@@ -432,10 +432,13 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('keeps the Social GIF API off until it is in production', () => {
+    it('keeps the Social GIF API disabled in production', () => {
       expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
-        inProd: false,
-        productionDefault: false,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.17.0',
+        },
         status: FeatureFlagStatus.Active,
       });
     });

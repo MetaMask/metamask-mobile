@@ -23,7 +23,6 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
-import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
 import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
@@ -144,20 +143,17 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -184,6 +180,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -235,9 +232,6 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
@@ -321,6 +315,7 @@ interface ForwardedParamsHostProps {
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
+  returnToCaller?: boolean;
 }
 
 /**
@@ -566,7 +561,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -586,7 +580,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -712,18 +705,12 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
     </NativeStack.Navigator>
   );
 };
@@ -1054,6 +1041,15 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
 const MainNavigator = () => {
   const dispatch = useDispatch();
   // Announce to the saga layer (deeplink pipeline) that post-login screens
@@ -1228,13 +1224,6 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {isSocialV1Enabled && (
-          <NativeStack.Screen
-            name={Routes.SOCIAL_PROFILE.DRAWER}
-            component={ProfileDrawer}
-            options={slideFromLeftNativeOptions}
-          />
-        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
@@ -1424,6 +1413,11 @@ const MainNavigator = () => {
             options={fadeNativeOptions}
           />
           <NativeStack.Screen
+            name={Routes.MONEY.SPLASH}
+            component={MoneySplashView}
+            options={{ ...fadeNativeOptions, gestureEnabled: false }}
+          />
+          <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
             component={MoneyFirstTimeDepositView}
             options={{
@@ -1545,6 +1539,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}
@@ -1661,16 +1660,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={slideFromRightNativeOptions}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

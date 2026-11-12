@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   CommissionEntryView,
   ReferralLocalizedText,
@@ -8,6 +9,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { useCommissions } from '../hooks/useCommissions';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
+import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import RewardsTradingCommissionsView, {
   REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
 } from './RewardsTradingCommissionsView';
@@ -39,6 +41,9 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
+  copyTradingEmptyDescription:
+    'Share a trade to start earning from copies of it.',
+  copyTradingEmptyAction: 'Start sharing',
 } as unknown as ReferralLocalizedText;
 
 const COMMISSION: CommissionEntryView = {
@@ -151,5 +156,30 @@ describe('RewardsTradingCommissionsView', () => {
         `${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${COMMISSION.id}`,
       ),
     ).toBeNull();
+  });
+
+  it('shows the people icon on the copy-trading empty state', () => {
+    (useCommissions as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      { state: stateWith(LOCALIZED_TEXT) },
+    );
+
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
   });
 });

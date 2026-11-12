@@ -103,6 +103,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       prefix={config.prefix}
       multiline={config.multiline}
       maxLength={config.maxLength}
+      autoFocus={config.autoFocus}
       containerTestID={config.testIDs.container}
       headerTestID={config.testIDs.header}
       backTestID={config.testIDs.back}

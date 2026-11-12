@@ -41,6 +41,7 @@ describe('profileControllerToMySocialProfile', () => {
       imageUrl: 'https://example.com/avatar.png',
       xHandle: 'alice',
       connectedToX: true,
+      verified: false,
       linkedAccountAddress: '0x123',
       shareTradingActivity: false,
       joinedAt: '2026-01-01T00:00:00Z',
@@ -65,6 +66,18 @@ describe('profileControllerToMySocialProfile', () => {
     expect(result.connectedToX).toBe(false);
     expect(result.linkedAccountAddress).toBeNull();
   });
+
+  it.each([true, false])(
+    'maps verified=%s independently of an X connection',
+    (verified) => {
+      const input = { ...profile, connectedToX: false, verified };
+
+      const result = profileControllerToMySocialProfile(input);
+
+      expect(result.verified).toBe(verified);
+      expect(result.connectedToX).toBe(false);
+    },
+  );
 
   it('stays connected to X when the X account failed to load', () => {
     const result = profileControllerToMySocialProfile(profile, undefined);
@@ -116,6 +129,15 @@ describe('withLocalAvatarPreset', () => {
     expect(result.avatarPresetId).toBe('zombie');
     expect(result.avatarBackgroundId).toBe('lime');
     expect(result.linkedAccountId).toBe('acc-1');
+  });
+
+  it('does not replace server verification with a local profile value', () => {
+    const result = withLocalAvatarPreset(
+      { ...controllerProfile, verified: false },
+      { ...controllerProfile, avatarPresetId: 'zombie', verified: true },
+    );
+
+    expect(result.verified).toBe(false);
   });
 
   it('keeps the controller preset when the foxicon URL already set one', () => {

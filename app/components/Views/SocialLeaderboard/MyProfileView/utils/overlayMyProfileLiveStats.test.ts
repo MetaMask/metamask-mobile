@@ -77,7 +77,7 @@ describe('overlayMyProfileLiveStats', () => {
     const result = overlayMyProfileLiveStats(localProfile, null);
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
-    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
+    expect(result.pnlLabel).toBe(`${FAKE_STATS_PREFIX}+$7,100.00`);
     expect(result.performanceCells).toEqual([]);
     expect(result.rankingTag).toBe('whale');
     expect(result.followerCount).toBe(4);
@@ -87,7 +87,8 @@ describe('overlayMyProfileLiveStats', () => {
     const result = overlayMyProfileLiveStats(localProfile, liveProfile());
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
+    expect(result.pnlLabel).toBe('+$1,200.00');
+    expect(result.isPnlPositive).toBe(true);
     expect(result.rankingTag).toBe('dolphin');
     expect(result.followerCount).toBe(88);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual([
@@ -117,13 +118,29 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
   });
 
-  it('uses the non-negative tone when a live P&L loss rounds to zero', () => {
-    const result = overlayMyProfileLiveStats(
+  it('keeps two decimal places on the compact header P&L', () => {
+    const loss = overlayMyProfileLiveStats(
       localProfile,
-      liveProfile({ stats: { pnl30d: -0.4 } }),
+      liveProfile({ stats: { pnl30d: -4 } }),
+    );
+    const cents = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -6.38 } }),
     );
 
-    expect(result.pnlLabel).toBe('$0');
+    expect(loss.pnlLabel).toBe('-$4.00');
+    expect(loss.isPnlPositive).toBe(false);
+    expect(cents.pnlLabel).toBe('-$6.38');
+    expect(cents.isPnlPositive).toBe(false);
+  });
+
+  it('uses the non-negative tone when a live P&L loss rounds to zero cents', () => {
+    const result = overlayMyProfileLiveStats(
+      localProfile,
+      liveProfile({ stats: { pnl30d: -0.004 } }),
+    );
+
+    expect(result.pnlLabel).toBe('$0.00');
     expect(result.isPnlPositive).toBe(true);
   });
 });
@@ -135,10 +152,10 @@ describe('buildPerformanceCells', () => {
 
   it('returns the live cells in grid order and omits unpriced unrealized', () => {
     expect(buildPerformanceCells(liveProfile())).toEqual([
-      { id: 'pnl', value: '+$1,200', tone: 'success' },
+      { id: 'pnl', value: '+$1,200.00', tone: 'success' },
       { id: 'winRate', value: '42%', tone: 'default' },
       { id: 'holdTime', value: '3h', tone: 'default' },
-      { id: 'volume', value: '$50,000', tone: 'default' },
+      { id: 'volume', value: '$50,000.00', tone: 'default' },
     ]);
   });
 
@@ -154,32 +171,44 @@ describe('buildPerformanceCells', () => {
 
     expect(cells[1]).toEqual({
       id: 'unrealizedPnl',
-      value: '+$100',
+      value: '+$100.00',
       tone: 'success',
     });
   });
 
-  it('shows $0 unrealized when priced positions net to zero', () => {
+  it('shows $0.00 unrealized when priced positions net to zero', () => {
     const cells = buildPerformanceCells(liveProfile(), [
       openPosition('flat', { pnlValueUsd: 10, realizedPnl: 10 }),
     ]);
 
     expect(cells[1]).toEqual({
       id: 'unrealizedPnl',
-      value: '$0',
+      value: '$0.00',
       tone: 'default',
     });
   });
 
-  it('shows unsigned $0 unrealized when a tiny loss rounds to zero dollars', () => {
+  it('shows unsigned $0.00 unrealized when a loss rounds to zero cents', () => {
     const cells = buildPerformanceCells(liveProfile(), [
-      openPosition('dust', { pnlValueUsd: 9.6, realizedPnl: 10 }),
+      openPosition('dust', { pnlValueUsd: 9.996, realizedPnl: 10 }),
     ]);
 
     expect(cells[1]).toEqual({
       id: 'unrealizedPnl',
-      value: '$0',
+      value: '$0.00',
       tone: 'default',
+    });
+  });
+
+  it('keeps two decimal places on a sub-dollar unrealized loss', () => {
+    const cells = buildPerformanceCells(liveProfile(), [
+      openPosition('cents', { pnlValueUsd: 9.6, realizedPnl: 10 }),
+    ]);
+
+    expect(cells[1]).toEqual({
+      id: 'unrealizedPnl',
+      value: '-$0.40',
+      tone: 'error',
     });
   });
 
@@ -188,7 +217,25 @@ describe('buildPerformanceCells', () => {
       liveProfile({ stats: { pnl30d: -450 } }),
     );
 
-    expect(pnlCell).toEqual({ id: 'pnl', value: '-$450', tone: 'error' });
+    expect(pnlCell).toEqual({ id: 'pnl', value: '-$450.00', tone: 'error' });
+  });
+
+  it('shows two decimal places for P&L and volume', () => {
+    const cells = buildPerformanceCells(
+      liveProfile({
+        stats: {
+          pnl30d: -6.38,
+          winRate30d: null,
+          medianHoldMinutes: null,
+          volumeUsd30d: 319.2,
+        },
+      }),
+    );
+
+    expect(cells).toEqual([
+      { id: 'pnl', value: '-$6.38', tone: 'error' },
+      { id: 'volume', value: '$319.20', tone: 'default' },
+    ]);
   });
 
   it('returns no cells when live stats and priced opens are both missing', () => {

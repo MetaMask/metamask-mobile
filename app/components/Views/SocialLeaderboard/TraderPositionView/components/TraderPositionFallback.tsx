@@ -20,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../navigation/navigateToSocialV1Profile';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
@@ -57,6 +58,8 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
           traderName: traderName ?? '',
         });
       }
+    } else if (isSocialV1Treatment()) {
+      popToSocialTab(navigation);
     } else {
       navigation.navigate(getFollowTradingHomeRoute());
     }

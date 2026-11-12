@@ -3,6 +3,8 @@ import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking, Platform } from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { CardActions } from '../../util/metrics';
 import ImmersveKYCModal, {
   IMMERSVE_KYC_LOAD_TIMEOUT_MS,
   setImmersveKycOnClose,
@@ -10,6 +12,16 @@ import ImmersveKYCModal, {
 } from './ImmersveKYCModal';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockAddListener = jest.fn(
+  (
+    _eventName: string,
+    _listener: (event: {
+      preventDefault: () => void;
+      data: { action: { type: string } };
+    }) => void,
+  ) => jest.fn(),
+);
 const mockRequestMultiple = jest.fn();
 
 jest.mock('react-redux', () => ({
@@ -23,7 +35,11 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    navigate: mockNavigate,
+    addListener: mockAddListener,
+  }),
 }));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -64,16 +80,19 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
       ),
     HeaderStandard: ({
-      onBack,
-      backButtonProps,
+      onClose,
+      closeButtonProps,
+      title,
     }: {
-      onBack?: () => void;
-      backButtonProps?: { testID?: string };
+      onClose?: () => void;
+      closeButtonProps?: { testID?: string };
+      title?: React.ReactNode;
     }) =>
       ActualReact.createElement(
         TouchableOpacity,
-        { onPress: onBack, testID: backButtonProps?.testID },
-        'Back',
+        { onPress: onClose, testID: closeButtonProps?.testID },
+        title,
+        'Close',
       ),
     ButtonVariant: { Primary: 'Primary' },
     ButtonSize: { Md: 'Md' },
@@ -121,6 +140,7 @@ let capturedProps: {
   onLoadEnd?: (e: { nativeEvent: { loading: boolean } }) => void;
   mediaPlaybackRequiresUserGesture?: boolean;
   injectedJavaScript?: string;
+  injectedJavaScriptBeforeContentLoaded?: string;
 } = {};
 
 jest.mock('@metamask/react-native-webview', () => {
@@ -149,6 +169,35 @@ const blockedStatuses = {
   'android.permission.RECORD_AUDIO': RESULTS.GRANTED,
 };
 
+const getTrackedProperties = () => {
+  // Read the Jest mock directly. Calling useAnalytics() here is not a component
+  // or a hook, so react-hooks/rules-of-hooks rejects it.
+  const createEventBuilder = jest
+    .mocked(useAnalytics)
+    .getMockImplementation()?.().createEventBuilder;
+
+  return (
+    (createEventBuilder as jest.Mock | undefined)?.mock.results.flatMap(
+      (result) => {
+        const addProperties = result.value?.addProperties as
+          | jest.Mock
+          | undefined;
+        return addProperties?.mock.calls.map((call) => call[0]) ?? [];
+      },
+    ) ?? []
+  );
+};
+
+const getBeforeRemoveListener = () => {
+  const listenerCall = mockAddListener.mock.calls.find(
+    (call) => call[0] === 'beforeRemove',
+  );
+  if (!listenerCall) {
+    throw new Error('beforeRemove listener was not registered');
+  }
+  return listenerCall[1];
+};
+
 describe('ImmersveKYCModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -161,6 +210,7 @@ describe('ImmersveKYCModal', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   it('requests camera and microphone permissions before showing the WebView', async () => {
@@ -178,9 +228,19 @@ describe('ImmersveKYCModal', () => {
 
     expect(capturedProps.mediaPlaybackRequiresUserGesture).toBe(false);
     expect(capturedProps.injectedJavaScript).toContain('getUserMedia');
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'session-progress-header',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'data-test="exit"',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      '.logo',
+    );
+    expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
-  it('renders the WebView on iOS without requesting permissions or injecting script', () => {
+  it('renders the WebView on iOS without requesting permissions, hiding Immersve chrome', () => {
     Platform.OS = 'ios';
 
     const { getByTestId } = render(<ImmersveKYCModal />);
@@ -188,6 +248,16 @@ describe('ImmersveKYCModal', () => {
     expect(mockRequestMultiple).not.toHaveBeenCalled();
     expect(getByTestId('immersve-kyc-webview')).toBeTruthy();
     expect(capturedProps.injectedJavaScript).toBeUndefined();
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'session-progress-header',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      'data-test="exit"',
+    );
+    expect(capturedProps.injectedJavaScriptBeforeContentLoaded).toContain(
+      '.logo',
+    );
+    expect(getByTestId('immersve-kyc-header-logo')).toBeTruthy();
   });
 
   it('shows a permission error and does not mount the WebView when denied', async () => {
@@ -474,15 +544,98 @@ describe('ImmersveKYCModal', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('closes when the back button is pressed', async () => {
+  it('returns to the processing screen when the close button is pressed', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
     const { getByTestId } = render(<ImmersveKYCModal />);
 
     await waitFor(() => {
-      expect(getByTestId('immersve-kyc-back-button')).toBeTruthy();
+      expect(getByTestId('immersve-kyc-close-button')).toBeTruthy();
     });
 
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
-    expect(mockGoBack).toHaveBeenCalled();
+    fireEvent.press(getByTestId('immersve-kyc-close-button'));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+      ]),
+    );
+  });
+
+  it.each(['GO_BACK', 'POP'])(
+    're-polls once when %s removes the screen, without going back again',
+    (type) => {
+      const onClose = jest.fn();
+      setImmersveKycOnClose(onClose);
+      render(<ImmersveKYCModal />);
+      const preventDefault = jest.fn();
+
+      getBeforeRemoveListener()({
+        preventDefault,
+        data: { action: { type } },
+      });
+      getBeforeRemoveListener()({
+        preventDefault,
+        data: { action: { type } },
+      });
+
+      expect(preventDefault).not.toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(getTrackedProperties()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ action: CardActions.KYC_WEBVIEW_CLOSE }),
+        ]),
+      );
+    },
+  );
+
+  it('lets a programmatic reset remove the screen without a re-poll', () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    render(<ImmersveKYCModal />);
+    const preventDefault = jest.fn();
+
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'RESET' } },
+    });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('lets a redirect close through and re-polls only once', async () => {
+    const onClose = jest.fn();
+    setImmersveKycOnClose(onClose);
+    render(<ImmersveKYCModal />);
+
+    await waitFor(() => {
+      expect(capturedProps.onNavigationStateChange).toBeDefined();
+    });
+
+    await act(async () => {
+      capturedProps.onNavigationStateChange?.({
+        url: 'https://metamask.io/card/kyc-complete?status=done',
+      });
+    });
+    const preventDefault = jest.fn();
+    getBeforeRemoveListener()({
+      preventDefault,
+      data: { action: { type: 'GO_BACK' } },
+    });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(getTrackedProperties()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ action: CardActions.KYC_WEBVIEW_COMPLETED }),
+      ]),
+    );
   });
 
   it('fires the registered onClose callback on redirect close', async () => {
@@ -499,20 +652,6 @@ describe('ImmersveKYCModal', () => {
         url: 'https://metamask.io/card/kyc-complete?status=done',
       });
     });
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('fires the registered onClose callback on back-button close', async () => {
-    const onClose = jest.fn();
-    setImmersveKycOnClose(onClose);
-    const { getByTestId } = render(<ImmersveKYCModal />);
-
-    await waitFor(() => {
-      expect(getByTestId('immersve-kyc-back-button')).toBeTruthy();
-    });
-
-    fireEvent.press(getByTestId('immersve-kyc-back-button'));
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalled();
   });

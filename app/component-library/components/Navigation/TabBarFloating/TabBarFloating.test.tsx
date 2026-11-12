@@ -39,11 +39,14 @@ jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
 jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
-    navigateToMoneyHome: mockNavigateToMoneyHome,
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyHomeNavigation',
+  () => ({
+    useMoneyHomeNavigation: () => ({
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    }),
   }),
-}));
+);
 
 const mockNavigateToSocialTab = jest.fn();
 jest.mock(
@@ -367,6 +370,18 @@ describe('TabBarFloating', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET_VIEW,
+    });
+  });
+
+  it('emits tabPress to the tapped tab so its screen can react to a re-tap', () => {
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(navigation.emit).toHaveBeenCalledWith({
+      type: 'tabPress',
+      target: '4',
+      canPreventDefault: true,
     });
   });
 

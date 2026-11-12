@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import React, { useEffect, useState } from 'react';
 import { TextInput, View } from 'react-native';
 import ApprovalModal from '../ApprovalModal';
@@ -123,4 +122,3 @@ const SnapAccountCustomNameApproval = () => {
 };
 
 export default SnapAccountCustomNameApproval;
-///: END:ONLY_INCLUDE_IF

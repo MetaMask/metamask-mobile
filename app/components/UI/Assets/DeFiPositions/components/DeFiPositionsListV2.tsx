@@ -97,11 +97,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
 
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await refresh();
-    } finally {
-      setRefreshing(false);
-    }
+    await refresh().finally(() => setRefreshing(false));
   }, [refresh]);
 
   const renderPositionItem = useCallback<

@@ -5,12 +5,12 @@ import type {
 import {
   EM_DASH,
   formatPercent,
-  formatSignedFullUsdNoDecimals,
+  formatSignedUsd,
+  formatUsd,
 } from '../../../../UI/SocialFeed/utils/formatters';
 import {
   FAKE_STATS_PREFIX,
   formatSheetHoldFromMinutes,
-  formatSheetUnsignedUsd,
   prefixFakeStat,
 } from '../../TraderProfileView/components/statsSheetFormatters';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
@@ -46,8 +46,20 @@ export interface OverlayedMyProfileStats {
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
+/** True when two-decimal USD would render as `$0.00`. */
+const roundsToZeroCents = (value: number): boolean =>
+  Math.round(value * 100) === 0;
+
+/**
+ * Signed USD for the compact header and the performance grid, always with
+ * two fractional digits (`-$4.00`, `+$1,200.50`). A value that rounds to
+ * zero cents stays unsigned.
+ */
+const formatPerformanceSignedUsd = (value: number): string =>
+  roundsToZeroCents(value) ? formatUsd(0) : formatSignedUsd(value);
+
 const signedUsdTone = (value: number): PerformanceCell['tone'] =>
-  Math.round(value) >= 0 ? 'success' : 'error';
+  Math.round(value * 100) < 0 ? 'error' : 'success';
 
 export const buildPerformanceCells = (
   live: TraderProfileResponse | null,
@@ -61,7 +73,7 @@ export const buildPerformanceCells = (
   if (isPresentNumber(stats.pnl30d)) {
     cells.push({
       id: 'pnl',
-      value: formatSignedFullUsdNoDecimals(stats.pnl30d),
+      value: formatPerformanceSignedUsd(stats.pnl30d),
       tone: signedUsdTone(stats.pnl30d),
     });
   }
@@ -69,9 +81,10 @@ export const buildPerformanceCells = (
   if (isPresentNumber(unrealized)) {
     cells.push({
       id: 'unrealizedPnl',
-      value: formatSignedFullUsdNoDecimals(unrealized),
-      tone:
-        Math.round(unrealized) === 0 ? 'default' : signedUsdTone(unrealized),
+      value: formatPerformanceSignedUsd(unrealized),
+      tone: roundsToZeroCents(unrealized)
+        ? 'default'
+        : signedUsdTone(unrealized),
     });
   }
   if (isPresentNumber(stats.winRate30d)) {
@@ -91,7 +104,7 @@ export const buildPerformanceCells = (
     cells.push({ id: 'holdTime', value: holdTime, tone: 'default' });
   }
   const volume = isPresentNumber(stats.volumeUsd30d)
-    ? formatSheetUnsignedUsd(stats.volumeUsd30d)
+    ? formatUsd(Math.abs(stats.volumeUsd30d))
     : '';
   if (volume) {
     cells.push({ id: 'volume', value: volume, tone: 'default' });
@@ -126,7 +139,8 @@ export const overlayMyProfileLiveStats = (
     ? formatPercent(liveWinRate * 100, { showSign: false, decimals: 0 })
     : formatLocalWinRate(local.winRatePercent);
   const pnlValue = hasLivePnl ? livePnl : local.pnlUsd;
-  const pnlRaw = formatSignedFullUsdNoDecimals(pnlValue);
+  const pnlRaw =
+    pnlValue == null ? EM_DASH : formatPerformanceSignedUsd(pnlValue);
 
   return {
     rankingTag: (live?.rankingTag ?? local.rankingTag) as
@@ -138,7 +152,7 @@ export const overlayMyProfileLiveStats = (
     isWinRatePositive: winRateValue > 0,
     pnlLabel: hasLivePnl ? pnlRaw : markFakeStat(pnlRaw),
     hasPnl: pnlValue != null,
-    isPnlPositive: pnlValue != null && Math.round(pnlValue) >= 0,
+    isPnlPositive: pnlValue != null && Math.round(pnlValue * 100) >= 0,
     performanceCells: buildPerformanceCells(live, openPositions),
   };
 };

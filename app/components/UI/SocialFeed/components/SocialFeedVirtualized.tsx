@@ -24,7 +24,9 @@ import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
+import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
@@ -37,6 +39,7 @@ import {
   getSocialFeedListItemKey,
   type SocialFeedListItem,
 } from '../utils/buildSocialFeedListItems';
+import { getFeedItemId } from '../utils/feedItemId';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
   FEED_ROW_LAYOUT_TRANSITION,
@@ -63,7 +66,7 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
 
-/** How often relative post ages ("3 min ago") are recomputed. */
+/** How often relative post ages ("3m ago") are recomputed. */
 const AGE_TICK_MS = 60_000;
 
 /** Hold the refresh spinner for a beat so a fast refetch does not flicker. */
@@ -129,6 +132,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -137,6 +141,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  pendingPostsSurface,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
   performance,
@@ -154,6 +160,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
   const hardwareTier = getHardwareTier();
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
   const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
@@ -217,19 +224,36 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [isEntryHidden, posts],
-  );
+  // The socket brings the post in, so this feed never polls for it. A feed
+  // without a pending surface passes its posts through (Following pins none).
+  const pendingOverlay = usePendingPostsOverlay({
+    surface: pendingPostsSurface ?? 'following',
+    ownerProfileId: pendingPostsSurface ? viewerProfileId : undefined,
+    serverPosts: posts,
+    refetch: refresh,
+    isActive,
+    refetchUntilServed: false,
+  });
+  const { pinnedPosts, refresh: refreshWithPendingPosts } = pendingOverlay;
+  const overlaidPosts = pendingOverlay.posts;
+  // Pinned posts stay on top; only the feed's own posts are reordered.
+  const visiblePosts = useMemo(() => {
+    const isShown = (post: SocialV1FeedPost) =>
+      !isEntryHidden({
+        postId: post.id,
+        authorId: post.item.author.id,
+        authorHandle: post.authorHandle,
+        commentId: post.commentId,
+      });
+    const shownPinned = (
+      filterPost ? pinnedPosts.filter(filterPost) : pinnedPosts
+    ).filter(isShown);
+    const shown = overlaidPosts.filter(isShown);
+    return [
+      ...shownPinned,
+      ...(comparePosts ? shown.sort(comparePosts) : shown),
+    ];
+  }, [comparePosts, filterPost, isEntryHidden, overlaidPosts, pinnedPosts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -297,11 +321,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refresh(), waitForMinimumRefresh()]);
+      await Promise.all([refreshWithPendingPosts(), waitForMinimumRefresh()]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refresh]);
+  }, [onRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -327,8 +351,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   // Read at tap time so the row callback stays stable across socket updates.
-  // A card with a held-back update (paused or scrolled away from the top)
-  // shows an older copy than the socket already sent.
+  // A post held behind the pill (paused, or scrolled away from the top) shows
+  // an older copy than the socket already sent.
   const liveRef = useRef(live);
   liveRef.current = live;
   const handlePositionPress = useMemo(
@@ -336,10 +360,12 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       onPositionPress
         ? (post: SocialV1FeedPost) => {
             const current = liveRef.current;
-            const positionId = post.position?.positionId;
+            const feedItemId = post.position
+              ? getFeedItemId(post.position)
+              : undefined;
             onPositionPress(post, {
               isSnapshotLive: Boolean(
-                current && positionId && !current.hasPendingUpdate(positionId),
+                current && feedItemId && !current.hasPendingUpdate(feedItemId),
               ),
             });
           }
@@ -372,6 +398,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
               now={clock}
+              viewerProfileId={viewerProfileId}
             />
           );
         case 'inline':
@@ -402,6 +429,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       requireSocialProfile,
       scheduleEntryDelay,
       state,
+      viewerProfileId,
     ],
   );
 
@@ -425,6 +453,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
