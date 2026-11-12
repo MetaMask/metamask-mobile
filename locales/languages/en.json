@@ -9683,13 +9683,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Get your MetaMask Card",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Get card",
           "cta_secondary": "Skip"
         },
         "unlinked_card_account": {
           "title": "Link your MetaMask Card",
-          "description": "Spend your balance and earn on purchases.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
           "cta_secondary": "Skip"
         }
@@ -9710,7 +9710,7 @@
       "benefit_withdraw_title": "Withdraw anytime",
       "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
@@ -9760,8 +9760,8 @@
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
-      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
-      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
+      "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
@@ -9836,11 +9836,9 @@
       "subtitle": "Spend your money anywhere.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
-      "cashback": "{{percentage}}% mUSD back",
       "link_title": "Link card",
-      "link_subtitle": "Spend your balance and earn on purchases.",
-      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
-      "link_bullet_cashback": "Get {{percentage}}% mUSD back",
+      "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
@@ -9852,14 +9850,14 @@
       "update_success_title": "Your spending limit was updated",
       "update_error": "Something went wrong updating your spending limit",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
+      "link_card_sheet_description_prefix": "Link your card to spend your Money balance while it keeps earning up to",
       "link_card_sheet_description_suffix": " (variable).",
-      "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
+      "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Link card",
       "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
       "unlink_card_sheet_title_with_funding_source": "Are you sure?",
-      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
-      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
       "unlink_card_sheet_another_money_account": "another Money account",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
@@ -9871,8 +9869,7 @@
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
-      "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
-      "benefit_spend_cashback": "1-3% mUSD back",
+      "benefit_spend": "Spend at 150M+ merchants with MetaMask Card",
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
       "learn_more": "Learn more"
@@ -11486,19 +11483,16 @@
         "name": "Virtual Card",
         "price": "Free",
         "feature_1": "Virtual card for Apple Pay and Google Pay",
-        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
-        "feature_3": "1% mUSD back on every purchase"
+        "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)"
       },
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/year",
         "everything_in_virtual": "Everything in virtual, plus:",
         "feature_1": "Premium engraved metal card",
-        "feature_2": "3% mUSD back on first $10,000/year",
         "feature_3": "No foreign transaction fees"
       },
-      "earn_up_to_badge": "Earn up to $300 in mUSD back annually",
-      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
+      "upgrade_to_metal_label": "Or upgrade to Metal"
     },
     "review_order": {
       "title": "Review your order",
@@ -11518,7 +11512,7 @@
     "order_completed": {
       "title": "Your card is on the way",
       "subtitle": "It should arrive in 4 to 6 weeks.",
-      "description": "Set up your virtual card and add it to your digital wallet to start earning mUSD back.",
+      "description": "Set up your virtual card and add it to your digital wallet to start spending.",
       "set_up_card_button": "Set up card",
       "back_to_card_button": "Back to Card"
     },
@@ -11559,9 +11553,9 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend and earn",
-      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
-      "apply_now_button": "Set up now",
+      "title": "Spend anywhere",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
+      "apply_now_button": "Get card",
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
@@ -12068,10 +12062,10 @@
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
       "spend_and_earn_title": "Spend and earn",
-      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
       "spend_and_earn_description_suffix": " (variable) on your balance.",
-      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and spend it anywhere Mastercard is accepted.",
       "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
