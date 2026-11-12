@@ -264,7 +264,9 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   textGroup: {
+    left: 0,
     position: 'absolute',
+    right: 0,
   },
   title: {
     textAlign: 'center',
@@ -337,6 +339,7 @@ const MoneyOnboardingTextOverlay = ({
                 top: insets.top + HEADER_TOP_OFFSET,
               },
             ]}
+            testID={MoneyOnboardingViewTestIds.OVERLAY_TEXT_GROUP}
           >
             <Text
               color={TextColor.OverlayInverse}

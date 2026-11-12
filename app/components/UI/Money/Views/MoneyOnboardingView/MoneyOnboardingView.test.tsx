@@ -340,6 +340,23 @@ describe('MoneyOnboardingView', () => {
       ).toBe(12);
     });
 
+    it('stretches the overlay copy across the full width', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TEXT_GROUP).props
+            .style,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          position: 'absolute',
+          left: 0,
+          right: 0,
+        }),
+      );
+    });
+
     it('uses small overlay text size preset on small devices', () => {
       setWindowDimensions({ height: 667, width: 375 });
 
