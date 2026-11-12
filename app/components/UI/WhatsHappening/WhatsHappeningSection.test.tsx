@@ -1,10 +1,18 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import {
+  WHATS_HAPPENING_CARD_VISIBILITY_THRESHOLD,
+  WHATS_HAPPENING_CARD_WIDTH,
+  WHATS_HAPPENING_CAROUSEL_GAP,
+  WHATS_HAPPENING_CAROUSEL_HORIZONTAL_PADDING,
+  WHATS_HAPPENING_CAROUSEL_SCROLL_EVENT_THROTTLE,
   WhatsHappeningInteractionType,
   WhatsHappeningSource,
   WhatsHappeningView,
@@ -14,12 +22,9 @@ import { WhatsHappeningSelectorsIDs } from './WhatsHappening.testIds';
 const mockTrace = jest.fn();
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn((eventName: string) => ({
-  addProperties: jest.fn((properties: Record<string, unknown>) => ({
-    build: jest.fn(() => ({ category: eventName, properties })),
-  })),
-  build: jest.fn(() => ({ category: eventName })),
-}));
+const mockCreateEventBuilder = jest.fn(
+  AnalyticsEventBuilder.createEventBuilder,
+);
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
@@ -49,10 +54,7 @@ jest.mock('./hooks', () => ({
 }));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock(
@@ -92,6 +94,12 @@ const defaultProps = {
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockSelectWhatsHappeningEnabled.mockImplementation(() => true);
     mockUseWhatsHappening.mockReturnValue({
       items: [],
@@ -338,7 +346,7 @@ describe('WhatsHappeningSection', () => {
     );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED,
+        name: MetaMetricsEvents.WHATS_HAPPENING_INTERACTED.category,
         properties: expect.objectContaining({
           interaction_type: WhatsHappeningInteractionType.Pan,
           view: WhatsHappeningView.Carousel,
@@ -395,6 +403,178 @@ describe('WhatsHappeningSection', () => {
         <WhatsHappeningSection source={WhatsHappeningSource.Perps} />,
       );
       expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
+    });
+  });
+
+  describe('carousel card view analytics', () => {
+    const cardStride =
+      WHATS_HAPPENING_CARD_WIDTH + WHATS_HAPPENING_CAROUSEL_GAP;
+    const cardStart = (index: number): number =>
+      WHATS_HAPPENING_CAROUSEL_HORIZONTAL_PADDING + index * cardStride;
+    const halfCardWidth =
+      WHATS_HAPPENING_CARD_WIDTH * WHATS_HAPPENING_CARD_VISIBILITY_THRESHOLD;
+    const viewportShowingFirstTwoCards = cardStart(1) + halfCardWidth;
+    const offsetWhereCardTwoReachesHalf =
+      cardStart(2) + halfCardWidth - viewportShowingFirstTwoCards;
+    const fiveItems = Array.from({ length: 5 }, (_, index) => ({
+      ...mockItem,
+      id: `trend-${index}`,
+      title: `Trend ${index}`,
+    }));
+
+    const isRecord = (value: unknown): value is Record<string, unknown> =>
+      typeof value === 'object' && value !== null;
+
+    const scrolledToViewEvents = (): Record<string, unknown>[] =>
+      mockTrackEvent.mock.calls.flatMap(([event]) => {
+        if (
+          !isRecord(event) ||
+          event.name !==
+            MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW.category
+        ) {
+          return [];
+        }
+
+        return [event];
+      });
+
+    const layoutCarousel = (width: number): void => {
+      fireEvent(
+        screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
+        'layout',
+        {
+          nativeEvent: { layout: { x: 0, y: 0, width, height: 240 } },
+        },
+      );
+    };
+
+    const scrollCarousel = (offsetX: number, width: number): void => {
+      fireEvent.scroll(
+        screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
+        {
+          nativeEvent: {
+            contentOffset: { x: offsetX, y: 0 },
+            contentSize: { width: 2000, height: 240 },
+            layoutMeasurement: { width, height: 240 },
+          },
+        },
+      );
+    };
+
+    const renderLoadedCarousel = (): void => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: fiveItems,
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    };
+
+    it('throttles carousel scroll events', () => {
+      renderLoadedCarousel();
+
+      expect(
+        screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL).props
+          .scrollEventThrottle,
+      ).toBe(WHATS_HAPPENING_CAROUSEL_SCROLL_EVENT_THROTTLE);
+    });
+
+    it('fires Whats Happening Card Scrolled to View only for cards at least half visible on layout', () => {
+      renderLoadedCarousel();
+
+      layoutCarousel(viewportShowingFirstTwoCards);
+
+      const events = scrolledToViewEvents();
+      expect(events.map((event) => event.properties)).toEqual([
+        {
+          trend_id: 'trend-0',
+          card_index: 0,
+          trend_category: 'macro',
+          trend_impact: 'positive',
+          asset_symbols: [],
+          source: 'homepage',
+        },
+        {
+          trend_id: 'trend-1',
+          card_index: 1,
+          trend_category: 'macro',
+          trend_impact: 'positive',
+          asset_symbols: [],
+          source: 'homepage',
+        },
+      ]);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WHATS_HAPPENING_CARD_SCROLLED_TO_VIEW,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+    });
+
+    it('fires the view event for on-screen cards when the feed arrives after layout', () => {
+      mockUseWhatsHappening.mockReturnValue({
+        items: [],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+      });
+      const { rerender } = renderWithProvider(
+        <WhatsHappeningSection {...defaultProps} />,
+      );
+
+      layoutCarousel(viewportShowingFirstTwoCards);
+
+      expect(scrolledToViewEvents()).toHaveLength(0);
+
+      mockUseWhatsHappening.mockReturnValue({
+        items: fiveItems,
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+      rerender(<WhatsHappeningSection {...defaultProps} />);
+
+      expect(scrolledToViewEvents().map((event) => event.properties)).toEqual([
+        expect.objectContaining({ trend_id: 'trend-0', card_index: 0 }),
+        expect.objectContaining({ trend_id: 'trend-1', card_index: 1 }),
+      ]);
+    });
+
+    it('fires the view event once when a later card scrolls to half width', () => {
+      renderLoadedCarousel();
+      layoutCarousel(viewportShowingFirstTwoCards);
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+
+      scrollCarousel(
+        offsetWhereCardTwoReachesHalf - 1,
+        viewportShowingFirstTwoCards,
+      );
+
+      expect(scrolledToViewEvents()).toHaveLength(0);
+
+      scrollCarousel(
+        offsetWhereCardTwoReachesHalf,
+        viewportShowingFirstTwoCards,
+      );
+
+      expect(scrolledToViewEvents().map((event) => event.properties)).toEqual([
+        expect.objectContaining({
+          trend_id: 'trend-2',
+          card_index: 2,
+          source: 'homepage',
+        }),
+      ]);
+
+      scrollCarousel(
+        offsetWhereCardTwoReachesHalf + cardStride - 1,
+        viewportShowingFirstTwoCards,
+      );
+      scrollCarousel(
+        offsetWhereCardTwoReachesHalf,
+        viewportShowingFirstTwoCards,
+      );
+
+      expect(scrolledToViewEvents()).toHaveLength(1);
     });
   });
 });
