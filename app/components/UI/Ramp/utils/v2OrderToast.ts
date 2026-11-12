@@ -11,12 +11,20 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import { renderNumber } from '../../../../util/number/bigint';
+import { isRampsVaultUnlocked } from './isRampsVaultUnlocked';
 
 export interface V2OrderToastParams {
   orderId: string;
   cryptocurrency: string;
   cryptoAmount?: string | number;
   status: RampsOrderStatus;
+}
+
+const shownOrderToastKeys = new Set<string>();
+
+/** Clears the once-per-order toast record. Tests only. */
+export function resetShownV2OrderToasts(): void {
+  shownOrderToastKeys.clear();
 }
 
 function dismissToast() {
@@ -122,11 +130,22 @@ export function buildV2OrderToastOptions(
 
 /**
  * Shows a toast notification for V2 Ramps orders.
- * No-op for statuses that don't warrant a toast (e.g., Created).
+ * No-op for statuses that don't warrant a toast (e.g., Created), while the
+ * vault is locked, and when this order and status were already shown.
  */
 export function showV2OrderToast(params: V2OrderToastParams): void {
+  if (!isRampsVaultUnlocked()) {
+    return;
+  }
+
+  const toastKey = `${params.orderId}:${params.status}`;
+  if (shownOrderToastKeys.has(toastKey)) {
+    return;
+  }
+
   const toastOptions = buildV2OrderToastOptions(params);
   if (toastOptions) {
+    shownOrderToastKeys.add(toastKey);
     toast(toastOptions);
   }
 }
