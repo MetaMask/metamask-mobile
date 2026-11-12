@@ -43,6 +43,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import styleSheet from './EditAccountName.styles';
 import { getDecimalChainId } from '../../../util/networks';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import Routes from '../../../constants/navigation/Routes';
 
 interface RootNavigationParamList extends ParamListBase {
   EditAccountName: {
@@ -110,7 +111,7 @@ const EditAccountName = () => {
     InteractionManager.runAfterInteractions(async () => {
       if (accountName && accountName.length > 0 && selectedAccount?.address) {
         Engine.setAccountLabel(selectedAccount?.address, accountName);
-        navigate('WalletView');
+        navigate(Routes.WALLET.HOME);
 
         try {
           const analyticsProperties = async () => {
