@@ -137,7 +137,12 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
         // One native element carries the label with its value for automation.
         accessible
         testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
-        keyLabel={strings('perps.close_position.included_pnl')}
+        keyLabel={strings(
+          // Cross margin never holds the P&L, so it is not "included".
+          marginMode === 'cross'
+            ? 'perps.close_position.pnl'
+            : 'perps.close_position.included_pnl',
+        )}
         value={
           pnl === undefined
             ? PERPS_CONSTANTS.FallbackDataDisplay

@@ -103,6 +103,14 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
     ratioSeverity && crossMarginRatio !== undefined
       ? formatCrossMarginRatio(crossMarginRatio)
       : undefined;
+  // The ratio is private, so both the option tag and the banner name the
+  // risk level instead of printing the figure while privacy mode is on.
+  const ratioTag =
+    ratioSeverity === undefined
+      ? undefined
+      : privacyMode
+        ? strings(`perps.crossMarginSummary.tone_${ratioSeverity}`)
+        : formattedRatio;
 
   if (!isVisible) {
     return null;
@@ -154,7 +162,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
             option={{
               id: 'cross',
               title: strings('perps.margin_mode.cross_title'),
-              tag: formattedRatio,
+              tag: ratioTag,
               tagSeverity: ratioSeverity ?? TagSeverity.Neutral,
               description: strings(
                 isCrossMarginAvailable

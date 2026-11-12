@@ -10,7 +10,10 @@ import {
 } from '@testing-library/react-native';
 import { renderPerpsCrossMarginOrderFormPanel } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { createLongPositionForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import {
+  createFundedAccountForViews,
+  createLongPositionForViews,
+} from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
@@ -128,6 +131,40 @@ describeForPlatforms('PerpsMarginModeBottomSheet position locks', () => {
       expect(
         screen.getAllByText(strings('perps.margin_mode.locked_by_open_order')),
       ).toHaveLength(2),
+    );
+  });
+
+  it('names the risk level instead of the ratio while privacy mode is on', async () => {
+    renderPerpsCrossMarginOrderFormPanel({
+      overrides: {
+        engine: {
+          backgroundState: {
+            PreferencesController: { privacyMode: true },
+          },
+        },
+      },
+      streamOverrides: {
+        account: {
+          ...createFundedAccountForViews('1000'),
+          crossMarginSummary: {
+            accountValue: '1000',
+            maintenanceMargin: '800',
+            marginUsed: '800',
+            notional: '2000',
+          },
+        },
+      },
+    });
+
+    await openMarginModeSheet();
+
+    const option = within(screen.getByTestId(marginIds.CROSS_OPTION));
+    expect(
+      option.getByText(strings('perps.crossMarginSummary.tone_danger')),
+    ).toBeOnTheScreen();
+    expect(option.queryByText('80%')).not.toBeOnTheScreen();
+    expect(screen.getByTestId(marginIds.RATIO_BANNER)).toHaveTextContent(
+      strings('perps.crossMarginRatio.description_hidden_danger'),
     );
   });
 

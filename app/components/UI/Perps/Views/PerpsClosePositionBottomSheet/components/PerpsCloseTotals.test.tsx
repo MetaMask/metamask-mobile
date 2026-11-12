@@ -79,6 +79,14 @@ describe('PerpsCloseTotals', () => {
         PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
       ),
     ).not.toBeOnTheScreen();
+    // Cross margin never holds the P&L, so the row does not say it is included.
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW,
+      ),
+    ).toHaveTextContent(
+      new RegExp(`^${escapeRegExp(strings('perps.close_position.pnl'))}`),
+    );
   });
 
   it('omits the margin row when no margin mode is given', () => {
