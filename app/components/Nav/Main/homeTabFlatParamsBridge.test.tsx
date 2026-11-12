@@ -31,83 +31,53 @@ import {
   replaceWalletHomeParentParams,
   useHomeTabFlatParamsBridge,
 } from './homeTabFlatParamsBridge';
-
-const RootStack = createNativeStackNavigator<ParamListBase>();
-const HomeTabs = createBottomTabNavigator<ParamListBase>();
+const Root = createNativeStackNavigator<ParamListBase>();
+const Tabs = createBottomTabNavigator<ParamListBase>();
 const WalletStack = createNativeStackNavigator<ParamListBase>();
 const TabBrowserStack = createNativeStackNavigator<ParamListBase>();
 const RootBrowserStack = createNativeStackNavigator<ParamListBase>();
 const TradeStack = createNativeStackNavigator<ParamListBase>();
-
-const HARNESS_TABS = 'HarnessTabs';
-const OTHER_TAB = 'OtherTab';
-const EMPTY_HOME_TAB_COMPAT_PARAMS = Object.freeze({});
-
-const completeBrowserParams = (
-  newTabUrl: string,
-  timestamp: number,
-): BrowserParams => ({
-  newTabUrl,
-  timestamp,
-  showTabsView: true,
-  existingTabId: 42,
-  fromTrending: true,
-  fromExploreSearch: true,
-  fromPerps: true,
-  fromBenefit: true,
-  fromCard: true,
-  fromWhatsHappening: true,
-  fromMarketInsights: true,
-  fromMoney: true,
-  fromEarnStrategySelection: true,
-  linkType: 'external',
-  url: `${newTabUrl}/current`,
-});
-
-const mockObserveProvidedParams = jest.fn();
-const mockObservePersistedParams = jest.fn();
-const mockTabBrowserMount = jest.fn();
-const mockTabBrowserUnmount = jest.fn();
-const mockWalletSelection = jest.fn();
-
-const walletParamsSeen: (object | undefined)[] = [];
-const tabBrowserParamsSeen: (object | undefined)[] = [];
-const rootBrowserParamsSeen: (object | undefined)[] = [];
-
-let walletTabNavigation: NavigationProp<ParamListBase> | undefined;
-let walletLeafNavigation: NavigationProp<ParamListBase> | undefined;
-let tabBrowserNavigation: NavigationProp<ParamListBase> | undefined;
-let tabBrowserLeafNavigation: NavigationProp<ParamListBase> | undefined;
-let tradeLeafNavigation: NavigationProp<ParamListBase> | undefined;
-let consumeWalletSelectionParams = false;
-let consoleWarnSpy: jest.SpiedFunction<typeof console.warn>;
-
-interface HomeTabHostProps {
+const HARNESS = 'HarnessTabs';
+const OTHER = 'OtherTab';
+const EMPTY_PARAMS = Object.freeze({});
+type Navigation = NavigationProp<ParamListBase>;
+type Kind = 'wallet' | 'tab-browser' | 'root-browser';
+type NavKey = Kind | 'wallet-leaf' | 'browser-leaf' | 'trade-leaf';
+interface HostProps {
   route: RouteProp<ParamListBase, string>;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: Navigation;
 }
-
-interface BridgeHostProps extends HomeTabHostProps {
-  kind: 'wallet' | 'tab-browser' | 'root-browser';
-  targetChild: typeof Routes.WALLET_VIEW | typeof Routes.BROWSER_VIEW;
-  children: React.ReactNode;
-}
-
+let navigations: Partial<Record<NavKey, Navigation>> = {};
+let consumeWalletParams = false;
+let warnSpy: jest.SpiedFunction<typeof console.warn>;
+const seen: Record<Kind, (object | undefined)[]> = {
+  wallet: [],
+  'tab-browser': [],
+  'root-browser': [],
+};
+const mockProvided = jest.fn();
+const mockPersisted = jest.fn();
+const mockBrowserUnmount = jest.fn();
+const mockWalletSelection = jest.fn();
 const BridgeHost = ({
   route,
   navigation,
   kind,
   targetChild,
   children,
-}: BridgeHostProps) => {
+}: HostProps & {
+  kind: Kind;
+  targetChild: typeof Routes.WALLET_VIEW | typeof Routes.BROWSER_VIEW;
+  children: React.ReactNode;
+}) => {
   const observedNavigation = useMemo(
     () =>
       ({
         replaceParams: (params: object | undefined) => {
-          mockObservePersistedParams(kind, params);
+          mockPersisted(kind, params);
           navigation.replaceParams(params);
         },
-      }) as NavigationProp<ParamListBase>,
+      }) as Navigation,
     [kind, navigation],
   );
   const { normalizedRoute } = useHomeTabFlatParamsBridge({
@@ -115,458 +85,306 @@ const BridgeHost = ({
     navigation: observedNavigation,
     targetChild,
   });
-
-  mockObserveProvidedParams(kind, normalizedRoute.params);
-
+  mockProvided(kind, normalizedRoute.params);
   return (
     <NavigationRouteContext.Provider value={normalizedRoute}>
       {children}
     </NavigationRouteContext.Provider>
   );
 };
-
-const WalletViewProbe = () => {
+const WalletProbe = () => {
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<Navigation>();
   const params = route.params as WalletTabHomeParams | undefined;
-
   useEffect(() => {
-    walletLeafNavigation = navigation;
+    navigations['wallet-leaf'] = navigation;
   }, [navigation]);
-
   useEffect(() => {
-    walletParamsSeen.push(params);
+    seen.wallet.push(params);
   }, [params]);
-
   useFocusEffect(
     useCallback(() => {
-      if (!consumeWalletSelectionParams || params?.initialTab !== 'perps') {
+      if (!consumeWalletParams || params?.initialTab !== 'perps') {
         return undefined;
       }
-
       const timer = setTimeout(() => {
         mockWalletSelection();
         navigation.setParams({ initialTab: null });
         replaceWalletHomeParentParams(navigation);
-      }, 0);
-
+      });
       return () => clearTimeout(timer);
     }, [navigation, params?.initialTab]),
   );
-
-  return <Text testID="wallet-view-probe">Wallet</Text>;
+  return <Text testID="wallet-probe">Wallet</Text>;
 };
-
-const RevealProbe = () => (
-  <Text testID="reveal-private-credential-probe">Reveal</Text>
-);
-
-const WalletFlow = () => (
-  <WalletStack.Navigator initialRouteName={Routes.WALLET_VIEW}>
-    <WalletStack.Screen name={Routes.WALLET_VIEW} component={WalletViewProbe} />
-    <WalletStack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealProbe}
-    />
-  </WalletStack.Navigator>
-);
-
-const WalletTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
-  useEffect(() => {
-    walletTabNavigation = navigation;
-  }, [navigation]);
-
-  return (
-    <BridgeHost
-      route={route}
-      navigation={navigation}
-      kind="wallet"
-      targetChild={Routes.WALLET_VIEW}
-    >
-      <WalletFlow />
-    </BridgeHost>
-  );
-};
-
-const TabBrowserViewProbe = () => {
+const TabBrowserProbe = () => {
   const route = useRoute<RouteProp<ParamListBase, string>>();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
-
+  const navigation = useNavigation<Navigation>();
   useEffect(() => {
-    tabBrowserLeafNavigation = navigation;
+    navigations['browser-leaf'] = navigation;
   }, [navigation]);
-
   useEffect(() => {
-    tabBrowserParamsSeen.push(route.params);
+    seen['tab-browser'].push(route.params);
   }, [route.params]);
-
-  useEffect(() => {
-    mockTabBrowserMount();
-    return () => {
-      mockTabBrowserUnmount();
-    };
-  }, []);
-
-  return <Text testID="tab-browser-view-probe">Tab Browser</Text>;
+  useEffect(() => mockBrowserUnmount, []);
+  return <Text testID="tab-browser-probe">Browser</Text>;
 };
-
-const RootBrowserViewProbe = () => {
+const RootBrowserProbe = () => {
   const route = useRoute<RouteProp<ParamListBase, string>>();
-
   useEffect(() => {
-    rootBrowserParamsSeen.push(route.params);
+    seen['root-browser'].push(route.params);
   }, [route.params]);
-
-  return <Text testID="root-browser-view-probe">Root Browser</Text>;
+  return <Text testID="root-browser-probe">Root browser</Text>;
 };
-
-const BrowserAssetLoaderProbe = () => (
-  <Text testID="browser-asset-loader-probe">Asset loader</Text>
-);
-
-const BrowserAssetViewProbe = () => (
-  <Text testID="browser-asset-view-probe">Asset view</Text>
-);
-
-const TabBrowserFlow = () => (
-  <TabBrowserStack.Navigator initialRouteName={Routes.BROWSER_VIEW}>
-    <TabBrowserStack.Screen
-      name={Routes.BROWSER_VIEW}
-      component={TabBrowserViewProbe}
-    />
-    <TabBrowserStack.Screen
-      name={Routes.BROWSER.ASSET_LOADER}
-      component={BrowserAssetLoaderProbe}
-    />
-    <TabBrowserStack.Screen
-      name={Routes.BROWSER.ASSET_VIEW}
-      component={BrowserAssetViewProbe}
-    />
-  </TabBrowserStack.Navigator>
-);
-
-const RootBrowserFlow = () => (
-  <RootBrowserStack.Navigator initialRouteName={Routes.BROWSER_VIEW}>
-    <RootBrowserStack.Screen
-      name={Routes.BROWSER_VIEW}
-      component={RootBrowserViewProbe}
-    />
-    <RootBrowserStack.Screen
-      name={Routes.BROWSER.ASSET_LOADER}
-      component={BrowserAssetLoaderProbe}
-    />
-    <RootBrowserStack.Screen
-      name={Routes.BROWSER.ASSET_VIEW}
-      component={BrowserAssetViewProbe}
-    />
-  </RootBrowserStack.Navigator>
-);
-
-const TabBrowserFlowUnmountOnBlur = withUnmountOnTabBlur(TabBrowserFlow);
-
-const BrowserTabHomeHost = ({ route, navigation }: HomeTabHostProps) => {
+const TradeProbe = () => {
+  const navigation = useNavigation<Navigation>();
   useEffect(() => {
-    tabBrowserNavigation = navigation;
+    navigations['trade-leaf'] = navigation;
   }, [navigation]);
-
-  return (
-    <BridgeHost
-      route={route}
-      navigation={navigation}
-      kind="tab-browser"
-      targetChild={Routes.BROWSER_VIEW}
-    >
-      <Text testID="tab-browser-host-probe">Browser host</Text>
-      <TabBrowserFlowUnmountOnBlur />
-    </BridgeHost>
-  );
+  return <Text>Trade</Text>;
 };
-
-const BrowserRootHomeHost = ({ route, navigation }: HomeTabHostProps) => (
-  <BridgeHost
-    route={route}
-    navigation={navigation}
-    kind="root-browser"
-    targetChild={Routes.BROWSER_VIEW}
+const EmptyProbe = () => null;
+const ChildFlow = ({
+  navigator: Stack,
+  view: View,
+  browser = false,
+}: {
+  navigator: typeof WalletStack;
+  view: React.ComponentType;
+  browser?: boolean;
+}) => (
+  <Stack.Navigator
+    initialRouteName={browser ? Routes.BROWSER_VIEW : Routes.WALLET_VIEW}
   >
-    <RootBrowserFlow />
-  </BridgeHost>
-);
-
-const TradeWalletViewProbe = () => {
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
-
-  useEffect(() => {
-    tradeLeafNavigation = navigation;
-  }, [navigation]);
-
-  return <Text testID="trade-wallet-view-probe">Trade Wallet</Text>;
-};
-
-const TradeWalletFlow = () => (
-  <TradeStack.Navigator initialRouteName={Routes.WALLET_VIEW}>
-    <TradeStack.Screen
-      name={Routes.WALLET_VIEW}
-      component={TradeWalletViewProbe}
+    <Stack.Screen
+      name={browser ? Routes.BROWSER_VIEW : Routes.WALLET_VIEW}
+      component={View}
     />
-    <TradeStack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealProbe}
-    />
-  </TradeStack.Navigator>
-);
-
-const OtherTabProbe = () => <Text testID="other-tab-probe">Other</Text>;
-
-const HomeTabsFlow = () => (
-  <HomeTabs.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={() => null}>
-    <HomeTabs.Screen
-      name={Routes.WALLET.HOME}
-      component={WalletTabHomeHost}
-      initialParams={EMPTY_HOME_TAB_COMPAT_PARAMS}
-    />
-    <HomeTabs.Screen
-      name={Routes.BROWSER.HOME}
-      component={BrowserTabHomeHost}
-      initialParams={EMPTY_HOME_TAB_COMPAT_PARAMS}
-    />
-    <HomeTabs.Screen name={OTHER_TAB} component={OtherTabProbe} />
-    <HomeTabs.Screen
-      name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-      component={TradeWalletFlow}
-    />
-  </HomeTabs.Navigator>
-);
-
-const renderNavigation = () => {
-  const navigationRef = createNavigationContainerRef<ParamListBase>();
-
-  render(
-    <NavigationContainer ref={navigationRef}>
-      <RootStack.Navigator initialRouteName={HARNESS_TABS}>
-        <RootStack.Screen name={HARNESS_TABS} component={HomeTabsFlow} />
-        <RootStack.Screen
-          name={Routes.BROWSER.HOME}
-          component={BrowserRootHomeHost}
-          initialParams={EMPTY_HOME_TAB_COMPAT_PARAMS}
+    {browser ? (
+      <>
+        <Stack.Screen
+          name={Routes.BROWSER.ASSET_LOADER}
+          component={EmptyProbe}
         />
-      </RootStack.Navigator>
+        <Stack.Screen name={Routes.BROWSER.ASSET_VIEW} component={EmptyProbe} />
+      </>
+    ) : (
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={EmptyProbe}
+      />
+    )}
+  </Stack.Navigator>
+);
+const WalletFlow = () => (
+  <ChildFlow navigator={WalletStack} view={WalletProbe} />
+);
+const TabBrowserFlow = () => (
+  <ChildFlow navigator={TabBrowserStack} view={TabBrowserProbe} browser />
+);
+const RootBrowserFlow = () => (
+  <ChildFlow navigator={RootBrowserStack} view={RootBrowserProbe} browser />
+);
+const TradeFlow = () => <ChildFlow navigator={TradeStack} view={TradeProbe} />;
+const UnmountingTabBrowserFlow = withUnmountOnTabBlur(TabBrowserFlow);
+const makeHost = (
+  kind: Kind,
+  targetChild: typeof Routes.WALLET_VIEW | typeof Routes.BROWSER_VIEW,
+  Flow: React.ComponentType,
+  showHostProbe = false,
+) => {
+  const Host = ({ route, navigation }: HostProps) => {
+    useEffect(() => {
+      navigations[kind] = navigation;
+    }, [navigation]);
+    return (
+      <BridgeHost
+        route={route}
+        navigation={navigation}
+        kind={kind}
+        targetChild={targetChild}
+      >
+        {showHostProbe ? <Text testID="browser-host">Host</Text> : null}
+        <Flow />
+      </BridgeHost>
+    );
+  };
+  return Host;
+};
+const WalletHost = makeHost('wallet', Routes.WALLET_VIEW, WalletFlow);
+const TabBrowserHost = makeHost(
+  'tab-browser',
+  Routes.BROWSER_VIEW,
+  UnmountingTabBrowserFlow,
+  true,
+);
+const RootBrowserHost = makeHost(
+  'root-browser',
+  Routes.BROWSER_VIEW,
+  RootBrowserFlow,
+);
+const Other = () => <Text testID="other">Other</Text>;
+const HomeTabs = () => (
+  <Tabs.Navigator initialRouteName={Routes.WALLET.HOME} tabBar={() => null}>
+    <Tabs.Screen
+      name={Routes.WALLET.HOME}
+      component={WalletHost}
+      initialParams={EMPTY_PARAMS}
+    />
+    <Tabs.Screen
+      name={Routes.BROWSER.HOME}
+      component={TabBrowserHost}
+      initialParams={EMPTY_PARAMS}
+    />
+    <Tabs.Screen name={OTHER} component={Other} />
+    <Tabs.Screen
+      name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+      component={TradeFlow}
+    />
+  </Tabs.Navigator>
+);
+const renderNavigation = () => {
+  const ref = createNavigationContainerRef<ParamListBase>();
+  render(
+    <NavigationContainer ref={ref}>
+      <Root.Navigator initialRouteName={HARNESS}>
+        <Root.Screen name={HARNESS} component={HomeTabs} />
+        <Root.Screen
+          name={Routes.BROWSER.HOME}
+          component={RootBrowserHost}
+          initialParams={EMPTY_PARAMS}
+        />
+      </Root.Navigator>
     </NavigationContainer>,
   );
-
-  return navigationRef;
+  return ref;
 };
-
-const requireNavigation = (
-  navigation: NavigationProp<ParamListBase> | undefined,
-  label: string,
-): NavigationProp<ParamListBase> => {
+const getNavigation = (key: NavKey): Navigation => {
+  const navigation = navigations[key];
   if (!navigation) {
-    throw new Error(`${label} navigation is unavailable`);
+    throw new Error(`${key} navigation is unavailable`);
   }
-
   return navigation;
 };
-
-const navigate = async (
-  navigation: NavigationProp<ParamListBase>,
-  name: string,
-  params?: object,
-) => {
+const navigate = async (key: NavKey, name: string, params?: object) => {
   await act(async () => {
-    if (params === undefined) {
-      navigation.navigate(name);
-    } else {
-      navigation.navigate(name, params);
-    }
+    const navigation = getNavigation(key);
+    params === undefined
+      ? navigation.navigate(name)
+      : navigation.navigate(name, params);
   });
 };
-
-const getNestedState = (
-  navigationRef: NavigationContainerRefWithCurrent<ParamListBase>,
+const nestedState = (
+  ref: NavigationContainerRefWithCurrent<ParamListBase>,
   routeNames: string[],
 ): NavigationState => {
-  let state = navigationRef.getRootState();
-
-  for (const routeName of routeNames) {
-    const route = state.routes.find(
-      (candidate) => candidate.name === routeName,
-    );
-    if (!route?.state) {
-      throw new Error(`Route ${routeName} has no nested state`);
+  let state = ref.getRootState();
+  for (const name of routeNames) {
+    const child = state.routes.find((route) => route.name === name)?.state;
+    if (!child) {
+      throw new Error(`${name} has no nested state`);
     }
-    state = route.state as NavigationState;
+    state = child as NavigationState;
   }
-
   return state;
 };
-
 const getRoute = (state: NavigationState, name: string) => {
   const route = state.routes.find((candidate) => candidate.name === name);
   if (!route) {
-    throw new Error(`Route ${name} is unavailable`);
+    throw new Error(`${name} is unavailable`);
   }
-
   return route;
 };
-
+const homeState = (
+  ref: NavigationContainerRefWithCurrent<ParamListBase>,
+  home: string,
+) => nestedState(ref, [HARNESS, home]);
 describe('homeTabFlatParamsBridge normalizers', () => {
-  it('normalizes direct and double-nested Wallet home requests', () => {
+  it('normalizes home requests while preserving child and state payloads', () => {
     const params = { openNetworkSelector: true };
-    const direct = {
-      screen: Routes.WALLET_VIEW,
-      params,
-    } as WalletTabHomeRouteParams;
-    const doubleNested = {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: direct,
-    } as WalletTabHomeRouteParams;
-
-    const normalizedDirect = normalizeWalletTabHomeParams(direct);
-    const normalizedDoubleNested = normalizeWalletTabHomeParams(doubleNested);
-
-    expect(normalizedDirect).toEqual({
-      screen: Routes.WALLET_VIEW,
-      params,
-      pop: true,
-    });
-    expect(normalizedDoubleNested).toEqual(normalizedDirect);
-  });
-
-  it('preserves non-home children and nested state objects', () => {
-    const reveal = {
-      screen: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-    } as WalletTabHomeRouteParams;
+    const direct = { screen: Routes.WALLET_VIEW, params };
     const state = {
-      state: {
-        index: 1,
-        routes: [
-          { name: Routes.WALLET_VIEW },
-          { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
-        ],
-      },
-    } as WalletTabHomeRouteParams;
-
-    const normalizedReveal = normalizeWalletTabHomeParams(reveal);
-    const normalizedState = normalizeWalletTabHomeParams(state);
-
-    expect(normalizedReveal).toBe(reveal);
-    expect(normalizedState).toBe(state);
-  });
-
-  it('adds pop only to the Browser leaf request', () => {
-    const browserParams = {
-      newTabUrl: 'https://browser.example',
-      timestamp: 1,
+      state: { index: 0, routes: [{ name: Routes.WALLET_VIEW }] },
     };
-    const assetRequest = {
-      screen: Routes.BROWSER.ASSET_LOADER,
-    } as BrowserTabHomeRouteParams;
-
-    const normalizedHome = normalizeBrowserTabHomeParams(browserParams);
-    const normalizedAsset = normalizeBrowserTabHomeParams(assetRequest);
-
-    expect(normalizedHome).toEqual({
+    const reveal = { screen: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL };
+    expect(
+      normalizeWalletTabHomeParams(direct as WalletTabHomeRouteParams),
+    ).toEqual({ ...direct, pop: true });
+    expect(
+      normalizeWalletTabHomeParams({
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: direct,
+      } as WalletTabHomeRouteParams),
+    ).toEqual({ ...direct, pop: true });
+    expect(
+      normalizeWalletTabHomeParams(state as WalletTabHomeRouteParams),
+    ).toBe(state);
+    expect(
+      normalizeWalletTabHomeParams(reveal as WalletTabHomeRouteParams),
+    ).toBe(reveal);
+    const browser = { newTabUrl: 'https://browser.test', timestamp: 1 };
+    expect(normalizeBrowserTabHomeParams(browser)).toEqual({
       screen: Routes.BROWSER_VIEW,
-      params: browserParams,
+      params: browser,
       pop: true,
     });
-    expect(normalizedAsset).toBe(assetRequest);
+    const asset = { screen: Routes.BROWSER.ASSET_LOADER };
+    expect(
+      normalizeBrowserTabHomeParams(asset as BrowserTabHomeRouteParams),
+    ).toBe(asset);
   });
 });
-
 describe('homeTabFlatParamsBridge real navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    consoleWarnSpy = jest
-      .spyOn(console, 'warn')
-      .mockImplementation((message) => {
-        if (
-          message !==
-          'Looks like RNSScreensRefContext is missing. Make sure the ScreenStack component is wrapped in it'
-        ) {
-          throw new Error(`Unexpected console warning: ${String(message)}`);
-        }
-      });
-    walletParamsSeen.length = 0;
-    tabBrowserParamsSeen.length = 0;
-    rootBrowserParamsSeen.length = 0;
-    walletTabNavigation = undefined;
-    walletLeafNavigation = undefined;
-    tabBrowserNavigation = undefined;
-    tabBrowserLeafNavigation = undefined;
-    tradeLeafNavigation = undefined;
-    consumeWalletSelectionParams = false;
-  });
-
-  afterEach(() => {
-    consoleWarnSpy.mockRestore();
-  });
-
-  it('persists the exact normalized object exposed to the child navigator', async () => {
-    renderNavigation();
-
-    await waitFor(() => {
-      expect(mockObservePersistedParams).toHaveBeenCalled();
+    navigations = {};
+    Object.values(seen).forEach((values) => {
+      values.length = 0;
     });
-    const persistedParams = mockObservePersistedParams.mock.calls.find(
+    consumeWalletParams = false;
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation((message) => {
+      if (
+        message !==
+        'Looks like RNSScreensRefContext is missing. Make sure the ScreenStack component is wrapped in it'
+      ) {
+        throw new Error(`Unexpected console warning: ${String(message)}`);
+      }
+    });
+  });
+  afterEach(() => warnSpy.mockRestore());
+  it('bridges flat, nested, and restored state without duplicate leaves', async () => {
+    const ref = renderNavigation();
+    await waitFor(() => expect(mockPersisted).toHaveBeenCalled());
+    const persisted = mockPersisted.mock.calls.find(
       ([kind]) => kind === 'wallet',
     )?.[1];
-    const sharedIdentityWasObserved = mockObserveProvidedParams.mock.calls.some(
-      ([kind, providedParams]) =>
-        kind === 'wallet' && providedParams === persistedParams,
+    expect(
+      mockProvided.mock.calls.some(
+        ([kind, provided]) => kind === 'wallet' && provided === persisted,
+      ),
+    ).toBe(true);
+    expect(homeState(ref, Routes.WALLET.HOME).routes).toHaveLength(1);
+    const flatBrowser: BrowserParams = {
+      newTabUrl: 'https://flat.test',
+      timestamp: 1,
+      showTabsView: true,
+      fromMoney: true,
+    };
+    await navigate('wallet', Routes.BROWSER.HOME, flatBrowser);
+    expect(seen['tab-browser'][0]).toEqual(flatBrowser);
+    const nestedBrowser = { newTabUrl: 'https://nested.test', timestamp: 2 };
+    await navigate('tab-browser', Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER_VIEW,
+      params: nestedBrowser,
+    });
+    await waitFor(() =>
+      expect(seen['tab-browser']).toContainEqual(nestedBrowser),
     );
-
-    expect(persistedParams).toBeDefined();
-    expect(sharedIdentityWasObserved).toBe(true);
-  });
-
-  it('delivers flat Browser params on the Browser leaf first render', async () => {
-    const browserParams = completeBrowserParams('https://first.example', 1);
-    renderNavigation();
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-      browserParams,
-    );
-
-    expect(tabBrowserParamsSeen[0]).toEqual(browserParams);
-  });
-
-  it('delivers nested Browser params through the retained child navigator', async () => {
-    const browserParams = completeBrowserParams('https://nested.example', 2);
-    const navigationRef = renderNavigation();
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-      {
-        screen: Routes.BROWSER_VIEW,
-        params: browserParams,
-      },
-    );
-
-    const browserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    expect(getRoute(browserState, Routes.BROWSER_VIEW).params).toStrictEqual(
-      browserParams,
-    );
-    expect(tabBrowserParamsSeen[0]).toEqual(browserParams);
-  });
-
-  it.each([
-    [
-      'direct',
-      {
-        screen: Routes.WALLET_VIEW,
-        params: { openNetworkSelector: true },
-      },
-    ],
-    [
-      'double-nested',
+    expect(
+      getRoute(homeState(ref, Routes.BROWSER.HOME), Routes.BROWSER_VIEW).params,
+    ).toEqual(nestedBrowser);
+    for (const request of [
+      { screen: Routes.WALLET_VIEW, params: { openNetworkSelector: true } },
       {
         screen: Routes.WALLET.TAB_STACK_FLOW,
         params: {
@@ -574,22 +392,11 @@ describe('homeTabFlatParamsBridge real navigation', () => {
           params: { openNetworkSelector: true },
         },
       },
-    ],
-  ])('delivers %s Wallet params', async (_label, params) => {
-    renderNavigation();
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-      params,
-    );
-
-    expect(walletParamsSeen).toContainEqual({ openNetworkSelector: true });
-  });
-
-  it('restores nested Wallet state unchanged', async () => {
-    const navigationRef = renderNavigation();
-    const stateParams = {
+    ]) {
+      await navigate('wallet', Routes.WALLET.HOME, request);
+      expect(seen.wallet).toContainEqual({ openNetworkSelector: true });
+    }
+    await navigate('wallet', Routes.WALLET.HOME, {
       state: {
         index: 1,
         routes: [
@@ -597,326 +404,122 @@ describe('homeTabFlatParamsBridge real navigation', () => {
           { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
         ],
       },
-    };
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-      stateParams,
-    );
-
-    const walletState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.WALLET.HOME,
-    ]);
-    expect(walletState.routes.map((route) => route.name)).toEqual([
+    });
+    const restored = homeState(ref, Routes.WALLET.HOME);
+    expect(restored.routes.map((route) => route.name)).toEqual([
       Routes.WALLET_VIEW,
       Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
     ]);
-    expect(walletState.index).toBe(1);
+    expect(restored.index).toBe(1);
   });
-
-  it('reselects Wallet from Reveal with its original key and history', async () => {
-    const navigationRef = renderNavigation();
-    const initialWalletState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.WALLET.HOME,
-    ]);
-    const originalWalletKey = getRoute(
-      initialWalletState,
+  it('reselects Wallet without duplicating it or changing Trade history', async () => {
+    const ref = renderNavigation();
+    const originalKey = getRoute(
+      homeState(ref, Routes.WALLET.HOME),
       Routes.WALLET_VIEW,
     ).key;
-    await navigate(
-      requireNavigation(walletLeafNavigation, 'Wallet leaf'),
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-    );
-
-    mockObservePersistedParams.mockClear();
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-    );
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-    );
-    await waitFor(() => {
+    await navigate('wallet-leaf', Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL);
+    mockPersisted.mockClear();
+    await navigate('wallet', Routes.WALLET.HOME);
+    await navigate('wallet', Routes.WALLET.HOME);
+    await waitFor(() =>
       expect(
-        mockObservePersistedParams.mock.calls.filter(
-          ([kind]) => kind === 'wallet',
-        ),
-      ).toHaveLength(2);
-    });
-
-    const reselectedWalletState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.WALLET.HOME,
-    ]);
-    const walletPulses = mockObservePersistedParams.mock.calls
-      .filter(([kind]) => kind === 'wallet')
-      .map(([, params]) => params);
-    expect(reselectedWalletState.routes).toHaveLength(1);
-    expect(reselectedWalletState.routes[0]).toMatchObject({
-      key: originalWalletKey,
+        mockPersisted.mock.calls.filter(([kind]) => kind === 'wallet'),
+      ).toHaveLength(2),
+    );
+    const wallet = homeState(ref, Routes.WALLET.HOME);
+    expect(wallet.routes).toHaveLength(1);
+    expect(wallet.routes[0]).toMatchObject({
+      key: originalKey,
       name: Routes.WALLET_VIEW,
     });
-    expect(walletPulses).toEqual([
-      { screen: Routes.WALLET_VIEW, pop: true },
-      { screen: Routes.WALLET_VIEW, pop: true },
-    ]);
-    expect(walletPulses[1]).not.toBe(walletPulses[0]);
-  });
-
-  it('pops Browser assets to the original Browser key for repeated URLs', async () => {
-    const navigationRef = renderNavigation();
-    const firstParams = {
-      newTabUrl: 'https://first.example',
-      timestamp: 1,
-    };
-    const secondParams = {
-      newTabUrl: 'https://second.example',
-      timestamp: 2,
-    };
-    const thirdParams = {
-      newTabUrl: 'https://third.example',
-      timestamp: 3,
-    };
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-      firstParams,
-    );
-    expect(tabBrowserParamsSeen).toContainEqual(firstParams);
-    const initialBrowserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    const originalBrowserKey = getRoute(
-      initialBrowserState,
-      Routes.BROWSER_VIEW,
-    ).key;
-    await navigate(
-      requireNavigation(tabBrowserLeafNavigation, 'Browser leaf'),
-      Routes.BROWSER.ASSET_LOADER,
-    );
-
-    await navigate(
-      requireNavigation(tabBrowserNavigation, 'Browser tab'),
-      Routes.BROWSER.HOME,
-      secondParams,
-    );
-    await waitFor(() => {
-      expect(tabBrowserParamsSeen).toContainEqual(secondParams);
-    });
-    await navigate(
-      requireNavigation(tabBrowserNavigation, 'Browser tab'),
-      Routes.BROWSER.HOME,
-      thirdParams,
-    );
-    await waitFor(() => {
-      expect(tabBrowserParamsSeen).toContainEqual(thirdParams);
-    });
-
-    const browserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    expect(browserState.routes).toHaveLength(1);
-    expect(browserState.routes[0]).toMatchObject({
-      key: originalBrowserKey,
-      name: Routes.BROWSER_VIEW,
-      params: thirdParams,
-    });
-  });
-
-  it('reselects the existing Browser leaf after a bare home request', async () => {
-    const navigationRef = renderNavigation();
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-    );
-    const initialBrowserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    const originalBrowserKey = getRoute(
-      initialBrowserState,
-      Routes.BROWSER_VIEW,
-    ).key;
-    await navigate(
-      requireNavigation(tabBrowserLeafNavigation, 'Browser leaf'),
-      Routes.BROWSER.ASSET_VIEW,
-    );
-
-    mockObservePersistedParams.mockClear();
-    await navigate(
-      requireNavigation(tabBrowserNavigation, 'Browser tab'),
-      Routes.BROWSER.HOME,
-    );
-    await navigate(
-      requireNavigation(tabBrowserNavigation, 'Browser tab'),
-      Routes.BROWSER.HOME,
-    );
-    await waitFor(() => {
-      expect(
-        mockObservePersistedParams.mock.calls.filter(
-          ([kind]) => kind === 'tab-browser',
-        ),
-      ).toHaveLength(2);
-    });
-
-    const reselectedBrowserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    const browserPulses = mockObservePersistedParams.mock.calls
-      .filter(([kind]) => kind === 'tab-browser')
-      .map(([, params]) => params);
-    expect(reselectedBrowserState.routes).toHaveLength(1);
-    expect(reselectedBrowserState.routes[0]).toMatchObject({
-      key: originalBrowserKey,
-      name: Routes.BROWSER_VIEW,
-    });
-    expect(browserPulses).toEqual([
-      { screen: Routes.BROWSER_VIEW, pop: true },
-      { screen: Routes.BROWSER_VIEW, pop: true },
-    ]);
-    expect(browserPulses[1]).not.toBe(browserPulses[0]);
-  });
-
-  it('cleans Wallet selection params before a native-style reselection', async () => {
-    consumeWalletSelectionParams = true;
-    const navigationRef = renderNavigation();
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-      { initialTab: 'perps' },
-    );
-    await waitFor(() => {
-      expect(mockWalletSelection).toHaveBeenCalledTimes(1);
-    });
-    const tabsStateAfterCleanup = getNestedState(navigationRef, [HARNESS_TABS]);
+    consumeWalletParams = true;
+    await navigate('wallet', Routes.WALLET.HOME, { initialTab: 'perps' });
+    await waitFor(() => expect(mockWalletSelection).toHaveBeenCalledTimes(1));
     expect(
-      getRoute(tabsStateAfterCleanup, Routes.WALLET.HOME).params,
-    ).toStrictEqual({
-      screen: Routes.WALLET_VIEW,
-      pop: true,
-    });
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      OTHER_TAB,
-    );
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-    );
-
+      getRoute(nestedState(ref, [HARNESS]), Routes.WALLET.HOME).params,
+    ).toEqual({ screen: Routes.WALLET_VIEW, pop: true });
+    await navigate('wallet', OTHER);
+    await navigate('wallet', Routes.WALLET.HOME);
     expect(mockWalletSelection).toHaveBeenCalledTimes(1);
+    await navigate('wallet', Routes.MODAL.TRADE_WALLET_ACTIONS);
+    await navigate('trade-leaf', Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL);
+    await navigate('wallet', Routes.WALLET.HOME);
+    await navigate('wallet', Routes.MODAL.TRADE_WALLET_ACTIONS);
+    const trade = homeState(ref, Routes.MODAL.TRADE_WALLET_ACTIONS);
+    expect(trade.routes.map((route) => route.name)).toEqual([
+      Routes.WALLET_VIEW,
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+    ]);
+    expect(trade.index).toBe(1);
   });
-
-  it('resolves Browser separately in tab and root navigation contexts', async () => {
-    const navigationRef = renderNavigation();
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-      { newTabUrl: 'https://tab.example', timestamp: 1 },
+  it('reuses Browser leaves across repeated, bare, tab, and root requests', async () => {
+    const ref = renderNavigation();
+    const first = { newTabUrl: 'https://first.test', timestamp: 1 };
+    await navigate('wallet', Routes.BROWSER.HOME, first);
+    expect(seen['tab-browser']).toContainEqual(first);
+    const originalKey = getRoute(
+      homeState(ref, Routes.BROWSER.HOME),
+      Routes.BROWSER_VIEW,
+    ).key;
+    await navigate('browser-leaf', Routes.BROWSER.ASSET_LOADER);
+    for (const params of [
+      { newTabUrl: 'https://second.test', timestamp: 2 },
+      { newTabUrl: 'https://third.test', timestamp: 3 },
+    ]) {
+      await navigate('tab-browser', Routes.BROWSER.HOME, params);
+      await waitFor(() => expect(seen['tab-browser']).toContainEqual(params));
+    }
+    expect(
+      getRoute(homeState(ref, Routes.BROWSER.HOME), Routes.BROWSER_VIEW),
+    ).toMatchObject({
+      key: originalKey,
+      params: { newTabUrl: 'https://third.test', timestamp: 3 },
+    });
+    await navigate('browser-leaf', Routes.BROWSER.ASSET_VIEW);
+    mockPersisted.mockClear();
+    await navigate('tab-browser', Routes.BROWSER.HOME);
+    await navigate('tab-browser', Routes.BROWSER.HOME);
+    await waitFor(() =>
+      expect(
+        mockPersisted.mock.calls.filter(([kind]) => kind === 'tab-browser'),
+      ).toHaveLength(2),
     );
+    const browser = homeState(ref, Routes.BROWSER.HOME);
+    expect(browser.routes).toHaveLength(1);
+    expect(browser.index).toBe(0);
+    expect(browser.routes[0]).toMatchObject({
+      key: originalKey,
+      name: Routes.BROWSER_VIEW,
+    });
+    const tabParams = { newTabUrl: 'https://tab.test', timestamp: 4 };
+    await navigate('tab-browser', Routes.BROWSER.HOME, tabParams);
+    const rootParams = { newTabUrl: 'https://root.test', timestamp: 5 };
     await act(async () => {
-      navigationRef.dispatch({
-        ...CommonActions.navigate(Routes.BROWSER.HOME, {
-          newTabUrl: 'https://root.example',
-          timestamp: 2,
-        }),
-        target: navigationRef.getRootState().key,
+      ref.dispatch({
+        ...CommonActions.navigate(Routes.BROWSER.HOME, rootParams),
+        target: ref.getRootState().key,
       });
     });
-    await waitFor(() => {
-      expect(rootBrowserParamsSeen).toContainEqual({
-        newTabUrl: 'https://root.example',
-        timestamp: 2,
-      });
-    });
-
-    const rootState = navigationRef.getRootState();
-    const rootBrowserState = getNestedState(navigationRef, [
-      Routes.BROWSER.HOME,
-    ]);
-    const tabBrowserState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.BROWSER.HOME,
-    ]);
-    expect(rootState.routes[rootState.index].name).toBe(Routes.BROWSER.HOME);
+    await waitFor(() =>
+      expect(seen['root-browser']).toContainEqual(rootParams),
+    );
     expect(
-      getRoute(rootBrowserState, Routes.BROWSER_VIEW).params,
-    ).toStrictEqual({
-      newTabUrl: 'https://root.example',
-      timestamp: 2,
-    });
-    expect(getRoute(tabBrowserState, Routes.BROWSER_VIEW).params).toStrictEqual(
-      {
-        newTabUrl: 'https://tab.example',
-        timestamp: 1,
-      },
-    );
-  });
-
-  it('keeps the Browser tab host mounted while its flow unmounts on blur', async () => {
-    renderNavigation();
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.BROWSER.HOME,
-    );
-
-    await navigate(
-      requireNavigation(tabBrowserNavigation, 'Browser tab'),
-      OTHER_TAB,
-    );
-
+      getRoute(nestedState(ref, [Routes.BROWSER.HOME]), Routes.BROWSER_VIEW)
+        .params,
+    ).toEqual(rootParams);
     expect(
-      screen.getByTestId('tab-browser-host-probe', {
-        includeHiddenElements: true,
-      }),
+      getRoute(homeState(ref, Routes.BROWSER.HOME), Routes.BROWSER_VIEW).params,
+    ).toEqual(tabParams);
+    await navigate('tab-browser', OTHER);
+    expect(
+      screen.getByTestId('browser-host', { includeHiddenElements: true }),
     ).toBeTruthy();
     expect(
-      screen.queryByTestId('tab-browser-view-probe', {
+      screen.queryByTestId('tab-browser-probe', {
         includeHiddenElements: true,
       }),
     ).toBeNull();
-    expect(mockTabBrowserMount).toHaveBeenCalledTimes(1);
-    expect(mockTabBrowserUnmount).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps Trade child history independent from Wallet home requests', async () => {
-    const navigationRef = renderNavigation();
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.MODAL.TRADE_WALLET_ACTIONS,
-    );
-    await navigate(
-      requireNavigation(tradeLeafNavigation, 'Trade leaf'),
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-    );
-
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.WALLET.HOME,
-    );
-    await navigate(
-      requireNavigation(walletTabNavigation, 'Wallet tab'),
-      Routes.MODAL.TRADE_WALLET_ACTIONS,
-    );
-
-    const tradeState = getNestedState(navigationRef, [
-      HARNESS_TABS,
-      Routes.MODAL.TRADE_WALLET_ACTIONS,
-    ]);
-    expect(tradeState.routes.map((route) => route.name)).toEqual([
-      Routes.WALLET_VIEW,
-      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-    ]);
-    expect(tradeState.index).toBe(1);
+    expect(mockBrowserUnmount).toHaveBeenCalledTimes(1);
   });
 });
