@@ -125,12 +125,6 @@ const createStyles = ({
       paddingVertical: 4,
       paddingHorizontal: 4,
     },
-    destinationGasFeeLabel: {
-      backgroundColor: theme.colors.info.muted,
-      borderRadius: 6,
-      paddingHorizontal: 6,
-      marginLeft: 4,
-    },
     currencyContainer: {
       flex: 1,
     },
@@ -208,7 +202,6 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
-  destinationGasFeeLabel?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -246,7 +239,6 @@ export const TokenInputArea = forwardRef<
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
-      destinationGasFeeLabel,
     },
     ref,
   ) => {
@@ -515,25 +507,9 @@ export const TokenInputArea = forwardRef<
                       }
                     >
                       {shouldShowSecondaryAmount ? (
-                        <>
-                          <Text color={TextColor.Alternative}>
-                            {secondaryAmountDisplayValue}
-                          </Text>
-                          {tokenType === TokenInputAreaType.Destination &&
-                          destinationGasFeeLabel ? (
-                            <Box
-                              style={styles.destinationGasFeeLabel}
-                              testID="destination-gas-fee-label"
-                            >
-                              <Text
-                                variant={TextVariant.BodyXS}
-                                color={TextColor.Primary}
-                              >
-                                {destinationGasFeeLabel}
-                              </Text>
-                            </Box>
-                          ) : null}
-                        </>
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
                       ) : null}
                       {onAmountTypeTogglePress ? (
                         <Icon

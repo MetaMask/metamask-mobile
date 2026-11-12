@@ -7,6 +7,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { toSentenceCase } from '../../../../../util/string';
 import React from 'react';
 import { Text } from 'react-native';
 import {
@@ -1464,7 +1465,9 @@ describeForPlatforms('BridgeView', () => {
         },
       } as unknown as Record<string, unknown>);
 
-      expect(await findByText(strings('bridge.included'))).toBeOnTheScreen();
+      expect(
+        await findByText(toSentenceCase(strings('bridge.network_fee'))),
+      ).toBeOnTheScreen();
 
       const confirmButton = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(confirmButton).toBeOnTheScreen();

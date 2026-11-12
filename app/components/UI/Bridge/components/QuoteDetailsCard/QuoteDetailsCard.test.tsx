@@ -272,16 +272,13 @@ const testState = createBridgeTestState({
 });
 
 const QuoteDetailsCardTestScreen = ({
-  isGaslessSwapRedesignTreatment = false,
   gaslessFeeAsset,
 }: {
-  isGaslessSwapRedesignTreatment?: boolean;
   gaslessFeeAsset?: GaslessFeeAsset;
 }) => (
   <QuoteDetailsCard
     location={MetaMetricsSwapsEventSource.MainView}
     hasInsufficientBalance={false}
-    isGaslessSwapRedesignTreatment={isGaslessSwapRedesignTreatment}
     gaslessFeeAsset={gaslessFeeAsset}
   />
 );
@@ -442,7 +439,7 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
   });
 
-  it('displays "Included" fee when gasIncluded7702 is true', () => {
+  it('displays the network fee when gasIncluded7702 is true', () => {
     // Temporarily replace the mock with one that has gasIncluded7702 = true
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
@@ -468,7 +465,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, getByTestId } = renderScreen(
+    const { getByText, queryByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -476,8 +473,9 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    // Verify "Included" text is displayed
-    expect(getByText(strings('bridge.included'))).toBeOnTheScreen();
+    // Verify the gasless network fee is displayed instead of "Included"
+    expect(getByText('0.01')).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
@@ -485,7 +483,7 @@ describe('QuoteDetailsCard', () => {
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
-  it('displays the redesigned gasless fee with its fee asset', () => {
+  it('displays the gasless fee with its fee asset', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
     const feeAsset = mockQuotes[0].quote.feeData.metabridge[0].asset;
@@ -512,10 +510,7 @@ describe('QuoteDetailsCard', () => {
 
     const { getByText } = renderScreen(
       () => (
-        <QuoteDetailsCardTestScreen
-          isGaslessSwapRedesignTreatment
-          gaslessFeeAsset={feeAsset}
-        />
+        <QuoteDetailsCardTestScreen gaslessFeeAsset={feeAsset} />
       ),
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -530,7 +525,7 @@ describe('QuoteDetailsCard', () => {
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
-  it('displays "Included" fee when gasIncluded is true', () => {
+  it('displays the network fee when gasIncluded is true', () => {
     // Temporarily replace the mock with one that has gasIncluded = true
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
@@ -549,7 +544,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, getByTestId } = renderScreen(
+    const { getByText, queryByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -557,8 +552,9 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    // Verify "Included" text is displayed
-    expect(getByText(strings('bridge.included'))).toBeOnTheScreen();
+    // Verify the gasless network fee is displayed instead of "Included"
+    expect(getByText('0.01')).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
