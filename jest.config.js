@@ -175,8 +175,6 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
   '@metamask/eip1193-permission-middleware',
-  '@metamask/multichain-api-middleware',
-  '@open-rpc/.*',
 ];
 
 const config = {
