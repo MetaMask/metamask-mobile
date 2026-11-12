@@ -603,13 +603,10 @@ const MarketInsightsView: React.FC = () => {
       trackMarketInsightsInteraction('source_click', { source_url: url });
       setSelectedTrend(null);
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-          fromTrending: true,
-          fromMarketInsights: true,
-        },
+        newTabUrl: url,
+        timestamp: Date.now(),
+        fromTrending: true,
+        fromMarketInsights: true,
       });
     },
     [trackMarketInsightsInteraction, navigation, setSelectedTrend],
