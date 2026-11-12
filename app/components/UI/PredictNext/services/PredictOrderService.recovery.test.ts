@@ -1,3 +1,4 @@
+import Logger from '../../../../util/Logger';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -7,6 +8,7 @@ import { PredictError, PredictErrorCode } from '../errors';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import type {
   PredictOrderPreview,
+  PredictUnresolvedOrder,
   PredictOrderReceipt,
   PredictAmount,
   PredictDecimal,
@@ -15,6 +17,7 @@ import type {
   PredictTimestamp,
 } from '../types';
 import {
+  MISSING_OPERATION_EXPIRY_GRACE_MS,
   PredictOrderService,
   type PredictOrderServiceActions,
   type PredictOrderServiceEvents,
@@ -27,7 +30,10 @@ import {
 } from './internal/orderDispatchJournal';
 
 // ES2022 has no Promise.withResolvers; keep test barriers explicit.
-const deferred = <Value>() => {
+const deferred = <Value>(): {
+  promise: Promise<Value>;
+  resolve: (value: Value | PromiseLike<Value>) => void;
+} => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
   const promise = new Promise<Value>((done) => {
     resolve = done;
@@ -78,7 +84,11 @@ const reference = {
   dispatchedAt: 1,
   recoveryState: 'unresolved' as const,
 };
-const memory = () => {
+const memory = (): {
+  getItem: jest.Mock<Promise<string | null>, []>;
+  setItem: jest.Mock<Promise<void>, [string, string]>;
+  removeItem: jest.Mock<Promise<void>, []>;
+} => {
   let raw: string | null = null;
   return {
     getItem: jest.fn(async () => raw),
@@ -94,7 +104,20 @@ const instances: PredictOrderService[] = [];
 const setup = (
   journal: OrderDispatchJournal,
   options: Partial<PredictOrderServiceOptions> = {},
-) => {
+): {
+  service: PredictOrderService;
+  trading: {
+    previewOrder: jest.Mock;
+    reviewOrder: jest.Mock;
+    invalidatePreviews: jest.Mock;
+    commitOrder: jest.Mock;
+    observeOrder: jest.Mock;
+    listUnresolvedOrders: jest.Mock;
+  };
+  resolved: jest.Mock;
+  invalidated: jest.Mock;
+  recoveryChanged: jest.Mock;
+} => {
   const root = new Messenger<
     MockAnyNamespace,
     PredictOrderServiceActions,
@@ -116,6 +139,8 @@ const setup = (
     events: [],
   });
   root.subscribe('PredictOrderService:orderResolved', resolved);
+  const recoveryChanged = jest.fn();
+  root.subscribe('PredictOrderService:recoveryChanged', recoveryChanged);
   const trading = {
     previewOrder: jest.fn().mockResolvedValue(preview),
     reviewOrder: jest.fn().mockResolvedValue({
@@ -145,9 +170,9 @@ const setup = (
     ...options,
   });
   instances.push(service);
-  return { service, trading, resolved, invalidated };
+  return { service, trading, resolved, invalidated, recoveryChanged };
 };
-const quote = async (service: PredictOrderService) => {
+const quote = async (service: PredictOrderService): Promise<PredictOrderPreview> => {
   const quoted = await service.requestQuote(KALSHI_VENUE_ID, {
     marketId: preview.marketId,
     side: 'yes',
@@ -168,6 +193,126 @@ afterEach(() => {
 });
 
 describe('Predict order durable recovery', () => {
+  it('hard-resets a suspended POST when a different identity resumes', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    const { service, trading, resolved, invalidated } = setup(journal);
+    await service.resumeRecovery('user-one');
+    await quote(service);
+    const held = deferred<PredictOrderReceipt>();
+    const sent = deferred<void>();
+    let signal: AbortSignal | undefined;
+    trading.commitOrder.mockImplementationOnce((_id, _approval, options) => {
+      signal = options.signal;
+      sent.resolve();
+      return held.promise;
+    });
+    const pending = service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing).catch((error: unknown) => error);
+    await sent.promise;
+    service.suspendRecovery();
+    await pending;
+    expect(signal?.aborted).toBe(false);
+    await service.resumeRecovery('user-two');
+    expect(signal?.aborted).toBe(true);
+    held.resolve(receipt);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(resolved).not.toHaveBeenCalled();
+    expect(invalidated).not.toHaveBeenCalled();
+    expect(trading.observeOrder).not.toHaveBeenCalled();
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+  });
+
+  it('keeps dispatched commits unknown across suspend and resumes with GET only', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    const { service, trading, resolved, invalidated } = setup(journal);
+    await service.resumeRecovery('user-one');
+    await quote(service);
+    const held = deferred<PredictOrderReceipt>();
+    const sent = deferred<void>();
+    let signal: AbortSignal | undefined;
+    trading.commitOrder.mockImplementationOnce((_id, _approval, options) => {
+      signal = options.signal;
+      sent.resolve();
+      return held.promise;
+    });
+    const pending = service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
+    const rejection = pending.catch((error: unknown) => error);
+    await sent.promise;
+    const generation = service.getRecoveryGeneration();
+    service.suspendRecovery();
+    expect(await rejection).toMatchObject({
+      code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+      metadata: { phase: 'commit', mutationRelay: 'unknown', causeCode: PredictErrorCode.UNAUTHENTICATED },
+    });
+    expect(signal?.aborted).toBe(false);
+    expect(service.getRecoveryGeneration()).toBe(generation);
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([
+      expect.objectContaining({ recoveryState: 'unresolved', expiresAt: Date.parse(preview.expiresAt) }),
+    ]);
+    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([{ previewId: preview.previewId, status: 'checking' }]);
+    await expect(service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing)).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
+    held.resolve(receipt);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(resolved).not.toHaveBeenCalled();
+    expect(invalidated).not.toHaveBeenCalled();
+    trading.observeOrder.mockResolvedValue(receipt);
+    await service.resumeRecovery('user-one');
+    await service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
+    expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+    expect(trading.observeOrder).toHaveBeenCalledTimes(2);
+    expect(resolved).toHaveBeenCalledTimes(1);
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
+  });
+
+  it('requires a fresh missing-operation GET after backend expiry plus grace to resolve not placed', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    const expiresAt = Date.now() + 30_000;
+    await journal.put({ ...reference, expiresAt });
+    const { service, trading, resolved } = setup(journal, { maxBackgroundObservations: 2 });
+    const missing = PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+      metadata: { phase: 'observe', bodyCode: 'operation_not_found', mutationRelay: 'not_a_mutation' },
+    });
+    trading.observeOrder.mockRejectedValue(missing);
+    await service.resumeRecovery('user-one');
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+    jest.setSystemTime(expiresAt + MISSING_OPERATION_EXPIRY_GRACE_MS);
+    const held = deferred<PredictOrderReceipt>();
+    const started = deferred<void>();
+    trading.observeOrder.mockImplementationOnce(() => { started.resolve(); return held.promise; });
+    const recovering = service.resumeRecovery('user-one');
+    await started.promise;
+    jest.setSystemTime(Date.now() + 1);
+    held.resolve(Promise.reject(missing));
+    await recovering;
+    expect(resolved).not.toHaveBeenCalled();
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+    await service.resumeRecovery('user-one');
+    expect(resolved).toHaveBeenCalledWith(expect.objectContaining({
+      outcome: { status: 'not_placed', code: PredictErrorCode.PREVIEW_EXPIRED },
+    }));
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
+    expect(trading.commitOrder).not.toHaveBeenCalled();
+  });
+
+  it.each(['network', 'missing-expiry', 'receipt-exists'] as const)('never prunes unknown %s outcomes based on age alone', async (kind) => {
+    const journal = createOrderDispatchJournal(memory());
+    await journal.put({ ...reference, ...(kind === 'missing-expiry' ? {} : { expiresAt: Date.now() - 60_000 }) });
+    const { service, trading, resolved } = setup(journal);
+    trading.observeOrder.mockRejectedValue(PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+      metadata: { phase: 'observe', bodyCode: kind === 'network' ? 'network_error' : 'operation_not_found' },
+    }));
+    if (kind === 'receipt-exists') {
+      trading.listUnresolvedOrders.mockResolvedValueOnce({ operations: [{
+        previewId: preview.previewId, createdAt: '2026-01-01T00:00:00.000Z', submittedAt: null,
+        receipt: { ...receipt, status: 'reconciliation_required' },
+      }] });
+    }
+    await service.resumeRecovery('user-one');
+    expect(resolved).not.toHaveBeenCalled();
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+  });
+
   it('persists before POST and after restart observes a lost accepted response without another POST', async () => {
     const storage = memory();
     const journal = createOrderDispatchJournal(storage);
@@ -231,9 +376,12 @@ describe('Predict order durable recovery', () => {
     const { service, trading } = setup(journal, {
       maxBackgroundObservations: 8,
     });
-    const entry = (previewId: string, status = 'reconciliation_required') => ({
+    const entry = (
+      previewId: string,
+      status: PredictOrderReceipt['status'] = 'reconciliation_required',
+    ): PredictUnresolvedOrder => ({
       previewId,
-      createdAt: '2026-01-01T00:00:00.000Z',
+      createdAt: '2026-01-01T00:00:00.000Z' as PredictTimestamp,
       submittedAt: null,
       receipt: { ...receipt, previewId, status },
     });
@@ -259,7 +407,7 @@ describe('Predict order durable recovery', () => {
       (await journal.list('user-one', KALSHI_VENUE_ID))
         .map((item) => item.previewId)
         .sort(),
-    ).toEqual(['manual', 'other-device', 'preview-one']);
+    ).toEqual(['other-device', 'preview-one']);
     expect(service.getRecovery(KALSHI_VENUE_ID)).toContainEqual({
       previewId: 'manual',
       status: 'needs_manual_review',
@@ -422,10 +570,11 @@ describe('Predict order durable recovery', () => {
     expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
   });
 
-  it('retains manual review across discovery and restarts without repeated toasts or scans', async () => {
+  it('surfaces server-confirmed manual review before pruning and rediscovers it after restart', async () => {
     const journal = createOrderDispatchJournal(memory());
     await journal.put({ ...reference, recoveryState: 'manual_review' });
-    const { service, trading, resolved } = setup(journal);
+    const { service, trading, resolved, recoveryChanged } = setup(journal);
+    const logged = jest.spyOn(Logger, 'log');
     trading.listUnresolvedOrders.mockResolvedValue({
       operations: [
         {
@@ -436,13 +585,38 @@ describe('Predict order durable recovery', () => {
         },
       ],
     });
+    const remove = journal.remove;
+    jest.spyOn(journal, 'remove').mockImplementation(async (...args) => {
+      expect(service.getRecovery(KALSHI_VENUE_ID)).toContainEqual({ previewId: reference.previewId, status: 'needs_manual_review' });
+      expect(recoveryChanged).toHaveBeenCalledWith({
+        venueId: KALSHI_VENUE_ID,
+        operations: [{ previewId: reference.previewId, status: 'needs_manual_review' }],
+      });
+      await remove(...args);
+    });
     await service.resumeRecovery('user-one');
     expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([
       { previewId: reference.previewId, status: 'needs_manual_review' },
     ]);
     expect(trading.observeOrder).not.toHaveBeenCalled();
     expect(resolved).not.toHaveBeenCalled();
-    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(0);
+    jest.mocked(journal.remove).mockRestore();
+    service.destroy();
+    const restarted = setup(journal);
+    restarted.trading.listUnresolvedOrders.mockResolvedValueOnce(await trading.listUnresolvedOrders());
+    await restarted.service.resumeRecovery('user-one');
+    expect(restarted.service.getRecovery(KALSHI_VENUE_ID)).toEqual([
+      { previewId: reference.previewId, status: 'needs_manual_review' },
+    ]);
+    expect(restarted.trading.observeOrder).not.toHaveBeenCalled();
+    expect(restarted.trading.commitOrder).not.toHaveBeenCalled();
+    expect(logged.mock.calls.filter(([message]) => message === 'PredictNext: pruned terminal order review')).toEqual([
+      ['PredictNext: pruned terminal order review', { previewId: reference.previewId, reason: 'server_confirmed_needs_manual_review_surfaced' }],
+      ['PredictNext: pruned terminal order review', { previewId: reference.previewId, reason: 'server_confirmed_needs_manual_review_surfaced' }],
+    ]);
+    logged.mockRestore();
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
   });
 
   it('pauses at the session deadline without removing old unresolved references', async () => {
@@ -556,29 +730,17 @@ describe('Predict order durable recovery', () => {
       expect(trading.observeOrder).not.toHaveBeenCalled();
     },
   );
-  it('retains the manual-review marker when discovery persistence overlaps terminal manual storage', async () => {
+  it('prunes a delayed discovery write that overlaps terminal manual review', async () => {
     const journal = createOrderDispatchJournal(memory());
     const { service, trading } = setup(journal);
     await service.resumeRecovery('user-one');
     await quote(service);
     const discovered = deferred<void>();
     const releaseDiscovery = deferred<void>();
-    const manualStarted = deferred<void>();
-    const releaseManual = deferred<void>();
-    const manualReasserted = deferred<void>();
     const put = journal.put;
     let holdDiscovery = true;
-    let manualWrites = 0;
     jest.spyOn(journal, 'put').mockImplementation(async (entry) => {
-      if (entry.recoveryState === 'manual_review') {
-        manualWrites += 1;
-        if (manualWrites === 1) {
-          manualStarted.resolve();
-          await releaseManual.promise;
-        } else {
-          manualReasserted.resolve();
-        }
-      } else if (holdDiscovery) {
+      if (holdDiscovery) {
         holdDiscovery = false;
         discovered.resolve();
         await releaseDiscovery.promise;
@@ -586,42 +748,36 @@ describe('Predict order durable recovery', () => {
       await put(entry);
     });
     trading.listUnresolvedOrders.mockResolvedValueOnce({
-      operations: [
-        {
-          previewId: preview.previewId,
-          receipt: { ...receipt, status: 'submitted' },
-          createdAt: '2026-11-12T00:00:00.000Z',
-          submittedAt: null,
-        },
-      ],
+      operations: [{
+        previewId: preview.previewId,
+        receipt: { ...receipt, status: 'submitted' },
+        createdAt: '2026-11-12T00:00:00.000Z',
+        submittedAt: null,
+      }],
     });
     const recovery = service.refreshRecovery(KALSHI_VENUE_ID);
     await discovered.promise;
-    trading.commitOrder.mockResolvedValueOnce({
-      ...receipt,
-      status: 'needs_manual_review',
-    });
-    const commit = service.commitPreview(
-      KALSHI_VENUE_ID,
-      preview.previewId,
-      signing,
-    );
-    await manualStarted.promise;
-
+    trading.commitOrder.mockResolvedValueOnce({ ...receipt, status: 'needs_manual_review' });
+    await service.commitPreview(KALSHI_VENUE_ID, preview.previewId, signing);
     releaseDiscovery.resolve();
-    await manualReasserted.promise;
-    releaseManual.resolve();
     await recovery;
-    await commit;
-
-    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([
-      expect.objectContaining({
-        previewId: preview.previewId,
-        recoveryState: 'manual_review',
-      }),
-    ]);
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toEqual([]);
     expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([
       { previewId: preview.previewId, status: 'needs_manual_review' },
     ]);
+  });
+
+  it('never trusts a restored manual-review marker as a terminal server outcome', async () => {
+    const journal = createOrderDispatchJournal(memory());
+    await journal.put({ ...reference, recoveryState: 'manual_review' });
+    const { service, trading, resolved } = setup(journal);
+    await service.resumeRecovery('user-one');
+    expect(service.getRecovery(KALSHI_VENUE_ID)).toEqual([
+      { previewId: reference.previewId, status: 'checking' },
+    ]);
+    expect(trading.observeOrder).toHaveBeenCalledTimes(1);
+    expect(resolved).not.toHaveBeenCalled();
+    expect(await journal.list('user-one', KALSHI_VENUE_ID)).toHaveLength(1);
+    expect(trading.commitOrder).not.toHaveBeenCalled();
   });
 });

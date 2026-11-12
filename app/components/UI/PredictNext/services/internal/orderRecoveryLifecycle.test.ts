@@ -3,7 +3,10 @@ import type { AppStateStatus } from 'react-native';
 import type { NetInfoState } from '@react-native-community/netinfo';
 
 // ES2022 has no Promise.withResolvers; keep test barriers explicit.
-const deferred = <Value>() => {
+const deferred = <Value>(): {
+  promise: Promise<Value>;
+  resolve: (value: Value | PromiseLike<Value>) => void;
+} => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
   const promise = new Promise<Value>((done) => {
     resolve = done;
@@ -11,7 +14,25 @@ const deferred = <Value>() => {
   return { promise, resolve };
 };
 
-const setup = () => {
+const setup = (): {
+  service: {
+    resumeRecovery: jest.Mock;
+    suspendRecovery: jest.Mock;
+    getRecoveryGeneration: () => number;
+  };
+  getIdentityScope: jest.Mock;
+  dispose: () => void;
+  removeApp: jest.Mock;
+  removeNetwork: jest.Mock;
+  removeSession: jest.Mock;
+  lock: () => void;
+  unlock: () => void;
+  signOut: () => void;
+  disable: () => void;
+  reset: () => void;
+  app: (state: AppStateStatus) => void;
+  network: (online: boolean) => void;
+} => {
   let unlocked = true;
   let signedIn = true;
   let enabled = true;
@@ -22,7 +43,7 @@ const setup = () => {
   const service = {
     resumeRecovery: jest.fn().mockResolvedValue(undefined),
     suspendRecovery: jest.fn(),
-    getRecoveryGeneration: () => serviceGeneration,
+    getRecoveryGeneration: (): number => serviceGeneration,
   };
   const getIdentityScope = jest.fn().mockResolvedValue('canonical-user-one');
   const removeApp = jest.fn();
@@ -59,34 +80,34 @@ const setup = () => {
     removeApp,
     removeNetwork,
     removeSession,
-    lock: () => {
+    lock: (): void => {
       unlocked = false;
       sessionChanged();
     },
-    unlock: () => {
+    unlock: (): void => {
       unlocked = true;
       sessionChanged();
     },
-    signOut: () => {
+    signOut: (): void => {
       signedIn = false;
       sessionChanged();
     },
-    disable: () => {
+    disable: (): void => {
       enabled = false;
       sessionChanged();
     },
-    reset: () => {
+    reset: (): void => {
       serviceGeneration += 1;
     },
-    app: (state: AppStateStatus) => appChanged(state),
-    network: (online: boolean) =>
+    app: (state: AppStateStatus): void => appChanged(state),
+    network: (online: boolean): void =>
       networkChanged({
         isConnected: online,
         isInternetReachable: online,
       } as NetInfoState),
   };
 };
-const settle = async () => {
+const settle = async (): Promise<void> => {
   await Promise.resolve();
   await Promise.resolve();
 };
@@ -110,6 +131,17 @@ describe('order recovery lifecycle', () => {
     expect(lifecycle.removeApp).toHaveBeenCalledTimes(1);
     expect(lifecycle.removeNetwork).toHaveBeenCalledTimes(1);
     expect(lifecycle.removeSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats iOS inactive as a temporary suspension and resumes the same identity', async () => {
+    const lifecycle = setup();
+    await settle();
+    lifecycle.app('inactive');
+    expect(lifecycle.service.suspendRecovery).toHaveBeenCalledTimes(1);
+    lifecycle.app('active');
+    await settle();
+    expect(lifecycle.service.resumeRecovery).toHaveBeenNthCalledWith(2, 'canonical-user-one');
+    lifecycle.dispose();
   });
 
   it('synchronously suspends on lock and never resumes from stale identity resolution', async () => {

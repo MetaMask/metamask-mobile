@@ -49,6 +49,10 @@ const MAX_COMMIT_OBSERVATIONS = 3;
 /** How long to wait between observation reads, in milliseconds. */
 const COMMIT_OBSERVATION_DELAY_MS = 500;
 
+/** Clock-skew/claim grace. A missing-operation GET must begin after the
+ * backend preview expiry plus this interval; expiry alone proves nothing. */
+export const MISSING_OPERATION_EXPIRY_GRACE_MS = 30_000;
+
 /** Delays between the background observations of an unresolved operation,
  * in milliseconds. The last delay repeats. */
 const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
@@ -101,7 +105,7 @@ export type PredictOrderResolutionListener = (
 interface OrderOperation {
   readonly previewId: string;
   /** Epoch milliseconds; the backend's expiry as the client reads it. */
-  readonly expiresAt: number;
+  readonly expiresAt?: number;
   /** The context the Preview was quoted under. */
   readonly contextEpoch: number;
   reviewed: boolean;
@@ -120,6 +124,7 @@ interface OrderOperation {
   backgroundTimer?: ReturnType<typeof setTimeout>;
   recoveryState?: 'unresolved' | 'manual_review';
   lastReceipt?: PredictOrderReceipt;
+  manualReviewPruned?: boolean;
   /** Surfaces currently showing this operation to the Predict User. */
   readonly presenters: Set<PredictOrderResolutionListener>;
 }
@@ -128,6 +133,7 @@ interface OrderOperation {
 interface InFlightCommit {
   promise: Promise<PredictOrderReceipt>;
   abandon: (error: PredictError) => void;
+  suspend: () => void;
 }
 
 const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
@@ -260,8 +266,8 @@ export interface PredictOrderServiceOptions {
  * The Commit is signed and POSTed once; afterwards the operation is only
  * read (GET by Preview reference), which never submits. Only explicit
  * not-relayed evidence from the first mutation attempt allows re-approval.
- * An observation error, missing operation or local expiry never resolves
- * an earlier dispatch: it may still land.
+ * Expiry alone never resolves an earlier dispatch. Only a fresh missing
+ * operation read after backend preview expiry and grace can prove it absent.
  *
  * **Observation.** Unresolved operations are observed with bounded work,
  * whether or not a screen still shows them. Exhausting the local window
@@ -274,7 +280,7 @@ export interface PredictOrderServiceOptions {
  * **Process lifetime.** Before mutation dispatch, a safe identity-scoped
  * reference is persisted. Relaunch merges it with owner-scoped server
  * discovery and only observes GETs. Credentials and approvals are never
- * restored, and unknown references do not expire.
+ * restored. Legacy references without backend expiry remain unknown.
  */
 export class PredictOrderService {
   readonly #messenger: PredictOrderServiceMessenger;
@@ -287,6 +293,8 @@ export class PredictOrderService {
   readonly #operations = new Map<string, OrderOperation>();
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
   readonly #inFlightQuotes = new Set<AbortController>();
+  /** Includes POSTs detached from callers by lifecycle suspension. */
+  readonly #commitTransports = new Set<AbortController>();
   /** Bumped when every Commit already underway is abandoned. */
   #commitGeneration = 0;
   /** Bumped when the context that Previews were quoted under changes. */
@@ -366,7 +374,7 @@ export class PredictOrderService {
     const generation = this.#commitGeneration;
     const contextEpoch = this.#contextEpoch;
     const controller = new AbortController();
-    const abortForCaller = () => controller.abort();
+    const abortForCaller = (): void => controller.abort();
     if (options?.signal?.aborted) {
       controller.abort();
     }
@@ -411,7 +419,7 @@ export class PredictOrderService {
     if (
       this.#resetsInProgress > 0 ||
       operation?.state !== 'quoted' ||
-      operation.expiresAt <= Date.now()
+      (operation.expiresAt !== undefined && operation.expiresAt <= Date.now())
     ) {
       throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
     }
@@ -453,7 +461,9 @@ export class PredictOrderService {
       (this.#journal && !this.#sessionAvailable)
     ) {
       return Promise.reject(
-        PredictError.from(PredictErrorCode.UNAUTHENTICATED),
+        this.#operations.get(previewId)?.posted
+          ? this.#suspendedCommitError()
+          : PredictError.from(PredictErrorCode.UNAUTHENTICATED),
       );
     }
     const inFlight = this.#inFlightCommits.get(previewId);
@@ -546,6 +556,10 @@ export class PredictOrderService {
       this.#recoveryTimer = undefined;
     }
     this.#abortInFlightQuotes();
+    for (const transport of this.#commitTransports) {
+      transport.abort();
+    }
+    this.#commitTransports.clear();
     for (const operation of this.#operations.values()) {
       this.#clearBackgroundTimer(operation);
       operation.presenters.clear();
@@ -594,20 +608,54 @@ export class PredictOrderService {
     return this.#runRecovery();
   }
 
-  /** Lock/signout/background stop key use immediately but retain references. */
+  /** Pause observation, never a mutation that may already have landed.
+   * Identity replacement and wallet reset use abandonCommits instead. */
   suspendRecovery(): void {
-    this.abandonCommits();
     this.#sessionAvailable = false;
+    this.#recoveryActive = false;
+    this.#recoveryAbort?.abort();
+    this.#recoveryAbort = undefined;
+    this.#recoveryPromise = undefined;
+    if (this.#recoveryTimer !== undefined) {
+      clearTimeout(this.#recoveryTimer);
+      this.#recoveryTimer = undefined;
+    }
+    this.cancelUncommittedPreviews();
+    for (const [previewId, operation] of this.#operations) {
+      this.#clearBackgroundTimer(operation);
+      const commit = this.#inFlightCommits.get(previewId);
+      if (operation.posted) {
+        operation.ambiguous ||= operation.state === 'dispatched';
+        commit?.suspend();
+      } else {
+        commit?.abandon(PredictError.from(PredictErrorCode.UNAUTHENTICATED));
+        this.#operations.delete(previewId);
+      }
+    }
+    this.#inFlightCommits.clear();
+    this.#publishRecovery();
+  }
+
+  #suspendedCommitError(): PredictError {
+    return PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+      metadata: {
+        phase: 'commit',
+        mutationRelay: 'unknown',
+        causeCode: PredictErrorCode.UNAUTHENTICATED,
+      },
+    });
   }
 
   async reset(): Promise<void> {
     this.#resetsInProgress += 1;
-    this.suspendRecovery();
+    this.#sessionAvailable = false;
+    this.abandonCommits();
     try {
       await this.#journal?.clear();
     } finally {
       // Also fence lifecycle callbacks and reads that completed during reset.
-      this.suspendRecovery();
+      this.#sessionAvailable = false;
+      this.abandonCommits();
       this.#identityScope = undefined;
       this.#discoveryCursor = undefined;
       this.#resetsInProgress -= 1;
@@ -672,25 +720,24 @@ export class PredictOrderService {
     }
     const operation: OrderOperation = {
       previewId: reference.previewId,
-      expiresAt: 0,
+      expiresAt: reference.expiresAt,
       contextEpoch: this.#contextEpoch,
       reviewed: false,
       posted: true,
-      state:
-        reference.recoveryState === 'manual_review' ? 'resolved' : 'dispatched',
+      // Persisted markers never prove an outcome or authorize submission.
+      state: 'dispatched',
       dispatchedAt: reference.dispatchedAt,
       receiptSeen: false,
       ambiguous: true,
       backgroundObservations: 0,
-      recoveryState: reference.recoveryState,
+      recoveryState: 'unresolved',
       presenters: new Set(),
     };
     this.#operations.set(operation.previewId, operation);
     return operation;
   }
 
-  /** A settled operation is one with a terminal Receipt: discovery must not
-   * resurrect it or rewrite its journal row. */
+  /** A settled operation must not be resurrected by delayed discovery. */
   #isSettled(previewId: string): boolean {
     const operation = this.#operations.get(previewId);
     return (
@@ -700,38 +747,41 @@ export class PredictOrderService {
     );
   }
 
-  /** Journals one discovered order and adopts its receipt. A settled
-   * operation keeps a manual-review row and drops any other one. */
+  /** Adopt server evidence; terminal review is surfaced before pruning. */
   async #adoptDiscoveredEntry(
     journal: OrderDispatchJournal,
     identityScope: string,
     generation: number,
     entry: PredictUnresolvedOrder,
     reference: OrderDispatchReference,
+    signal: AbortSignal,
   ): Promise<void> {
     await journal.put(reference);
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, signal);
     const after = this.#operations.get(entry.previewId);
     if (
       after?.state === 'resolved' ||
       (after?.lastReceipt && isTerminalReceipt(after.lastReceipt))
     ) {
-      if (
-        after.lastReceipt?.status === 'needs_manual_review' ||
-        after.recoveryState === 'manual_review'
-      ) {
-        await journal.put({ ...reference, recoveryState: 'manual_review' });
+      if (after.lastReceipt?.status === 'needs_manual_review') {
+        after.recoveryState = 'manual_review';
+        this.#publishRecovery();
+        await this.#pruneManualReview(after, identityScope);
       } else {
         await journal.remove(identityScope, this.#venueId, entry.previewId);
       }
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, signal);
       return;
     }
     const operation = this.#restoreReference(reference);
     operation.lastReceipt = entry.receipt;
-    if (reference.recoveryState === 'manual_review') {
-      operation.recoveryState = 'manual_review';
+    operation.receiptSeen = true;
+    if (entry.receipt.status === 'needs_manual_review') {
       operation.state = 'resolved';
+      operation.recoveryState = 'manual_review';
+      this.#publishRecovery();
+      await this.#pruneManualReview(operation, identityScope);
+      this.#assertNotAbandoned(generation, signal);
     }
   }
 
@@ -757,7 +807,7 @@ export class PredictOrderService {
         { cursor: this.#discoveryCursor, limit: 25 },
         { signal },
       );
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, signal);
       const known = new Map(
         references.map((reference) => [reference.previewId, reference]),
       );
@@ -773,12 +823,13 @@ export class PredictOrderService {
               venueId: this.#venueId,
               previewId: entry.previewId,
               dispatchedAt: Date.parse(entry.submittedAt ?? entry.createdAt),
+              expiresAt: known.get(entry.previewId)?.expiresAt,
               recoveryState:
-                entry.receipt.status === 'needs_manual_review' ||
-                known.get(entry.previewId)?.recoveryState === 'manual_review'
+                entry.receipt.status === 'needs_manual_review'
                   ? 'manual_review'
                   : 'unresolved',
             },
+            signal,
           );
         }
       }
@@ -787,7 +838,7 @@ export class PredictOrderService {
       this.#publishRecovery();
       return true;
     } catch (error) {
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, signal);
       if (
         error instanceof PredictError &&
         [
@@ -807,12 +858,13 @@ export class PredictOrderService {
   async #dispatchRecoveryCandidate(
     operation: OrderOperation,
     generation: number,
+    signal: AbortSignal,
   ): Promise<boolean> {
     this.#recoveryCalls += 1;
     try {
       await this.#dispatch(operation, 0);
     } catch (error) {
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, signal);
       const cause =
         error instanceof PredictError ? error.metadata?.causeCode : undefined;
       if (
@@ -823,13 +875,13 @@ export class PredictOrderService {
         return false;
       }
     }
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, signal);
     return true;
   }
 
   /** Re-observes the dispatched, unresolved operations, round-robin from the
    * last one attempted and bounded by the recovery budget. */
-  async #dispatchRecoveryCandidates(generation: number): Promise<void> {
+  async #dispatchRecoveryCandidates(generation: number, signal: AbortSignal): Promise<void> {
     const candidates = [...this.#operations.values()].filter(
       (operation) =>
         operation.state === 'dispatched' &&
@@ -851,7 +903,7 @@ export class PredictOrderService {
         continue;
       }
       this.#recoveryOffset = index + 1;
-      if (!(await this.#dispatchRecoveryCandidate(operation, generation))) {
+      if (!(await this.#dispatchRecoveryCandidate(operation, generation, signal))) {
         return;
       }
     }
@@ -862,12 +914,12 @@ export class PredictOrderService {
     const identityScope = this.#identityScope;
     const abort = new AbortController();
     this.#recoveryAbort = abort;
-    const work = async () => {
+    const work = async (): Promise<void> => {
       if (!identityScope || !this.#journal) {
         return;
       }
       const references = await this.#journal.list(identityScope, this.#venueId);
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, abort.signal);
       references.forEach((reference) => this.#restoreReference(reference));
       this.#publishRecovery();
       if (
@@ -880,11 +932,11 @@ export class PredictOrderService {
       ) {
         return;
       }
-      await this.#dispatchRecoveryCandidates(generation);
+      await this.#dispatchRecoveryCandidates(generation, abort.signal);
     };
     const tracked = work()
       .catch((error) => {
-        if (generation === this.#commitGeneration) {
+        if (generation === this.#commitGeneration && !abort.signal.aborted) {
           this.#recoveryActive = false;
           Logger.error(
             ensureError(error, 'PredictOrderService.recovery'),
@@ -945,17 +997,10 @@ export class PredictOrderService {
       return;
     }
     if (receipt.status === 'needs_manual_review') {
-      await this.#journal.put({
-        identityScope: this.#identityScope,
-        venueId: this.#venueId,
-        previewId: operation.previewId,
-        dispatchedAt: operation.dispatchedAt ?? Date.now(),
-        recoveryState: 'manual_review',
-      });
       operation.recoveryState = 'manual_review';
+      this.#publishRecovery();
+      await this.#pruneManualReview(operation, this.#identityScope);
     } else {
-      // Remove before publishing a new resolution so relaunch cannot replay
-      // a previously notified completion. Manual review is never deleted.
       await this.#journal.remove(
         this.#identityScope,
         this.#venueId,
@@ -965,12 +1010,30 @@ export class PredictOrderService {
     }
   }
 
+  /** Server-confirmed terminal review stays queryable for this identity's
+   * process lifetime, but is removed from disk after recoveryChanged.
+   * Discovery can surface it again after restart, without any approval. */
+  async #pruneManualReview(
+    operation: OrderOperation,
+    identityScope: string,
+  ): Promise<void> {
+    await this.#journal?.remove(identityScope, this.#venueId, operation.previewId);
+    if (!operation.manualReviewPruned) {
+      operation.manualReviewPruned = true;
+      Logger.log('PredictNext: pruned terminal order review', {
+        previewId: operation.previewId,
+        reason: 'server_confirmed_needs_manual_review_surfaced',
+      });
+    }
+  }
+
   #registerPreview(preview: PredictOrderPreview, contextEpoch: number): void {
     const now = Date.now();
     // Previews that never crossed the boundary are dead once expired.
     for (const [previewId, operation] of this.#operations) {
       if (
         (operation.state === 'quoted' || operation.state === 'cancelled') &&
+        operation.expiresAt !== undefined &&
         operation.expiresAt < now
       ) {
         this.#operations.delete(previewId);
@@ -1012,6 +1075,10 @@ export class PredictOrderService {
       operation.dispatchedAt = startedAt;
     }
     const transport = new AbortController();
+    if (!operation.posted) {
+      this.#commitTransports.add(transport);
+    }
+    const observation = operation.posted ? transport : new AbortController();
     let rejectAbandoned: (error: PredictError) => void = () => undefined;
     const abandonment = new Promise<never>((_resolve, reject) => {
       rejectAbandoned = reject;
@@ -1023,9 +1090,10 @@ export class PredictOrderService {
         operation,
         generation,
         transport.signal,
+        observation.signal,
         maxObservations,
         approval,
-      ),
+      ).finally(() => this.#commitTransports.delete(transport)),
       abandonment,
     ]);
     const tracked = commit.finally(() => {
@@ -1038,9 +1106,15 @@ export class PredictOrderService {
     });
     this.#inFlightCommits.set(previewId, {
       promise: tracked,
+      suspend: () => {
+        // Fence observation, but do not abort the dispatched POST.
+        observation.abort();
+        rejectAbandoned(this.#suspendedCommitError());
+      },
       abandon: (error) => {
         // A request still resolving its bearer token never goes out.
         transport.abort();
+        observation.abort();
         rejectAbandoned(error);
       },
     });
@@ -1051,6 +1125,7 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
     maxObservations: number,
     approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
@@ -1068,16 +1143,17 @@ export class PredictOrderService {
             operation,
             generation,
             signal,
+            observationSignal,
             maxObservations,
             approval,
           ),
       );
     } catch (error) {
-      if (generation === this.#commitGeneration) {
+      if (generation === this.#commitGeneration && !observationSignal.aborted) {
         const unsent = isUnsentCommitFailure(error) && !operation.ambiguous;
         await this.#handleCommitFailure(operation, error, generation);
-        this.#assertNotAbandoned(generation);
-        if (!unsent) {
+        this.#assertNotAbandoned(generation, observationSignal);
+        if (!unsent && operation.state !== 'resolved') {
           throw PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
             metadata:
               error instanceof PredictError
@@ -1091,9 +1167,13 @@ export class PredictOrderService {
     // Checked before refreshing: a receipt for an abandoned Commit describes
     // the previous Predict User, so it must not repopulate the cache the
     // reset just cleared.
-    if (generation === this.#commitGeneration && isTerminalReceipt(receipt)) {
+    if (
+      generation === this.#commitGeneration &&
+      !observationSignal.aborted &&
+      isTerminalReceipt(receipt)
+    ) {
       await this.#finishJournal(operation, receipt);
-      this.#assertNotAbandoned(generation);
+      this.#assertNotAbandoned(generation, observationSignal);
       this.#invalidatePortfolioReads();
       this.#resolve(operation, { status: 'settled', receipt });
     }
@@ -1107,6 +1187,7 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
     maxObservations: number,
     approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
@@ -1114,13 +1195,14 @@ export class PredictOrderService {
       operation,
       generation,
       signal,
+      observationSignal,
       approval,
     );
     if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
       return receipt;
     }
     await sleep(this.#observationDelayMs);
-    return this.#observe(operation, generation, signal, maxObservations - 1);
+    return this.#observe(operation, generation, signal, observationSignal, maxObservations - 1);
   }
 
   /** Journals the dispatch before the Commit leaves, so a crash mid-request
@@ -1130,6 +1212,7 @@ export class PredictOrderService {
     journal: OrderDispatchJournal,
     operation: OrderOperation,
     generation: number,
+    signal: AbortSignal,
   ): Promise<void> {
     const identityScope = this.#identityScope;
     if (!identityScope || !this.#sessionAvailable) {
@@ -1146,6 +1229,7 @@ export class PredictOrderService {
         venueId: this.#venueId,
         previewId: operation.previewId,
         dispatchedAt: operation.dispatchedAt ?? Date.now(),
+        expiresAt: operation.expiresAt,
         recoveryState: 'unresolved',
       });
     } catch {
@@ -1156,7 +1240,7 @@ export class PredictOrderService {
         },
       });
     }
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, signal);
     operation.recoveryState = 'unresolved';
     if (!this.#recoveryActive) {
       this.#recoveryActive = true;
@@ -1174,16 +1258,42 @@ export class PredictOrderService {
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
     approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, observationSignal);
     let receipt: PredictOrderReceipt;
     if (operation.posted) {
+      const observedAt = Date.now();
       try {
         receipt = await this.#trading.observeOrder(operation.previewId, {
-          signal,
+          signal: observationSignal,
         });
       } catch (error) {
+        this.#assertNotAbandoned(generation, observationSignal);
+        if (
+          error instanceof PredictError &&
+          error.metadata?.phase === 'observe' &&
+          error.metadata?.bodyCode === 'operation_not_found' &&
+          !operation.receiptSeen &&
+          operation.expiresAt !== undefined &&
+          observedAt > operation.expiresAt + MISSING_OPERATION_EXPIRY_GRACE_MS
+        ) {
+          if (this.#journal && this.#identityScope) {
+            await this.#journal.remove(
+              this.#identityScope,
+              this.#venueId,
+              operation.previewId,
+            );
+            this.#assertNotAbandoned(generation, observationSignal);
+          }
+          operation.recoveryState = undefined;
+          this.#resolve(operation, {
+            status: 'not_placed',
+            code: PredictErrorCode.PREVIEW_EXPIRED,
+          });
+          throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
+        }
         // Even not-relayed mutation metadata cannot resolve an observation.
         operation.ambiguous = true;
         throw error;
@@ -1194,14 +1304,14 @@ export class PredictOrderService {
       }
       const journal = this.#journal;
       if (journal) {
-        await this.#journalDispatch(journal, operation, generation);
+        await this.#journalDispatch(journal, operation, generation, observationSignal);
       }
       operation.posted = true;
       receipt = await this.#trading.commitOrder(operation.previewId, approval, {
         signal,
       });
     }
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, observationSignal);
     operation.lastReceipt = receipt;
     operation.receiptSeen = true;
     return receipt;
@@ -1301,7 +1411,7 @@ export class PredictOrderService {
       delays[Math.min(operation.backgroundObservations, delays.length - 1)] ??
       COMMIT_OBSERVATION_DELAY_MS;
     operation.backgroundObservations += 1;
-    const observe = () => {
+    const observe = (): void => {
       operation.backgroundTimer = undefined;
       if (
         this.#operations.get(operation.previewId) !== operation ||
@@ -1336,8 +1446,8 @@ export class PredictOrderService {
     }
   }
 
-  #assertNotAbandoned(generation: number): void {
-    if (generation !== this.#commitGeneration) {
+  #assertNotAbandoned(generation: number, signal?: AbortSignal): void {
+    if (generation !== this.#commitGeneration || signal?.aborted) {
       // The session that approved the Preview is gone; the same code the
       // backend uses for a rejected token keeps this out of user copy.
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);

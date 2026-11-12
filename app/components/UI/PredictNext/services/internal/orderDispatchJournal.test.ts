@@ -1,11 +1,17 @@
+import Logger from '../../../../../util/Logger';
 import {
   createOrderDispatchJournal,
   type OrderDispatchReference,
 } from './orderDispatchJournal';
 import type { PredictVenueId } from '../../types';
 
+jest.mock('../../../../../util/Logger', () => ({ error: jest.fn() }));
+
 // ES2022 has no Promise.withResolvers; keep test barriers explicit.
-const deferred = <Value>() => {
+const deferred = <Value>(): {
+  promise: Promise<Value>;
+  resolve: (value: Value | PromiseLike<Value>) => void;
+} => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
   const promise = new Promise<Value>((done) => {
     resolve = done;
@@ -18,9 +24,14 @@ const reference: OrderDispatchReference = {
   venueId: 'kalshi' as PredictVenueId,
   previewId: 'preview-one',
   dispatchedAt: 1,
+  expiresAt: 30_000,
   recoveryState: 'unresolved',
 };
-const storageWith = () => {
+const storageWith = (): {
+  getItem: jest.Mock<Promise<string | null>, []>;
+  setItem: jest.Mock<Promise<void>, [string, string]>;
+  removeItem: jest.Mock<Promise<void>, []>;
+} => {
   let value: string | null = null;
   return {
     getItem: jest.fn(async () => value),
@@ -34,7 +45,9 @@ const storageWith = () => {
 };
 
 describe('order dispatch journal', () => {
-  it('survives a fresh journal instance without expiry and isolates identities/venues', async () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('survives restart and isolates identities/venues', async () => {
     const storage = storageWith();
     const journal = createOrderDispatchJournal(storage);
     await journal.put(reference);
@@ -62,7 +75,7 @@ describe('order dispatch journal', () => {
     await journal.put({ ...reference, recoveryState: 'manual_review' });
     const saved = storage.setItem.mock.calls[1][1];
     expect(JSON.parse(saved)).toEqual({
-      v: 1,
+      v: 2,
       entries: [{ ...reference, recoveryState: 'manual_review' }],
     });
     expect(saved).not.toContain('not-persisted');
@@ -92,16 +105,54 @@ describe('order dispatch journal', () => {
     ]);
   });
 
-  it('fails closed on corrupted persistence instead of overwriting unknown orders', async () => {
+  it('quarantines invalid entries without losing valid v2 references or leaking payloads', async () => {
     const storage = storageWith();
-    storage.getItem.mockResolvedValue(
-      '{"v":1,"entries":[{"previewId":"lost"}]}',
-    );
+    await storage.setItem('journal', JSON.stringify({
+      v: 2,
+      entries: [reference, { previewId: 'secret-corrupt-payload' }],
+    }));
     const journal = createOrderDispatchJournal(storage);
-    await expect(journal.put(reference)).rejects.toThrow(
-      'Invalid Predict order dispatch journal',
-    );
+    expect(await journal.list('profile-one', reference.venueId)).toEqual([reference]);
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(jest.mocked(Logger.error).mock.calls)).not.toContain('secret-corrupt-payload');
+    const restarted = createOrderDispatchJournal(storage);
+    await restarted.put({ ...reference, previewId: 'next' });
+    expect(await restarted.list('profile-one', reference.venueId)).toEqual([
+      reference, { ...reference, previewId: 'next' },
+    ]);
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect(storage.setItem.mock.calls[1][1]).not.toContain('secret-corrupt-payload');
+  });
+
+  it('loads v1 references without inventing expiry and migrates on the next save', async () => {
+    const storage = storageWith();
+    const { expiresAt: _expiresAt, ...legacy } = reference;
+    await storage.setItem('journal', JSON.stringify({ v: 1, entries: [legacy] }));
+    const journal = createOrderDispatchJournal(storage);
+    expect(await journal.list('profile-one', reference.venueId)).toEqual([legacy]);
+    expect(storage.setItem).toHaveBeenCalledTimes(1);
+    await journal.put({ ...reference, previewId: 'next' });
+    expect(JSON.parse(storage.setItem.mock.calls[1][1])).toEqual({
+      v: 2, entries: [legacy, { ...reference, previewId: 'next' }],
+    });
+  });
+
+  it.each([NaN, Infinity, -1, 'invalid'])('refuses malformed expiry %s on put', async (expiresAt) => {
+    const storage = storageWith();
+    const journal = createOrderDispatchJournal(storage);
+    await expect(journal.put({ ...reference, expiresAt } as OrderDispatchReference)).rejects.toThrow('Invalid Predict order dispatch reference');
     expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it.each(['not-json-secret', '{"v":9,"entries":[]}'])('quarantines an unreadable envelope and permits new dispatches', async (raw) => {
+    const storage = storageWith();
+    await storage.setItem('journal', raw);
+    const journal = createOrderDispatchJournal(storage);
+    await journal.put(reference);
+    expect(await journal.list('profile-one', reference.venueId)).toEqual([reference]);
+    expect(Logger.error).toHaveBeenCalledTimes(1);
+    expect(storage.removeItem).toHaveBeenCalledTimes(1);
+    expect(JSON.stringify(jest.mocked(Logger.error).mock.calls)).not.toContain(raw);
   });
 
   it('fences an in-flight write and clears it before a new wallet writes', async () => {

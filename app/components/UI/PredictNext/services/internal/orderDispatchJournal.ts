@@ -1,16 +1,21 @@
+import Logger from '../../../../../util/Logger';
 import type { PredictVenueId } from '../../types';
 
+// Keep the storage slot stable so v1 references migrate in place.
 const JOURNAL_KEY = 'predict-next:order-dispatches:v1';
 
 export type OrderRecoveryState = 'unresolved' | 'manual_review';
 
 /** Safe references only. No approval, executable order or credential belongs
- * in this journal. Unknown dispatches have no expiry or pruning deadline. */
+ * in this journal. Expiry alone never proves a dispatch was not placed. */
 export interface OrderDispatchReference {
   identityScope: string;
   venueId: PredictVenueId;
   previewId: string;
   dispatchedAt: number;
+  /** Backend preview expiry in epoch milliseconds; absent on migrated v1
+   * references and server discovery, whose expiry must never be guessed. */
+  expiresAt?: number;
   recoveryState: OrderRecoveryState;
 }
 
@@ -48,6 +53,10 @@ const validReference = (value: unknown): value is OrderDispatchReference => {
     entry.previewId.length > 0 &&
     typeof entry.dispatchedAt === 'number' &&
     Number.isFinite(entry.dispatchedAt) &&
+    (entry.expiresAt === undefined ||
+      (typeof entry.expiresAt === 'number' &&
+        Number.isFinite(entry.expiresAt) &&
+        entry.expiresAt >= 0)) &&
     entry.dispatchedAt >= 0 &&
     (entry.recoveryState === 'unresolved' ||
       entry.recoveryState === 'manual_review')
@@ -63,6 +72,7 @@ const safeReference = (
   venueId: entry.venueId,
   previewId: entry.previewId,
   dispatchedAt: entry.dispatchedAt,
+  ...(entry.expiresAt === undefined ? {} : { expiresAt: entry.expiresAt }),
   recoveryState: entry.recoveryState,
 });
 
@@ -71,34 +81,67 @@ export const createOrderDispatchJournal = (
 ): OrderDispatchJournal => {
   let queue: Promise<unknown> = Promise.resolve();
   let generation = 0;
-  const serialized = <T>(task: () => Promise<T>): Promise<T> => {
+  const serialized = <Result>(task: () => Promise<Result>): Promise<Result> => {
     const result = queue.then(task, task);
     queue = result.catch(() => undefined);
     return result;
+  };
+  const save = async (entries: OrderDispatchReference[]): Promise<void> => {
+    if (entries.length === 0) {
+      await storage.removeItem(JOURNAL_KEY);
+    } else {
+      await storage.setItem(JOURNAL_KEY, JSON.stringify({ v: 2, entries }));
+    }
   };
   const load = async (): Promise<OrderDispatchReference[]> => {
     const raw = await storage.getItem(JOURNAL_KEY);
     if (!raw) {
       return [];
     }
-    // Corruption is not an empty journal: failing closed prevents a new
-    // mutation from overwriting references whose outcomes remain unknown.
-    const file = JSON.parse(raw) as { v?: unknown; entries?: unknown };
+    let file: { v?: unknown; entries?: unknown };
+    try {
+      file = JSON.parse(raw);
+    } catch {
+      Logger.error(
+        new Error('Invalid JSON in Predict order dispatch journal.'),
+        'PredictNext: quarantined order dispatch journal',
+      );
+      await save([]);
+      return [];
+    }
     if (
-      file.v !== 1 ||
-      !Array.isArray(file.entries) ||
-      !file.entries.every(validReference)
+      !file ||
+      (file.v !== 1 && file.v !== 2) ||
+      !Array.isArray(file.entries)
     ) {
-      throw new Error('Invalid Predict order dispatch journal.');
+      Logger.error(
+        new Error('Invalid Predict order dispatch journal envelope.'),
+        'PredictNext: quarantined order dispatch journal',
+      );
+      await save([]);
+      return [];
     }
-    return file.entries.map(safeReference);
-  };
-  const save = async (entries: OrderDispatchReference[]): Promise<void> => {
-    if (entries.length === 0) {
-      await storage.removeItem(JOURNAL_KEY);
-    } else {
-      await storage.setItem(JOURNAL_KEY, JSON.stringify({ v: 1, entries }));
+    const entries: OrderDispatchReference[] = [];
+    for (const value of file.entries) {
+      if (validReference(value)) {
+        const reference = safeReference(value);
+        // v1 never recorded authoritative expiry, even if an unexpected
+        // field happens to have that name.
+        if (file.v === 1) {
+          delete reference.expiresAt;
+        }
+        entries.push(reference);
+      } else {
+        Logger.error(
+          new Error('Invalid Predict order dispatch reference fields.'),
+          'PredictNext: quarantined order dispatch reference',
+        );
+      }
     }
+    if (entries.length !== file.entries.length) {
+      await save(entries);
+    }
+    return entries;
   };
   return {
     list: (identityScope, venueId) =>
@@ -108,7 +151,7 @@ export const createOrderDispatchJournal = (
             entry.identityScope === identityScope && entry.venueId === venueId,
         ),
       ),
-    put: (reference) => {
+    put: (reference): Promise<void> => {
       const snapshot = safeReference(reference);
       if (!validReference(snapshot)) {
         return Promise.reject(
@@ -152,7 +195,7 @@ export const createOrderDispatchJournal = (
           ),
         );
       }),
-    clear: () => {
+    clear: (): Promise<void> => {
       generation += 1;
       return serialized(async () => {
         await storage.removeItem(JOURNAL_KEY);

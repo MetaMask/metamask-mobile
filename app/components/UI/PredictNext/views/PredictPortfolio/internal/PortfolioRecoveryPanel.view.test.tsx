@@ -63,6 +63,18 @@ describe('PortfolioRecoveryPanel', () => {
     expect(view.queryByTestId('predict-recovery-refresh')).toBeNull();
   });
 
+  it('stops offering checks when an unknown entry resolves or becomes terminal review', () => {
+    const view = render(<PortfolioRecoveryPanel venueId={venueId} />);
+    const listener = subscribe.mock.calls[0][1] as (payload: unknown) => void;
+    act(() => listener({ venueId, operations: [{ previewId: 'pending', status: 'checking' }] }));
+    expect(view.getByTestId('predict-recovery-refresh')).toBeTruthy();
+    act(() => listener({ venueId, operations: [{ previewId: 'pending', status: 'needs_manual_review' }] }));
+    expect(view.getByText(strings('predict_next.order_receipt.needs_review_description'))).toBeTruthy();
+    expect(view.queryByTestId('predict-recovery-refresh')).toBeNull();
+    act(() => listener({ venueId, operations: [] }));
+    expect(view.queryByTestId('predict-recovery-panel')).toBeNull();
+  });
+
   it('updates from recovery events and hides prior identity outcomes when cleared', () => {
     const view = render(<PortfolioRecoveryPanel venueId={venueId} />);
     const listener = subscribe.mock.calls[0][1] as (payload: unknown) => void;
