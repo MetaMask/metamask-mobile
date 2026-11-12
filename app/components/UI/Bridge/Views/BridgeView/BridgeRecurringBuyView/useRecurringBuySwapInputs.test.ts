@@ -52,9 +52,15 @@ jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
 }));
 
+jest.mock('../../../hooks/useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
+const mockUseSourceAmountInput = jest.fn();
 jest.mock('../../../hooks/useSourceAmountInput', () => ({
-  useSourceAmountInput: () => ({
+  useSourceAmountInput: (params: unknown) => ({
+    ...mockUseSourceAmountInput(params),
     amount: '',
     selection: undefined,
     handleFocus: jest.fn(),
@@ -85,6 +91,7 @@ jest.mock('../../../hooks/useBridgeSession', () => ({
 }));
 
 import { useSelector } from 'react-redux';
+import { useLiveTokenFiatRate } from '../../../hooks/useLiveTokenFiatRate';
 const mockUseSelector = jest.mocked(useSelector);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
@@ -156,6 +163,21 @@ describe('useRecurringBuySwapInputs', () => {
       setDestToken(expect.anything()),
     );
     expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
+  });
+
+  it('converts fiat input at the live rate of the source token', () => {
+    const sourceToken = createMockToken({ chainId: '0x1' });
+    jest.mocked(useLiveTokenFiatRate).mockReturnValue(2460.27);
+
+    renderRecurringBuySwapInputsHook(
+      { sourceToken, destToken: undefined, sourceAmount: '0.02' },
+      ENABLED_CHAIN_IDS,
+    );
+
+    expect(useLiveTokenFiatRate).toHaveBeenCalledWith(sourceToken);
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken, tokenFiatRate: 2460.27 }),
+    );
   });
 
   describe('handleSourcePresetAmountSelect', () => {
