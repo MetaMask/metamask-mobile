@@ -255,8 +255,6 @@ describe('recurring orders API client', () => {
       invoke: () =>
         recurringOrdersApiClient.getRecurringSwaps('order/id', {
           accountAddress: MOCK_RECURRING_ACCOUNT,
-          limit: 50,
-          after: 'opaque-swaps-cursor',
         }),
       response: SWAPS_RESPONSE,
       path: '/v2/orders/recurring/order%2Fid/swaps',
