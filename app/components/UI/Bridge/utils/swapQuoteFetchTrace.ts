@@ -14,7 +14,15 @@ import {
 } from '../../../../util/trace';
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
-import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../selectors/featureFlagController';
+import { resolveABTestAssignment } from '../../../../util/abTest';
+import {
+  FIRST_QUOTE_FLUSH_AB_KEY,
+  FirstQuoteFlushVariant,
+} from './firstQuoteFlushAbTestConfig';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -142,12 +150,16 @@ export const swapQuoteFetchTrace = {
     });
     activeTraceId = id;
     try {
+      const state = ReduxService.store.getState();
       annotateTraceByRequest(
         { name: TraceName.SwapQuoteFetch, id },
         {
-          first_quote_flush_enabled:
-            selectRemoteFeatureFlags(ReduxService.store.getState())
-              .bridgeFirstQuoteFlushEnabled === true,
+          first_quote_flush_variant: resolveABTestAssignment(
+            selectRemoteFeatureFlags(state),
+            FIRST_QUOTE_FLUSH_AB_KEY,
+            Object.values(FirstQuoteFlushVariant),
+            selectFeatureFlagThresholdGroups(state),
+          ).variantName,
         },
       );
     } catch {

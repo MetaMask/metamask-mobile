@@ -95,16 +95,22 @@ describe('swapQuoteFetchTrace', () => {
     });
   });
 
-  it.each([true, false])(
-    'annotates the trace with first_quote_flush_enabled: %s',
-    (flagEnabled) => {
-      mockRemoteFeatureFlags = { bridgeFirstQuoteFlushEnabled: flagEnabled };
+  it.each([
+    [
+      { swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' } },
+      'treatment',
+    ],
+    [{}, 'control'],
+  ])(
+    'annotates the trace with first_quote_flush_variant for flags %j',
+    (flags, variant) => {
+      mockRemoteFeatureFlags = flags;
 
       swapQuoteFetchTrace.start({ isRefresh: false });
 
       expect(annotateTraceByRequest).toHaveBeenCalledWith(
         { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
-        { first_quote_flush_enabled: flagEnabled },
+        { first_quote_flush_variant: variant },
       );
     },
   );

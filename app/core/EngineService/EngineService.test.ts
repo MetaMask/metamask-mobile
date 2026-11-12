@@ -494,13 +494,13 @@ describe('EngineService', () => {
     });
 
     it.each([
-      [0, true, false],
-      [1, true, true],
-      [2, true, false],
-      [1, false, false],
+      [0, 'treatment', false],
+      [1, 'treatment', true],
+      [2, 'treatment', false],
+      [1, 'control', false],
     ])(
-      'with %i quotes and flag %s, dispatches immediately: %s',
-      async (quoteCount, flagEnabled, isImmediate) => {
+      'with %i quotes and variant %s, dispatches immediately: %s',
+      async (quoteCount, variant, isImmediate) => {
         ReduxService.store = {
           ...ReduxService.store,
           getState: () => ({
@@ -508,7 +508,7 @@ describe('EngineService', () => {
               backgroundState: {
                 RemoteFeatureFlagController: {
                   remoteFeatureFlags: {
-                    bridgeFirstQuoteFlushEnabled: flagEnabled,
+                    swapsSWAPS5043AbtestFirstQuoteFlush: { name: variant },
                   },
                 },
               },

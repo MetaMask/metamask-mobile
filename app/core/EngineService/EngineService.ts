@@ -20,7 +20,15 @@ import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
 
 import ReduxService from '../redux';
-import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../selectors/featureFlagController';
+import { resolveABTestAssignment } from '../../util/abTest';
+import {
+  FIRST_QUOTE_FLUSH_AB_KEY,
+  FirstQuoteFlushVariant,
+} from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
@@ -106,8 +114,12 @@ export class EngineService {
         // user is waiting on. Later quotes stay batched.
         (controllerName === 'BridgeController' &&
           engine.context.BridgeController.state.quotes.length === 1 &&
-          selectRemoteFeatureFlags(ReduxService.store.getState())
-            .bridgeFirstQuoteFlushEnabled === true)
+          resolveABTestAssignment(
+            selectRemoteFeatureFlags(ReduxService.store.getState()),
+            FIRST_QUOTE_FLUSH_AB_KEY,
+            Object.values(FirstQuoteFlushVariant),
+            selectFeatureFlagThresholdGroups(ReduxService.store.getState()),
+          ).variantName === FirstQuoteFlushVariant.Treatment)
       ) {
         this.updateBatcher.flush();
       }
