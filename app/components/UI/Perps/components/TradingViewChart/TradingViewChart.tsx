@@ -24,6 +24,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { usePerpsLocale } from '../../hooks/usePerpsLocale';
 
 /**
  * Formats a chart price label (axis ticks, price lines) as the header does,
@@ -117,6 +118,10 @@ const TradingViewChart = React.forwardRef<
     ref,
   ) => {
     const { styles, theme } = useStyles(styleSheet, {});
+    // Price labels are formatted in the app language; a language change makes
+    // the WebView drop the labels it holds.
+    const locale = usePerpsLocale();
+    const priceLabelLocaleRef = useRef(locale);
     const webViewRef = useRef<WebView>(null);
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
@@ -596,7 +601,17 @@ const TradingViewChart = React.forwardRef<
           });
         }
       }
-    }, [tpslLines, isChartReady, sendMessage]);
+    }, [tpslLines, isChartReady, sendMessage, locale]);
+
+    // Labels already drawn stay in the previous language until the WebView
+    // asks again.
+    useEffect(() => {
+      if (!isChartReady || priceLabelLocaleRef.current === locale) {
+        return;
+      }
+      priceLabelLocaleRef.current = locale;
+      sendMessage({ type: 'RESET_PRICE_LABELS' });
+    }, [locale, isChartReady, sendMessage]);
 
     // Sync volume visibility with chart
     useEffect(() => {

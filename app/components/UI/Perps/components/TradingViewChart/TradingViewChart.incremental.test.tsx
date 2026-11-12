@@ -15,7 +15,7 @@ import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import TradingViewChart from './TradingViewChart';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import I18n from '../../../../../../locales/i18n';
+import I18n, { I18nEvents } from '../../../../../../locales/i18n';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
@@ -834,6 +834,7 @@ describe('TradingViewChart — incremental update routing', () => {
         ReactNativeWebView: { postMessage: (raw: string) => void };
         chartPriceFormatter?: (price: number) => string;
         applyPriceLabels?: (labels: unknown) => void;
+        resetPriceLabels?: () => void;
         currentPriceNumeric?: number;
         currentPriceLabel?: string;
       } = {
@@ -919,6 +920,39 @@ describe('TradingViewChart — incremental update routing', () => {
       expect(applyOptions).toHaveBeenCalledWith({
         localization: { priceFormatter: windowStub.chartPriceFormatter },
       });
+    });
+
+    it('asks for every label again after a language change', () => {
+      const { windowStub, posted } = loadTemplatePriceLabels();
+      const format = windowStub.chartPriceFormatter as (p: number) => string;
+      format(74000);
+      jest.runOnlyPendingTimers();
+      windowStub.applyPriceLabels?.([[74000, '74,000']]);
+
+      windowStub.resetPriceLabels?.();
+      const afterReset = format(74000);
+      jest.runOnlyPendingTimers();
+
+      expect(afterReset).toBe('');
+      expect(posted).toStrictEqual([
+        { type: 'FORMAT_PRICE_LABELS', prices: [74000] },
+        { type: 'FORMAT_PRICE_LABELS', prices: [74000] },
+      ]);
+    });
+
+    it('tells the chart to drop its labels when the app language changes', () => {
+      const { getByTestId } = render(
+        <TradingViewChart symbol="BTC" testID={PRICE_LABELS_TEST_ID} />,
+      );
+      triggerChartReady(getByTestId, PRICE_LABELS_TEST_ID);
+      mockPostMessage.mockClear();
+
+      act(() => {
+        I18n.locale = 'de';
+        I18nEvents.emit('localeChanged', 'de');
+      });
+
+      expect(allMessageTypes()).toContain('RESET_PRICE_LABELS');
     });
 
     it('labels the current price line with the label sent alongside it', () => {

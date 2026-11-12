@@ -125,6 +125,23 @@ export const createTradingViewChartTemplate = (
             return '';
         };
 
+        // Re-applying the localization makes the price scales drop their
+        // cached marks and format them again.
+        window.redrawPriceLabels = function() {
+            if (window.chart) {
+                window.chart.applyOptions({
+                    localization: { priceFormatter: window.chartPriceFormatter }
+                });
+            }
+        };
+
+        // The app language changed: every label is asked for again.
+        window.resetPriceLabels = function() {
+            window.priceLabels.clear();
+            window.requestedPriceLabels.clear();
+            window.redrawPriceLabels();
+        };
+
         window.applyPriceLabels = function(labels) {
             if (!Array.isArray(labels) || labels.length === 0) return;
             if (window.priceLabels.size + labels.length > window.MAX_PRICE_LABELS) {
@@ -136,13 +153,7 @@ export const createTradingViewChartTemplate = (
                     window.priceLabels.set(String(entry[0]), entry[1]);
                 }
             });
-            if (window.chart) {
-                // Re-applying the localization makes the price scales drop
-                // their cached marks and format them again.
-                window.chart.applyOptions({
-                    localization: { priceFormatter: window.chartPriceFormatter }
-                });
-            }
+            window.redrawPriceLabels();
         };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
@@ -1455,6 +1466,9 @@ ${createLimitOrderOverlayScript({
                         break;
                     case 'PRICE_LABELS':
                         window.applyPriceLabels(message.labels);
+                        break;
+                    case 'RESET_PRICE_LABELS':
+                        window.resetPriceLabels();
                         break;
                     case 'ADD_AUXILIARY_LINES':
                         if (window.chart && message.lines) {
