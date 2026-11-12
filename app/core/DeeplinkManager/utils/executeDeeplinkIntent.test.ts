@@ -278,14 +278,11 @@ describe('executeDeeplinkIntent', () => {
     );
   });
 
-  it('preserves nested params when resetting to a startup target tab', async () => {
+  it('passes browser screen params when resetting to a startup target tab', async () => {
     const browserParams = {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: 'https://example.com',
-        linkType: 'external',
-        timestamp: 123,
-      },
+      newTabUrl: 'https://example.com',
+      linkType: 'external',
+      timestamp: 123,
     };
     const intent: DeeplinkIntent = {
       target: {

@@ -273,7 +273,7 @@ const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
 const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
 
-const WalletWithMessenger = withRouteMessenger(Wallet, {
+export const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
@@ -358,26 +358,6 @@ const AssetStackFlow = (props: ForwardedParamsHostProps) => (
     />
   </NativeStack.Navigator>
 );
-
-const WalletTabStackFlow = () => {
-  const defaultScreenOptions = useDefaultStackScreenOptions();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={'WalletView'}
-      screenOptions={defaultScreenOptions}
-    >
-      <NativeStack.Screen
-        name="WalletView"
-        component={WalletWithMessenger}
-        options={{ animation: 'none' }}
-      />
-      <NativeStack.Screen
-        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-        component={RevealPrivateCredential}
-      />
-    </NativeStack.Navigator>
-  );
-};
 
 const TransactionsHome = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -523,39 +503,6 @@ const RewardsHome = () => {
         name={Routes.REWARDS_MONEY_DASHBOARD}
         component={RewardsMoneyDashboard}
         options={slideFromRightNativeOptions}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-const BrowserFlow = (props: ForwardedParamsHostProps) => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.BROWSER.VIEW}
-      screenOptions={{
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
-      <NativeStack.Screen
-        name={Routes.BROWSER.VIEW}
-        component={Browser}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.BROWSER.ASSET_LOADER}
-        component={AssetLoader as ScreenComponent}
-        options={{
-          headerShown: false,
-          animation: 'none',
-          presentation: 'modal',
-        }}
-      />
-      <NativeStack.Screen
-        name={Routes.BROWSER.ASSET_VIEW}
-        component={TokenDetails}
-        initialParams={props.route.params}
-        options={{ presentation: 'modal' }}
       />
     </NativeStack.Navigator>
   );
@@ -716,15 +663,15 @@ const SettingsFlow = () => {
 };
 
 // Replaces `unmountOnBlur` (removed in React Navigation v7).
-const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
+const BrowserUnmountOnTabBlur = withUnmountOnTabBlur(Browser);
 const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
 
 // `satisfies` keeps each component's own type for `JsTab.Screen` while still
 // requiring an entry for every static tab. Social is chosen at runtime.
 const HOME_TAB_COMPONENTS = {
-  home: WalletTabStackFlow,
+  home: WalletWithMessenger,
   explore: ExploreFeed,
-  browser: BrowserFlowUnmountOnTabBlur,
+  browser: BrowserUnmountOnTabBlur,
   activity: TransactionsHomeUnmountOnTabBlur,
   money: MoneyTabScreenStack,
   // Rewards stays mounted. Leaving the tab used to throw the tree away, so
@@ -971,7 +918,7 @@ const HomeTabs = () => {
             <JsTab.Screen
               name={Routes.MODAL.TRADE_WALLET_ACTIONS}
               options={tradeOptions}
-              component={WalletTabStackFlow}
+              component={WalletWithMessenger}
             />
           )}
 
@@ -1643,8 +1590,26 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen
         name={Routes.BROWSER.HOME}
-        component={BrowserFlow}
-        options={slideFromRightNativeOptions}
+        component={Browser}
+        options={{ ...slideFromRightNativeOptions, headerShown: false }}
+      />
+      {/*
+        AssetLoader replaces itself with ASSET_VIEW, so both screens stay on
+        this navigator.
+      */}
+      <NativeStack.Screen
+        name={Routes.BROWSER.ASSET_LOADER}
+        component={AssetLoader as ScreenComponent}
+        options={{
+          headerShown: false,
+          animation: 'none',
+          presentation: 'modal',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.BROWSER.ASSET_VIEW}
+        component={TokenDetails}
+        options={{ presentation: 'modal' }}
       />
       <NativeStack.Screen name="SetPasswordFlow" component={SetPasswordFlow} />
       {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
