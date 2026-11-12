@@ -1073,9 +1073,7 @@ module.exports = {
     radix: 'off',
 
     // rules-of-hooks is an error from @react-native/eslint-config. Existing
-    // hits are in eslint-suppressions.json. no-loss-of-precision is an error
-    // from ESLint recommended, so this file does not set it. Its existing
-    // hits are parked too.
+    // hits are in eslint-suppressions.json.
     'react-hooks/rules-of-hooks': 'error',
   },
 
