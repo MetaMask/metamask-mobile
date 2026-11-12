@@ -8,6 +8,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,6 +19,8 @@ import VbaAccountCreateFailure from '../../../Ramp/Views/VirtualBankAccount/asse
 interface KYCFailedContentProps {
   /** Back to home. The caller decides whether that is a header arrow or this button. */
   onClose: () => void;
+  /** Specific rejection reason. Omitted when it would repeat the title. */
+  reasonLine?: string | null;
 }
 
 /**
@@ -23,7 +28,7 @@ interface KYCFailedContentProps {
  * Shared by the KYCFailed screen and the Immersve KYC result, which swaps this
  * in without leaving the screen. No tracking and no navigation.
  */
-const KYCFailedContent = ({ onClose }: KYCFailedContentProps) => {
+const KYCFailedContent = ({ onClose, reasonLine }: KYCFailedContentProps) => {
   const tw = useTailwind();
 
   return (
@@ -57,6 +62,16 @@ const KYCFailedContent = ({ onClose }: KYCFailedContentProps) => {
             </Box>
           }
         />
+        {reasonLine ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mt-4 text-center"
+            testID="kyc-failed-reason"
+          >
+            {reasonLine}
+          </Text>
+        ) : null}
       </ScrollView>
       <Box gap={2} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
         <Button
