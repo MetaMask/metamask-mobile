@@ -361,16 +361,16 @@ describe('PredictHome', () => {
       home: 'Steelers',
       awayScore: '17',
       homeScore: '21',
-      awayQuote: 'PAC · 41¢',
-      homeQuote: 'STE · 59¢',
+      awayQuote: /^PAC\s*· 41¢$/,
+      homeQuote: /^STE\s*· 59¢$/,
     });
     expectPredictNextGameCard(nflSection, 'nfl-2', {
       away: 'Panthers',
       home: 'Cardinals',
       awayScore: '10',
       homeScore: '7',
-      awayQuote: 'PAN · 36¢',
-      homeQuote: 'CAR · 64¢',
+      awayQuote: /^PAN\s*· 36¢$/,
+      homeQuote: /^CAR\s*· 64¢$/,
     });
     expect(
       within(nflSection).queryByText('Hidden NFL Game'),
@@ -389,16 +389,16 @@ describe('PredictHome', () => {
       home: 'Miami',
       awayScore: '24',
       homeScore: '31',
-      awayQuote: 'PIT · 47¢',
-      homeQuote: 'MIA · 53¢',
+      awayQuote: /^PIT\s*· 47¢$/,
+      homeQuote: /^MIA\s*· 53¢$/,
     });
     expectPredictNextGameCard(ncaaSection, 'ncaa-2', {
       away: 'Georgia',
       home: 'Florida',
       awayScore: '3',
       homeScore: '0',
-      awayQuote: 'GEO · 55¢',
-      homeQuote: 'FLO · 45¢',
+      awayQuote: /^GEO\s*· 55¢$/,
+      homeQuote: /^FLO\s*· 45¢$/,
     });
     expect(
       within(ncaaSection).queryByText('Hidden College Game'),
@@ -980,6 +980,27 @@ describe('PredictHome', () => {
       );
     });
 
+    it('shows a binary Politics Event as the default card with Yes and No rows', async () => {
+      const view = renderPredictNext();
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-1'),
+      );
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'no'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
+      ).not.toBeOnTheScreen();
+    });
+
     it('opens the Politics Feed Screen from the section header', async () => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
@@ -1043,6 +1064,210 @@ describe('PredictHome', () => {
             feedId === POLITICS_TRUMP_FEED_ID,
         ),
       ).toHaveLength(0);
+    });
+  });
+
+  describe('Categories section', () => {
+    const chipIds = (view: ReturnType<typeof renderPredictNext>) =>
+      within(view.getByTestId(PredictHomeTestIds.CATEGORIES_LIST))
+        .getAllByRole('button')
+        .map((chip) => chip.props.testID);
+
+    it('shows the header and the catalog Categories as chips, in catalog order', async () => {
+      const view = renderPredictNext();
+
+      const categories = await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+      expect(
+        within(categories).getByTestId(PredictHomeTestIds.CATEGORIES_HEADER),
+      ).toHaveTextContent('Categories');
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+        PredictHomeTestIds.categoryChip('politics'),
+      ]);
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('sports')),
+      ).toHaveTextContent('Sports');
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('politics')),
+      ).toHaveTextContent('Politics');
+    });
+
+    it('follows the order the catalog gives', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        categories: ['politics', 'sports'],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('politics'),
+        PredictHomeTestIds.categoryChip('sports'),
+      ]);
+    });
+
+    it('sits after the sports previews and before Politics', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      const order = [
+        PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
+        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+        PredictHomeTestIds.CATEGORIES,
+        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+      ];
+      const blocks = view.getAllByTestId(new RegExp(`^(${order.join('|')})$`));
+      expect(blocks.map((block) => block.props.testID)).toEqual(order);
+    });
+
+    it('opens the Politics Feed Screen on the Trump tab from the Politics chip', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('politics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(within(feedScreen).getByText('Politics')).toBeOnTheScreen();
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('trump'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    it('opens the Sports Feed Screen with NFL and NCAAF tabs, NFL first, from the Sports chip', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(within(feedScreen).getByText('Sports')).toBeOnTheScreen();
+      const tabs = within(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS),
+      )
+        .getAllByRole('button')
+        .map((tab) => tab.props.accessibilityLabel);
+      expect(tabs).toEqual(['NFL', 'NCAAF']);
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    it('switches the Sports Feed Screen to NCAAF games', async () => {
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+      fireEvent.press(
+        await view.findByTestId(PredictFeedScreenTestIds.tab('ncaaf')),
+      );
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictFeedScreenTestIds.tab('ncaaf')).props
+            .accessibilityState,
+        ).toEqual({ selected: true }),
+      );
+      const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
+      expect(
+        await within(list).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'ncaa-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(list).queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only the NFL tab when the Venue has no college Games Feed', async () => {
+      const { 'college-football-games': _collegeGames, ...feeds } =
+        KALSHI_STATIC_VENUE_CATALOG.feeds;
+      configurePredictNextCatalog({ ...KALSHI_STATIC_VENUE_CATALOG, feeds });
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('sports')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl')),
+      ).toBeOnTheScreen();
+      expect(
+        within(feedScreen).queryByTestId(PredictFeedScreenTestIds.tab('ncaaf')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("opens the tab of the Category's own Feed", async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          politics: KALSHI_STATIC_VENUE_CATALOG.feeds['politics-iran'],
+        },
+      });
+      const view = renderPredictNext();
+
+      fireEvent.press(
+        await view.findByTestId(PredictHomeTestIds.categoryChip('politics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(
+        within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('iran'))
+          .props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    it.each([
+      ['lists no Categories', { categories: [] }],
+      [
+        'drops the Category Feed keys',
+        {
+          feeds: {
+            'nfl-games': KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'],
+          },
+        },
+      ],
+      [
+        'lists only a Category mobile has no Feed Screen for',
+        { feeds: { crypto: 'crypto' }, categories: ['crypto'] },
+      ],
+      [
+        'lists a Category whose Feed Screen has no tab the Venue supports',
+        {
+          feeds: { politics: KALSHI_STATIC_VENUE_CATALOG.feeds.politics },
+          categories: ['politics'],
+        },
+      ],
+    ])('hides the section when the catalog %s', async (_name, patch) => {
+      configurePredictNextCatalog({ ...KALSHI_STATIC_VENUE_CATALOG, ...patch });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.CATEGORIES),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ["another Venue's catalog", POLYMARKET_STATIC_VENUE_CATALOG],
+      ['a pending catalog', 'pending' as const],
+    ])('shows no Categories for %s', async (_name, catalog) => {
+      configurePredictNextCatalog(catalog);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.CATEGORIES),
+      ).not.toBeOnTheScreen();
     });
   });
 

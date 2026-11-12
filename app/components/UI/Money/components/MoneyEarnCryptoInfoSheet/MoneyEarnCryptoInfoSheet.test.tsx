@@ -12,7 +12,7 @@ import {
   MONEY_BUTTON_INTENTS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
 
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -22,8 +22,8 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: jest.fn(),
 }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -118,7 +118,7 @@ describe('MoneyEarnCryptoInfoSheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackButtonClicked: mockTrackButtonClicked,
     });
-    jest.mocked(useMoneyNavigation).mockReturnValue({
+    jest.mocked(useMoneyHomeNavigation).mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {

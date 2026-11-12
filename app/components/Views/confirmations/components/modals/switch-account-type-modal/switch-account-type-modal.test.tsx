@@ -27,7 +27,6 @@ const MOCK_NETWORK = {
   nativeCurrency: 'SepoliaETH',
   rpcEndpoints: [
     {
-      failoverUrls: [],
       networkClientId: 'sepolia',
       type: 'infura',
       url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
@@ -74,7 +73,6 @@ const MOCK_NETWORK_MAINNET = {
   nativeCurrency: 'ETH',
   rpcEndpoints: [
     {
-      failoverUrls: [],
       networkClientId: 'mainnet',
       type: 'infura',
       url: 'https://mainnet.infura.io/v3/{infuraProjectId}',

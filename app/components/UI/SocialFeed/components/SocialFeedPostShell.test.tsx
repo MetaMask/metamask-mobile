@@ -202,7 +202,11 @@ const renderShell = (
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
     /** Feed surface. Sets the Perps order source for that tab. */
-    location?: 'social_trending' | 'social_following' | 'social_live';
+    location?:
+      | 'social_trending'
+      | 'social_following'
+      | 'social_live'
+      | 'my_profile';
     /** Turns on `aiSocialCommentTranslation` for this render. */
     translationEnabled?: boolean;
   },
@@ -423,7 +427,7 @@ describe('SocialFeedPostShell', () => {
 
     expect(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-post-1`),
-    ).toHaveTextContent('7 min ago');
+    ).toHaveTextContent('7m ago');
   });
 
   it('omits the stat line for a trader with no stats', () => {
@@ -594,6 +598,46 @@ describe('SocialFeedPostShell', () => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
       expect(screen.queryByTestId(REACTION_EMOJI_BURST_TEST_ID)).toBeNull();
+    });
+  });
+
+  describe('reaction order', () => {
+    const chipId = (emotion: string) =>
+      `${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-${emotion}`;
+
+    it('does not restack chips after the reader reacts', async () => {
+      jest.mocked(reactToComment).mockResolvedValueOnce({
+        reactions: [
+          { emotion: '💀', count: 6 },
+          { emotion: '🔥', count: 5 },
+          { emotion: '❤️', count: 3 },
+          { emotion: '😂', count: 1 },
+          { emotion: '👀', count: 1 },
+        ],
+        userReaction: '💀',
+      });
+      renderShell(
+        basePost({
+          reactions: [
+            { emotion: '🔥', count: 5 },
+            { emotion: '❤️', count: 3 },
+            { emotion: '💀', count: 2 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+          ],
+          userReaction: null,
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipId('💀')));
+
+      await waitFor(() => {
+        expect(screen.getByTestId(chipId('💀'))).toHaveTextContent('💀6');
+      });
+      const order = screen
+        .getAllByTestId(new RegExp(`^${SocialFeedPostShellSelectorsIDs.CHIP}`))
+        .map((chip) => chip.props.testID);
+      expect(order).toStrictEqual(['🔥', '❤️', '💀', '😂', '👀'].map(chipId));
     });
   });
 
@@ -845,6 +889,31 @@ describe('SocialFeedPostShell', () => {
           }),
         );
       });
+    });
+
+    it('opens a profile perps order with the trader feed source, not the spot handler', async () => {
+      const onCopyTrade = jest.fn();
+      renderShell(basePost(), { location: 'my_profile', onCopyTrade });
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.objectContaining({
+            screen: Routes.PERPS.ORDER_REDIRECT,
+            params: expect.objectContaining({
+              source: 'trader_feed',
+              useBottomSheet: true,
+              stayOnCurrentScreen: true,
+              copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+            }),
+          }),
+        );
+      });
+      expect(onCopyTrade).not.toHaveBeenCalled();
     });
 
     it('opens the perps order redirect as a bottom sheet for an open perp', async () => {

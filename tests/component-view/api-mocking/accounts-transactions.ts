@@ -18,6 +18,8 @@ import {
 
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const TRANSACTIONS_PATH = '/v5/multiaccount/transactions';
+const moneyTransactionsPath = (address: string): string =>
+  `/v1/accounts/${address}/transactions`;
 
 export interface MockAccountsApiTransaction {
   hash: string;
@@ -126,27 +128,64 @@ const buildTransactionsResponse = (
   unprocessedAccounts: [],
 });
 
-export function setupAccountsTransactionsApiMock(
-  transactions: MockAccountsApiTransaction[],
-): void {
+function mockAccountsApiGet(path: string, body: object): void {
   clearAllNockMocks();
   disableNetConnect();
 
-  const body = buildTransactionsResponse(transactions);
-
-  nock(ACCOUNTS_API_ORIGIN)
-    .persist()
-    .get(TRANSACTIONS_PATH)
-    .query(true)
-    .reply(200, body);
-
+  nock(ACCOUNTS_API_ORIGIN).persist().get(path).query(true).reply(200, body);
   // Same payload as nock. undici fetch is not always settled by the interceptor.
-  stubFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH, body);
+  stubFetchPath(ACCOUNTS_API_ORIGIN, path, body);
 }
 
-export function clearAccountsTransactionsApiMocks(): void {
+export function setupAccountsTransactionsApiMock(
+  transactions: MockAccountsApiTransaction[],
+): void {
+  mockAccountsApiGet(
+    TRANSACTIONS_PATH,
+    buildTransactionsResponse(transactions),
+  );
+}
+
+export interface MockMoneyActivityTransaction {
+  hash: string;
+  timestamp: string;
+  chainId: number;
+  blockNumber?: number;
+  from: string;
+  to: string;
+  isError?: boolean;
+  transactionType?: string;
+  methodId?: string;
+  valueTransfers?: {
+    from: string;
+    to: string;
+    amount: string;
+    decimal: number;
+    contractAddress: string;
+    symbol: string;
+  }[];
+}
+
+export function setupMoneyActivityApiMock(
+  address: string,
+  transactions: MockMoneyActivityTransaction[],
+): void {
+  mockAccountsApiGet(moneyTransactionsPath(address), {
+    data: transactions,
+    pageInfo: {
+      count: transactions.length,
+      hasNextPage: false,
+      cursor: undefined,
+    },
+  });
+}
+
+export function clearAccountsTransactionsApiMocks(address?: string): void {
   restoreFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH);
+  if (address) {
+    restoreFetchPath(ACCOUNTS_API_ORIGIN, moneyTransactionsPath(address));
+  }
   // Re-enable net connect so later suites in the same Jest worker are not left
-  // blocked by disableNetConnect from setup.
+  // blocked by disableNetConnect in setup.
   teardownNock();
 }

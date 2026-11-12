@@ -13,13 +13,11 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 const baseProps = {
-  isAuthenticated: true,
   isLoading: false,
   hasAlerts: false,
   hasSetupActions: false,
   supportEmail: 'support@example.com',
   onNavigateToCardTos: jest.fn(),
-  onLogout: jest.fn(),
 };
 
 describe('CardHomeFooter', () => {

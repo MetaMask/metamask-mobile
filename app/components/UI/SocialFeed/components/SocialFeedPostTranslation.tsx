@@ -7,11 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  type NativeSyntheticEvent,
-  type TextLayoutEventData,
-} from 'react-native';
+import { AccessibilityInfo, type TextLayoutEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -33,16 +29,13 @@ const FeedCommentBody = ({ text }: { text: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
 
-  const onMeasureLayout = useCallback(
-    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      const nextTruncated =
-        event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
-      setIsTruncated((current) =>
-        current === nextTruncated ? current : nextTruncated,
-      );
-    },
-    [],
-  );
+  const onMeasureLayout = useCallback((event: TextLayoutEvent) => {
+    const nextTruncated =
+      event.nativeEvent.lines.length > FEED_COMMENT_PREVIEW_LINES;
+    setIsTruncated((current) =>
+      current === nextTruncated ? current : nextTruncated,
+    );
+  }, []);
 
   const showToggle = isTruncated || isExpanded;
 
@@ -270,7 +263,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   };
 
   return (
-    <Box twClassName="mt-1">
+    <Box twClassName="mt-2">
       <FeedCommentBody
         key={`${post.id}:${visibleComment}`}
         text={visibleComment}

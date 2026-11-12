@@ -24,6 +24,10 @@ import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedInlineRow } from './SocialFeed.types';
 import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
+import {
+  addPendingPost,
+  resetPendingPosts,
+} from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
 } from './SocialFeedVirtualized';
@@ -41,12 +45,15 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
 
+let mockViewerProfileId: string | undefined;
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
   useSocialProfileId: () => ({
-    profileId: undefined,
+    profileId: mockViewerProfileId,
     isLoading: false,
   }),
 }));
+
+jest.mock('react-redux', () => ({ useSelector: jest.fn(() => true) }));
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -240,6 +247,8 @@ describe('SocialFeedVirtualized', () => {
     mockGetHardwareTier.mockReturnValue(null);
     mockUseSocialLivePrices.mockReturnValue(null);
     mockIsEntryHidden.mockReturnValue(false);
+    mockViewerProfileId = undefined;
+    resetPendingPosts();
   });
 
   afterEach(() => {
@@ -308,6 +317,23 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.queryByText('one')).toBeNull();
     expect(screen.getByText('two')).toBeOnTheScreen();
+  });
+
+  it('reorders the shown posts with comparePosts, ties keeping the feed order', () => {
+    const posts = [post('one'), post('two'), post('three')];
+    mockUseSocialFeed.mockReturnValue(feedState({ posts }));
+    const rank: Record<string, number> = { one: 1, two: 0, three: 1 };
+
+    renderFeed({
+      comparePosts: (left, right) => rank[left.id] - rank[right.id],
+    });
+
+    expect(
+      screen
+        .getAllByText(/^(one|two|three)$/u)
+        .map((node) => node.props.children),
+    ).toEqual(['two', 'one', 'three']);
+    expect(posts.map(({ id }) => id)).toEqual(['one', 'two', 'three']);
   });
 
   it('passes the realtime, pause, and filter options to the feed', () => {
@@ -458,6 +484,85 @@ describe('SocialFeedVirtualized', () => {
     });
 
     expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  describe('enabled', () => {
+    it('fetches by default', () => {
+      renderFeed();
+
+      expect(lastFeedOptions()?.enabled).toBe(true);
+    });
+
+    it('stops fetching when the host turns the feed off', () => {
+      renderFeed({ enabled: false });
+
+      expect(lastFeedOptions()?.enabled).toBe(false);
+    });
+
+    it('shows no rows, placeholder, or footer while off', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({
+          posts: [post('p1'), post('p2')],
+          error: 'boom',
+          dataUpdatedAt: undefined,
+        }),
+      );
+
+      renderFeed({ enabled: false });
+
+      expect(screen.queryByText('p1')).toBeNull();
+      expect(screen.queryByText('p2')).toBeNull();
+      expect(screen.queryByTestId(SOCIAL_FEED_RETRY_TEST_ID)).toBeNull();
+      expect(
+        screen.queryByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeNull();
+    });
+
+    it('does not load the next page while off', () => {
+      renderFeed({ enabled: false });
+
+      expect(getList().props.onEndReached).toBeUndefined();
+    });
+
+    it('still tells the host about a pull-to-refresh but skips the feed refetch', async () => {
+      const refresh = jest.fn(async () => undefined);
+      const onRefresh = jest.fn();
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ enabled: false, onRefresh });
+
+      await act(async () => {
+        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      });
+
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('shows the rows again when turned back on', () => {
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('p1')] }));
+      const { rerender } = renderFeed({ enabled: false });
+      expect(screen.queryByText('p1')).toBeNull();
+
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          enabled
+        />,
+      );
+
+      expect(screen.getByText('p1')).toBeOnTheScreen();
+    });
+  });
+
+  it('starts the pull-to-refresh spinner at the host offset', () => {
+    renderFeed({ refreshProgressViewOffset: 120 });
+
+    expect(
+      screen.UNSAFE_getByType(RefreshControl).props.progressViewOffset,
+    ).toBe(120);
   });
 
   it('refreshes through the refresh control', async () => {
@@ -695,6 +800,103 @@ describe('SocialFeedVirtualized', () => {
     expect(mockUseSocialFeed.mock.lastCall?.[0]).toEqual({
       scope: 'trending',
       assetIds,
+    });
+  });
+
+  describe('pending posts', () => {
+    const VIEWER = 'viewer-profile';
+    const pendingPost = () => ({
+      ...post('pending-comment-1'),
+      commentId: 'comment-1',
+      isPending: true,
+    });
+    const servedComment = () => ({
+      ...post('served-comment-1'),
+      commentId: 'comment-1',
+      realtimeEventId: 'event-1',
+    });
+
+    const arrangePendingPost = () => {
+      mockViewerProfileId = VIEWER;
+      addPendingPost({ ownerProfileId: VIEWER, post: pendingPost() });
+    };
+
+    it('pins the viewer’s pending post above the feed', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      expect(renderedRowTexts(/^(pending-comment-1|one)$/)).toEqual([
+        'pending-comment-1',
+        'one',
+      ]);
+    });
+
+    it('shows no pending post on a feed without a pending surface', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderFeed();
+
+      expect(screen.queryByText('pending-comment-1')).toBeNull();
+    });
+
+    it('swaps in the feed’s copy in place once it streams in', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+      const { rerender } = renderFeed({ pendingPostsSurface: 'trending' });
+
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), servedComment()] }),
+      );
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          pendingPostsSurface="trending"
+        />,
+      );
+
+      const [pinned] = getList().props.data;
+      expect(pinned.post).toEqual(
+        expect.objectContaining({
+          id: 'pending-comment-1',
+          commentId: 'comment-1',
+        }),
+      );
+      expect(pinned.post.isPending).toBeUndefined();
+      expect(pinned.post.realtimeEventId).toBeUndefined();
+      expect(screen.queryByText('served-comment-1')).toBeNull();
+    });
+
+    it('never refetches while waiting for the stream', () => {
+      jest.useFakeTimers();
+      arrangePendingPost();
+      const refresh = jest.fn(async () => undefined);
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      act(() => {
+        jest.advanceTimersByTime(60_000);
+      });
+
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('keeps the pending post through a refresh that does not return it', async () => {
+      arrangePendingPost();
+      const refresh = jest.fn(async () => undefined);
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      await act(async () => {
+        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      });
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('pending-comment-1')).toBeOnTheScreen();
     });
   });
 
