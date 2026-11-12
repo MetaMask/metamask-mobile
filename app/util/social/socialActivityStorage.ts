@@ -26,6 +26,9 @@ const SOCIAL_TRADE_SOURCES = new Set<string>([
   'profile_position',
   'leaderboard',
   'trader_feed',
+  'social_trending',
+  'social_following',
+  'social_live_trades',
   MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
   MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
 ]);

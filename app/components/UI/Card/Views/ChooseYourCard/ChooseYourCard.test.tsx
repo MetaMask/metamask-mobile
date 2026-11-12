@@ -16,6 +16,11 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -54,22 +59,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Virtual card for Apple Pay and Google Pay',
       'card.choose_your_card.virtual_card.feature_2':
         'Pay with crypto (USDC, USDT, WETH, and more)',
-      'card.choose_your_card.virtual_card.feature_3':
-        '1% USDC cashback on every purchase',
       'card.choose_your_card.metal_card.name': 'Metal Card',
       'card.choose_your_card.metal_card.price': '$199/year',
       'card.choose_your_card.metal_card.everything_in_virtual':
         'Everything in virtual, plus:',
       'card.choose_your_card.metal_card.feature_1':
         'Premium engraved metal card',
-      'card.choose_your_card.metal_card.feature_2':
-        '3% cashback on first $10,000/year',
       'card.choose_your_card.metal_card.feature_3':
         'No foreign transaction fees',
-      'card.choose_your_card.earn_up_to_badge':
-        'Earn up to $300 in cashback annually',
-      'card.choose_your_card.upgrade_to_metal_label':
-        'Or upgrade to Metal for 3x rewards',
+      'card.choose_your_card.upgrade_to_metal_label': 'Or upgrade to Metal',
     };
     return map[key] || key;
   },
@@ -120,6 +118,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: () => null,
     Box: ({
       children,
@@ -235,7 +237,7 @@ describe('ChooseYourCard', () => {
     });
 
     it('displays virtual card features by default', () => {
-      const { getByText } = render(<ChooseYourCard />);
+      const { getByText, queryByText } = render(<ChooseYourCard />);
 
       expect(
         getByText(strings('card.choose_your_card.virtual_card.feature_1')),
@@ -244,8 +246,11 @@ describe('ChooseYourCard', () => {
         getByText(strings('card.choose_your_card.virtual_card.feature_2')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('card.choose_your_card.virtual_card.feature_3')),
-      ).toBeOnTheScreen();
+        queryByText('1% mUSD back on every purchase'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByText('Earn up to $300 in mUSD back annually'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -356,6 +361,31 @@ describe('ChooseYourCard', () => {
           getByTestId(ChooseYourCardSelectors.CARD_NAME),
         ).toHaveTextContent(strings('card.choose_your_card.metal_card.name'));
       });
+    });
+
+    it('does not advertise cashback on the metal card', async () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <ChooseYourCard />,
+      );
+
+      fireEvent.press(
+        getByTestId(ChooseYourCardSelectors.UPGRADE_TO_METAL_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('card.choose_your_card.metal_card.feature_3')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByText('3% mUSD back on first $10,000/year'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByText('Earn up to $300 in mUSD back annually'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByText('Or upgrade to Metal for 3x rewards'),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides upgrade link after scrolling to metal card', async () => {

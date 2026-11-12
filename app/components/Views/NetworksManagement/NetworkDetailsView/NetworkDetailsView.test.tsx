@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import NetworkDetailsView from './NetworkDetailsView';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -36,6 +37,17 @@ jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
 }));
 
 const mockFormHook = jest.fn();
+jest.mock('../../../../util/networks/customNetworks', () => ({
+  ...jest.requireActual('../../../../util/networks/customNetworks'),
+  getFailoverUrlsForEndpoint: (
+    chainId: string | undefined,
+    rpcUrl: string | undefined,
+  ) =>
+    (chainId === '0x89' || chainId === '0x2a') && rpcUrl?.endsWith('.infura.io')
+      ? ['https://failover.example.com']
+      : [],
+}));
+
 jest.mock('./hooks/useNetworkForm', () => ({
   useNetworkForm: (...args: unknown[]) => mockFormHook(...args),
 }));
@@ -89,7 +101,6 @@ jest.mock(
 const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   form: {
     rpcUrl: undefined as string | undefined,
-    failoverRpcUrls: undefined as string[] | undefined,
     rpcName: undefined as string | undefined,
     rpcUrlForm: '',
     rpcNameForm: '',
@@ -371,7 +382,12 @@ describe('NetworkDetailsView', () => {
     });
 
     it('shows failover tag when failover RPC URLs exist and flag is enabled', () => {
-      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      // Enable every flag except glass headers, which would swap the header buttons.
+      jest
+        .requireMock('react-redux')
+        .useSelector.mockImplementation(
+          (selector: unknown) => selector !== selectGlassHeadersEnabled,
+        );
 
       mockFormHook.mockReturnValue(
         createMockFormHook({
@@ -379,12 +395,11 @@ describe('NetworkDetailsView', () => {
           nickname: 'Polygon',
           chainId: '0x89',
           ticker: 'MATIC',
-          rpcUrl: 'https://polygon-rpc.com',
+          rpcUrl: 'https://polygon-mainnet.infura.io',
           rpcName: 'Polygon RPC',
-          failoverRpcUrls: ['https://failover.polygon.com'],
           rpcUrls: [
             {
-              url: 'https://polygon-rpc.com',
+              url: 'https://polygon-mainnet.infura.io',
               name: 'Polygon RPC',
               type: 'custom',
             },
@@ -631,7 +646,12 @@ describe('NetworkDetailsView', () => {
 
   describe('failover RPC display in edit mode', () => {
     it('renders failover RPC URL as read-only field', () => {
-      jest.requireMock('react-redux').useSelector.mockReturnValue(true);
+      // Enable every flag except glass headers, which would swap the header buttons.
+      jest
+        .requireMock('react-redux')
+        .useSelector.mockImplementation(
+          (selector: unknown) => selector !== selectGlassHeadersEnabled,
+        );
       const { useRoute } = jest.requireMock('@react-navigation/native');
       useRoute.mockReturnValue({
         params: { network: 'https://rpc.example.com' },
@@ -643,11 +663,10 @@ describe('NetworkDetailsView', () => {
           nickname: 'TestNet',
           chainId: '0x2a',
           ticker: 'TST',
-          rpcUrl: 'https://rpc.example.com',
+          rpcUrl: 'https://rpc.infura.io',
           rpcName: 'RPC',
-          failoverRpcUrls: ['https://failover.example.com'],
           rpcUrls: [
-            { url: 'https://rpc.example.com', name: 'RPC', type: 'custom' },
+            { url: 'https://rpc.infura.io', name: 'RPC', type: 'custom' },
           ],
           blockExplorerUrl: 'https://scan.example.com',
           blockExplorerUrls: ['https://scan.example.com'],

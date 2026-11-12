@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -12,7 +12,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   IconName,
   ListItem,
   ListItemVariant,
@@ -24,6 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
@@ -42,8 +42,22 @@ import {
   VBA_SCREEN_PERFORMANCE_CONFIG,
   type VbaScreenContentState,
 } from './vbaScreenPerformance';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
+
+const logIdosJwksPrefetchError =
+  (step: 'fetchIdosEnclaveJwks' | 'fetchIdosRelayJwks') => (error: unknown) => {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'CreateVirtualBankAccount',
+        data: { step },
+      },
+    });
+  };
 
 const trackVendorTerms = (
   status: 'viewed' | 'accepted' | 'failed',
@@ -83,9 +97,12 @@ interface CreateVirtualBankAccountProps {
 const CreateVirtualBankAccount = ({
   onSuccess,
 }: CreateVirtualBankAccountProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const hasPrefetchedIdosJwksRef = useRef(false);
+  const hasEnsuredLocalUserSecretRef = useRef(false);
   const {
     disclaimers,
     isLoading,
@@ -95,7 +112,7 @@ const CreateVirtualBankAccount = ({
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
-  const { arrivalTimeframe } = useVbaArrivalTime();
+  const { arrivalTitle } = useVbaArrivalTime();
 
   let vendorTermsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
@@ -123,6 +140,55 @@ const CreateVirtualBankAccount = ({
   useEffect(() => {
     trackVendorTerms('viewed');
   }, []);
+
+  // Warm both idOS JWKS caches once the disclaimers request settles, so
+  // session creation finds the enclave and relay signing keys already cached.
+  // Each fetch runs on its own. A failure is logged, and session creation
+  // fetches any key that is still missing. The ref keeps a disclaimers retry
+  // from firing the pair again.
+  useEffect(() => {
+    if (isLoading || hasPrefetchedIdosJwksRef.current) {
+      return;
+    }
+
+    const kycService = Engine.context.KycService;
+    if (!kycService) {
+      return;
+    }
+
+    hasPrefetchedIdosJwksRef.current = true;
+    kycService
+      .fetchIdosEnclaveJwks()
+      .catch(logIdosJwksPrefetchError('fetchIdosEnclaveJwks'));
+    kycService
+      .fetchIdosRelayJwks()
+      .catch(logIdosJwksPrefetchError('fetchIdosRelayJwks'));
+  }, [isLoading]);
+
+  // Pre-creates and persists the UKYC `local_user_secret` once the initial
+  // disclaimers request settles, so the later `startSession` call does not
+  // pay for secret generation and the Encrypted User Storage write. Waiting
+  // for that request to settle (success or failure) keeps this screen's
+  // initial network burst limited to the disclaimers fetch. A failure here
+  // does not block onboarding: `startSession` creates the secret if it is
+  // still missing. Guarded so a disclaimers retry cannot re-fire this call.
+  useEffect(() => {
+    if (isLoading || hasEnsuredLocalUserSecretRef.current) {
+      return;
+    }
+    hasEnsuredLocalUserSecretRef.current = true;
+    Engine.context.KycController.ensureLocalUserSecret().catch(
+      (error: unknown) => {
+        Logger.error(error as Error, {
+          tags: { feature: 'vba-onboarding' },
+          context: {
+            name: 'CreateVirtualBankAccount',
+            data: { step: 'ensureLocalUserSecret' },
+          },
+        });
+      },
+    );
+  }, [isLoading]);
 
   // Only the load and empty-catalog failures leave the screen without usable
   // terms. A save failure keeps them on screen and is reported from the
@@ -174,7 +240,9 @@ const CreateVirtualBankAccount = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON,
@@ -207,16 +275,7 @@ const CreateVirtualBankAccount = ({
           />
           <FeatureRow
             icon={IconName.Clock}
-            title={
-              arrivalTimeframe
-                ? strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-                    { timeframe: arrivalTimeframe },
-                  )
-                : strings(
-                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
-                  )
-            }
+            title={arrivalTitle}
             description={strings(
               'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
             )}

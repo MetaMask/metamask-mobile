@@ -1,5 +1,4 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet, {
@@ -19,6 +18,9 @@ import Cell, {
 import { strings } from '../../../../../../locales/i18n';
 import { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { CaipChainId } from '@metamask/utils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export enum NetworkOption {
   AllNetworks = 'all',
@@ -45,6 +47,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   networks,
   hideAllNetworks = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   // Default to "All networks" if no selection
@@ -116,7 +119,9 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('trending.networks')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

@@ -27,9 +27,8 @@ const NextVenueProbe = () => (
   <Text testID="next-venue">{useNextVenueId()}</Text>
 );
 
-const renderSwitch = (props: { pinnedVenue?: 'polymarket' } = {}) => (
+const renderSwitch = () => (
   <PredictImplementationSwitch
-    {...props}
     legacy={<Branch name="legacy" />}
     next={<Branch name="next" />}
     resolving={<Branch name="resolving" />}
@@ -129,31 +128,6 @@ describe('PredictImplementationSwitch', () => {
     const view = render(renderSwitch());
 
     givenActiveVenue({ status: 'ready', venue: 'kalshi', source: 'rollout' });
-    view.rerender(renderSwitch());
-
-    expect(mockMount).toHaveBeenCalledTimes(1);
-    expect(mockUnmount).not.toHaveBeenCalled();
-  });
-
-  it.each<ActiveVenueResolution>([
-    { status: 'resolving' },
-    { status: 'ready', venue: 'kalshi', source: 'rollout' },
-  ])('serves a pinned Venue regardless of the Active Venue', (active) => {
-    givenActiveVenue(active);
-
-    render(renderSwitch({ pinnedVenue: 'polymarket' }));
-
-    expect(mockMount.mock.calls).toEqual([['legacy']]);
-  });
-
-  it('keeps the legacy branch mounted when pinning ends on the same implementation', () => {
-    givenActiveVenue({
-      status: 'ready',
-      venue: 'polymarket',
-      source: 'rollout',
-    });
-    const view = render(renderSwitch({ pinnedVenue: 'polymarket' }));
-
     view.rerender(renderSwitch());
 
     expect(mockMount).toHaveBeenCalledTimes(1);

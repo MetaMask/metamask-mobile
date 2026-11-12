@@ -4,6 +4,7 @@ import {
   blockProfile,
   fetchBlockedCommentIds,
   fetchBlockedProfileIds,
+  fetchModerationStatus,
 } from './moderationApi';
 
 jest.mock('../../../core/Engine', () => ({
@@ -31,6 +32,16 @@ const blockedContent = (id: string, type: 'comment' | 'reply') => ({
 describe('moderationApi', () => {
   beforeEach(() => {
     mockCall.mockReset();
+  });
+
+  it('reads the viewer’s moderation status', async () => {
+    const status = { banned: true, bannedAt: 1, reason: 'Spam' };
+    mockCall.mockResolvedValue(status);
+
+    await expect(fetchModerationStatus()).resolves.toBe(status);
+    expect(mockCall).toHaveBeenCalledWith(
+      'SocialService:fetchModerationStatus',
+    );
   });
 
   it('reads every page of blocked traders', async () => {
@@ -86,6 +97,17 @@ describe('moderationApi', () => {
 
     expect(mockCall).toHaveBeenCalledWith('SocialService:block', {
       profileId: 'trader-1',
+    });
+  });
+
+  it('reports a trader by storing the reason on the block', async () => {
+    mockCall.mockResolvedValue(undefined);
+
+    await blockProfile('trader-1', 'privacy');
+
+    expect(mockCall).toHaveBeenCalledWith('SocialService:block', {
+      profileId: 'trader-1',
+      reason: 'privacy',
     });
   });
 

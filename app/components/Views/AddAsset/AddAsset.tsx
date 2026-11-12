@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import { IconName } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
+import { ImportTokenViewSelectorsIDs } from './ImportAssetView.testIds';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -18,6 +21,8 @@ import NetworkListBottomSheet from './components/NetworkListBottomSheet/NetworkL
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TokenView from './Views/TokenView/TokenView';
 import NFTView from './Views/NFTView/NFTView';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface AddAssetParams {
   assetType: 'token' | 'collectible';
@@ -27,6 +32,7 @@ export interface AddAssetParams {
 }
 
 const AddAsset = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
 
@@ -45,7 +51,7 @@ const AddAsset = () => {
   );
   const [selectedNetwork, setSelectedNetwork] = useState<
     SupportedCaipChainId | Hex | null
-  >(enabledChainId as Hex);
+  >(assetType === 'token' ? null : (enabledChainId as Hex));
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -56,18 +62,32 @@ const AddAsset = () => {
       testID={`add-${assetType}-screen`}
     >
       {/* Header */}
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings(
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}
         onBack={() => navigation.goBack()}
+        endButtonIconProps={
+          assetType === 'token'
+            ? [
+                {
+                  iconName: IconName.Add,
+                  onPress: () =>
+                    navigation.navigate(Routes.WALLET.ADD_CUSTOM_TOKEN),
+                  accessibilityLabel: strings('add_asset.custom_token'),
+                  testID: ImportTokenViewSelectorsIDs.CUSTOM_TOKEN_BUTTON,
+                },
+              ]
+            : undefined
+        }
       />
 
       {assetType === 'token' && (
         <TokenView
           openNetworkSelector={() => setOpenNetworkSelector(true)}
           selectedNetwork={selectedNetwork}
-          networkConfigurations={networkConfigurations}
         />
       )}
 
@@ -87,6 +107,11 @@ const AddAsset = () => {
           setOpenNetworkSelector={setOpenNetworkSelector}
           sheetRef={sheetRef}
           displayEvmNetworksOnly={assetType === 'collectible'}
+          hideTestnets={assetType === 'token'}
+          onSelectAll={
+            assetType === 'token' ? () => setSelectedNetwork(null) : undefined
+          }
+          allNetworksLabel={strings('trending.all_networks')}
         />
       ) : null}
     </SafeAreaView>

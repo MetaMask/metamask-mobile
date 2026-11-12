@@ -5,12 +5,15 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { reportSocialServiceFailure } from '../../../../util/social/socialServiceTelemetry';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import {
   blockComment,
   blockProfile,
   invalidateBlockLists,
 } from '../moderationApi';
+import { SocialEntryReportReason } from '../reportReasons';
+import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
 
 /** The post an action is about. */
 export interface SocialModerationTarget {
@@ -49,12 +52,14 @@ export interface SocialModerationActions {
 /**
  * The moderation actions behind the post options sheet. Each one asks for
  * social profile onboarding first, hides the post at once with a toast, and
- * sends `SocialService:block` in the background. On failure the post comes
- * back with an error toast.
+ * sends `SocialService:block` in the background. Self-targeting block and
+ * report actions are ignored before their optimistic updates. On failure the
+ * post comes back with an error toast.
  */
 export const useSocialModerationActions = (): SocialModerationActions => {
   const { toastRef } = useContext(ToastContext);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const { profileId, isLoading: isViewerProfileLoading } = useSocialProfileId();
 
   const showToast = useCallback(
     (label: string) => {
@@ -123,6 +128,13 @@ export const useSocialModerationActions = (): SocialModerationActions => {
 
   const blockUser = useCallback<SocialModerationActions['blockUser']>(
     (target, update) => {
+      if (
+        isViewerProfileLoading ||
+        isViewerSocialAuthor(target.authorId, profileId)
+      ) {
+        return;
+      }
+
       run(
         update,
         strings('social_leaderboard.entry_options.user_blocked_confirmation', {
@@ -132,13 +144,18 @@ export const useSocialModerationActions = (): SocialModerationActions => {
         () => blockProfile(target.authorId),
       );
     },
-    [run],
+    [isViewerProfileLoading, profileId, run],
   );
 
   const report = useCallback<SocialModerationActions['report']>(
     (target, reason, update) => {
       const { commentId } = target;
-      if (!commentId) {
+      if (
+        !commentId ||
+        reason === SocialEntryReportReason.Impersonation ||
+        isViewerProfileLoading ||
+        isViewerSocialAuthor(target.authorId, profileId)
+      ) {
         return;
       }
       run(
@@ -148,7 +165,7 @@ export const useSocialModerationActions = (): SocialModerationActions => {
         () => blockComment(commentId, reason),
       );
     },
-    [run],
+    [isViewerProfileLoading, profileId, run],
   );
 
   return { hidePost, blockUser, report };

@@ -1,49 +1,6 @@
+import { PerpsMode } from '@metamask/perps-controller';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnalytics.types';
-
-/**
- * TAT-1937: Long/Short Button Color Test
- *
- * Tests the impact of button colors on trading behavior:
- * - Control (default/fallback): White buttons for both, reduces risk anxiety and promotes balanced participation
- * - Colors: Traditional green (long) / red (short), familiar and intuitive
- *
- * `control` is the required fallback key for `useABTest` (see `app/hooks/useABTest.ts`),
- * so it is always what's shown when the flag is absent, invalid, or the test is inactive —
- * white is therefore the default experience, and `colors` is the active-experiment variant.
- *
- * Migrated to the canonical A/B testing standard (see `docs/ab-testing.md`) under TAT-3308.
- *
- * LaunchDarkly flag setup: version-gated to app version 8.3.0+ using the
- * `versions` + `thresholdVersion: 2` composition (resolved entirely by
- * RemoteFeatureFlagController — no app-side version check needed). See
- * `docs/perps/perps-feature-flags.md` for the exact flag JSON.
- */
-export const PERPS_BUTTON_COLOR_AB_TEST_KEY = 'perpsTAT1937AbtestButtonColor';
-
-export enum ButtonColorVariant {
-  Control = 'control',
-  Colors = 'colors',
-}
-
-export interface ButtonColorVariantConfig {
-  long: string;
-  short: string;
-}
-
-export const BUTTON_COLOR_VARIANTS: Record<
-  ButtonColorVariant,
-  ButtonColorVariantConfig
-> = {
-  [ButtonColorVariant.Control]: { long: 'white', short: 'white' },
-  [ButtonColorVariant.Colors]: { long: 'green', short: 'red' },
-};
-
-export const BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
-  flagKey: PERPS_BUTTON_COLOR_AB_TEST_KEY,
-  validVariants: Object.values(ButtonColorVariant),
-  eventNames: [EVENT_NAME.PERPS_SCREEN_VIEWED, EVENT_NAME.PERPS_UI_INTERACTION],
-};
 
 /**
  * Shared Perps screen vs bottom-sheet experiment.
@@ -101,6 +58,59 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
       EVENT_NAME.PERPS_TRADE_TRANSACTION,
     ],
   };
+
+/**
+ * Pro-mode Perps entry points open the market list.
+ *
+ * Eligible users are already in Pro mode, or are switching into Pro from the
+ * Perps Home lite pill. Lite and casual callers still resolve the assignment,
+ * but they skip Experiment Viewed and keep today's home target.
+ * Missing or invalid flags fall back to `control` via `useABTest`.
+ *
+ * LaunchDarkly JSON threshold array (50/50 at launch; dark-launch at 100%
+ * control first). Team token is `perps`, matching the other Perps experiments.
+ */
+export const PERPS_HEADER_AB_TEST_KEY =
+  'perpsTAT4021AbtestPerpsHeaderMarketList';
+
+export enum PerpsHeaderNavVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export interface PerpsHeaderNavVariantConfig {
+  destination: 'lastViewedMarket' | 'marketList';
+}
+
+export const PERPS_HEADER_NAV_VARIANTS: Record<
+  PerpsHeaderNavVariant,
+  PerpsHeaderNavVariantConfig
+> = {
+  [PerpsHeaderNavVariant.Control]: { destination: 'lastViewedMarket' },
+  [PerpsHeaderNavVariant.Treatment]: { destination: 'marketList' },
+};
+
+export const PERPS_HEADER_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Header Market List Redirect',
+  variationNames: {
+    control: 'Deep-link to market details',
+    treatment: 'Open market list',
+  },
+} as const;
+
+export const PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping = {
+  flagKey: PERPS_HEADER_AB_TEST_KEY,
+  validVariants: Object.values(PerpsHeaderNavVariant),
+  eventNames: [
+    EVENT_NAME.PERPS_UI_INTERACTION,
+    EVENT_NAME.PERPS_SCREEN_VIEWED,
+    EVENT_NAME.PERPS_TRADE_TRANSACTION,
+  ],
+  // Lite/casual Perps events carry perps_mode: 'lite' and stay unassigned.
+  injectWhenPropertiesMatch: {
+    perps_mode: PerpsMode.Pro,
+  },
+};
 
 /**
  * TAT-3793: Perps home Explore table.

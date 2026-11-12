@@ -45,6 +45,7 @@ source "$DEVICE_TARGET_LIB"
 GITHUB_REPO="$(resolve_github_repo)"
 BRANCH="main"
 RUN_ID=""
+MATCH_REF=""
 UNINSTALL=false
 SKIP_DOWNLOAD=false
 SKIP_INSTALL=false
@@ -70,6 +71,15 @@ while [[ $# -gt 0 ]]; do
       RUN_ID="$2"
       shift 2
       ;;
+    --match-checkout)
+      if [[ -n "${2:-}" && "${2}" != --* ]]; then
+        MATCH_REF="$2"
+        shift 2
+      else
+        MATCH_REF="HEAD"
+        shift
+      fi
+      ;;
     --uninstall)
       UNINSTALL=true
       shift
@@ -88,9 +98,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
+      echo "Usage: $0 [--branch main] [--run RUN_ID | --match-checkout [REF]] [--skip-download] [--force-download] [--skipInstall] [--uninstall]"
       echo "Targets ADB_SERIAL or ANDROID_DEVICE from .js.env; falls back to first connected device."
       echo "  --force-download  Re-download even when the local Actions artifact digest matches."
+      echo "  --match-checkout [REF]  Use the newest build whose commit is in REF's history (default HEAD) instead of the latest."
       exit 1
       ;;
   esac
@@ -104,7 +115,7 @@ download_latest_app() {
 
   local resolved_run_id
   local remote_digest
-  resolved_run_id="$(resolve_expo_dev_run "$ANDROID_APK_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
+  resolved_run_id="$(resolve_expo_dev_run "$ANDROID_APK_ARTIFACT_NAME" "$BRANCH" "$RUN_ID" "$MATCH_REF")"
   echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
 
   if should_skip_artifact_download "$resolved_run_id" "$ANDROID_APK_ARTIFACT_NAME" "$STABLE_APK_PATH" "$FORCE_DOWNLOAD"; then

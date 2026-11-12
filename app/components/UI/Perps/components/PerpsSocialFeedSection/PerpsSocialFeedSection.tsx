@@ -13,7 +13,7 @@ import {
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import type { SocialShellTab } from '../../../../Views/SocialLeaderboard/shell/types';
 import {
   SocialLeaderboard,
@@ -57,7 +57,7 @@ const PerpsSocialFeedSectionInner: React.FC<
       : (selectedTab ?? defaultTab);
 
   const handleOpenSocial = useCallback(() => {
-    pushSocialLeaderboard(navigation.navigate, {
+    navigateToSocialLeaderboard(navigation.navigate, {
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       initialTab: SOCIAL_TAB_BY_FEED_TAB[tab],
     });

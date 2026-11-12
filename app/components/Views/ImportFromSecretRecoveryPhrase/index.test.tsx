@@ -39,6 +39,8 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { SRP_LENGTHS } from './constant';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockQrSyncResetState = jest.fn();
@@ -481,6 +483,83 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
         { timeout: 3000 },
       );
+    });
+
+    it('shows length error toast when seed phrase length is not supported', async () => {
+      const { getByPlaceholderText, getByRole } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // Enter a valid-length phrase so Continue enables, then force the length check to fail.
+      fireEvent.changeText(
+        input,
+        'say devote wasp video cool lunch brief add fever uncover novel offer',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      const includesSpy = jest
+        .spyOn(SRP_LENGTHS, 'includes')
+        .mockReturnValue(false);
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('import_from_seed.seed_phrase_length_error'),
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
+
+      includesSpy.mockRestore();
+    });
+
+    it('shows invalid seed phrase error when Continue is pressed with a checksum-invalid mnemonic', async () => {
+      const { getByPlaceholderText, getByTestId, getByText, getByRole } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
+        );
+
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+      // 12 BIP39 words with an invalid checksum.
+      fireEvent.changeText(
+        input,
+        'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon',
+      );
+
+      const continueButton = getByRole('button', { name: 'Continue' });
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.invalid_seed_phrase')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID),
+      ).toBeOnTheScreen();
     });
 
     it('keeps continue enabled after entering a 24-word SRP whose first 12 words are also valid', async () => {
@@ -1379,43 +1458,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       },
     };
 
-    it('opens the import menu when the scan button is pressed and add-device sync is enabled', () => {
-      const stateWithAddDeviceSync = {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                addDeviceSyncEnabled: true,
-              },
-            },
-          },
-        },
-      };
-
-      const { getByTestId, getByText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: stateWithAddDeviceSync },
-      );
-
-      fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
-      );
-
-      expect(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_OPTIONS_SHEET_ID),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('import_from_seed.import_from_srp_qr')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('import_from_seed.import_from_extension_menu')),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to AddDeviceToWallet when import-from-extension is selected from the scan menu', () => {
+    it('opens the QR scanner when the scan button is pressed and add-device sync is enabled', () => {
       const mockNavigate = jest.fn();
       const Stack = createNativeStackNavigator();
       const stateWithAddDeviceSync = {
@@ -1432,7 +1475,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
       };
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, queryByText } = renderWithProvider(
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name="TestScreen">
@@ -1451,55 +1494,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent.press(
         getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
-      );
-      fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_OPTION_ID),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-      );
-    });
-
-    it('navigates to the QR scanner when import from SRP QR is selected from the scan menu', () => {
-      const mockNavigate = jest.fn();
-      const Stack = createNativeStackNavigator();
-      const stateWithAddDeviceSync = {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                addDeviceSyncEnabled: true,
-              },
-            },
-          },
-        },
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen name="TestScreen">
-              {({ navigation }) => {
-                jest
-                  .spyOn(navigation, 'navigate')
-                  .mockImplementation(mockNavigate);
-                return <ImportFromSecretRecoveryPhrase />;
-              }}
-            </Stack.Screen>
-          </Stack.Navigator>
-        </NavigationContainer>,
-        { state: stateWithAddDeviceSync },
-        false,
-      );
-
-      fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID),
-      );
-      fireEvent.press(
-        getByTestId(ImportFromSeedSelectorsIDs.IMPORT_FROM_SRP_QR_OPTION_ID),
       );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
@@ -1508,6 +1502,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         onScanSuccess: expect.any(Function),
         onScanError: expect.any(Function),
       });
+      expect(
+        queryByText(strings('import_from_seed.import_menu_title')),
+      ).toBeNull();
+      expect(
+        queryByText(strings('import_from_seed.import_from_extension_menu')),
+      ).toBeNull();
     });
 
     it('prefills the seed phrase and opens the password step for QR sync imports', async () => {

@@ -135,6 +135,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsTransactionHistory: false,
           supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
+          reportsVerificationStatus: true,
         }),
       },
       PhishingController: {
@@ -289,12 +290,22 @@ jest.mock('../../app/core/Engine', () => {
       },
       KycService: {
         getGeoCountry: jest.fn().mockResolvedValue('BR'),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        fetchIdosEnclaveJwks: jest.fn().mockResolvedValue({ keys: [] }),
+        fetchIdosRelayJwks: jest.fn().mockResolvedValue({ keys: [] }),
       },
       KycController: {
         readSessionStatus: jest.fn().mockReturnValue(null),
+        // Reinstall recovery asks for the latest vendor session before hydrate.
+        // Null is a first-time user; tests that resume a session override this.
+        getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
@@ -384,6 +395,7 @@ jest.mock('../../app/core/Engine', () => {
           transactions: [],
         },
         addTransaction: jest.fn().mockResolvedValue({}),
+        addTransactionBatch: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
         updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),

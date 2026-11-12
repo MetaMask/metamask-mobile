@@ -41,6 +41,11 @@ export interface TopTrader {
   followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 /**
@@ -56,6 +61,11 @@ export interface TraderRowMetric {
   label: string;
   /** Renders the value in success green rather than error red. */
   isPositive: boolean;
+  /**
+   * Renders the value in the default text color, ignoring `isPositive`. For a
+   * holding such as a position size, which is not a gain or a loss.
+   */
+  isNeutral?: boolean;
 }
 
 /**
@@ -89,8 +99,9 @@ export interface TraderRowProps {
    */
   highlighted?: boolean;
   /**
-   * Social V1 only: leave the position column blank when the viewer's rank
-   * is unknown. The column keeps its width. Ignored by the legacy row.
+   * Social V1 only: the viewer's rank is unknown, so the position column shows
+   * "-" instead of a number. The column keeps its width. Ignored by the legacy
+   * row.
    */
   hideRank?: boolean;
 }

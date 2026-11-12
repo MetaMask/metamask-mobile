@@ -33,6 +33,11 @@ const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
 const mockFeatureGate = jest.fn((_props: unknown) => null);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
@@ -630,6 +635,33 @@ describe('ManagePriceAlertsView', () => {
       expect(mockReplace).not.toHaveBeenCalled();
     });
 
+    it('restores the delete button when the delete request rejects', async () => {
+      mockDeleteAlert.mockRejectedValueOnce(new Error('network'));
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Failed to delete price alert. Try again.',
+          severity: ToastSeverity.Danger,
+        }),
+      );
+    });
+
     it('restores the row and delete button when deleteAlert returns a non-ok response', async () => {
       mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
       mockFetchAlerts
@@ -771,6 +803,39 @@ describe('ManagePriceAlertsView', () => {
           ),
         ).toHaveProp('disabled', false);
       });
+    });
+
+    it('re-enables the switch when the update request rejects', async () => {
+      mockUpdateAlert.mockRejectedValueOnce(new Error('network'));
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+        'valueChange',
+        false,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+          ),
+        ).toHaveProp('disabled', false);
+      });
+      expect(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_TOGGLE_PREFIX}-alert-1`,
+        ),
+      ).toHaveProp('value', true);
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Failed to update price alert. Try again.',
+          severity: ToastSeverity.Danger,
+        }),
+      );
     });
 
     it('re-enables the switch after a failed update', async () => {

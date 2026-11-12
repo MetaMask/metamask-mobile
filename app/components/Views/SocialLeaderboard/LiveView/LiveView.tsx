@@ -60,9 +60,16 @@ const LiveView: React.FC<LiveViewProps> = ({
   appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
-  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+  const { onAuthorPress, onPositionPress } =
+    useSocialFeedPostNavigation('social_live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive) {
+      setHasBeenActive(true);
+    }
+  }, [isActive]);
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
 
   useImperativeHandle(
@@ -142,6 +149,7 @@ const LiveView: React.FC<LiveViewProps> = ({
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
         scope="all"
+        enabled={hasBeenActive}
         location="social_live"
         analyticsSource={source}
         isActive={isActive}
@@ -156,6 +164,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        requireSocialProfile
         testID={LiveViewSelectorsIDs.CONTAINER}
         scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
       />

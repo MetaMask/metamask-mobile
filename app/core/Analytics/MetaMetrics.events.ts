@@ -35,10 +35,8 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
-  ///: END:ONLY_INCLUDE_IF
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -307,6 +305,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  TOKEN_LIST_FILTERING_INTERACTED = 'Token List Filtering Interacted',
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
@@ -721,6 +720,8 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
   CARD_LINK_SEEDED = 'Card Link Seeded',
+  CARD_LINK_ROUTING_DISAGREEMENT = 'Card Link Routing Disagreement',
+  CARD_LINK_MISSED_AT_LOGIN = 'Card Link Missed At Login',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -729,8 +730,6 @@ enum EVENT_NAME {
   REWARDS_BENEFIT_BUTTON_CLICKED = 'Rewards Benefit Button Clicked',
   REWARDS_BENEFIT_DETAIL_VIEWED = 'Rewards Benefit Detail Viewed',
   REWARDS_DASHBOARD_VIEWED = 'Rewards Dashboard Viewed',
-  REWARDS_ONBOARDING_STARTED = 'Rewards Onboarding Started',
-  REWARDS_ONBOARDING_COMPLETED = 'Rewards Onboarding Completed',
   REWARDS_OPT_IN_STARTED = 'Rewards Opt In Started',
   REWARDS_OPT_IN_COMPLETED = 'Rewards Opt In Completed',
   REWARDS_OPT_IN_FAILED = 'Rewards Opt In Failed',
@@ -832,6 +831,14 @@ enum EVENT_NAME {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
   KYC_STATUS_UPDATED = 'KYC Status Updated',
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED = 'MFA Flow Status Updated',
+  MFA_STEP_VIEWED = 'MFA Step Viewed',
+  MFA_ERROR_VIEWED = 'MFA Error Viewed',
+  MFA_ERROR_CTA_CLICKED = 'MFA Error CTA Clicked',
+  MFA_METHOD_SELECTED = 'MFA Method Selected',
+  MFA_CODE_RESENT = 'MFA Code Resent',
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
@@ -955,10 +962,8 @@ const events = {
   APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
-  ///: END:ONLY_INCLUDE_IF
 
   // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
@@ -1291,6 +1296,9 @@ const events = {
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
+  TOKEN_LIST_FILTERING_INTERACTED: generateOpt(
+    EVENT_NAME.TOKEN_LIST_FILTERING_INTERACTED,
+  ),
 
   // ONRAMP
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
@@ -2088,6 +2096,10 @@ const events = {
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
   CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
+  CARD_LINK_ROUTING_DISAGREEMENT: generateOpt(
+    EVENT_NAME.CARD_LINK_ROUTING_DISAGREEMENT,
+  ),
+  CARD_LINK_MISSED_AT_LOGIN: generateOpt(EVENT_NAME.CARD_LINK_MISSED_AT_LOGIN),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2108,12 +2120,6 @@ const events = {
     EVENT_NAME.REWARDS_BENEFIT_DETAIL_VIEWED,
   ),
   REWARDS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_DASHBOARD_VIEWED),
-  REWARDS_ONBOARDING_STARTED: generateOpt(
-    EVENT_NAME.REWARDS_ONBOARDING_STARTED,
-  ),
-  REWARDS_ONBOARDING_COMPLETED: generateOpt(
-    EVENT_NAME.REWARDS_ONBOARDING_COMPLETED,
-  ),
   REWARDS_OPT_IN_STARTED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_STARTED),
   REWARDS_OPT_IN_COMPLETED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_COMPLETED),
   REWARDS_OPT_IN_FAILED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_FAILED),
@@ -2256,6 +2262,14 @@ const events = {
   // KYC (virtual bank account onboarding)
   KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
   KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED: generateOpt(EVENT_NAME.MFA_FLOW_STATUS_UPDATED),
+  MFA_STEP_VIEWED: generateOpt(EVENT_NAME.MFA_STEP_VIEWED),
+  MFA_ERROR_VIEWED: generateOpt(EVENT_NAME.MFA_ERROR_VIEWED),
+  MFA_ERROR_CTA_CLICKED: generateOpt(EVENT_NAME.MFA_ERROR_CTA_CLICKED),
+  MFA_METHOD_SELECTED: generateOpt(EVENT_NAME.MFA_METHOD_SELECTED),
+  MFA_CODE_RESENT: generateOpt(EVENT_NAME.MFA_CODE_RESENT),
 
   // Money VBA and KYC onboarding
   MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(

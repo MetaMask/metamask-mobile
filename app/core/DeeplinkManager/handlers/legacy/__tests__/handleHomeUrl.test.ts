@@ -1,12 +1,10 @@
 import NavigationService from '../../../../NavigationService';
-import { setContentPreviewToken } from '../../../../../actions/notification/helpers';
 import { navigateToHomeUrl } from '../handleHomeUrl';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import { resolveDeeplinkNavigatedTarget } from '../../../../Performance/DeeplinkPerformance';
 
 jest.mock('../../../../NavigationService');
-jest.mock('../../../../../actions/notification/helpers');
 jest.mock('../../../../Performance/DeeplinkPerformance');
 
 describe('navigateToHomeUrl', () => {
@@ -28,11 +26,8 @@ describe('navigateToHomeUrl', () => {
       setParams: mockSetParams,
     } as unknown as typeof NavigationService.navigation;
 
-    const mockSetContentPreviewToken = jest.mocked(setContentPreviewToken);
-
     return {
       mockNavigate,
-      mockSetContentPreviewToken,
       mockSetParams,
     };
   };
@@ -41,15 +36,6 @@ describe('navigateToHomeUrl', () => {
     const mocks = arrangeMocks();
     navigateToHomeUrl({ homePath: 'home' });
 
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith(null);
-    expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-  });
-
-  it('sends previewToken and navigates to home screen', () => {
-    const mocks = arrangeMocks();
-    navigateToHomeUrl({ homePath: 'home?previewToken=ABC' });
-
-    expect(mocks.mockSetContentPreviewToken).toHaveBeenCalledWith('ABC');
     expect(mocks.mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 

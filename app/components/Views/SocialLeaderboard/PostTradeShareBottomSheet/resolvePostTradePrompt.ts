@@ -1,7 +1,12 @@
 import type { PostTradePromptProduct } from '../../../../util/social/postTradePromptStorage';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 /** Share sheets shown per product on the linked account before the toast takes over. */
 export const POST_TRADE_SHARE_SHEET_LIMIT = 3;
+
+/** Returns whether a spot trade can be offered for post-trade sharing. */
+export const isSpotPostTradeShareEligible = (amountUsd: number): boolean =>
+  Number.isFinite(amountUsd) && amountUsd >= MIN_POST_TRADE_SHARE_USD;
 
 export interface PostTradeShareSheetCountKey {
   /** Linked EVM address the count is stored under. */
@@ -20,8 +25,6 @@ export interface ResolvePostTradePromptInput {
   isSocialV1Enabled: boolean;
   /** Social profile wallet. Empty means the user has no social profile. */
   linkedEvmAddress: string | null | undefined;
-  /** Existing social profile has disabled trading activity sharing. */
-  isProfileTradingActivityPrivate: boolean;
   isLinkedAccountInSelectedGroup: boolean;
   shareSheetCount: number;
   hasSeenClaimSheet: boolean;
@@ -36,7 +39,6 @@ export const resolvePostTradePrompt = ({
   product,
   isSocialV1Enabled,
   linkedEvmAddress,
-  isProfileTradingActivityPrivate,
   isLinkedAccountInSelectedGroup,
   shareSheetCount,
   hasSeenClaimSheet,
@@ -47,9 +49,6 @@ export const resolvePostTradePrompt = ({
   const address = linkedEvmAddress?.trim();
   if (!address) {
     return hasSeenClaimSheet ? { kind: 'none' } : { kind: 'claim_sheet' };
-  }
-  if (isProfileTradingActivityPrivate) {
-    return { kind: 'none' };
   }
   if (!isLinkedAccountInSelectedGroup) {
     return { kind: 'none' };

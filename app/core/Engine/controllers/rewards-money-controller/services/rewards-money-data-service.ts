@@ -21,6 +21,9 @@ import type {
   ReferralMeDto,
   ReferrerOriginType,
   RegisterRefereeDto,
+  TaxAnswerResultDto,
+  TaxFormTokenDto,
+  TaxMeDto,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -147,18 +150,63 @@ export class RewardsMoneyHttpError extends Error {
   /** Seconds from a `Retry-After` header, when the refusal carried one. */
   readonly retryAfterSeconds: number | undefined;
 
+  /**
+   * True when this refusal is the answer to the service's own busy retry, so
+   * callers must not ask again.
+   */
+  readonly alreadyRetried: boolean;
+
   constructor(
     message: string,
     status: number,
     bodyText?: string,
     retryAfterSeconds?: number,
+    alreadyRetried = false,
   ) {
     super(message);
     this.name = 'RewardsMoneyHttpError';
     this.status = status;
     this.bodyText = bodyText;
     this.retryAfterSeconds = retryAfterSeconds;
+    this.alreadyRetried = alreadyRetried;
   }
+}
+
+/**
+ * A tax route refused the request. `code` is Nest's `message`
+ * (`ANSWER_ON_FILE`, `SERVER_BUSY`, and the rest). Provider 503s leave
+ * `retryAfterSeconds` unset: that header is not a retry signal for them.
+ */
+export class RewardsMoneyTaxError extends Error {
+  readonly status: number;
+
+  readonly code: string;
+
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(status: number, code: string, retryAfterSeconds?: number) {
+    super(`Tax request failed: ${status} ${code}`);
+    this.name = 'RewardsMoneyTaxError';
+    this.status = status;
+    this.code = code;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/**
+ * Tax error codes live in Nest's `message`. A body that is not JSON, or a
+ * message that is not a string, is `UNKNOWN`.
+ */
+export function taxErrorCode(bodyText: string): string {
+  try {
+    const parsed = JSON.parse(bodyText) as { message?: unknown };
+    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
+      return parsed.message;
+    }
+  } catch {
+    // A non-JSON body still refuses the call; the toast stays generic.
+  }
+  return 'UNKNOWN';
 }
 
 // ─── Action types ─────────────────────────────────────────────────────────────
@@ -223,6 +271,26 @@ export interface RewardsMoneyDataServiceInitiateClaimAction {
   handler: RewardsMoneyDataService['initiateClaim'];
 }
 
+export interface RewardsMoneyDataServiceGetTaxMeAction {
+  type: `${typeof SERVICE_NAME}:getTaxMe`;
+  handler: RewardsMoneyDataService['getTaxMe'];
+}
+
+export interface RewardsMoneyDataServiceSubmitTaxAttestationAction {
+  type: `${typeof SERVICE_NAME}:submitTaxAttestation`;
+  handler: RewardsMoneyDataService['submitTaxAttestation'];
+}
+
+export interface RewardsMoneyDataServiceSubmitTaxUsActivityAction {
+  type: `${typeof SERVICE_NAME}:submitTaxUsActivity`;
+  handler: RewardsMoneyDataService['submitTaxUsActivity'];
+}
+
+export interface RewardsMoneyDataServiceMintTaxFormTokenAction {
+  type: `${typeof SERVICE_NAME}:mintTaxFormToken`;
+  handler: RewardsMoneyDataService['mintTaxFormToken'];
+}
+
 export interface RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyDataService['getRewardsMoneyEnvUrl'];
@@ -256,6 +324,10 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetClaimByIdAction
   | RewardsMoneyDataServiceGetRebateQuoteAction
   | RewardsMoneyDataServiceInitiateClaimAction
+  | RewardsMoneyDataServiceGetTaxMeAction
+  | RewardsMoneyDataServiceSubmitTaxAttestationAction
+  | RewardsMoneyDataServiceSubmitTaxUsActivityAction
+  | RewardsMoneyDataServiceMintTaxFormTokenAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -319,6 +391,14 @@ function parseClaimJson<T>(bodyText: string, status: number): T {
   }
 }
 
+function parseTaxJson<T>(bodyText: string, status: number): T {
+  try {
+    return JSON.parse(bodyText) as T;
+  } catch {
+    throw new RewardsMoneyTaxError(status, 'UNKNOWN');
+  }
+}
+
 /**
  * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
  * on a long run of slashes; a scan from the end is linear.
@@ -338,24 +418,34 @@ function trimTrailingSlashes(url: string): string {
  */
 const BUSY_READ_RETRY_MAX_SECONDS = 5;
 
-/** Spread retries so a shed wave does not return in the same instant. */
+/** Jitter for a `429`, and the least for a `503` or a missing `Retry-After`. */
 const BUSY_RETRY_JITTER_MS = 1000;
 
-/**
- * Wait for a short busy refusal, plus up to a second of jitter. `undefined`
- * means the header was missing: jitter alone, so a registration the server
- * shed with no `Retry-After` still waits before its one retry.
- */
-/** 0..BUSY_RETRY_JITTER_MS inclusive. Jitter only, not a secret. */
-function busyRetryJitterMs(): number {
+/** 0..maxMs inclusive. Jitter only, not a secret. */
+function busyRetryJitterMs(maxMs: number): number {
   const values = new Uint32Array(1);
   globalThis.crypto.getRandomValues(values);
-  return values[0] % (BUSY_RETRY_JITTER_MS + 1);
+  return values[0] % (maxMs + 1);
 }
 
-function busyRetryDelayMs(waitSeconds: number | undefined): number {
+/**
+ * Wait for a busy refusal: the `Retry-After` plus jitter. A `503` shed hits
+ * many users at once, so its jitter is up to the `Retry-After` again (at
+ * least 1 second) to spread the wave. A `429` budget is per profile, so its
+ * jitter stays at up to 1 second. `undefined` means the header was missing:
+ * up to 1 second alone, so a registration the server shed with no
+ * `Retry-After` still waits before its one retry.
+ */
+export function busyRetryDelayMs(
+  waitSeconds: number | undefined,
+  status: number,
+): number {
   const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
-  return baseMs + busyRetryJitterMs();
+  const maxJitterMs =
+    status === 503
+      ? Math.max(baseMs, BUSY_RETRY_JITTER_MS)
+      : BUSY_RETRY_JITTER_MS;
+  return baseMs + busyRetryJitterMs(maxJitterMs);
 }
 
 function delay(ms: number): Promise<void> {
@@ -499,6 +589,9 @@ export class RewardsMoneyDataService {
 
   #rewardsMoneyApiUrl: string | null = null;
 
+  /** Answers to a busy retry. Their errors carry `alreadyRetried`. */
+  readonly #retriedResponses = new WeakSet<Response>();
+
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -565,6 +658,22 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:initiateClaim`,
       this.initiateClaim.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTaxMe`,
+      this.getTaxMe.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:submitTaxAttestation`,
+      this.submitTaxAttestation.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:submitTaxUsActivity`,
+      this.submitTaxUsActivity.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:mintTaxFormToken`,
+      this.mintTaxFormToken.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsMoneyEnvUrl`,
@@ -707,7 +816,7 @@ export class RewardsMoneyDataService {
       const withinCap =
         waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
       if (isServerBusyBody(bodyText) && withinCap) {
-        await delay(busyRetryDelayMs(waitSeconds));
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
         response = await send();
       } else {
         throw new RewardsMoneyHttpError(
@@ -908,7 +1017,7 @@ export class RewardsMoneyDataService {
       const withinCap =
         waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
       if (isServerBusyBody(busyBody) && withinCap) {
-        await delay(busyRetryDelayMs(waitSeconds));
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
         response = await send();
       } else {
         throw new RewardsMoneyClaimRefusalError(
@@ -942,6 +1051,112 @@ export class RewardsMoneyDataService {
     };
   }
 
+  /** `GET /tax/me`. A short `503` or `429` is waited out once by `#read`. */
+  async getTaxMe(): Promise<TaxMeDto> {
+    const response = await this.#read('/tax/me');
+    if (!response.ok) {
+      return this.#throwTax(response);
+    }
+    return (await response.json()) as TaxMeDto;
+  }
+
+  /**
+   * `POST /wr/tax/attestation`. Sent once, plus one retry when the answer
+   * lock times out (`SERVER_BUSY`) inside the busy-read cap.
+   */
+  async submitTaxAttestation(
+    usPersonOrActivity: boolean,
+  ): Promise<TaxAnswerResultDto> {
+    return this.#submitTaxAnswer('/wr/tax/attestation', {
+      us_person_or_activity: usPersonOrActivity,
+    });
+  }
+
+  /**
+   * `POST /wr/tax/w8-us-activity`. Same single retry as the attestation.
+   */
+  async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
+    return this.#submitTaxAnswer('/wr/tax/w8-us-activity', {
+      us_activity: usActivity,
+    });
+  }
+
+  /**
+   * `POST /wr/tax/form-token`. Sent once. A mint counts toward the hourly
+   * cap, so a busy pod is not retried. Provider 503s drop `Retry-After`.
+   */
+  async mintTaxFormToken(): Promise<TaxFormTokenDto> {
+    const response = await this.#makeRequest('/wr/tax/form-token', {
+      method: 'POST',
+    });
+    const bodyText = await response.text();
+    if (!response.ok) {
+      const code = taxErrorCode(bodyText);
+      const dropRetryAfter =
+        code === 'TAX_PROVIDER_UNCONFIGURED' ||
+        code === 'TAX_PROVIDER_UNAVAILABLE';
+      throw new RewardsMoneyTaxError(
+        response.status,
+        code,
+        dropRetryAfter
+          ? undefined
+          : retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
+    return parseTaxJson<TaxFormTokenDto>(bodyText, response.status);
+  }
+
+  async #submitTaxAnswer(
+    endpoint: string,
+    body: { us_person_or_activity: boolean } | { us_activity: boolean },
+  ): Promise<TaxAnswerResultDto> {
+    const send = () =>
+      this.#makeRequest(endpoint, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      });
+
+    let response = await send();
+
+    if (response.status === 503) {
+      const busyBody = (await readBodyText(response)) ?? '';
+      const waitSeconds = retryAfterSeconds(
+        response.headers?.get('retry-after') ?? null,
+      );
+      const withinCap =
+        waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
+      if (taxErrorCode(busyBody) === 'SERVER_BUSY' && withinCap) {
+        await delay(busyRetryDelayMs(waitSeconds, response.status));
+        response = await send();
+      } else {
+        throw new RewardsMoneyTaxError(
+          response.status,
+          taxErrorCode(busyBody),
+          waitSeconds,
+        );
+      }
+    }
+
+    const bodyText = await response.text();
+    if (!response.ok) {
+      throw new RewardsMoneyTaxError(
+        response.status,
+        taxErrorCode(bodyText),
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
+    return parseTaxJson<TaxAnswerResultDto>(bodyText, response.status);
+  }
+
+  async #throwTax(response: Response): Promise<never> {
+    const bodyText = (await readBodyText(response)) ?? '';
+    throw new RewardsMoneyTaxError(
+      response.status,
+      taxErrorCode(bodyText),
+      retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+    );
+  }
+
   async getClaimById(claimId: string): Promise<ClaimDto> {
     const response = await this.#read(`/earnings/claim/${claimId}`);
 
@@ -973,8 +1188,10 @@ export class RewardsMoneyDataService {
     if (waitSeconds === undefined) {
       return response;
     }
-    await delay(busyRetryDelayMs(waitSeconds));
-    return request();
+    await delay(busyRetryDelayMs(waitSeconds, response.status));
+    const retried = await request();
+    this.#retriedResponses.add(retried);
+    return retried;
   }
 
   async #throwHttp(response: Response, label: string): Promise<never> {
@@ -984,6 +1201,7 @@ export class RewardsMoneyDataService {
       response.status,
       bodyText,
       retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      this.#retriedResponses.has(response),
     );
   }
 

@@ -10,6 +10,7 @@ import type { Position as SocialPosition } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
 import { areAddressesEqual } from '../../../../util/address';
+import { resolveSocialProfileId } from '../../../../util/social/getSocialProfileId';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -104,7 +105,6 @@ export const postPerpsPositionToFeed = ({
   openComposer({
     position: socialPosition,
     entryPoint: 'perps',
-    openFeedAfterPost: true,
   });
 };
 
@@ -136,14 +136,16 @@ export const usePerpsCanPostPosition = (): UsePerpsCanPostPositionResult => {
   const { data: lookedUpProfileId } = useQuery({
     queryKey: [...PERPS_SHARE_SOCIAL_PROFILE_QUERY_KEY, isSignedIn],
     queryFn: async () => {
-      const sessionProfile =
-        await Engine.context.AuthenticationController.getSessionProfile();
-      if (!sessionProfile?.profileId) {
+      // A failed session lookup must reject so it is not cached as "no profile".
+      const profileId = resolveSocialProfileId(
+        await Engine.context.AuthenticationController.getSessionProfile(),
+      );
+      if (!profileId) {
         return null;
       }
       try {
-        await fetchAndUpdateProfile(sessionProfile.profileId);
-        return sessionProfile.profileId;
+        await fetchAndUpdateProfile(profileId);
+        return profileId;
       } catch (error) {
         if (isProfileNotFoundError(error)) {
           return null;

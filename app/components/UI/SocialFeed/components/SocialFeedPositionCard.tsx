@@ -2,9 +2,10 @@ import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
+import { useFeedAgeNow } from '../hooks/useFeedAgeNow';
 import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
-import { formatFeedPostAge } from '../utils/formatters';
+import { formatFeedPostAge, formatHoldDuration } from '../utils/formatters';
 import { isCopyTradeable } from '../utils/copyTrade';
 import { getPositionCardMode } from '../utils/positionCardMode';
 import CopyTradeButton from './CopyTradeButton';
@@ -46,6 +47,11 @@ export interface PositionCardBodyProps {
    * it because the trader is posting their own position. Defaults to `true`.
    */
   showCopyTrade?: boolean;
+  /**
+   * Wall-clock instant for an open hold. The feed passes the row clock so the
+   * label moves without rebuilding the post.
+   */
+  now?: number;
 }
 
 const statId = getSocialFeedPositionCardStatTestId;
@@ -72,19 +78,9 @@ const priceOrMarketCapRow = (
   };
 };
 
-export const closedAgeLabel = (
-  closedAtMs: number | undefined,
-  verb: 'closed' | 'sold',
-  now: number = Date.now(),
-): string | undefined =>
-  closedAtMs == null
-    ? undefined
-    : strings(
-        verb === 'sold'
-          ? 'social_leaderboard.feed.position_card.sold_ago'
-          : 'social_leaderboard.feed.position_card.closed_ago',
-        { age: formatFeedPostAge(closedAtMs, now) },
-      );
+/** The closed-card age, or nothing when the row did not report a close time. */
+const closedAge = (closedAtMs: number | undefined): string | undefined =>
+  closedAtMs == null ? undefined : formatFeedPostAge(closedAtMs);
 
 /**
  * Wash hue for the figures the card actually shows as P&L. An open card's
@@ -147,18 +143,31 @@ const closedStats = (item: {
  * closed card adds entry, exit and cost. A card without a comment stays
  * header-only: a live open card, or a closed card that captions when it
  * settled. Spot quotes entry and exit as market cap when the fills recorded
- * one. Perps quote a price, and a closed spot card drops the side tag. Composer
- * spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
+ * one. Perps quote a price, and a closed card puts Closed or Sold in a neutral
+ * tag. Composer spot shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
- * Dark mode washes the card with the P&L hue. A closed card also outlines in
- * that hue, so a win and a loss still read while scrolling past at speed.
+ * Dark mode washes the card with the P&L hue. Open and closed cards share the
+ * muted 1px border.
  */
+/** Open holds tick from their first fill. A baked label is the fallback. */
+const openHoldTimeLabel = (
+  item: { holdStartedAtMs?: number; holdTimeLabel?: string },
+  now?: number,
+): string | undefined => {
+  if (item.holdStartedAtMs == null) {
+    return item.holdTimeLabel;
+  }
+  return formatHoldDuration((now ?? Date.now()) - item.holdStartedAtMs);
+};
+
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
   onCopyTrade,
   expanded = false,
   showCopyTrade = true,
+  now,
 }) => {
+  const clock = useFeedAgeNow(now);
   const header = useLiveCardHeader(
     item.id,
     item.variant === 'perpsOpen' ||
@@ -196,7 +205,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       {
         key: 'holdTime',
         label: strings('social_leaderboard.feed.position_card.hold_time'),
-        value: item.holdTimeLabel,
+        value: openHoldTimeLabel(item, clock),
         testID: statId(item.id, 'holdTime'),
       },
       {
@@ -217,7 +226,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
           header.pnlValueLabel,
           header.isPnlPositive,
         )}
-        compact={mode === 'openCompact'}
       >
         <View ref={header.trackRef} collapsable={false}>
           <PositionCardHeader
@@ -260,8 +268,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   return (
     <PositionCardShell
       tone={cardTone(item.pnlLabel, item.valueLabel, item.isPnlPositive)}
-      emphasizeBorder
-      compact={mode === 'closedCompact'}
     >
       <PositionCardHeader
         layout="closed"
@@ -271,10 +277,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
         leverageLabel={
           item.variant === 'perpsClosed' ? item.leverageLabel : undefined
         }
-        subtitleLabel={closedAgeLabel(
-          item.closedAtMs,
-          item.variant === 'spotClosed' ? 'sold' : 'closed',
-        )}
+        subtitleLabel={closedAge(item.closedAtMs)}
         pnlLabel={item.pnlLabel}
         pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}
@@ -305,7 +308,7 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         comment={item.comment}
         now={now}
       >
-        <PositionCardBody item={item} onCopyTrade={onCopyTrade} />
+        <PositionCardBody item={item} onCopyTrade={onCopyTrade} now={now} />
       </FeedPost>
       {geoBlockSheet}
     </>

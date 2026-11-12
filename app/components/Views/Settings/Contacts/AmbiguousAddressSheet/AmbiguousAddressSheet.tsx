@@ -5,16 +5,19 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Text,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * AmbiguousAddressSheet Component.
  *
  */
 const AmbiguousAddressSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -24,12 +27,13 @@ const AmbiguousAddressSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={() => navigation.goBack()}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onCancelPress}
         closeButtonProps={{ testID: 'ambiguous-address-sheet-close' }}
       >
         {strings('duplicate_address.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Text twClassName="px-4 mb-4">{strings('duplicate_address.body')}</Text>
 

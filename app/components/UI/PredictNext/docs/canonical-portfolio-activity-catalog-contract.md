@@ -26,8 +26,8 @@ Legacy Polymarket is the parity target. PredictNext surfaces are listed where th
 
 | Surface                                | Code                                                                                                                                                                | Needs                                                                                                                                                        |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Home position rows                     | `Views/Homepage/Sections/Predictions/components/PredictPositionRow.tsx`                                                                                             | Title, outcome label, image, shares, cost basis (`initialValue`), current value, PnL percent, navigation target. The top Positions by value, not a page.     |
-| Home PnL row                           | `Views/Homepage/Sections/Predictions/PredictionsSection.tsx`, `utils/getPredictHomepageUnrealizedPnlRowState.ts`                                                    | Unrealized PnL amount and percent over all open Positions                                                                                                    |
+| Home position rows                     | `Predict/homeSection/components/PredictPositionRow.tsx`                                                                                                             | Title, outcome label, image, shares, cost basis (`initialValue`), current value, PnL percent, navigation target. The top Positions by value, not a page.     |
+| Home PnL row                           | `Predict/homeSection/PredictionsSection.tsx`, `utils/getPredictHomepageUnrealizedPnlRowState.ts`                                                                    | Unrealized PnL amount and percent over all open Positions                                                                                                    |
 | BalanceBreakdown slice                 | `Views/Homepage/BalanceBreakdown/hooks/slices/usePredictSlice.ts` via `UI/Predict/hooks/usePredictPortfolio.ts`                                                     | Portfolio value: available Balance + open Positions value + claimable value                                                                                  |
 | Legacy positions header and rows       | `UI/Predict/components/PredictPositionsViewHeader/`, `PredictPosition/`, `PredictPositionResolved/`, `PredictCryptoUpDownPositions/PredictCryptoUpDownPosition.tsx` | Available Balance, unrealized PnL amount and percent, open and resolved rows (current value, cost basis, PnL percent, won or lost), average price, Claim CTA |
 | PredictNext Portfolio screen           | `PredictNext/views/PredictPortfolio/internal/PortfolioSummaryCard.tsx`, `PortfolioPositionRow.tsx`, `PortfolioActivityRow.tsx`                                      | Balance, Position rows with Cash Out, Activity rows                                                                                                          |
@@ -60,16 +60,32 @@ interface PredictEntryContext {
   marketQuestion: string;
   outcomeLabel: string;
   imageUrl?: PredictHttpsUrl;
+  marketLabels?: string[];
 }
 ```
 
-| Field            | Rule                                                                                                                    | Needed by                                                          |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation         |
-| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details |
-| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                          |
-| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details             |
-| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                         |
+| Field            | Rule                                                                                                                    | Needed by                                                                                        |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `eventId`        | Canonical Event ID for navigation to the Event Screen.                                                                  | Home rows `onPress`, Portfolio and Activity row navigation                                       |
+| `eventTitle`     | Event title.                                                                                                            | Home rows, Portfolio rows, Activity `eventTitle`, Activity details                               |
+| `marketQuestion` | Market question. Distinguishes Markets in multi-Market Events.                                                          | Portfolio rows, Activity rows and details                                                        |
+| `outcomeLabel`   | Label of the held or traded Outcome. Required, because a catalog Market always has both Outcomes.                       | Home rows ("on Yes"), Portfolio rows, Activity details                                           |
+| `imageUrl`       | Most specific approved image: the Market image, else the Event image. The backend chooses it. Replaces `eventImageUrl`. | Home rows, Portfolio rows, Activity `icon`                                                       |
+| `marketLabels`   | Ordered, display-ready parts naming the Market beyond its Outcome. See below.                                           | Home, Portfolio and Activity rows, Activity details, Cash Out sheet, Event screen Position cards |
+
+An entry's name is `[outcomeLabel, ...marketLabels].join(' · ')`. The backend owns all per-group-type formatting and sends each part ready to show; mobile only joins them and never reads a group type. Today only threshold lines send `marketLabels`: their `outcomeLabel` is only "Yes" or "No", so without it two Players' Positions in one Game read the same.
+
+```json
+"context": {
+  "eventId": "KXNFLGAME-26NOV08NESEA",
+  "eventTitle": "Patriots at Seahawks",
+  "marketQuestion": "Josh Jacobs: 60+",
+  "outcomeLabel": "Yes",
+  "marketLabels": ["Josh Jacobs", "60+"]
+}
+```
+
+This context renders "Yes · Josh Jacobs · 60+". A line without a Player sends `["60+"]` ("Yes · 60+"). When there is nothing to add, `marketLabels` is absent and the entry shows `outcomeLabel` alone. When present it has at least one element, and every element is a non-blank string; mobile drops a malformed `marketLabels` and keeps the entry, so it falls back to `outcomeLabel` alone.
 
 When `context` is absent, mobile renders neutral fallback copy and the Outcome side. It never renders a raw Venue identifier as a title.
 
@@ -218,7 +234,7 @@ PRED-1376 implements the client side:
 
 - **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
 - **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
-- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog. `categories` is the exception: it only drives Home's chip row, so an entry that is not a string, not a Feed key in `feeds`, or a repeat is dropped and logged (`Logger.log`), as is a `categories` that is not an array. It never rejects the catalog.
 - **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method serves the static Kalshi catalog until PRED-1403 swaps in this route.
 - **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
 
@@ -479,7 +495,7 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 - `hash` carries the canonical `id`, not a transaction hash.
 - `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
 - Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
-- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
+- `predictionSettled` comes from `@metamask/client-utils` (added in `3.1.0`, MetaMask/core#11169) with the same item shape as the other prediction kinds. Mobile declared it locally from PRED-1405 until PRED-1420 bumped client-utils and deleted the local entry. The settlement fields above (`PredictSettlementExtras`) and `KALSHI_VENUE_CHAIN_ID` stay mobile-only in `app/util/activity-adapters/types.ts`.
 
 ## Open decisions for product
 
@@ -763,7 +779,7 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
+The Kalshi V1 catalog PRED-1376 ships as static client config, now with the Politics topic Feeds (PRED-1454). `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
 
 ```json
 {
@@ -774,7 +790,10 @@ The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the V
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",
-    "college-football-props": "sports-football-ncaa-win-totals"
+    "college-football-props": "sports-football-ncaa-win-totals",
+    "politics-trump": "politics-trump",
+    "politics-congress": "politics-congress",
+    "politics-iran": "politics-iran"
   },
   "searchSupported": true
 }

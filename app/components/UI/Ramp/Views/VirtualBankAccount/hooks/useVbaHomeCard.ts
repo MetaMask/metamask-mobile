@@ -23,7 +23,12 @@ import {
   selectUsableVbaAutoramp,
 } from '../../../../../../selectors/rampsController';
 import { useVbaEligibility } from './useVbaEligibility';
+import { hasVbaWalletEvidence } from '../vbaWalletEvidence';
 import { hasAcceptedVbaVendorTerms } from '../vbaVendorTermsStorage';
+import {
+  hasViewedVbaAccountDetails,
+  subscribeVbaAccountDetailsViewed,
+} from '../vbaAccountDetailsViewedStorage';
 import { getVbaKycStatusOverride } from '../vbaDevOverrides';
 
 /**
@@ -37,8 +42,18 @@ export type VbaHomeCard =
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
+  /**
+   * ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. Once the account
+   * exists, shown only until its details have been viewed on this device.
+   */
   | { type: 'account_is_ready' }
+  /**
+   * IDENTITY_VERIFIED — KYC approved, but the Money account has no usable
+   * autoramp yet (none, or only Rejected/Cancelled ones), so account setup
+   * has not started. Its CTA skips the Identity verified screen and opens the
+   * step after it (TRAM-4429).
+   */
+  | { type: 'identity_verified' }
   /**
    * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
    * submitted.
@@ -70,6 +85,12 @@ export interface VbaHomeCardInputs {
    * Redux). Treated as `false` while the read is in flight.
    */
   hasAcceptedVendorTerms: boolean;
+  /**
+   * Whether this wallet's account details screen has shown its deposit
+   * details on this device (async storage, not Redux). `null` while the read
+   * is in flight, so a viewed account never flashes the ready card.
+   */
+  hasViewedAccountDetails: boolean | null;
   /** RampsController autoramp cursor. */
   autoramps: readonly AutorampAccount[];
   /** RampsController Money Account wallet registrations. */
@@ -95,44 +116,21 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
   [];
 
 /**
- * Case-insensitive wallet match, mirroring how `RampsController` scopes
- * autoramps and registrations to a wallet (`walletAddress.trim().toLowerCase()`).
- */
-const matchesWallet = (walletAddress: string, candidate: string): boolean =>
-  candidate.toLowerCase() === walletAddress.trim().toLowerCase();
-
-/** Whether the wallet has any autoramp row, including dead routes. */
-const hasAnyAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some((autoramp) =>
-    matchesWallet(walletAddress, autoramp.walletAddress),
-  );
-
-/**
- * Whether the wallet has a Money Account registration row. A `disabled` row
- * still counts as registration evidence.
- */
-const hasWalletRegistration = (
-  walletAddress: string,
-  walletRegistrations: readonly MoneyAccountWalletRegistration[],
-): boolean =>
-  walletRegistrations.some((registration) =>
-    matchesWallet(walletAddress, registration.walletAddress),
-  );
-
-/**
  * Pure decision resolving the single VBA status card for Money home. An
- * approved session always gets `account_is_ready`: the onboarding funnel
- * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
- * exists and Identity verified when it does not, and details creates it.
+ * approved session gets `account_is_ready` when a usable autoramp exists and
+ * `identity_verified` when it does not. The latter's CTA opens the step after
+ * Identity verified (account details, which creates the autoramp, or Choose
+ * Currency).
  *
- * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
- * (relay approval counts while the vendor `finalStatus` is still pending).
+ * Only provider-final approval (`finalStatus === 'approved'`) completes KYC.
+ * Relay approval alone stays pending while the provider makes its decision.
  *
  * A usable autoramp renders `account_is_ready` right after rule 1, ahead of
- * every session rule, whatever the eligibility gate says.
+ * every session rule, whatever the eligibility gate says, but only until the
+ * account details have been viewed once (unknown while loading counts as
+ * viewed). After that the Money home Details button is the way back, and the
+ * card is `none`. The flag only applies once a usable autoramp exists; an
+ * approved session without one falls through to the session rules unchanged.
  *
  * Rules 1–2 (none and get_started) short-circuit before the session rules, so
  * an approved session always reaches rule 3 and a fresh user without any
@@ -150,6 +148,7 @@ export function getVbaHomeCard({
   sessionStatus,
   providerFlowStatus,
   hasAcceptedVendorTerms,
+  hasViewedAccountDetails,
   autoramps,
   walletRegistrations,
   hasUsableAutoramp,
@@ -165,31 +164,31 @@ export function getVbaHomeCard({
     return { type: 'none' };
   }
 
-  // A stale session must not hide an existing account.
+  // A stale session must not hide an existing account. Once its details
+  // have been viewed (or while that is still unknown), the card has done its
+  // job: the Details button on Money home leads back to them.
   if (hasUsableAutoramp) {
-    return { type: 'account_is_ready' };
+    return hasViewedAccountDetails === false
+      ? { type: 'account_is_ready' }
+      : { type: 'none' };
   }
 
   // 2. Brand-new user: nothing started and no evidence of prior setup.
   if (
     !hasAcceptedVendorTerms &&
     !sessionStatus &&
-    !hasAnyAutorampForWallet(walletAddress, autoramps) &&
-    !hasWalletRegistration(walletAddress, walletRegistrations)
+    !hasVbaWalletEvidence(walletAddress, autoramps, walletRegistrations)
   ) {
     return { type: 'get_started' };
   }
 
-  const isApproved =
-    sessionStatus?.finalStatus === 'approved' ||
-    sessionStatus?.kycStatus === 'approved';
+  const isApproved = sessionStatus?.finalStatus === 'approved';
 
-  // 3. KYC approved. Identity is no longer being verified, so show
-  // account_is_ready with or without a usable autoramp. Its CTA opens
-  // onboarding, which sends a user without one through Identity verified to
-  // the details screen, where the autoramp is created.
+  // 3. KYC approved, but no usable autoramp (a usable one already returned
+  // account_is_ready above). Account setup has not started, so the account
+  // is not ready yet. The CTA skips Identity verified and opens account setup.
   if (isApproved) {
-    return { type: 'account_is_ready' };
+    return { type: 'identity_verified' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question
@@ -201,13 +200,15 @@ export function getVbaHomeCard({
     return { type: 'kyc_decision' };
   }
 
-  // 5. Genuinely in review: the relay decision is pending, or the provider
-  // flow was submitted. `finalStatus === 'pending'` alone does NOT mean
-  // review — an abandoned flow keeps `finalStatus: 'pending'` with
-  // `kycStatus: 'new'` (observed on device), and must fall through to rule 6
-  // so the user finishes verification instead of seeing a spinner.
+  // 5. Genuinely in review: the relay decision is pending or approved while
+  // the provider has not finalized, or the provider flow was submitted.
+  // `finalStatus === 'pending'` alone does NOT mean review — an abandoned flow
+  // keeps `finalStatus: 'pending'` with `kycStatus: 'new'` (observed on
+  // device), and must fall through to rule 6 so the user finishes verification
+  // instead of seeing a spinner.
   if (
     sessionStatus?.kycStatus === 'pending' ||
+    sessionStatus?.kycStatus === 'approved' ||
     providerFlowStatus === 'submitted'
   ) {
     return { type: 'kyc_pending' };
@@ -262,12 +263,51 @@ const readVendorTermsAcceptance = (
 };
 
 /**
+ * Reads whether `walletAddress` has viewed its account details and reports
+ * the result unless the caller has already cancelled. A failed read reports
+ * not viewed, so the card falls back to showing.
+ *
+ * @param walletAddress - Wallet the flag was stored under.
+ * @param onViewed - Receives whether that wallet has viewed its details.
+ * @returns Cleanup that ignores a late resolution.
+ */
+const readAccountDetailsViewed = (
+  walletAddress: string,
+  onViewed: (viewed: boolean) => void,
+): (() => void) => {
+  let isCancelled = false;
+  hasViewedVbaAccountDetails(walletAddress)
+    .then((viewed) => {
+      if (!isCancelled) {
+        onViewed(viewed);
+      }
+    })
+    .catch((error) => {
+      if (!isCancelled) {
+        onViewed(false);
+      }
+      Logger.error(error as Error, {
+        tags: { feature: 'money-home' },
+        context: {
+          name: 'useVbaHomeCard',
+          data: { step: 'hasViewedVbaAccountDetails' },
+        },
+      });
+    });
+  return () => {
+    isCancelled = true;
+  };
+};
+
+/**
  * Source of truth for the single VBA identity-status card on Money home.
  * Reads Redux only — no navigation, no UI, and no network on load.
  *
  * The local vendor-terms acceptance lives in async storage, not Redux. It is
  * read on mount and on wallet change, and treated as not accepted while that
- * read is in flight.
+ * read is in flight. The account-details-viewed flag is read the same way,
+ * treated as unknown (card hidden) while in flight, and flips to viewed as
+ * soon as the details screen records it.
  *
  * @example
  * const card = useVbaHomeCard();
@@ -317,9 +357,13 @@ export const useVbaHomeCard = (): VbaHomeCard => {
   // an effect) and the first render for a new wallet never sees the
   // previous wallet's value.
   const [termsWalletAddress, setTermsWalletAddress] = useState(walletAddress);
+  const [hasViewedAccountDetails, setHasViewedAccountDetails] = useState<
+    boolean | null
+  >(null);
   if (termsWalletAddress !== walletAddress) {
     setTermsWalletAddress(walletAddress);
     setHasAcceptedVendorTerms(false);
+    setHasViewedAccountDetails(null);
   }
 
   useEffect(() => {
@@ -331,6 +375,28 @@ export const useVbaHomeCard = (): VbaHomeCard => {
     return readVendorTermsAcceptance(walletAddress, setHasAcceptedVendorTerms);
   }, [walletAddress]);
 
+  useEffect(() => {
+    // Unknown while the first read for this wallet is in flight.
+    setHasViewedAccountDetails(null);
+    if (!walletAddress) {
+      return undefined;
+    }
+    const normalizedWallet = walletAddress.toLowerCase();
+    const unsubscribe = subscribeVbaAccountDetailsViewed((viewedWallet) => {
+      if (viewedWallet === normalizedWallet) {
+        setHasViewedAccountDetails(true);
+      }
+    });
+    const cancelRead = readAccountDetailsViewed(walletAddress, (viewed) => {
+      // A mark that landed while the read was in flight wins.
+      setHasViewedAccountDetails((current) => current === true || viewed);
+    });
+    return () => {
+      unsubscribe();
+      cancelRead();
+    };
+  }, [walletAddress]);
+
   return useMemo(
     () =>
       getVbaHomeCard({
@@ -340,6 +406,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
         sessionStatus: effectiveSessionStatus,
         providerFlowStatus,
         hasAcceptedVendorTerms,
+        hasViewedAccountDetails,
         autoramps,
         walletRegistrations,
         hasUsableAutoramp,
@@ -351,6 +418,7 @@ export const useVbaHomeCard = (): VbaHomeCard => {
       effectiveSessionStatus,
       providerFlowStatus,
       hasAcceptedVendorTerms,
+      hasViewedAccountDetails,
       autoramps,
       walletRegistrations,
       hasUsableAutoramp,

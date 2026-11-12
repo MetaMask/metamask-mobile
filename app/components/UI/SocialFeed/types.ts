@@ -30,7 +30,10 @@ export interface SocialV1FeedAuthor {
   /** Social API trader id, used to open their profile. */
   id: string;
   username: string;
-  /** Wallet address, used for the Maskicon fallback when there is no avatar. */
+  /**
+   * Wallet address. The Maskicon fallback is seeded by `id`. This address is
+   * only a seed when the profile id is missing.
+   */
   address?: string;
   avatarUri?: string | null;
   /**
@@ -45,6 +48,11 @@ export interface SocialV1FeedAuthor {
   tradeCount30d?: number | null;
   /** Profiles following this trader. */
   followerCount?: number | null;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
 }
 
 interface SocialV1FeedItemBase {
@@ -90,6 +98,8 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
   /**
@@ -120,6 +130,8 @@ export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
   entryMarketCapLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   /** How the card's figures follow the streamed spot price. */
   live?: SocialLivePriceSource;
 }
@@ -146,6 +158,8 @@ export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   markPriceLabel?: string;
   entryPriceLabel?: string;
   holdTimeLabel?: string;
+  /** Epoch milliseconds of the first fill. The card formats the open hold from this. */
+  holdStartedAtMs?: number;
   showCopyTrade?: boolean;
   /** How the card's figures follow the streamed spot price, as on an open row. */
   live?: SocialLivePriceSource;

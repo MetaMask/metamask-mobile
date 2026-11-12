@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-shadow */
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import { samplePetnamesControllerInit } from '../../features/SampleFeature/controllers/sample-petnames-controller-init';
-///: END:ONLY_INCLUDE_IF
 import {
   AppState,
   AppStateStatus,
@@ -24,9 +21,7 @@ import {
   type CaveatSpecificationConstraint,
   PermissionController,
   type PermissionSpecificationConstraint,
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SubjectMetadataController,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
@@ -53,10 +48,8 @@ import { ensureError } from '../../util/errorUtils';
 import { isZero } from '../../util/lodash';
 import { initializeRpcProviderDomains } from '../../util/rpc-domain-utils';
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
-///: END:ONLY_INCLUDE_IF
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
@@ -75,19 +68,12 @@ import {
 } from '../../core/redux/slices/inpageProvider';
 import type { SmartTransactionsController } from '@metamask/smart-transactions-controller';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  toHex,
-  ///: END:ONLY_INCLUDE_IF
-} from '@metamask/controller-utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { toHex } from '@metamask/controller-utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
   cronjobControllerInit,
   executionServiceInit,
@@ -96,12 +82,12 @@ import {
   snapRegistryControllerInit,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
-///: END:ONLY_INCLUDE_IF
 import {
   RootExtendedMessenger,
   EngineState,
   EngineContext,
   getRootExtendedMessenger,
+  MessengerClientInitFunctionsByMessengerClientName,
 } from './types';
 import { STATELESS_NON_CONTROLLER_NAMES } from './constants';
 import {
@@ -127,7 +113,6 @@ import { appMetadataControllerInit } from './controllers/app-metadata-controller
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
-import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
@@ -137,6 +122,7 @@ import {
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
+import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
 import { recurringOrdersDataServiceInit } from './controllers/recurring-orders-data-service-init';
 import { limitOrdersDataServiceInit } from './controllers/limit-orders-data-service-init';
 import { sentinelFeeTokensDataServiceInit } from './controllers/sentinel-fee-tokens-data-service-init';
@@ -160,15 +146,12 @@ import { earnControllerInit } from './controllers/earn-controller-init';
 import { moneyAccountControllerInit } from './controllers/money-account-controller-init';
 import { moneyAccountBalanceServiceInit } from './controllers/money-account-balance-service-init';
 import { moneyAccountApiDataServiceInit } from './controllers/money-account-api-data-service-init';
-import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
-import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -204,6 +187,19 @@ import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let currentChainId: any;
+
+/**
+ * Initializes the `SamplePetnamesController`. Only enabled when bundled with
+ * `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in; no build in builds.yml sets it); otherwise this is a no-op so
+ * `@metamask/sample-controllers` and `app/features/SampleFeature/` are
+ * dead-code-eliminated out of production bundles.
+ */
+const samplePetnamesControllerInit: MessengerClientInitFunctionsByMessengerClientName['SamplePetnamesController'] =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps sample feature dev tooling out of prod bundles
+      require('../../features/SampleFeature/controllers/sample-petnames-controller-init')
+        .samplePetnamesControllerInit
+    : () => ({ controller: undefined });
 
 /**
  * Core controller responsible for composing other metamask controllers together
@@ -242,9 +238,7 @@ export class Engine {
    */
   appStateListener: NativeEventSubscription;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   subjectMetadataController: SubjectMetadataController;
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * The app state WebSocket manager.
@@ -294,6 +288,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -303,9 +298,7 @@ export class Engine {
     const initRequest = {
       getState: () => store.getState(),
       getGlobalChainId: () => currentChainId,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       removeAccount: this.removeAccount.bind(this),
-      ///: END:ONLY_INCLUDE_IF
       analyticsId,
       codefiTokenApiV2,
       tokenListService,
@@ -325,13 +318,10 @@ export class Engine {
         MoneyAccountController: moneyAccountControllerInit,
         MoneyAccountBalanceService: moneyAccountBalanceServiceInit,
         MoneyAccountApiDataService: moneyAccountApiDataServiceInit,
-        GeolocationApiService: geolocationApiServiceInit,
         SentinelApiService: sentinelApiServiceInit,
-        GeolocationController: geolocationControllerInit,
         PredictVenueController: predictVenueControllerInit,
         TokensController: tokensControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
         TokenSearchDiscoveryDataController:
           tokenSearchDiscoveryDataControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
@@ -340,7 +330,6 @@ export class Engine {
         BridgeStatusController: bridgeStatusControllerInit,
         NftController: nftControllerInit,
         NftDetectionController: nftDetectionControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
         SnapRegistryController: snapRegistryControllerInit,
@@ -352,19 +341,14 @@ export class Engine {
         WebSocketService: WebSocketServiceInit,
         AuthenticationController: authenticationControllerInit,
         UserStorageController: userStorageControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         SnapAccountService: snapAccountServiceInit,
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
-        ///: END:ONLY_INCLUDE_IF
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         SamplePetnamesController: samplePetnamesControllerInit,
-        ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
@@ -373,6 +357,7 @@ export class Engine {
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
         SentinelFeeTokensDataService: sentinelFeeTokensDataServiceInit,
@@ -386,7 +371,6 @@ export class Engine {
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
-        AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         NeoBankService: neoBankServiceInit,
@@ -414,7 +398,7 @@ export class Engine {
       ...initRequest,
     });
 
-    const analyticsController = messengerClientsByName.AnalyticsController;
+    const analyticsController = this.#wallet.getInstance('AnalyticsController');
     const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
@@ -434,7 +418,9 @@ export class Engine {
     const seedlessOnboardingController = this.#wallet.getInstance(
       'SeedlessOnboardingController',
     );
-    const geolocationController = messengerClientsByName.GeolocationController;
+    const geolocationController = this.#wallet.getInstance(
+      'GeolocationController',
+    );
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
@@ -521,7 +507,6 @@ export class Engine {
       messengerClientsByName.NftDetectionController;
     const networkController = this.#wallet.getInstance('NetworkController');
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
     const executionService = messengerClientsByName.ExecutionService;
     const snapController = messengerClientsByName.SnapController;
@@ -540,7 +525,6 @@ export class Engine {
     const authenticationController =
       messengerClientsByName.AuthenticationController;
     const userStorageController = messengerClientsByName.UserStorageController;
-    ///: END:ONLY_INCLUDE_IF
 
     // Initialize BackendWebSocketService lifecycle management
     const backendWebSocketService =
@@ -552,17 +536,20 @@ export class Engine {
       messengerClientsByName.AccountActivityService;
     const ohlcvService = messengerClientsByName.OHLCVService;
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainTransactionsController =
       messengerClientsByName.MultichainTransactionsController;
     const multichainAccountService =
       messengerClientsByName.MultichainAccountService;
     const snapAccountService = messengerClientsByName.SnapAccountService;
-    ///: END:ONLY_INCLUDE_IF
 
-    const networkEnablementController =
-      messengerClientsByName.NetworkEnablementController;
-    networkEnablementController.init();
+    const networkEnablementController = this.#wallet.getInstance(
+      'NetworkEnablementController',
+    );
+    // Re-run now that MultichainNetworkController is registered; the call
+    // made by `wallet.init()` cannot read it yet.
+    networkEnablementController.init().catch((error) => {
+      captureException(error);
+    });
 
     const moneyAccountUpgradeController =
       messengerClientsByName.MoneyAccountUpgradeController;
@@ -583,12 +570,10 @@ export class Engine {
       captureException(error);
     });
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     snapController.init();
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    ///: END:ONLY_INCLUDE_IF
 
     this.context = {
       AnalyticsController: analyticsController,
@@ -625,7 +610,6 @@ export class Engine {
       SelectedNetworkController: selectedNetworkController,
       SignatureController: signatureController,
       LoggingController: loggingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       CronjobController: cronjobController,
       ExecutionService: executionService,
       SnapController: snapController,
@@ -637,16 +621,13 @@ export class Engine {
       WebSocketService: webSocketService,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
-      ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
       OHLCVService: ohlcvService,
       AccountsController: accountsController,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainTransactionsController: multichainTransactionsController,
       MultichainAccountService: multichainAccountService,
       SnapAccountService: snapAccountService,
-      ///: END:ONLY_INCLUDE_IF
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
@@ -662,9 +643,12 @@ export class Engine {
       DeFiPositionsControllerV2:
         messengerClientsByName.DeFiPositionsControllerV2,
       SeedlessOnboardingController: seedlessOnboardingController,
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: messengerClientsByName.SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely unless INCLUDE_SAMPLE_FEATURE=true, so code iterating
+      // the context never sees an `undefined` controller.
+      ...(messengerClientsByName.SamplePetnamesController && {
+        SamplePetnamesController:
+          messengerClientsByName.SamplePetnamesController,
+      }),
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
@@ -672,6 +656,7 @@ export class Engine {
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
         messengerClientsByName.RecurringOrdersDataService,
@@ -756,7 +741,6 @@ export class Engine {
       },
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     this.controllerMessenger.subscribe(
       `${snapController.name}:snapTerminated`,
       (truncatedSnap) => {
@@ -822,8 +806,6 @@ export class Engine {
       },
     );
 
-    ///: END:ONLY_INCLUDE_IF
-
     // Seed ClientController with the current foreground state; the listener
     // below only fires on changes and the app launches already active.
     this.controllerMessenger.call(
@@ -847,7 +829,6 @@ export class Engine {
           state === 'active',
         );
 
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         const { isUnlocked } = this.controllerMessenger.call(
           'KeyringController:getState',
         );
@@ -870,7 +851,6 @@ export class Engine {
               });
           }
         }
-        ///: END:ONLY_INCLUDE_IF
       },
     );
 
@@ -1285,7 +1265,6 @@ export class Engine {
     };
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * Removes an account from state / storage.
    *
@@ -1298,7 +1277,6 @@ export class Engine {
     // Remove account from the keyring
     await this.keyringController.removeAccount(addressHex);
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Returns true or false whether the user has funds or not
@@ -1349,9 +1327,7 @@ export class Engine {
       NftController,
       PermissionController,
       // SelectedNetworkController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       SnapController,
-      ///: END:ONLY_INCLUDE_IF
       LoggingController,
       MoneyAccountController,
       SubscriptionController,
@@ -1360,14 +1336,13 @@ export class Engine {
       KycController,
       PredictOrderService,
       PredictPortfolioService,
+      PredictDeviceAuthService,
       PredictVenueController,
     } = this.context;
 
     // Remove all permissions.
     PermissionController?.clearState?.();
-    ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     await SnapController.clearState();
-    ///: END:ONLY_INCLUDE_IF
 
     // Clear selected network
     // TODO implement this method on SelectedNetworkController
@@ -1422,6 +1397,7 @@ export class Engine {
       );
     }
 
+    await PredictDeviceAuthService.reset();
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
@@ -1560,9 +1536,7 @@ export default {
   get state() {
     assertEngineExists(instance);
     const {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
       SamplePetnamesController,
-      ///: END:ONLY_INCLUDE_IF
       AccountsController,
       AccountTreeController,
       AddressBookController,
@@ -1616,7 +1590,6 @@ export default {
       ProfileController,
       ComplianceController,
       KycController,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController,
       CronjobController,
       NotificationServicesController,
@@ -1626,10 +1599,7 @@ export default {
       SnapRegistryController,
       SubjectMetadataController,
       UserStorageController,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainTransactionsController,
-      ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
@@ -1637,9 +1607,12 @@ export default {
     } = instance.context;
 
     return {
-      ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      SamplePetnamesController: SamplePetnamesController.state,
-      ///: END:ONLY_INCLUDE_IF
+      // Omitted entirely (rather than set to `undefined`) unless
+      // INCLUDE_SAMPLE_FEATURE=true, so consumers can rely on `in`/property
+      // presence checks matching production, where the controller never exists.
+      ...(SamplePetnamesController && {
+        SamplePetnamesController: SamplePetnamesController.state,
+      }),
       AccountsController: AccountsController.state,
       AccountTreeController: AccountTreeController.state,
       AddressBookController: AddressBookController.state,
@@ -1696,7 +1669,6 @@ export default {
       ClientController: ClientController.state,
       ComplianceController: ComplianceController.state,
       KycController: KycController.state,
-      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,
       NotificationServicesController: NotificationServicesController.state,
@@ -1707,10 +1679,7 @@ export default {
       SnapRegistryController: SnapRegistryController.state,
       SubjectMetadataController: SubjectMetadataController.state,
       UserStorageController: UserStorageController.state,
-      ///: END:ONLY_INCLUDE_IF
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainTransactionsController: MultichainTransactionsController.state,
-      ///: END:ONLY_INCLUDE_IF
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
@@ -1776,10 +1745,8 @@ export default {
   // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
   getQrKeyringScanner: () => qrKeyringBridge,
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);
   },
-  ///: END:ONLY_INCLUDE_IF
 };

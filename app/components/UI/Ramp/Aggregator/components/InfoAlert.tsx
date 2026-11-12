@@ -27,7 +27,7 @@ const createStyles = (colors: Colors) =>
     },
     cancel: {
       alignSelf: 'flex-end',
-      marginBottom: -15,
+      marginBottom: -16,
       zIndex: 1,
     },
     modal: {

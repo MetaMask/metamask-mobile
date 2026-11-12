@@ -1,3 +1,8 @@
+import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { parseArgs, splitBySize, unionDiff } from './lint-shard-plan.mjs';
 
 const sampleEntries = [
@@ -127,6 +132,95 @@ describe('unionDiff', () => {
     expect(diff.duplicates).toEqual(['b.ts']);
     expect(diff.missing).toEqual([]);
     expect(diff.extra).toEqual([]);
+  });
+});
+
+const FIXTURE_CONFIG = `export default [
+  {
+    files: ['**/*.{js,ts,tsx}'],
+    rules: {
+      'no-debugger': 'error',
+    },
+  },
+];
+`;
+
+const lintShardUrl = pathToFileURL(
+  path.resolve(__dirname, 'lint-shard.mjs'),
+).href;
+
+/**
+ * A directory outside the repo, so file discovery uses this config instead of
+ * eslint.config.mjs at the repository root.
+ */
+function createLintFixture(): string {
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'lint-shard-'));
+  fs.writeFileSync(path.join(cwd, 'eslint.config.mjs'), FIXTURE_CONFIG);
+  fs.writeFileSync(path.join(cwd, 'kept.js'), 'debugger;\n');
+  fs.writeFileSync(
+    path.join(cwd, 'eslint-suppressions.json'),
+    `${JSON.stringify(
+      {
+        'kept.js': {
+          'no-debugger': { count: 1 },
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  return cwd;
+}
+
+/**
+ * ESLint's file finder loads config with a dynamic import. Jest's VM rejects
+ * that, so the calls run in a Node process.
+ */
+function lintFixture(cwd: string): {
+  files: string[];
+  errorCount: number;
+} {
+  const result = spawnSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `import { listLintFiles, lintPaths } from ${JSON.stringify(lintShardUrl)};
+const cwd = process.env.LINT_FIXTURE;
+const files = await listLintFiles(cwd);
+const errorCount = await lintPaths(cwd, files);
+process.stdout.write(JSON.stringify({ files, errorCount }));`,
+    ],
+    {
+      // Clear Jest's NODE_OPTIONS so the child is a plain Node process.
+      env: { ...process.env, LINT_FIXTURE: cwd, NODE_OPTIONS: '' },
+      encoding: 'utf8',
+    },
+  );
+  if (result.status !== 0) {
+    throw new Error(
+      result.stderr || result.stdout || `node exited ${result.status}`,
+    );
+  }
+  return JSON.parse(result.stdout) as { files: string[]; errorCount: number };
+}
+
+describe('listLintFiles and lintPaths', () => {
+  let cwd = '';
+
+  beforeEach(() => {
+    cwd = createLintFixture();
+  });
+
+  afterEach(() => {
+    fs.rmSync(cwd, { recursive: true, force: true });
+  });
+
+  it('lists the fixture file and returns zero errors when eslint-suppressions.json covers the violation', () => {
+    const result = lintFixture(cwd);
+
+    expect(result.files).toEqual([path.join(cwd, 'kept.js')]);
+    expect(result.errorCount).toBe(0);
   });
 });
 

@@ -23,6 +23,7 @@ export interface PayWithRowConfig {
   onPress?: () => void;
   disabled?: boolean;
   testID?: string;
+  hasIconBackground?: boolean;
 }
 
 /**

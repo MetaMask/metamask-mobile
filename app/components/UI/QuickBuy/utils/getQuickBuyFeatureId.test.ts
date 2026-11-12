@@ -22,6 +22,15 @@ describe('getQuickBuyFeatureId', () => {
     expect(getQuickBuyFeatureId('trader_feed')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
     );
+    expect(getQuickBuyFeatureId('social_trending')).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+    expect(getQuickBuyFeatureId('social_following')).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
+    expect(getQuickBuyFeatureId('social_live_trades')).toBe(
+      FeatureId.QUICK_BUY_FOLLOW_TRADING,
+    );
     expect(getQuickBuyFeatureId('profile_position')).toBe(
       FeatureId.QUICK_BUY_FOLLOW_TRADING,
     );
