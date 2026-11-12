@@ -1,6 +1,12 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
-import { AppState, Linking, Platform, type AppStateStatus } from 'react-native';
+import {
+  AccessibilityInfo,
+  AppState,
+  Linking,
+  Platform,
+  type AppStateStatus,
+} from 'react-native';
 import { RESULTS } from 'react-native-permissions';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -67,16 +73,55 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ActualReact = jest.requireActual('react');
-  const { Text: RNText, TouchableOpacity } = jest.requireActual('react-native');
+  const {
+    Text: RNText,
+    TouchableOpacity,
+    View,
+  } = jest.requireActual('react-native');
   return {
     // The glass header's ButtonIconGlass reads this enum at module load.
     ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
       .ButtonIconSize,
+    Box: ({
+      children,
+      testID,
+    }: React.PropsWithChildren<{ testID?: string }>): React.ReactElement =>
+      ActualReact.createElement(View, { testID }, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center' },
     Text: ({
       children,
       testID,
     }: React.PropsWithChildren<{ testID?: string }>) =>
       ActualReact.createElement(RNText, { testID }, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }): React.ReactElement =>
+      ActualReact.createElement(
+        View,
+        null,
+        topAccessory,
+        ActualReact.createElement(
+          RNText,
+          { testID: titleProps?.testID },
+          title,
+        ),
+        ActualReact.createElement(
+          RNText,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
     Button: ({
       children,
       onPress,
@@ -103,12 +148,29 @@ jest.mock('@metamask/design-system-react-native', () => {
         'Close',
       ),
     ButtonVariant: { Primary: 'Primary' },
-    ButtonSize: { Md: 'Md' },
+    ButtonSize: { Md: 'Md', Lg: 'Lg' },
     TextVariant: { BodyMd: 'BodyMd' },
+    TextColor: { TextAlternative: 'TextAlternative' },
     IconSize: { Xl: 'Xl' },
     Spinner: () => null,
   };
 });
+
+jest.mock('../Onboarding/ImmersveVerifyingIdentityAnimation', () => {
+  const ActualReact = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (): React.ReactElement =>
+      ActualReact.createElement(View, {
+        testID: 'immersve-verifying-identity-animation',
+      }),
+  };
+});
+
+jest.mock('../../../Money/hooks/useReduceMotion', () => ({
+  useReduceMotion: (): boolean => true,
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -230,6 +292,9 @@ describe('ImmersveKYCModal', () => {
     mockRequestCameraPermission.mockResolvedValue('granted');
     mockRequestMicrophonePermission.mockResolvedValue('granted');
     mockAppStateChange = undefined;
+    jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation((): void => undefined);
     jest
       .spyOn(AppState, 'addEventListener')
       .mockImplementation((type, handler) => {
@@ -355,8 +420,15 @@ describe('ImmersveKYCModal', () => {
     });
 
     expect(queryByTestId('immersve-kyc-webview')).toBeNull();
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_title',
+    );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
     expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
       'card.card_onboarding.immersve_kyc_modal.permission_error',
+    );
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_onboarding.immersve_kyc_modal.permission_title. card.card_onboarding.immersve_kyc_modal.permission_error',
     );
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
@@ -405,6 +477,13 @@ describe('ImmersveKYCModal', () => {
 
     expect(queryByTestId('immersve-kyc-webview')).toBeNull();
     expect(openSettingsSpy).not.toHaveBeenCalled();
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_title',
+    );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
+    expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.permission_settings_description',
+    );
     expect(
       getByTestId('immersve-kyc-open-settings-button').props.children,
     ).toContain('card.card_onboarding.immersve_kyc_modal.open_settings');
@@ -555,6 +634,10 @@ describe('ImmersveKYCModal', () => {
       });
     });
 
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      'card.card_onboarding.immersve_kyc_modal.load_error_title',
+    );
+    expect(getByTestId('immersve-kyc-error-illustration')).toBeTruthy();
     expect(getByTestId('immersve-kyc-error-text').props.children).toBe(
       'card.card_onboarding.immersve_kyc_modal.load_error',
     );

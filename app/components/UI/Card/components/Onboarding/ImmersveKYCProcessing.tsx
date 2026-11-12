@@ -1,24 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StatusBar, View } from 'react-native';
+import { AccessibilityInfo, StatusBar, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  IconSize,
-  Spinner,
-  Text,
-  TextColor,
-  TextVariant,
-  TitleStandard,
-} from '@metamask/design-system-react-native';
+import { IconSize, Spinner } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -60,7 +47,7 @@ import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
-import ImmersveVerifyingIdentityAnimation from './ImmersveVerifyingIdentityAnimation';
+import ImmersveKycIdentityLayout from './ImmersveKycIdentityLayout';
 import CardVerifiedContent from './CardVerifiedContent';
 import KYCFailedContent from './KYCFailedContent';
 
@@ -254,87 +241,6 @@ const announcementForKycView = ({
     default:
       return null;
   }
-};
-
-interface KycIdentityLayoutProps {
-  title: string;
-  description: string;
-  descriptionTestID?: string;
-  buttonLabel?: string;
-  onButtonPress?: () => void;
-  buttonTestID?: string;
-  reasonLine?: string | null;
-}
-
-/** Verifying, Finish verifying, retry, and the two error states share this layout. */
-const KycIdentityLayout = ({
-  title,
-  description,
-  descriptionTestID = 'onboarding-description',
-  buttonLabel,
-  onButtonPress,
-  buttonTestID,
-  reasonLine,
-}: KycIdentityLayoutProps) => {
-  const tw = useTailwind();
-
-  return (
-    <View style={tw.style('flex-1')}>
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow justify-center px-4 pb-6')}
-      >
-        <TitleStandard
-          title={title}
-          bottomLabel={description}
-          titleProps={{
-            twClassName: 'text-center',
-            testID: 'onboarding-title',
-          }}
-          titleWrapperProps={{ justifyContent: BoxJustifyContent.Center }}
-          bottomLabelProps={{
-            twClassName: 'text-center',
-            testID: descriptionTestID,
-          }}
-          bottomLabelWrapperProps={{
-            justifyContent: BoxJustifyContent.Center,
-          }}
-          topAccessory={
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="mb-5 w-full overflow-hidden"
-              testID="immersve-kyc-processing-illustration"
-            >
-              <ImmersveVerifyingIdentityAnimation />
-            </Box>
-          }
-        />
-        {reasonLine ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-4 text-center"
-            testID="immersve-kyc-processing-reason"
-          >
-            {reasonLine}
-          </Text>
-        ) : null}
-      </ScrollView>
-      {buttonLabel ? (
-        <Box twClassName="gap-2 px-4 pb-2 pt-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={onButtonPress}
-            testID={buttonTestID}
-          >
-            {buttonLabel}
-          </Button>
-        </Box>
-      ) : null}
-    </View>
-  );
 };
 
 /**
@@ -878,7 +784,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'retry') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={strings('card.card_onboarding.kyc_rejected.retry_title')}
           description={retryDescription ?? ''}
           buttonLabel={strings(
@@ -908,7 +814,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'reopen') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={reopenTitle}
           description={reopenDescription}
           buttonLabel={strings(
@@ -924,7 +830,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'pollError') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={strings(
             'card.card_onboarding.immersve_kyc_processing.error_title',
           )}
@@ -940,7 +846,7 @@ const ImmersveKYCProcessing = () => {
     }
     if (view === 'expired') {
       return (
-        <KycIdentityLayout
+        <ImmersveKycIdentityLayout
           title={strings(
             'card.card_onboarding.immersve_kyc_processing.expired_title',
           )}
@@ -957,7 +863,7 @@ const ImmersveKYCProcessing = () => {
       );
     }
     return (
-      <KycIdentityLayout
+      <ImmersveKycIdentityLayout
         title={strings(
           'card.card_onboarding.immersve_kyc_processing.in_progress_title',
         )}

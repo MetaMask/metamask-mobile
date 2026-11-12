@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  AccessibilityInfo,
   AppState,
   Linking,
   Platform,
@@ -8,21 +9,15 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { AnimationDuration } from '@metamask/design-tokens';
 import {
   WebView,
   WebViewMessageEvent,
   WebViewNavigation,
 } from '@metamask/react-native-webview';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  Text,
-  TextVariant,
-  IconSize,
-  Spinner,
-} from '@metamask/design-system-react-native';
+import { IconSize, Spinner } from '@metamask/design-system-react-native';
 import {
   PERMISSIONS,
   RESULTS,
@@ -47,6 +42,8 @@ import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useTheme } from '../../../../../util/theme';
+import { useReduceMotion } from '../../../Money/hooks/useReduceMotion';
+import ImmersveKycIdentityLayout from '../Onboarding/ImmersveKycIdentityLayout';
 import ImmersveLogo from '../../../../../images/immersve-logo.svg';
 
 export interface ImmersveKYCModalParams {
@@ -260,6 +257,7 @@ const ImmersveKYCModal: React.FC = () => {
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const reduceMotion = useReduceMotion();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [status, setStatus] = useState<WebViewStatus>('requesting-permissions');
@@ -634,10 +632,27 @@ const ImmersveKYCModal: React.FC = () => {
     status === 'permission-error' &&
     canOpenSettings &&
     !hasMountedWebView.current;
-  const errorMessageKey =
-    errorKind === 'permission'
-      ? 'card.card_onboarding.immersve_kyc_modal.permission_error'
-      : 'card.card_onboarding.immersve_kyc_modal.load_error';
+  const isPermissionError = errorKind === 'permission';
+  const errorTitleKey = isPermissionError
+    ? 'card.card_onboarding.immersve_kyc_modal.permission_title'
+    : 'card.card_onboarding.immersve_kyc_modal.load_error_title';
+  let errorDescriptionKey =
+    'card.card_onboarding.immersve_kyc_modal.load_error';
+  if (isPermissionError) {
+    errorDescriptionKey = offerSettings
+      ? 'card.card_onboarding.immersve_kyc_modal.permission_settings_description'
+      : 'card.card_onboarding.immersve_kyc_modal.permission_error';
+  }
+
+  // iOS VoiceOver ignores accessibilityLiveRegion, so speak the error instead.
+  useEffect(() => {
+    if (!isErrorStatus) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      `${strings(errorTitleKey)}. ${strings(errorDescriptionKey)}`,
+    );
+  }, [isErrorStatus, errorTitleKey, errorDescriptionKey]);
 
   return (
     <View
@@ -665,34 +680,33 @@ const ImmersveKYCModal: React.FC = () => {
         twClassName="bg-background-default"
       />
       {isErrorStatus ? (
-        <View
-          style={tw.style('flex-1 justify-center items-center p-6 gap-4')}
+        <Animated.View
+          style={tw.style('flex-1')}
+          entering={
+            reduceMotion
+              ? undefined
+              : FadeIn.duration(AnimationDuration.Regularly)
+          }
           testID="immersve-kyc-error-container"
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-error-default text-center"
-            testID="immersve-kyc-error-text"
-          >
-            {strings(errorMessageKey)}
-          </Text>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Md}
-            onPress={offerSettings ? handleOpenSettings : handleRetry}
-            testID={
-              offerSettings
-                ? 'immersve-kyc-open-settings-button'
-                : 'immersve-kyc-retry-button'
-            }
-          >
-            {strings(
+          <ImmersveKycIdentityLayout
+            title={strings(errorTitleKey)}
+            description={strings(errorDescriptionKey)}
+            descriptionTestID="immersve-kyc-error-text"
+            illustrationTestID="immersve-kyc-error-illustration"
+            buttonLabel={strings(
               offerSettings
                 ? 'card.card_onboarding.immersve_kyc_modal.open_settings'
                 : 'card.card_onboarding.immersve_kyc_modal.try_again',
             )}
-          </Button>
-        </View>
+            onButtonPress={offerSettings ? handleOpenSettings : handleRetry}
+            buttonTestID={
+              offerSettings
+                ? 'immersve-kyc-open-settings-button'
+                : 'immersve-kyc-retry-button'
+            }
+          />
+        </Animated.View>
       ) : (
         <View style={tw.style('flex-1')}>
           {showWebView && (
