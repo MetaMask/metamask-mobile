@@ -32,6 +32,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -564,6 +565,15 @@ const SocialProfileOnboardingView: React.FC = () => {
     displayNameCheckId.current += 1;
     setDisplayNameError(null);
   }, [draft.displayName]);
+
+  // VoiceOver keeps focus on Continue and ignores accessibilityLiveRegion, so
+  // announce the error explicitly. TalkBack reads the alert live region.
+  useEffect(() => {
+    if (!displayNameError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(displayNameError);
+  }, [displayNameError]);
   const [finishError, setFinishError] = useState<string | null>(null);
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
@@ -1524,6 +1534,8 @@ const SocialProfileOnboardingView: React.FC = () => {
                       <Text
                         variant={TextVariant.BodySm}
                         color={TextColor.ErrorDefault}
+                        accessibilityRole="alert"
+                        accessibilityLiveRegion="polite"
                       >
                         {displayNameError}
                       </Text>

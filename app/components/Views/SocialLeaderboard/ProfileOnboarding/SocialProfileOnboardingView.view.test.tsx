@@ -20,7 +20,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
@@ -1038,15 +1038,25 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
       .mockResolvedValueOnce({ valid: false });
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
-    );
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    try {
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
 
-    expect(
-      await screen.findByText(
-        strings('social_leaderboard.profile_onboarding.display_name_invalid'),
-      ),
-    ).toBeOnTheScreen();
+      const invalidDisplayName = strings(
+        'social_leaderboard.profile_onboarding.display_name_invalid',
+      );
+      const displayNameError = await screen.findByText(invalidDisplayName);
+      expect(displayNameError).toBeOnTheScreen();
+      expect(displayNameError).toHaveProp('accessibilityRole', 'alert');
+      expect(displayNameError).toHaveProp('accessibilityLiveRegion', 'polite');
+      expect(announceSpy).toHaveBeenCalledWith(invalidDisplayName);
+    } finally {
+      announceSpy.mockRestore();
+    }
     expect(
       Engine.context.ProfileService.checkDisplayNameValidity,
     ).toHaveBeenCalledWith('Bad Name');
