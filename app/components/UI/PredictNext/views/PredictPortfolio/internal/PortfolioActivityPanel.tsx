@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { ActivityIndicator, FlatList } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { AccessibilityInfo, ActivityIndicator, FlatList } from 'react-native';
 import {
   Box,
   Button,
@@ -66,6 +66,17 @@ export const PortfolioActivityPanel = ({
     Boolean(hasNextPage) &&
     (data?.pages[data.pages.length - 1]?.activity.length === 0 || isError);
 
+  const isContinuationFailed = needsExplicitContinuation && isError;
+
+  // The continuation text swaps in place, so nothing is read out on its own.
+  // iOS VoiceOver ignores accessibilityLiveRegion, hence the explicit announce.
+  useEffect(() => {
+    if (!isContinuationFailed) return;
+    AccessibilityInfo.announceForAccessibility(
+      strings('predict_next.portfolio.load_failed'),
+    );
+  }, [isContinuationFailed]);
+
   const handleEndReached = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage || needsExplicitContinuation) {
       return;
@@ -121,7 +132,7 @@ export const PortfolioActivityPanel = ({
         twClassName="mb-4 text-center"
       >
         {strings(
-          isError
+          isContinuationFailed
             ? 'predict_next.portfolio.load_failed'
             : 'predict_next.portfolio.activity_continue_description',
         )}

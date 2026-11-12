@@ -320,7 +320,11 @@ export const OrderReceiptOutcome = ({
             color={IconColor.WarningDefault}
             background="bg-warning-muted"
           />
-          <Text variant={TextVariant.HeadingSm}>
+          <Text
+            variant={TextVariant.HeadingSm}
+            accessibilityRole="header"
+            testID={PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW_TITLE}
+          >
             {strings('predict_next.order_receipt.needs_review_title')}
           </Text>
           <Text

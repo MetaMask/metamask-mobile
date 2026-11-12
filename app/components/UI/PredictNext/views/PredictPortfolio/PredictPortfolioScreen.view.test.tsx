@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictPortfolioScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
@@ -1050,6 +1051,9 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('retries a failed empty-page continuation at the same cursor before showing an exhausted empty state', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockReturnValue(undefined);
     const activityRequests: string[] = [];
     composeActivityTransport(async (url) => {
       activityRequests.push(url);
@@ -1076,6 +1080,8 @@ describe('PredictPortfolioScreen', () => {
       await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
     );
     await view.findByText("Couldn't load.");
+    expect(announceSpy).toHaveBeenCalledTimes(1);
+    expect(announceSpy).toHaveBeenCalledWith("Couldn't load.");
     expect(activityRequests).toHaveLength(2);
     expect(view.queryByText('No activity yet')).not.toBeOnTheScreen();
     expect(

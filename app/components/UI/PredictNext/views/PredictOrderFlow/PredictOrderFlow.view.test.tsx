@@ -1492,6 +1492,19 @@ describe('PredictOrderFlow', () => {
     expect(commitCalls()).toHaveLength(1);
   });
 
+  it('exposes the manual review title as a header for screen readers', async () => {
+    stubFetch(() => ({ body: makePreview() }), {
+      commit: () => ({ body: makeUnresolvedReceipt('needs_manual_review') }),
+    });
+    await approveOrder();
+
+    expect(
+      await screen.findByTestId(
+        PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW_TITLE,
+      ),
+    ).toHaveProp('accessibilityRole', 'header');
+  });
+
   describe('Active Venue change', () => {
     const engine = Engine as unknown as { state: Record<string, unknown> };
     let originalEngineState: Record<string, unknown>;
