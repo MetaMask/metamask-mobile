@@ -53,6 +53,70 @@ describe('buildHomeNavResetState', () => {
       ],
     });
   });
+
+  it('focuses Browser HOME with flat params', () => {
+    const mainNavigatorState = {
+      routes: [
+        {
+          name: Routes.HOME_TABS,
+          state: {
+            index: 1,
+            routes: [
+              { name: Routes.WALLET.HOME },
+              {
+                name: Routes.BROWSER.HOME,
+                params: {
+                  newTabUrl: 'https://a.test',
+                  timestamp: 123,
+                },
+              },
+            ],
+          },
+        },
+      ],
+    };
+    const result = buildHomeNavResetState(mainNavigatorState);
+
+    expect(result).toStrictEqual({
+      routes: [
+        {
+          name: Routes.ONBOARDING.HOME_NAV,
+          state: mainNavigatorState,
+        },
+      ],
+    });
+  });
+
+  it('preserves a nested Browser params object', () => {
+    const browserParams = {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://nested.test',
+        timestamp: 456,
+      },
+    };
+    const mainNavigatorState = {
+      routes: [
+        {
+          name: Routes.HOME_TABS,
+          state: {
+            index: 1,
+            routes: [
+              { name: Routes.WALLET.HOME },
+              { name: Routes.BROWSER.HOME, params: browserParams },
+            ],
+          },
+        },
+      ],
+    };
+
+    const result = buildHomeNavResetState(mainNavigatorState);
+
+    expect(result.routes[0].state).toBe(mainNavigatorState);
+    expect(result.routes[0].state?.routes[0].state?.routes[1].params).toBe(
+      browserParams,
+    );
+  });
 });
 
 describe('resetToHomeNav', () => {
