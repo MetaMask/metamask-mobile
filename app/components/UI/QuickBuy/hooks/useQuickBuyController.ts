@@ -107,7 +107,6 @@ import { registerHwSubmissionOutcomeListener } from '../../HardwareWallet/Swaps/
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -321,9 +320,6 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
-  const isProfileTradingActivityPrivate = useSelector(
-    selectIsProfileTradingActivityPrivate,
-  );
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1765,14 +1761,12 @@ export function useQuickBuyController(
       costLabel: tradeToastInfo.fiatAmountLabel,
       entryPriceLabel: formattedRate,
     };
-    // Public copy-trades always share. Private profiles use the normal
-    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
+    // Copy-trades always share. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
     const canPostTradeShare =
       isSpotPostTradeShareEligible(amountUsdValue) &&
       !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
-    const isForcedPostTradeShare =
-      postTradeShare && !isProfileTradingActivityPrivate;
+    const isForcedPostTradeShare = postTradeShare;
     const shouldForcePostTradeShare =
       isForcedPostTradeShare && canPostTradeShare;
     const prompt = isForcedPostTradeShare
@@ -2033,7 +2027,6 @@ export function useQuickBuyController(
     preserveBridgeStateOnUnmount,
     navigation,
     postTradeShare,
-    isProfileTradingActivityPrivate,
     resolvePostTradePrompt,
     copyTradeOrigin,
     postTradeShareOwner,
