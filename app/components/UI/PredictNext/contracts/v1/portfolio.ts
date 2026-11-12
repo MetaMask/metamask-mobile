@@ -203,6 +203,7 @@ const activityPageSchema = object({
   activity: array(unknown()),
   nextCursor: optional(string()),
   settlementsCompleteFrom: optional(timestamp),
+  settlementsDegradedReason: optional(literal('venue_permission_denied')),
 });
 
 const parseActivityEntry = (value: unknown): PredictActivityEntry => {

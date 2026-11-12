@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
 import {
   Box,
+  Button,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -24,11 +26,10 @@ interface PortfolioActivityPanelProps {
 }
 
 /**
- * Renders the independently cached Activity list (Trades and Settlements) for
- * one Venue in the backend's pinned order, never re-sorted. When a loaded
- * page reaches the Venue's settlement archive, the list says from when its
- * Settlements are complete instead of presenting a truncated history as
- * whole.
+ * Renders the independently cached Activity list in the backend's pinned
+ * order, never re-sorted. Archive and explicit demo degradation notices stay
+ * visible alongside cached rows. An empty page with a cursor is scan progress:
+ * each such continuation requires one explicit user request, not an auto loop.
  */
 export const PortfolioActivityPanel = ({
   query,
@@ -55,14 +56,27 @@ export const PortfolioActivityPanel = ({
         ?.settlementsCompleteFrom,
     [data],
   );
-  const hasInitialError = isError && entries.length === 0;
+  const settlementsDegraded = data?.pages.some(
+    (page) => page.settlementsDegradedReason === 'venue_permission_denied',
+  );
+  const hasInitialError = isError && entries.length === 0 && !hasNextPage;
+  // Empty pages can be scan progress, not exhaustion. Stop scroll-driven
+  // pagination at each such page and let the user authorize one more page.
+  const needsExplicitContinuation =
+    Boolean(hasNextPage) &&
+    (data?.pages[data.pages.length - 1]?.activity.length === 0 || isError);
 
   const handleEndReached = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) {
+    if (!hasNextPage || isFetchingNextPage || needsExplicitContinuation) {
       return;
     }
 
     fetchNextPage().catch(() => undefined);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, needsExplicitContinuation]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    fetchNextPage({ cancelRefetch: false }).catch(() => undefined);
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const handleRetry = useCallback(() => {
@@ -91,6 +105,34 @@ export const PortfolioActivityPanel = ({
     [handlePress, isPrivacyMode],
   );
 
+  const continuation = needsExplicitContinuation ? (
+    <Box
+      twClassName="items-center px-8 py-6"
+      testID={PredictPortfolioScreenTestIds.ACTIVITY_CONTINUATION}
+    >
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        twClassName="mb-4 text-center"
+      >
+        {strings(
+          isError
+            ? 'predict_next.portfolio.load_failed'
+            : 'predict_next.portfolio.activity_continue_description',
+        )}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        onPress={handleLoadMore}
+        isDisabled={isFetchingNextPage}
+        isLoading={isFetchingNextPage}
+        testID={PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE}
+      >
+        {strings('predict_next.portfolio.activity_load_more')}
+      </Button>
+    </Box>
+  ) : null;
+
   let content: React.ReactNode;
   if (isPending) {
     content = (
@@ -106,6 +148,8 @@ export const PortfolioActivityPanel = ({
         retryTestID={PredictPortfolioScreenTestIds.ACTIVITY_RETRY}
       />
     );
+  } else if (entries.length === 0 && hasNextPage) {
+    content = continuation;
   } else if (entries.length === 0) {
     content = (
       <PortfolioEmptyState
@@ -127,14 +171,15 @@ export const PortfolioActivityPanel = ({
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
-          isFetchingNextPage ? (
+          continuation ??
+          (isFetchingNextPage ? (
             <Box
               testID={PredictPortfolioScreenTestIds.ACTIVITY_NEXT_PAGE_LOADING}
               twClassName="items-center py-4"
             >
               <ActivityIndicator />
             </Box>
-          ) : null
+          ) : null)
         }
       />
     );
@@ -152,6 +197,16 @@ export const PortfolioActivityPanel = ({
           {strings('predict_next.portfolio.settlements_complete_from', {
             date: formatActivityDate(settlementsCompleteFrom),
           })}
+        </Text>
+      ) : null}
+      {settlementsDegraded && !isPending && !hasInitialError ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="py-2"
+          testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED}
+        >
+          {strings('predict_next.portfolio.settlements_permission_denied')}
         </Text>
       ) : null}
       {content}

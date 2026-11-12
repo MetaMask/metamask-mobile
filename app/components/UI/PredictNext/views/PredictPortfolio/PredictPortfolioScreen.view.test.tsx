@@ -29,12 +29,64 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
 
 describe('PredictPortfolioScreen', () => {
+  const activityTransportRestores: (() => void)[] = [];
+
+  /** Exercises the UI data-query messenger protocol through the real service:
+   * its cursor is a separate messenger argument, then an HTTP query field. */
+  const composeActivityTransport = (
+    activity: (url: string) => Promise<{ body: unknown; status?: number }>,
+  ) => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = jest.fn(async (input, init) => {
+      const url = String(input);
+      const parsed = new URL(url);
+      let status = 200;
+      let body: unknown;
+      if (parsed.pathname.endsWith('/activity')) {
+        if (!new Headers(init?.headers).has('venue-authorization')) {
+          body = {
+            kind: 'sign_required',
+            request: { method: 'GET', path: '/portfolio/fills', query: 'limit=20' },
+          };
+        } else {
+          const response = await activity(url);
+          status = response.status ?? 200;
+          body = response.body;
+        }
+      } else if (parsed.pathname.endsWith('/portfolio/summary')) {
+        body = makePredictNextSummary();
+      } else if (parsed.pathname.endsWith('/balance')) {
+        body = { venueId: 'kalshi', currency: 'USD', available: '123.13' };
+      } else if (parsed.pathname.endsWith('/positions')) {
+        body = { venueId: 'kalshi', positions: [] };
+      } else {
+        status = 404;
+        body = {};
+      }
+      const response = {
+        ok: status >= 200 && status < 300,
+        status,
+        json: async () => body,
+        clone: () => response,
+      } as Response;
+      return response;
+    }) as typeof fetch;
+    const composed = composePredictNextPortfolioTrading();
+    const restoreMessenger = routePredictPortfolioServicesTo(composed.rootMessenger);
+    activityTransportRestores.push(() => {
+      restoreMessenger();
+      composed.destroy();
+      globalThis.fetch = originalFetch;
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     configurePredictNextFeeds();
   });
 
   afterEach(() => {
+    activityTransportRestores.splice(0).forEach((restore) => restore());
     jest.restoreAllMocks();
     onlineManager.setOnline(true);
   });
@@ -852,6 +904,233 @@ describe('PredictPortfolioScreen', () => {
     ).toBeOnTheScreen();
   });
 
+  it('loads one explicitly requested page at a time through empty Activity scan pages', async () => {
+    const activityRequests: string[] = [];
+    // The app targets ES2022, before Promise.withResolvers.
+    let resolveNextPage: (value: { body: unknown }) => void = () => undefined;
+    composeActivityTransport(async (url) => {
+      activityRequests.push(url);
+      if (activityRequests.length === 1) {
+        return {
+          body: {
+            venueId: 'kalshi',
+            activity: [],
+            nextCursor: 'opaque-v2-scan-2',
+            settlementsCompleteFrom: '2026-08-27T00:00:00.000Z',
+          },
+        };
+      }
+      if (activityRequests.length === 2) {
+        return new Promise((resolve) => {
+          resolveNextPage = resolve;
+        });
+      }
+      return { body: { venueId: 'kalshi', activity: [makePredictNextTrade()] } };
+    });
+    const view = renderPredictPortfolioScreen(
+      { venueId: KALSHI_VENUE_ID, initialTab: 'activity' },
+      true,
+    );
+
+    const loadMore = await view.findByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE,
+    );
+    expect(view.queryByText('No activity yet')).not.toBeOnTheScreen();
+    expect(activityRequests).toEqual([
+      'https://predict.example/v1/venues/kalshi/activity?limit=20',
+    ]);
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(loadMore);
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+      ).toBeDisabled(),
+    );
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    );
+    expect(activityRequests).toEqual([
+      'https://predict.example/v1/venues/kalshi/activity?limit=20',
+      'https://predict.example/v1/venues/kalshi/activity?limit=20&cursor=opaque-v2-scan-2',
+    ]);
+
+    await act(async () => {
+      resolveNextPage({
+        body: {
+          venueId: 'kalshi',
+          activity: [],
+          nextCursor: 'opaque-v2-scan-3',
+        },
+      });
+    });
+    await waitFor(() =>
+      expect(
+        view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+      ).toBeEnabled(),
+    );
+    expect(activityRequests).toHaveLength(2);
+
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    );
+    expect(
+      await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+    ).toBeOnTheScreen();
+    expect(activityRequests).toEqual([
+      'https://predict.example/v1/venues/kalshi/activity?limit=20',
+      'https://predict.example/v1/venues/kalshi/activity?limit=20&cursor=opaque-v2-scan-2',
+      'https://predict.example/v1/venues/kalshi/activity?limit=20&cursor=opaque-v2-scan-3',
+    ]);
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    ).not.toBeOnTheScreen();
+    expect(view.queryByText('+$5.93')).not.toBeOnTheScreen();
+  });
+
+  it('stops scroll-driven loading after an empty page without discarding cached Activity', async () => {
+    let activityRequests = 0;
+    mockPredictNextMessenger((action) => {
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId: 'kalshi', positions: [] });
+      }
+      if (action === 'PredictPortfolioService:getActivity') {
+        activityRequests += 1;
+        return Promise.resolve(
+          activityRequests === 1
+            ? {
+                venueId: 'kalshi',
+                activity: [makePredictNextTrade()],
+                nextCursor: 'scan-2',
+              }
+            : { venueId: 'kalshi', activity: [], nextCursor: 'scan-3' },
+        );
+      }
+      return Promise.resolve(undefined);
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+    const list = await view.findByTestId(
+      PredictPortfolioScreenTestIds.ACTIVITY_LIST,
+    );
+    fireEvent(list, 'onEndReached');
+    await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE);
+    expect(activityRequests).toBe(2);
+    fireEvent(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LIST),
+      'onEndReached',
+    );
+    expect(activityRequests).toBe(2);
+    expect(
+      view.getAllByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+    ).toHaveLength(1);
+    expect(view.queryByText('No activity yet')).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    );
+    await waitFor(() => expect(activityRequests).toBe(3));
+  });
+
+  it('retries a failed empty-page continuation at the same cursor before showing an exhausted empty state', async () => {
+    const activityRequests: string[] = [];
+    composeActivityTransport(async (url) => {
+      activityRequests.push(url);
+      if (activityRequests.length === 1) {
+        return {
+          body: {
+            venueId: 'kalshi',
+            activity: [],
+            nextCursor: 'opaque-v2-retry-cursor',
+          },
+        };
+      }
+      if (activityRequests.length === 2) {
+        return { status: 400, body: { code: 'invalid_request' } };
+      }
+      return { body: { venueId: 'kalshi', activity: [] } };
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    fireEvent.press(
+      await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    );
+    await view.findByText("Couldn't load.");
+    expect(activityRequests).toHaveLength(2);
+    expect(view.queryByText('No activity yet')).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    );
+    await view.findByText('No activity yet');
+    expect(activityRequests).toEqual([
+      'https://predict.example/v1/venues/kalshi/activity?limit=20',
+      'https://predict.example/v1/venues/kalshi/activity?limit=20&cursor=opaque-v2-retry-cursor',
+      'https://predict.example/v1/venues/kalshi/activity?limit=20&cursor=opaque-v2-retry-cursor',
+    ]);
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_LOAD_MORE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('names explicit demo settlement permission degradation while retaining archive and trade displays', async () => {
+    const horizon = '2026-08-27T00:00:00.000Z';
+    mockPredictNextMessenger((action) => {
+      if (action === 'PredictPortfolioService:getPortfolioSummary') {
+        return Promise.resolve(makePredictNextSummary());
+      }
+      if (action === 'PredictPortfolioService:getPositions') {
+        return Promise.resolve({ venueId: 'kalshi', positions: [] });
+      }
+      if (action === 'PredictPortfolioService:getActivity') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          activity: [makePredictNextTrade()],
+          settlementsCompleteFrom: horizon,
+          settlementsDegradedReason: 'venue_permission_denied',
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+    const view = renderPredictPortfolioScreen({
+      venueId: KALSHI_VENUE_ID,
+      initialTab: 'activity',
+    });
+
+    expect(
+      await view.findByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED,
+      ),
+    ).toHaveTextContent(
+      'Settlements are unavailable in this demo environment. Your trades are still shown.',
+    );
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
   it('retries a failed Activity read independently of the Summary', async () => {
     configurePredictNextFeeds({
       activity: new Error('Activity failed'),
@@ -863,6 +1142,9 @@ describe('PredictPortfolioScreen', () => {
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
     );
     await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR);
+    expect(
+      view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED),
+    ).not.toBeOnTheScreen();
     // The Summary stays independently loaded.
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
