@@ -1149,6 +1149,7 @@ describe('PerpsHomeView', () => {
         expect.objectContaining({
           positionId: feedItems[0].positionId,
           isClosed: true,
+          shareSource: 'perps_home',
         }),
       );
     });

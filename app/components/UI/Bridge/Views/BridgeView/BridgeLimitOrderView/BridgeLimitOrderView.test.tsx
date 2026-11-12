@@ -10,6 +10,7 @@ import type { CaipChainId } from '@metamask/utils';
 import {
   FeatureId,
   MetaMetricsSwapsEventSource,
+  MetricsSwapType,
 } from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -59,7 +60,7 @@ const expectAdvancedOrderProperties = (
     feature_id: FeatureId;
     order_type: OrderType;
     error?: string;
-  },
+  } & Record<string, unknown>,
 ) => {
   const { createEventBuilder } = useAnalytics();
 
@@ -1124,6 +1125,24 @@ describe('BridgeLimitOrderView', () => {
     );
   });
 
+  it('hands the entry point location to the confirmation modal', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          location: MetaMetricsSwapsEventSource.TransactionDetails,
+        }),
+      }),
+    );
+  });
+
   it('navigates to the confirmation modal with the fiat limit price as entered', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -1572,6 +1591,16 @@ describe('BridgeLimitOrderView', () => {
             location: 'Transaction Details',
             feature_id: FeatureId.LIMIT_ORDER,
             order_type: expectedType,
+            chain_id_source: 'eip155:1',
+            chain_id_destination: 'eip155:1',
+            token_symbol_source: 'ETH',
+            token_symbol_destination: 'USDC',
+            token_address_source:
+              'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+            token_address_destination:
+              'eip155:1/erc20:0x1234567890123456789012345678901234567890',
+            token_security_type_destination: null,
+            swap_type: MetricsSwapType.SINGLE,
           },
         );
       },

@@ -1940,6 +1940,25 @@ describe('CardController — fetchCardHomeData', () => {
     expect(controller.state.cardHomeDataError).toBeNull();
   });
 
+  it('keeps cardHomeData and records an error when a later fetch throws', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    await controller.fetchCardHomeData({ force: true });
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataError).toEqual(
+      expect.objectContaining({ reason: 'unknown' }),
+    );
+  });
+
   it('marks the session as fetched so persisted data is revalidated only once', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
