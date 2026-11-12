@@ -72,6 +72,18 @@ export const getPendingPostsLabel = (pendingNewCount: number): string =>
         count: pendingNewCount,
       });
 
+export const getPendingPostsAccessibilityLabel = (
+  pendingNewCount: number,
+): string =>
+  pendingNewCount >= SOCIAL_FEED_REALTIME_BUFFER_SIZE
+    ? strings(
+        'social_leaderboard.feed.live_stream.new_posts_capped_accessibility',
+        { count: SOCIAL_FEED_REALTIME_BUFFER_SIZE },
+      )
+    : strings('social_leaderboard.feed.live_stream.new_posts_accessibility', {
+        count: pendingNewCount,
+      });
+
 /**
  * Splits the localized label around its count so translations keep their
  * word order while only the number rolls.
@@ -129,7 +141,7 @@ const PendingPostsCount = ({ count }: { count: string }) => (
 );
 
 /**
- * Floating "N new posts" pill; springs in when posts arrive and out when
+ * Floating "N new" pill; springs in when posts arrive and out when
  * revealed.
  */
 const PendingPostsButton = ({
@@ -142,7 +154,7 @@ const PendingPostsButton = ({
     return null;
   }
 
-  const { label, leading, count, trailing } =
+  const { leading, count, trailing } =
     getPendingPostsLabelParts(pendingNewCount);
   const leadingText = leading.trim();
   const trailingText = trailing.trim();
@@ -167,7 +179,9 @@ const PendingPostsButton = ({
         ]}
       >
         <ButtonBase
-          accessibilityLabel={label}
+          accessibilityLabel={getPendingPostsAccessibilityLabel(
+            pendingNewCount,
+          )}
           size={ButtonBaseSize.Sm}
           onPress={handlePress}
           twClassName={(pressed) =>

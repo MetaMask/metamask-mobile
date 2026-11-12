@@ -6,6 +6,7 @@ import { playImpact, playSelection } from '#app/util/haptics';
 import renderWithProvider from '#app/util/test/renderWithProvider';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '#app/components/UI/SocialFeed/data/socialFeedRealtime';
 import PendingPostsButton, {
+  getPendingPostsAccessibilityLabel,
   getPendingPostsLabelParts,
   PENDING_POSTS_SLOTS_PROBE_TEST_ID,
 } from './PendingPostsButton';
@@ -23,10 +24,10 @@ describe('getPendingPostsLabelParts', () => {
     const parts = getPendingPostsLabelParts(14);
 
     expect(parts).toEqual({
-      label: '14 new posts',
+      label: '14 new',
       leading: '',
       count: '14',
-      trailing: ' new posts',
+      trailing: ' new',
     });
   });
 
@@ -36,11 +37,33 @@ describe('getPendingPostsLabelParts', () => {
     );
 
     expect(parts).toEqual({
-      label: `${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new posts`,
+      label: `${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new`,
       leading: '',
       count: String(SOCIAL_FEED_REALTIME_BUFFER_SIZE),
-      trailing: '+ new posts',
+      trailing: '+ new',
     });
+  });
+});
+
+describe('getPendingPostsAccessibilityLabel', () => {
+  it('uses the singular form for one update', () => {
+    const label = getPendingPostsAccessibilityLabel(1);
+
+    expect(label).toBe('1 new update');
+  });
+
+  it('uses the plural form for several updates', () => {
+    const label = getPendingPostsAccessibilityLabel(14);
+
+    expect(label).toBe('14 new updates');
+  });
+
+  it('caps the count at the realtime buffer size', () => {
+    const label = getPendingPostsAccessibilityLabel(
+      SOCIAL_FEED_REALTIME_BUFFER_SIZE + 5,
+    );
+
+    expect(label).toBe(`${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new updates`);
   });
 });
 
@@ -49,22 +72,22 @@ describe('PendingPostsButton', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the singular pending post label', () => {
+  it('renders the singular pending label', () => {
     renderWithProvider(
       <PendingPostsButton pendingNewCount={1} onPress={jest.fn()} />,
     );
 
-    expect(screen.getByLabelText('1 new post')).toBeOnTheScreen();
-    expect(screen.getByText('new post')).toBeOnTheScreen();
+    expect(screen.getByLabelText('1 new update')).toBeOnTheScreen();
+    expect(screen.getByText('new')).toBeOnTheScreen();
   });
 
-  it('renders the plural pending post label', () => {
+  it('renders the plural pending label', () => {
     renderWithProvider(
       <PendingPostsButton pendingNewCount={2} onPress={jest.fn()} />,
     );
 
-    expect(screen.getByLabelText('2 new posts')).toBeOnTheScreen();
-    expect(screen.getByText('new posts')).toBeOnTheScreen();
+    expect(screen.getByLabelText('2 new updates')).toBeOnTheScreen();
+    expect(screen.getByText('new')).toBeOnTheScreen();
   });
 
   it('caps the label at the realtime buffer size', () => {
@@ -76,9 +99,9 @@ describe('PendingPostsButton', () => {
     );
 
     expect(
-      screen.getByLabelText(`${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new posts`),
+      screen.getByLabelText(`${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new updates`),
     ).toBeOnTheScreen();
-    expect(screen.getByText('+ new posts')).toBeOnTheScreen();
+    expect(screen.getByText('+ new')).toBeOnTheScreen();
   });
 
   it('shows the exact count just under the cap', () => {
@@ -87,7 +110,7 @@ describe('PendingPostsButton', () => {
       <PendingPostsButton pendingNewCount={count} onPress={jest.fn()} />,
     );
 
-    expect(screen.getByLabelText(`${count} new posts`)).toBeOnTheScreen();
+    expect(screen.getByLabelText(`${count} new updates`)).toBeOnTheScreen();
   });
 
   it('reserves the full slot width for the rolling count', () => {
@@ -107,12 +130,12 @@ describe('PendingPostsButton', () => {
     expect(probeStyle.position).toBeUndefined();
   });
 
-  it('renders nothing without pending posts', () => {
+  it('renders nothing without pending updates', () => {
     renderWithProvider(
       <PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />,
     );
 
-    expect(screen.queryByLabelText(/new post/)).toBeNull();
+    expect(screen.queryByLabelText(/new update/)).toBeNull();
   });
 
   it('calls onPress when pressed', () => {
@@ -121,7 +144,7 @@ describe('PendingPostsButton', () => {
       <PendingPostsButton pendingNewCount={3} onPress={onPress} />,
     );
 
-    fireEvent.press(screen.getByLabelText('3 new posts'));
+    fireEvent.press(screen.getByLabelText('3 new updates'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });
@@ -131,7 +154,7 @@ describe('PendingPostsButton', () => {
       <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
     );
 
-    fireEvent.press(screen.getByLabelText('3 new posts'));
+    fireEvent.press(screen.getByLabelText('3 new updates'));
 
     expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     expect(mockPlayImpact).not.toHaveBeenCalled();

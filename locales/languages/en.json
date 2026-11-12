@@ -1388,11 +1388,13 @@
       "live_stream": {
         "paused": "Paused",
         "live": "Live",
-        "new_posts": {
-          "one": "{{count}} new post",
-          "other": "{{count}} new posts"
+        "new_posts": "{{count}} new",
+        "new_posts_capped": "{{count}}+ new",
+        "new_posts_accessibility": {
+          "one": "{{count}} new update",
+          "other": "{{count}} new updates"
         },
-        "new_posts_capped": "{{count}}+ new posts"
+        "new_posts_capped_accessibility": "{{count}}+ new updates"
       },
       "following": "Following",
       "all": "All",
