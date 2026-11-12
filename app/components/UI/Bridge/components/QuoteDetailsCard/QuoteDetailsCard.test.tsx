@@ -439,14 +439,10 @@ describe('QuoteDetailsCard', () => {
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
   });
 
-  it('displays the network fee when gasIncluded7702 is true', () => {
-    // Temporarily replace the mock with one that has gasIncluded7702 = true
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
-
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
-      quoteFetchError: null,
-      activeQuote: {
+  it.each([
+    [
+      'gasIncluded7702',
+      {
         ...mockQuotes[0],
         quote: {
           ...mockQuotes[0].quote,
@@ -454,6 +450,15 @@ describe('QuoteDetailsCard', () => {
           gasIncluded7702: true,
         },
       },
+    ],
+    ['gasIncluded', toQuoteResponseV2(mockQuotesGasIncluded[0])],
+  ])('displays the network fee when %s is true', (_, activeQuote) => {
+    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
+
+    mockModule.useBridgeQuoteData.mockImplementation(() => ({
+      quoteFetchError: null,
+      activeQuote,
       destTokenAmount: '24.44',
       isLoading: false,
       formattedQuoteData: {
@@ -473,7 +478,6 @@ describe('QuoteDetailsCard', () => {
       { state: testState },
     );
 
-    // Verify the gasless network fee is displayed instead of "Included"
     expect(
       getByTestId(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE),
     ).toBeOnTheScreen();
@@ -482,7 +486,6 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('Price impact')).toBeOnTheScreen();
     expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
 
-    // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 
@@ -523,46 +526,6 @@ describe('QuoteDetailsCard', () => {
       getByText(strings('bridge.network_fee_info_title')),
     ).toBeOnTheScreen();
 
-    mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
-  });
-
-  it('displays the network fee when gasIncluded is true', () => {
-    // Temporarily replace the mock with one that has gasIncluded = true
-    const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
-    const originalImpl = mockModule.useBridgeQuoteData.getMockImplementation();
-
-    mockModule.useBridgeQuoteData.mockImplementation(() => ({
-      quoteFetchError: null,
-      activeQuote: toQuoteResponseV2(mockQuotesGasIncluded[0]),
-      destTokenAmount: '24.44',
-      isLoading: false,
-      formattedQuoteData: {
-        networkFee: '0.01',
-        estimatedTime: '1 min',
-        rate: '1 ETH = 24.4 USDC',
-        priceImpact: '-0.06%',
-        slippage: '0.5%',
-      },
-    }));
-
-    const { getByText, queryByText, getByTestId } = renderScreen(
-      QuoteDetailsCardTestScreen,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: testState },
-    );
-
-    // Verify the gasless network fee is displayed instead of "Included"
-    expect(
-      getByTestId(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE),
-    ).toBeOnTheScreen();
-    expect(getByText('0.01')).toBeOnTheScreen();
-    expect(queryByText(strings('bridge.included'))).not.toBeOnTheScreen();
-    expect(getByText('Price impact')).toBeOnTheScreen();
-    expect(getByTestId('price-impact-info-button')).toBeOnTheScreen();
-
-    // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
 

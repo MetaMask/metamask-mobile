@@ -57,5 +57,4 @@ export const QuoteViewSelectorIDs = {
   KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
   BACK_BUTTON: 'bridge-back-button',
   PRICE_IMPACT_INFO_BUTTON: 'price-impact-info-button',
-  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 };

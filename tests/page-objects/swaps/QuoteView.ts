@@ -9,6 +9,7 @@ import {
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
+import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,
@@ -109,7 +110,7 @@ class QuoteView {
 
   /** Network fee value in the quote card, rendered only for gasless quotes. */
   get gaslessNetworkFee(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.GASLESS_NETWORK_FEE);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE);
   }
 
   get rateLabel(): Promise<AppiumElement> {
@@ -500,6 +501,25 @@ class QuoteView {
    * Verifies that the slippage value is displayed correctly in the quote view
    * @param value - The expected slippage value (e.g., "2.5" for 2.5%)
    */
+  /**
+   * Waits for the quote card to load, then checks it shows the gasless
+   * network fee row. The card only renders after the SSE quote arrives.
+   * dismissKeypad taps the quote timer, which is plain text: Rate opens a
+   * tooltip, the rate value opens providers, and the scroll view can open the
+   * quote selector.
+   */
+  async verifyGaslessNetworkFeeDisplayed(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.networkFeeLabel, {
+      timeout: 60000,
+      description: 'Network fee label visible',
+    });
+    await this.dismissKeypad();
+    await Assertions.expectElementToBeVisible(this.gaslessNetworkFee, {
+      timeout: 10000,
+      description: 'Gasless network fee visible in quote',
+    });
+  }
+
   async verifySlippageDisplayed(value: string): Promise<void> {
     await Assertions.expectElementToBeVisible(this.slippageDisplayText(value), {
       timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
