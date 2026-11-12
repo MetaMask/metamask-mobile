@@ -1,4 +1,8 @@
-import { deriveMoneyMetaMaskCardMode } from './moneyMetaMaskCardMode';
+import {
+  deriveMoneyCardSetupPollIntervalMs,
+  deriveMoneyCardSetupView,
+  deriveMoneyMetaMaskCardMode,
+} from './moneyMetaMaskCardMode';
 
 const baseInput = {
   isCardLinkedToMoneyAccount: false,
@@ -272,7 +276,7 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('manage');
   });
 
-  it('returns link for a Money account cardholder while card state is unresolved', () => {
+  it('returns upsell for a signed-in cardholder with no provider card', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
         ...baseInput,
@@ -282,6 +286,20 @@ describe('deriveMoneyMetaMaskCardMode', () => {
         isCardVerified: false,
         hasMoneyAccountRequirements: true,
         reportsVerificationStatus: false,
+        hasProviderCard: false,
+      }),
+    ).toBe('upsell');
+  });
+
+  it('returns link once a provider without verification status reports a card', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardholder: false,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        reportsVerificationStatus: false,
+        hasProviderCard: true,
       }),
     ).toBe('link');
   });
@@ -320,4 +338,149 @@ describe('deriveMoneyMetaMaskCardMode', () => {
       }),
     ).toBe('loading');
   });
+
+  it('returns setup ahead of manage when card setup is unfinished', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isCardLinkedToMoneyAccount: true,
+        cardSetupView: { kind: 'action_required', step: 'kyc' },
+      }),
+    ).toBe('setup');
+  });
+
+  it('returns setup ahead of the upsell for an authenticated user', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        reportsVerificationStatus: false,
+        cardSetupView: { kind: 'provisioning' },
+      }),
+    ).toBe('setup');
+  });
+
+  it('keeps loading while card data is unresolved even if setup is unfinished', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardHomeDataResolved: false,
+        isCardAuthenticated: true,
+        reportsVerificationStatus: false,
+        cardSetupView: { kind: 'kyc_under_review' },
+      }),
+    ).toBe('loading');
+  });
+
+  it('hides the section when it is unavailable even if setup is unfinished', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: true,
+        isMoneyCardSectionAvailable: false,
+        cardSetupView: { kind: 'action_required', step: 'funding' },
+      }),
+    ).toBeNull();
+  });
+
+  it('does not show setup for a signed-out user', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardAuthenticated: false,
+        cardSetupView: { kind: 'provisioning' },
+      }),
+    ).toBe('upsell');
+  });
+});
+
+describe('deriveMoneyCardSetupView', () => {
+  it('returns null when there is no provisioning alert', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: false,
+        provisioningView: 'provisioning',
+        setupStep: 'kyc',
+      }),
+    ).toBeNull();
+  });
+
+  it('returns reconciling while the setup check is in flight', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: true,
+        provisioningView: 'reconciling',
+        setupStep: null,
+      }),
+    ).toEqual({ kind: 'reconciling' });
+  });
+
+  it('returns the identity-review banner', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: true,
+        provisioningView: 'kyc_under_review',
+        setupStep: null,
+      }),
+    ).toEqual({ kind: 'kyc_under_review' });
+  });
+
+  it('returns the card-creation banner', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: true,
+        provisioningView: 'provisioning',
+        setupStep: null,
+      }),
+    ).toEqual({ kind: 'provisioning' });
+  });
+
+  it('returns the step the user still has to finish', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: true,
+        provisioningView: 'hidden',
+        setupStep: 'contact',
+      }),
+    ).toEqual({ kind: 'action_required', step: 'contact' });
+  });
+
+  it('returns null when the provisioning view is hidden and there is no step', () => {
+    expect(
+      deriveMoneyCardSetupView({
+        hasProvisioningAlert: true,
+        provisioningView: 'hidden',
+        setupStep: null,
+      }),
+    ).toBeNull();
+  });
+});
+
+describe('deriveMoneyCardSetupPollIntervalMs', () => {
+  it.each(['LOW', 'MID', 'HIGH', null] as const)(
+    'does not poll on %s hardware when the network is unusable',
+    (hardware) => {
+      expect(deriveMoneyCardSetupPollIntervalMs(hardware, 'NONE')).toBeNull();
+    },
+  );
+
+  it.each(['LOW', 'MID', 'HIGH', null] as const)(
+    'polls every 15 seconds on %s hardware over a slow connection',
+    (hardware) => {
+      expect(
+        deriveMoneyCardSetupPollIntervalMs(hardware, 'SLOW_CELLULAR'),
+      ).toBe(15_000);
+    },
+  );
+
+  it.each(['FAST_CELLULAR', 'WIFI', null] as const)(
+    'keeps the 5 second poll on a %s network, including unknown hardware',
+    (network) => {
+      expect(deriveMoneyCardSetupPollIntervalMs(null, network)).toBe(5_000);
+      expect(deriveMoneyCardSetupPollIntervalMs('LOW', network)).toBe(5_000);
+    },
+  );
 });

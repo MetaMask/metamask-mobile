@@ -44,12 +44,20 @@ import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
+import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
+import {
+  SocialEvent,
+  type SocialBlockedReason,
+  type SocialPositionAnalyticsProperties,
+} from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
-  onCopyTradeInteraction?: (tradeType: 'perps' | 'spot') => void;
+  onCopyTradeInteraction?: (
+    position: SocialPositionAnalyticsProperties,
+  ) => void;
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
@@ -74,43 +82,58 @@ export interface SocialFeedPostShellProps {
   now?: number;
 }
 
+interface ShellCopyTradeTracking {
+  postAnalytics: SocialPositionAnalyticsProperties;
+  notifyCopy?: (position: SocialPositionAnalyticsProperties) => void;
+  notifyBlocked?: (
+    position: SocialPositionAnalyticsProperties,
+    reason: SocialBlockedReason,
+  ) => void;
+}
+
 const useShellCopyTrade = (
   post: SocialV1FeedPost,
   onSpotCopyTrade: SocialFeedPostShellProps['onCopyTrade'],
-  notifyCopy: ((tradeType: 'perps' | 'spot') => void) | undefined,
-  ensureCopyTradeAllowed: (onAccepted?: () => void) => boolean,
+  { postAnalytics, notifyCopy, notifyBlocked }: ShellCopyTradeTracking,
+  getCopyTradeBlockedReason: (
+    onAccepted?: () => void,
+  ) => SocialBlockedReason | null,
 ) => {
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
     post.commentId,
   );
+  const allowCopyTrade = useCallback(
+    (onAccepted?: () => void) => {
+      const blockedReason = getCopyTradeBlockedReason(onAccepted);
+      if (blockedReason) {
+        notifyBlocked?.(postAnalytics, blockedReason);
+        return false;
+      }
+      notifyCopy?.(postAnalytics);
+      return true;
+    },
+    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics],
+  );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(
     function copySpot(): void {
-      if (!ensureCopyTradeAllowed(copySpot)) {
+      if (!allowCopyTrade(copySpot)) {
         return;
       }
-      notifyCopy?.('spot');
       onSpotCopyTrade?.(post.item, post.commentId);
     },
-    [
-      ensureCopyTradeAllowed,
-      notifyCopy,
-      onSpotCopyTrade,
-      post.item,
-      post.commentId,
-    ],
+    [allowCopyTrade, onSpotCopyTrade, post.item, post.commentId],
   );
   const handlePerpsCopyTrade = useCallback(
     function copyPerps(): void {
-      if (!ensureCopyTradeAllowed(copyPerps)) {
+      if (!allowCopyTrade(copyPerps)) {
         return;
       }
-      notifyCopy?.('perps');
       onPerpsCopyTrade?.();
     },
-    [ensureCopyTradeAllowed, notifyCopy, onPerpsCopyTrade],
+    [allowCopyTrade, onPerpsCopyTrade],
   );
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
@@ -263,15 +286,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       !requireSocialTerms || ensureSocialTermsAccepted(onAccepted),
     [ensureSocialTermsAccepted, requireSocialTerms],
   );
-  const ensureCopyTradeAllowed = useCallback(
-    (onAccepted?: () => void) => {
+  const getCopyTradeBlockedReason = useCallback(
+    (onAccepted?: () => void): SocialBlockedReason | null => {
       if (!ensureSocialTermsForInteraction(onAccepted)) {
-        return false;
+        return SocialEvent.BlockedReason.TERMS;
       }
       if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
-        return false;
+        return SocialEvent.BlockedReason.PROFILE_ONBOARDING;
       }
-      return true;
+      return null;
     },
     [
       ensureSocialProfileOnboarding,
@@ -279,6 +302,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       requireSocialProfile,
     ],
   );
+  const postAnalytics = useMemo(() => socialFeedPostAnalytics(post), [post]);
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -347,8 +371,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { copyTradeHandler, geoBlockSheet } = useShellCopyTrade(
     post,
     onSpotCopyTrade,
-    notifyCopy,
-    ensureCopyTradeAllowed,
+    {
+      postAnalytics,
+      notifyCopy,
+      notifyBlocked: tracked.onCopyTradeBlocked,
+    },
+    getCopyTradeBlockedReason,
   );
 
   const chips = visibleReactions(reactions);
@@ -420,10 +448,16 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       if (!ensureSocialTermsForInteraction(pressIdentity)) {
         return;
       }
-      tracked.onAuthorTap?.();
+      tracked.onAuthorTap?.(postAnalytics);
       onAuthorPress?.(post);
     },
-    [ensureSocialTermsForInteraction, onAuthorPress, post, tracked],
+    [
+      ensureSocialTermsForInteraction,
+      onAuthorPress,
+      post,
+      postAnalytics,
+      tracked,
+    ],
   );
 
   const handlePositionPress = useCallback(
@@ -431,14 +465,16 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       if (!ensureSocialTermsForInteraction(pressPosition)) {
         return;
       }
-      tracked.onPositionTap?.(
-        post.item.variant === 'perpsOpen' || post.item.variant === 'perpsClosed'
-          ? 'perps'
-          : 'spot',
-      );
+      tracked.onPositionTap?.(postAnalytics);
       onPositionPress?.(post);
     },
-    [ensureSocialTermsForInteraction, onPositionPress, post, tracked],
+    [
+      ensureSocialTermsForInteraction,
+      onPositionPress,
+      post,
+      postAnalytics,
+      tracked,
+    ],
   );
 
   if (isHidden) {
@@ -496,6 +532,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
                 showCopyTrade={showCopyTrade}
+                now={now}
               />
             </Pressable>
           ) : (
@@ -503,6 +540,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               item={post.item}
               onCopyTrade={copyTradeHandler}
               showCopyTrade={showCopyTrade}
+              now={now}
             />
           )}
 

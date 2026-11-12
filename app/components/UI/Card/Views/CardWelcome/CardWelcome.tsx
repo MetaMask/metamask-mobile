@@ -1,17 +1,14 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
-import { StatusBar } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import { brandColor } from '@metamask/design-tokens';
-import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Image, StatusBar, StyleSheet, View } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
+import { Theme } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
-import CardWelcomeCardsAnimation from './CardWelcomeCardsAnimation';
-import { useCardEducationAnimationState } from './useCardEducationAnimationState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -25,9 +22,30 @@ import {
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import MarketingMoment from '../../../MarketingMoment';
-import { colors } from '../../../../../styles/common';
+import CardRebrandImage from '../../../../../images/mm-card-rebrand.png';
 
-const GRADIENT_COLORS = [colors.cardWelcomeGradientDark, brandColor.purple800];
+/**
+ * Crop of the rebrand card inside its square frame, matching Figma node
+ * 1351:685. The source sits at 108.89% of the frame, shifted up and to the left.
+ */
+const CARD_ARTWORK_SCALE = '108.89%';
+const CARD_ARTWORK_LEFT = '-7.22%';
+const CARD_ARTWORK_TOP = '-1.11%';
+
+const styles = StyleSheet.create({
+  artworkClip: {
+    aspectRatio: 1,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  artworkImage: {
+    height: CARD_ARTWORK_SCALE,
+    left: CARD_ARTWORK_LEFT,
+    position: 'absolute',
+    top: CARD_ARTWORK_TOP,
+    width: CARD_ARTWORK_SCALE,
+  },
+});
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
@@ -49,9 +67,6 @@ const CardWelcome = () => {
   const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
-  const tw = useTailwind();
-  const animationState = useCardEducationAnimationState();
-  const shouldAnimateCards = animationState === 'animate';
 
   useEffect(() => {
     trackEvent(
@@ -67,16 +82,15 @@ const CardWelcome = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const applyLightStatusBar = () =>
-        StatusBar.setBarStyle('light-content', true);
+      const applyStatusBar = () => StatusBar.setBarStyle('dark-content', true);
 
-      applyLightStatusBar();
+      applyStatusBar();
 
       const handleTransitionEnd = (event: TransitionEndEvent) => {
         if (event?.data?.closing) {
           return;
         }
-        applyLightStatusBar();
+        applyStatusBar();
       };
 
       const unsubscribers: (() => void)[] = [];
@@ -142,33 +156,29 @@ const CardWelcome = () => {
   return (
     <MarketingMoment
       testID="card-gtm-modal-container"
-      theme={Theme.Dark}
-      background={
-        <LinearGradient
-          colors={GRADIENT_COLORS}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={tw.style('flex-1')}
-        />
-      }
+      theme={Theme.Light}
+      background={<Box twClassName="h-full w-full bg-accent04-light" />}
       title={strings('card.card_onboarding.title')}
       description={strings('card.card_onboarding.description')}
       titleProps={{
         testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
-        twClassName: 'text-accent02-light text-center',
+        twClassName: 'text-accent04-dark text-center',
       }}
       descriptionProps={{
         testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
         // padding to prevent orphan
-        twClassName: 'text-accent02-light text-center px-3',
+        twClassName: 'text-accent04-dark text-center px-3',
       }}
+      artworkWrapperProps={{ paddingHorizontal: 3 }}
       artwork={
-        animationState === 'pending' ? null : (
-          <CardWelcomeCardsAnimation
-            animate={shouldAnimateCards}
-            style={tw.style('h-full w-full')}
+        <View style={styles.artworkClip}>
+          <Image
+            source={CardRebrandImage}
+            resizeMode="cover"
+            style={styles.artworkImage}
+            testID={CardWelcomeSelectors.CARD_IMAGE}
           />
-        )
+        </View>
       }
       primaryAction={{
         label: strings(

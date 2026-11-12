@@ -8,6 +8,7 @@ import {
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   hydrateSocialTermsAcceptance,
+  recordSocialTermsAcceptanceForExistingProfile,
   resetSocialTermsAcceptance,
   takePendingSocialEntry,
 } from './socialTermsAcceptance';
@@ -202,6 +203,52 @@ describe('socialTermsAcceptance', () => {
       ensureSocialTermsAccepted(jest.fn(), jest.fn());
 
       expect(takePendingSocialEntry()).toBeUndefined();
+    });
+  });
+
+  describe('recordSocialTermsAcceptanceForExistingProfile', () => {
+    const mockEmptyProfileController = () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              ProfileController: { profile: { profileId: '' } },
+            },
+          },
+        }),
+      } as typeof ReduxService.store);
+    };
+
+    it('records the current version for a loaded profile before Redux shows it', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockEmptyProfileController();
+
+      recordSocialTermsAcceptanceForExistingProfile({ profileLoaded: true });
+
+      expect(mockSetItem).toHaveBeenCalledWith(
+        SOCIAL_TERMS_ACCEPTED,
+        SOCIAL_TERMS_VERSION,
+      );
+      expect(hasAcceptedSocialTerms()).toBe(true);
+    });
+
+    it('keeps an older stored version for a loaded profile', () => {
+      mockGetItemSync.mockReturnValue('v0');
+
+      recordSocialTermsAcceptanceForExistingProfile({ profileLoaded: true });
+
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('records nothing without a profile in Redux by default', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockEmptyProfileController();
+
+      recordSocialTermsAcceptanceForExistingProfile();
+
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(hasAcceptedSocialTerms()).toBe(false);
     });
   });
 });

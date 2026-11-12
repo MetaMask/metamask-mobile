@@ -3,6 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { SocialLeaderboardTabParams } from '../../../Nav/Main/types/navigation';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   selectFeatureFlagThresholdGroups,
@@ -248,13 +249,17 @@ export const navigateToSocialTab = (
  * gates, so call it only after the user has passed them.
  *
  * @param navigation - The caller's navigation object.
+ * @param params - Optional Social tab params, such as the V1 `initialTab`.
  */
 export const popToSocialTab = (
   navigation: Pick<AppNavigationProp, 'navigate'>,
+  params?: SocialLeaderboardTabParams,
 ): void => {
   navigation.navigate(
     Routes.HOME_TABS,
-    { screen: Routes.SOCIAL.TAB },
+    params
+      ? { screen: Routes.SOCIAL.TAB, params }
+      : { screen: Routes.SOCIAL.TAB },
     { pop: true },
   );
 };

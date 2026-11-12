@@ -67,8 +67,15 @@ const hasLoadedSocialProfile = (): boolean => {
  * A profile with no stored acceptance already accepted the current terms on
  * another install. Writes that version locally so later reads skip the sheet.
  * A stored older version is left unchanged so a terms change still re-prompts.
+ *
+ * @param options - Optional settings.
+ * @param options.profileLoaded - The caller just read the profile from the
+ * server. Redux receives ProfileController updates in batches, so it may not
+ * show that profile yet and is not checked.
  */
-export const recordSocialTermsAcceptanceForExistingProfile = (): void => {
+export const recordSocialTermsAcceptanceForExistingProfile = ({
+  profileLoaded = false,
+}: { profileLoaded?: boolean } = {}): void => {
   if (hasAcceptedThisSession) {
     return;
   }
@@ -76,7 +83,7 @@ export const recordSocialTermsAcceptanceForExistingProfile = (): void => {
   if (stored != null && stored !== '') {
     return;
   }
-  if (!hasLoadedSocialProfile()) {
+  if (!profileLoaded && !hasLoadedSocialProfile()) {
     return;
   }
   acceptSocialTerms().catch(() => undefined);

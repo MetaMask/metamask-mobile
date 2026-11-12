@@ -53,6 +53,7 @@ interface SignInBannerProps {
   banner: BannerKind;
   deadline?: Date | null;
   showMovedAction?: boolean;
+  bodyKey?: string;
   onChooseAccount: () => void;
   onImportSrp: () => void;
   onMovedAction: () => void;
@@ -62,19 +63,21 @@ const SignInBanner = ({
   banner,
   deadline,
   showMovedAction = false,
+  bodyKey,
   onChooseAccount,
   onImportSrp,
   onMovedAction,
 }: SignInBannerProps) => {
   const copy = BANNER_COPY[banner];
+  const resolvedBodyKey = bodyKey ?? copy.bodyKey;
   const description =
     banner === 'resume_soft'
-      ? strings(copy.bodyKey, {
+      ? strings(resolvedBodyKey, {
           deadline: deadline
             ? formatUkMigrationDeadline(deadline, { includeYear: true })
             : '',
         })
-      : strings(copy.bodyKey);
+      : strings(resolvedBodyKey);
 
   return (
     <BannerAlert
