@@ -15,9 +15,8 @@ jest.mock('../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
-      MoneyAccountUpgradeController: {
-        upgradeAccount: jest.fn(),
-        state: { upgradedAccounts: {} },
+      MoneyAccountLifecycleController: {
+        upgradeMoneyAccount: jest.fn(),
       },
     },
   },
@@ -35,8 +34,8 @@ jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
-  .upgradeAccount as jest.Mock;
+const mockUpgradeAccount = Engine.context.MoneyAccountLifecycleController
+  .upgradeMoneyAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
@@ -74,40 +73,19 @@ describe('upgradeMoneyAccount', () => {
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
-    Engine.context.MoneyAccountUpgradeController.state = {
-      upgradedAccounts: {},
-    };
   });
 
-  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
+  it('upgrades through MoneyAccountLifecycleController', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     dispatchUpgrade();
     await flushPromises();
 
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
   });
 
-  it('logs the start of an upgrade, noting the account was not previously recorded', async () => {
+  it('logs the start of an upgrade', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-
-    dispatchUpgrade();
-    await flushPromises();
-
-    expect(mockLogLog).toHaveBeenCalledWith(
-      expect.stringContaining('upgradeMoneyAccount'),
-      'starting upgrade',
-      { address: ADDRESS, recordedBefore: false },
-    );
-  });
-
-  it('logs the start of an upgrade, noting the account was previously recorded', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    Engine.context.MoneyAccountUpgradeController.state = {
-      upgradedAccounts: {
-        [ADDRESS]: { configFingerprint: 'fingerprint', completedAt: 1 },
-      },
-    };
 
     dispatchUpgrade();
     await flushPromises();
@@ -115,18 +93,12 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'starting upgrade',
-      { address: ADDRESS, recordedBefore: true },
+      { address: ADDRESS },
     );
   });
 
-  it('logs success with the duration and the recorded upgrade status', async () => {
+  it('logs success with the duration', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    const recorded = { configFingerprint: 'fingerprint', completedAt: 123 };
-    mockUpgradeAccount.mockImplementationOnce(async () => {
-      Engine.context.MoneyAccountUpgradeController.state = {
-        upgradedAccounts: { [ADDRESS]: recorded },
-      };
-    });
 
     dispatchUpgrade();
     await flushPromises();
@@ -134,12 +106,7 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'upgrade succeeded',
-      expect.objectContaining({
-        address: ADDRESS,
-        recordedBefore: false,
-        durationMs: expect.any(Number),
-        recorded,
-      }),
+      { address: ADDRESS, durationMs: expect.any(Number) },
     );
   });
 
@@ -473,7 +440,6 @@ describe('upgradeMoneyAccount', () => {
     // the first, aborted signal, the retry wrapper would give up before
     // calling the controller again.
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, ADDRESS);
   });
 
   it('does not restart when the takeover signal is already aborted', async () => {
@@ -581,7 +547,5 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS);
   });
 });

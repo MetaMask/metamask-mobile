@@ -53,7 +53,7 @@ export const isMoneyAccountUpgradeAbortedError = (
  * all (e.g. the controller was not initialized).
  *
  * @param upgradeAccount - Runs a single upgrade attempt, e.g.
- * `Engine.context.MoneyAccountUpgradeController.upgradeAccount`.
+ * `Engine.context.MoneyAccountLifecycleController.upgradeMoneyAccount`.
  * @param address - The Money Account address to upgrade.
  * @param options - Retry options.
  * @param options.signal - Aborts waiting between attempts and prevents

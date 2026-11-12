@@ -111,19 +111,11 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   Promise.resolve()
     .then(async () => {
       try {
-        const { MoneyAccountUpgradeController } = Engine.context;
-        const accountKey = address.toLowerCase() as Hex;
-        const recordedBefore = Boolean(
-          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        );
-        Logger.log(LOG_PREFIX, 'starting upgrade', {
-          address,
-          recordedBefore,
-        });
+        const { MoneyAccountLifecycleController } = Engine.context;
+        Logger.log(LOG_PREFIX, 'starting upgrade', { address });
 
         await upgradeAccountWithRetry(
-          (upgradeAddress) =>
-            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
+          () => MoneyAccountLifecycleController.upgradeMoneyAccount(),
           address,
           {
             signal,
@@ -152,10 +144,7 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
 
         Logger.log(LOG_PREFIX, 'upgrade succeeded', {
           address,
-          recordedBefore,
           durationMs: Date.now() - startedAt,
-          recorded:
-            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
         });
       } catch (error: unknown) {
         // Reached only for errors thrown by upgradeAccountWithRetry itself.
