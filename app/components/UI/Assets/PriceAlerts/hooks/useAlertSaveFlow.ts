@@ -57,7 +57,6 @@ export interface SaveAlertFlowParams {
 
 export type SaveAlert = (params: SaveAlertFlowParams) => Promise<void>;
 
-// Extracted because React Compiler cannot lower value blocks inside try/catch.
 const shouldAutoAddCreatedAlertToWatchlist = (
   editingAlert: SaveAlertFlowParams['editingAlert'],
   shouldAutoWatchlistOnCreate: boolean | undefined,
