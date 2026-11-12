@@ -1,9 +1,11 @@
 import '../mocks';
 import React from 'react';
+import { Text } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   NavigationContext,
   NavigationRouteContext,
+  useRoute,
 } from '@react-navigation/native';
 import renderWithProvider, {
   type DeepPartial,
@@ -17,12 +19,40 @@ import PredictPositionsView from '../../../app/components/UI/Predict/views/Predi
 import { initialStatePredict } from '../presets/predict';
 import { renderScreenWithRoutes } from '../render';
 import type { PredictMarketListRouteParams } from '../../../app/components/UI/Predict/types/navigation';
+import {
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../render';
 
 interface RenderPredictHomeOptions {
   overrides?: DeepPartial<RootState>;
   initialParams?: PredictMarketListRouteParams;
   setParams?: (params: PredictMarketListRouteParams) => void;
 }
+
+interface RenderPredictHomeWithRoutesOptions
+  extends Omit<RenderPredictHomeOptions, 'setParams'> {
+  extraRoutes?: {
+    name: string;
+    Component?: React.ComponentType<object>;
+  }[];
+}
+
+const WalletHomeProbe = () => {
+  const route = useRoute();
+
+  return (
+    <>
+      <Text testID={getRouteProbeTestId(Routes.WALLET.HOME)}>
+        {Routes.WALLET.HOME}
+      </Text>
+      <Text testID={getRouteParamsProbeTestId(Routes.WALLET.HOME)}>
+        {JSON.stringify(route.params)}
+      </Text>
+    </>
+  );
+};
 
 function createNavigationContextValue(
   setParams: (params: PredictMarketListRouteParams) => void = () => undefined,
@@ -115,6 +145,32 @@ export function renderPredictHomeView(
   return renderWrappedAtMarketList(
     PredictHome as React.ComponentType<Record<string, unknown>>,
     options,
+  );
+}
+
+/**
+ * Renders PredictHome inside a real stack so navigation assertions resolve to
+ * route probes. Wallet home is available by default for the root-back journey.
+ */
+export function renderPredictHomeViewWithRoutes(
+  options: RenderPredictHomeWithRoutesOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> {
+  const { overrides, initialParams, extraRoutes = [] } = options;
+
+  const builder = initialStatePredict();
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  const state = builder.build();
+
+  return renderScreenWithRoutes(
+    createWrappedPredictComponent(
+      PredictHome as React.ComponentType<Record<string, unknown>>,
+    ),
+    { name: Routes.PREDICT.MARKET_LIST },
+    [{ name: Routes.WALLET.HOME, Component: WalletHomeProbe }, ...extraRoutes],
+    { state },
+    initialParams as Record<string, unknown> | undefined,
   );
 }
 
