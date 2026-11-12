@@ -10,11 +10,13 @@ import NotificationManager from '../../../../../core/NotificationManager';
 import { useTheme } from '../../../../../util/theme';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { parseCaipChainId,
+import {
+  parseCaipChainId,
   CaipAssetType,
   CaipChainId,
   Hex,
-  parseCaipAssetType } from '@metamask/utils';
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import {
