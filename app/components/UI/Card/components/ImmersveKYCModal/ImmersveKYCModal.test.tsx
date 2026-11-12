@@ -556,6 +556,7 @@ describe('ImmersveKYCModal', () => {
     fireEvent.press(getByTestId('immersve-kyc-close-button'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(false);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(getTrackedProperties()).toEqual(
@@ -584,6 +585,7 @@ describe('ImmersveKYCModal', () => {
 
       expect(preventDefault).not.toHaveBeenCalled();
       expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledWith(false);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getTrackedProperties()).toEqual(
         expect.arrayContaining([
@@ -631,6 +633,7 @@ describe('ImmersveKYCModal', () => {
     expect(preventDefault).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(true);
     expect(getTrackedProperties()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ action: CardActions.KYC_WEBVIEW_COMPLETED }),
@@ -653,6 +656,7 @@ describe('ImmersveKYCModal', () => {
       });
     });
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(true);
     expect(mockGoBack).toHaveBeenCalled();
   });
 

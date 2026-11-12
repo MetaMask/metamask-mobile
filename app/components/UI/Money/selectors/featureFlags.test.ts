@@ -4,6 +4,7 @@ import {
   selectMoneyEnableActivityDetailsFlag,
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
@@ -80,6 +81,12 @@ describe.each([
     'moneyVbaCompletedActivityEnabled',
     'MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED',
   ],
+  [
+    'selectMoneyEnableHistoricalVaultShareValuationsFlag',
+    selectMoneyEnableHistoricalVaultShareValuationsFlag,
+    'moneyEnableHistoricalVaultShareValuations',
+    'MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS',
+  ],
 ])('%s', (_name, selector, remoteKey, localKey) => {
   const originalProcessEnv = process.env;
 
@@ -88,6 +95,7 @@ describe.each([
     process.env = { ...process.env };
     delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
     delete process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED;
+    delete process.env.MM_MONEY_ENABLE_HISTORICAL_VAULT_SHARE_VALUATIONS;
   });
 
   afterEach(() => {
