@@ -103,7 +103,7 @@ import type {
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
-  CardRootParamList,
+  CardRootEntryParams,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
@@ -1209,7 +1209,7 @@ export type RootStackParamList = {
   SampleFeature: undefined;
 
   // Card routes
-  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+  CardScreens: CardRootEntryParams | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
   CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
   CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
