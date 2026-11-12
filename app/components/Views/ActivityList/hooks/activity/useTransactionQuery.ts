@@ -60,7 +60,9 @@ export function useTransactionQuery({
 
   return useQuery({
     queryKey: queryOptions?.queryKey ?? ['v5Transaction', 'disabled'],
-    queryFn: queryOptions?.queryFn ?? (() => Promise.reject(new Error('No query options'))),
+    queryFn:
+      queryOptions?.queryFn ??
+      (() => Promise.reject(new Error('No query options'))),
     enabled: enabled && isReady,
     retry: false,
     select: (response: V5TransactionByIdResponse) => response.data,
