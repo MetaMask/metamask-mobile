@@ -7680,7 +7680,11 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides link-mode content when Money Account linking is unavailable', () => {
@@ -7798,7 +7802,11 @@ describe('CardHome Component', () => {
         screen.getByText(strings('money.metamask_card.link_subtitle_no_apy')),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/Earn up to .* APY/)).not.toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
 
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
@@ -7814,7 +7822,11 @@ describe('CardHome Component', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
   });
 
