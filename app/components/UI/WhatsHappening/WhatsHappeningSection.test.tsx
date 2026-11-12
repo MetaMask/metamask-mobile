@@ -25,6 +25,28 @@ const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(
   AnalyticsEventBuilder.createEventBuilder,
 );
+let mockNotifySectionVisible: (() => void) | null = null;
+let mockHoldSectionBelowFold = false;
+const mockUseViewportTracking = jest.fn();
+
+jest.mock('../MarketInsights/hooks/useViewportTracking', () => ({
+  useViewportTracking: (
+    onVisible: () => void,
+    areaThreshold?: number,
+    context?: { emitTrace?: boolean },
+  ): { ref: { current: null }; onLayout: () => void } => {
+    mockUseViewportTracking(onVisible, areaThreshold, context);
+    mockNotifySectionVisible = onVisible;
+    return {
+      ref: { current: null },
+      onLayout: (): void => {
+        if (!mockHoldSectionBelowFold) {
+          onVisible();
+        }
+      },
+    };
+  },
+}));
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
@@ -94,6 +116,8 @@ const defaultProps = {
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHoldSectionBelowFold = false;
+    mockNotifySectionVisible = null;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -575,6 +599,34 @@ describe('WhatsHappeningSection', () => {
       );
 
       expect(scrolledToViewEvents()).toHaveLength(1);
+    });
+
+    it('does not fire view events while the section is below the fold, then fires only the horizontally visible cards', () => {
+      mockHoldSectionBelowFold = true;
+      renderLoadedCarousel();
+      layoutCarousel(viewportShowingFirstTwoCards);
+      scrollCarousel(
+        offsetWhereCardTwoReachesHalf,
+        viewportShowingFirstTwoCards,
+      );
+
+      expect(scrolledToViewEvents()).toHaveLength(0);
+      expect(mockUseViewportTracking).toHaveBeenCalledWith(
+        expect.any(Function),
+        WHATS_HAPPENING_CARD_VISIBILITY_THRESHOLD,
+        expect.objectContaining({ emitTrace: false }),
+      );
+
+      mockNotifySectionVisible?.();
+
+      expect(scrolledToViewEvents().map((event) => event.properties)).toEqual([
+        expect.objectContaining({ trend_id: 'trend-1', card_index: 1 }),
+        expect.objectContaining({ trend_id: 'trend-2', card_index: 2 }),
+      ]);
+
+      mockNotifySectionVisible?.();
+
+      expect(scrolledToViewEvents()).toHaveLength(2);
     });
   });
 });

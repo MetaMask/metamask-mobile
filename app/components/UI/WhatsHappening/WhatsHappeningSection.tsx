@@ -11,6 +11,7 @@ import {
   NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
+  View,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -105,12 +106,16 @@ const WhatsHappeningSection = forwardRef<
   });
   const { items, isLoading, error, refresh, carouselTraceId } =
     feed ?? internalFeed;
-  const { onCarouselLayout, onCarouselScroll, scrollEventThrottle } =
-    useWhatsHappeningCardViewTracking({
-      items,
-      source,
-      enabled: isEnabled && !isLoading,
-    });
+  const {
+    sectionRef,
+    onCarouselLayout,
+    onCarouselScroll,
+    scrollEventThrottle,
+  } = useWhatsHappeningCardViewTracking({
+    items,
+    source,
+    enabled: isEnabled && !isLoading,
+  });
 
   const snapOffsets = useMemo(
     () =>
@@ -235,39 +240,41 @@ const WhatsHappeningSection = forwardRef<
     />
   ) : (
     <PerpsStreamProvider>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.carouselContent}
-        snapToOffsets={snapOffsets}
-        decelerationRate="fast"
-        scrollEventThrottle={scrollEventThrottle}
-        onLayout={onCarouselLayout}
-        onScroll={onCarouselScroll}
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-      >
-        {isLoading ? (
-          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-        ) : (
-          <>
-            {items.map((item: WhatsHappeningItem, index: number) => (
-              <WhatsHappeningCard
-                key={item.id}
-                item={item}
-                cardIndex={index}
-                source={source}
-                carouselTraceId={carouselTraceId}
-                onPress={() => handleCardPress(index)}
+      <View ref={sectionRef} collapsable={false}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carouselContent}
+          snapToOffsets={snapOffsets}
+          decelerationRate="fast"
+          scrollEventThrottle={scrollEventThrottle}
+          onLayout={onCarouselLayout}
+          onScroll={onCarouselScroll}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+        >
+          {isLoading ? (
+            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+          ) : (
+            <>
+              {items.map((item: WhatsHappeningItem, index: number) => (
+                <WhatsHappeningCard
+                  key={item.id}
+                  item={item}
+                  cardIndex={index}
+                  source={source}
+                  carouselTraceId={carouselTraceId}
+                  onPress={() => handleCardPress(index)}
+                />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAll}
+                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
               />
-            ))}
-            <ViewMoreCard
-              onPress={handleViewAll}
-              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-            />
-          </>
-        )}
-      </ScrollView>
+            </>
+          )}
+        </ScrollView>
+      </View>
     </PerpsStreamProvider>
   );
 
