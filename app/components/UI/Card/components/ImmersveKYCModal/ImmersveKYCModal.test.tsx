@@ -170,11 +170,22 @@ const blockedStatuses = {
 };
 
 const getTrackedProperties = () => {
-  const { createEventBuilder } = useAnalytics();
-  return (createEventBuilder as jest.Mock).mock.results.flatMap((result) => {
-    const addProperties = result.value?.addProperties as jest.Mock | undefined;
-    return addProperties?.mock.calls.map((call) => call[0]) ?? [];
-  });
+  // Read the Jest mock directly. Calling useAnalytics() here is not a component
+  // or a hook, so react-hooks/rules-of-hooks rejects it.
+  const createEventBuilder = jest
+    .mocked(useAnalytics)
+    .getMockImplementation()?.().createEventBuilder;
+
+  return (
+    (createEventBuilder as jest.Mock | undefined)?.mock.results.flatMap(
+      (result) => {
+        const addProperties = result.value?.addProperties as
+          | jest.Mock
+          | undefined;
+        return addProperties?.mock.calls.map((call) => call[0]) ?? [];
+      },
+    ) ?? []
+  );
 };
 
 const getBeforeRemoveListener = () => {
@@ -545,6 +556,7 @@ describe('ImmersveKYCModal', () => {
     fireEvent.press(getByTestId('immersve-kyc-close-button'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(false);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(getTrackedProperties()).toEqual(
@@ -573,6 +585,7 @@ describe('ImmersveKYCModal', () => {
 
       expect(preventDefault).not.toHaveBeenCalled();
       expect(onClose).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledWith(false);
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getTrackedProperties()).toEqual(
         expect.arrayContaining([
@@ -620,6 +633,7 @@ describe('ImmersveKYCModal', () => {
     expect(preventDefault).not.toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(true);
     expect(getTrackedProperties()).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ action: CardActions.KYC_WEBVIEW_COMPLETED }),
@@ -642,6 +656,7 @@ describe('ImmersveKYCModal', () => {
       });
     });
     expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledWith(true);
     expect(mockGoBack).toHaveBeenCalled();
   });
 

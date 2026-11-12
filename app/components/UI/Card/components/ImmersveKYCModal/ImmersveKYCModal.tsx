@@ -130,9 +130,11 @@ export const IMMERSVE_KYC_UI_JS = `
 // The opener re-polls when the webview closes back onto it. Close and that
 // re-poll have to happen together: a confirmed exit removes the processing
 // screen before focus returns, so useFocusEffect is not a reliable signal.
-let onCloseCallback: (() => void) | null = null;
+let onCloseCallback: ((completed: boolean) => void) | null = null;
 
-export const setImmersveKycOnClose = (callback: () => void) => {
+export const setImmersveKycOnClose = (
+  callback: (completed: boolean) => void,
+) => {
   onCloseCallback = callback;
 };
 
@@ -364,7 +366,7 @@ const ImmersveKYCModal: React.FC = () => {
           )
           .build(),
       );
-      onCloseCallback?.();
+      onCloseCallback?.(completed);
     },
     [trackEvent, createEventBuilder],
   );

@@ -16,6 +16,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Skeleton,
   Spinner,
   Text,
   TextColor,
@@ -70,6 +71,11 @@ interface MoneyMetaMaskCardProps {
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /**
+   * When true, the spendable amount is still being read. Manage mode shows a
+   * skeleton instead of a balance.
+   */
+  isBalanceLoading?: boolean;
   /** Whether the available card balance should be masked (manage mode only). */
   privacyMode?: boolean;
   /**
@@ -228,11 +234,13 @@ const LinkContent = ({
 
 const ManageContent = ({
   cardBalance,
+  isBalanceLoading,
   isBalanceStale,
   showMetalCard,
   privacyMode,
 }: {
   cardBalance: string;
+  isBalanceLoading: boolean;
   isBalanceStale: boolean;
   showMetalCard: boolean;
   privacyMode: boolean;
@@ -247,18 +255,26 @@ const ManageContent = ({
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={
-            isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
-        >
-          {cardBalance}
-        </SensitiveText>
+        {isBalanceLoading ? (
+          <Skeleton
+            height={24}
+            width={100}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON}
+          />
+        ) : (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
+            }
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+          >
+            {cardBalance}
+          </SensitiveText>
+        )}
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
@@ -288,19 +304,17 @@ const HEADER_TITLE_KEY_BY_MODE = {
  */
 const getSetupCopy = (
   setupView: Exclude<MoneyCardSetupView, { kind: 'reconciling' }>,
-): { title: string; description: string; showContinue: boolean } => {
+): { title: string; description: string } => {
   switch (setupView.kind) {
     case 'kyc_under_review':
       return {
         title: strings('money.metamask_card.setup.reviewing_title'),
         description: strings('money.metamask_card.setup.reviewing_description'),
-        showContinue: false,
       };
     case 'provisioning':
       return {
         title: strings('money.metamask_card.setup.creating_title'),
         description: strings('money.metamask_card.setup.creating_description'),
-        showContinue: false,
       };
     default:
       // Only the identity step has its own row copy so far. Other steps
@@ -311,7 +325,6 @@ const getSetupCopy = (
           description: strings(
             'money.metamask_card.setup.finish_kyc_description',
           ),
-          showContinue: true,
         };
       }
       return {
@@ -319,20 +332,15 @@ const getSetupCopy = (
         description: strings(
           `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
         ),
-        showContinue: true,
       };
   }
 };
 
 const SetupContent = ({
   setupView,
-  onContinue,
-  isContinueLoading = false,
   showMetalCard,
 }: {
   setupView: MoneyCardSetupView;
-  onContinue: () => void;
-  isContinueLoading?: boolean;
   showMetalCard: boolean;
 }) => {
   if (setupView.kind === 'reconciling') {
@@ -348,10 +356,10 @@ const SetupContent = ({
     );
   }
 
-  const { title, description, showContinue } = getSetupCopy(setupView);
+  const { title, description } = getSetupCopy(setupView);
 
   return (
-    <Box twClassName="gap-4" testID={MoneyMetaMaskCardTestIds.SETUP_CONTAINER}>
+    <Box testID={MoneyMetaMaskCardTestIds.SETUP_CONTAINER}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -382,18 +390,6 @@ const SetupContent = ({
           </Text>
         </Box>
       </Box>
-      {showContinue ? (
-        <Button
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          onPress={onContinue}
-          isLoading={isContinueLoading}
-          isDisabled={isContinueLoading}
-          testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
-        >
-          {strings('money.metamask_card.setup.continue')}
-        </Button>
-      ) : null}
     </Box>
   );
 };
@@ -410,6 +406,7 @@ const MoneyMetaMaskCard = ({
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
+  isBalanceLoading = false,
   isBalanceStale = false,
   privacyMode = false,
   apy,
@@ -570,6 +567,7 @@ const MoneyMetaMaskCard = ({
     content = (
       <ManageContent
         cardBalance={cardBalance ?? ''}
+        isBalanceLoading={isBalanceLoading}
         isBalanceStale={isBalanceStale}
         showMetalCard={showMetalCard}
         privacyMode={privacyMode}
@@ -577,12 +575,7 @@ const MoneyMetaMaskCard = ({
     );
   } else if (mode === 'setup') {
     content = setupView ? (
-      <SetupContent
-        setupView={setupView}
-        onContinue={handleSetupContinuePress}
-        isContinueLoading={isSetupContinueLoading}
-        showMetalCard={showMetalCard}
-      />
+      <SetupContent setupView={setupView} showMetalCard={showMetalCard} />
     ) : null;
   } else if (mode === 'verifying') {
     content = (
@@ -629,6 +622,21 @@ const MoneyMetaMaskCard = ({
   }
 
   const headerTitleKey = HEADER_TITLE_KEY_BY_MODE[mode];
+  // Continue is its own control. Leaving it inside the row press target makes
+  // VoiceOver treat the whole section as one button, so Continue never gets a
+  // turn, and a tap can fire either action.
+  const showsSetupContinue =
+    mode === 'setup' && setupView?.kind === 'action_required';
+
+  const contentPressable = (
+    <Pressable
+      testID={MoneyMetaMaskCardTestIds.CONTENT}
+      style={tw.style('gap-3')}
+      onPress={pressHandler ? handleContentPress : undefined}
+    >
+      {content}
+    </Pressable>
+  );
 
   return (
     <Box
@@ -640,13 +648,23 @@ const MoneyMetaMaskCard = ({
         title={strings(headerTitleKey)}
         onPress={pressHandler ? handleHeaderPress : undefined}
       />
-      <Pressable
-        testID={MoneyMetaMaskCardTestIds.CONTENT}
-        style={tw.style('gap-3')}
-        onPress={pressHandler ? handleContentPress : undefined}
-      >
-        {content}
-      </Pressable>
+      {showsSetupContinue ? (
+        <Box twClassName="gap-4">
+          {contentPressable}
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            onPress={handleSetupContinuePress}
+            isLoading={isSetupContinueLoading}
+            isDisabled={isSetupContinueLoading}
+            testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
+          >
+            {strings('money.metamask_card.setup.continue')}
+          </Button>
+        </Box>
+      ) : (
+        contentPressable
+      )}
     </Box>
   );
 };

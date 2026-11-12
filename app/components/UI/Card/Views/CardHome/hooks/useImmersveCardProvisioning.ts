@@ -115,6 +115,10 @@ export function useImmersveCardProvisioning(
     options?.pollIntervalMs === undefined
       ? POLL_INTERVAL_MS
       : options.pollIntervalMs;
+  // Latest interval for the settling retry. The reconcile effect must not
+  // depend on it, or a network change cancels the request in flight.
+  const pollIntervalMsRef = useRef(pollIntervalMs);
+  pollIntervalMsRef.current = pollIntervalMs;
   const navigateFromOutsideCard = options?.navigateFromOutsideCard === true;
   const recheckOnFocus = options?.recheckOnFocus === true;
   const [focusRecheckCount, setFocusRecheckCount] = useState(0);
@@ -172,6 +176,31 @@ export function useImmersveCardProvisioning(
 
     return () => clearInterval(interval);
   }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
+
+  // Going offline drops a waiting retry. Coming back starts one, unless a
+  // reconcile is already running or a retry is already waiting.
+  const wasOfflineRef = useRef(pollIntervalMs === null);
+  useEffect(() => {
+    const wasOffline = wasOfflineRef.current;
+    wasOfflineRef.current = pollIntervalMs === null;
+    if (pollIntervalMs === null) {
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+        settleTimerRef.current = null;
+      }
+      return;
+    }
+    if (
+      !wasOffline ||
+      !isProvisioning ||
+      !isFundingSettling ||
+      isReconciling ||
+      settleTimerRef.current
+    ) {
+      return;
+    }
+    setRecheckCount((count) => count + 1);
+  }, [pollIntervalMs, isProvisioning, isFundingSettling, isReconciling]);
 
   useEffect(() => {
     const regainedFocus = isFocused && !wasFocusedRef.current;
@@ -239,6 +268,24 @@ export function useImmersveCardProvisioning(
     handled.current = true;
     let cancelled = false;
     const existingId = reduxFundingSourceIdRef.current;
+    // Shared by the funding-still-pending path and a failed recheck. A throw
+    // used to leave "Card being created" with nothing scheduled to try again.
+    const scheduleSettlingRecheck = () => {
+      if (settleTimerRef.current) {
+        clearTimeout(settleTimerRef.current);
+      }
+      // Offline callers pass null and must not keep asking.
+      const intervalMs = pollIntervalMsRef.current;
+      if (intervalMs === null) {
+        return;
+      }
+      settleTimerRef.current = setTimeout(() => {
+        settleTimerRef.current = null;
+        if (!cancelled) {
+          setRecheckCount((count) => count + 1);
+        }
+      }, intervalMs);
+    };
 
     (async () => {
       try {
@@ -281,21 +328,6 @@ export function useImmersveCardProvisioning(
           }
           isFundingSettlingRef.current = false;
           dispatch(setImmersveFundingSettling(false));
-        };
-        const scheduleSettlingRecheck = () => {
-          if (settleTimerRef.current) {
-            clearTimeout(settleTimerRef.current);
-          }
-          // Offline callers pass null and must not keep asking.
-          if (pollIntervalMs === null) {
-            return;
-          }
-          settleTimerRef.current = setTimeout(() => {
-            settleTimerRef.current = null;
-            if (!cancelled) {
-              setRecheckCount((count) => count + 1);
-            }
-          }, pollIntervalMs);
         };
         if (action.type === 'active') {
           setPendingAction(null);
@@ -422,6 +454,9 @@ export function useImmersveCardProvisioning(
           return;
         }
         handled.current = false;
+        if (isFundingSettlingRef.current) {
+          scheduleSettlingRecheck();
+        }
         trackEventRef.current(
           createEventBuilderRef
             .current(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -464,7 +499,6 @@ export function useImmersveCardProvisioning(
     dispatch,
     focusRecheckCount,
     recheckCount,
-    pollIntervalMs,
   ]);
 
   const resumePendingAction = useCallback(() => {

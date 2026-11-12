@@ -187,6 +187,29 @@ describe('useDeFiPositionsV2', () => {
     expect(result.current.hasFetched).toBe(true);
   });
 
+  it('does not refetch while still visible after a failed fetch', async () => {
+    mockFetchDeFiPositions.mockRejectedValueOnce(new Error('network'));
+
+    const { rerender } = renderHook(
+      ({ tick: _tick }) =>
+        useDeFiPositionsV2({ enabled: true, isVisible: true }),
+      { initialProps: { tick: 0 } },
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rerender({ tick: 1 });
+      await Promise.resolve();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps hasFetched false before the first fetch', () => {
     const { result } = renderHook(() =>
       useDeFiPositionsV2({ enabled: true, isVisible: false }),
@@ -330,5 +353,28 @@ describe('useDeFiPositionsV2', () => {
 
     expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
     expect(mockFetchDeFiPositions).toHaveBeenCalledWith({ forceRefresh: true });
+    expect(result.current.hasFetched).toBe(true);
+    expect(result.current.isError).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('records a failed refresh and stops loading', async () => {
+    mockFetchDeFiPositions.mockRejectedValueOnce(new Error('network'));
+
+    const { result } = renderHook(() =>
+      useDeFiPositionsV2({ enabled: true, isVisible: false }),
+    );
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockFetchDeFiPositions).toHaveBeenCalledTimes(1);
+    expect(mockFetchDeFiPositions).toHaveBeenCalledWith({
+      forceRefresh: true,
+    });
+    expect(result.current.isError).toBe(true);
+    expect(result.current.hasFetched).toBe(true);
+    expect(result.current.isLoading).toBe(false);
   });
 });

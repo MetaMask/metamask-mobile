@@ -78,6 +78,10 @@ interface CardVerifiedContentProps {
   onContinue: () => void;
   /** Disables the button while the caller is navigating. */
   isLoading?: boolean;
+  /** Defaults to the Baanx "Finish setup" copy. */
+  description?: string;
+  /** Defaults to the Baanx "Finish setup" button. */
+  confirmLabel?: string;
 }
 
 /**
@@ -89,6 +93,8 @@ interface CardVerifiedContentProps {
 const CardVerifiedContent = ({
   onContinue,
   isLoading = false,
+  description = strings('card.card_onboarding.complete.description'),
+  confirmLabel = strings('card.card_onboarding.complete.confirm_button'),
 }: CardVerifiedContentProps) => {
   const tw = useTailwind();
   // `null` while the Reduce Motion check is in flight; nothing animates or
@@ -168,7 +174,7 @@ const CardVerifiedContent = ({
                 twClassName="text-center"
                 testID={CompleteSelectors.DESCRIPTION}
               >
-                {strings('card.card_onboarding.complete.description')}
+                {description}
               </Text>
             </Animated.View>
           }
@@ -207,7 +213,7 @@ const CardVerifiedContent = ({
             isLoading={isLoading}
             testID={CompleteSelectors.CONFIRM_BUTTON}
           >
-            {strings('card.card_onboarding.complete.confirm_button')}
+            {confirmLabel}
           </Button>
         </Box>
       </Animated.View>

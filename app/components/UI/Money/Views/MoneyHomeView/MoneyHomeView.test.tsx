@@ -36,6 +36,7 @@ import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransact
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { strings } from '../../../../../../locales/i18n';
+import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -4501,6 +4502,51 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
       ).toHaveTextContent('—');
+    });
+
+    it('shows a skeleton while the Money account card balance is still loading', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: TOKEN_BALANCE_LOADING,
+          rawFiatNumber: undefined,
+          isMoneyAccountEntry: true,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('uses the token amount for a USD-pegged card balance before rates are ready', () => {
+      mockSelectIsCardholder.mockReturnValue(true);
+      mockUseMoneyAccountCardLinkage.mockReturnValue(linkedCardLinkage);
+      mockUseCardHomeData.mockReturnValue({
+        ...baseCardHomeData,
+        primaryToken: {
+          balanceFiat: '',
+          rawFiatNumber: undefined,
+          rawTokenBalance: 25,
+          assumeUsdParity: true,
+          isMoneyAccountEntry: false,
+        } as unknown as CardFundingTokenWithBalance,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+      ).toHaveTextContent('$25.00');
     });
 
     it('marks the card balance stale only when card home data failed', () => {

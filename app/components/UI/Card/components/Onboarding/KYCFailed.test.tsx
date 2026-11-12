@@ -224,9 +224,8 @@ describe('KYCFailed Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // First selector is the glass header flag; later calls are the provider.
-    // A non-boolean provider value keeps the glass header off.
-    mockUseSelector.mockReturnValue('baanx');
+    // First useSelector call is glass header; second is activeProviderId.
+    mockUseSelector.mockReturnValueOnce(false).mockReturnValue('baanx');
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
         build: jest.fn().mockReturnValue({ event: 'test' }),

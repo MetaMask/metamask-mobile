@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import MoneyMetaMaskCard from './MoneyMetaMaskCard';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
@@ -230,6 +235,24 @@ describe('MoneyMetaMaskCard', () => {
     ).not.toBeOnTheScreen();
     expect(onHeaderPress).not.toHaveBeenCalled();
     expect(onLinkPress).not.toHaveBeenCalled();
+  });
+
+  it('shows a skeleton instead of the manage balance while it is loading', () => {
+    render(
+      <MoneyMetaMaskCard
+        mode="manage"
+        onGetNowPress={jest.fn()}
+        cardBalance="$2,342.86"
+        isBalanceLoading
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MoneyMetaMaskCardTestIds.MANAGE_BALANCE),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders manage balance and cashback', () => {
@@ -583,6 +606,12 @@ describe('MoneyMetaMaskCard', () => {
       strings('money.metamask_card.setup.finish_kyc_description'),
     );
 
+    expect(
+      within(
+        screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+      ).queryByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
+    ).toBeNull();
+
     fireEvent.press(
       screen.getByTestId(MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON),
     );
@@ -595,6 +624,25 @@ describe('MoneyMetaMaskCard', () => {
         mode: 'setup',
       }),
     );
+  });
+
+  it('opens Card Home from the row while Continue stays separate', () => {
+    const onManagePress = jest.fn();
+    const onSetupContinuePress = jest.fn();
+    render(
+      <MoneyMetaMaskCard
+        mode="setup"
+        setupView={{ kind: 'action_required', step: 'kyc' }}
+        onGetNowPress={jest.fn()}
+        onManagePress={onManagePress}
+        onSetupContinuePress={onSetupContinuePress}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
+
+    expect(onManagePress).toHaveBeenCalledTimes(1);
+    expect(onSetupContinuePress).not.toHaveBeenCalled();
   });
 
   it('uses the generic setup copy for other unfinished steps', () => {

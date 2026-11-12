@@ -150,6 +150,12 @@ describe('useImmersveEnableCard', () => {
     );
     expect(mockResumePendingAction).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: CardActions.IMMERSVE_PROVISIONING_RESUME,
+        next_action: 'funding',
+      }),
+    );
   });
 
   it('does not start a Money account approval while setup is being rechecked', () => {
