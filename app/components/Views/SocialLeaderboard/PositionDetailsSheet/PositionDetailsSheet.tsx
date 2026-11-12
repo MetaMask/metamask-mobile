@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ScrollView,
-  StyleSheet,
+  Platform,
   View,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import {
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import {
   BottomSheet,
   Box,
@@ -27,6 +30,8 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useIsMemeToken } from '../../../UI/TokenDetails/hooks/useIsMemeToken';
+import { toFeedAssetId } from '../../../UI/SocialFeed/data/socialFeedSource';
 import TraderPositionQuickBuy, {
   positionToQuickBuyTarget,
 } from '../../../UI/QuickBuy';
@@ -42,6 +47,24 @@ import { useRequireSocialProfileOnboarding } from '../hooks/useRequireSocialProf
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import {
+  buildSocialTradeOgImageRequest,
+  fetchPerpOgSeries,
+  getEarliestTradeMs,
+} from '../navigation/socialOgImageCards';
+import { logSocialOgShare } from '../navigation/socialOgShareLog';
+import { buildSocialPositionOpenGraph } from '../navigation/socialShareOpenGraph';
+import {
+  shareSocialTraderPosition,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
+import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
+import {
+  SocialEvent,
+  useSocialAnalytics,
+  useSocialScreenAnalytics,
+} from '../analytics';
+import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
   formatAbbreviatedUsd,
@@ -61,15 +84,12 @@ import PositionSheetTabs, {
 import PositionSheetTradeSummary from './components/PositionSheetTradeSummary';
 import { useLivePosition } from './hooks/useLivePosition';
 import { usePositionSheetData } from './hooks/usePositionSheetData';
-import { useTwoStepSheetReveal } from './hooks/useTwoStepSheetReveal';
+import { useChartLineReveal } from './hooks/useChartLineReveal';
 import { formatChartTimestamp, type ChartPeriod } from './utils/chartWindow';
 import type { PositionDetailsSheetParams } from './PositionDetailsSheet.types';
 import { PositionDetailsSheetSelectorsIDs } from './PositionDetailsSheet.testIds';
 
-const styles = StyleSheet.create({
-  // Measured at its natural height while the clipping parent animates open.
-  detailsMeasure: { position: 'absolute', top: 0, left: 0, right: 0 },
-});
+const { BlockedReason, Interaction, Screen } = SocialEvent;
 
 const addressesMatch = (
   left: string | null | undefined,
@@ -83,9 +103,8 @@ const addressesMatch = (
 };
 
 /**
- * Social V1 position / trade details. Opens in two steps: the header and the
- * self-drawing price line first, then the sheet grows to show the trade
- * summary, the post (when there is one) and the actions.
+ * Social V1 position / trade details: the header, a self-drawing price line,
+ * the trade summary, the post (when there is one) and the actions.
  */
 const PositionDetailsSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -97,6 +116,8 @@ const PositionDetailsSheet = () => {
     isClosed: isClosedParam,
     isSnapshotLive,
     orderSource,
+    analyticsSource,
+    shareSource,
   } = useParams<PositionDetailsSheetParams>();
 
   const live = useLivePosition({
@@ -118,7 +139,21 @@ const PositionDetailsSheet = () => {
     { isNetworkAvailable },
   );
   const isChartLoading = data.isPricesLoading || live.isLoading;
-  const reveal = useTwoStepSheetReveal({
+  // One lookup per opened spot position. Perps and a confirmed offline tier
+  // skip it. The query aborts when this sheet unmounts.
+  const spotAssetId =
+    data.isPerp || !position
+      ? null
+      : toFeedAssetId({
+          chain: position.chain,
+          tokenAddress: position.tokenAddress,
+          tokenSymbol: position.tokenSymbol,
+        });
+  const { isMeme } = useIsMemeToken({
+    assetId: spotAssetId,
+    enabled: isNetworkAvailable && spotAssetId != null,
+  });
+  const reveal = useChartLineReveal({
     isChartReady: !isChartLoading,
     hasChartData: data.prices.length >= 2,
   });
@@ -129,6 +164,30 @@ const PositionDetailsSheet = () => {
   const isOwnPost =
     (Boolean(profile?.profileId) && author.id === profile?.profileId) ||
     addressesMatch(author.address, profile?.linkedAccountAddress);
+
+  const analyticsAsset = data.isPerp
+    ? data.perpTradeSymbol
+    : position?.tokenSymbol;
+  const positionAnalytics = useMemo(
+    () =>
+      buildSocialPositionAnalytics({
+        isPerp: data.isPerp,
+        asset: analyticsAsset,
+        direction: data.perpDirection,
+        isClosed: data.isClosed,
+        author,
+      }),
+    [analyticsAsset, author, data.isClosed, data.isPerp, data.perpDirection],
+  );
+  // The view waits for the position so it carries the asset and state.
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.POSITION_DETAILS_SHEET,
+    {
+      source: analyticsSource ?? orderSource,
+      properties: positionAnalytics,
+      outcome: position ? undefined : null,
+    },
+  );
 
   const [scrubPoint, setScrubPoint] = useState<TokenPrice | null>(null);
   const [headlineChoice, setHeadlineChoice] =
@@ -141,21 +200,40 @@ const PositionDetailsSheet = () => {
     setHeadlineChoice(null);
   }
   const [isTabsExpanded, setIsTabsExpanded] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [pinnedFooterHeight, setPinnedFooterHeight] = useState(0);
+  const { height: frameHeight } = useSafeAreaFrame();
+  const { top: topInset, bottom: bottomInset } = useSafeAreaInsets();
+  // Matches the padding the design-system sheet adds under its content.
+  const sheetBottomPadding =
+    Platform.OS === 'ios' || Platform.OS === 'macos'
+      ? bottomInset
+      : bottomInset + 16;
+  const maxScrollHeight = Math.max(
+    0,
+    frameHeight -
+      topInset -
+      sheetBottomPadding -
+      headerHeight -
+      (isTabsExpanded ? pinnedFooterHeight : 0),
+  );
 
-  // Upward-only so a downward drag still dismisses the sheet. Collapsed, the
-  // footer sits right under the tab bar; scrolling up opens the active tab.
-  const expandGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(PositionDetailsSheetSelectorsIDs.DETAILS_EXPAND_GESTURE)
-        .runOnJS(true)
-        .enabled(!isTabsExpanded)
-        .activeOffsetY(-6)
-        .failOffsetY(6)
-        .onEnd((event) => {
-          if (event.translationY < -SWIPE_THRESHOLD) setIsTabsExpanded(true);
-        }),
-    [isTabsExpanded],
+  const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+    setHeaderHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+  const handlePinnedFooterLayout = useCallback((event: LayoutChangeEvent) => {
+    setPinnedFooterHeight(Math.ceil(event.nativeEvent.layout.height));
+  }, []);
+
+  // Scrolling up past the threshold opens the active tab. The sheet's own
+  // pan still dismisses on a downward drag.
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (event.nativeEvent.contentOffset.y > SWIPE_THRESHOLD) {
+        setIsTabsExpanded(true);
+      }
+    },
+    [],
   );
 
   // iOS bounce: pulling the open sheet down past its top closes the tab.
@@ -191,7 +269,7 @@ const PositionDetailsSheet = () => {
               symbol,
               name: getPerpsDisplaySymbol(symbol),
             } as PerpsMarketData,
-            source: 'trader_feed',
+            source: orderSource ?? 'trader_feed',
           },
         });
       });
@@ -239,7 +317,7 @@ const PositionDetailsSheet = () => {
         isNative,
       });
     });
-  }, [closeThen, data, navigation, position]);
+  }, [closeThen, data, navigation, orderSource, position]);
 
   const handleOpenTraderProfile = useCallback(() => {
     void playSelection()?.catch(() => undefined);
@@ -255,6 +333,84 @@ const PositionDetailsSheet = () => {
       });
     });
   }, [author, closeThen, navigation, profile]);
+
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
+  const { isSharing, runShare } = useSocialShareInProgress();
+  const handleSharePosition = useCallback(() => {
+    const sharedPositionId = position?.positionId ?? positionId;
+    if (!sharedPositionId || !shareSource) {
+      return;
+    }
+    const sharedPosition = position;
+    const buildOgImageRequest = sharedPosition
+      ? async ({ promoCode }: SocialShareCardContext) => {
+          const prices = data.isPerp
+            ? await fetchPerpOgSeries(
+                sharedPosition.tokenSymbol,
+                getEarliestTradeMs(sharedPosition.trades),
+                Date.now(),
+              )
+            : data.prices;
+          logSocialOgShare('Building trade card on the position sheet', {
+            positionId: sharedPositionId,
+            isPerp: data.isPerp,
+            isClosed: data.isClosed,
+            priceSource: data.isPerp ? 'hyperliquid candles' : 'sheet chart',
+            pricePoints: prices.length,
+          });
+          return buildSocialTradeOgImageRequest({
+            traderId: author.id,
+            positionId: sharedPositionId,
+            username: author.username,
+            avatarUrl: author.avatarUri,
+            position: sharedPosition,
+            market: data.symbol,
+            marketIconUrl: sharedPosition.tokenImageUrl ?? data.tokenImageUrl,
+            isPerp: data.isPerp,
+            isClosed: data.isClosed,
+            pnlUsd: data.pnlValue,
+            pnlPct: data.pnlPercent,
+            markPrice: data.currentPrice,
+            prices,
+            promoCode,
+          });
+        }
+      : undefined;
+    runShare(() =>
+      shareSocialTraderPosition(
+        sharedPositionId,
+        author.id,
+        () => {
+          trackSocialPost({
+            interaction_type: SocialEvent.Interaction.POST_SHARED,
+            screen_name: SocialEvent.Screen.SHARE_POSITION_SHEET,
+            share_destination: SocialEvent.ShareDestination.EXTERNAL,
+            source: shareSource,
+          });
+        },
+        buildSocialPositionOpenGraph({
+          traderName: author.username,
+          assetSymbol: data.symbol,
+        }),
+        buildOgImageRequest,
+      ),
+    );
+  }, [
+    author,
+    data.currentPrice,
+    data.isClosed,
+    data.isPerp,
+    data.pnlPercent,
+    data.pnlValue,
+    data.prices,
+    data.symbol,
+    data.tokenImageUrl,
+    position,
+    positionId,
+    runShare,
+    shareSource,
+    trackSocialPost,
+  ]);
 
   // Quick Buy lives in this route, so a spot action hides the sheet but keeps
   // the route until Quick Buy closes. Popping it then lets the post-trade and
@@ -279,23 +435,27 @@ const PositionDetailsSheet = () => {
       position && !data.isPerp ? positionToQuickBuyTarget(position) : null,
     [position, data.isPerp],
   );
-  const { destToken } = useQuickBuySetup(data.isClosed ? quickBuyTarget : null);
-  const heldBalance = usePositionTokenBalance(
-    data.isClosed ? quickBuyTarget : null,
-    destToken,
-  );
+  // Sell needs the held balance. The viewer's own open spot position offers it
+  // too, not only closed ones.
+  const heldTarget = isOwnPost || data.isClosed ? quickBuyTarget : null;
+  const { destToken } = useQuickBuySetup(heldTarget);
+  const heldBalance = usePositionTokenBalance(heldTarget, destToken);
   const [quickBuyMode, setQuickBuyMode] = useState<QuickBuyTradeMode | null>(
     null,
   );
+  const [quickBuyIsCopyTrade, setQuickBuyIsCopyTrade] = useState(false);
   const openQuickBuy = useCallback(
-    (mode: QuickBuyTradeMode) => {
+    (mode: QuickBuyTradeMode, isCopyTrade = false) => {
       isHandingOffRef.current = true;
-      closeThen(() => setQuickBuyMode(mode));
+      closeThen(() => {
+        setQuickBuyIsCopyTrade(isCopyTrade);
+        setQuickBuyMode(mode);
+      });
     },
     [closeThen],
   );
 
-  const handlePerpsOrder = useCallback(
+  const openPerpsMarketOrder = useCallback(
     (direction: PerpDirection, leverage?: number) => {
       if (!data.perpTradeSymbol) return;
       openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
@@ -303,23 +463,55 @@ const PositionDetailsSheet = () => {
     [data.perpTradeSymbol, openPerpsOrder],
   );
 
+  const handlePerpsOrder = useCallback(
+    (direction: PerpDirection, leverage?: number) => {
+      trackInteraction(Interaction.BUTTON_CLICKED, {
+        direction:
+          direction === 'short'
+            ? SocialEvent.Direction.SHORT
+            : SocialEvent.Direction.LONG,
+      });
+      openPerpsMarketOrder(direction, leverage);
+    },
+    [openPerpsMarketOrder, trackInteraction],
+  );
+
+  const handleSpotTrade = useCallback(
+    (mode: QuickBuyTradeMode) => {
+      trackInteraction(Interaction.BUTTON_CLICKED);
+      openQuickBuy(mode);
+    },
+    [openQuickBuy, trackInteraction],
+  );
+
   const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
+    if (!ensureSocialTermsAccepted()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.TERMS,
+      });
       return;
     }
+    if (!ensureSocialProfileOnboarding()) {
+      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+        blocked_reason: BlockedReason.PROFILE_ONBOARDING,
+      });
+      return;
+    }
+    trackInteraction(Interaction.COPY_TRADE_TAPPED);
     if (data.isPerp) {
-      handlePerpsOrder(data.perpDirection ?? 'long', data.leverage);
+      openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
       return;
     }
-    openQuickBuy('buy');
+    openQuickBuy('buy', true);
   }, [
     data.isPerp,
     data.perpDirection,
     data.leverage,
     ensureSocialProfileOnboarding,
     ensureSocialTermsAccepted,
-    handlePerpsOrder,
+    openPerpsMarketOrder,
     openQuickBuy,
+    trackInteraction,
   ]);
 
   const fillMarketCapPerPrice =
@@ -327,8 +519,10 @@ const PositionDetailsSheet = () => {
   const cardQuotesMarketCap = fillMarketCapPerPrice != null;
   const showMarketCapToggle =
     !data.isPerp && ((data.marketCap ?? 0) > 0 || cardQuotesMarketCap);
+  // Price until the meme check returns. A meme coin then opens on market cap.
+  // A choice the user already made stays put.
   const headlineMode: HeadlineValueMode =
-    headlineChoice ?? (cardQuotesMarketCap ? 'marketCap' : 'price');
+    headlineChoice ?? (isMeme && showMarketCapToggle ? 'marketCap' : 'price');
   const headlineIsMarketCap =
     showMarketCapToggle && headlineMode === 'marketCap';
   const quotedMarketCap =
@@ -373,40 +567,42 @@ const PositionDetailsSheet = () => {
     ? formatChartTimestamp(Number(scrubPoint[0]))
     : strings('social_leaderboard.position_sheet.today');
 
+  // Copy trade is for another trader's open position. Every other position
+  // offers a fresh Long, Short, Buy, or Sell in the same market.
   const footer = (
     <PositionSheetFooter
       isPerp={data.isPerp}
       isClosed={data.isClosed}
+      isOwnPost={isOwnPost}
       canSell={Boolean(heldBalance)}
       onCopyTrade={handleCopyTrade}
       onPerpsOrder={handlePerpsOrder}
-      onSpotTrade={openQuickBuy}
+      onSpotTrade={handleSpotTrade}
     />
   );
 
   const details = (
-    <GestureDetector gesture={expandGesture}>
-      <View>
-        <Box twClassName="px-4 py-3" gap={2}>
-          <PositionSheetTradeSummary
-            title={data.summaryTitle}
-            tagLabel={data.summaryTagLabel}
-            direction={data.perpDirection}
-            subtitle={data.summarySubtitle}
-            pnlPercentLabel={data.pnlPercentLabel}
-            pnlValueLabel={data.pnlValueLabel}
-            isPnlPositive={data.isPnlPositive}
-          />
-        </Box>
-        <PositionSheetTabs
-          position={position}
-          author={author}
-          isExpanded={isTabsExpanded}
-          onExpandedChange={setIsTabsExpanded}
+    <View>
+      <Box twClassName="px-4 py-3" gap={2}>
+        <PositionSheetTradeSummary
+          title={data.summaryTitle}
+          tagLabel={data.summaryTagLabel}
+          direction={data.perpDirection}
+          isClosed={data.isClosed}
+          subtitle={data.summarySubtitle}
+          pnlPercentLabel={data.pnlPercentLabel}
+          pnlValueLabel={data.pnlValueLabel}
+          isPnlPositive={data.isPnlPositive}
         />
-        {isTabsExpanded ? null : footer}
-      </View>
-    </GestureDetector>
+      </Box>
+      <PositionSheetTabs
+        position={position}
+        author={author}
+        isExpanded={isTabsExpanded}
+        onExpandedChange={setIsTabsExpanded}
+      />
+      {isTabsExpanded ? null : footer}
+    </View>
   );
 
   return (
@@ -418,15 +614,25 @@ const PositionDetailsSheet = () => {
           goBack={handleSheetClosed}
           testID={PositionDetailsSheetSelectorsIDs.CONTAINER}
         >
-          <PositionSheetHeader
-            author={author}
-            isOwnPost={isOwnPost}
-            onPressTrader={handleOpenTraderProfile}
-          />
-          {/* Collapsed, everything fits and drags move the sheet instead. */}
+          <View onLayout={handleHeaderLayout}>
+            <PositionSheetHeader
+              author={author}
+              isOwnPost={isOwnPost}
+              onPressTrader={handleOpenTraderProfile}
+              onShare={shareSource ? handleSharePosition : undefined}
+              isSharing={isSharing}
+            />
+          </View>
+          {/* Bounded so content past the screen scrolls instead of being clipped. */}
           <ScrollView
-            scrollEnabled={isTabsExpanded}
+            style={
+              headerHeight > 0 ? { maxHeight: maxScrollHeight } : undefined
+            }
+            scrollEnabled
+            nestedScrollEnabled
+            scrollEventThrottle={16}
             showsVerticalScrollIndicator={false}
+            onScroll={handleScroll}
             onScrollEndDrag={handleScrollEndDrag}
             testID={PositionDetailsSheetSelectorsIDs.SCROLL}
           >
@@ -458,25 +664,13 @@ const PositionDetailsSheet = () => {
               overlayStyle={reveal.overlayStyle}
               onScrub={setScrubPoint}
             />
-            {reveal.isAnimated ? (
-              <Animated.View
-                style={reveal.detailsContainerStyle}
-                testID={PositionDetailsSheetSelectorsIDs.DETAILS}
-              >
-                <Animated.View
-                  style={[styles.detailsMeasure, reveal.detailsContentStyle]}
-                  onLayout={reveal.onDetailsLayout}
-                >
-                  {details}
-                </Animated.View>
-              </Animated.View>
-            ) : (
-              <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
-                {details}
-              </View>
-            )}
+            <View testID={PositionDetailsSheetSelectorsIDs.DETAILS}>
+              {details}
+            </View>
           </ScrollView>
-          {isTabsExpanded ? footer : null}
+          {isTabsExpanded ? (
+            <View onLayout={handlePinnedFooterLayout}>{footer}</View>
+          ) : null}
         </BottomSheet>
       )}
 
@@ -489,9 +683,14 @@ const PositionDetailsSheet = () => {
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
           originalEntryPoint="trader_feed"
-          isTraderPositionClosed={data.isClosed}
+          // An open position reads as buy, so an own open position reports the
+          // pressed action instead (sell or buy).
+          isTraderPositionClosed={
+            isOwnPost && !data.isClosed ? undefined : data.isClosed
+          }
           postTradeShare
           initialTradeMode={quickBuyMode ?? undefined}
+          isCopyTrade={quickBuyIsCopyTrade}
         />
       ) : null}
       {geoBlockSheet}

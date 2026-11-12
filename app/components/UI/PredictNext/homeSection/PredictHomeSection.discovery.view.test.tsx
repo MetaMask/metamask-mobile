@@ -371,13 +371,22 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the rows, and reads no Feed, while there are open Positions', async () => {
+    it('shows the rows, and reads no Feed once open Positions load', async () => {
       configurePredictNextFeeds({ positions: [makePredictNextPosition()] });
 
       const view = renderSection();
 
+      // The Positions container also wraps the loading skeletons, and the
+      // section prefetches discovery's Feeds during that phase, so only reads
+      // after the loaded row are part of this claim.
       expect(
-        await view.findByTestId(PredictHomeSectionTestIds.POSITIONS),
+        await view.findByTestId(PredictHomeSectionTestIds.POSITION_ROW),
+      ).toBeOnTheScreen();
+      messengerCall.mockClear();
+      await act(async () => undefined);
+
+      expect(
+        view.getByTestId(PredictHomeSectionTestIds.POSITIONS),
       ).toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeSectionTestIds.DISCOVERY),

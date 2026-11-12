@@ -23,7 +23,6 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
-import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
 import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
@@ -50,6 +49,8 @@ import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
+import HiddenTokensView from '../../Views/AddAsset/Views/HiddenTokensView/HiddenTokensView';
+import AddCustomTokenView from '../../Views/AddAsset/Views/AddCustomTokenView/AddCustomTokenView';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
@@ -144,20 +145,17 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -184,6 +182,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -241,6 +240,7 @@ import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
+import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
@@ -318,6 +318,7 @@ interface ForwardedParamsHostProps {
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
+  returnToCaller?: boolean;
 }
 
 /**
@@ -563,7 +564,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -583,7 +583,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -709,18 +708,12 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
     </NativeStack.Navigator>
   );
 };
@@ -1224,6 +1217,16 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
+        name={Routes.WALLET.ADD_CUSTOM_TOKEN}
+        component={AddCustomTokenView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.WALLET.HIDDEN_TOKENS}
+        component={HiddenTokensView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
         options={slideFromRightNativeOptions}
@@ -1234,13 +1237,6 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {isSocialV1Enabled && (
-          <NativeStack.Screen
-            name={Routes.SOCIAL_PROFILE.DRAWER}
-            component={ProfileDrawer}
-            options={slideFromLeftNativeOptions}
-          />
-        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
@@ -1423,11 +1419,20 @@ const MainNavigator = () => {
               name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
               component={MoneyApiActivityDetailsView}
             />
+            <NativeStack.Screen
+              name={Routes.MONEY.ACCOUNT_STATUS}
+              component={MoneyAccountStatusView}
+            />
           </NativeStack.Group>
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={fadeNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SPLASH}
+            component={MoneySplashView}
+            options={{ ...fadeNativeOptions, gestureEnabled: false }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
@@ -1551,6 +1556,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}

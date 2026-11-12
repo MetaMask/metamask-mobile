@@ -1,4 +1,5 @@
 import { within } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -133,6 +134,30 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
       yesAskPrice: '0',
     }),
   ],
+});
+
+const OUTCOMES_MARKETS_LAYOUT: PredictMarketLayout = {
+  tab: { key: 'outcomes', order: 1 },
+  section: { key: 'markets', order: 1 },
+};
+
+/**
+ * A Politics Event laid out as `outcomes` › `markets`: five ungrouped
+ * Markets in the order the backend sent them.
+ */
+export const makePredictNextLaidOutStandardEvent = (): PredictEvent => ({
+  ...makeEvent('next-speaker', 'Who will be the next Speaker?'),
+  category: 'Politics',
+  markets: [
+    ['johnson', 'Mike Johnson', '0.41', '0.59', '900000'],
+    ['jeffries', 'Hakeem Jeffries', '0.33', '0.67', '600000'],
+    ['jordan', 'Jim Jordan', '0.12', '0.88', '300000'],
+    ['scalise', 'Steve Scalise', '0.08', '0.92', '150000'],
+    ['emmer', 'Tom Emmer', '0.04', '0.96', '50000'],
+  ].map(([id, label, yesAskPrice, noAskPrice, volume]) => ({
+    ...makeStandardMarket({ id, label, yesAskPrice, noAskPrice, volume }),
+    layout: OUTCOMES_MARKETS_LAYOUT,
+  })),
 });
 
 const makeGroupedMarket = ({
@@ -488,6 +513,37 @@ export const makePredictNextPlayerPropsEvent = (): PredictEvent => {
       prop(passing, 'Drake Maye', 'away', 200, 0),
       prop(passing, 'Drake Maye', 'away', 250, 1),
     ],
+  };
+};
+
+/**
+ * The Market, side and catalog context of an entry (Position, Trade or
+ * Settlement) on one of the player-props Game's threshold lines, as the
+ * backend sends them: the Outcome label is only "Yes" or "No", and the
+ * context's `marketLabels` name the Player and the line.
+ */
+export const makePredictNextThresholdEntry = (
+  event: PredictEvent,
+  player: string,
+  threshold: number,
+  side: PredictOutcome['side'],
+) => {
+  const market = event.markets.find(
+    (candidate) => candidate.question === `${player}: ${threshold}+`,
+  );
+  if (!market) {
+    throw new Error(`No threshold line ${player}: ${threshold}+`);
+  }
+  return {
+    marketId: market.id,
+    side,
+    context: {
+      eventId: event.id,
+      eventTitle: event.title,
+      marketQuestion: market.question,
+      outcomeLabel: side === 'yes' ? 'Yes' : 'No',
+      marketLabels: [player, `${threshold}+`],
+    },
   };
 };
 
@@ -1069,8 +1125,12 @@ export const expectPredictNextGameCard = (
     home: string;
     awayScore: string;
     homeScore: string;
-    awayQuote: string;
-    homeQuote: string;
+    /**
+     * The quote's text, "ABBR · price". A featured card renders it across two
+     * Texts, so this matches the quote's text content, not a single Text.
+     */
+    awayQuote: string | RegExp;
+    homeQuote: string | RegExp;
     competition?: string;
     volume?: string;
   },
@@ -1080,12 +1140,22 @@ export const expectPredictNextGameCard = (
   );
   const scoped = within(card);
 
-  expect(scoped.getByText(away)).toBeOnTheScreen();
-  expect(scoped.getByText(home)).toBeOnTheScreen();
+  // A featured card shows the Team abbreviation only, so the Team name is read
+  // from the quote's accessibility label ("Team name, price, buy").
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(away)}, `)),
+  ).toBeOnTheScreen();
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(home)}, `)),
+  ).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
-  expect(scoped.getByText(awayQuote)).toBeOnTheScreen();
-  expect(scoped.getByText(homeQuote)).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-away`),
+  ).toHaveTextContent(awayQuote);
+  expect(
+    scoped.getByTestId(`predict-next-game-quote-${eventId}-home`),
+  ).toHaveTextContent(homeQuote);
   if (competition) {
     expect(scoped.getByText(competition)).toBeOnTheScreen();
   }

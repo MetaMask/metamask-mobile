@@ -25,10 +25,7 @@ import {
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-} from '../components/abTestConfig';
+import { AMBIENT_PRICE_COLOR_AB_KEY } from '../components/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
@@ -489,13 +486,6 @@ const defaultUseABTestImpl = (key: string) => {
       isActive: false,
     };
   }
-  if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-    return {
-      variant: { showMoneyDepositFooterCta: false },
-      variantName: 'control',
-      isActive: false,
-    };
-  }
   return {
     variant: { swapLabelKey: 'asset_overview.swap' },
     variantName: 'control',
@@ -816,38 +806,7 @@ describe('TokenDetails', () => {
   });
 
   describe('Swap/Buy sticky buttons', () => {
-    it('does not render Money Earn CTA in the control variant', () => {
-      mockUseMoneyAssetOverviewCtas.mockReturnValue({
-        apyPercent: 4,
-        footerLabelLocalized: 'Earn 4% APY',
-        isBalanceCtaLoading: false,
-        isBalanceCtaVisible: false,
-        isFooterCtaEligible: true,
-        isFooterCtaLoading: false,
-        isFooterCtaVisible: true,
-        onBalancePress: jest.fn(),
-        onFooterPress: jest.fn(),
-        projectedEarningsFormatted: '$4.00',
-      });
-
-      const { queryByTestId } = render(<TokenDetails />);
-
-      expect(
-        queryByTestId('money-asset-overview-footer-cta'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('renders Money Earn CTA in the treatment variant when eligible', () => {
-      mockUseABTest.mockImplementation((key: string) => {
-        if (key === EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY) {
-          return {
-            variant: { showMoneyDepositFooterCta: true },
-            variantName: 'treatment',
-            isActive: true,
-          };
-        }
-        return defaultUseABTestImpl(key);
-      });
+    it('renders Money Earn CTA when eligible', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: 4,
         footerLabelLocalized: 'Earn 4% APY',
@@ -1098,6 +1057,51 @@ describe('TokenDetails', () => {
           token_symbol: 'USDC',
           market_insights_displayed: true,
           has_perps_market: true,
+        }),
+      );
+    });
+  });
+
+  it('does not report the previous perps market on the next token', async () => {
+    mockAutoResolveMarketInsights = false;
+    mockAutoResolvePerps = false;
+
+    const { getByText, rerender } = render(<TokenDetails />);
+
+    expect(getByText('Buy')).toBeOnTheScreen();
+
+    triggerPerpsResolved({ hasPerpsMarket: true, isLoading: false });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    mockRouteParams.mockReturnValue({
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      symbol: 'USDC',
+      decimals: 18,
+      name: 'USD Coin',
+      image: 'https://example.com/usdc.png',
+      isETH: false,
+      isNative: false,
+    });
+
+    rerender(<TokenDetails />);
+
+    triggerMarketInsightsResolved({
+      isDisplayed: true,
+      severity: undefined,
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+
+    triggerPerpsResolved({ hasPerpsMarket: false, isLoading: false });
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token_symbol: 'USDC',
+          has_perps_market: false,
         }),
       );
     });

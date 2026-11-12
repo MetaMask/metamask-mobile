@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
@@ -105,6 +106,7 @@ const RewardsEarningsHistoryView: React.FC = () => {
           ? localizedText?.copyTradingEmptyAction
           : localizedText?.tradingActivityEmptyAction
       }
+      emptyIconName={copyTradingOnly ? IconName.People : IconName.Activity}
       emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
       header={header}
     />

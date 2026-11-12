@@ -33,6 +33,10 @@ ignores:
   # Ledger DMK packages staged for subsequent PRs (already wired in metro.config.js)
   - '@ledgerhq/context-module'
   - '@ledgerhq/device-signer-kit-ethereum'
+  # app/shims/walletconnect-relay-auth.ts (and its test) import the copy of
+  # relay-auth that @walletconnect/core resolves, so the shim follows core's
+  # version instead of pinning its own
+  - '@walletconnect/relay-auth'
   # Appium drivers are used by Appwright for mobile automation
   - 'appium-adb'
   - 'appium-chromium-driver'
@@ -73,6 +77,12 @@ ignores:
   - 'eslint-import-resolver-typescript'
   - 'eslint-plugin-prettier'
   - 'eslint-plugin-react-native'
+  # Loaded by name through `extends: ['@react-native']` in .eslintrc.js (via
+  # @react-native/eslint-config's `plugins: ['ft-flow']`), so it is not imported
+  # in source. Declared at 3.0.11 so the plugin supports ESLint 9 and resolves
+  # from the project root instead of the 2.0.3 copy nested under
+  # @react-native/eslint-config.
+  - 'eslint-plugin-ft-flow'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
@@ -118,7 +128,6 @@ ignores:
   - 'react-native-crypto'
   - 'react-native-level-fs'
   - 'react-native-os'
-  - 'react-native-randombytes'
   - 'react-native-swipe-gestures'
   - 'socket.io-client'
   - 'stream-browserify'
