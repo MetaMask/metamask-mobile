@@ -1,7 +1,11 @@
 import React from 'react';
 import { Modal, Platform } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
-import { act, fireEvent } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  type ReactTestInstance,
+} from '@testing-library/react-native';
 import useApprovalRequest, {
   ApprovalRequestType,
 } from '../../Views/confirmations/hooks/useApprovalRequest';
@@ -51,6 +55,18 @@ const renderComponent = () =>
   renderWithProvider(<ConfirmMembershipApproval />, {
     state: { engine: { backgroundState } },
   });
+
+const getOnPress = (button: ReactTestInstance): (() => void) => {
+  let current: ReactTestInstance | null = button;
+  while (current) {
+    const { onPress } = current.props as { onPress?: () => void };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+  throw new Error('onPress handler not found');
+};
 
 describe('ConfirmMembershipApproval', () => {
   const originalPlatformOS = Platform.OS;
@@ -136,6 +152,29 @@ describe('ConfirmMembershipApproval', () => {
     );
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves the approval once when confirm is pressed twice', () => {
+    mockApprovalRequest(createApprovalRequest());
+
+    const { getByTestId } = renderComponent();
+    const confirmButton = getByTestId(
+      ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON,
+    );
+    const pressConfirm = getOnPress(confirmButton);
+
+    act(() => {
+      pressConfirm();
+      pressConfirm();
+    });
+
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
   });
 
   it('does not call onReject when the confirm button is pressed', () => {

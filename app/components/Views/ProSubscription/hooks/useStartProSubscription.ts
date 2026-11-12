@@ -33,11 +33,10 @@ import {
 } from '../utils/proSubscriptionPaymentStatus';
 import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
-const SUBSCRIPTION_IN_PROGRESS_ERROR =
-  'Money Account subscription is already starting';
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
@@ -403,7 +402,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       options?: StartProSubscriptionOptions,
     ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
-        throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
+        throw new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE);
       }
 
       isSubmittingRef.current = true;

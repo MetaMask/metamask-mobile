@@ -37,10 +37,11 @@ const CancelMembership = () => {
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isSubmittingRef = useRef(false);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmittingRef.current || isSubmitting) return;
     if (step === CANCEL_STEPS.STAY) {
       setStep(CANCEL_STEPS.REASON);
       return;
@@ -49,7 +50,7 @@ const CancelMembership = () => {
   }, [isSubmitting, step, navigation]);
 
   const handleKeepMembership = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmittingRef.current || isSubmitting) return;
     // Mark as intentionally leaving so the stay-step beforeRemove interception
     // does not redirect this back to the reason step.
     isNavigatingRef.current = true;
@@ -67,7 +68,7 @@ const CancelMembership = () => {
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(async () => {
-    if (isSubmitting || isNavigatingRef.current) return;
+    if (isSubmittingRef.current || isNavigatingRef.current) return;
 
     const controller = Engine.context.SubscriptionController;
     const subscription = controller.getSubscriptionByProduct(
@@ -83,6 +84,7 @@ const CancelMembership = () => {
       return;
     }
 
+    isSubmittingRef.current = true;
     setErrorMessage(null);
     setIsSubmitting(true);
 
@@ -104,9 +106,10 @@ const CancelMembership = () => {
         },
       });
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-  }, [isSubmitting, selectedReasonId, navigateToProHub]);
+  }, [selectedReasonId, navigateToProHub]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
