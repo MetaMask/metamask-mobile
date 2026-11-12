@@ -713,7 +713,7 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the DisplayLg line height for the account step title', async () => {
+  it('uses the hero line height for the account step title', async () => {
     await renderOnboarding();
     fireEvent.press(
       screen.getByTestId(
@@ -731,10 +731,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(title).toHaveStyle({
-      lineHeight: 50,
-      paddingTop: 0,
-      paddingBottom: 0,
-      marginBottom: 0,
+      lineHeight: 32,
+      letterSpacing: -0.8,
+      paddingTop: 8,
+      paddingBottom: 8,
+      marginBottom: -8,
     });
   });
 

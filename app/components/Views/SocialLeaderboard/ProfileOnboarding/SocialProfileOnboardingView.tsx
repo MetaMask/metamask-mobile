@@ -2,7 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonVariant,
   FontWeight,
@@ -18,6 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   StackActions,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -36,7 +36,6 @@ import {
   Platform,
   ScrollView,
   type LayoutChangeEvent,
-  type TextStyle,
 } from 'react-native';
 import Animated, {
   Easing,
@@ -175,30 +174,17 @@ const LIVE_ACTIVITY = [
 /**
  * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
  * design-system hero face and falls back when the language is not in the font.
- * Spacing stays on the wrapper. The title paints its metrics as a style, so a
- * padding class on the text would lose to that style.
+ * DisplayLg on iOS is an 80% line (32px) with 8px of clip padding. Spacing
+ * stays on the wrapper.
  */
-/**
- * Design-system DisplayLg line box (40px font, 50px line). It replaces the
- * Grotzec tight metrics, so the clip padding and negative margin are cleared.
- */
-const DISPLAY_LG_LINE_STYLE: TextStyle = {
-  lineHeight: 50,
-  paddingTop: 0,
-  paddingBottom: 0,
-  marginBottom: 0,
-};
-
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
-  textStyle?: TextStyle;
-}> = ({ children, twClassName, textStyle }) => (
+}> = ({ children, twClassName }) => (
   <Box twClassName={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
-      style={textStyle}
     >
       {children}
     </MarketingMomentTitle>
@@ -504,6 +490,7 @@ const ReadyCardFallback: React.FC<{
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
@@ -563,6 +550,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
   const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
+  const rivePaused =
+    !isFocused || Boolean(pendingTermsPath || pendingTermsOnly);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -1330,6 +1319,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
                     onStepChange={handleIntroSceneStep}
+                    paused={rivePaused}
                   />
                 }
                 artworkWrapperProps={{
@@ -1492,14 +1482,11 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'account' ? (
                 <Box
-                  gap={4}
+                  gap={3}
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle
-                    twClassName="m-0.5 pt-3 px-3 pb-3"
-                    textStyle={DISPLAY_LG_LINE_STYLE}
-                  >
+                  <OnboardingTitle twClassName="m-0.5 pt-3 px-3 pb-3">
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
@@ -1558,6 +1545,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
                       isVerified={isProfileCreatedAndVerified}
+                      paused={rivePaused}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}

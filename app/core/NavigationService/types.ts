@@ -646,8 +646,6 @@ export type RootStackParamList = {
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
-  RewardsOnboardingFlow: undefined;
-  RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -922,6 +920,7 @@ export type RootStackParamList = {
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
   MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
+  MoneyAccountStatus: MoneyNavigationParamList['MoneyAccountStatus'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];

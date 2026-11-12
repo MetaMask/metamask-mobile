@@ -46,7 +46,6 @@ import {
   getOrCreateCampaignResourceCacheEntry,
   getOrCreateOndoCampaignLeaderboardCacheEntry,
 } from './campaignResourceState';
-import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
 // Saga action types - defined here to avoid circular dependency with saga file
@@ -251,9 +250,6 @@ export interface RewardsState {
   // Subscription Referral state (keyed by subscriptionId)
   referralDetails: Record<string, ReferralDetailsEntry>;
 
-  // Onboarding state
-  onboardingActiveStep: OnboardingStep;
-
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
 
@@ -442,7 +438,6 @@ export const initialState: RewardsState = {
   seasonUserStatuses: {},
   referralDetails: {},
 
-  onboardingActiveStep: OnboardingStep.INTRO,
   candidateSubscriptionId: 'pending',
   geoLocation: null,
   optinAllowedForGeo: null,
@@ -798,14 +793,6 @@ const rewardsSlice = createSlice({
       state.vipSplashAccepted = {};
       state.vipRefereeSplashAccepted = {};
       state.vipTransactions = {};
-    },
-
-    setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
-      state.onboardingActiveStep = action.payload;
-    },
-
-    resetOnboarding: (state) => {
-      state.onboardingActiveStep = OnboardingStep.INTRO;
     },
 
     setCandidateSubscriptionId: (
@@ -2028,8 +2015,6 @@ export const {
   setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
-  setOnboardingActiveStep,
-  resetOnboarding,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,

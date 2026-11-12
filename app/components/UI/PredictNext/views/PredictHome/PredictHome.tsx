@@ -28,7 +28,10 @@ import {
 } from '../../onboarding/KalshiDebugPanel';
 import {
   FEED_SCREENS,
+  NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
+  TRENDING_FEED_SCREEN_ID,
+  resolveFeedScreenTabs,
   type FeedScreenDefinition,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
@@ -56,12 +59,16 @@ import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
 import { resolveHomeCategories } from './internal/homeCategories';
+import { selectHomeFeedRows } from './internal/homeFeedRows';
 import {
   HOME_SECTION_IDS,
   HomeFeedReads,
   type HomeFeedRead,
 } from './internal/HomeFeedReads';
+import { HomeGamesError } from './internal/HomeGamesError';
 import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
+import { HomeSportsSection } from './internal/HomeSportsSection';
+import { HomeTrendingSection } from './internal/HomeTrendingSection';
 import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
@@ -72,9 +79,19 @@ const sectionTitle = (sectionId: FeedScreenId) => {
   return feedScreen.selectionLabel ?? feedScreen.title;
 };
 
-// Categories sit after the sports previews and before Politics. The Home
-// composition ticket sets the final order.
+// The reads before Politics feed the Trending and Sports rows. Categories sit
+// below the rows, and Politics and any section after it below Categories.
 const CATEGORIES_INDEX = HOME_SECTION_IDS.indexOf(POLITICS_FEED_SCREEN_ID);
+
+const TRENDING_ROW = 'trending-row';
+const SPORTS_ROW = 'sports-row';
+type HomeRowKey = typeof TRENDING_ROW | typeof SPORTS_ROW | FeedScreenId;
+/** Everything on Home that shows Events, in display order. */
+const HOME_ROW_KEYS: readonly HomeRowKey[] = [
+  TRENDING_ROW,
+  SPORTS_ROW,
+  ...HOME_SECTION_IDS.slice(CATEGORIES_INDEX),
+];
 
 interface PredictHomeViewProps {
   venueId: PredictVenueId;
@@ -106,40 +123,79 @@ const PredictHomeView = ({
     onContentLayout,
     onSectionLayout,
     onScrollSettled,
-  } = useVisibleSections({ keys: HOME_SECTION_IDS, scrollY });
+  } = useVisibleSections({ keys: HOME_ROW_KEYS, scrollY });
   const balanceQuery = useBalance(venueId);
   const canBuy = canPerformVenueAction(capabilities, 'buy');
-  const feedEvents = useMemo(
-    () => reads.flatMap((read) => read.events),
-    [reads],
+  // The game Feed reads behind the Trending and Sports rows. An unsupported
+  // read never loads or fails, so it neither holds nor errors a row.
+  const rowReads = useMemo(() => reads.slice(0, CATEGORIES_INDEX), [reads]);
+  // Trending ranks the Games of every row read, and Sports shows the NFL
+  // Games Trending leaves, so both rows wait for every row read and for
+  // nothing else: a pending Politics read never holds them.
+  const isRowsLoading = rowReads.some((read) => read.isLoading);
+  // A row read that failed with no Events to show. A refetch that fails over
+  // cached Events keeps those Events and shows no error.
+  const failedRowReads = useMemo(
+    () => rowReads.filter((read) => read.isError && read.events.length === 0),
+    [rowReads],
   );
-  // Section-level visibility: every Event of a section that overlaps the
-  // viewport is watched; a section scrolled fully out releases all of its Events.
-  const visibleEventIds = useMemo(
-    () =>
-      reads.flatMap((read) =>
-        visibleKeys.includes(read.sectionId)
-          ? read.events.map((event) => event.id)
-          : [],
+  const retryFailedRowReads = useCallback(
+    () => failedRowReads.forEach((read) => read.refetch()),
+    [failedRowReads],
+  );
+  // Rows are chosen once per Feed read, so their order is the reads'
+  // snapshot: a Game that goes live through streamed data keeps its place
+  // until the next Feed read (see selectHomeFeedRows). Rows still loading
+  // show skeletons, so their partial picks are neither shown nor watched.
+  const rows = useMemo(() => {
+    const selected = selectHomeFeedRows(reads, CATEGORIES_INDEX);
+    return isRowsLoading ? { ...selected, trending: [], sports: [] } : selected;
+  }, [reads, isRowsLoading]);
+  // Only the Events Home shows are watched. A read can hold more, such as
+  // the NCAAF Games Trending leaves out.
+  const shownEvents = useMemo(
+    () => [
+      ...rows.trending,
+      ...rows.sports,
+      ...rows.sections.flatMap((section) => section.events),
+    ],
+    [rows],
+  );
+  // Row-level visibility: every Event of a row that overlaps the viewport is
+  // watched; a row scrolled fully out releases all of its Events.
+  const visibleEventIds = useMemo(() => {
+    const idsIfVisible = (key: HomeRowKey, events: readonly PredictEvent[]) =>
+      visibleKeys.includes(key) ? events.map((event) => event.id) : [];
+    return [
+      ...idsIfVisible(TRENDING_ROW, rows.trending),
+      ...idsIfVisible(SPORTS_ROW, rows.sports),
+      ...rows.sections.flatMap((section) =>
+        idsIfVisible(section.sectionId, section.events),
       ),
-    [visibleKeys, reads],
-  );
-  const liveEvents = useEventsWithLiveData(venueId, feedEvents, {
+    ];
+  }, [visibleKeys, rows]);
+  const liveEvents = useEventsWithLiveData(venueId, shownEvents, {
     visibleEventIds,
     isVisible: isFocused,
     marketScope: 'card',
   });
-  // Splits the live Events back into their sections, in read order.
-  const sections = useMemo(() => {
-    const result: HomeFeedRead[] = [];
-    let start = 0;
-    for (const read of reads) {
-      const end = start + read.events.length;
-      result.push({ ...read, events: liveEvents.slice(start, end) });
+  // Splits the live Events back into the rows and sections, in order.
+  const liveRows = useMemo(() => {
+    const trendingEnd = rows.trending.length;
+    const sportsEnd = trendingEnd + rows.sports.length;
+    const sections: HomeFeedRead[] = [];
+    let start = sportsEnd;
+    for (const section of rows.sections) {
+      const end = start + section.events.length;
+      sections.push({ ...section, events: liveEvents.slice(start, end) });
       start = end;
     }
-    return result;
-  }, [reads, liveEvents]);
+    return {
+      trending: liveEvents.slice(0, trendingEnd),
+      sports: liveEvents.slice(trendingEnd, sportsEnd),
+      sections,
+    };
+  }, [rows, liveEvents]);
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
@@ -184,6 +240,21 @@ const PredictHomeView = ({
         feedScreenId,
       }),
     [navigation, venueId],
+  );
+  // The Trending header opens the Trending Feed Screen, and only when the
+  // Venue supports one of its tabs.
+  const canOpenTrending = useMemo(
+    () =>
+      resolveFeedScreenTabs(TRENDING_FEED_SCREEN_ID, capabilities).length > 0,
+    [capabilities],
+  );
+  const openTrending = useCallback(
+    () => openFeedScreen(TRENDING_FEED_SCREEN_ID),
+    [openFeedScreen],
+  );
+  const openSports = useCallback(
+    () => openFeedScreen(NFL_FEED_SCREEN_ID),
+    [openFeedScreen],
   );
   const categories = useMemo(
     () => resolveHomeCategories(capabilities),
@@ -330,17 +401,35 @@ const PredictHomeView = ({
           {/* Funding actions appear when PRED-1162 ships them and the
               Venue descriptor lists deposit or withdraw. */}
           <PortfolioActions onPositionsPress={openPortfolio} />
+          <HomeTrendingSection
+            events={liveRows.trending}
+            isLoading={isRowsLoading}
+            onOpen={canOpenTrending ? openTrending : undefined}
+            onOpenEvent={openEvent}
+            onOrder={canBuy ? openOrder : undefined}
+            onLayout={onSectionLayout(TRENDING_ROW)}
+          />
+          <HomeSportsSection
+            events={liveRows.sports}
+            isLoading={isRowsLoading}
+            onOpen={openSports}
+            onOpenEvent={openEvent}
+            onOrder={canBuy ? openOrder : undefined}
+            onLayout={onSectionLayout(SPORTS_ROW)}
+          />
+          {failedRowReads.length > 0 ? (
+            <HomeGamesError onRetry={retryFailedRowReads} />
+          ) : null}
           <HomeSectionsStatus
             capabilities={capabilities}
             hasSections={sectionCount > 0}
           />
-          {sections.slice(0, CATEGORIES_INDEX).map(renderSection)}
           <HomeCategoriesSection
             title={strings('predict_next.home_categories.title')}
             categories={categories}
             onSelect={openCategory}
           />
-          {sections.slice(CATEGORIES_INDEX).map(renderSection)}
+          {liveRows.sections.map(renderSection)}
         </Box>
       </Reanimated.ScrollView>
     </Box>
