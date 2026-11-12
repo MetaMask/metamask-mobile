@@ -138,6 +138,11 @@ const swipeToPage = (position: number): void => {
   });
 };
 
+// The tests below drive the real `TabView` through `react-native-pager-view`,
+// so only the native pager is mocked. `settlePager`/`swipeToPage` assume
+// react-native-tab-view 4.3.4's iOS/Android PagerViewAdapter forwards
+// `onPageSelected`/`onPageScrollStateChanged` straight to the pager; a
+// tab-view upgrade that rewires its pager would break these helpers.
 jest.mock('react-native-pager-view', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -163,7 +168,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-import { ExploreFeed } from './TrendingView';
+import { EXPLORE_TAB_DEFINITIONS, ExploreFeed } from './TrendingView';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   selectChainId,
@@ -575,6 +580,27 @@ describe('TrendingView', () => {
       expect(getByTestId('explore-tabs-bar')).toBeOnTheScreen();
       expect(getByTestId('explore-tabs-bar-tab-0')).toBeOnTheScreen();
       expect(getByTestId('explore-tabs-bar-tab-5')).toBeOnTheScreen();
+    });
+
+    it('pairs EXPLORE_TAB_DEFINITIONS order with EXPLORE_TAB_INDEX', () => {
+      // Deeplinks and analytics resolve positions against EXPLORE_TAB_INDEX
+      // while the tab bar renders EXPLORE_TAB_DEFINITIONS in array order; a
+      // reorder of the definitions must not pass silently.
+      expect(EXPLORE_TAB_DEFINITIONS.map(({ name }) => name)).toEqual([
+        'Now',
+        'Crypto',
+        'Perps',
+        'RWAs',
+        'Sports',
+        'Sites',
+      ]);
+      Object.entries(EXPLORE_TAB_INDEX).forEach(
+        ([constantName, tabIndex]): void => {
+          expect(EXPLORE_TAB_DEFINITIONS[tabIndex]?.name.toLowerCase()).toBe(
+            constantName.toLowerCase(),
+          );
+        },
+      );
     });
 
     it('does not re-render an inactive tab just because the active tab changed', async () => {

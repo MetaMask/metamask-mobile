@@ -62,7 +62,13 @@ import {
 } from './search/analytics';
 import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
-const EXPLORE_TAB_DEFINITIONS = [
+/**
+ * Tab order here must stay paired with `EXPLORE_TAB_INDEX` in
+ * `app/constants/navigation/exploreTabIndices.ts`: deeplinks and analytics
+ * resolve tab positions against the constants while this array's order
+ * drives the tab bar, routes and pager. A unit test pins the pairing.
+ */
+export const EXPLORE_TAB_DEFINITIONS = [
   { key: 'now', name: 'Now', titleKey: 'trending.tabs.now' },
   { key: 'crypto', name: 'Crypto', titleKey: 'trending.tabs.crypto' },
   { key: 'perps', name: 'Perps', titleKey: 'trending.tabs.perps' },
@@ -157,7 +163,7 @@ const useExploreTabNavigationEffect = (opts: {
 interface ExploreTabsProps {
   previousTabRef: React.MutableRefObject<ExploreTabName>;
   pendingExploreEntrySourceRef: React.MutableRefObject<string | undefined>;
-  scenes: Record<string, React.ReactElement>;
+  scenes: Record<ExploreTabKey, React.ReactElement>;
 }
 
 /**
@@ -175,18 +181,22 @@ interface ExploreTabsProps {
 const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
   ({ previousTabRef, pendingExploreEntrySourceRef, scenes }, ref) => {
     const tw = useTailwind();
+    // `activeIndex` is the pager's target page (what the bar highlights);
+    // `pageActiveIndex` (from `usePageActivation`) is the settled, visible
+    // page that feeds `ExploreActiveTabContext`.
     const [activeIndex, setActiveIndex] = useState<number>(
       EXPLORE_TAB_INDEX.NOW,
     );
     const { pageActiveIndex, activate, onPagerRest } = usePageActivation(
       EXPLORE_TAB_INDEX.NOW,
     );
-    const programmaticTabChangeRef = useRef(false);
+    // Set by `handleTabPress` and read once by `handleIndexChange` as `isTap`.
+    // Imperative navigation (deeplink `goToTabIndex`) deliberately leaves it
+    // false so the destination tab activates immediately, like a swipe.
+    const tabBarPressRef = useRef(false);
+    // Mirrors `activeIndex` without waiting for an effect, so dedupe and
+    // `getCurrentIndex` see the index as soon as the pager reports it.
     const activeIndexRef = useRef(activeIndex);
-
-    useEffect(() => {
-      activeIndexRef.current = activeIndex;
-    }, [activeIndex]);
 
     const routes = useMemo<TabViewRoute[]>(
       () =>
@@ -202,7 +212,7 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
     );
 
     const handleTabPress = useCallback((index: number) => {
-      programmaticTabChangeRef.current = index !== activeIndexRef.current;
+      tabBarPressRef.current = index !== activeIndexRef.current;
     }, []);
 
     const handleIndexChange = useCallback(
@@ -212,8 +222,8 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
         }
         const destinationTab = TAB_NAMES[index];
         if (!destinationTab) return;
-        const isTap = programmaticTabChangeRef.current;
-        programmaticTabChangeRef.current = false;
+        const isTap = tabBarPressRef.current;
+        tabBarPressRef.current = false;
         const source = pendingExploreEntrySourceRef.current;
         pendingExploreEntrySourceRef.current = undefined;
         trackExploreInteracted({
@@ -223,6 +233,7 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
           ...(source ? { source } : {}),
         });
         previousTabRef.current = destinationTab;
+        activeIndexRef.current = index;
         setActiveIndex(index);
         activate(index, isTap);
       },
@@ -233,9 +244,9 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
       ref,
       () => ({
         goToTabIndex: (tabIndex: number) => handleIndexChange(tabIndex),
-        getCurrentIndex: () => activeIndex,
+        getCurrentIndex: () => activeIndexRef.current,
       }),
-      [activeIndex, handleIndexChange],
+      [handleIndexChange],
     );
 
     const renderTabBar = useCallback(
@@ -250,7 +261,8 @@ const ExploreTabs = forwardRef<ExploreTabsHandle, ExploreTabsProps>(
     );
 
     const renderScene = useCallback(
-      ({ route }: { route: TabViewRoute }) => scenes[route.key],
+      ({ route }: { route: TabViewRoute }) =>
+        scenes[route.key as ExploreTabKey],
       [scenes],
     );
 
