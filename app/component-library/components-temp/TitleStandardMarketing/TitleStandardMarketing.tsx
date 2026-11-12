@@ -4,9 +4,11 @@ import React from 'react';
 // External dependencies.
 import {
   Box,
-  BoxRow,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontFamily,
   FontWeight,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -45,33 +47,47 @@ export const TitleStandardMarketing: React.FC<TitleStandardMarketingProps> = ({
 }) => (
   <Box twClassName={`mb-6 ${twClassName}`} gap={2} {...props}>
     {topAccessory}
-    <BoxRow
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
       gap={2}
       {...titleWrapperProps}
-      endAccessory={titleEndAccessory}
-      textProps={{
-        variant: TextVariant.DisplayLg,
-        fontFamily: FontFamily.Hero,
-        style: { lineHeight: typography.sDisplayLG.fontSize },
-        ...titleProps,
-      }}
     >
-      {title}
-    </BoxRow>
+      {typeof title === 'string' ? (
+        <Text
+          variant={TextVariant.DisplayLg}
+          fontFamily={FontFamily.Hero}
+          style={{ lineHeight: typography.sDisplayLG.fontSize }}
+          {...titleProps}
+        >
+          {title}
+        </Text>
+      ) : (
+        title
+      )}
+      {titleEndAccessory}
+    </Box>
     {bottomLabel && (
-      <BoxRow
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
         gap={2}
         {...bottomLabelWrapperProps}
-        endAccessory={bottomLabelEndAccessory}
-        textProps={{
-          variant: TextVariant.BodyMd,
-          fontWeight: FontWeight.Medium,
-          color: TextColor.TextAlternative,
-          ...bottomLabelProps,
-        }}
       >
-        {bottomLabel}
-      </BoxRow>
+        {typeof bottomLabel === 'string' ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            {...bottomLabelProps}
+          >
+            {bottomLabel}
+          </Text>
+        ) : (
+          bottomLabel
+        )}
+        {bottomLabelEndAccessory}
+      </Box>
     )}
     {!bottomLabel && bottomAccessory}
   </Box>

@@ -4,7 +4,7 @@ import type { ViewProps } from 'react-native';
 
 // External dependencies.
 import type {
-  BoxRowProps,
+  BoxProps,
   TextProps,
 } from '@metamask/design-system-react-native';
 
@@ -41,23 +41,17 @@ export type TitleStandardMarketingProps = {
    */
   titleProps?: Omit<Partial<TextProps>, 'children'>;
   /**
-   * Passed to the title row `BoxRow`.
+   * Passed to the title row `Box`.
    */
-  titleWrapperProps?: Omit<
-    Partial<BoxRowProps>,
-    'children' | 'textProps' | 'endAccessory'
-  >;
+  titleWrapperProps?: Omit<Partial<BoxProps>, 'children'>;
   /**
    * Merged over the bottom label's default text props when `bottomLabel` is a string.
    */
   bottomLabelProps?: Omit<Partial<TextProps>, 'children'>;
   /**
-   * Passed to the bottom label row `BoxRow`.
+   * Passed to the bottom label row `Box`.
    */
-  bottomLabelWrapperProps?: Omit<
-    Partial<BoxRowProps>,
-    'children' | 'textProps' | 'endAccessory'
-  >;
+  bottomLabelWrapperProps?: Omit<Partial<BoxProps>, 'children'>;
   /**
    * Tailwind classes added to the root container.
    */
