@@ -91,6 +91,88 @@ describe('mapPlusBenefitsToTradeAllowances', () => {
     expect(items.map((item) => item.id)).toEqual(['swaps', 'perps']);
   });
 
+  it('keeps currency usage at cent precision', () => {
+    const items = mapPlusBenefitsToTradeAllowances(
+      createBenefits({
+        swaps: {
+          feeBips: '0',
+          capMicroUsd: 1_000_000_000,
+          consumedMicroUsd: 999_670_000,
+          remainingMicroUsd: 330_000,
+          exhausted: false,
+        },
+        perps: {
+          builderFeeBips: '0',
+          capMicroUsd: 1_000_000_000,
+          consumedMicroUsd: 999_600_000,
+          remainingMicroUsd: 400_000,
+          exhausted: false,
+        },
+      }),
+    );
+
+    expect(items.find((item) => item.id === 'swaps')).toEqual(
+      expect.objectContaining({
+        used: 999.67,
+        allowance: 1000,
+        exhausted: false,
+      }),
+    );
+    expect(items.find((item) => item.id === 'perps')).toEqual(
+      expect.objectContaining({
+        used: 999.6,
+        allowance: 1000,
+        exhausted: false,
+      }),
+    );
+  });
+
+  it('keeps a partial cent amount below the next cent', () => {
+    const items = mapPlusBenefitsToTradeAllowances(
+      createBenefits({
+        swaps: {
+          feeBips: '0',
+          capMicroUsd: 1_000_000_000,
+          consumedMicroUsd: 999_400_000,
+          remainingMicroUsd: 600_000,
+          exhausted: false,
+        },
+      }),
+    );
+
+    expect(items.find((item) => item.id === 'swaps')).toEqual(
+      expect.objectContaining({ used: 999.4, allowance: 1000 }),
+    );
+  });
+
+  it('clamps usage that is above the cap', () => {
+    const items = mapPlusBenefitsToTradeAllowances(
+      createBenefits({
+        swaps: {
+          feeBips: '0',
+          capMicroUsd: 500_000_000,
+          consumedMicroUsd: 620_000_000,
+          remainingMicroUsd: 0,
+          exhausted: true,
+        },
+        predict: {
+          builderCode: 'code',
+          capTxCount: 1,
+          consumedTxCount: 2,
+          remainingTxCount: 0,
+          exhausted: true,
+        },
+      }),
+    );
+
+    expect(items.find((item) => item.id === 'swaps')).toEqual(
+      expect.objectContaining({ used: 500, allowance: 500, exhausted: true }),
+    );
+    expect(items.find((item) => item.id === 'predict')).toEqual(
+      expect.objectContaining({ used: 1, allowance: 1, exhausted: true }),
+    );
+  });
+
   it('clamps an exhausted meter to a full allowance bar', () => {
     const items = mapPlusBenefitsToTradeAllowances(
       createBenefits({
