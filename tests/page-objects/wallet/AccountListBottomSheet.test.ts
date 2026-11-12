@@ -2,7 +2,6 @@ jest.mock('../../framework/Gestures', () => ({
   __esModule: true,
   default: {
     scrollIntoView: jest.fn(),
-    scrollIntoViewFullyVisible: jest.fn(),
     waitAndTap: jest.fn(),
     swipe: jest.fn(),
     longPress: jest.fn(),
@@ -161,8 +160,10 @@ describe('AccountListBottomSheet account creation visibility', () => {
   });
 
   describe('tapAddAccountButtonV2', () => {
-    it('scrolls the Add account control fully into view before tapping', async () => {
+    it('scrolls the Add account control into view before tapping', async () => {
       const tapTarget = createCell();
+      const scrollIntoView = jest.mocked(Gestures.scrollIntoView);
+      const waitAndTap = jest.mocked(Gestures.waitAndTap);
       jest
         .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
         .mockResolvedValue();
@@ -176,26 +177,26 @@ describe('AccountListBottomSheet account creation visibility', () => {
           'getAddAccountButtonTapTarget',
         )
         .mockResolvedValue(tapTarget);
-      jest.mocked(Gestures.scrollIntoViewFullyVisible).mockResolvedValue();
-      jest.mocked(Gestures.waitAndTap).mockResolvedValue();
+      scrollIntoView.mockResolvedValue();
+      waitAndTap.mockResolvedValue();
 
       await AccountListBottomSheet.tapAddAccountButtonV2({
         syncTimeoutMs: 25_000,
       });
 
-      expect(Gestures.scrollIntoViewFullyVisible).toHaveBeenCalledWith(
-        expect.any(Promise),
-        { direction: 'down', maxScrolls: 10 },
-      );
-      expect(Gestures.waitAndTap).toHaveBeenCalledWith(
+      expect(scrollIntoView).toHaveBeenCalledWith(expect.any(Promise), {
+        direction: 'down',
+        maxScrolls: 10,
+      });
+      expect(waitAndTap).toHaveBeenCalledWith(
         expect.any(Promise),
         expect.objectContaining({
           elemDescription: 'Add Account button in V2 multichain accounts',
         }),
       );
-      expect(
-        Gestures.scrollIntoViewFullyVisible.mock.invocationCallOrder[0],
-      ).toBeLessThan(Gestures.waitAndTap.mock.invocationCallOrder[0]);
+      expect(scrollIntoView.mock.invocationCallOrder[0]).toBeLessThan(
+        waitAndTap.mock.invocationCallOrder[0],
+      );
     });
   });
 

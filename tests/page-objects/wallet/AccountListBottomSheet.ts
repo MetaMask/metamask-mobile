@@ -316,11 +316,9 @@ class AccountListBottomSheet {
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
 
-    // Mirror tapCreateAccount: scroll before tap. After Account 2 exists, the
-    // Add account footer can sit below the fold / under the nav bar, and
-    // Android FlashList often needs a scroll before taps register (Account 3
-    // permission multi-account smoke: abandoned create with idle Add account).
-    await Gestures.scrollIntoViewFullyVisible(Promise.resolve(tapTarget), {
+    // FlashList does not mount an off-screen footer. Same bounded scroll this
+    // sheet uses for an account row, then tap the freshly queried control.
+    await Gestures.scrollIntoView(Promise.resolve(tapTarget), {
       direction: 'down',
       maxScrolls: 10,
     });
