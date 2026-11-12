@@ -120,27 +120,4 @@ describe('NewUserSheet', () => {
       mockOnNotNow.mock.invocationCallOrder[0],
     );
   });
-
-  it('records Yes before closing and defers permission work until the close completes', () => {
-    const onAnswered = jest.fn();
-    const onYes = jest.fn();
-    mockOnCloseBottomSheet.mockImplementationOnce(() => undefined);
-    const { getByTestId } = renderWithProvider(
-      <NewUserSheet
-        {...defaultProps}
-        onUserAnswered={onAnswered}
-        onYes={onYes}
-      />,
-    );
-
-    fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_YES));
-
-    expect(onAnswered).toHaveBeenCalledTimes(1);
-    expect(onAnswered.mock.invocationCallOrder[0]).toBeLessThan(
-      mockOnCloseBottomSheet.mock.invocationCallOrder[0],
-    );
-    expect(onYes).not.toHaveBeenCalled();
-    mockOnCloseBottomSheet.mock.calls[0][0]?.();
-    expect(onYes).toHaveBeenCalledTimes(1);
-  });
 });

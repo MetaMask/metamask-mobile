@@ -170,7 +170,7 @@ jest.mock('./ExistingUserSheet', () => ({
   },
 }));
 
-const renderPushNotificationOnboarding = ({
+const buildOnboarding = ({
   isVisible = true,
   nativeOsPermissionEnabled = false,
   prePromptVariant = 'push_permission',
@@ -178,24 +178,27 @@ const renderPushNotificationOnboarding = ({
   isVisible?: boolean;
   nativeOsPermissionEnabled?: boolean | null;
   prePromptVariant?: PushPrePromptVariant;
-} = {}) =>
-  renderWithProvider(
-    <PushNotificationOnboarding
-      dismissPrePrompt={mockDismissPrePrompt}
-      isVisible={isVisible}
-      nativeOsPermissionEnabled={nativeOsPermissionEnabled}
-      onComplete={mockOnComplete}
-      onUserAnswered={mockOnUserAnswered}
-      prePromptVariant={prePromptVariant}
-    />,
-    {
-      state: {
-        security: {
-          dataCollectionForMarketing: false,
-        },
+} = {}) => (
+  <PushNotificationOnboarding
+    dismissPrePrompt={mockDismissPrePrompt}
+    isVisible={isVisible}
+    nativeOsPermissionEnabled={nativeOsPermissionEnabled}
+    onComplete={mockOnComplete}
+    onUserAnswered={mockOnUserAnswered}
+    prePromptVariant={prePromptVariant}
+  />
+);
+
+const renderPushNotificationOnboarding = (
+  props: Parameters<typeof buildOnboarding>[0] = {},
+) =>
+  renderWithProvider(buildOnboarding(props), {
+    state: {
+      security: {
+        dataCollectionForMarketing: false,
       },
     },
-  );
+  });
 
 const expectNotificationsOnToast = () => {
   expect(mockToast).toHaveBeenCalledWith(
@@ -295,20 +298,10 @@ describe('PushNotificationOnboarding', () => {
   });
 
   it('records another impression when an unanswered presentation resumes', () => {
-    const session = (isVisible: boolean) => (
-      <PushNotificationOnboarding
-        dismissPrePrompt={mockDismissPrePrompt}
-        isVisible={isVisible}
-        nativeOsPermissionEnabled={false}
-        onComplete={mockOnComplete}
-        onUserAnswered={mockOnUserAnswered}
-        prePromptVariant="push_permission"
-      />
-    );
-    const view = renderWithProvider(session(true));
+    const view = renderWithProvider(buildOnboarding());
 
-    view.rerender(session(false));
-    view.rerender(session(true));
+    view.rerender(buildOnboarding({ isVisible: false }));
+    view.rerender(buildOnboarding());
 
     expect(mockTrackPrePromptViewed).toHaveBeenCalledTimes(2);
     expect(mockOnUserAnswered).not.toHaveBeenCalled();
@@ -533,18 +526,8 @@ describe('PushNotificationOnboarding', () => {
       expect(mockRequestPushPermission).toHaveBeenCalledTimes(1),
     );
 
-    const session = (isVisible: boolean) => (
-      <PushNotificationOnboarding
-        dismissPrePrompt={mockDismissPrePrompt}
-        isVisible={isVisible}
-        nativeOsPermissionEnabled={false}
-        onComplete={mockOnComplete}
-        onUserAnswered={mockOnUserAnswered}
-        prePromptVariant="push_permission"
-      />
-    );
-    view.rerender(session(false));
-    view.rerender(session(true));
+    view.rerender(buildOnboarding({ isVisible: false }));
+    view.rerender(buildOnboarding());
 
     expect(
       view.queryByTestId('mock-push-permission-sheet'),

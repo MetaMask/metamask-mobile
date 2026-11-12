@@ -9,7 +9,7 @@ type RouteState = NavigationState | PartialState<NavigationState>;
  * NavigationProvider mounts the app inside one native-stack screen of this
  * name. It is not a screen the user opened.
  */
-const NAVIGATION_CHILDREN_ROUTE = 'NavigationChildren';
+export const NAVIGATION_CHILDREN_ROUTE = 'NavigationChildren';
 
 const topRouteOf = (state: RouteState | undefined) =>
   state?.routes[state.index ?? state.routes.length - 1];

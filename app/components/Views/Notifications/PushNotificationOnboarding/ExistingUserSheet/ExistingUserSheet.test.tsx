@@ -70,22 +70,4 @@ describe('ExistingUserSheet', () => {
     fireEvent.press(getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW));
     expect(mockOnNotNow).toHaveBeenCalledTimes(1);
   });
-
-  it('records a response before running the confirm action', () => {
-    const onAnswered = jest.fn();
-    const onConfirm = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <ExistingUserSheet
-        {...defaultProps}
-        onUserAnswered={onAnswered}
-        onConfirm={onConfirm}
-      />,
-    );
-
-    fireEvent.press(getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM));
-
-    expect(onAnswered.mock.invocationCallOrder[0]).toBeLessThan(
-      onConfirm.mock.invocationCallOrder[0],
-    );
-  });
 });

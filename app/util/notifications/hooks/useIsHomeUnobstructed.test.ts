@@ -3,6 +3,7 @@ import type { NavigationState } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import {
   isHomeUnobstructedState,
+  NAVIGATION_CHILDREN_ROUTE,
   useIsHomeUnobstructed,
 } from './useIsHomeUnobstructed';
 
@@ -41,6 +42,10 @@ const tabs = (focusedName: string, state?: NavigationState): NavigationState =>
     ],
   });
 
+const walletTab = (
+  walletStack: NavigationState = stack([{ name: Routes.WALLET_VIEW }]),
+) => tabs(Routes.WALLET.HOME, walletStack);
+
 /** The root stack with home focused and `homeTabsState` as the tab bar. */
 const homeRoot = (tabsState: NavigationState): NavigationState =>
   stack([
@@ -50,18 +55,33 @@ const homeRoot = (tabsState: NavigationState): NavigationState =>
     },
   ]);
 
-/**
- * NavigationProvider wraps the app navigator in one native-stack screen.
- * The name matches NavigationProvider, which does not take it from Routes.
- */
-const NAVIGATION_CHILDREN_ROUTE = 'NavigationChildren';
-
 const wrapped = (appState: NavigationState): NavigationState =>
   stack([{ name: NAVIGATION_CHILDREN_ROUTE, state: appState }]);
 
-const walletTab = (
-  walletStack: NavigationState = stack([{ name: Routes.WALLET_VIEW }]),
-) => tabs(Routes.WALLET.HOME, walletStack);
+/** Home, then a modal flow as the focused root route. */
+const homeWithModal = (modalStack: NavigationState): NavigationState =>
+  stack([
+    {
+      name: Routes.ONBOARDING.HOME_NAV,
+      state: stack([{ name: Routes.HOME_TABS, state: walletTab() }]),
+    },
+    {
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      state: modalStack,
+    },
+  ]);
+
+/** A screen pushed above the home tabs, inside the main stack. */
+const homeWithPushed = (routeName: string): NavigationState =>
+  stack([
+    {
+      name: Routes.ONBOARDING.HOME_NAV,
+      state: stack([
+        { name: Routes.HOME_TABS, state: walletTab() },
+        { name: routeName },
+      ]),
+    },
+  ]);
 
 describe('isHomeUnobstructedState', () => {
   it('is true on the wallet home with nothing presented over it', () => {
@@ -78,20 +98,19 @@ describe('isHomeUnobstructedState', () => {
     expect(isHomeUnobstructedState(homeRoot(moneyTab))).toBe(true);
   });
 
-  it('is false while the trade tray is open over home', () => {
-    const root = stack([
-      {
-        name: Routes.ONBOARDING.HOME_NAV,
-        state: stack([{ name: Routes.HOME_TABS, state: walletTab() }]),
-      },
-      {
-        name: Routes.MODAL.ROOT_MODAL_FLOW,
-        state: stack([{ name: Routes.MODAL.TRADE_WALLET_ACTIONS }]),
-      },
-    ]);
+  it.each([
+    ['plain', (state: NavigationState) => state],
+    ['NavigationChildren', wrapped],
+  ] as const)(
+    'is false while the trade tray is open over home (%s)',
+    (_placement, place) => {
+      const root = homeWithModal(
+        stack([{ name: Routes.MODAL.TRADE_WALLET_ACTIONS }]),
+      );
 
-    expect(isHomeUnobstructedState(root)).toBe(false);
-  });
+      expect(isHomeUnobstructedState(place(root))).toBe(false);
+    },
+  );
 
   it('is false while the trade tab is the focused tab', () => {
     const tradeTab = tabs(
@@ -111,19 +130,17 @@ describe('isHomeUnobstructedState', () => {
     expect(isHomeUnobstructedState(homeRoot(walletTab(pushed)))).toBe(false);
   });
 
-  it('is false when a screen is pushed above the home tabs in the main stack', () => {
-    const root = stack([
-      {
-        name: Routes.ONBOARDING.HOME_NAV,
-        state: stack([
-          { name: Routes.HOME_TABS, state: walletTab() },
-          { name: Routes.REWARDS_VIEW },
-        ]),
-      },
-    ]);
-
-    expect(isHomeUnobstructedState(root)).toBe(false);
-  });
+  it.each([
+    ['plain', (state: NavigationState) => state],
+    ['NavigationChildren', wrapped],
+  ] as const)(
+    'is false when a screen is pushed above the home tabs (%s)',
+    (_placement, place) => {
+      expect(
+        isHomeUnobstructedState(place(homeWithPushed(Routes.REWARDS_VIEW))),
+      ).toBe(false);
+    },
+  );
 
   it('is false when a root-level screen is pushed above home', () => {
     const root = stack([
@@ -135,35 +152,6 @@ describe('isHomeUnobstructedState', () => {
     ]);
 
     expect(isHomeUnobstructedState(root)).toBe(false);
-  });
-
-  it('is false when a screen is pushed above home inside the NavigationChildren wrapper', () => {
-    const app = stack([
-      {
-        name: Routes.ONBOARDING.HOME_NAV,
-        state: stack([
-          { name: Routes.HOME_TABS, state: walletTab() },
-          { name: Routes.REWARDS_VIEW },
-        ]),
-      },
-    ]);
-
-    expect(isHomeUnobstructedState(wrapped(app))).toBe(false);
-  });
-
-  it('is false when a modal flow is the focused route under NavigationChildren', () => {
-    const app = stack([
-      {
-        name: Routes.ONBOARDING.HOME_NAV,
-        state: stack([{ name: Routes.HOME_TABS, state: walletTab() }]),
-      },
-      {
-        name: Routes.MODAL.ROOT_MODAL_FLOW,
-        state: stack([{ name: Routes.MODAL.TRADE_WALLET_ACTIONS }]),
-      },
-    ]);
-
-    expect(isHomeUnobstructedState(wrapped(app))).toBe(false);
   });
 
   it('is false for an unlisted screen pushed onto the wallet tab', () => {

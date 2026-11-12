@@ -29,6 +29,7 @@ import {
 } from '../../../util/analytics/navigationAnalyticsAttribution';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
+import { NAVIGATION_CHILDREN_ROUTE } from '../../../util/notifications/hooks/useIsHomeUnobstructed';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -158,10 +159,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       ref={setNavigationRef}
     >
       <NativeStack.Navigator
-        initialRouteName="NavigationChildren"
+        initialRouteName={NAVIGATION_CHILDREN_ROUTE}
         screenOptions={clearNativeStackNavigatorOptions}
       >
-        <NativeStack.Screen name="NavigationChildren">
+        <NativeStack.Screen name={NAVIGATION_CHILDREN_ROUTE}>
           {() => <>{children}</>}
         </NativeStack.Screen>
       </NativeStack.Navigator>

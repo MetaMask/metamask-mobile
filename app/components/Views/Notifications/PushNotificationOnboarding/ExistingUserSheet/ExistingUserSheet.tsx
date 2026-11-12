@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -6,7 +6,6 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import {
   Box,
   BottomSheet,
-  type BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -16,6 +15,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
 import NotifCard from '../../../../UI/Notification/NotifCard';
+import { usePrePromptSheetClose } from '../usePrePromptSheetClose';
 
 export interface ExistingUserSheetProps {
   isVisible: boolean;
@@ -35,20 +35,8 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
   onUserAnswered,
   testID,
 }) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const closeWithAction = useCallback(
-    (action?: () => void) => {
-      onUserAnswered?.();
-      const callback = () => action?.();
-      if (!bottomSheetRef.current) {
-        callback();
-        return;
-      }
-      bottomSheetRef.current.onCloseBottomSheet(callback);
-    },
-    [onUserAnswered],
-  );
+  const { bottomSheetRef, closeFromIcon, closeWithAction } =
+    usePrePromptSheetClose(onUserAnswered);
 
   const handleConfirm = useCallback(() => {
     closeWithAction(onConfirm);
@@ -71,10 +59,7 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
-            onPress={() => {
-              onUserAnswered?.();
-              bottomSheetRef.current?.onCloseBottomSheet();
-            }}
+            onPress={closeFromIcon}
           />
         </Box>
         <Box twClassName="mb-2 px-6">

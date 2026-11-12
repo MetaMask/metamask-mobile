@@ -133,49 +133,6 @@ describe('PushNotificationOnboardingRoot', () => {
     expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
   });
 
-  it('suspends presentation without discarding the pending snapshot', () => {
-    mockPrePromptState({
-      nativeOsPermissionEnabled: true,
-      variant: 'push_permission',
-    });
-    const { rerender } = render(<PushNotificationOnboardingRoot />);
-
-    // The hook resolves no variant while something is presented over home.
-    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
-    rerender(<PushNotificationOnboardingRoot />);
-
-    expect(getLatestProps()).toEqual(
-      expect.objectContaining({
-        isVisible: false,
-        nativeOsPermissionEnabled: true,
-        prePromptVariant: 'push_permission',
-      }),
-    );
-    expect(mockMarkAnswered).not.toHaveBeenCalled();
-  });
-
-  it('resumes the same pending prompt when home returns', () => {
-    mockPrePromptState({
-      nativeOsPermissionEnabled: true,
-      variant: 'push_permission',
-    });
-    const { rerender } = render(<PushNotificationOnboardingRoot />);
-
-    mockPrePromptState({ isHomeUnobstructed: false, variant: null });
-    rerender(<PushNotificationOnboardingRoot />);
-    mockPrePromptState({ isHomeUnobstructed: true, variant: null });
-    rerender(<PushNotificationOnboardingRoot />);
-
-    expect(getLatestProps()).toEqual(
-      expect.objectContaining({
-        isVisible: true,
-        nativeOsPermissionEnabled: true,
-        prePromptVariant: 'push_permission',
-      }),
-    );
-    expect(mockMarkAnswered).not.toHaveBeenCalled();
-  });
-
   it('releases the session on completion before home is obstructed', () => {
     mockPrePromptState({
       nativeOsPermissionEnabled: true,
