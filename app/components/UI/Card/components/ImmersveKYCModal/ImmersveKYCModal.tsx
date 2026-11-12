@@ -130,9 +130,11 @@ export const IMMERSVE_KYC_UI_JS = `
 // The opener re-polls when the webview closes back onto it. Close and that
 // re-poll have to happen together: a confirmed exit removes the processing
 // screen before focus returns, so useFocusEffect is not a reliable signal.
-let onCloseCallback: (() => void) | null = null;
+let onCloseCallback: ((completed: boolean) => void) | null = null;
 
-export const setImmersveKycOnClose = (callback: () => void) => {
+export const setImmersveKycOnClose = (
+  callback: (completed: boolean) => void,
+) => {
   onCloseCallback = callback;
 };
 
@@ -159,7 +161,8 @@ const isAnyPermissionBlocked = (
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
- * and the progress screen re-polls spending-prerequisites.
+ * back onto the KYC screen. That screen re-polls spending-prerequisites and
+ * shows the result in place.
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
@@ -363,7 +366,7 @@ const ImmersveKYCModal: React.FC = () => {
           )
           .build(),
       );
-      onCloseCallback?.();
+      onCloseCallback?.(completed);
     },
     [trackEvent, createEventBuilder],
   );

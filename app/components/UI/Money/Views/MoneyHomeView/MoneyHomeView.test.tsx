@@ -87,7 +87,10 @@ import {
   type CardFundingToken,
   type CardFundingTokenWithBalance,
 } from '../../../Card/types';
-import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
+} from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { useCardEnableCard } from '../../../Card/Views/CardHome/hooks/useCardEnableCard';
@@ -202,14 +205,28 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   __esModule: true,
   default: () => null,
   PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
-  PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
 }));
 
 // Animated Rive card thumbnail pulls in device sensors; not exercised here.
-jest.mock('../../components/MoneyCardTiltAnimation', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../components/MoneyCardTiltAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isMetalCard,
+      testID,
+    }: {
+      isMetalCard?: boolean;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(View, {
+        testID: `${testID ?? 'money-card-tilt'}-${
+          isMetalCard ? 'metal' : 'virtual'
+        }`,
+      }),
+  };
+});
 
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: () => ({
@@ -569,6 +586,9 @@ const mockSelectIsMoneyAccountVisible = jest.mocked(
 const mockSelectMoneyEarningSectionEnabledFlag = jest.mocked(
   selectMoneyEarningSectionEnabledFlag,
 );
+const mockSelectHistoricalValuationsEnabled = jest.mocked(
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
+);
 const mockSelectPrivacyMode = jest.mocked(selectPrivacyMode);
 const mockUseMoneyAccountCardLinkage = jest.mocked(useMoneyAccountCardLinkage);
 const mockOpenLinkCardSheet = jest.fn();
@@ -648,6 +668,7 @@ const apiActivityResult = (
   loadMore: jest.fn(),
   isLoadingMore: false,
   isLoading: false,
+  isValuationSettling: false,
   error: false,
   refetch: jest.fn(),
   ...overrides,
@@ -903,6 +924,7 @@ describe('MoneyHomeView', () => {
     mockSelectIsCardHomeDataResolved.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
+    mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
 
     mockOpenLinkCardSheet.mockReset();
     mockStartLinkFlow.mockReset();
@@ -1368,7 +1390,148 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  describe('historical activity fetch cap', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+      });
+    });
+
+    it('does not auto-fill page two when historical valuations are enabled', () => {
+      const loadMore = jest.fn();
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [CARD_TX],
+          hasMore: true,
+          isComplete: false,
+          pageCount: 1,
+          loadMore,
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(loadMore).not.toHaveBeenCalled();
+    });
+
+    it('keeps the existing auto-fill when historical valuations are disabled', () => {
+      const loadMore = jest.fn();
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [],
+          hasMore: true,
+          isComplete: false,
+          pageCount: 1,
+          loadMore,
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(loadMore).toHaveBeenCalled();
+    });
+  });
+
   describe('time to content telemetry', () => {
+    it('marks historical activity ready when the preview has resolved amounts', () => {
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [
+            {
+              ...CARD_TX,
+              displayAmount: {
+                type: 'historical',
+                value: '968399999',
+                decimals: 6,
+              },
+            },
+          ],
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(
+          TraceName.MoneyHomeHistoricalActivityTimeToContent,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          enabled: true,
+          ready: true,
+          failed: false,
+          contentState: 'filled',
+        }),
+      );
+    });
+
+    it('marks historical activity failed when only approximate values remain', () => {
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(true);
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [
+            {
+              ...CARD_TX,
+              displayAmount: {
+                type: 'approximate',
+                value: '5381986',
+                decimals: 6,
+              },
+            },
+          ],
+          isValuationSettling: false,
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(
+          TraceName.MoneyHomeHistoricalActivityTimeToContent,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          enabled: true,
+          ready: false,
+          failed: true,
+          contentState: 'empty',
+        }),
+      );
+    });
+
+    it('leaves historical activity telemetry disabled with the flag off', () => {
+      mockSelectHistoricalValuationsEnabled.mockReturnValue(false);
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({
+          activity: [
+            {
+              ...CARD_TX,
+              displayAmount: {
+                type: 'historical',
+                value: '968399999',
+                decimals: 6,
+              },
+            },
+          ],
+        }),
+      );
+
+      renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getLastMoneyHomeSegment(
+          TraceName.MoneyHomeHistoricalActivityTimeToContent,
+        ),
+      ).toEqual(expect.objectContaining({ enabled: false }));
+    });
+
     it('marks APY and earnings ready when cached content is visible during refetch', () => {
       mockUseMoneyVaultApy.mockReturnValue({
         ...defaultMoneyVaultApy,
@@ -4619,7 +4782,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('hasMetalCard selector wiring', () => {
-    it('uses 3% cashback copy in link mode when user holds a Metal card', () => {
+    it('uses the metal card image in link mode when the user holds a Metal card', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectHasMetalCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
@@ -4638,9 +4801,14 @@ describe('MoneyHomeView', () => {
         reset: jest.fn(),
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
-      const { getByText } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByText } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
-      expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
+      expect(
+        getByTestId(`${MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}-metal`),
+      ).toBeOnTheScreen();
+      expect(queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
   });
 

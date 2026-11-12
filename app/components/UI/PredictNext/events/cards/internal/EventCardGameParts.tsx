@@ -27,6 +27,7 @@ import {
 } from '../../game';
 import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
+import { isEventLive } from './isEventLive';
 import {
   createGameCardProjection,
   type GameCardProjection,
@@ -132,6 +133,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
   const { event, game, projection } = useGameCard();
   const line = projection.status[variant];
   const featured = variant === 'featured';
+  const live = isEventLive(event);
 
   return (
     <Box
@@ -141,7 +143,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
       <Box
         twClassName={`flex-row items-center ${featured ? 'gap-1' : 'gap-2'}`}
       >
-        {game.status === 'in_progress' ? (
+        {live ? (
           <Box
             testID={`predict-next-game-live-dot-${event.id}`}
             twClassName={`${featured ? 'h-2 w-2' : 'h-2.5 w-2.5'} rounded-full bg-success-default`}
@@ -151,7 +153,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Bold}
           color={
-            game.status === 'in_progress'
+            live
               ? TextColor.SuccessDefault
               : featured && game.status === 'scheduled'
                 ? TextColor.TextDefault

@@ -4,10 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   Icon,
   IconColor,
-  IconName as DesignSystemIconName,
+  IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
@@ -21,7 +20,6 @@ import {
 } from '../../../../core/redux/slices/card';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
-import { useTheme } from '../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { cardQueries } from '../queries';
@@ -63,29 +61,19 @@ const showOutcomeToast = (
     title,
     description,
     iconName,
-    accessoryName,
-    iconColor,
   }: {
     title: string;
     description: string;
     iconName: IconName;
-    accessoryName: DesignSystemIconName;
-    iconColor: string;
   },
 ) => {
   toastRef?.current?.showToast({
-    variant: ToastVariants.Icon,
+    variant: ToastVariants.Plain,
     labelOptions: [{ label: title }],
     descriptionOptions: { description },
-    iconName,
-    iconColor,
     hasNoTimeout: false,
     startAccessory: (
-      <Icon
-        name={accessoryName}
-        color={IconColor.IconDefault}
-        size={IconSize.Lg}
-      />
+      <Icon name={iconName} color={IconColor.IconDefault} size={IconSize.Lg} />
     ),
   });
 };
@@ -96,7 +84,6 @@ const showOutcomeToast = (
  */
 export function useImmersveKycOutcome() {
   const { toastRef } = useContext(ToastContext);
-  const theme = useTheme();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -148,8 +135,6 @@ export function useImmersveKycOutcome() {
               action.canRetry,
             ),
             iconName: IconName.Error,
-            accessoryName: DesignSystemIconName.Error,
-            iconColor: theme.colors.error.default,
           });
         }
 
@@ -167,7 +152,6 @@ export function useImmersveKycOutcome() {
       activeProviderId,
       createEventBuilder,
       signOutOfRejectedKyc,
-      theme.colors.error.default,
       toastRef,
       trackEvent,
     ],
@@ -178,10 +162,8 @@ export function useImmersveKycOutcome() {
       title: strings('money.metamask_card.setup.reviewing_title'),
       description: strings('money.metamask_card.setup.reviewing_description'),
       iconName: IconName.Info,
-      accessoryName: DesignSystemIconName.Info,
-      iconColor: theme.colors.primary.default,
     });
-  }, [theme.colors.primary.default, toastRef]);
+  }, [toastRef]);
 
   return { notifyKycRejected, notifyKycInReview };
 }

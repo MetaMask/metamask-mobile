@@ -54,8 +54,7 @@ export const homeDiscoverySlotForUiSlotItem = (
     ? 'btc-up-down'
     : undefined;
 
-/** Events each slot shows by default: the PredictNext Home preview size, so
- * both surfaces share one Feed read. */
+/** Events each slot shows by default. */
 export const HOME_DISCOVERY_EVENTS_PER_SLOT = 2;
 
 /**
