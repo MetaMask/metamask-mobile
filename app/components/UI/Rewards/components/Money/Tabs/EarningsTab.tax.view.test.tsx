@@ -33,7 +33,9 @@ import {
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT,
   referralMeFixture,
+  REWARDS_MONEY_PROFILE_ID,
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
+import { selectCommissionMechanisms } from '../../../../../../reducers/rewardsMoney/selectors';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { TAX_FORM_QUESTION_SHEET_TEST_IDS } from '../TaxFormQuestionSheet.testIds';
 import { TAX_FORM_OPEN_FORM_SHEET_TEST_IDS } from '../TaxFormOpenFormSheet.testIds';
@@ -422,7 +424,7 @@ describe('EarningsTab tax documentation', () => {
       cashbackClaimable: '1000000',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine, store } = renderEarningsTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -434,6 +436,15 @@ describe('EarningsTab tax documentation', () => {
       },
     });
 
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+      expect(
+        selectCommissionMechanisms(store.getState(), REWARDS_MONEY_PROFILE_ID)
+          ?.SOCIAL_FOLLOW_TRADE?.claim_open,
+      ).toBe(true);
+    });
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
