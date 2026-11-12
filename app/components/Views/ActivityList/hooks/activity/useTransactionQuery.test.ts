@@ -1,8 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import type { CaipAccountId } from '@metamask/utils';
 import { apiClient } from '../../../../../core/apiClient';
+import { selectEvmAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTransactionQuery } from './useTransactionQuery';
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -40,11 +41,18 @@ describe('useTransactionQuery', () => {
       data: undefined,
       isFetching: false,
     } as ReturnType<typeof useQuery>);
-    useSelectorMock.mockReturnValue('0x1234567890abcdef');
   });
 
-  it('builds v5 query options and disables the query when inputs are missing', () => {
-    useSelectorMock.mockReturnValue(undefined);
+  it('disables the query when inputs are missing', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return undefined;
+      }
+      if (selector === selectEvmAddress) {
+        return undefined;
+      }
+      return undefined;
+    });
 
     renderHook(() =>
       useTransactionQuery({
@@ -56,12 +64,7 @@ describe('useTransactionQuery', () => {
 
     expect(
       apiClient.accounts.getV5TransactionByIdQueryOptions,
-    ).toHaveBeenCalledWith('' as CaipAccountId, '', {
-      includeLogs: false,
-      includeMiscOperations: false,
-      includeTxMetadata: true,
-      lang: expect.any(String),
-    });
+    ).not.toHaveBeenCalled();
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: false,
@@ -72,6 +75,16 @@ describe('useTransactionQuery', () => {
   });
 
   it('enables the query for valid EVM chain, address, and hash inputs', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return { address: '0x1234567890abcdef' };
+      }
+      if (selector === selectEvmAddress) {
+        return '0x9999999999999999';
+      }
+      return undefined;
+    });
+
     renderHook(() =>
       useTransactionQuery({
         chainId: 'eip155:8453',
@@ -94,6 +107,34 @@ describe('useTransactionQuery', () => {
         enabled: true,
         select: expect.any(Function),
       }),
+    );
+  });
+
+  it('uses global EVM address when group account is not available', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupEvmInternalAccount) {
+        return undefined;
+      }
+      if (selector === selectEvmAddress) {
+        return '0xglobaladdress';
+      }
+      return undefined;
+    });
+
+    renderHook(() =>
+      useTransactionQuery({
+        chainId: 'eip155:1',
+        enabled: true,
+        txHash: '0xdef',
+      }),
+    );
+
+    expect(
+      apiClient.accounts.getV5TransactionByIdQueryOptions,
+    ).toHaveBeenCalledWith(
+      'eip155:1:0xglobaladdress',
+      '0xdef',
+      expect.any(Object),
     );
   });
 });

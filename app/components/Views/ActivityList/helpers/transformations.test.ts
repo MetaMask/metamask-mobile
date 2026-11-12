@@ -1,5 +1,4 @@
 import type {
-  V1TransactionByHashResponse,
   V5MultiAccountTransactionsResponse,
   V5TransactionRecord,
 } from '@metamask/core-backend';
@@ -13,34 +12,10 @@ import {
   mapNonEvmTransactions,
   mergeTransactionsByTime,
   selectApiEvmTransactions,
-  shouldSkipUnrelatedTransaction,
 } from './transformations';
 
 const address = '0x0000000000000000000000000000000000000001';
 const otherAddress = '0x0000000000000000000000000000000000000002';
-
-const buildTransaction = (
-  overrides: Partial<V1TransactionByHashResponse> = {},
-): V1TransactionByHashResponse =>
-  ({
-    hash: '0xhash',
-    timestamp: '2026-05-13T14:34:23.000Z',
-    chainId: 59144,
-    blockNumber: 100,
-    blockHash: '0xblock',
-    gas: 21000,
-    gasUsed: 21000,
-    gasPrice: '1000000000',
-    effectiveGasPrice: '1000000000',
-    nonce: 0,
-    cumulativeGasUsed: 21000,
-    value: '0',
-    to: otherAddress,
-    from: address,
-    transactionCategory: 'TRANSFER',
-    valueTransfers: [],
-    ...overrides,
-  }) as unknown as V1TransactionByHashResponse;
 
 const buildV5Transaction = (
   overrides: {
@@ -90,76 +65,6 @@ const buildV5Data = (
   }) as InfiniteData<V5MultiAccountTransactionsResponse>;
 
 describe('ActivityList transformations', () => {
-  describe('shouldSkipUnrelatedTransaction', () => {
-    it('keeps direct receives that the list gate drops via their value transfers', () => {
-      const tokenReceive = buildTransaction({
-        from: otherAddress,
-        to: address,
-        value: '0',
-        valueTransfers: [
-          {
-            amount: '1000000',
-            contractAddress: '0x3333333333333333333333333333333333333333',
-            decimal: 6,
-            from: otherAddress,
-            name: 'USD Coin',
-            symbol: 'USDC',
-            to: address,
-            transferType: 'ERC20',
-          },
-        ],
-      });
-
-      expect(shouldSkipUnrelatedTransaction(address, tokenReceive)).toBe(false);
-    });
-
-    it('still skips excluded hashes, non-participant, and empty self transfers', () => {
-      expect(
-        shouldSkipUnrelatedTransaction(
-          address,
-          buildTransaction(),
-          new Set(['0xhash']),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipUnrelatedTransaction(
-          address,
-          buildTransaction({
-            from: otherAddress,
-            to: otherAddress,
-            valueTransfers: [
-              {
-                amount: '1',
-                contractAddress: '',
-                decimal: 18,
-                from: otherAddress,
-                name: 'Ether',
-                symbol: 'ETH',
-                to: address,
-                transferType: 'NATIVE',
-              },
-            ],
-          }),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipUnrelatedTransaction(
-          address,
-          buildTransaction({
-            from: address,
-            methodId: '0x',
-            to: address,
-            value: '0',
-            valueTransfers: [],
-          }),
-        ),
-      ).toBe(true);
-      expect(shouldSkipUnrelatedTransaction(address, buildTransaction())).toBe(
-        false,
-      );
-    });
-  });
-
   it('matches bridge history by tx ids, original id, and source hash', () => {
     const bridgeHistoryValues = [
       {
