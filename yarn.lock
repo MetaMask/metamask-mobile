@@ -11194,15 +11194,15 @@ __metadata:
   linkType: hard
 
 "@metamask/multichain-api-middleware@npm:^4.0.1":
-  version: 4.0.3
-  resolution: "@metamask/multichain-api-middleware@npm:4.0.3"
+  version: 4.0.1
+  resolution: "@metamask/multichain-api-middleware@npm:4.0.1"
   dependencies:
-    "@metamask/accounts-controller": "npm:^39.1.1"
+    "@metamask/accounts-controller": "npm:^39.0.4"
     "@metamask/api-specs": "npm:^0.15.0"
     "@metamask/chain-agnostic-permission": "npm:^1.7.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/json-rpc-engine": "npm:^10.5.0"
-    "@metamask/network-controller": "npm:^36.0.0"
+    "@metamask/network-controller": "npm:^34.0.0"
     "@metamask/permission-controller": "npm:^13.1.1"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/snaps-controllers": "npm:^19.0.0"
@@ -11210,7 +11210,7 @@ __metadata:
     "@open-rpc/meta-schema": "npm:^1.14.6"
     "@open-rpc/schema-utils-js": "npm:^2.0.5"
     jsonschema: "npm:^1.4.1"
-  checksum: 10/460024bbdf29df81559f0051a0c0ecbca05271e6d27229b958e46357f03af732c2e99df13417db748cb775ba3e920309c3bd1e72417763061fbdebe190235840
+  checksum: 10/bda98101074c43632f7a32ea5356a5e6c73b073622cc0bb1bb6dc2f81760f89a468bc6dbc83763f148177f3cd83c987250acbb2f767bf36b085405b6e10d24b2
   languageName: node
   linkType: hard
 
@@ -13707,13 +13707,13 @@ __metadata:
   linkType: hard
 
 "@open-rpc/schema-utils-js@npm:^2.0.5":
-  version: 2.2.1
-  resolution: "@open-rpc/schema-utils-js@npm:2.2.1"
+  version: 2.1.2
+  resolution: "@open-rpc/schema-utils-js@npm:2.1.2"
   dependencies:
     "@json-schema-tools/dereferencer": "npm:^1.6.3"
     "@json-schema-tools/meta-schema": "npm:^1.7.5"
     "@json-schema-tools/reference-resolver": "npm:^1.2.6"
-    "@open-rpc/spec-types": "npm:0.0.2"
+    "@open-rpc/meta-schema": "npm:^1.14.9"
     "@open-rpc/specification-extension-spec": "npm:^1.0.2"
     ajv: "npm:^6.10.0"
     detect-node: "npm:^2.0.4"
@@ -13721,7 +13721,7 @@ __metadata:
     fs-extra: "npm:^10.1.0"
     is-url: "npm:^1.2.4"
     isomorphic-fetch: "npm:^3.0.0"
-  checksum: 10/8ac30b3880e57638af8c75e8cc130cb97237bbd55c4cae0948c5e1dbf01e6c639caa0515fa8eacb4b350f5410a9f02f47617244249c6231bc550b791478ee515
+  checksum: 10/0f38a403c696ee74319503cfba9656cdb2ff6dbd84dfba3c6ce5c3d010dfd72bc396bfb6dacf39de01d523ee7e3b0d5637657a48e5f2c7e74ae33b9354b2c4c1
   languageName: node
   linkType: hard
 
@@ -13738,22 +13738,6 @@ __metadata:
     node-ipc: "npm:9.1.1"
     ws: "npm:^8.0.0"
   checksum: 10/27005f6a782f99892989a5e6df8d7d5ce00aa83f09f009d5826a19fe3d8c2d65ea51613a0d10ae4f798774279c4b5dd204aa5cf57eb657d7c74c9bb3a317d77e
-  languageName: node
-  linkType: hard
-
-"@open-rpc/spec-types@npm:0.0.2":
-  version: 0.0.2
-  resolution: "@open-rpc/spec-types@npm:0.0.2"
-  dependencies:
-    "@open-rpc/spec": "npm:1.4.1"
-  checksum: 10/e2698a458df89fa4a538b9773438cbe057e9514a2b298c7e4357ca1a13921d7ac8fc559048ec047d3e664292ae43ff598b57d19e73b237cb0793ab186222f333
-  languageName: node
-  linkType: hard
-
-"@open-rpc/spec@npm:1.4.1":
-  version: 1.4.1
-  resolution: "@open-rpc/spec@npm:1.4.1"
-  checksum: 10/6e6679a1b85039a724f9938b1840a020f75428b2ef899704ce7a964e16024be620b97d467a7e5d69b56a735026db62c465b841c3c349034e60ba243e9aae2db5
   languageName: node
   linkType: hard
 
