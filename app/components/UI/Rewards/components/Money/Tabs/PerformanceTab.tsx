@@ -26,8 +26,10 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../../reducers';
 import type { ReferralFunnelEntry } from '../../../../../../reducers/rewardsMoney';
 import {
+  refereeMoneySections,
   selectEarningsSummaryEntry,
   selectReferralFunnelEntry,
+  selectReferralMeEntry,
   selectReferralMeLocalizedText,
   type MoneyDashboardPersona,
 } from '../../../../../../reducers/rewardsMoney/selectors';
@@ -40,12 +42,13 @@ import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import { earnedByOthersLifetime } from '../../../utils/earningsSummaryTotals';
 import { strings } from '../../../../../../../locales/i18n';
 import { navigateToRewardsRoute } from '../../../utils';
+import { navigateToSocialLeaderboard } from '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import type { UseCursorPaginatedListResult } from '../../../hooks/useCursorPaginatedList';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import { SHOW_TRADING_COMMISSIONS } from '../constants';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
 import ReferralFunnelBar from '../ReferralFunnelBar';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 import {
@@ -315,6 +318,7 @@ function ActivitySection<T extends { id: string }>({
   bottomPadding,
   emptyDescription,
   emptyActionLabel,
+  emptyIconName = IconName.Activity,
   onEmptyAction,
   onOpenList,
   renderItem,
@@ -329,6 +333,8 @@ function ActivitySection<T extends { id: string }>({
   emptyDescription: string;
   /** The empty state renders a button only with both label and handler. */
   emptyActionLabel?: string;
+  /** Defaults to the trading-activity icon. Copy trading passes People. */
+  emptyIconName?: IconName;
   onEmptyAction?: () => void;
   onOpenList: () => void;
   renderItem: (item: T) => React.ReactElement;
@@ -344,7 +350,7 @@ function ActivitySection<T extends { id: string }>({
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={emptyIconName}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -413,9 +419,17 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
   active,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const roles = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  );
+  const sections = refereeMoneySections(roles);
   const isReferrer = persona === 'referrer';
   const isReferee = persona === 'referee';
-  const showCommissions = (isReferrer || isReferee) && SHOW_TRADING_COMMISSIONS;
+  const showCommissions =
+    (isReferrer || (isReferee && sections.socialRewards)) &&
+    showTradingCommissions;
+  const showRebates = isReferee && sections.tradingRebates;
   const localizedText = useSelector((state: RootState) =>
     selectReferralMeLocalizedText(state, profileId),
   );
@@ -433,12 +447,15 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
     enabled: active && showCommissions,
   });
   const rebatesList = useCashbackLedger(profileId, {
-    enabled: active && isReferee,
+    enabled: active && showRebates,
   });
   const openTradeActions = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+  }, [navigation]);
+  const openSocialTab = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate);
   }, [navigation]);
 
   if (!localizedText) {
@@ -447,7 +464,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
 
   const funnel = deriveFunnelSection(isReferrer, funnelEntry);
   const commissions = deriveActivitySection(showCommissions, commissionsList);
-  const rebates = deriveActivitySection(isReferee, rebatesList);
+  const rebates = deriveActivitySection(showRebates, rebatesList);
 
   return (
     <Box testID={PERFORMANCE_TAB_TEST_IDS.CONTAINER}>
@@ -479,7 +496,11 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           }}
           state={commissions}
           followsSection={funnel.show}
-          emptyDescription={localizedText.tradingActivityEmptyDescription}
+          bottomPadding={!rebates.show}
+          emptyDescription={localizedText.copyTradingEmptyDescription}
+          emptyActionLabel={localizedText.copyTradingEmptyAction}
+          emptyIconName={IconName.People}
+          onEmptyAction={openSocialTab}
           onOpenList={() =>
             navigateToRewardsRoute(
               navigation,

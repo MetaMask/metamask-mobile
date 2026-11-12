@@ -15,6 +15,7 @@ jest.mock('../../../../core/Engine', () => ({
       initiateAuth: jest.fn(),
       submitCredentials: jest.fn(),
       executeStepAction: jest.fn(),
+      requestEmailLoginCode: jest.fn(),
       logout: jest.fn(),
     },
   },
@@ -85,6 +86,21 @@ describe('useCardAuth', () => {
       });
 
       expect(mockController.initiateAuth).toHaveBeenCalledWith('US');
+    });
+  });
+
+  describe('requestEmailCode', () => {
+    it('calls controller.requestEmailLoginCode', async () => {
+      mockController.requestEmailLoginCode.mockResolvedValue(undefined);
+      const { result } = renderHook(() => useCardAuth());
+
+      await act(async () => {
+        await result.current.requestEmailCode.mutateAsync('user@example.com');
+      });
+
+      expect(mockController.requestEmailLoginCode).toHaveBeenCalledWith(
+        'user@example.com',
+      );
     });
   });
 

@@ -1,12 +1,14 @@
 // Third party dependencies.
-import React from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
+import { TabView } from 'react-native-tab-view';
 
 // External dependencies.
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsList from './TabsList';
+import TabViewBar, { type TabViewRoute } from './TabViewBar/TabViewBar';
 import { TabViewProps } from './TabsList/TabsList.types';
 
 const TabsStoryMeta = {
@@ -140,3 +142,27 @@ export const DifferentHeights = () => (
     </TabsList>
   </Box>
 );
+
+const TAB_VIEW_ROUTES: TabViewRoute[] = [
+  'Tokens',
+  'NFTs',
+  'Activity',
+  'Perpetuals',
+  'Predictions',
+  'Rewards',
+].map((title) => ({ key: title, title }));
+
+export const WithTabView = () => {
+  const [index, setIndex] = useState(0);
+
+  return (
+    <Box twClassName="flex-1 bg-background-default">
+      <TabView
+        navigationState={{ index, routes: TAB_VIEW_ROUTES }}
+        renderScene={({ route }) => <ExampleTabContent title={route.title} />}
+        renderTabBar={(props) => <TabViewBar {...props} testID="story-tabs" />}
+        onIndexChange={setIndex}
+      />
+    </Box>
+  );
+};

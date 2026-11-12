@@ -36,7 +36,9 @@ import {
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import MyProfileView from '../../../app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
+import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { createStateFixture } from '../stateFixture';
 
@@ -62,6 +64,23 @@ function SocialV1ViewWithCompliance() {
 export interface RenderSocialLeaderboardOptions {
   presetOptions?: SocialLeaderboardPresetOptions;
   overrides?: DeepPartial<RootState>;
+}
+
+/** Renders the owner profile with the shared linked-profile Redux preset. */
+export function renderMyProfileView(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const builder = initialStateSocialLeaderboard({
+    ...options.presetOptions,
+    linkedSocialProfile: true,
+  });
+  if (options.overrides) builder.withOverrides(options.overrides);
+
+  return renderComponentViewScreen(
+    MyProfileView as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.MY_PROFILE },
+    { state: builder.build() },
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -315,7 +334,10 @@ const buildOnboardingAccountTree = (
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean } = {},
+  options: {
+    includeSecondEvmAccount?: boolean;
+    initialParams?: Record<string, unknown>;
+  } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -400,6 +422,7 @@ export function renderSocialProfileOnboarding(
     { name: Routes.SOCIAL.PROFILE_ONBOARDING },
     extraRoutes,
     { state },
+    options.initialParams,
   );
 }
 
@@ -416,7 +439,10 @@ export function renderSocialV1ViewWithRoutes(
   options: RenderSocialLeaderboardOptions = {},
 ) {
   const { presetOptions, overrides } = options;
-  const builder = initialStateSocialLeaderboard(presetOptions);
+  const builder = initialStateSocialLeaderboard({
+    ...presetOptions,
+    linkedSocialProfile: presetOptions?.linkedSocialProfile ?? true,
+  });
   if (overrides) builder.withOverrides(overrides);
   const state = builder.build();
 
@@ -435,6 +461,39 @@ export function renderSocialV1ViewWithRoutes(
  * from Redux, and calls Engine.controllerMessenger for opt-in/opt-out.
  * No external API mock is required; the default Engine mock is sufficient.
  */
+export const gifPickerSheetHarness = {
+  onSelect: jest.fn(),
+  onClose: jest.fn(),
+};
+
+function GifPickerSheetHarness() {
+  return (
+    <GifPickerSheet
+      onSelect={gifPickerSheetHarness.onSelect}
+      onClose={gifPickerSheetHarness.onClose}
+    />
+  );
+}
+
+/**
+ * Renders the composer GIF picker through real Redux flag state.
+ * Tests spy on Engine.controllerMessenger for the social GIF actions.
+ */
+export function renderGifPickerSheet(
+  options: RenderSocialLeaderboardOptions = {},
+) {
+  const { presetOptions, overrides } = options;
+  const builder = initialStateSocialLeaderboard(presetOptions);
+  if (overrides) builder.withOverrides(overrides);
+  const state = builder.build();
+
+  return renderComponentViewScreen(
+    GifPickerSheetHarness as unknown as React.ComponentType,
+    { name: 'GifPickerSheet' },
+    { state },
+  );
+}
+
 export function renderSettingsTopTradersSection(
   options: RenderSocialLeaderboardOptions = {},
 ) {

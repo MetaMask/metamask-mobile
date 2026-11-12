@@ -21,6 +21,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,7 +50,7 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -185,7 +186,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const { isOnboardingRedirectNeeded } = useMoneyNavigation();
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -323,7 +324,7 @@ const EarnStrategySelectionModal = () => {
       is_fee_subsidized: selectedStrategy.isFeeSubsidized,
       redirect_target: getSelectedEarnStrategyRedirectTarget(
         selectedStrategy,
-        isOnboardingRedirectNeeded,
+        moneyEntryContext,
         pendingEarnDepositRouteRef.current,
       ),
     });
@@ -334,7 +335,7 @@ const EarnStrategySelectionModal = () => {
     earnAsset,
     handleGetStartedAfterClose,
     handleNavigationError,
-    isOnboardingRedirectNeeded,
+    moneyEntryContext,
     params.analyticsContext?.asset_position,
     params.analyticsContext?.assets_in_list,
     resolveEarnDepositNavigationRoute,

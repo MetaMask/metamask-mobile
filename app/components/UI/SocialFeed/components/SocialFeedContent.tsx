@@ -1,6 +1,13 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
+import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -95,6 +102,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -104,6 +112,9 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  requireSocialProfile,
+  realtime = false,
+  refreshRef,
   testID,
 }) => {
   const query = useMemo(
@@ -124,7 +135,9 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     loadMore,
     error,
     refresh,
-  } = useSocialFeed(query, { filterPost });
+  } = useSocialFeed(query, { filterPost, realtime });
+  useImperativeHandle(refreshRef, () => ({ refresh }), [refresh]);
+  const { profileId: viewerProfileId } = useSocialProfileId();
   const state = getSocialFeedListState({
     postCount: posts.length,
     isLoading,
@@ -142,18 +155,27 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
       <SocialFeedPostShell
         post={post}
         requireSocialTerms
+        requireSocialProfile={requireSocialProfile}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={post.position ? onPositionPress : undefined}
+        showCopyTrade={post.item.author.id !== viewerProfileId}
       />
     ),
-    [onAuthorPress, onCopyTrade, onPositionPress],
+    [
+      onAuthorPress,
+      onCopyTrade,
+      onPositionPress,
+      requireSocialProfile,
+      viewerProfileId,
+    ],
   );
 
   return (
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <Box twClassName="gap-4" testID={testID}>

@@ -194,7 +194,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={4}
           >
             <TooltipLabel
               label={strings('bridge.rate')}

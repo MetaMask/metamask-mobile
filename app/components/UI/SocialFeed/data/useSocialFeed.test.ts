@@ -10,7 +10,11 @@ import { useSelector } from 'react-redux';
 import { useLogSocialQueryError } from '../../../../util/social/socialServiceTelemetry';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
-import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
+import {
+  mockFeedResponse,
+  mockPerpFeedItem,
+  mockSpotFeedItem,
+} from '../mocks/coreFeed.mock';
 import {
   toSocialFeedRequest,
   type SocialFeedQuery,
@@ -349,7 +353,8 @@ describe('useSocialFeed', () => {
       );
     });
 
-    it('turns realtime off while filtering by asset', async () => {
+    it('streams the scope while filtering by asset and keeps new posts to those assets', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
       mockCall.mockResolvedValue(mockFeedResponse([]));
 
       renderHook(
@@ -358,10 +363,13 @@ describe('useSocialFeed', () => {
       );
 
       await waitFor(() => expect(mockCall).toHaveBeenCalled());
-      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
-        expect.anything(),
-        expect.objectContaining({ realtimeScope: null }),
-      );
+      const options = mockUseSocialFeedRealtime.mock.lastCall?.[1];
+      expect(options?.realtimeScope).toBe('all');
+      expect(options?.streamKey).toContain(assetIds[0]);
+      expect(
+        options?.matchesItem?.(mockPerpFeedItem({ tokenSymbol: 'BTC' })),
+      ).toBe(true);
+      expect(options?.matchesItem?.(mockSpotFeedItem())).toBe(false);
     });
 
     it('keeps the pages fresh for the staleTime it is given', async () => {
@@ -632,6 +640,8 @@ describe('useSocialFeed', () => {
           nearTop: false,
           holdNewPosts: true,
           filterPost,
+          matchesItem: null,
+          streamKey: expect.stringContaining('"scope":"trending"'),
         },
       );
     });
@@ -651,6 +661,7 @@ describe('useSocialFeed', () => {
         realtime: {
           pendingNewCount: 3,
           revealPending: jest.fn(),
+          hasPendingUpdate: () => false,
           entrances: createSocialFeedEntrances(),
         },
       };

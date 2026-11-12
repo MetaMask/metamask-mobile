@@ -1,7 +1,12 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
-import { AvatarAccount } from '@metamask/design-system-react-native';
+import {
+  AvatarAccount,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
@@ -101,6 +106,71 @@ describe('TradeRow', () => {
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('omits the leverage and direction badges on a perp fill', () => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          classification: 'perp',
+          perpPositionType: 'long',
+          perpLeverage: 2,
+        }}
+        action="opened"
+      />,
+    );
+
+    expect(screen.getByText('Opened')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `trade-row-perp-badges-${baseTrade.transactionHash}`,
+      ),
+    ).toBeNull();
+    expect(screen.queryByText('2x')).toBeNull();
+    expect(screen.queryByText('LONG')).toBeNull();
+  });
+
+  it('shows a success plus avatar for a positive spot fill', () => {
+    renderWithProvider(
+      <TradeRow trade={baseTrade} action="opened" showValueAvatar />,
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({
+        name: IconName.Add,
+        color: IconColor.SuccessDefault,
+        size: IconSize.Lg,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(`trade-row-value-avatar-${baseTrade.transactionHash}`),
+    ).toBeOnTheScreen();
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('shows an error minus avatar for a negative perp fill', () => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          intent: 'exit',
+          usdCost: 0,
+          classification: 'perp',
+          perpPositionType: 'short',
+        }}
+        action="closed"
+        showValueAvatar
+      />,
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({
+        name: IconName.Minus,
+        color: IconColor.ErrorDefault,
+        size: IconSize.Lg,
+      }),
+    ).toBeTruthy();
   });
 
   it('calls onPress with the trade when the row is tapped', () => {

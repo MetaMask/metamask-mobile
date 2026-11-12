@@ -82,6 +82,19 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers cross margin display as in-prod, version-gated and default-off', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsCrossMarginEnabled).toMatchObject({
+        name: 'perpsCrossMarginEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.11.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',
@@ -191,13 +204,13 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('keeps the Money deposit Braze campaign default-off', () => {
+    it('enables the Money deposit Braze campaign at 8.18.0+', () => {
       expect(
         getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
           ?.productionDefault,
       ).toEqual({
-        enabled: false,
-        minimumVersion: '0.0.0',
+        enabled: true,
+        minimumVersion: '8.18.0',
       });
     });
 
@@ -416,6 +429,17 @@ describe('Feature Flag Registry', () => {
       ).toEqual({
         enabled: true,
         minimumVersion: '8.17.0',
+      });
+    });
+
+    it('keeps the Social GIF API disabled in production', () => {
+      expect(getRegistryEntry('aiSocialGifApi')).toMatchObject({
+        inProd: true,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.17.0',
+        },
+        status: FeatureFlagStatus.Active,
       });
     });
 

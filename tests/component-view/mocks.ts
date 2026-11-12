@@ -135,6 +135,7 @@ jest.mock('../../app/core/Engine', () => {
           supportsTransactionHistory: false,
           supportsContactDetails: false,
           supportsMoneyAccountLinking: false,
+          reportsVerificationStatus: true,
         }),
       },
       PhishingController: {
@@ -298,6 +299,9 @@ jest.mock('../../app/core/Engine', () => {
         startSession: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
@@ -387,6 +391,7 @@ jest.mock('../../app/core/Engine', () => {
           transactions: [],
         },
         addTransaction: jest.fn().mockResolvedValue({}),
+        addTransactionBatch: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
         updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),

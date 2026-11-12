@@ -1,22 +1,24 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StatusBar } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useNavigation } from '@react-navigation/native';
 import KYCFailed from './KYCFailed';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useSelector } from 'react-redux';
 
-// Mock dependencies
+const mockExitCardFlow = jest.fn();
+
+jest.mock('../../hooks/useExitCardFlow', () => ({
+  useExitCardFlow: () => mockExitCardFlow,
+}));
+
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
+  useFocusEffect: (effect: () => void) => effect(),
 }));
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn(() => 'baanx'),
 }));
-
-import { useSelector } from 'react-redux';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -41,10 +43,58 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock design system components
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, TouchableOpacity } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        onBack,
+        backButtonProps,
+      }: {
+        onBack?: () => void;
+        backButtonProps?: { testID?: string };
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header-standard-glass' },
+          ReactActual.createElement(TouchableOpacity, {
+            testID: backButtonProps?.testID || 'back-button',
+            onPress: onBack,
+          }),
+        ),
+    };
+  },
+);
+
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/assets/vba-account-create-failure.svg',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ name }: { name?: string }) =>
+        ReactActual.createElement(View, {
+          testID: 'kyc-failed-vba-failure-svg',
+          accessibilityLabel: name,
+        }),
+    };
+  },
+);
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
   return {
     Box: ({
@@ -55,6 +105,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(View, { testID, ...props }, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-standard' },
+        topAccessory,
+        ReactActual.createElement(Text, { testID: titleProps?.testID }, title),
+        ReactActual.createElement(
+          Text,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
     Text: ({
       children,
       testID,
@@ -78,14 +152,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       label?: string;
       isDisabled?: boolean;
       disabled?: boolean;
-    }) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
-      return ReactActual.createElement(
+    }) =>
+      ReactActual.createElement(
         TouchableOpacity,
         { testID, onPress, disabled: disabled || isDisabled, ...props },
         ReactActual.createElement(Text, {}, children || label),
-      );
-    },
+      ),
+    Icon: ({ name, testID }: { name?: string; testID?: string }) =>
+      ReactActual.createElement(View, {
+        testID: testID || 'kyc-failed-circle-x',
+        accessibilityLabel: name,
+      }),
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
@@ -100,100 +177,26 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'Md',
       Lg: 'Lg',
     },
-    ButtonIconSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
     IconName: {
+      CircleX: 'CircleX',
       ArrowLeft: 'ArrowLeft',
     },
-    ButtonIcon: ({
-      onPress,
-      testID,
-    }: {
-      onPress?: () => void;
-      testID?: string;
-    }) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
-      return ReactActual.createElement(TouchableOpacity, {
-        testID: testID || 'button-icon',
-        onPress,
-      });
+    IconSize: {
+      Xl: 'Xl',
+    },
+    IconColor: {
+      ErrorDefault: 'ErrorDefault',
+    },
+    BoxAlignItems: {
+      Center: 'Center',
+    },
+    BoxJustifyContent: {
+      Center: 'Center',
+      End: 'End',
     },
   };
 });
 
-// Mock react-native Image and Dimensions
-jest.mock('react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const RN = jest.requireActual('react-native');
-
-  return {
-    ...RN,
-    Dimensions: {
-      get: jest.fn(() => ({ width: 375, height: 812 })),
-    },
-    Image: ({ testID, ...props }: { testID?: string }) =>
-      ReactActual.createElement(RN.View, {
-        testID: testID || 'kyc-failed-image',
-        ...props,
-      }),
-  };
-});
-
-// Mock Button component
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  const ButtonVariants = {
-    Primary: 'primary',
-    Secondary: 'secondary',
-  };
-
-  const ButtonSize = {
-    Sm: 'sm',
-    Md: 'md',
-    Lg: 'lg',
-  };
-
-  const ButtonWidthTypes = {
-    Full: 'full',
-    Auto: 'auto',
-  };
-
-  const Button = ({
-    label,
-    onPress,
-    disabled,
-    testID,
-  }: {
-    label: string;
-    onPress?: () => void;
-    disabled?: boolean;
-    testID?: string;
-  }) =>
-    ReactActual.createElement(
-      TouchableOpacity,
-      {
-        testID: testID || 'button',
-        onPress: disabled ? undefined : onPress,
-        disabled,
-      },
-      ReactActual.createElement(Text, { testID: `${testID}-label` }, label),
-    );
-
-  return {
-    __esModule: true,
-    default: Button,
-    ButtonVariants,
-    ButtonSize,
-    ButtonWidthTypes,
-  };
-});
-
-// Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
@@ -207,27 +210,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   }),
 }));
 
-// Mock styles/common
-jest.mock('../../../../../styles/common', () => {
-  const { brandColor } = jest.requireActual('@metamask/design-tokens');
-  return {
-    colors: {
-      white: brandColor.white,
-    },
-  };
-});
-
 describe('KYCFailed Component', () => {
-  const mockNavigate = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue('baanx');
-    (useNavigation as jest.Mock).mockReturnValue({
-      navigate: mockNavigate,
-    });
+    // First useSelector call is glass header; second is activeProviderId.
+    mockUseSelector.mockReturnValueOnce(false).mockReturnValue('baanx');
     mockCreateEventBuilder.mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
         build: jest.fn().mockReturnValue({ event: 'test' }),
@@ -241,6 +231,9 @@ describe('KYCFailed Component', () => {
 
   describe('Component Rendering', () => {
     it('renders the title text', () => {
+      const setBarStyle = jest
+        .spyOn(StatusBar, 'setBarStyle')
+        .mockImplementation(() => undefined);
       const { getByTestId } = render(<KYCFailed />);
 
       const title = getByTestId('kyc-failed-title');
@@ -249,6 +242,8 @@ describe('KYCFailed Component', () => {
       expect(title.props.children).toBe(
         "You're not eligible for MetaMask Card right now",
       );
+      expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+      setBarStyle.mockRestore();
     });
 
     it('renders the description text', () => {
@@ -262,30 +257,18 @@ describe('KYCFailed Component', () => {
       );
     });
 
-    it('renders the image', () => {
-      const { getByTestId } = render(<KYCFailed />);
+    it('renders the VBA account-create-failure illustration', () => {
+      const { getByTestId, getByLabelText } = render(<KYCFailed />);
 
-      const image = getByTestId('kyc-failed-image');
-
-      expect(image).toBeTruthy();
+      expect(getByTestId('kyc-failed-illustration')).toBeTruthy();
+      expect(getByLabelText('vba-account-create-failure')).toBeTruthy();
+      expect(getByTestId('kyc-failed-vba-failure-svg')).toBeTruthy();
     });
 
-    it('renders the image as a full-bleed background', () => {
-      const { getByTestId } = render(<KYCFailed />);
+    it('does not render the old-brand purple artwork', () => {
+      const { queryByTestId } = render(<KYCFailed />);
 
-      const image = getByTestId('kyc-failed-image');
-      const style = StyleSheet.flatten(image.props.style);
-
-      // The asset has its own purple backdrop baked in, so any area it leaves
-      // uncovered shows the screen's flat fallback color as a visible seam.
-      expect(image.props.resizeMode).toBe('cover');
-      expect(style).toMatchObject({
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-      });
+      expect(queryByTestId('kyc-failed-image')).toBeNull();
     });
   });
 
@@ -298,14 +281,13 @@ describe('KYCFailed Component', () => {
       expect(backButton).toBeTruthy();
     });
 
-    it('navigates to wallet home when back button is pressed', () => {
+    it('leaves the card flow when back button is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -326,14 +308,13 @@ describe('KYCFailed Component', () => {
       expect(getByText('Back to home')).toBeTruthy();
     });
 
-    it('navigates to wallet home when close button is pressed', () => {
+    it('leaves the card flow when close button is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
     it('is not disabled by default', () => {
@@ -346,38 +327,32 @@ describe('KYCFailed Component', () => {
   });
 
   describe('Navigation', () => {
-    it('uses navigation hook', () => {
-      render(<KYCFailed />);
-
-      expect(useNavigation).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls navigate with correct route when back is pressed', () => {
+    it('leaves the card flow when back is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
-    it('calls navigate with correct route when close is pressed', () => {
+    it('leaves the card flow when close is pressed', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
-    it('handles multiple button presses', () => {
+    it('leaves again on each button press', () => {
       const { getByTestId } = render(<KYCFailed />);
 
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -402,7 +377,8 @@ describe('KYCFailed Component', () => {
     });
 
     it('does not track while activeProviderId is null', () => {
-      mockUseSelector.mockReturnValue(null);
+      mockUseSelector.mockReset();
+      mockUseSelector.mockReturnValueOnce(false).mockReturnValue(null);
 
       render(<KYCFailed />);
 
@@ -410,12 +386,14 @@ describe('KYCFailed Component', () => {
     });
 
     it('tracks once when provider resolves after a null provider render', () => {
-      mockUseSelector.mockReturnValue(null);
+      mockUseSelector.mockReset();
+      mockUseSelector.mockReturnValueOnce(false).mockReturnValue(null);
       const { rerender } = render(<KYCFailed />);
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
 
-      mockUseSelector.mockReturnValue('immersve');
+      mockUseSelector.mockReset();
+      mockUseSelector.mockReturnValueOnce(false).mockReturnValue('immersve');
       rerender(<KYCFailed />);
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -475,7 +453,7 @@ describe('KYCFailed Component', () => {
       expect(getByTestId('kyc-failed-back-button')).toBeTruthy();
       expect(getByTestId('kyc-failed-title')).toBeTruthy();
       expect(getByTestId('kyc-failed-description')).toBeTruthy();
-      expect(getByTestId('kyc-failed-image')).toBeTruthy();
+      expect(getByTestId('kyc-failed-illustration')).toBeTruthy();
       expect(getByTestId('kyc-failed-close-button')).toBeTruthy();
     });
   });
@@ -497,7 +475,7 @@ describe('KYCFailed Component', () => {
       const backButton = getByTestId('kyc-failed-back-button');
       fireEvent.press(backButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
 
     it('allows user to dismiss screen via close button', () => {
@@ -506,7 +484,7 @@ describe('KYCFailed Component', () => {
       const button = getByTestId('kyc-failed-close-button');
       fireEvent.press(button);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockExitCardFlow).toHaveBeenCalledTimes(1);
     });
   });
 });

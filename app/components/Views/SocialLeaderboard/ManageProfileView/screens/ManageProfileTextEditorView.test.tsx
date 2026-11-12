@@ -128,7 +128,7 @@ describe('ManageProfileTextEditorView', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('checks username availability before updating the handle', async () => {
+  it('preserves username casing when checking availability and updating the handle', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkUsernameAvailability = jest.fn().mockResolvedValue({
       username: 'laser_gains',
@@ -155,7 +155,7 @@ describe('ManageProfileTextEditorView', () => {
 
     fireEvent.changeText(
       screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
-      'laser_gains',
+      ' @Laser_Gains ',
     );
 
     await act(async () => {
@@ -164,8 +164,8 @@ describe('ManageProfileTextEditorView', () => {
       );
     });
 
-    expect(checkUsernameAvailability).toHaveBeenCalledWith('laser_gains');
-    expect(updateProfile).toHaveBeenCalledWith({ username: 'laser_gains' });
+    expect(checkUsernameAvailability).toHaveBeenCalledWith('Laser_Gains');
+    expect(updateProfile).toHaveBeenCalledWith({ username: 'Laser_Gains' });
   });
 
   it('does not update the handle when the username is unavailable', async () => {
@@ -360,6 +360,36 @@ describe('ManageProfileTextEditorView', () => {
       screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT).props
         .maxLength,
     ).toBe(160);
+  });
+
+  // TextField puts its testID on the wrapper, so its input is found by value.
+  it('focuses the display name input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'displayName' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(screen.getByDisplayValue('Giga Whale').props.autoFocus).toBe(true);
+  });
+
+  it('focuses the bio input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'bio' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.BIO_INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
+  it('does not focus the handle input when the editor opens', () => {
+    mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    expect(
+      screen.getByDisplayValue('giga-whale.metamask').props.autoFocus,
+    ).toBe(false);
   });
 
   it('names refused content when the server rejects a display name', async () => {

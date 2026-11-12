@@ -41,6 +41,7 @@ const ProfilesToFollowView: React.FC = () => {
   const tw = useTailwind();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile: true,
   });
   const {
     traders,

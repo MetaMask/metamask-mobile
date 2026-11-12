@@ -3,6 +3,8 @@ import { useCallback, useMemo } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
+import type { SocialFeedPositionPressContext } from '../../../UI/SocialFeed/components/SocialFeed.types';
+import { socialFeedSurfaceOrderSource } from '../../../UI/SocialFeed/socialFeedOrderSource';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -11,13 +13,19 @@ export interface SocialFeedPostNavigation {
   /** Opens the author's Social V1 profile. */
   onAuthorPress: (post: SocialV1FeedPost) => void;
   /** Opens the position sheet. A post without a position is ignored. */
-  onPositionPress: (post: SocialV1FeedPost) => void;
+  onPositionPress: (
+    post: SocialV1FeedPost,
+    context?: SocialFeedPositionPressContext,
+  ) => void;
 }
 
 /** Where a Social V1 tab's feed post goes when its author or card is tapped. */
-export const useSocialFeedPostNavigation = (): SocialFeedPostNavigation => {
+export const useSocialFeedPostNavigation = (
+  location?: string,
+): SocialFeedPostNavigation => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const orderSource = socialFeedSurfaceOrderSource(location);
 
   const onAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -37,7 +45,7 @@ export const useSocialFeedPostNavigation = (): SocialFeedPostNavigation => {
   );
 
   const onPositionPress = useCallback(
-    (post: SocialV1FeedPost) => {
+    (post: SocialV1FeedPost, context?: SocialFeedPositionPressContext) => {
       if (!post.position) {
         return;
       }
@@ -46,13 +54,15 @@ export const useSocialFeedPostNavigation = (): SocialFeedPostNavigation => {
         positionId: post.position.positionId,
         position: post.position,
         author: post.item.author,
-        comment: post.item.comment,
         isClosed:
           post.item.variant === 'perpsClosed' ||
           post.item.variant === 'spotClosed',
+        isSnapshotLive: context?.isSnapshotLive === true,
+        ...(orderSource ? { orderSource } : {}),
+        shareSource: orderSource ?? 'trader_feed',
       });
     },
-    [navigation],
+    [navigation, orderSource],
   );
 
   return useMemo(

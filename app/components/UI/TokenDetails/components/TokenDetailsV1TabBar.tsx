@@ -9,7 +9,7 @@ import {
 import { Gesture, type PanGesture } from 'react-native-gesture-handler';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Box } from '@metamask/design-system-react-native';
-import Animated, {
+import {
   useAnimatedStyle,
   useSharedValue,
   type SharedValue,
@@ -27,8 +27,6 @@ import { TokenDetailsIds } from '../testIds';
 
 export { TOKEN_DETAILS_V1_TABS } from '../constants/constants';
 
-const AnimatedBox = Animated.createAnimatedComponent(Box);
-
 export const SWIPE_ACTIVATION_OFFSET_PX = 50;
 export const SWIPE_FAIL_OFFSET_PX = 15;
 export const SWIPE_TRANSLATION_THRESHOLD_PX = 50;
@@ -36,13 +34,17 @@ export const SWIPE_VELOCITY_THRESHOLD_PX = 500;
 
 export const HIDDEN_TAB_PAGE_STYLE: ViewStyle = { display: 'none' };
 
-export const getTokenDetailsV1TabBarInset = (
+/**
+ * Whether the page has scrolled far enough for the tab bar to dock under the
+ * nav header. `tabBarOffsetY` is the in-flow bar's y inside the scroll
+ * content, or `null` before it has laid out.
+ */
+export const isTokenDetailsV1TabBarPinned = (
   scrollOffset: number,
-  tabBarOffset: number,
-  topInset: number,
-): number => {
+  tabBarOffsetY: number | null,
+): boolean => {
   'worklet';
-  return topInset > 0 && scrollOffset >= tabBarOffset ? topInset : 0;
+  return tabBarOffsetY !== null && scrollOffset >= tabBarOffsetY;
 };
 
 export const resolveSwipeTargetTab = (
@@ -63,6 +65,105 @@ export const resolveSwipeTargetTab = (
   }
   const targetIndex = translationX > 0 ? activeIndex - 1 : activeIndex + 1;
   return tabs[targetIndex] ?? null;
+};
+
+interface TabBarCopyProps {
+  pointerEvents: 'auto' | 'none';
+  importantForAccessibility: 'auto' | 'no-hide-descendants';
+  accessibilityElementsHidden: boolean;
+}
+
+const getTabBarCopyProps = (isActive: boolean): TabBarCopyProps => ({
+  pointerEvents: isActive ? 'auto' : 'none',
+  importantForAccessibility: isActive ? 'auto' : 'no-hide-descendants',
+  accessibilityElementsHidden: !isActive,
+});
+
+export interface UsePinnedTokenDetailsV1TabBarResult {
+  /** Whether the docked copy is the one taking taps. */
+  isPinned: boolean;
+  /** Call from the page's scroll handler with the vertical offset. */
+  onScrollOffset: (scrollOffset: number) => void;
+  /** Call from the in-flow bar's slot with its y inside the scroll content. */
+  onTabBarOffsetY: (tabBarOffsetY: number) => void;
+  /** Spread on the view wrapping the in-flow bar. */
+  inFlowProps: TabBarCopyProps;
+  /** Spread on the view wrapping the docked copy. */
+  pinnedProps: TabBarCopyProps;
+  /** UI-thread opacity for the docked copy. */
+  pinnedStyle: ReturnType<typeof useAnimatedStyle>;
+}
+
+/**
+ * Owns the hand-off between the in-flow tab bar and its docked copy, so the
+ * docking rule, which copy takes taps and which one screen readers see all
+ * come from one place.
+ *
+ * The docked copy exists because a `stickyHeaderIndices` header is drawn by a
+ * native translateY but hit-tested from a ShadowTree position committed
+ * later, so on Android taps on a docked sticky tab bar landed in the content
+ * under it. The copy is laid over the page outside the ScrollView and never
+ * moves, so where it is drawn is where it is touched.
+ *
+ * Taps follow React state, which only changes when the bar crosses the
+ * docking point. Visibility follows `scrollY` on the UI thread so the copy
+ * appears in the same frame the in-flow bar reaches the top. Both use
+ * `isTokenDetailsV1TabBarPinned`.
+ */
+export const usePinnedTokenDetailsV1TabBar = (
+  scrollY: SharedValue<number>,
+): UsePinnedTokenDetailsV1TabBarResult => {
+  const tabBarOffsetY = useSharedValue<number | null>(null);
+  const tabBarOffsetYRef = useRef<number | null>(null);
+  const scrollOffsetRef = useRef(0);
+  const isPinnedRef = useRef(false);
+  const [isPinned, setIsPinned] = useState(false);
+
+  const update = useCallback(() => {
+    const next = isTokenDetailsV1TabBarPinned(
+      scrollOffsetRef.current,
+      tabBarOffsetYRef.current,
+    );
+    if (next !== isPinnedRef.current) {
+      isPinnedRef.current = next;
+      setIsPinned(next);
+    }
+  }, []);
+
+  const onScrollOffset = useCallback(
+    (scrollOffset: number) => {
+      scrollOffsetRef.current = scrollOffset;
+      update();
+    },
+    [update],
+  );
+
+  const onTabBarOffsetY = useCallback(
+    (offsetY: number) => {
+      tabBarOffsetY.set(offsetY);
+      tabBarOffsetYRef.current = offsetY;
+      update();
+    },
+    [tabBarOffsetY, update],
+  );
+
+  const pinnedStyle = useAnimatedStyle(() => ({
+    opacity: isTokenDetailsV1TabBarPinned(scrollY.value, tabBarOffsetY.value)
+      ? 1
+      : 0,
+  }));
+
+  const inFlowProps = useMemo(() => getTabBarCopyProps(!isPinned), [isPinned]);
+  const pinnedProps = useMemo(() => getTabBarCopyProps(isPinned), [isPinned]);
+
+  return {
+    isPinned,
+    onScrollOffset,
+    onTabBarOffsetY,
+    inFlowProps,
+    pinnedProps,
+    pinnedStyle,
+  };
 };
 
 export interface UseTokenDetailsV1TabsResult {
@@ -240,10 +341,17 @@ export interface TokenDetailsV1TabBarProps {
   activeTab: TokenDetailsV1TabKey;
   onTabPress: (tab: TokenDetailsV1TabKey) => void;
   onLayout?: (event: LayoutChangeEvent) => void;
-  /** Reserves space for a floating header only while this bar is sticky. */
+  /**
+   * Room kept above the tabs for a floating header. Only the docked copy of
+   * the bar sets this; it is fixed for the life of the bar so the bar never
+   * changes height while it is on screen.
+   */
   topInset?: number;
-  /** Scroll offset used to detect when the bar has docked. */
-  scrollY?: SharedValue<number>;
+  /**
+   * Renders the docked copy shown over the page while it is scrolled past the
+   * tab bar. It carries its own test IDs so the two copies never collide.
+   */
+  isPinnedCopy?: boolean;
   /** Visible tabs. Defaults to Feed, Overview, Security, Holders. */
   tabs?: readonly TokenDetailsV1TabKey[];
 }
@@ -257,26 +365,12 @@ const TokenDetailsV1TabBar = memo(
     onTabPress,
     onLayout,
     topInset = 0,
-    scrollY,
     tabs = TOKEN_DETAILS_V1_TABS,
+    isPinnedCopy = false,
   }: TokenDetailsV1TabBarProps) => {
-    const tabBarOffsetY = useSharedValue(Number.POSITIVE_INFINITY);
-    const handleLayout = useCallback(
-      (event: LayoutChangeEvent) => {
-        tabBarOffsetY.value = event.nativeEvent.layout.y;
-        onLayout?.(event);
-      },
-      [onLayout, tabBarOffsetY],
-    );
-    const stickyInsetStyle = useAnimatedStyle(
-      () => ({
-        paddingTop: getTokenDetailsV1TabBarInset(
-          scrollY?.value ?? 0,
-          tabBarOffsetY.value,
-          topInset,
-        ),
-      }),
-      [scrollY, topInset],
+    const insetStyle = useMemo(
+      () => (topInset > 0 ? { paddingTop: topInset } : undefined),
+      [topInset],
     );
 
     const tabItems = useMemo<TabItem[]>(
@@ -285,9 +379,11 @@ const TokenDetailsV1TabBar = memo(
           key: tab,
           label: getTabLabel(tab),
           content: null,
-          testID: TokenDetailsIds.tab(tab),
+          testID: isPinnedCopy
+            ? TokenDetailsIds.pinnedTab(tab)
+            : TokenDetailsIds.tab(tab),
         })),
-      [tabs],
+      [isPinnedCopy, tabs],
     );
 
     const activeIndex = tabs.indexOf(activeTab);
@@ -310,11 +406,13 @@ const TokenDetailsV1TabBar = memo(
       // track belongs to the caller. It sits here rather than on `TabsBar`'s
       // own container because both edges land in the same place, and this is
       // the element that already identifies the tab bar.
-      <AnimatedBox
+      <Box
         twClassName="border-b border-muted bg-default"
-        style={stickyInsetStyle}
-        testID={TokenDetailsIds.tabBar}
-        onLayout={handleLayout}
+        style={insetStyle}
+        testID={
+          isPinnedCopy ? TokenDetailsIds.pinnedTabBar : TokenDetailsIds.tabBar
+        }
+        onLayout={onLayout}
       >
         <Box twClassName="pt-3">
           <TabsBar
@@ -323,7 +421,7 @@ const TokenDetailsV1TabBar = memo(
             onTabPress={handleTabPress}
           />
         </Box>
-      </AnimatedBox>
+      </Box>
     );
   },
 );

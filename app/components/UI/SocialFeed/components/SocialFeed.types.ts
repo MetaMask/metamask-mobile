@@ -4,6 +4,7 @@ import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import type { PendingPostSurface } from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
@@ -15,6 +16,12 @@ import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
  * `virtualized` owns a list, which realtime needs to stay smooth.
  */
 export type SocialFeedScrollMode = 'content' | 'virtualized';
+
+/** What the feed knows about a tapped post's position. */
+export interface SocialFeedPositionPressContext {
+  /** True when the feed was streaming socket revisions while showing the post. */
+  isSnapshotLive: boolean;
+}
 
 /** A host row spliced into the list between posts. */
 export interface SocialFeedInlineRow {
@@ -35,6 +42,8 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
   analyticsSource?: SocialEventSource;
+  /** Disables post interaction analytics for read-only profile surfaces. */
+  analyticsEnabled?: boolean;
   /**
    * Shows the invented values posts still carry. Omitted keeps the outer
    * surface's choice.
@@ -55,12 +64,26 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   emptyState?: React.ReactNode;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
-  onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** `context` is passed only by the virtualized feed. */
+  onPositionPress?: (
+    post: SocialV1FeedPost,
+    context?: SocialFeedPositionPressContext,
+  ) => void;
+  /** Gates Copy trade behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   testID?: string;
 }
 
 export interface SocialFeedContentProps extends SocialFeedBaseProps {
   scrollMode?: 'content';
+  /** Streams matching posts directly into the host scroll. */
+  realtime?: boolean;
+  /** Lets a host refresh the feed from its own pull-to-refresh control. */
+  refreshRef?: React.Ref<SocialFeedRefreshHandle>;
+}
+
+export interface SocialFeedRefreshHandle {
+  refresh: () => Promise<void>;
 }
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
@@ -72,6 +95,16 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
+  /**
+   * Pins the viewer's just-written posts on top, greyed out, until this feed
+   * returns them (live or on a refresh) and its copy takes their place.
+   */
+  pendingPostsSurface?: PendingPostSurface;
+  /**
+   * Reorders the loaded posts, ties keeping the feed's order. Omitted keeps
+   * the feed's newest-first order. Memoize it.
+   */
+  comparePosts?: (left: SocialV1FeedPost, right: SocialV1FeedPost) => number;
   /**
    * Host rows between posts, hidden while the first page loads. With no
    * posts they follow the empty state. Memoize the array.

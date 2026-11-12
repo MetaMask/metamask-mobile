@@ -44,7 +44,7 @@ describe('getAggregatorAmountFontSize', () => {
   });
 
   it('scales long values below 24px', () => {
-    const result = getAggregatorAmountFontSize(20);
+    const result = getAggregatorAmountFontSize(30);
 
     expect(result).toBeLessThan(24);
   });

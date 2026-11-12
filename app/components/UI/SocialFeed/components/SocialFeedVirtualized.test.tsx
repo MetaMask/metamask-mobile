@@ -6,6 +6,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useIsFocused } from '@react-navigation/native';
+import type { Position } from '@metamask/social-controllers';
 import React from 'react';
 import { FlatList, RefreshControl, Text } from 'react-native';
 import {
@@ -23,6 +24,10 @@ import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedInlineRow } from './SocialFeed.types';
 import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
+import {
+  addPendingPost,
+  resetPendingPosts,
+} from '../../../Views/SocialLeaderboard/pendingPosts/pendingPostsStore';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
 } from './SocialFeedVirtualized';
@@ -39,6 +44,16 @@ const RealtimeProbe = () => {
 jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
+
+let mockViewerProfileId: string | undefined;
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: mockViewerProfileId,
+    isLoading: false,
+  }),
+}));
+
+jest.mock('react-redux', () => ({ useSelector: jest.fn(() => true) }));
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -96,8 +111,14 @@ jest.mock('./SocialFeedPostShell', () => {
   const { Text: MockText } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ post }: { post: { id: string } }) => (
-      <MockText>{post.id}</MockText>
+    default: ({
+      post,
+      onPositionPress,
+    }: {
+      post: { id: string };
+      onPositionPress?: (post: { id: string }) => void;
+    }) => (
+      <MockText onPress={() => onPositionPress?.(post)}>{post.id}</MockText>
     ),
   };
 });
@@ -190,9 +211,13 @@ const feedState = (
   ...overrides,
 });
 
-const realtimeState = (pendingNewCount = 0) => ({
+const realtimeState = (
+  pendingNewCount = 0,
+  hasPendingUpdate: (feedItemId: string) => boolean = () => false,
+) => ({
   pendingNewCount,
   revealPending: jest.fn(),
+  hasPendingUpdate,
   entrances: createSocialFeedEntrances(),
 });
 
@@ -222,6 +247,8 @@ describe('SocialFeedVirtualized', () => {
     mockGetHardwareTier.mockReturnValue(null);
     mockUseSocialLivePrices.mockReturnValue(null);
     mockIsEntryHidden.mockReturnValue(false);
+    mockViewerProfileId = undefined;
+    resetPendingPosts();
   });
 
   afterEach(() => {
@@ -290,6 +317,23 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.queryByText('one')).toBeNull();
     expect(screen.getByText('two')).toBeOnTheScreen();
+  });
+
+  it('reorders the shown posts with comparePosts, ties keeping the feed order', () => {
+    const posts = [post('one'), post('two'), post('three')];
+    mockUseSocialFeed.mockReturnValue(feedState({ posts }));
+    const rank: Record<string, number> = { one: 1, two: 0, three: 1 };
+
+    renderFeed({
+      comparePosts: (left, right) => rank[left.id] - rank[right.id],
+    });
+
+    expect(
+      screen
+        .getAllByText(/^(one|two|three)$/u)
+        .map((node) => node.props.children),
+    ).toEqual(['two', 'one', 'three']);
+    expect(posts.map(({ id }) => id)).toEqual(['one', 'two', 'three']);
   });
 
   it('passes the realtime, pause, and filter options to the feed', () => {
@@ -548,6 +592,35 @@ describe('SocialFeedVirtualized', () => {
     expect(calls).toEqual(['reveal', 'scroll 0']);
   });
 
+  describe('position press', () => {
+    const positionPost = {
+      ...post('post-1'),
+      position: { positionId: 'position-1' } as Position,
+    };
+
+    it.each([
+      ['the feed is live and the card is current', realtimeState(), true],
+      [
+        'an update to the card is held back',
+        realtimeState(0, (id) => id === 'position-1'),
+        false,
+      ],
+      ['the feed is not live', undefined, false],
+    ])('reports isSnapshotLive when %s', (_label, realtime, isSnapshotLive) => {
+      const onPositionPress = jest.fn();
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [positionPost], realtime }),
+      );
+
+      renderFeed({ realtime: true, onPositionPress });
+      fireEvent.press(screen.getByText('post-1'));
+
+      expect(onPositionPress).toHaveBeenCalledWith(positionPost, {
+        isSnapshotLive,
+      });
+    });
+  });
+
   it('hides the pill without held posts', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({ realtime: realtimeState(0) }),
@@ -648,6 +721,103 @@ describe('SocialFeedVirtualized', () => {
     expect(mockUseSocialFeed.mock.lastCall?.[0]).toEqual({
       scope: 'trending',
       assetIds,
+    });
+  });
+
+  describe('pending posts', () => {
+    const VIEWER = 'viewer-profile';
+    const pendingPost = () => ({
+      ...post('pending-comment-1'),
+      commentId: 'comment-1',
+      isPending: true,
+    });
+    const servedComment = () => ({
+      ...post('served-comment-1'),
+      commentId: 'comment-1',
+      realtimeEventId: 'event-1',
+    });
+
+    const arrangePendingPost = () => {
+      mockViewerProfileId = VIEWER;
+      addPendingPost({ ownerProfileId: VIEWER, post: pendingPost() });
+    };
+
+    it('pins the viewer’s pending post above the feed', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      expect(renderedRowTexts(/^(pending-comment-1|one)$/)).toEqual([
+        'pending-comment-1',
+        'one',
+      ]);
+    });
+
+    it('shows no pending post on a feed without a pending surface', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+
+      renderFeed();
+
+      expect(screen.queryByText('pending-comment-1')).toBeNull();
+    });
+
+    it('swaps in the feed’s copy in place once it streams in', () => {
+      arrangePendingPost();
+      mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+      const { rerender } = renderFeed({ pendingPostsSurface: 'trending' });
+
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), servedComment()] }),
+      );
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          pendingPostsSurface="trending"
+        />,
+      );
+
+      const [pinned] = getList().props.data;
+      expect(pinned.post).toEqual(
+        expect.objectContaining({
+          id: 'pending-comment-1',
+          commentId: 'comment-1',
+        }),
+      );
+      expect(pinned.post.isPending).toBeUndefined();
+      expect(pinned.post.realtimeEventId).toBeUndefined();
+      expect(screen.queryByText('served-comment-1')).toBeNull();
+    });
+
+    it('never refetches while waiting for the stream', () => {
+      jest.useFakeTimers();
+      arrangePendingPost();
+      const refresh = jest.fn(async () => undefined);
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      act(() => {
+        jest.advanceTimersByTime(60_000);
+      });
+
+      expect(refresh).not.toHaveBeenCalled();
+    });
+
+    it('keeps the pending post through a refresh that does not return it', async () => {
+      arrangePendingPost();
+      const refresh = jest.fn(async () => undefined);
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ pendingPostsSurface: 'trending' });
+
+      await act(async () => {
+        await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      });
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(screen.getByText('pending-comment-1')).toBeOnTheScreen();
     });
   });
 

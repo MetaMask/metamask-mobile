@@ -20,7 +20,9 @@ import {
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import { getRowSortTimestamp } from './socialFeedRealtime';
 import {
+  toSocialFeedItemMatcher,
   toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type SocialFeedRequest,
@@ -117,7 +119,7 @@ const toTelemetryQueryParams = (
 
 /** Newest event first. Stable for equal timestamps (preserves API order). */
 const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
-  b.item.timestamp - a.item.timestamp;
+  getRowSortTimestamp(b) - getRowSortTimestamp(a);
 
 /**
  * Social feed for any {@link SocialFeedSource}: a `fetchFeed` query (scope,
@@ -156,12 +158,17 @@ export const useSocialFeed = (
     () => (realtime ? toSocialFeedRealtimeScope(request) : null),
     [realtime, request],
   );
+  const matchesItem = useMemo(
+    () => (realtimeScope ? toSocialFeedItemMatcher(request) : null),
+    [realtimeScope, request],
+  );
   const resolvedStaleTime = staleTime ?? (realtimeScope ? Infinity : undefined);
   const queryKey = useMemo(
     () =>
       request ? buildSocialFeedQueryKey(request, pageSize) : IDLE_QUERY_KEY,
     [pageSize, request],
   );
+  const streamKey = useMemo(() => JSON.stringify(queryKey), [queryKey]);
 
   const query = useInfiniteQuery({
     queryKey,
@@ -288,6 +295,8 @@ export const useSocialFeed = (
       nearTop,
       holdNewPosts,
       filterPost,
+      matchesItem,
+      streamKey,
     },
   );
   const filteredPosts = useMemo(

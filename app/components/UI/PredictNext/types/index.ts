@@ -49,6 +49,8 @@ export interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  /** The card's title when the client can't name it, such as a Player. */
+  label?: string;
 }
 
 /** One level of a Market's Event screen placement. Keys are opaque IDs. */
@@ -79,7 +81,17 @@ export interface PredictTeam {
   abbreviation?: string;
   logoUrl?: PredictHttpsUrl;
   primaryColor?: PredictHexColor;
+  /**
+   * The direction the logo art points. Absent when the logo has no
+   * direction; such a logo is never mirrored.
+   */
+  logoFacing?: PredictTeamLogoFacing;
 }
+
+export type PredictTeamLogoFacing = 'left' | 'right';
+
+/** The order a Game's Teams are listed in. Absent means `away_first`. */
+export type PredictGameTeamOrder = 'away_first' | 'home_first';
 
 export type PredictGameStatus =
   | 'scheduled'
@@ -92,6 +104,7 @@ export type PredictGameStatus =
 
 export interface PredictGame {
   status: PredictGameStatus;
+  teamOrder?: PredictGameTeamOrder;
   homeTeam: PredictTeam;
   awayTeam: PredictTeam;
   score?: {
@@ -258,6 +271,9 @@ export const PREDICT_FEED_KEYS = [
   'nfl-props',
   'college-football-games',
   'college-football-props',
+  'politics-trump',
+  'politics-congress',
+  'politics-iran',
 ] as const;
 export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
 
@@ -267,6 +283,9 @@ export interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  /** The Venue's Categories in display order, each named by its Feed key.
+   * Every key is in `feeds`, and the Category opens on that Feed. */
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
 }
 
@@ -344,11 +363,12 @@ interface PredictOrderPreviewBase {
 /** A buy Order Preview: estimated cost, fees, and potential return. */
 export interface PredictBuyOrderPreview extends PredictOrderPreviewBase {
   action: 'buy';
-  /** The entered maximum USD spend before fees. */
+  /** The entered maximum USD spend, fees included. */
   requestedAmount: PredictAmount;
-  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  /** Estimated cost of the quoted contracts, before the fee. */
   orderAmount: PredictAmount;
-  /** The Order amount plus the fee: the total expected debit. */
+  /** The Order amount plus the fee: the total expected debit. Never above
+   * requestedAmount. */
   totalDebit: PredictAmount;
   potentialPayout: PredictAmount;
   potentialProfit: PredictSignedAmount;
@@ -488,6 +508,12 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /**
+   * Ordered, display-ready parts naming the Market beyond its Outcome, such
+   * as `["Josh Jacobs", "60+"]` for a threshold line whose Outcome label is
+   * only "Yes" or "No". Absent when the Outcome label names it alone.
+   */
+  marketLabels?: string[];
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a

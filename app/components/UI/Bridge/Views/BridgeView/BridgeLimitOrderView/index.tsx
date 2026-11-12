@@ -96,6 +96,7 @@ import {
   getOpenLimitOrderDate,
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
+import { getAdvancedOrderTokenProperties } from '../../../utils/advancedOrders';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -178,6 +179,10 @@ const BridgeLimitOrderViewContent = ({
   } else if (hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR') {
     ordersRefetchInterval = LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL;
   }
+  const isLimitPriceLoadingAnimated = !(
+    hardwareTier === 'LOW' &&
+    (networkTier === 'SLOW_CELLULAR' || networkTier === 'NONE')
+  );
   const openOrdersQuery = useLimitOrders({
     walletAddress,
     states: OPEN_LIMIT_ORDER_STATES,
@@ -204,6 +209,7 @@ const BridgeLimitOrderViewContent = ({
     handlePercentPress,
     isCustomActive,
     isLimitFiatMode,
+    isLimitPriceLoading,
     isTriggerPriceNearMarket,
     executionType,
     limitPrice,
@@ -502,6 +508,7 @@ const BridgeLimitOrderViewContent = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
         .addProperties({
+          ...getAdvancedOrderTokenProperties({ sourceToken, destToken }),
           location,
           feature_id: FeatureId.LIMIT_ORDER,
           order_type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
@@ -536,6 +543,7 @@ const BridgeLimitOrderViewContent = ({
           limitPrice,
           priceComparisonDirection,
         },
+        location,
       },
     });
   }, [
@@ -634,6 +642,8 @@ const BridgeLimitOrderViewContent = ({
               }
               onQuoteUnitPress={onQuoteUnitPress}
               limitPrice={value}
+              isLimitPriceLoading={isLimitPriceLoading}
+              isLimitPriceLoadingAnimated={isLimitPriceLoadingAnimated}
               onLimitPriceInputPress={onLimitPriceInputPress}
               isLimitPriceInputPressDisabled={isCustomPercentKeypadOpen}
               limitPriceSelection={limitPriceSelection}

@@ -1,52 +1,35 @@
 import Routes from '../../../../constants/navigation/Routes';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import {
+  parseSocialNotificationDeeplinkParams,
+  trackSocialNotificationClick,
+} from './socialNotificationDeeplink';
+import {
+  fetchSocialPosition,
+  resolveSocialPositionAuthor,
+} from './socialPositionSheetDeeplink';
+
+const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
 }
 
-interface SocialTraderPositionNavigationParams {
-  positionId?: string;
-  traderId?: string;
-  deduplicationId?: string;
-  notificationSubtype?: string;
-  notificationTemplateVariant?: string;
-}
-
-const parseSocialTraderPositionNavigationParams = (
-  actionPath: string,
-): SocialTraderPositionNavigationParams => {
-  const urlParams = new URLSearchParams(
-    actionPath.includes('?') ? actionPath.split('?')[1] : '',
-  );
-
-  return {
-    positionId: urlParams.get('positionId')?.trim() || undefined,
-    traderId: urlParams.get('traderId')?.trim() || undefined,
-    deduplicationId: urlParams.get('deduplication_id')?.trim() || undefined,
-    notificationSubtype:
-      urlParams.get('notification_subtype')?.trim() || undefined,
-    notificationTemplateVariant:
-      urlParams.get('notification_template_variant')?.trim() || undefined,
-  };
-};
-
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
-  ) {
+  if (isSocialV1Treatment()) {
+    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+      return;
+    }
+    popToSocialTab(NavigationService.navigation);
     return;
   }
   NavigationService.navigation.navigate(
@@ -64,7 +47,42 @@ const logPositionQueryInvalidationError = (invalidationError: unknown) => {
 };
 
 /**
- * Handles notification-approved TraderPosition deeplinks.
+ * A shared position opens like a profile row tap: the trader's Social V1
+ * profile, with the position sheet over it. A position that can no longer be
+ * fetched leaves the user on the profile.
+ */
+const openSharedPositionOnProfile = (
+  positionId: string,
+  traderId: string,
+): void => {
+  navigateToSocialV1Profile(NavigationService.navigation, {
+    traderId,
+    source: 'deep_link',
+  });
+  Promise.all([
+    fetchSocialPosition(positionId, LOG_PREFIX),
+    resolveSocialPositionAuthor(traderId, LOG_PREFIX),
+  ])
+    .then(([position, author]) => {
+      if (!position) {
+        return;
+      }
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId,
+        position,
+        author,
+        shareSource: 'deep_link',
+      });
+    })
+    .catch((error: unknown) => {
+      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
+    });
+};
+
+/**
+ * Handles TraderPosition deeplinks. On Social V1, a shared link opens the
+ * position sheet on the trader's profile; a notification still opens the
+ * position screen.
  *
  * Supported URL formats:
  * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
@@ -85,7 +103,7 @@ export const handleSocialTraderPositionUrl = ({
       deduplicationId,
       notificationSubtype,
       notificationTemplateVariant,
-    } = parseSocialTraderPositionNavigationParams(actionPath);
+    } = parseSocialNotificationDeeplinkParams(actionPath);
     DevLogger.log(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
       {
@@ -120,21 +138,11 @@ export const handleSocialTraderPositionUrl = ({
       })
       .catch(logPositionQueryInvalidationError);
 
-    if (notificationSubtype !== undefined) {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,
-      )
-        .addProperties({
-          [SocialLeaderboardEventProperties.NOTIFICATION_SUBTYPE]:
-            notificationSubtype,
-          ...(notificationTemplateVariant !== undefined && {
-            [SocialLeaderboardEventProperties.NOTIFICATION_TEMPLATE_VARIANT]:
-              notificationTemplateVariant,
-          }),
-        })
-        .build();
-      analytics.trackEvent(event);
-    }
+    trackSocialNotificationClick({
+      notificationSubtype,
+      notificationTemplateVariant,
+      deduplicationId,
+    });
 
     const openedFromNotification = notificationSubtype !== undefined;
 
@@ -143,6 +151,10 @@ export const handleSocialTraderPositionUrl = ({
       isV1Treatment &&
       !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
     ) {
+      return;
+    }
+    if (isV1Treatment && !openedFromNotification) {
+      openSharedPositionOnProfile(positionId, traderId);
       return;
     }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {

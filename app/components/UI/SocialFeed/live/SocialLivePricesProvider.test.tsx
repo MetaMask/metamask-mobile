@@ -62,7 +62,7 @@ const RARE_POLL_MS = 8000;
 const INITIAL_SETTLE_MS = 1000;
 /** Fake timers run a 0 ms timeout scheduled mid-tick one millisecond later. */
 const ZERO_DELAY_LAG_MS = 1;
-const ETH_CHANNEL = `market-data.v1.${ETH_ASSET}.1m.usd`;
+const ETH_CHANNEL = `ohlcv.v1.${ETH_ASSET}.1m.usd`;
 
 interface ProbeCard {
   id: string;
@@ -210,7 +210,7 @@ describe('SocialLivePricesProvider', () => {
 
     act(() => {
       barListener()({
-        channel: 'market-data.v1.eip155:1/erc20:0xabc.1m.usd',
+        channel: 'ohlcv.v1.eip155:1/erc20:0xabc.1m.usd',
         bar: { close: 1 },
       });
     });
@@ -263,6 +263,20 @@ describe('SocialLivePricesProvider', () => {
     });
 
     expect(context?.store.get('perp:BTC')?.price).toBe(100010);
+  });
+
+  it('keeps the live mid when the oracle has diverged', async () => {
+    renderProvider([{ id: 'a', key: 'perp:SOL', y: 100 }]);
+    await settle();
+    const { callback } = mockSubscribeToSymbols.mock.calls[0][0];
+
+    act(() => {
+      callback({
+        SOL: { price: '86.58', markPrice: '25.999', isTradable: false },
+      });
+    });
+
+    expect(context?.store.get('perp:SOL')?.price).toBe(86.58);
   });
 
   it('drops every subscription when the screen blurs', async () => {

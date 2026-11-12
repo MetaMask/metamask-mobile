@@ -25,13 +25,19 @@ jest.mock('@react-navigation/native', () => ({
 const mockSafeAreaMount = jest.fn();
 const mockProProps = jest.fn();
 const mockLiteProps = jest.fn();
+let mockIsBrandRefresh = false;
+let mockSafeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsBrandRefresh,
+}));
 
 jest.mock('react-native-safe-area-context', () => {
   const { View } = jest.requireActual('react-native');
   const ActualReact = jest.requireActual('react');
   return {
     ...jest.requireActual('react-native-safe-area-context'),
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+    useSafeAreaInsets: () => mockSafeAreaInsets,
     SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) => {
       ActualReact.useEffect(() => mockSafeAreaMount(), []);
       return (
@@ -85,6 +91,8 @@ describe('PerpsMarketDetailsRouter', () => {
   beforeEach(() => {
     mockActiveProvider = 'hyperliquid';
     mockOutreachCampaign = null;
+    mockIsBrandRefresh = false;
+    mockSafeAreaInsets = { top: 0, right: 0, bottom: 0, left: 0 };
     mockUseRoute.mockReturnValue({
       params: { market: { symbol: 'ETH' } },
     });
@@ -143,6 +151,40 @@ describe('PerpsMarketDetailsRouter', () => {
       'left',
       'right',
     ]);
+  });
+
+  it('runs the layout edge to edge and hands it the insets with the brand refresh on', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    mockIsBrandRefresh = true;
+    mockSafeAreaInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+
+    const { getByTestId } = render(<PerpsMarketDetailsRouter />);
+
+    expect(getByTestId('safe-area-container')).toHaveProp('edges', [
+      'left',
+      'right',
+    ]);
+    expect(mockLiteProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ edgeInsets: { top: 47, bottom: 34 } }),
+    );
+  });
+
+  it('leaves the top inset to the outreach banner with the brand refresh on', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockIsBrandRefresh = true;
+    mockSafeAreaInsets = { top: 47, right: 0, bottom: 34, left: 0 };
+    mockOutreachCampaign = {
+      id: 'mobile-outreach-2026-09',
+      title: "You're a top perp trader",
+      body: 'Shape what we build next.',
+      imageUrl: 'https://metamask.io/images/mobile-perps-outreach.png',
+    };
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(mockProProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ edgeInsets: { top: 0, bottom: 34 } }),
+    );
   });
 
   it('keeps the safe-area container mounted across a mode switch', () => {

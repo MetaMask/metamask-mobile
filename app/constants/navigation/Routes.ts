@@ -131,6 +131,7 @@ const Routes = {
   REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
   REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
   REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
+  REWARDS_TAX_FORM_VIEW: 'RewardsTaxFormView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -200,6 +201,9 @@ const Routes = {
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
     REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
+    REWARDS_TAX_QUESTION_SHEET: 'RewardsTaxQuestionSheet',
+    REWARDS_TAX_OPEN_FORM_SHEET: 'RewardsTaxOpenFormSheet',
+    REWARDS_TAX_CONTACT_SHEET: 'RewardsTaxContactSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -536,6 +540,7 @@ const Routes = {
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
+    SPLASH: 'MoneySplash',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
@@ -577,18 +582,15 @@ const Routes = {
     EXPLORER_WEBVIEW: 'MultichainAccountsExplorerWebview',
   },
   SOCIAL_PROFILE: {
-    DRAWER: 'ProfileDrawer',
     MANAGE_PROFILE: 'ManageProfile',
     MANAGE_PROFILE_FIELD: 'ManageProfileField',
     X_ACCOUNT: 'ManageProfileXAccount',
     LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
   },
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
     SNAP_SETTINGS: 'SnapSettings',
   },
-  ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
   SEEDPHRASE_MODAL: 'SeedphraseModal',
   SET_PASSWORD_FLOW: {
@@ -599,9 +601,7 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SAMPLE_FEATURE: 'SampleFeature',
-  ///: END:ONLY_INCLUDE_IF
   CARD: {
     ROOT: 'CardScreens',
     HOME: 'CardHome',
@@ -635,8 +635,8 @@ const Routes = {
       PHYSICAL_ADDRESS: 'CardOnboardingPhysicalAddress',
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
-      KYC_PENDING: 'CardOnboardingKYCPending',
       KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      IMMERSVE_KYC: 'CardOnboardingImmersveKYC',
       FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
@@ -651,7 +651,6 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
-      IMMERSVE_KYC: 'CardImmersveKYCModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
