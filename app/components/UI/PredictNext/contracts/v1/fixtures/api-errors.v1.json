@@ -7,221 +7,134 @@
     "observe": "not_a_mutation",
     "signed_read": "not_a_mutation"
   },
-  "uncodedStatuses": [
-    400,
-    401,
-    404,
-    429,
-    500,
-    503
-  ],
+  "uncodedStatuses": [400, 401, 404, 429, 500, 503],
   "continuation": {
     "kind": "sign_required",
-    "phases": [
-      "observe",
-      "signed_read"
-    ],
+    "phases": ["observe", "signed_read"],
     "isError": false
   },
   "codes": {
     "balance_unavailable": {
       "status": 503,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "insufficient_balance": {
       "status": 422,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "insufficient_liquidity": {
       "status": 422,
-      "phases": [
-        "preview"
-      ]
+      "phases": ["preview"]
     },
     "insufficient_position": {
       "status": 422,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "invalid_request": {
       "status": 400,
-      "phases": [
-        "signed_read"
-      ]
+      "phases": ["signed_read"]
     },
     "market_not_found": {
       "status": 404,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "market_not_tradeable": {
       "status": 409,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "operation_not_found": {
       "status": 404,
-      "phases": [
-        "observe"
-      ]
+      "phases": ["observe"]
     },
     "position_unavailable": {
       "status": 503,
-      "phases": [
-        "preview",
-        "commit"
-      ],
+      "phases": ["preview", "commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "preview_expired": {
       "status": 410,
-      "phases": [
-        "commit"
-      ],
+      "phases": ["commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "preview_not_found": {
       "status": 404,
-      "phases": [
-        "commit"
-      ],
+      "phases": ["commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "quote_unavailable": {
       "status": 503,
-      "phases": [
-        "preview"
-      ]
+      "phases": ["preview"]
     },
     "rate_limited": {
       "status": 429,
-      "phases": [
-        "signed_read"
-      ]
+      "phases": ["signed_read"]
     },
     "unauthorized": {
       "status": 401,
-      "phases": [
-        "signed_read"
-      ]
+      "phases": ["signed_read"]
     },
     "venue_account_not_enabled": {
       "status": 403,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "unknown"
     },
     "venue_auth_rejected": {
       "status": 502,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "unknown"
     },
     "venue_authorization_invalid": {
       "status": 403,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_authorization_malformed": {
       "status": 400,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_authorization_required": {
       "status": 403,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_not_found": {
       "status": 404,
-      "phases": [
-        "signed_read"
-      ]
+      "phases": ["signed_read"]
     },
     "venue_preview_mismatch": {
       "status": 403,
-      "phases": [
-        "commit"
-      ],
+      "phases": ["commit"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_profile_not_ready": {
       "status": 503,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_profile_update_required": {
       "status": 409,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_signature_expired": {
       "status": 409,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_step_changed": {
       "status": 409,
-      "phases": [
-        "commit",
-        "observe",
-        "signed_read"
-      ],
+      "phases": ["commit", "observe", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     },
     "venue_unavailable": {
       "status": 503,
-      "phases": [
-        "commit",
-        "signed_read"
-      ],
+      "phases": ["commit", "signed_read"],
       "commitRelay": "not_relayed_this_invocation"
     }
   }

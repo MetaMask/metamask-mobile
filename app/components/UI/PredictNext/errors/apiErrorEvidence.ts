@@ -1,4 +1,8 @@
-export type PredictErrorPhase = 'preview' | 'commit' | 'observe' | 'signed_read';
+export type PredictErrorPhase =
+  | 'preview'
+  | 'commit'
+  | 'observe'
+  | 'signed_read';
 export type PredictMutationRelay =
   | 'not_a_mutation'
   | 'not_relayed_this_invocation'
@@ -44,7 +48,8 @@ export function predictErrorEvidence(
       phase !== 'commit'
         ? 'not_a_mutation'
         : requestSent === false ||
-            (bodyCode !== undefined && COMMIT_PRE_RELAY_CODES[bodyCode] === true)
+            (bodyCode !== undefined &&
+              COMMIT_PRE_RELAY_CODES[bodyCode] === true)
           ? 'not_relayed_this_invocation'
           : 'unknown',
     operationOutcome: 'unknown',

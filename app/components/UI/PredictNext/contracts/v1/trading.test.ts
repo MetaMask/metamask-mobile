@@ -548,25 +548,44 @@ describe('parsePredictUnresolvedOrdersPage', () => {
   });
 
   it('includes manual review without implying another scan or submission', () => {
-    expect(parsePredictUnresolvedOrdersPage({
-      operations: [{ ...entry, submittedAt: null, receipt: { ...entry.receipt, status: 'needs_manual_review' } }],
-    }).operations[0].receipt.status).toBe('needs_manual_review');
+    expect(
+      parsePredictUnresolvedOrdersPage({
+        operations: [
+          {
+            ...entry,
+            submittedAt: null,
+            receipt: { ...entry.receipt, status: 'needs_manual_review' },
+          },
+        ],
+      }).operations[0].receipt.status,
+    ).toBe('needs_manual_review');
   });
 
   it('accepts an empty intermediate discovery page with continuation', () => {
-    expect(parsePredictUnresolvedOrdersPage({ operations: [], nextCursor: 'next' }))
-      .toEqual({ operations: [], nextCursor: 'next' });
+    expect(
+      parsePredictUnresolvedOrdersPage({ operations: [], nextCursor: 'next' }),
+    ).toEqual({ operations: [], nextCursor: 'next' });
   });
 
   it.each([
     { operations: [{ ...entry, previewId: 'other-preview' }] },
     { operations: [{ ...entry, createdAt: 'not-a-date' }] },
     { operations: [{ ...entry, submittedAt: undefined }] },
-    { operations: [{ ...entry, receipt: { ...entry.receipt, status: 'filled' } }] },
+    {
+      operations: [
+        { ...entry, receipt: { ...entry.receipt, status: 'filled' } },
+      ],
+    },
     { operations: [entry, entry] },
     { operations: [entry], nextCursor: '' },
     { operations: [entry], nextCursor: 'x'.repeat(4097) },
-    { operations: Array.from({ length: 101 }, (_, index) => ({ ...entry, previewId: `preview-${index}`, receipt: { ...entry.receipt, previewId: `preview-${index}` } })) },
+    {
+      operations: Array.from({ length: 101 }, (_, index) => ({
+        ...entry,
+        previewId: `preview-${index}`,
+        receipt: { ...entry.receipt, previewId: `preview-${index}` },
+      })),
+    },
   ])('fails closed on malformed or terminal discovery data', (value) => {
     expect(() => parsePredictUnresolvedOrdersPage(value)).toThrow();
   });

@@ -126,7 +126,7 @@ const createService = ({
 };
 
 // The mobile TypeScript library target is ES2022, before Promise.withResolvers.
-const deferred = <T,>() => {
+const deferred = <T>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
   const promise = new Promise<T>((done) => {
     resolve = done;
@@ -139,9 +139,11 @@ beforeEach(() => {
   mockGetDeviceKey.mockReset().mockReturnValue(DEVICE_PUBLIC_MATERIAL);
   mockSignDeviceKey.mockReset().mockResolvedValue(new Uint8Array(64).fill(7));
   mockEnsureDeviceKey.mockReset().mockResolvedValue(DEVICE_PUBLIC_MATERIAL);
-  jest.mocked(SecureKeychain.getSecureItem).mockImplementation(async () =>
-    ledger === null ? null : { key: 'approved-intents', value: ledger },
-  );
+  jest
+    .mocked(SecureKeychain.getSecureItem)
+    .mockImplementation(async () =>
+      ledger === null ? null : { key: 'approved-intents', value: ledger },
+    );
   (SecureKeychain.setSecureItem as jest.Mock).mockImplementation(
     async (_account: string, value: string) => {
       ledger = value;
@@ -680,7 +682,7 @@ describe('PredictDeviceAuthService revocation races', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
       unlocked = false;
       const cleared = service.clearApprovals();
       unlocked = true;
@@ -708,7 +710,7 @@ describe('PredictDeviceAuthService revocation races', () => {
     });
     const pending = service.signOperation('order.place', order);
     await started.promise;
-    const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+    const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
     mockClearDeviceKey.mockClear();
     mockClearSession.mockClear();
     const reset = service.reset();
@@ -863,12 +865,18 @@ describe('PredictDeviceAuthService revocation races', () => {
     const input = { ...order, approvalGeneration };
     service.invalidateA2t();
 
-    await expect(service.previewOperation('order.place', input)).resolves.toBeDefined();
+    await expect(
+      service.previewOperation('order.place', input),
+    ).resolves.toBeDefined();
     expect(service.getApprovalGeneration()).toBe(approvalGeneration);
     service.clear();
 
-    await expect(service.previewOperation('order.place', input)).resolves.toBeUndefined();
-    await expect(service.signOperation('order.place', input)).resolves.toBeUndefined();
+    await expect(
+      service.previewOperation('order.place', input),
+    ).resolves.toBeUndefined();
+    await expect(
+      service.signOperation('order.place', input),
+    ).resolves.toBeUndefined();
     expect(mockSignDeviceKey).not.toHaveBeenCalled();
   });
 });

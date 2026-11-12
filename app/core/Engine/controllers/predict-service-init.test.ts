@@ -157,7 +157,8 @@ describe('Predict service initialization', () => {
     });
     const call = jest.fn((action: string) => {
       if (action === 'KeyringController:getState') return { isUnlocked: false };
-      if (action === 'AuthenticationController:getState') return { isSignedIn: false };
+      if (action === 'AuthenticationController:getState')
+        return { isSignedIn: false };
       return Promise.resolve('test-bearer-token');
     });
     const request = {
@@ -165,7 +166,11 @@ describe('Predict service initialization', () => {
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
-      initMessenger: { call, subscribe: jest.fn(), unsubscribe: jest.fn() } as never,
+      initMessenger: {
+        call,
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as never,
       getState: jest.fn(() => activeVenueState('kalshi')) as never,
     };
     const { controller } = predictOrderServiceInit(request);

@@ -72,7 +72,12 @@ export const PortfolioActivityPanel = ({
     }
 
     fetchNextPage().catch(() => undefined);
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, needsExplicitContinuation]);
+  }, [
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    needsExplicitContinuation,
+  ]);
 
   const handleLoadMore = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) return;

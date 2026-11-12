@@ -141,13 +141,16 @@ describe('KalshiDemoOnboardingGate', () => {
     mockUseOnboarding.mockReturnValue({ state: { step: 'link' } });
 
     act(() => {
-      queryClient.getQueryCache().build(queryClient, {
-        queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).family,
-        queryFn: async () => undefined,
-      }).setState({
-        status: 'error',
-        error: PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED),
-      });
+      queryClient
+        .getQueryCache()
+        .build(queryClient, {
+          queryKey: portfolioQueries.getBalance(KALSHI_VENUE_ID).family,
+          queryFn: async () => undefined,
+        })
+        .setState({
+          status: 'error',
+          error: PredictError.from(PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED),
+        });
     });
 
     expect(view.getByTestId('demo-modal')).toBeOnTheScreen();

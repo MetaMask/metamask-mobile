@@ -272,12 +272,14 @@ export const parsePredictOrderReceipt = (
 
 const unresolvedOrdersPageSchema = object({
   operations: size(
-    array(object({
-      previewId: entityId,
-      receipt: unknown(),
-      createdAt: timestamp,
-      submittedAt: nullable(timestamp),
-    })),
+    array(
+      object({
+        previewId: entityId,
+        receipt: unknown(),
+        createdAt: timestamp,
+        submittedAt: nullable(timestamp),
+      }),
+    ),
     0,
     100,
   ),

@@ -46,7 +46,11 @@ describe('PredictPortfolioScreen', () => {
         if (!new Headers(init?.headers).has('venue-authorization')) {
           body = {
             kind: 'sign_required',
-            request: { method: 'GET', path: '/portfolio/fills', query: 'limit=20' },
+            request: {
+              method: 'GET',
+              path: '/portfolio/fills',
+              query: 'limit=20',
+            },
           };
         } else {
           const response = await activity(url);
@@ -72,7 +76,9 @@ describe('PredictPortfolioScreen', () => {
       return response;
     }) as typeof fetch;
     const composed = composePredictNextPortfolioTrading();
-    const restoreMessenger = routePredictPortfolioServicesTo(composed.rootMessenger);
+    const restoreMessenger = routePredictPortfolioServicesTo(
+      composed.rootMessenger,
+    );
     activityTransportRestores.push(() => {
       restoreMessenger();
       composed.destroy();
@@ -925,7 +931,9 @@ describe('PredictPortfolioScreen', () => {
           resolveNextPage = resolve;
         });
       }
-      return { body: { venueId: 'kalshi', activity: [makePredictNextTrade()] } };
+      return {
+        body: { venueId: 'kalshi', activity: [makePredictNextTrade()] },
+      };
     });
     const view = renderPredictPortfolioScreen(
       { venueId: KALSHI_VENUE_ID, initialTab: 'activity' },
@@ -940,7 +948,9 @@ describe('PredictPortfolioScreen', () => {
       'https://predict.example/v1/venues/kalshi/activity?limit=20',
     ]);
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON),
+      view.getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON,
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(loadMore);
@@ -1118,7 +1128,9 @@ describe('PredictPortfolioScreen', () => {
       'Settlements are unavailable in this demo environment. Your trades are still shown.',
     );
     expect(
-      view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON),
+      view.getByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON,
+      ),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
@@ -1143,7 +1155,9 @@ describe('PredictPortfolioScreen', () => {
     );
     await view.findByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ERROR);
     expect(
-      view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED),
+      view.queryByTestId(
+        PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_DEGRADED,
+      ),
     ).not.toBeOnTheScreen();
     // The Summary stays independently loaded.
     expect(

@@ -1193,7 +1193,9 @@ describe('PredictOrderFlow', () => {
       { kind: 'user-approved' },
     );
     expect(commitCalls()[0]?.body).toMatchObject({
-      ticker: 'KXTEST-26-A', count: '41.00', price: '0.4651',
+      ticker: 'KXTEST-26-A',
+      count: '41.00',
+      price: '0.4651',
     });
   });
 
@@ -1462,7 +1464,9 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen(),
     );
     expect(
-      screen.getByText('Order outcome could not be confirmed. Check your activity or contact support.'),
+      screen.getByText(
+        'Order outcome could not be confirmed. Check your activity or contact support.',
+      ),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.APPROVE)).toBeNull();
     expect(screen.queryByTestId(PredictOrderFlowTestIds.BACK)).toBeNull();
@@ -1623,7 +1627,9 @@ describe('PredictOrderFlow', () => {
       expect(
         screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
       ).toBeDisabled();
-      fireEvent.press(screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING));
+      fireEvent.press(
+        screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
+      );
       await act(() => new Promise((resolve) => setTimeout(resolve, 50)));
       expect(commitCalls()).toHaveLength(1);
     });
@@ -2039,7 +2045,9 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByText(
-          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+          strings(
+            'predict_next.order_preview.partial_fill_proceeds_description',
+          ),
         ),
       ).toBeOnTheScreen();
       expect(
@@ -2136,7 +2144,9 @@ describe('PredictOrderFlow', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByText(
-          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+          strings(
+            'predict_next.order_preview.partial_fill_proceeds_description',
+          ),
         ),
       ).toBeOnTheScreen();
 
@@ -2166,7 +2176,9 @@ describe('PredictOrderFlow', () => {
       ).toBeNull();
       expect(
         screen.queryByText(
-          strings('predict_next.order_preview.partial_fill_proceeds_description'),
+          strings(
+            'predict_next.order_preview.partial_fill_proceeds_description',
+          ),
         ),
       ).toBeNull();
     }, 30000);

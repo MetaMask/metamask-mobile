@@ -21,9 +21,16 @@ export interface OrderJournalStorage {
 }
 
 export interface OrderDispatchJournal {
-  list(identityScope: string, venueId: PredictVenueId): Promise<OrderDispatchReference[]>;
+  list(
+    identityScope: string,
+    venueId: PredictVenueId,
+  ): Promise<OrderDispatchReference[]>;
   put(reference: OrderDispatchReference): Promise<void>;
-  remove(identityScope: string, venueId: PredictVenueId, previewId: string): Promise<void>;
+  remove(
+    identityScope: string,
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<void>;
   clear(): Promise<void>;
 }
 
@@ -33,18 +40,25 @@ const validReference = (value: unknown): value is OrderDispatchReference => {
   }
   const entry = value as Partial<OrderDispatchReference>;
   return (
-    typeof entry.identityScope === 'string' && entry.identityScope.length > 0 &&
-    typeof entry.venueId === 'string' && entry.venueId.length > 0 &&
-    typeof entry.previewId === 'string' && entry.previewId.length > 0 &&
-    typeof entry.dispatchedAt === 'number' && Number.isFinite(entry.dispatchedAt) &&
+    typeof entry.identityScope === 'string' &&
+    entry.identityScope.length > 0 &&
+    typeof entry.venueId === 'string' &&
+    entry.venueId.length > 0 &&
+    typeof entry.previewId === 'string' &&
+    entry.previewId.length > 0 &&
+    typeof entry.dispatchedAt === 'number' &&
+    Number.isFinite(entry.dispatchedAt) &&
     entry.dispatchedAt >= 0 &&
-    (entry.recoveryState === 'unresolved' || entry.recoveryState === 'manual_review')
+    (entry.recoveryState === 'unresolved' ||
+      entry.recoveryState === 'manual_review')
   );
 };
 
 /** Deliberate field projection also prevents accidental callers from
  * persisting signed bodies or headers along with a reference. */
-const safeReference = (entry: OrderDispatchReference): OrderDispatchReference => ({
+const safeReference = (
+  entry: OrderDispatchReference,
+): OrderDispatchReference => ({
   identityScope: entry.identityScope,
   venueId: entry.venueId,
   previewId: entry.previewId,
@@ -70,7 +84,11 @@ export const createOrderDispatchJournal = (
     // Corruption is not an empty journal: failing closed prevents a new
     // mutation from overwriting references whose outcomes remain unknown.
     const file = JSON.parse(raw) as { v?: unknown; entries?: unknown };
-    if (file.v !== 1 || !Array.isArray(file.entries) || !file.entries.every(validReference)) {
+    if (
+      file.v !== 1 ||
+      !Array.isArray(file.entries) ||
+      !file.entries.every(validReference)
+    ) {
       throw new Error('Invalid Predict order dispatch journal.');
     }
     return file.entries.map(safeReference);
@@ -83,15 +101,19 @@ export const createOrderDispatchJournal = (
     }
   };
   return {
-    list: (identityScope, venueId) => serialized(async () =>
-      (await load()).filter((entry) =>
-        entry.identityScope === identityScope && entry.venueId === venueId,
+    list: (identityScope, venueId) =>
+      serialized(async () =>
+        (await load()).filter(
+          (entry) =>
+            entry.identityScope === identityScope && entry.venueId === venueId,
+        ),
       ),
-    ),
     put: (reference) => {
       const snapshot = safeReference(reference);
       if (!validReference(snapshot)) {
-        return Promise.reject(new Error('Invalid Predict order dispatch reference.'));
+        return Promise.reject(
+          new Error('Invalid Predict order dispatch reference.'),
+        );
       }
       const captured = generation;
       return serialized(async () => {
@@ -99,9 +121,11 @@ export const createOrderDispatchJournal = (
         if (captured !== generation) {
           throw new Error('Predict order dispatch journal was reset.');
         }
-        const index = entries.findIndex((entry) =>
-          entry.identityScope === snapshot.identityScope &&
-          entry.venueId === snapshot.venueId && entry.previewId === snapshot.previewId,
+        const index = entries.findIndex(
+          (entry) =>
+            entry.identityScope === snapshot.identityScope &&
+            entry.venueId === snapshot.venueId &&
+            entry.previewId === snapshot.previewId,
         );
         if (index < 0) {
           entries.push(snapshot);
@@ -114,16 +138,25 @@ export const createOrderDispatchJournal = (
         }
       });
     },
-    remove: (identityScope, venueId, previewId) => serialized(async () => {
-      const entries = await load();
-      await save(entries.filter((entry) => !(
-        entry.identityScope === identityScope && entry.venueId === venueId &&
-        entry.previewId === previewId
-      )));
-    }),
+    remove: (identityScope, venueId, previewId) =>
+      serialized(async () => {
+        const entries = await load();
+        await save(
+          entries.filter(
+            (entry) =>
+              !(
+                entry.identityScope === identityScope &&
+                entry.venueId === venueId &&
+                entry.previewId === previewId
+              ),
+          ),
+        );
+      }),
     clear: () => {
       generation += 1;
-      return serialized(async () => { await storage.removeItem(JOURNAL_KEY); });
+      return serialized(async () => {
+        await storage.removeItem(JOURNAL_KEY);
+      });
     },
   };
 };

@@ -3,9 +3,11 @@ import type { AppStateStatus } from 'react-native';
 import type { NetInfoState } from '@react-native-community/netinfo';
 
 // ES2022 has no Promise.withResolvers; keep test barriers explicit.
-const deferred = <Value,>() => {
+const deferred = <Value>() => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
-  const promise = new Promise<Value>((done) => { resolve = done; });
+  const promise = new Promise<Value>((done) => {
+    resolve = done;
+  });
   return { promise, resolve };
 };
 
@@ -17,7 +19,11 @@ const setup = () => {
   let appChanged: (state: AppStateStatus) => void = () => undefined;
   let networkChanged: (state: NetInfoState) => void = () => undefined;
   let serviceGeneration = 0;
-  const service = { resumeRecovery: jest.fn().mockResolvedValue(undefined), suspendRecovery: jest.fn(), getRecoveryGeneration: () => serviceGeneration };
+  const service = {
+    resumeRecovery: jest.fn().mockResolvedValue(undefined),
+    suspendRecovery: jest.fn(),
+    getRecoveryGeneration: () => serviceGeneration,
+  };
   const getIdentityScope = jest.fn().mockResolvedValue('canonical-user-one');
   const removeApp = jest.fn();
   const removeNetwork = jest.fn();
@@ -28,31 +34,70 @@ const setup = () => {
     isSignedIn: () => signedIn,
     isEnabled: () => enabled,
     getIdentityScope,
-    subscribeSession: (listener) => { sessionChanged = listener; return removeSession; },
+    subscribeSession: (listener) => {
+      sessionChanged = listener;
+      return removeSession;
+    },
     appState: {
       currentState: 'active',
-      addEventListener: jest.fn((_event, listener) => { appChanged = listener; return { remove: removeApp }; }),
+      addEventListener: jest.fn((_event, listener) => {
+        appChanged = listener;
+        return { remove: removeApp };
+      }),
     },
-    network: { addEventListener: jest.fn((listener) => { networkChanged = listener; return removeNetwork; }) },
+    network: {
+      addEventListener: jest.fn((listener) => {
+        networkChanged = listener;
+        return removeNetwork;
+      }),
+    },
   });
   return {
-    service, getIdentityScope, dispose, removeApp, removeNetwork, removeSession,
-    lock: () => { unlocked = false; sessionChanged(); },
-    unlock: () => { unlocked = true; sessionChanged(); },
-    signOut: () => { signedIn = false; sessionChanged(); },
-    disable: () => { enabled = false; sessionChanged(); },
-    reset: () => { serviceGeneration += 1; },
+    service,
+    getIdentityScope,
+    dispose,
+    removeApp,
+    removeNetwork,
+    removeSession,
+    lock: () => {
+      unlocked = false;
+      sessionChanged();
+    },
+    unlock: () => {
+      unlocked = true;
+      sessionChanged();
+    },
+    signOut: () => {
+      signedIn = false;
+      sessionChanged();
+    },
+    disable: () => {
+      enabled = false;
+      sessionChanged();
+    },
+    reset: () => {
+      serviceGeneration += 1;
+    },
     app: (state: AppStateStatus) => appChanged(state),
-    network: (online: boolean) => networkChanged({ isConnected: online, isInternetReachable: online } as NetInfoState),
+    network: (online: boolean) =>
+      networkChanged({
+        isConnected: online,
+        isInternetReachable: online,
+      } as NetInfoState),
   };
 };
-const settle = async () => { await Promise.resolve(); await Promise.resolve(); };
+const settle = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
 
 describe('order recovery lifecycle', () => {
   it('resumes on unlocked startup, foreground and reconnect only', async () => {
     const lifecycle = setup();
     await settle();
-    expect(lifecycle.service.resumeRecovery).toHaveBeenCalledWith('canonical-user-one');
+    expect(lifecycle.service.resumeRecovery).toHaveBeenCalledWith(
+      'canonical-user-one',
+    );
     lifecycle.app('background');
     expect(lifecycle.service.suspendRecovery).toHaveBeenCalledTimes(1);
     lifecycle.app('active');

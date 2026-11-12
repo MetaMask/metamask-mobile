@@ -432,7 +432,6 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, [isStale, releasePresentation]);
 
-
   /** The worst case the phone would sign, from the profile's invariant: the
    * figures the approval shows. Undefined while it is computed or when the
    * profile refuses the order, which keeps Confirm disabled. */
@@ -443,7 +442,8 @@ export const PredictOrderFlowSheet = ({
       return undefined;
     }
     let current = true;
-    service.reviewPreview(intent.venueId, preview.previewId)
+    service
+      .reviewPreview(intent.venueId, preview.previewId)
       .then((display) => {
         if (current) {
           setSignedDisplay(display);

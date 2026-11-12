@@ -31,7 +31,10 @@ import type { MessengerClientInitFunction } from '../types';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { createOrderDispatchJournal } from '../../../components/UI/PredictNext/services/internal/orderDispatchJournal';
 import { bindOrderRecoveryLifecycle } from '../../../components/UI/PredictNext/services/internal/orderRecoveryLifecycle';
-import { parsePredictConfig, resolveVenueAuthProfile } from '../../../components/UI/PredictNext/config/predictConfig';
+import {
+  parsePredictConfig,
+  resolveVenueAuthProfile,
+} from '../../../components/UI/PredictNext/config/predictConfig';
 
 export const predictMarketDataServiceInit: MessengerClientInitFunction<
   PredictMarketDataService,
@@ -142,7 +145,11 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       getApprovalGeneration: () =>
         initMessenger.call('PredictDeviceAuthService:getApprovalGeneration'),
       previewOperation: (intent, input) =>
-        initMessenger.call('PredictDeviceAuthService:previewOperation', intent, input),
+        initMessenger.call(
+          'PredictDeviceAuthService:previewOperation',
+          intent,
+          input,
+        ),
     },
   );
   const controller = new PredictOrderService({
@@ -159,22 +166,34 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
     { getState, subscribe: (listener) => store.subscribe(listener) },
     () => controller.cancelUncommittedPreviews(),
   );
-  let recoverySignedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+  let recoverySignedIn = initMessenger.call(
+    'AuthenticationController:getState',
+  ).isSignedIn;
   const cleanupRecovery = bindOrderRecoveryLifecycle({
     service: controller,
-    isUnlocked: () => initMessenger.call('KeyringController:getState').isUnlocked,
-    isSignedIn: () => initMessenger.call('AuthenticationController:getState').isSignedIn,
-    isEnabled: () => resolveVenueAuthProfile(parsePredictConfig(
-      getState().engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.predictConfig,
-    )) !== undefined,
+    isUnlocked: () =>
+      initMessenger.call('KeyringController:getState').isUnlocked,
+    isSignedIn: () =>
+      initMessenger.call('AuthenticationController:getState').isSignedIn,
+    isEnabled: () =>
+      resolveVenueAuthProfile(
+        parsePredictConfig(
+          getState().engine.backgroundState.RemoteFeatureFlagController
+            .remoteFeatureFlags.predictConfig,
+        ),
+      ) !== undefined,
     getIdentityScope: async () => {
-      const profile = await initMessenger.call('AuthenticationController:getSessionProfile');
+      const profile = await initMessenger.call(
+        'AuthenticationController:getSessionProfile',
+      );
       return profile.canonicalProfileId || undefined;
     },
     subscribeSession: (listener) => {
       const changed = () => listener();
       const authenticationChanged = () => {
-        const signedIn = initMessenger.call('AuthenticationController:getState').isSignedIn;
+        const signedIn = initMessenger.call(
+          'AuthenticationController:getState',
+        ).isSignedIn;
         if (signedIn !== recoverySignedIn) {
           recoverySignedIn = signedIn;
           controller.suspendRecovery();
@@ -187,15 +206,33 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
       };
       initMessenger.subscribe('KeyringController:lock', changed);
       initMessenger.subscribe('KeyringController:unlock', changed);
-      initMessenger.subscribe('AuthenticationController:stateChange', authenticationChanged);
-      initMessenger.subscribe('AuthenticationController:profileSignIn', profileChanged);
-      initMessenger.subscribe('RemoteFeatureFlagController:stateChange', changed);
+      initMessenger.subscribe(
+        'AuthenticationController:stateChange',
+        authenticationChanged,
+      );
+      initMessenger.subscribe(
+        'AuthenticationController:profileSignIn',
+        profileChanged,
+      );
+      initMessenger.subscribe(
+        'RemoteFeatureFlagController:stateChange',
+        changed,
+      );
       return () => {
         initMessenger.unsubscribe('KeyringController:lock', changed);
         initMessenger.unsubscribe('KeyringController:unlock', changed);
-        initMessenger.unsubscribe('AuthenticationController:stateChange', authenticationChanged);
-        initMessenger.unsubscribe('AuthenticationController:profileSignIn', profileChanged);
-        initMessenger.unsubscribe('RemoteFeatureFlagController:stateChange', changed);
+        initMessenger.unsubscribe(
+          'AuthenticationController:stateChange',
+          authenticationChanged,
+        );
+        initMessenger.unsubscribe(
+          'AuthenticationController:profileSignIn',
+          profileChanged,
+        );
+        initMessenger.unsubscribe(
+          'RemoteFeatureFlagController:stateChange',
+          changed,
+        );
       };
     },
   });

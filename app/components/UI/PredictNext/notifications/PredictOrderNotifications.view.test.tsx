@@ -309,40 +309,44 @@ describe('Predict order notifications across Active Venue changes', () => {
   it.each([
     ['needs_manual_review', "We couldn't confirm this order"],
     ['not_filled', 'Order not filled'],
-  ])('notifies a dismissed %s order without inventing a fill outcome', async (status, title) => {
-    const routes = stubOrderRoutes();
-    const view = renderApp('kalshi');
-    await approveOrder();
-    selectVenue(view, 'polymarket');
-    expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
+  ])(
+    'notifies a dismissed %s order without inventing a fill outcome',
+    async (status, title) => {
+      const routes = stubOrderRoutes();
+      const view = renderApp('kalshi');
+      await approveOrder();
+      selectVenue(view, 'polymarket');
+      expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
 
-    await act(async () => {
-      routes.answerCommit({
-        ...filledReceipt,
-        status,
-        venueOrderId: null,
-        filledContracts: null,
-        actualSpend: null,
-        averageFillPrice: null,
-        fee: null,
-        payoutExposure: null,
+      await act(async () => {
+        routes.answerCommit({
+          ...filledReceipt,
+          status,
+          venueOrderId: null,
+          filledContracts: null,
+          actualSpend: null,
+          averageFillPrice: null,
+          fee: null,
+          payoutExposure: null,
+        });
       });
-    });
 
-    await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
-    expect(toastTitles()).toEqual([title]);
-    if (status === 'needs_manual_review') {
-      expect(showToast.mock.calls[0][0].labelOptions).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            label: 'Order outcome could not be confirmed. Check your activity or contact support.',
-          }),
-        ]),
-      );
-      expect(toastTitles()).not.toContain('Order not filled');
-    }
-    expect(routes.commitCount()).toBe(1);
-  });
+      await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
+      expect(toastTitles()).toEqual([title]);
+      if (status === 'needs_manual_review') {
+        expect(showToast.mock.calls[0][0].labelOptions).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              label:
+                'Order outcome could not be confirmed. Check your activity or contact support.',
+            }),
+          ]),
+        );
+        expect(toastTitles()).not.toContain('Order not filled');
+      }
+      expect(routes.commitCount()).toBe(1);
+    },
+  );
   it('does not repeat a completion the open Order sheet already shows', async () => {
     const routes = stubOrderRoutes();
     renderApp('kalshi');

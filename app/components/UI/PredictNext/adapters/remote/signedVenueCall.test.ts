@@ -388,7 +388,12 @@ describe('sendSignedRead', () => {
       status: 403,
       json: async () => ({ code: 'venue_authorization_invalid' }),
     } as unknown as Response;
-    const { send, signRead, invalidate, result: returned } = await run({
+    const {
+      send,
+      signRead,
+      invalidate,
+      result: returned,
+    } = await run({
       replies: [
         propose,
         proposing(moved),

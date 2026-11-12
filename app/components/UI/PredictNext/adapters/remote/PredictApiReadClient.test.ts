@@ -599,7 +599,9 @@ describe('PredictApiReadClient', () => {
         .mockRejectedValueOnce(new TemplateError('class'));
       fetchMock
         .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'))
-        .mockResolvedValueOnce(errorResponse(403, 'venue_authorization_invalid'))
+        .mockResolvedValueOnce(
+          errorResponse(403, 'venue_authorization_invalid'),
+        )
         .mockResolvedValueOnce(signRequired('/trade-api/v2/portfolio/balance'));
 
       const failed = client.fetchBalance(venueId);
@@ -764,7 +766,9 @@ describe('PredictApiReadClient', () => {
       expect(signRead).toHaveBeenCalledTimes(2);
       expect(fetchMock).toHaveBeenCalledTimes(3);
 
-      await expect(client.observeOrder(venueId, { previewId })).resolves.toEqual({
+      await expect(
+        client.observeOrder(venueId, { previewId }),
+      ).resolves.toEqual({
         previewId,
         status: 'filled',
       });
@@ -1063,7 +1067,10 @@ describe('PredictApiReadClient', () => {
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(fetchMock).toHaveBeenCalledWith(
           `https://predict.example/api/v1/venues/kalshi/orders/${previewId}/commit`,
-          expect.objectContaining({ method: 'POST', body: SIGNED_OPERATION.body }),
+          expect.objectContaining({
+            method: 'POST',
+            body: SIGNED_OPERATION.body,
+          }),
         );
       },
     );
@@ -1148,23 +1155,30 @@ describe('PredictApiReadClient', () => {
       signOperation,
     });
     const signal = new AbortController().signal;
-    fetchMock.mockResolvedValueOnce(createResponse({
-      json: { operations: [], nextCursor: 'next-page' },
-    }));
+    fetchMock.mockResolvedValueOnce(
+      createResponse({
+        json: { operations: [], nextCursor: 'next-page' },
+      }),
+    );
 
-    await expect(client.listUnresolvedOrders(
-      venueId,
-      { cursor: 'opaque/page+one', limit: 25 },
-      { signal },
-    )).resolves.toEqual({ operations: [], nextCursor: 'next-page' });
+    await expect(
+      client.listUnresolvedOrders(
+        venueId,
+        { cursor: 'opaque/page+one', limit: 25 },
+        { signal },
+      ),
+    ).resolves.toEqual({ operations: [], nextCursor: 'next-page' });
     const [url, init] = fetchMock.mock.calls[0];
     const parsed = new URL(url as string);
     expect(parsed.pathname).toBe('/api/v1/venues/kalshi/orders');
     expect(Object.fromEntries(parsed.searchParams)).toEqual({
-      cursor: 'opaque/page+one', limit: '25', state: 'unresolved',
+      cursor: 'opaque/page+one',
+      limit: '25',
+      state: 'unresolved',
     });
     expect(init).toMatchObject({
-      method: 'GET', signal,
+      method: 'GET',
+      signal,
       headers: { Authorization: 'Bearer secret-token' },
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);

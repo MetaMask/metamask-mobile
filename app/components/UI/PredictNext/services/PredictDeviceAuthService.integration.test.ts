@@ -9,8 +9,9 @@ import { createP256DeviceKey } from '../auth/p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
 import type { signP256 } from '../auth/p256QuickCrypto';
 
-const deviceCrypto: { signP256: typeof signP256 } =
-  jest.requireActual('../auth/p256QuickCrypto');
+const deviceCrypto: { signP256: typeof signP256 } = jest.requireActual(
+  '../auth/p256QuickCrypto',
+);
 
 jest.mock('../../../../core/SecureKeychain', () => ({
   setSecureItem: jest.fn(),
@@ -29,7 +30,7 @@ const jsonResponse = (status: number, body: unknown): Response =>
   }) as Response;
 
 // The mobile TypeScript library target is ES2022, before Promise.withResolvers.
-const deferred = <T,>() => {
+const deferred = <T>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
   const promise = new Promise<T>((done) => {
     resolve = done;

@@ -16,9 +16,7 @@ import type { RootState } from '../../../../reducers';
 import type { PredictConfig } from '../config/predictConfig';
 import { subscribeToActiveVenueChanges } from '../implementation/subscribeToActiveVenueChanges';
 import type { PredictConfiguredVenue } from '../implementation/types';
-import type {
-  PredictOrderServiceOrderResolvedEvent,
-} from './PredictOrderService';
+import type { PredictOrderServiceOrderResolvedEvent } from './PredictOrderService';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -236,7 +234,6 @@ describe('PredictNext Order Preview request', () => {
       .filter(([url]) => isCommitUrl(url))
       .map(([, init]) => JSON.parse(String(init?.body)));
 
-
   it('requests a Preview through the authenticated transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness((url, init) =>
       String(url).endsWith('/v1/venues/kalshi/orders/preview') &&
@@ -428,7 +425,10 @@ describe('PredictNext Order Preview request', () => {
       return { status: 404 };
     });
 
-    const positions = harness.portfolioService.getPositions(KALSHI_VENUE_ID, {});
+    const positions = harness.portfolioService.getPositions(
+      KALSHI_VENUE_ID,
+      {},
+    );
     await expect(
       harness.portfolioService.getPortfolioSummary(KALSHI_VENUE_ID),
     ).rejects.toMatchObject({ code: 'RATE_LIMITED' });
@@ -509,7 +509,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       sellReceiptResponse.previewId,
-      ({ kind: 'user-approved' } as const),
+      { kind: 'user-approved' } as const,
     );
 
     expect(receipt).toMatchObject({
@@ -618,7 +618,7 @@ describe('PredictNext Order Preview request', () => {
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       buyReceiptResponse.previewId,
-      ({ kind: 'user-approved' } as const),
+      { kind: 'user-approved' } as const,
     );
 
     expect(receipt).toMatchObject({
@@ -724,7 +724,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         buyReceiptResponse.previewId,
-        ({ kind: 'user-approved' } as const),
+        { kind: 'user-approved' } as const,
       );
       await until(() => observeCalls === 1);
 
@@ -952,7 +952,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        ({ kind: 'user-approved' } as const),
+        { kind: 'user-approved' } as const,
       );
       await until(() => commits === 1);
       // The Commit is on the wire when the Active Venue changes.
@@ -1043,10 +1043,12 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        ({ kind: 'user-approved' } as const),
+        { kind: 'user-approved' } as const,
       );
       store.selectVenue('polymarket');
-      await expect(commit).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      await expect(commit).rejects.toMatchObject({
+        code: 'ORDER_OUTCOME_UNKNOWN',
+      });
 
       await until(() => resolutions.length === 1, 5_000);
       // One signed Commit, then a read of the same Preview reference.
@@ -1069,7 +1071,11 @@ describe('PredictNext Order Preview request', () => {
       let commits = 0;
       let observations = 0;
       let expired = false;
-      jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime() + (expired ? 60_000 : 0));
+      jest
+        .spyOn(Date, 'now')
+        .mockImplementation(
+          () => new Date().getTime() + (expired ? 60_000 : 0),
+        );
       // This app targets ES2022, before Promise.withResolvers.
       let releaseObservation!: () => void;
       const observationGate = new Promise<void>((resolve) => {
@@ -1101,11 +1107,9 @@ describe('PredictNext Order Preview request', () => {
       const { orderService, store, resolutions } = composeOrderFlow(harness);
       await quoteBuy(orderService);
       await expect(
-        orderService.commitPreview(
-          KALSHI_VENUE_ID,
-          previewResponse.previewId,
-          ({ kind: 'user-approved' } as const),
-        ),
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId, {
+          kind: 'user-approved',
+        } as const),
       ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
       expired = true;
       store.selectVenue('polymarket');
@@ -1121,7 +1125,9 @@ describe('PredictNext Order Preview request', () => {
         previewResponse.previewId,
       );
       releaseObservation();
-      await expect(repeatedApproval).resolves.toMatchObject({ status: 'filled' });
+      await expect(repeatedApproval).resolves.toMatchObject({
+        status: 'filled',
+      });
       expect(resolutions).toEqual([
         expect.objectContaining({
           outcome: expect.objectContaining({ status: 'settled' }),
@@ -1137,7 +1143,12 @@ describe('PredictNext Order Preview request', () => {
     it("never sends the previous person's Preview with the next person's bearer token", async () => {
       const harness = buildPredictNextIntegrationHarness((url) =>
         String(url).endsWith('/orders/preview')
-          ? { body: { ...previewResponse, expiresAt: new Date(Date.now() + 30_000).toISOString() } }
+          ? {
+              body: {
+                ...previewResponse,
+                expiresAt: new Date(Date.now() + 30_000).toISOString(),
+              },
+            }
           : { body: buyReceiptResponse },
       );
       const orderService = buildService(harness);
@@ -1154,7 +1165,7 @@ describe('PredictNext Order Preview request', () => {
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         previewResponse.previewId,
-        ({ kind: 'user-approved' } as const),
+        { kind: 'user-approved' } as const,
       );
       orderService.abandonCommits();
       issueToken('next-person-token');

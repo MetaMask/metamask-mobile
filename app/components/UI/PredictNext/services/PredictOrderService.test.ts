@@ -30,9 +30,11 @@ import {
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 // ES2022 has no Promise.withResolvers; keep test barriers explicit.
-const deferred = <Value,>() => {
+const deferred = <Value>() => {
   let resolve!: (value: Value | PromiseLike<Value>) => void;
-  const promise = new Promise<Value>((done) => { resolve = done; });
+  const promise = new Promise<Value>((done) => {
+    resolve = done;
+  });
   return { promise, resolve };
 };
 
@@ -147,8 +149,11 @@ const invalidateQueries = jest.fn<Promise<void>, []>();
 const trading = {
   previewOrder,
   reviewOrder: jest.fn().mockResolvedValue({
-    previewId: 'preview-1', maxCost: '4.20', contracts: '10.00',
-    payout: '10.00', proceedsIfFullyFilled: '3.80',
+    previewId: 'preview-1',
+    maxCost: '4.20',
+    contracts: '10.00',
+    payout: '10.00',
+    proceedsIfFullyFilled: '3.80',
   }),
   invalidatePreviews: jest.fn(),
   commitOrder,
@@ -171,8 +176,7 @@ const serviceWith = (
   options: Partial<
     Pick<
       PredictOrderServiceOptions,
-      | 'backgroundObservationDelaysMs'
-      | 'backgroundObservationWindowMs'
+      'backgroundObservationDelaysMs' | 'backgroundObservationWindowMs'
     >
   > = {},
 ) => {
@@ -558,7 +562,10 @@ describe('PredictOrderService', () => {
         orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
       ).rejects.toMatchObject({
         code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
-        metadata: { ...metadata, causeCode: PredictErrorCode.VENUE_UNAVAILABLE },
+        metadata: {
+          ...metadata,
+          causeCode: PredictErrorCode.VENUE_UNAVAILABLE,
+        },
       });
       expect(invalidateQueries).not.toHaveBeenCalled();
       expect(orderResolved).not.toHaveBeenCalled();
@@ -743,9 +750,13 @@ describe('PredictOrderService', () => {
     const orderService = service();
     await orderService.requestQuote(KALSHI_VENUE_ID, buyQuoteParams);
 
-    await expect(orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId, SIGNING)).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
+    await expect(
+      orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId, SIGNING),
+    ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_SIGNING_REFUSED });
     await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
-    await expect(orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId)).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    await expect(
+      orderService.commitPreview(KALSHI_VENUE_ID, preview.previewId),
+    ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
 
     expect(commitOrder).not.toHaveBeenCalled();
   });
@@ -755,12 +766,23 @@ describe('PredictOrderService', () => {
     await orderService.requestQuote(KALSHI_VENUE_ID, buyQuoteParams);
     const held = deferred<PredictOrderReview>();
     trading.reviewOrder.mockReturnValueOnce(held.promise);
-    const review = orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    const review = orderService.reviewPreview(
+      KALSHI_VENUE_ID,
+      preview.previewId,
+    );
 
     orderService.cancelUncommittedPreviews();
-    held.resolve({ previewId: preview.previewId, maxCost: '4.20', contracts: '10.00', payout: '10.00', proceedsIfFullyFilled: '3.80' });
+    held.resolve({
+      previewId: preview.previewId,
+      maxCost: '4.20',
+      contracts: '10.00',
+      payout: '10.00',
+      proceedsIfFullyFilled: '3.80',
+    });
 
-    await expect(review).rejects.toMatchObject({ code: PredictErrorCode.PREVIEW_EXPIRED });
+    await expect(review).rejects.toMatchObject({
+      code: PredictErrorCode.PREVIEW_EXPIRED,
+    });
     expect(trading.invalidatePreviews).toHaveBeenCalled();
   });
   describe('submission boundary', () => {
@@ -934,30 +956,33 @@ describe('PredictOrderService', () => {
   it.each([
     PredictErrorCode.UNAUTHENTICATED,
     PredictErrorCode.VENUE_SIGNING_REFUSED,
-  ])('permits explicit re-approval after a first %s refusal before mutation dispatch', async (code) => {
-    venueCall.mockRejectedValueOnce(
-      PredictError.from(code, {
-        metadata: {
-          phase: 'commit',
-          requestSent: false,
-          mutationRelay: 'not_relayed_this_invocation',
-          operationOutcome: 'unknown',
-        },
-      }),
-    );
-    venueCall.mockResolvedValueOnce(receipt);
-    const orderService = await quotedService();
-    orderService.presentOperation('preview-1', jest.fn());
-    await expect(
-      orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-    ).rejects.toMatchObject({ code });
-    expect(orderResolved).not.toHaveBeenCalled();
-    await expect(
-      orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-    ).resolves.toEqual(receipt);
-    expect(commitOrder).toHaveBeenCalledTimes(2);
-    expect(observeOrder).not.toHaveBeenCalled();
-  });
+  ])(
+    'permits explicit re-approval after a first %s refusal before mutation dispatch',
+    async (code) => {
+      venueCall.mockRejectedValueOnce(
+        PredictError.from(code, {
+          metadata: {
+            phase: 'commit',
+            requestSent: false,
+            mutationRelay: 'not_relayed_this_invocation',
+            operationOutcome: 'unknown',
+          },
+        }),
+      );
+      venueCall.mockResolvedValueOnce(receipt);
+      const orderService = await quotedService();
+      orderService.presentOperation('preview-1', jest.fn());
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).rejects.toMatchObject({ code });
+      expect(orderResolved).not.toHaveBeenCalled();
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+      ).resolves.toEqual(receipt);
+      expect(commitOrder).toHaveBeenCalledTimes(2);
+      expect(observeOrder).not.toHaveBeenCalled();
+    },
+  );
 
   describe('orderResolved', () => {
     it('is published once per operation, however often it is re-committed', async () => {
@@ -1098,15 +1123,18 @@ describe('PredictOrderService', () => {
     it('observes a lost POST through 404 beyond expiry and resolves only on a late fill', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);
       venueCall.mockRejectedValueOnce(lostResponse());
-      const missing = PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
-        metadata: {
-          status: 404,
-          bodyCode: 'operation_not_found',
-          phase: 'observe',
-          mutationRelay: 'not_a_mutation',
-          operationOutcome: 'unknown',
+      const missing = PredictError.from(
+        PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        {
+          metadata: {
+            status: 404,
+            bodyCode: 'operation_not_found',
+            phase: 'observe',
+            mutationRelay: 'not_a_mutation',
+            operationOutcome: 'unknown',
+          },
         },
-      });
+      );
       venueCall.mockRejectedValue(missing);
       const orderService = await quote(
         serviceWith(0, { backgroundObservationDelaysMs: [20_000] }),
@@ -1132,7 +1160,10 @@ describe('PredictOrderService', () => {
       expect(orderResolved).toHaveBeenCalledTimes(1);
       expect(orderResolved).toHaveBeenCalledWith(
         expect.objectContaining({
-          outcome: { status: 'settled', receipt: receiptWith({ status: 'filled' }) },
+          outcome: {
+            status: 'settled',
+            receipt: receiptWith({ status: 'filled' }),
+          },
         }),
       );
       expect(commitOrder).toHaveBeenCalledTimes(1);
@@ -1143,24 +1174,33 @@ describe('PredictOrderService', () => {
       PredictErrorCode.UNAUTHENTICATED,
       PredictErrorCode.ORDER_PREVIEW_MISMATCH,
       PredictErrorCode.PREVIEW_EXPIRED,
-    ])('never uses a later %s refusal to erase an earlier dispatch', async (code) => {
-      venueCall.mockRejectedValueOnce(lostResponse());
-      venueCall.mockRejectedValueOnce(preOperationFailure(code, 'venue_preview_mismatch'));
-      venueCall.mockResolvedValueOnce(receiptWith({ status: 'filled' }));
-      const orderService = await quotedService();
-      await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
-      await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).rejects.toMatchObject({ code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN });
-      expect(orderResolved).not.toHaveBeenCalled();
-      await expect(
-        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
-      ).resolves.toMatchObject({ status: 'filled' });
-      expect(commitOrder).toHaveBeenCalledTimes(1);
-      expect(observeOrder).toHaveBeenCalledTimes(2);
-    });
+    ])(
+      'never uses a later %s refusal to erase an earlier dispatch',
+      async (code) => {
+        venueCall.mockRejectedValueOnce(lostResponse());
+        venueCall.mockRejectedValueOnce(
+          preOperationFailure(code, 'venue_preview_mismatch'),
+        );
+        venueCall.mockResolvedValueOnce(receiptWith({ status: 'filled' }));
+        const orderService = await quotedService();
+        await expect(
+          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        ).rejects.toMatchObject({
+          code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        });
+        await expect(
+          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        ).rejects.toMatchObject({
+          code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        });
+        expect(orderResolved).not.toHaveBeenCalled();
+        await expect(
+          orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1', SIGNING),
+        ).resolves.toMatchObject({ status: 'filled' });
+        expect(commitOrder).toHaveBeenCalledTimes(1);
+        expect(observeOrder).toHaveBeenCalledTimes(2);
+      },
+    );
 
     it('never concludes "not placed" once a Receipt has been seen', async () => {
       jest.setSystemTime(Date.parse(preview.expiresAt) - 10_000);

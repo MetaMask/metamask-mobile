@@ -16,7 +16,7 @@ jest.mock('../../../../../core/SecureKeychain', () => ({
 }));
 
 // The mobile TypeScript library target is ES2022, before Promise.withResolvers.
-const deferred = <T,>() => {
+const deferred = <T>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
   const promise = new Promise<T>((done) => {
     resolve = done;
@@ -164,12 +164,11 @@ describe('approved intent ledger', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = expect(pending).rejects.toBeInstanceOf(TemplateError);
+      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
       const cleared = clearApprovedIntents();
       const unconfirmed = claimIntentSignature({ ...claim, confirmed: false });
-      const unconfirmedRefused = expect(unconfirmed).rejects.toBeInstanceOf(
-        TemplateError,
-      );
+      const unconfirmedRefused =
+        await expect(unconfirmed).rejects.toBeInstanceOf(TemplateError);
       const nextBody = '{"ticker":"NEW-GENERATION"}';
       const next = claimIntentSignature({ ...claim, body: nextBody });
 

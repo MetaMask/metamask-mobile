@@ -310,16 +310,28 @@ export const buildPredictNextIntegrationHarness = (
       getApprovalGeneration: () => 0,
       previewOperation: async (operation, input) => {
         const profile = await loadVenueProfile();
-        const payloadName = profile?.intents.find(({ id }) => id === operation)?.payloads[0];
+        const payloadName = profile?.intents.find(({ id }) => id === operation)
+          ?.payloads[0];
         const payload = payloadName && profile?.payloads[payloadName];
         if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
           throw new Error(`Missing harness review payload for ${operation}`);
         }
-        return renderRequest(payloadName, {
-          class: 'mutation', method: payload.method, path: payload.path,
-          body: payload.body, idempotencyKey: payload.idempotencyKey,
-          invariants: payload.invariants,
-        }, { inputs: input.inputs ?? {}, values: input.values ?? {}, nowMs: Date.now() }).display;
+        return renderRequest(
+          payloadName,
+          {
+            class: 'mutation',
+            method: payload.method,
+            path: payload.path,
+            body: payload.body,
+            idempotencyKey: payload.idempotencyKey,
+            invariants: payload.invariants,
+          },
+          {
+            inputs: input.inputs ?? {},
+            values: input.values ?? {},
+            nowMs: Date.now(),
+          },
+        ).display;
       },
     },
   );

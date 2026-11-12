@@ -30,7 +30,10 @@ import type {
 } from '../../types';
 import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
 import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
-import { kalshiOrderSigningInput, type KalshiOrderSigningInput } from './kalshiOrderSigning';
+import {
+  kalshiOrderSigningInput,
+  type KalshiOrderSigningInput,
+} from './kalshiOrderSigning';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -42,38 +45,39 @@ import {
 } from './PredictApiReadClient';
 
 /** Canonical codes win over HTTP status, including authorization 403s. */
-const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> = {
-  operation_not_found: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
-  preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
-  market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
-  market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
-  quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
-  preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
-  balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
-  insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
-  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
-  insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
-  position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
-  venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
-  venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
-  venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
-  venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,
-  venue_authorization_invalid: PredictErrorCode.UNAUTHENTICATED,
-  venue_signature_expired: PredictErrorCode.VENUE_SIGNING_REFUSED,
-  venue_step_changed: PredictErrorCode.VENUE_SIGNING_REFUSED,
-  venue_account_not_enabled: PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
-  venue_auth_rejected: PredictErrorCode.UNAUTHENTICATED,
-  venue_signing_unavailable: PredictErrorCode.UNAUTHENTICATED,
-  venue_signing_refused: PredictErrorCode.VENUE_SIGNING_REFUSED,
-  venue_read_budget_exhausted: PredictErrorCode.VENUE_UNAVAILABLE,
-  venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
-  venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
-  geo_blocked: PredictErrorCode.GEO_BLOCKED,
-  invalid_request: PredictErrorCode.INVALID_RESPONSE,
-  unauthorized: PredictErrorCode.UNAUTHENTICATED,
-  venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
-  rate_limited: PredictErrorCode.RATE_LIMITED,
-};
+const ERROR_CODE_BY_BACKEND_CODE: Record<string, PredictErrorCode | undefined> =
+  {
+    operation_not_found: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+    preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
+    market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
+    market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
+    quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
+    preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
+    balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
+    insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
+    insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
+    insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
+    position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
+    venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
+    venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+    venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+    venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,
+    venue_authorization_invalid: PredictErrorCode.UNAUTHENTICATED,
+    venue_signature_expired: PredictErrorCode.VENUE_SIGNING_REFUSED,
+    venue_step_changed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+    venue_account_not_enabled: PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
+    venue_auth_rejected: PredictErrorCode.UNAUTHENTICATED,
+    venue_signing_unavailable: PredictErrorCode.UNAUTHENTICATED,
+    venue_signing_refused: PredictErrorCode.VENUE_SIGNING_REFUSED,
+    venue_read_budget_exhausted: PredictErrorCode.VENUE_UNAVAILABLE,
+    venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
+    venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
+    geo_blocked: PredictErrorCode.GEO_BLOCKED,
+    invalid_request: PredictErrorCode.INVALID_RESPONSE,
+    unauthorized: PredictErrorCode.UNAUTHENTICATED,
+    venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
+    rate_limited: PredictErrorCode.RATE_LIMITED,
+  };
 
 const isAbortError = (error: unknown): error is Error =>
   error instanceof Error && error.name === 'AbortError';
@@ -188,19 +192,30 @@ export class KalshiRemoteAdapter {
       if (!pinned || pinned.expiresAt <= Date.now()) {
         this.#previews.delete(previewId);
         throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
-          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+          metadata: {
+            phase: 'commit',
+            mutationRelay: 'not_relayed_this_invocation',
+          },
         });
       }
-      if (pinned.approvalGeneration === undefined ||
-        pinned.approvalGeneration !== signing?.getApprovalGeneration()) {
+      if (
+        pinned.approvalGeneration === undefined ||
+        pinned.approvalGeneration !== signing?.getApprovalGeneration()
+      ) {
         this.#previews.delete(previewId);
         throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
-          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+          metadata: {
+            phase: 'commit',
+            mutationRelay: 'not_relayed_this_invocation',
+          },
         });
       }
       if (!pinned.signing) {
         throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
-          metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+          metadata: {
+            phase: 'commit',
+            mutationRelay: 'not_relayed_this_invocation',
+          },
         });
       }
       return pinned;
@@ -262,8 +277,10 @@ export class KalshiRemoteAdapter {
           if (!isQuotedForIntent) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
-          if (generation !== this.#previewGeneration ||
-            approvalGeneration !== signing?.getApprovalGeneration()) {
+          if (
+            generation !== this.#previewGeneration ||
+            approvalGeneration !== signing?.getApprovalGeneration()
+          ) {
             throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
           }
           for (const [id, pinned] of this.#previews) {
@@ -273,8 +290,11 @@ export class KalshiRemoteAdapter {
           }
           const snapshot = JSON.stringify({ params, preview: result });
           const existing = this.#previews.get(result.previewId);
-          if (existing && (existing.snapshot !== snapshot ||
-            existing.approvalGeneration !== approvalGeneration)) {
+          if (
+            existing &&
+            (existing.snapshot !== snapshot ||
+              existing.approvalGeneration !== approvalGeneration)
+          ) {
             this.#previews.delete(result.previewId);
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
@@ -323,7 +343,10 @@ export class KalshiRemoteAdapter {
           const pinned = currentPreview(previewId);
           if (approval.kind !== 'user-approved' || !pinned.review) {
             throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
-              metadata: { phase: 'commit', mutationRelay: 'not_relayed_this_invocation' },
+              metadata: {
+                phase: 'commit',
+                mutationRelay: 'not_relayed_this_invocation',
+              },
             });
           }
           const value = await client.commitOrder(
@@ -369,9 +392,17 @@ export class KalshiRemoteAdapter {
       },
       listUnresolvedOrders: async (params, options) => {
         try {
-          const value = await client.listUnresolvedOrders(this.venueId, params, options);
+          const value = await client.listUnresolvedOrders(
+            this.venueId,
+            params,
+            options,
+          );
           const result = parsePredictUnresolvedOrdersPage(value);
-          if (result.operations.some(({ receipt }) => receipt.venueId !== this.venueId)) {
+          if (
+            result.operations.some(
+              ({ receipt }) => receipt.venueId !== this.venueId,
+            )
+          ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

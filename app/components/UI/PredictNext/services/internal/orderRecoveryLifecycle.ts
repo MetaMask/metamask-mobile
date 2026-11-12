@@ -3,7 +3,10 @@ import NetInfo from '@react-native-community/netinfo';
 import type { PredictOrderService } from '../PredictOrderService';
 
 export interface OrderRecoveryLifecycleOptions {
-  service: Pick<PredictOrderService, 'resumeRecovery' | 'suspendRecovery' | 'getRecoveryGeneration'>;
+  service: Pick<
+    PredictOrderService,
+    'resumeRecovery' | 'suspendRecovery' | 'getRecoveryGeneration'
+  >;
   isUnlocked: () => boolean;
   isSignedIn: () => boolean;
   isEnabled: () => boolean;
@@ -29,8 +32,13 @@ export const bindOrderRecoveryLifecycle = ({
   let destroyed = false;
   let online = true;
   let active = appState.currentState === 'active';
-  const eligible = () => !destroyed && active && online &&
-    isUnlocked() && isSignedIn() && isEnabled();
+  const eligible = () =>
+    !destroyed &&
+    active &&
+    online &&
+    isUnlocked() &&
+    isSignedIn() &&
+    isEnabled();
   const resume = () => {
     const captured = ++generation;
     if (!eligible()) {
@@ -38,20 +46,29 @@ export const bindOrderRecoveryLifecycle = ({
       return;
     }
     const serviceGeneration = service.getRecoveryGeneration();
-    getIdentityScope().then((scope) => {
-      if (captured !== generation || serviceGeneration !== service.getRecoveryGeneration() || !eligible()) {
-        return;
-      }
-      if (scope) {
-        service.resumeRecovery(scope).catch(() => undefined);
-      } else {
-        service.suspendRecovery();
-      }
-    }).catch(() => {
-      if (captured === generation && serviceGeneration === service.getRecoveryGeneration()) {
-        service.suspendRecovery();
-      }
-    });
+    getIdentityScope()
+      .then((scope) => {
+        if (
+          captured !== generation ||
+          serviceGeneration !== service.getRecoveryGeneration() ||
+          !eligible()
+        ) {
+          return;
+        }
+        if (scope) {
+          service.resumeRecovery(scope).catch(() => undefined);
+        } else {
+          service.suspendRecovery();
+        }
+      })
+      .catch(() => {
+        if (
+          captured === generation &&
+          serviceGeneration === service.getRecoveryGeneration()
+        ) {
+          service.suspendRecovery();
+        }
+      });
   };
   const unsubscribeSession = subscribeSession(resume);
   const appSubscription = appState.addEventListener('change', (state) => {

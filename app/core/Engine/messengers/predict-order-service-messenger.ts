@@ -44,11 +44,15 @@ export const getPredictOrderServiceMessenger = (
 export type PredictOrderServiceInitMessenger = Messenger<
   'PredictOrderServiceInit',
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
-  | Extract<GlobalActions, { type:
-      | 'AuthenticationController:getSessionProfile'
-      | 'AuthenticationController:getState'
-      | 'KeyringController:getState'
-    }>
+  | Extract<
+      GlobalActions,
+      {
+        type:
+          | 'AuthenticationController:getSessionProfile'
+          | 'AuthenticationController:getState'
+          | 'KeyringController:getState';
+      }
+    >
   | Extract<
       PredictDeviceAuthServiceActions,
       {
@@ -60,13 +64,17 @@ export type PredictOrderServiceInitMessenger = Messenger<
           | 'PredictDeviceAuthService:invalidateA2t';
       }
     >,
-  Extract<GlobalEvents, { type:
-    | 'KeyringController:lock'
-    | 'KeyringController:unlock'
-    | 'AuthenticationController:stateChange'
-    | 'AuthenticationController:profileSignIn'
-    | 'RemoteFeatureFlagController:stateChange'
-  }>
+  Extract<
+    GlobalEvents,
+    {
+      type:
+        | 'KeyringController:lock'
+        | 'KeyringController:unlock'
+        | 'AuthenticationController:stateChange'
+        | 'AuthenticationController:profileSignIn'
+        | 'RemoteFeatureFlagController:stateChange';
+    }
+  >
 >;
 
 export const getPredictOrderServiceInitMessenger = (

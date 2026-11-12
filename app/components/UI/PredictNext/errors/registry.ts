@@ -91,7 +91,8 @@ export const predictErrorRegistry: Record<
   },
   [PredictErrorCode.ORDER_NOT_FOUND]: {
     category: 'action_failed',
-    message: 'Your order could not be found. Its outcome has not been confirmed.',
+    message:
+      'Your order could not be found. Its outcome has not been confirmed.',
     recoverable: true,
   },
   [PredictErrorCode.ORDER_PREVIEW_MISMATCH]: {

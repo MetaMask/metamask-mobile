@@ -804,7 +804,10 @@ describe('PredictHomeSection', () => {
             idempotencyKey: 'c4d5e6f0-1111-4222-8333-444455556666',
           },
         );
-        await trading.orderService.reviewPreview('kalshi' as PredictVenueId, preview.previewId);
+        await trading.orderService.reviewPreview(
+          'kalshi' as PredictVenueId,
+          preview.previewId,
+        );
         await trading.orderService.commitPreview(
           'kalshi' as PredictVenueId,
           preview.previewId,

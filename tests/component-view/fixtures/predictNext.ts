@@ -673,18 +673,18 @@ export const answerPredictNextCatalog = (
 export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
-  messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) => {
-      if (action === 'PredictOrderService:getRecovery') {
-        return [];
-      }
-      if (action === 'PredictOrderService:refreshRecovery') {
-        return Promise.resolve();
-      }
-      return answerPredictNextCatalog(action) ??
-        implementation(action, ...(params as never[]));
-    },
-  );
+  messengerCall.mockImplementation((action: string, ...params: unknown[]) => {
+    if (action === 'PredictOrderService:getRecovery') {
+      return [];
+    }
+    if (action === 'PredictOrderService:refreshRecovery') {
+      return Promise.resolve();
+    }
+    return (
+      answerPredictNextCatalog(action) ??
+      implementation(action, ...(params as never[]))
+    );
+  });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
@@ -787,7 +787,8 @@ export const composePredictNextOrderService = (
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) => renderIntent(operation, input).then((request) => request.display),
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
     },
   );
   return new PredictOrderService({
@@ -821,7 +822,8 @@ export const composePredictNextPortfolioTrading = () => {
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) => renderIntent(operation, input).then((request) => request.display),
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
     },
   );
   const portfolioService = new PredictPortfolioService({

@@ -116,7 +116,7 @@ const publicKeyFromRaw = (raw: Uint8Array) =>
   });
 
 // The mobile TypeScript library target is ES2022, before Promise.withResolvers.
-const deferred = <T,>() => {
+const deferred = <T>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
   const promise = new Promise<T>((done) => {
     resolve = done;
@@ -386,12 +386,14 @@ describe('p256DeviceKey', () => {
     const generated = deferred<void>();
     const released = deferred<void>();
     const generate = deviceCrypto.generateP256Key;
-    jest.spyOn(deviceCrypto, 'generateP256Key').mockImplementationOnce(async () => {
-      const key = await generate();
-      generated.resolve();
-      await released.promise;
-      return key;
-    });
+    jest
+      .spyOn(deviceCrypto, 'generateP256Key')
+      .mockImplementationOnce(async () => {
+        const key = await generate();
+        generated.resolve();
+        await released.promise;
+        return key;
+      });
     const pending = ensureKalshiDeviceKey(enabledConfig, true);
     await generated.promise;
     const deleted = deleteKalshiDeviceKey();

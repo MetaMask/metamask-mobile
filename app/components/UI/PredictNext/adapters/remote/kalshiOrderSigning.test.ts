@@ -20,25 +20,26 @@ const buyParams = (overrides: Partial<BuyParams> = {}) =>
 
 const buyPreview = (
   overrides: Partial<PredictBuyOrderPreview> = {},
-): PredictBuyOrderPreview => ({
-  previewId: 'preview-1',
-  venueId: 'kalshi',
-  marketId: 'MKT-1',
-  side: 'yes',
-  action: 'buy',
-  estimatedContracts: 10,
-  averagePrice: '0.45',
-  limitPrice: '0.4600',
-  fee: '0.10',
-  feeBreakdown: [{ source: 'venue', amount: '0.10' }],
-  expiresAt: '2026-11-12T12:00:00.000Z',
-  requestedAmount: '5.00',
-  orderAmount: '4.50',
-  totalDebit: '4.60',
-  potentialPayout: '10.00',
-  potentialProfit: '5.40',
-  ...overrides,
-}) as PredictBuyOrderPreview;
+): PredictBuyOrderPreview =>
+  ({
+    previewId: 'preview-1',
+    venueId: 'kalshi',
+    marketId: 'MKT-1',
+    side: 'yes',
+    action: 'buy',
+    estimatedContracts: 10,
+    averagePrice: '0.45',
+    limitPrice: '0.4600',
+    fee: '0.10',
+    feeBreakdown: [{ source: 'venue', amount: '0.10' }],
+    expiresAt: '2026-11-12T12:00:00.000Z',
+    requestedAmount: '5.00',
+    orderAmount: '4.50',
+    totalDebit: '4.60',
+    potentialPayout: '10.00',
+    potentialProfit: '5.40',
+    ...overrides,
+  }) as PredictBuyOrderPreview;
 
 const sellParams = (overrides: Partial<SellParams> = {}) =>
   ({
@@ -52,23 +53,24 @@ const sellParams = (overrides: Partial<SellParams> = {}) =>
 
 const sellPreview = (
   overrides: Partial<PredictSellOrderPreview> = {},
-): PredictSellOrderPreview => ({
-  previewId: 'preview-sell-1',
-  venueId: 'kalshi',
-  marketId: 'MKT-1',
-  side: 'yes',
-  action: 'sell',
-  requestedContracts: 7,
-  estimatedContracts: 3,
-  averagePrice: '0.54',
-  limitPrice: '0.5300',
-  fee: '0.10',
-  feeBreakdown: [{ source: 'venue', amount: '0.10' }],
-  expiresAt: '2026-11-12T12:00:00.000Z',
-  estimatedProceeds: '1.62',
-  estimatedNetProceeds: '1.52',
-  ...overrides,
-}) as PredictSellOrderPreview;
+): PredictSellOrderPreview =>
+  ({
+    previewId: 'preview-sell-1',
+    venueId: 'kalshi',
+    marketId: 'MKT-1',
+    side: 'yes',
+    action: 'sell',
+    requestedContracts: 7,
+    estimatedContracts: 3,
+    averagePrice: '0.54',
+    limitPrice: '0.5300',
+    fee: '0.10',
+    feeBreakdown: [{ source: 'venue', amount: '0.10' }],
+    expiresAt: '2026-11-12T12:00:00.000Z',
+    estimatedProceeds: '1.62',
+    estimatedNetProceeds: '1.52',
+    ...overrides,
+  }) as PredictSellOrderPreview;
 
 describe('kalshiOrderSigningInput', () => {
   it('renders a buy from its quoted count and pinned spend without granting approval', () => {
