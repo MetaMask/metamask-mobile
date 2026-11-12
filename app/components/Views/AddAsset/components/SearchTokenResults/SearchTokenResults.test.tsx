@@ -36,7 +36,6 @@ const defaultProps = {
   handleSelectAsset: mockHandleSelectAsset,
   selectedAsset: [] as ImportAsset[],
   searchQuery: '',
-  networkName: 'Ethereum',
   alreadyAddedTokens: undefined as Set<string> | undefined,
   isLoading: false,
 };

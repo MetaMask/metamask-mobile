@@ -19,11 +19,14 @@ jest.mock('../../hooks/useHiddenAssetIds', () => ({
 }));
 
 const mockAutocomplete = jest.fn();
+const mockAutocompleteMount = jest.fn();
 jest.mock(
   '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete',
   () => {
     const { View } = jest.requireActual('react-native');
+    const { useEffect } = jest.requireActual('react');
     return (props: unknown) => {
+      useEffect(() => mockAutocompleteMount(), []);
       mockAutocomplete(props);
       return <View testID="search-token-autocomplete" />;
     };
@@ -109,6 +112,20 @@ describe('TokenView', () => {
     );
 
     expect(mockOpenNetworkSelector).toHaveBeenCalledTimes(1);
+  });
+
+  it('remounts the search when the network changes so selections reset', () => {
+    const { rerender } = renderComponent('0x1');
+    expect(mockAutocompleteMount).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <TokenView
+        selectedNetwork="0x89"
+        openNetworkSelector={mockOpenNetworkSelector}
+      />,
+    );
+
+    expect(mockAutocompleteMount).toHaveBeenCalledTimes(2);
   });
 
   it('searches the selected network', () => {

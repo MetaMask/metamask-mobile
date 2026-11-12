@@ -150,6 +150,8 @@ const TokenView = ({
         layout={LinearTransition.duration(200)}
       >
         <SearchTokenAutocomplete
+          // Remount on network change so picks from another filter are dropped.
+          key={selectedChainId ?? 'all'}
           navigation={navigation}
           selectedChainId={selectedChainId}
           searchQuery={searchQuery}

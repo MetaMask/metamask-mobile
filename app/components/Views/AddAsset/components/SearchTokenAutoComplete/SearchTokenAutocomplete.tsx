@@ -365,7 +365,6 @@ const SearchTokenAutocomplete = ({
   const goToConfirmAddToken = () => {
     navigation.navigate('ConfirmAddAsset', {
       selectedAsset: selectedAssets,
-      networkName,
       addTokenList,
     });
 
@@ -441,7 +440,6 @@ const SearchTokenAutocomplete = ({
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}
           onAddCustomToken={onAddCustomToken}

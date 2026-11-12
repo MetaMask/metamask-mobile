@@ -334,7 +334,6 @@ interface ImportFromSecretRecoveryPhraseParams {
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
 interface ConfirmAddAssetParams {
   selectedAsset: ImportAsset[];
-  networkName: string;
   addTokenList: () => Promise<void>;
 }
 

@@ -25,6 +25,8 @@ import {
   TextButton,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useNetworkName } from '../../../../UI/Trending/hooks/useNetworkName/useNetworkName';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import { getImportAssetKey, ImportAsset } from '../../utils/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
@@ -47,10 +49,6 @@ interface Props {
    */
   searchQuery: string;
   /**
-   * Name of the network
-   */
-  networkName?: string;
-  /**
    * Set of already added tokens, keyed with `getImportAssetKey`
    */
   alreadyAddedTokens?: Set<string>;
@@ -68,46 +66,42 @@ interface SearchTokenResultRowProps {
   item: ImportAsset;
   isSelected: boolean;
   isAlreadyAdded: boolean;
-  networkName?: string;
   onSelect: (asset: ImportAsset) => void;
 }
 
 const getTokenSearchRowKey = (token: ImportAsset) =>
   `${token.chainId}-${token.address.toLowerCase()}`;
 
-const TokenAvatar = ({
-  asset,
-  networkName,
-}: {
-  asset: ImportAsset;
-  networkName?: string;
-}) => (
-  <BadgeWrapper
-    position={BadgeWrapperPosition.BottomRight}
-    badge={
-      <BadgeNetwork
-        src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
-        name={networkName}
-        twClassName="h-5 w-5"
-      />
-    }
-  >
-    {asset.image ? (
-      <AvatarToken
-        name={asset.symbol}
-        src={{ uri: asset.image }}
-        size={AvatarTokenSize.Lg}
-      />
-    ) : null}
-  </BadgeWrapper>
-);
+const TokenAvatar = ({ asset }: { asset: ImportAsset }) => {
+  const networkName = useNetworkName([formatChainIdToCaip(asset.chainId)]);
+
+  return (
+    <BadgeWrapper
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeNetwork
+          src={NetworkBadgeSource(asset.chainId as `0x${string}`)}
+          name={networkName}
+          twClassName="h-5 w-5"
+        />
+      }
+    >
+      {asset.image ? (
+        <AvatarToken
+          name={asset.symbol}
+          src={{ uri: asset.image }}
+          size={AvatarTokenSize.Lg}
+        />
+      ) : null}
+    </BadgeWrapper>
+  );
+};
 
 const SearchTokenResultRow = React.memo(
   ({
     item,
     isSelected,
     isAlreadyAdded,
-    networkName,
     onSelect,
   }: SearchTokenResultRowProps) => {
     const isChecked = isSelected || isAlreadyAdded;
@@ -121,7 +115,7 @@ const SearchTokenResultRow = React.memo(
         accessibilityState={{ checked: isChecked, disabled: isAlreadyAdded }}
         onPress={() => onSelect(item)}
         testID={ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT}
-        avatar={<TokenAvatar asset={item} networkName={networkName} />}
+        avatar={<TokenAvatar asset={item} />}
         title={item.name}
         titleProps={{
           fontWeight: FontWeight.Medium,
@@ -165,7 +159,6 @@ const SearchTokenResults = ({
   handleSelectAsset,
   selectedAsset,
   searchQuery,
-  networkName,
   alreadyAddedTokens,
   isLoading = false,
   onAddCustomToken,
@@ -206,12 +199,11 @@ const SearchTokenResults = ({
           item={item}
           isSelected={isSelected}
           isAlreadyAdded={isAlreadyAdded}
-          networkName={networkName}
           onSelect={handleSelectAsset}
         />
       );
     },
-    [selectedKeys, alreadyAddedTokens, networkName, handleSelectAsset],
+    [selectedKeys, alreadyAddedTokens, handleSelectAsset],
   );
 
   // Show skeleton loaders when loading
