@@ -164,7 +164,8 @@ describe('approved intent ledger', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
+      const refused =
+        await expect(pending).rejects.toBeInstanceOf(TemplateError);
       const cleared = clearApprovedIntents();
       const unconfirmed = claimIntentSignature({ ...claim, confirmed: false });
       const unconfirmedRefused =

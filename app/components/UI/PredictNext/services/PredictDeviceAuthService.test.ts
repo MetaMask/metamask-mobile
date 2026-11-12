@@ -682,7 +682,8 @@ describe('PredictDeviceAuthService revocation races', () => {
         confirmed: phase === 'first claim',
       });
       await started.promise;
-      const refused = await expect(pending).rejects.toBeInstanceOf(TemplateError);
+      const refused =
+        await expect(pending).rejects.toBeInstanceOf(TemplateError);
       unlocked = false;
       const cleared = service.clearApprovals();
       unlocked = true;
