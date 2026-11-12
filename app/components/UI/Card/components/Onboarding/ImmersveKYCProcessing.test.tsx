@@ -742,6 +742,10 @@ describe('ImmersveKYCProcessing', () => {
       jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
     });
 
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_onboarding.immersve_kyc_processing.incomplete_title. card.card_onboarding.immersve_kyc_processing.incomplete_description',
+    );
+
     fireEvent.press(getByTestId('immersve-kyc-processing-reopen-button'));
     expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenLastCalledWith(
@@ -764,6 +768,35 @@ describe('ImmersveKYCProcessing', () => {
       IN_PROGRESS_TITLE,
     );
     expect(queryByTestId('immersve-kyc-processing-reopen-button')).toBeNull();
+  });
+
+  it('keeps Verifying after the dwell while the close poll has no result yet', () => {
+    mockParams = {
+      countryKey: 'GB',
+      kycUrl: 'https://verify.immersve.com/xyz',
+    };
+    setNextAction(null, null, true);
+    const { getByTestId, queryByTestId, rerender } = render(
+      <ImmersveKYCProcessing />,
+    );
+
+    expect(queryByTestId('onboarding-title')).toBeNull();
+
+    closeWebview();
+    act(() => {
+      jest.advanceTimersByTime(IMMERSVE_KYC_RESULT_MIN_DWELL_MS);
+    });
+
+    expect(getByTestId('onboarding-title').props.children).toBe(
+      IN_PROGRESS_TITLE,
+    );
+
+    setNextAction({ type: 'active' });
+    rerender(<ImmersveKYCProcessing />);
+
+    expect(getByTestId(CompleteSelectors.TITLE).props.children).toBe(
+      'card.card_onboarding.complete.title',
+    );
   });
 
   it('shows a poll failure in place and retries on Try again', async () => {
@@ -864,6 +897,9 @@ describe('ImmersveKYCProcessing', () => {
       .join('');
     expect(label).toBe(
       'card.card_onboarding.immersve_kyc_processing.info_needed_button',
+    );
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_onboarding.immersve_kyc_processing.info_needed_title. card.card_onboarding.immersve_kyc_processing.info_needed_description',
     );
   });
 

@@ -127,10 +127,12 @@ export const deriveImmersveKycView = ({
     return 'expired';
   }
   if (!nextAction) {
-    // Try again clears the error before the next result arrives. Keep
-    // Verifying for that gap so the screen does not go blank. A first mount
-    // with no result stays blank.
-    return isRetryingPoll ? 'verifying' : 'blank';
+    // Try again, and the poll that follows a webview close, have no result
+    // yet. Keep Verifying for that gap. A first mount with no result, and a
+    // webview that has not opened yet, stay blank.
+    return isRetryingPoll || (webviewPhase === 'closed' && isLoading)
+      ? 'verifying'
+      : 'blank';
   }
 
   switch (nextAction.type) {
@@ -167,11 +169,17 @@ const announcementForKycView = ({
   error,
   failureDetail,
   retryDescription,
+  reopenTitle,
+  reopenDescription,
+  reasonLine,
 }: {
   view: ImmersveKycView;
   error: string | null;
   failureDetail: string | null;
   retryDescription: string | null;
+  reopenTitle: string;
+  reopenDescription: string;
+  reasonLine: string | null;
 }): string | null => {
   switch (view) {
     case 'verified':
@@ -184,6 +192,10 @@ const announcementForKycView = ({
       return retryDescription
         ? `${strings('card.card_onboarding.kyc_rejected.retry_title')}. ${retryDescription}`
         : strings('card.card_onboarding.kyc_rejected.retry_title');
+    case 'reopen': {
+      const spoken = `${reopenTitle}. ${reopenDescription}`;
+      return reasonLine ? `${spoken}. ${reasonLine}` : spoken;
+    }
     case 'pollError':
       return `${strings(
         'card.card_onboarding.immersve_kyc_processing.error_title',
@@ -385,11 +397,30 @@ const ImmersveKYCProcessing = () => {
     view === 'retry' && nextAction?.type === 'rejected'
       ? describeImmersveKycRejection(nextAction.reasons, true)
       : null;
+  const reopenTitle = strings(
+    isInfoNeeded
+      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
+      : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
+  );
+  const reopenDescription = strings(
+    isInfoNeeded
+      ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
+      : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
+  );
+  const reasonLine =
+    isInfoNeeded &&
+    nextAction?.type === 'kyc' &&
+    (nextAction.reasons?.length ?? 0) > 0
+      ? describeImmersveKycRejection(nextAction.reasons, true)
+      : null;
   const announcement = announcementForKycView({
     view,
     error,
     failureDetail,
     retryDescription,
+    reopenTitle,
+    reopenDescription,
+    reasonLine,
   });
 
   useEffect(() => {
@@ -611,13 +642,6 @@ const ImmersveKYCProcessing = () => {
       });
   }, [refresh]);
 
-  const reasonLine =
-    isInfoNeeded &&
-    nextAction?.type === 'kyc' &&
-    (nextAction.reasons?.length ?? 0) > 0
-      ? describeImmersveKycRejection(nextAction.reasons, true)
-      : null;
-
   const handleFinishSetup = useCallback(() => {
     if (isFinishingSetupRef.current) {
       return;
@@ -666,16 +690,8 @@ const ImmersveKYCProcessing = () => {
     if (view === 'reopen') {
       return (
         <KycIdentityLayout
-          title={strings(
-            isInfoNeeded
-              ? 'card.card_onboarding.immersve_kyc_processing.info_needed_title'
-              : 'card.card_onboarding.immersve_kyc_processing.incomplete_title',
-          )}
-          description={strings(
-            isInfoNeeded
-              ? 'card.card_onboarding.immersve_kyc_processing.info_needed_description'
-              : 'card.card_onboarding.immersve_kyc_processing.incomplete_description',
-          )}
+          title={reopenTitle}
+          description={reopenDescription}
           buttonLabel={strings(
             isInfoNeeded
               ? 'card.card_onboarding.immersve_kyc_processing.info_needed_button'
