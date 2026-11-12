@@ -91,6 +91,8 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { WalletTabHomeParams } from '../../Nav/Main/types/navigation';
+import { replaceWalletHomeParentParams } from '../../Nav/Main/homeTabFlatParamsBridge';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import {
   ToastContext,
@@ -280,12 +282,6 @@ interface WalletProps {
   storePrivacyPolicyClickedOrClosed: () => void;
 }
 
-interface WalletRouteParams {
-  openNetworkSelector?: boolean | null;
-  shouldSelectPerpsTab?: boolean | null;
-  initialTab?: string | null;
-}
-
 export const useHomeDeepLinkEffects = (opts: {
   isPerpsEnabled: boolean;
   onPerpsTabSelected: () => void;
@@ -299,7 +295,8 @@ export const useHomeDeepLinkEffects = (opts: {
     navigation,
   } = opts;
 
-  const route = useRoute<RouteProp<{ params: WalletRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: WalletTabHomeParams }, 'params'>>();
 
   // Handle tab selection from navigation params (e.g., from deeplinks)
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
@@ -308,7 +305,7 @@ export const useHomeDeepLinkEffects = (opts: {
       const params = route.params;
 
       const clearParams = () => {
-        if (navigation?.setParams) {
+        if (navigation?.setParams && params) {
           // React-Navigation shallow merges params, so we need to set each param to null to clear them
           const nullParams: Record<string, null> = {};
           Object.keys(params).forEach((key) => {
@@ -316,6 +313,8 @@ export const useHomeDeepLinkEffects = (opts: {
           });
           navigation.setParams(nullParams);
         }
+
+        replaceWalletHomeParentParams(navigation);
       };
 
       const handleDelayedDeeplinkAction = (action: () => void) => {
