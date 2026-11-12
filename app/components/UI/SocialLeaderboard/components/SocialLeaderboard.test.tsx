@@ -527,7 +527,7 @@ describe('SocialLeaderboard', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Me')).toBeOnTheScreen();
     expect(screen.getByText('+$12.00')).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(rowIds()).toHaveLength(3);
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
