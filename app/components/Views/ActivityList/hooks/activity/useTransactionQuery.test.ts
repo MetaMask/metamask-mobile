@@ -69,7 +69,6 @@ describe('useTransactionQuery', () => {
       expect.objectContaining({
         enabled: false,
         retry: false,
-        select: expect.any(Function),
       }),
     );
   });
@@ -105,6 +104,7 @@ describe('useTransactionQuery', () => {
     expect(useQueryMock).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: true,
+        retry: false,
         select: expect.any(Function),
       }),
     );

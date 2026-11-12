@@ -31,34 +31,36 @@ export function useTransactionQuery({
     if (!chainId?.startsWith('eip155:') || !evmAddress) {
       return undefined;
     }
-    const { reference } = parseCaipChainId(chainId);
+    const { reference } = parseCaipChainId(chainId as `${string}:${string}`);
     return toCaipAccountId(
       KnownCaipNamespace.Eip155,
       reference,
-      evmAddress.toLowerCase(),
+      evmAddress.toLowerCase() as `0x${string}`,
     );
   }, [chainId, evmAddress]);
 
-  const queryOptions = useMemo(() => {
+  const baseQueryOptions = useMemo(() => {
     if (!accountId || !txHash) {
-      return undefined;
+      return null;
     }
-    return apiClient.accounts.getV5TransactionByIdQueryOptions(
-      accountId,
-      txHash,
-      {
-        includeLogs: false,
-        includeMiscOperations: false,
-        includeTxMetadata: true,
-        lang: (I18n.locale ?? 'en').split('-')[0],
-      },
-    );
+    return {
+      ...apiClient.accounts.getV5TransactionByIdQueryOptions(
+        accountId,
+        txHash,
+        {
+          includeLogs: false,
+          includeMiscOperations: false,
+          includeTxMetadata: true,
+          lang: (I18n.locale ?? 'en').split('-')[0],
+        },
+      ),
+      select: (response: { data: unknown }) => response.data,
+    };
   }, [accountId, txHash]);
 
   return useQuery({
-    ...queryOptions,
-    enabled: enabled && Boolean(queryOptions),
+    ...(baseQueryOptions ?? {}),
+    enabled: enabled && Boolean(baseQueryOptions),
     retry: false,
-    select: (response) => response?.data,
   });
 }
