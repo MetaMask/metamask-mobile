@@ -316,6 +316,13 @@ class AccountListBottomSheet {
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
 
+    // FlashList does not mount an off-screen footer. Same bounded scroll this
+    // sheet uses for an account row, then tap the freshly queried control.
+    await Gestures.scrollIntoView(Promise.resolve(tapTarget), {
+      direction: 'down',
+      maxScrolls: 10,
+    });
+
     await Gestures.waitAndTap(Promise.resolve(tapTarget), {
       delay: options?.shouldWait ? 5000 : 0,
       timeout: 20_000,

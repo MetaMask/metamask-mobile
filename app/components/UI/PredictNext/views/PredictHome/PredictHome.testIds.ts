@@ -43,6 +43,9 @@ export const PredictHomeTestIds = {
     `predict-next-event-content-${venueId}-${eventId}`,
   outcome: (eventId: string, side: 'yes' | 'no') =>
     `predict-next-outcome-${eventId}-${side}`,
+  /** The yes Outcome price of one Market on a multi-row or featured card. */
+  marketOutcome: (eventId: string, marketId: string) =>
+    `predict-next-outcome-${eventId}-${marketId}-yes`,
   gameQuote: (eventId: string, selection: 'away' | 'home') =>
     `predict-next-game-quote-${eventId}-${selection}`,
   image: (eventId: string) => `predict-next-event-image-${eventId}`,

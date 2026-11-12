@@ -150,6 +150,7 @@ const FeedFlashListCell = React.forwardRef<
 FeedFlashListCell.displayName = 'FeedFlashListCell';
 
 const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
+const NO_LIST_ITEMS: SocialFeedListItem[] = [];
 
 type SocialFeedFlashListProps = FlashListProps<SocialFeedListItem> & {
   ref?: React.Ref<FlashListRef<SocialFeedListItem>>;
@@ -229,6 +230,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   onRefresh,
   performance,
   onScroll,
+  enabled = true,
+  refreshProgressViewOffset,
   pageRef,
   onAuthorPress,
   onCopyTrade,
@@ -289,7 +292,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
-    enabled: isFocused && !isOffline,
+    enabled: isFocused && !isOffline && enabled,
     realtime,
     paused,
     nearTop,
@@ -405,11 +408,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refreshWithPendingPosts(), waitForMinimumRefresh()]);
+      await Promise.all([
+        enabled ? refreshWithPendingPosts() : undefined,
+        waitForMinimumRefresh(),
+      ]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refreshWithPendingPosts]);
+  }, [enabled, onRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -558,7 +564,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           >
             <AnimatedFlashList
               ref={listRef}
-              data={listItems}
+              data={enabled ? listItems : NO_LIST_ITEMS}
               renderItem={renderItem}
               keyExtractor={getSocialFeedListItemKey}
               CellRendererComponent={FeedFlashListCell}
@@ -572,7 +578,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               scrollEventThrottle={16}
               onMomentumScrollEnd={handleScrollSettled}
               onScrollEndDrag={handleScrollSettled}
-              onEndReached={loadMore}
+              onEndReached={enabled ? loadMore : undefined}
               onEndReachedThreshold={0.5}
               refreshControl={
                 <RefreshControl
@@ -580,26 +586,31 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                   tintColor={colors.icon.default}
                   refreshing={refreshing}
                   onRefresh={handleRefresh}
+                  progressViewOffset={refreshProgressViewOffset}
                 />
               }
               ListHeaderComponent={header}
               ListEmptyComponent={
-                <SocialFeedPlaceholder
-                  state={state}
-                  skeletonCount={
-                    isLowHardware || isOffline
-                      ? CONSTRAINED_SKELETON_COUNT
-                      : undefined
-                  }
-                  emptyState={emptyState}
-                />
+                enabled ? (
+                  <SocialFeedPlaceholder
+                    state={state}
+                    skeletonCount={
+                      isLowHardware || isOffline
+                        ? CONSTRAINED_SKELETON_COUNT
+                        : undefined
+                    }
+                    emptyState={emptyState}
+                  />
+                ) : null
               }
               ListFooterComponent={
-                <SocialFeedFooter
-                  state={state}
-                  isFetchingNextPage={isFetchingNextPage}
-                  onRetry={() => refresh()}
-                />
+                enabled ? (
+                  <SocialFeedFooter
+                    state={state}
+                    isFetchingNextPage={isFetchingNextPage}
+                    onRetry={() => refresh()}
+                  />
+                ) : null
               }
               testID={scrollTestID}
             />
