@@ -13642,6 +13642,7 @@
       "invoices": "Invoices",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
+      "cancel_not_allowed": "Cancellation isn't available right now.",
       "resume_membership": "Resume membership",
       "resume_in_progress": "Resuming membership",
       "resume_failed": "We couldn't resume your membership. Please try again."
