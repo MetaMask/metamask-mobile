@@ -43,8 +43,10 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+import PasswordlessRecoveryDeveloperOptions from '../../Views/Settings/PasswordlessRecoveryDeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
+import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
 import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
@@ -645,6 +647,12 @@ const SettingsFlow = () => {
         <NativeStack.Screen
           name={Routes.SETTINGS.DEVELOPER_OPTIONS}
           component={DeveloperOptions}
+        />
+      )}
+      {isMfaDevBuild() && (
+        <NativeStack.Screen
+          name={Routes.SETTINGS.PASSWORDLESS_RECOVERY_DEVELOPER_OPTIONS}
+          component={PasswordlessRecoveryDeveloperOptions}
         />
       )}
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />

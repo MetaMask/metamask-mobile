@@ -22,6 +22,7 @@ import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -113,6 +114,11 @@ const Settings = () => {
 
   const onPressDeveloperOptions = () => {
     navigation.navigate('DeveloperOptions');
+  };
+  const onPressPasswordlessRecoveryDeveloperOptions = () => {
+    navigation.navigate(
+      Routes.SETTINGS.PASSWORDLESS_RECOVERY_DEVELOPER_OPTIONS,
+    );
   };
   const onPressFeatureFlagOverride = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
@@ -245,6 +251,19 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
+            testID={SettingsViewSelectorsIDs.DEVELOPER_OPTIONS}
+          />
+        )}
+        {/* Passwordless recovery setup for MFA/dev builds — no full Developer Options flag needed. */}
+        {isMfaDevBuild() && (
+          <SettingsDrawer
+            title={strings(
+              'app_settings.developer_options.passwordless_recovery.title',
+            )}
+            onPress={onPressPasswordlessRecoveryDeveloperOptions}
+            testID={
+              SettingsViewSelectorsIDs.PASSWORDLESS_RECOVERY_DEVELOPER_OPTIONS
+            }
           />
         )}
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (

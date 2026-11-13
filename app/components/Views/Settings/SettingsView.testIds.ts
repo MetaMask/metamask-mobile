@@ -29,6 +29,8 @@ export const SettingsViewSelectorsIDs = {
   PERMISSIONS: 'permissions',
   BACKUP_AND_SYNC: 'backup-and-sync-settings',
   DEVELOPER_OPTIONS: 'developer-options-settings',
+  PASSWORDLESS_RECOVERY_DEVELOPER_OPTIONS:
+    'passwordless-recovery-developer-options-settings',
   SNAPS: 'snaps',
   REGION: 'region-settings',
   ADD_DEVICE: 'add-device-settings',

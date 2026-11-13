@@ -1,4 +1,7 @@
-import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
+import {
+  MfaError,
+  type EnrolledCredential,
+} from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import {
   createSocialLoginControllerAdapter,
@@ -153,14 +156,15 @@ describe('useMfa', () => {
 
     const reason: MfaReason = { operation: 'qa.verifyForSocialLogin' };
 
-    it('starts a verify-only flow that may verify with every method', async () => {
+    it('starts with passkey so the highest enrolled method opens directly', async () => {
       await renderUseMfa().verifyForSocialLogin({ reason });
 
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
       expect(mockStartMfaFlow).toHaveBeenCalledWith({
         request: {
           kind: 'verifyOrEnroll',
-          methods: ['passkey', 'totp', 'email_otp'],
-          verifyWith: ['passkey', 'totp', 'email_otp'],
+          methods: ['passkey'],
+          verifyWith: ['passkey'],
           verifyOnly: true,
         },
         reason,
@@ -170,6 +174,30 @@ describe('useMfa', () => {
         reportError: expect.any(Function),
         trackEvent: expect.any(Function),
       });
+    });
+
+    it('tries the next method when the higher one is not enrolled', async () => {
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockResolvedValueOnce({ credentials: enrolledCredentials });
+
+      expect(
+        await renderUseMfa().verifyForSocialLogin({ reason }),
+      ).toStrictEqual({ credentials: enrolledCredentials });
+
+      expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
     });
 
     it('resolves with the flow result', async () => {

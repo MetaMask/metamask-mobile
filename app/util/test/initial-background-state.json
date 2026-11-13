@@ -1033,5 +1033,8 @@
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
+  },
+  "MfaRecoveryController": {
+    "pendingOperation": null
   }
 }

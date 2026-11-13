@@ -5955,6 +5955,17 @@
         "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
         "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
+      "passwordless_recovery": {
+        "title": "Passwordless recovery",
+        "description": "While this wallet is unlocked, store a recovery secret for the enrolled passkey and social login, then seal the seed phrases so that secret can open them. Recover with a new password locks this wallet and opens recovery. It does not reset the wallet. Developer only.",
+        "verifier_id_placeholder": "Mapped verifier ID",
+        "button": "Set up recovery",
+        "try_button": "Recover with a new password",
+        "enabled": "Recovery is set up. Tap Recover with a new password. That does not reset the wallet.",
+        "already_enabled": "Recovery is already set up. Tap Recover with a new password. That does not reset the wallet.",
+        "failed": "Setup failed ({{code}}). The wallet password is unchanged.",
+        "open_failed": "Could not open recovery ({{code}}). The wallet was not reset."
+      },
       "identity": {
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
@@ -11220,17 +11231,13 @@
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
   "wallet_recovery_mfa": {
-    "header": "Wallet recovery",
     "verify_title": "Verify it's you",
     "verify_description": "Choose a security method to recover your wallet.",
-    "use_passkey": "Use passkey",
-    "or": "or",
-    "method_password": "Password",
-    "method_email": "Email",
-    "method_totp": "Authenticator app",
-    "method_failed": "Verification failed. Try again or choose another method.",
-    "offline_reason": "Connect to the internet to use these methods.",
-    "cant_use_these": "Can't use any of these?"
+    "password_description": "Enter your password to continue",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "recovery_failed": "We couldn't recover your wallet. Try again or use your old password.",
+    "recovery_password_already_set": "Your new password is set. Unlock your wallet with it."
   },
   "password_hint": {
     "title": "Password hint",

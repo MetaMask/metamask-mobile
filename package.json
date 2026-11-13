@@ -189,6 +189,9 @@
     ]
   },
   "resolutions": {
+    "@metamask/seedless-onboarding-controller/@metamask/toprf-secure-backup": "portal:../toprf-secure-backup/packages/toprf-secure-backup",
+    "@metamask-previews/seedless-onboarding-controller/@metamask/toprf-secure-backup": "portal:../toprf-secure-backup/packages/toprf-secure-backup",
+    "@metamask/seedless-onboarding-controller@npm:^12.0.0": "npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^38.0.0",
@@ -327,17 +330,13 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
-    "@metamask/profile-sync-controller@npm:^36.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
-    "@metamask/profile-sync-controller@npm:^34.0.3": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
-    "@metamask/profile-sync-controller@npm:^34.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
-    "@metamask/profile-sync-controller@npm:^32.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch",
-    "@metamask/profile-sync-controller@npm:^35.0.0": "patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.2",
+    "@cubist-labs/cubesigner-sdk": "^0.4.284",
     "@ethersproject/abi": "^5.7.0",
     "@expensify/react-native-wallet": "patch:@expensify/react-native-wallet@npm%3A0.1.41#~/.yarn/patches/@expensify-react-native-wallet-npm-0.1.41-50938886af.patch",
     "@expo/fingerprint": "~0.20.13",
@@ -421,6 +420,7 @@
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^3.0.0",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.0.0-preview-8df707a0a",
     "@metamask/mobile-wallet-protocol-core": "^0.4.0",
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/money-account-api-data-service": "^2.4.0",
@@ -460,7 +460,7 @@
     "@metamask/sample-controllers": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.1",
     "@metamask/sdk-communication-layer": "0.33.1",
-    "@metamask/seedless-onboarding-controller": "^12.0.0",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283",
     "@metamask/selected-network-controller": "^27.0.0",
     "@metamask/sentinel-api-service": "^2.1.0",
     "@metamask/shield-controller": "^7.1.1",

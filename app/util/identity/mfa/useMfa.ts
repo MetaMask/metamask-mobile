@@ -1,4 +1,5 @@
 import { useSelector } from 'react-redux';
+import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
 import {
   createSocialLoginControllerAdapter,
@@ -71,31 +72,47 @@ const enroll = ({ method, reason }: EnrollOptions): Promise<MfaFlowResult> =>
 
 /**
  * Proves it's the user during social-login wallet recovery, while the wallet
- * is still locked. Never enrolls: the flow fetches the credentials the
- * profile already has and verifies with one of the active ones that this
- * platform supports. Resolves with the flow's result, rejects with
- * `credential_not_enrolled` when there is none to verify with, or with the
- * code of an error the kit has already shown.
+ * is still locked. Never enrolls. Tries enrolled methods in cost order
+ * (passkey → totp → email) one at a time so the kit opens the highest
+ * available method directly instead of a multi-method picker. Rejects with
+ * `credential_not_enrolled` when none is active, or with the code of an
+ * error the kit has already shown.
  */
-const verifyForSocialLogin = ({
+const verifyForSocialLogin = async ({
   reason,
 }: {
   reason: MfaReason;
-}): Promise<MfaFlowResult> =>
-  startMfaFlow({
-    // Every method may verify: the flow keeps the active ones this platform
-    // runs, and never plans a setup.
-    request: {
-      kind: 'verifyOrEnroll',
-      methods: [...METHOD_COST_RANKING],
-      verifyWith: [...METHOD_COST_RANKING],
-      verifyOnly: true,
-    },
-    reason,
-    ...clientOptions,
-    // One adapter per flow: it keeps the flow's own verification token.
-    controller: createSocialLoginControllerAdapter(),
-  });
+}): Promise<MfaFlowResult> => {
+  // One adapter for every attempt: it keeps the flow's verification token.
+  const controller = createSocialLoginControllerAdapter();
+  let lastError: unknown;
+
+  for (const method of METHOD_COST_RANKING) {
+    try {
+      // A single-method verifyOnly plan auto-starts that method. Passing
+      // every method at once would show the picker when several are active.
+      return await startMfaFlow({
+        request: {
+          kind: 'verifyOrEnroll',
+          methods: [method],
+          verifyWith: [method],
+          verifyOnly: true,
+        },
+        reason,
+        ...clientOptions,
+        controller,
+      });
+    } catch (error) {
+      lastError = error;
+      if (getMfaErrorCode(error) === 'credential_not_enrolled') {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw lastError;
+};
 
 /**
  * The MFA kit for features and settings.
@@ -110,8 +127,8 @@ const verifyForSocialLogin = ({
  * - `enroll`: sets up one method, for example from settings. No intro, no
  * verification after.
  * - `verifyForSocialLogin`: social-login wallet recovery, before the wallet
- * is unlocked. Verifies with a method the profile already has; never
- * enrolls.
+ * is unlocked. Opens the highest enrolled method directly (passkey first);
+ * never enrolls.
  * - `credentials`: the profile's methods, as last fetched from the server.
  *
  * @returns The kit's entry points and the credential list.
