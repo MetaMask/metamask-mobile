@@ -14,8 +14,13 @@ import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
+import {
+  VbaIdentityVerificationAdapter,
+  VbaKycPendingAdapter,
+} from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
+import type { VbaOnboardingSnapshot } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
@@ -57,6 +62,10 @@ interface RenderVbaOptions {
   location?: string;
   flagEnabled?: boolean;
   overrides?: DeepPartial<RootState>;
+}
+
+interface RenderVbaIdentityVerificationOptions extends RenderVbaOptions {
+  snapshot: VbaOnboardingSnapshot;
 }
 
 const VbaTermsCaller = () => {
@@ -151,6 +160,30 @@ export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
       },
     ],
     { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+export const renderVbaIdentityVerification = ({
+  snapshot,
+  ...options
+}: RenderVbaIdentityVerificationOptions): ReturnType<
+  typeof renderScreenWithRoutes
+> => {
+  const result = renderScreenWithRoutes(
+    VbaIdentityVerificationAdapter as unknown as React.ComponentType,
+    { name: VbaOnboardingRoutes.IDENTITY_VERIFICATION },
+    [
+      { name: VbaOnboardingRoutes.VENDOR_TERMS },
+      {
+        name: VbaOnboardingRoutes.KYC_PENDING,
+        Component: VbaKycPendingAdapter as unknown as React.ComponentType,
+      },
+      { name: VbaOnboardingRoutes.ERROR },
+    ],
+    { state: buildVbaState(options) },
+    { snapshot },
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
