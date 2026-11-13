@@ -484,4 +484,31 @@ describe('ActivitySection', () => {
       queryByTestId('mock-api-activity-item-0xShouldNotRender'),
     ).not.toBeOnTheScreen();
   });
+
+  it('fetches next page when first page has no matching rows', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    const mockFetchNextPage = jest.fn();
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      fetchNextPage: mockFetchNextPage,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextPage).toHaveBeenCalled();
+  });
 });

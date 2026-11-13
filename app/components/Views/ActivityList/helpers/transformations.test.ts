@@ -9,6 +9,7 @@ import {
 } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import {
+  activityMatchesAssetId,
   isBridgeHistoryForEvmTransaction,
   mapNonEvmTransactions,
   mergeTransactionsByTime,
@@ -382,6 +383,49 @@ describe('ActivityList transformations', () => {
           fees: [expect.objectContaining({ amount: '21000' })],
         },
       });
+    });
+  });
+
+  describe('activityMatchesAssetId', () => {
+    it('matches token assetId case-insensitively and checks all token fields', () => {
+      const activityWithToken = {
+        chainId: 'eip155:1',
+        status: 'confirmed',
+        timestamp: 1234567890,
+        data: { token: { assetId: 'eip155:1/erc20:0xABC' } },
+      } as unknown as import('../../../../util/activity-adapters').ActivityListItem;
+
+      expect(
+        activityMatchesAssetId(activityWithToken, 'eip155:1/erc20:0xabc'),
+      ).toBe(true);
+      expect(
+        activityMatchesAssetId(activityWithToken, 'eip155:1/erc20:0xdef'),
+      ).toBe(false);
+
+      const activityWithSourceToken = {
+        chainId: 'eip155:137',
+        status: 'confirmed',
+        timestamp: 1234567890,
+        data: { sourceToken: { assetId: 'eip155:137/erc20:0xTOKEN' } },
+      } as unknown as import('../../../../util/activity-adapters').ActivityListItem;
+
+      expect(
+        activityMatchesAssetId(
+          activityWithSourceToken,
+          'eip155:137/erc20:0xtoken',
+        ),
+      ).toBe(true);
+
+      const activityWithDestToken = {
+        chainId: 'eip155:10',
+        status: 'confirmed',
+        timestamp: 1234567890,
+        data: { destinationToken: { assetId: 'eip155:10/erc20:0xDEST' } },
+      } as unknown as import('../../../../util/activity-adapters').ActivityListItem;
+
+      expect(
+        activityMatchesAssetId(activityWithDestToken, 'eip155:10/erc20:0xdest'),
+      ).toBe(true);
     });
   });
 });

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -83,9 +83,13 @@ function useGroupedTokenActivity({
   chainId,
   caipAssetId,
 }: UseGroupedTokenActivityParams): GroupedTokenActivityResult {
-  const { data: apiEvmTransactions } = useTransactionsQuery(
-    caipAssetId ? { assetId: caipAssetId } : undefined,
-  );
+  const {
+    data: apiEvmTransactions,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useTransactionsQuery(caipAssetId ? { assetId: caipAssetId } : undefined);
+
   const tokenApiItems = useMemo(
     () =>
       caipAssetId
@@ -93,6 +97,25 @@ function useGroupedTokenActivity({
         : [],
     [apiEvmTransactions, caipAssetId],
   );
+
+  useEffect(() => {
+    if (
+      caipAssetId &&
+      tokenApiItems.length < DEFAULT_INITIAL_VISIBLE_ROWS &&
+      hasNextPage &&
+      !isFetchingNextPage &&
+      (apiEvmTransactions?.pages.length ?? 0) < 5
+    ) {
+      fetchNextPage();
+    }
+  }, [
+    caipAssetId,
+    tokenApiItems.length,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    apiEvmTransactions?.pages.length,
+  ]);
 
   return useMemo(() => {
     if (isNonEvmAsset) {
