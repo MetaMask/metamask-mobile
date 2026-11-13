@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, screen, act } from '@testing-library/react-native';
+import {
+  fireEvent,
+  screen,
+  act,
+  within,
+} from '@testing-library/react-native';
 import { BackHandler, Platform, View, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingInterestQuestionnaire from './OnboardingInterestQuestionnaire';
@@ -262,6 +267,24 @@ describe('OnboardingInterestQuestionnaire', () => {
       fireEvent.press(option);
 
       expect(option.props.accessibilityState.checked).toBe(true);
+    });
+
+    it('uses a selected checkbox inside the option row', () => {
+      renderComponent();
+
+      const option = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}swap_tokens`,
+      );
+      expect(within(option).queryAllByRole('checkbox')).toHaveLength(1);
+
+      fireEvent.press(option);
+
+      const checkboxes = within(option).getAllByRole('checkbox');
+      const checkbox = checkboxes.find(
+        (checkboxElement) => checkboxElement !== option,
+      );
+      expect(checkboxes).toHaveLength(2);
+      expect(checkbox?.props.accessibilityState.checked).toBe(true);
     });
 
     it('deselects an already-selected option when tapped again', () => {
