@@ -142,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
+ * @example 'Today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -166,7 +166,7 @@ export const formatRewardsRelativeDay = (
   const diffDays = Math.round((todayUtc - dayUtc) / DAY_MS);
 
   if (diffDays <= 0) {
-    return 'today';
+    return strings('rewards.today');
   }
   return formatDaysAgo(diffDays);
 };
