@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Text,
   TextColor,
   TextVariant,
@@ -17,6 +16,9 @@ import { MoneyEarningsInfoSheetTestIds } from './MoneyEarningsInfoSheet.testIds'
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type MoneyEarningsInfoSheetVariant = 'monthly' | 'lifetime';
 
@@ -38,6 +40,7 @@ const VARIANT_CONFIG = {
 } as const;
 
 const MoneyEarningsInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { variant } = useParams<MoneyEarningsInfoSheetParams>();
@@ -59,9 +62,9 @@ const MoneyEarningsInfoSheet = () => {
       testID={MoneyEarningsInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader}>
         <Text variant={TextVariant.HeadingSm}>{strings(config.titleKey)}</Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.content}>
         <Text
           variant={TextVariant.BodyMd}

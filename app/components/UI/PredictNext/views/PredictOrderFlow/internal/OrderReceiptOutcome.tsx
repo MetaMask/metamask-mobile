@@ -134,8 +134,7 @@ interface OrderReceiptOutcomeProps {
  * re-quote affordance. `rejected` states that the venue refused the Order
  * and nothing changed, with a re-quote affordance. `pending`, `submitted`,
  * and `reconciliation_required` mean the backend is still resolving the
- * true outcome; the keep-checking affordance re-POSTs the idempotent Commit
- * to observe it.
+ * true outcome; the keep-checking affordance reads the existing operation.
  *
  * A sell never renders a profit or loss figure: canonical Positions carry
  * no cost basis.
@@ -308,6 +307,45 @@ export const OrderReceiptOutcome = ({
           </Button>
         </Box>
       );
+    case 'needs_manual_review':
+      // Unresolved financial outcome: automatic scans have stopped. Do not
+      // invite a new order or imply the original order was not filled.
+      return (
+        <Box
+          twClassName="items-center gap-3 py-6"
+          testID={PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW}
+        >
+          <StatusIcon
+            iconName={IconName.ClockFilled}
+            color={IconColor.WarningDefault}
+            background="bg-warning-muted"
+          />
+          <Text
+            variant={TextVariant.HeadingSm}
+            accessibilityRole="header"
+            testID={PredictOrderFlowTestIds.RECEIPT_NEEDS_REVIEW_TITLE}
+          >
+            {strings('predict_next.order_receipt.needs_review_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('predict_next.order_receipt.needs_review_description')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onDone}
+            isDisabled={areActionsDisabled}
+            testID={PredictOrderFlowTestIds.DONE}
+          >
+            {strings('predict_next.order_receipt.done')}
+          </Button>
+        </Box>
+      );
     case 'pending':
     case 'submitted':
     case 'reconciliation_required':
@@ -345,4 +383,6 @@ export const OrderReceiptOutcome = ({
         </Box>
       );
   }
+  const unhandledStatus: never = receipt.status;
+  throw new Error(`Unhandled Predict order receipt status: ${unhandledStatus}`);
 };

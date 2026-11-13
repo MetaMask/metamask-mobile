@@ -17,6 +17,14 @@ export enum PredictErrorCode {
   INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
   INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
   POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
+  /** No Order operation exists for the Preview (yet). */
+  ORDER_NOT_FOUND = 'ORDER_NOT_FOUND',
+  ORDER_PREVIEW_MISMATCH = 'ORDER_PREVIEW_MISMATCH',
+  ORDER_OUTCOME_UNKNOWN = 'ORDER_OUTCOME_UNKNOWN',
+  VENUE_SIGNING_REFUSED = 'VENUE_SIGNING_REFUSED',
+  APP_UPDATE_REQUIRED = 'APP_UPDATE_REQUIRED',
+  /** The user has no enabled venue account yet. Onboarding resolves it. */
+  VENUE_ACCOUNT_NOT_ENABLED = 'VENUE_ACCOUNT_NOT_ENABLED',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -81,6 +89,35 @@ export const predictErrorRegistry: Record<
     message: 'Prediction data may be temporarily out of date.',
     recoverable: true,
   },
+  [PredictErrorCode.ORDER_NOT_FOUND]: {
+    category: 'action_failed',
+    message:
+      'Your order could not be found. Its outcome has not been confirmed.',
+    recoverable: true,
+  },
+  [PredictErrorCode.ORDER_PREVIEW_MISMATCH]: {
+    category: 'action_failed',
+    message:
+      'The signed order does not match this quote. Refresh and review it again.',
+    recoverable: true,
+  },
+  [PredictErrorCode.ORDER_OUTCOME_UNKNOWN]: {
+    category: 'action_failed',
+    message:
+      'Order outcome could not be confirmed. Check your activity or contact support.',
+    recoverable: false,
+  },
+  [PredictErrorCode.VENUE_SIGNING_REFUSED]: {
+    category: 'action_failed',
+    message:
+      'This request could not be authorized. Review it before trying again.',
+    recoverable: true,
+  },
+  [PredictErrorCode.APP_UPDATE_REQUIRED]: {
+    category: 'unavailable',
+    message: 'Update MetaMask to continue trading with this venue.',
+    recoverable: false,
+  },
   [PredictErrorCode.MARKET_NOT_FOUND]: {
     category: 'action_failed',
     message: 'This prediction market could not be found.',
@@ -126,6 +163,11 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.POSITION_UNAVAILABLE]: {
     category: 'unavailable',
     message: 'Your position is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED]: {
+    category: 'unavailable',
+    message: 'Finish setting up your account to continue.',
     recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {

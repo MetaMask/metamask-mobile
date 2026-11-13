@@ -133,6 +133,36 @@ Order Previews and Funding Plans are short-lived, server-issued artifacts:
 
 Do not freeze full trading or funding interfaces until their vertical slices begin.
 
+### Quoted Order review and approval
+
+`PredictOrderService` owns operation state, same-preview coalescing, dispatch,
+the minimal recovery journal, and observe-only recovery. Product callers pass
+the Preview identity and an explicit `user-approved` event, never venue DSL
+inputs or rendered order values. An omitted approval can only observe an
+already dispatched operation; it cannot reuse an earlier confirmation.
+
+Kalshi's adapter keeps bounded, expiring rendering context for at most 32
+quoted Previews. It copies the quote-time input snapshot and derives count and
+YES-leg price from the validated canonical Preview, so later form or response
+object mutations cannot change the reviewed body. This is private venue
+execution context, not React or product workflow state. Lifecycle invalidation
+clears it, and the Engine approval-revocation generation fences identity,
+profile and lock changes, including a lock followed by an unlock.
+
+The adapter asks the Engine-owned signing capability to check the pinned
+request and returns only canonical review figures. Reviewing does not grant
+confirmation. The actual approval event grants the first signature;
+transport-level A2T/signature renewal uses `confirmed: false`. The signed body
+is still transmitted verbatim. Restored recovery references contain no
+approval or executable quote data and never reach this mutation path.
+
+Wallet reset synchronously closes recovery and first dispatch until journal
+deletion finishes. Identity lookups captured before reset cannot resume the
+deleted wallet afterward. Discovery pages are only unresolved snapshots:
+they cannot recreate a journal entry or downgrade an order whose newer
+receipt has resolved, and a concurrent manual-review receipt retains its
+durable marker even while its storage write is pending.
+
 ## Adding another Venue
 
 Add a second implementation by evidence:
