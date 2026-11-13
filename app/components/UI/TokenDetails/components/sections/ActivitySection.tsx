@@ -87,7 +87,8 @@ function useGroupedTokenActivity({
     data: apiEvmTransactions,
     hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
+    isError,
+    fetchNextVisiblePage,
   } = useTransactionsQuery(caipAssetId ? { assetId: caipAssetId } : undefined);
 
   const tokenApiItems = useMemo(
@@ -104,17 +105,17 @@ function useGroupedTokenActivity({
       tokenApiItems.length < DEFAULT_INITIAL_VISIBLE_ROWS &&
       hasNextPage &&
       !isFetchingNextPage &&
-      (apiEvmTransactions?.pages.length ?? 0) < 5
+      !isError
     ) {
-      fetchNextPage();
+      fetchNextVisiblePage();
     }
   }, [
     caipAssetId,
     tokenApiItems.length,
     hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
-    apiEvmTransactions?.pages.length,
+    isError,
+    fetchNextVisiblePage,
   ]);
 
   return useMemo(() => {

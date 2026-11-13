@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   type CaipAssetType,
@@ -22,6 +22,8 @@ type QueryOptions = Extract<
   TransactionQueryOptions,
   { getNextPageParam: unknown }
 >;
+
+const MAX_EMPTY_FILTERED_PAGES_TO_SKIP = 5;
 
 export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
   const groupEvmAccount = useSelector(
@@ -69,11 +71,55 @@ export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
     [evmAddress, excludedTxHashes, filters?.assetId],
   );
 
-  return useInfiniteQuery({
+  const query = useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
     enabled: accountIds.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });
+
+  const fetchNextVisiblePage = useCallback(() => {
+    if (!query.hasNextPage || query.isFetchingNextPage) {
+      return;
+    }
+    async function fetchPages() {
+      let visibleItemCount =
+        query.data?.pages.flatMap((page) => page.data).length ?? 0;
+      let pageCount = query.data?.pages.length ?? 0;
+      let emptyFilteredPagesSkipped = 0;
+      let result = await query.fetchNextPage();
+
+      while (
+        result.hasNextPage &&
+        emptyFilteredPagesSkipped < MAX_EMPTY_FILTERED_PAGES_TO_SKIP
+      ) {
+        const pages = result.data?.pages ?? [];
+        const nextPageCount = pages.length;
+        const nextVisibleItemCount = pages.flatMap((page) => page.data).length;
+
+        if (
+          nextVisibleItemCount > visibleItemCount ||
+          nextPageCount <= pageCount
+        ) {
+          break;
+        }
+
+        emptyFilteredPagesSkipped += 1;
+        visibleItemCount = nextVisibleItemCount;
+        pageCount = nextPageCount;
+        result = await query.fetchNextPage();
+      }
+    }
+
+    fetchPages().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    query.data?.pages,
+    query.fetchNextPage,
+    query.hasNextPage,
+    query.isFetchingNextPage,
+  ]);
+
+  return { ...query, fetchNextVisiblePage };
 };

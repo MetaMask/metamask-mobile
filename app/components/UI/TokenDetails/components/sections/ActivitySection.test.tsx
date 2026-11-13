@@ -490,7 +490,7 @@ describe('ActivitySection', () => {
       '../../../../Views/ActivityList/useTransactionsQuery',
     );
 
-    const mockFetchNextPage = jest.fn();
+    const mockFetchNextVisiblePage = jest.fn();
 
     useTransactionsQuery.mockReturnValue({
       data: {
@@ -502,13 +502,42 @@ describe('ActivitySection', () => {
       },
       hasNextPage: true,
       isFetchingNextPage: false,
-      fetchNextPage: mockFetchNextPage,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
     });
 
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
 
     render(<ActivitySection token={token} />);
 
-    expect(mockFetchNextPage).toHaveBeenCalled();
+    expect(mockFetchNextVisiblePage).toHaveBeenCalled();
+  });
+
+  it('does not fetch next page after a failed fetch', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    const mockFetchNextVisiblePage = jest.fn();
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: true,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
   });
 });
