@@ -145,6 +145,10 @@ export function startLatencyMonitoring(
       clearLatencySamples();
       return;
     }
+    // Android goes background → active with no `inactive`, so drop fetches that started while frozen.
+    if (isBackground) {
+      sampleEpoch += 1;
+    }
     isBackground = false;
   });
 }

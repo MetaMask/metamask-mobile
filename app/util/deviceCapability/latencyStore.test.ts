@@ -141,6 +141,17 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
+  it('drops a fetch that starts in background and settles after resume', () => {
+    emitAppState('background');
+    const epochAtStart = store.getLatencySampleEpoch();
+
+    emitAppState('active');
+    store.recordFetchSample(30000, epochAtStart);
+    store.recordFetchSample(30000, epochAtStart);
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
   it('keeps samples through inactive', () => {
     [8000, 8000].forEach((duration) => record(duration));
 
