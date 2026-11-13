@@ -3520,11 +3520,8 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderContext as jest.Mock).mockReturnValue(
         buildOrderContextMock({
           setAmount: mockSetAmount,
-          orderForm: {
-            ...buildOrderContextMock().orderForm,
-            amount: '5000',
-          },
-          maxPossibleAmount: 1000,
+          // orderForm.amount defaults to '11', above this max.
+          maxPossibleAmount: 5,
         }),
       );
       render(<PerpsOrderView />, { wrapper: TestWrapper });
@@ -3535,7 +3532,7 @@ describe('PerpsOrderView', () => {
         screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
       );
 
-      expect(mockSetAmount).toHaveBeenLastCalledWith('1000');
+      expect(mockSetAmount).toHaveBeenLastCalledWith('5');
     });
   });
 

@@ -18,10 +18,10 @@ import { Mockttp } from 'mockttp';
 /**
  * TAT-4608: a typed order amount must survive the amount keypad's Done.
  *
- * Done unmounts the keypad and remounts the amount slider. On Android that
- * remount used to commit 0% and wipe the amount. A component test cannot
- * reproduce it (the reset depends on native layout of the new slider), so this
- * runs on a device and taps Done with the driver.
+ * The keypad clamp used to run a stale mount-time closure (max = 0) in release
+ * builds and reset the typed amount to 0 on Done. This runs the real release
+ * renderer on a device, on both the full screen and the bottom sheet, and taps
+ * Done with the driver.
  */
 const SURFACES: {
   surface: PerpsOrderSurface;
