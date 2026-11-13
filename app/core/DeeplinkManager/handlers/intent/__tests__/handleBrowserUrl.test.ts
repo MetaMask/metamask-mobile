@@ -40,12 +40,9 @@ describe('handleBrowserUrl', () => {
         type: 'home-tab',
         routeName: Routes.BROWSER.HOME,
         params: {
-          screen: Routes.BROWSER.VIEW,
-          params: {
-            newTabUrl: 'https://test.com',
-            linkType: EXTERNAL_LINK_TYPE,
-            timestamp: expect.any(Number),
-          },
+          newTabUrl: 'https://test.com',
+          linkType: EXTERNAL_LINK_TYPE,
+          timestamp: expect.any(Number),
         },
       },
     });
