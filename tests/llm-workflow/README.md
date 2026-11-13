@@ -144,13 +144,20 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - `yarn mm describe-screen`
 - `yarn mm list-testids`
-- `yarn mm click <a11yRef>` or `--testid <id>`
+- `yarn mm click <a11yRef>` or `--testid <id>`. The click fails with `MM_TARGET_OBSCURED` when another element (for example the keyboard) covers the target, and nothing is tapped. `--dismiss-keyboard` closes a covering keyboard and taps again.
 - `yarn mm type <a11yRef> <text>` or `--testid <id>`
+- `yarn mm scroll-to-element <a11yRef>` or `--testid <id>`. `--direction` is the content direction (`down` reveals content below) and defaults to `auto`. The result has `swipes`, `inViewport` and `bounds`. A target that is found but not brought into view fails with `MM_TARGET_NOT_VISIBLE`.
 - `yarn mm wait-for`
 - `yarn mm get-text`
 - `yarn mm screenshot`
 - `yarn mm run-steps '<json>'`
 - `yarn mm cdp Runtime.evaluate '<json>'` when attached to a compatible Metro development build
+
+### Failures and exit codes
+
+A failed command prints one JSON line on stdout, `{"ok":false,"error":{"code","message","hint"?,"retryable"},"meta"?}`, and exits with a code per error class: 2 usage or validation, 3 no session or daemon down, 4 target not found or not actionable, 5 timeout, 6 platform or device unavailable, 1 anything else. A successful response has no `ok` field. See the `@metamask/client-mcp-core` README for the full table.
+
+Set `MM_ARTIFACTS_DIR` before the daemon starts to write session artifacts (`<dir>/<sessionId>/session.json`) to another directory. The default is `test-artifacts`.
 
 ## Android Limitations and Validation Status
 
@@ -174,7 +181,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 ## Troubleshooting
 
-Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` only preserves a consumer-thrown code when it is a known core code and collapses anything else into `MM_LAUNCH_FAILED`. The iOS-specific detail is carried in the message and remediation text.
+Launch errors use the core `ErrorCode` set, because the `mm` CLI maps each known core code to an exit code (an unknown `MM_*` code reaches the caller but exits 1). The iOS-specific detail is carried in the message and remediation text.
 
 | Error                     | Resolution                                                                                                                                                                                                                                                        |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -185,4 +192,4 @@ Launch errors use the core `ErrorCode` set, because `@metamask/client-mcp-core` 
 | `MM_NO_ACTIVE_SESSION`    | Run `yarn mm launch`.                                                                                                                                                                                                                                             |
 | `MM_TARGET_NOT_FOUND`     | Run `yarn mm describe-screen` and use fresh refs.                                                                                                                                                                                                                 |
 
-The workflow uses `@metamask/client-mcp-core` 0.13.1 (mobile platform support since 0.8.0); `@metamask/device-mcp` 0.7.0 supplies the device backends. The device-mcp snapshot helper and its `helper-first` default ship since `@metamask/device-mcp` 0.6.0. When a device-mcp build does not ship the helper APK, the backend default is `dump`. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).
+The workflow uses `@metamask/client-mcp-core` 0.14.0 (mobile platform support since 0.8.0); `@metamask/device-mcp` 0.8.0 supplies the device backends. The device-mcp snapshot helper and its `helper-first` default ship since `@metamask/device-mcp` 0.6.0. When a device-mcp build does not ship the helper APK, the backend default is `dump`. The Android adapter identifies the ADB backend via `@metamask/device-mcp`'s public `DeviceBackend.kind` discriminator (added in 0.3.3).
