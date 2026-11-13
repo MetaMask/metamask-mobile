@@ -163,6 +163,7 @@ jobs:
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
+      build_runner_provider: ${{ steps.build-runner-provider.outputs.runner_provider }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
       should_cache: ${{ (startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch') && steps.cache-mode.outputs.mode == 'write' }}
       cache_mode: ${{ steps.cache-mode.outputs.mode }}
@@ -239,6 +240,26 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || process.env.BUILD_NAME) + '\n');
           "
 
+      # Production- and RC-signed builds take their runner provider from the repo
+      # NAMESPACE_RUNNER_* variables only, so the dispatcher cannot move them to another provider.
+      - name: Resolve build runner provider
+        id: build-runner-provider
+        env:
+          SIGNING_AWS_SECRET: ${{ steps.config.outputs.signing_aws_secret }}
+          RUNNER_PROVIDER_INPUT: ${{ inputs.runner_provider }}
+        run: |
+          case "$SIGNING_AWS_SECRET" in
+            *-prod-signer*|*-rc-signer*)
+              if [ -n "$RUNNER_PROVIDER_INPUT" ] && [ "$RUNNER_PROVIDER_INPUT" != 'inherit' ]; then
+                echo "::warning::Ignoring runner_provider '${RUNNER_PROVIDER_INPUT}': ${SIGNING_AWS_SECRET} builds use the repo NAMESPACE_RUNNER_* variables."
+              fi
+              echo "runner_provider=" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "runner_provider=${RUNNER_PROVIDER_INPUT}" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
   setup-dependencies:
     name: Setup Dependencies (${{ matrix.platform }})
@@ -277,7 +298,7 @@ jobs:
     # 8GB Gradle heap on Android, macOS Tahoe for iOS (has Xcode 26.x).
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+        (needs.prepare.outputs.build_runner_provider != '' && needs.prepare.outputs.build_runner_provider != 'inherit' && needs.prepare.outputs.build_runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
         (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
@@ -292,7 +313,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          needs.prepare.outputs.build_runner_provider != '' && needs.prepare.outputs.build_runner_provider != 'inherit' && needs.prepare.outputs.build_runner_provider ||
           (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
           vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
@@ -301,7 +322,7 @@ jobs:
       # not visible to each other.
       GRADLE_USER_HOME: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          (needs.prepare.outputs.build_runner_provider != '' && needs.prepare.outputs.build_runner_provider != 'inherit' && needs.prepare.outputs.build_runner_provider ||
            (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
            vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
           '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
