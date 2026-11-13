@@ -160,6 +160,7 @@ const createKycController = (): KycController => {
     async () => sessionDisclaimers,
   );
   rootMessenger.registerActionHandler('KycService:createJourney', async () => ({
+    status: 'created',
     applicantAccessToken: SYNTHETIC_APPLICANT_TOKEN,
   }));
   rootMessenger.registerActionHandler(
