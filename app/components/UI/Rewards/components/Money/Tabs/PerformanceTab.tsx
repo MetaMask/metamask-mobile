@@ -170,7 +170,7 @@ const PerformanceErrorBanner: React.FC<{
   }[source];
 
   return (
-    <Box twClassName="mt-3 px-4 pt-4">
+    <Box twClassName="px-4 pt-4">
       <RewardsErrorBanner
         title={strings(`${copy}.error_fetching_title`)}
         description={strings(`${copy}.error_fetching_description`)}
@@ -242,7 +242,7 @@ const FunnelSection: React.FC<{
 
   return (
     <>
-      <SectionHeader title={localizedText.referrals} twClassName="pt-6 pb-4">
+      <SectionHeader title={localizedText.referrals} twClassName="pt-4 pb-4">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {localizedText.updatedDaily}
         </Text>
@@ -394,7 +394,7 @@ function ActivitySection<T extends { id: string }>({
         title={title}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={testIDs.header}
       />
       <Box twClassName={bottomPadding ? 'px-4 pb-8' : 'px-4'}>{body}</Box>
