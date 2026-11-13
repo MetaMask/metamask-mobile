@@ -298,6 +298,77 @@ describe('useNetworkConnectionBanner', () => {
         expect.stringMatching(/^\d+$/),
       );
     });
+
+    it('stays true when latency resets to unknown after an app resume', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result, rerender } = renderHookWithProviders();
+
+      latencyMock.mockReturnValue('UNKNOWN');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('turns false once latency reads OK', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result, rerender } = renderHookWithProviders();
+
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('shows again mid-session once the week has run out', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS + 60_000),
+      );
+      const { result, rerender } = renderHookWithProviders();
+      expect(result.current.isSlowNetwork).toBe(false);
+
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+      jest.mocked(Date.now).mockReturnValue(1_800_000_000_000 + 2 * 60_000);
+      latencyMock.mockReturnValue('SLOW');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('is true when the stored dismissal time is in the future', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(String(Date.now() + 60_000));
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+  });
+
+  describe('isVisible', () => {
+    it('is true while the RPC banner shows', () => {
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('is true while the slow network banner shows', () => {
+      latencyMock.mockReturnValue('SLOW');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('is false when neither banner shows', () => {
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(false);
+    });
   });
 
   describe('updateRpc', () => {

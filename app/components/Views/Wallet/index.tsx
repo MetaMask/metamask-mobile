@@ -1159,13 +1159,8 @@ const Wallet = ({
     ) : null;
 
   const networkConnectionBanner = useNetworkConnectionBanner();
-  const isNetworkConnectionBannerVisible =
-    networkConnectionBanner.isSlowNetwork ||
-    ((networkConnectionBanner.status === 'degraded' ||
-      networkConnectionBanner.status === 'unavailable') &&
-      Boolean(networkConnectionBanner.network));
   const hasBannerContent =
-    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
+    !basicFunctionalityEnabled || networkConnectionBanner.isVisible;
   const bannerContent = hasBannerContent ? (
     <View
       style={styles.banner}

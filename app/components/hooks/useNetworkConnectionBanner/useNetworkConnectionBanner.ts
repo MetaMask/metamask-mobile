@@ -42,14 +42,20 @@ function isSlowNetworkBannerSnoozed(): boolean {
   const dismissedAt = Number(
     StorageWrapper.getItemSync(SLOW_NETWORK_BANNER_DISMISSED_AT),
   );
+  const elapsedMs = Date.now() - dismissedAt;
+  // A negative elapsed time means the clock was ahead when the user dismissed.
   return (
-    dismissedAt > 0 && Date.now() - dismissedAt < SLOW_NETWORK_BANNER_SNOOZE_MS
+    dismissedAt > 0 &&
+    elapsedMs >= 0 &&
+    elapsedMs < SLOW_NETWORK_BANNER_SNOOZE_MS
   );
 }
 
 const useNetworkConnectionBanner = (): {
   status: NetworkConnectionBannerStatus;
   network: FailedNetwork | null;
+  /** True when either the RPC banner or the slow network banner shows. */
+  isVisible: boolean;
   /**
    * True when requests are slow across the board and the RPC banner isn't
    * already showing. Hidden for a week after the user dismisses it.
@@ -71,14 +77,27 @@ const useNetworkConnectionBanner = (): {
   const status = useSelector(selectNetworkConnectionBannerStatus);
   const network = useSelector(selectNetworkConnectionBannerNetwork);
   const latency = useNetworkLatency();
+  const [isLatencySlow, setIsLatencySlow] = useState(latency === 'SLOW');
   const [isSlowNetworkSnoozed, setIsSlowNetworkSnoozed] = useState(
     isSlowNetworkBannerSnoozed,
   );
 
+  // Latency resets to `UNKNOWN` on every app resume and network switch, so
+  // only a fresh `OK` reading hides the banner. Re-reading the snooze here lets
+  // it expire mid-session.
+  useEffect(() => {
+    if (latency === 'SLOW') {
+      setIsLatencySlow(true);
+      setIsSlowNetworkSnoozed(isSlowNetworkBannerSnoozed());
+    } else if (latency === 'OK') {
+      setIsLatencySlow(false);
+    }
+  }, [latency]);
+
   const isRpcBannerVisible =
     (status === 'degraded' || status === 'unavailable') && Boolean(network);
   const isSlowNetwork =
-    !isRpcBannerVisible && latency === 'SLOW' && !isSlowNetworkSnoozed;
+    !isRpcBannerVisible && isLatencySlow && !isSlowNetworkSnoozed;
 
   const dismissSlowNetwork = useCallback(() => {
     setIsSlowNetworkSnoozed(true);
@@ -200,6 +219,7 @@ const useNetworkConnectionBanner = (): {
   return {
     status,
     network,
+    isVisible: isRpcBannerVisible || isSlowNetwork,
     isSlowNetwork,
     dismissSlowNetwork,
     updateRpc,

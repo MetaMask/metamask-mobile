@@ -71,6 +71,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: false,
         isSlowNetwork: false,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -86,6 +87,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'degraded',
         network: null,
+        isVisible: false,
         isSlowNetwork: false,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -129,6 +131,7 @@ describe('NetworkConnectionBanner', () => {
         useNetworkConnectionBannerMock.mockReturnValue({
           status,
           network: makeNetwork(),
+          isVisible: true,
           isSlowNetwork: false,
           dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
@@ -156,6 +159,7 @@ describe('NetworkConnectionBanner', () => {
             chainId: '0x1',
             isInfuraEndpoint: true,
           }),
+          isVisible: true,
           isSlowNetwork: false,
           dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
@@ -179,6 +183,7 @@ describe('NetworkConnectionBanner', () => {
         useNetworkConnectionBannerMock.mockReturnValue({
           status,
           network: makeNetwork(),
+          isVisible: true,
           isSlowNetwork: false,
           dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
@@ -200,6 +205,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: true,
         isSlowNetwork: true,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -220,6 +226,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: true,
         isSlowNetwork: true,
         dismissSlowNetwork: mockDismiss,
         updateRpc: mockUpdateRpc,
@@ -236,6 +243,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: true,
         isSlowNetwork: true,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -259,6 +267,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: true,
         isSlowNetwork: true,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -282,6 +291,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: false,
         isSlowNetwork: false,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -318,6 +328,7 @@ describe('NetworkConnectionBanner', () => {
             chainId: '0x1',
             isInfuraEndpoint: true,
           }),
+          isVisible: true,
           isSlowNetwork: false,
           dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
@@ -337,6 +348,7 @@ describe('NetworkConnectionBanner', () => {
           name: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
           rpcUrl: 'https://custom-rpc.example.com',
         }),
+        isVisible: true,
         isSlowNetwork: false,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
@@ -355,6 +367,7 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'degraded',
         network: makeNetwork(),
+        isVisible: true,
         isSlowNetwork: false,
         dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
