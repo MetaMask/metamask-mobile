@@ -38,6 +38,7 @@ jest.mock('../../../../core/AppConstants', () => ({
 const FALLBACK_TOS_URL =
   'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf';
 const DYNAMIC_TOS_URL = 'https://docs.baanx.us/metamask/terms-of-service.pdf';
+const MOCK_TIMESTAMP = 123;
 
 jest.mock('react-native', () => ({
   Linking: {
@@ -100,6 +101,7 @@ const setupMocks = (
   mockEventBuilder: ReturnType<typeof createMockEventBuilder>,
   browserTabs: BrowserTab[] | null | undefined = STABLE_EMPTY_TABS,
 ) => {
+  jest.mocked(Date.now).mockReturnValue(MOCK_TIMESTAMP);
   (useSelector as jest.Mock).mockImplementation((selector) => {
     if (selector === selectCardActiveProviderId) {
       return 'baanx';
@@ -162,11 +164,9 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.BROWSER.HOME,
           expect.objectContaining({
-            screen: Routes.BROWSER.VIEW,
-            params: expect.objectContaining({
-              newTabUrl: url,
-              fromCard: true,
-            }),
+            newTabUrl: url,
+            timestamp: expect.any(Number),
+            fromCard: true,
           }),
         );
       });
@@ -192,12 +192,10 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.BROWSER.HOME,
           expect.objectContaining({
-            screen: Routes.BROWSER.VIEW,
-            params: expect.objectContaining({
-              existingTabId: tabId,
-              newTabUrl: undefined,
-              fromCard: true,
-            }),
+            existingTabId: tabId,
+            newTabUrl: undefined,
+            timestamp: expect.any(Number),
+            fromCard: true,
           }),
         );
       });
@@ -275,10 +273,10 @@ describe('useNavigateToInternalBrowserPage', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          params: expect.objectContaining({
-            existingTabId: 'first-tab',
-            fromCard: true,
-          }),
+          existingTabId: 'first-tab',
+          newTabUrl: undefined,
+          timestamp: expect.any(Number),
+          fromCard: true,
         }),
       );
     });
@@ -327,11 +325,9 @@ describe('useNavigateToCardPage', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            newTabUrl: 'https://travel.metamask.io/access',
-            fromCard: true,
-          }),
+          newTabUrl: 'https://travel.metamask.io/access',
+          timestamp: expect.any(Number),
+          fromCard: true,
         }),
       );
     });

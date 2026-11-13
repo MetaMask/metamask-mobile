@@ -8,6 +8,7 @@ import Engine from '../../../core/Engine';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { analytics } from '../../../util/analytics/analytics';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -82,6 +83,9 @@ const mockInitialState = {
   browser: { tabs: [] },
   security: { dataCollectionForMarketing: false },
 };
+
+const EXPECTED_PORTFOLIO_URL =
+  'https://portfolio.metamask.io/?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false';
 
 describe('AccountOverview', () => {
   beforeEach(() => {
@@ -160,6 +164,13 @@ describe('AccountOverview', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.PORTFOLIO_LINK_CLICKED,
+      }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      expect.objectContaining({
+        timestamp: expect.any(Number),
+        newTabUrl: EXPECTED_PORTFOLIO_URL,
       }),
     );
   });
