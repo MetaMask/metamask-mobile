@@ -8,7 +8,6 @@ import NetworkConnectionBanner, {
   SLOW_NETWORK_BANNER_TEST_ID,
 } from './NetworkConnectionBanner';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { TESTID_BANNER_CLOSE_BUTTON_ICON } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 
 jest.mock('../../hooks/useNetworkConnectionBanner');
 
@@ -233,8 +232,10 @@ describe('NetworkConnectionBanner', () => {
         switchToInfura: jest.fn(),
       });
 
-      const { getByTestId } = renderWithProvider(<NetworkConnectionBanner />);
-      fireEvent.press(getByTestId(TESTID_BANNER_CLOSE_BUTTON_ICON));
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+      fireEvent.press(getByLabelText('Dismiss slow connection banner'));
 
       expect(mockDismiss).toHaveBeenCalledTimes(1);
     });

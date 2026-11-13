@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
 import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
-import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
-import { DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONNAME } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
-import { Theme } from '../../../util/theme/models';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -17,6 +13,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {
+  BannerBase,
+  BoxBackgroundColor,
   FontWeight,
   Icon,
   IconColor,
@@ -170,7 +168,6 @@ const SwitchToInfuraButton = ({
 );
 
 const getBannerContent = (
-  theme: Theme,
   status: 'degraded' | 'unavailable',
   network: FailedNetwork,
   updateRpc: () => void,
@@ -178,7 +175,7 @@ const getBannerContent = (
 ): {
   primaryMessage: React.ReactNode;
   secondaryMessage: React.ReactNode;
-  backgroundColor: string;
+  backgroundColor: BoxBackgroundColor;
   icon: BannerIcon;
 } => {
   // Check if we have an Infura endpoint available to switch to
@@ -209,7 +206,7 @@ const getBannerContent = (
     return {
       primaryMessage,
       secondaryMessage,
-      backgroundColor: theme.colors.background.section,
+      backgroundColor: BoxBackgroundColor.BackgroundSection,
       icon: {
         color: IconColor.IconDefault,
         name: IconName.Loading,
@@ -262,9 +259,7 @@ const getBannerContent = (
   return {
     primaryMessage,
     secondaryMessage,
-    // Can't use Tailwind class here because they don't allow for using this
-    // color as a background color
-    backgroundColor: theme.colors.error.muted,
+    backgroundColor: BoxBackgroundColor.ErrorMuted,
     icon: {
       color: IconColor.ErrorDefault,
       name: IconName.Danger,
@@ -285,9 +280,6 @@ export const NetworkConnectionBannerContent = ({
   switchToInfura,
   updateRpc,
 }: NetworkConnectionBannerData) => {
-  const theme = useAppTheme();
-  const tw = useTailwind();
-
   // The banner appears on its own, so screen readers need to be told about it.
   useEffect(() => {
     if (isSlowNetwork) {
@@ -303,10 +295,8 @@ export const NetworkConnectionBannerContent = ({
     return (
       <BannerBase
         testID={SLOW_NETWORK_BANNER_TEST_ID}
-        style={{
-          backgroundColor: theme.colors.background.section,
-          ...tw`rounded-2xl`,
-        }}
+        backgroundColor={BoxBackgroundColor.BackgroundSection}
+        twClassName="rounded-2xl"
         startAccessory={
           <Icon
             name={IconName.Wifi}
@@ -331,7 +321,6 @@ export const NetworkConnectionBannerContent = ({
         }
         onClose={dismissSlowNetwork}
         closeButtonProps={{
-          iconName: DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONNAME,
           accessibilityLabel: strings(
             'network_connection_banner.dismiss_slow_network',
           ),
@@ -345,11 +334,12 @@ export const NetworkConnectionBannerContent = ({
   }
 
   const { primaryMessage, secondaryMessage, backgroundColor, icon } =
-    getBannerContent(theme, status, network, updateRpc, switchToInfura);
+    getBannerContent(status, network, updateRpc, switchToInfura);
 
   return (
     <BannerBase
-      style={{ backgroundColor, ...tw`rounded-2xl` }}
+      backgroundColor={backgroundColor}
+      twClassName="rounded-2xl"
       startAccessory={
         <icon.component
           name={icon.name}
