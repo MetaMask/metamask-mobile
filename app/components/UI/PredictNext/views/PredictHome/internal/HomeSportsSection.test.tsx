@@ -80,7 +80,7 @@ describe('HomeSportsSection', () => {
     });
   });
 
-  it('scrolls freely, without snapping, with 16pt edges and 8pt between cards', () => {
+  it('scrolls freely, without snapping, with 16pt edges and 12pt between cards', () => {
     renderSection();
 
     const row = screen.getByTestId(PredictHomeTestIds.HOME_SPORTS_ROW);
@@ -90,7 +90,7 @@ describe('HomeSportsSection', () => {
     expect(StyleSheet.flatten(row.props.contentContainerStyle)).toEqual({
       paddingLeft: 16,
       paddingRight: 16,
-      gap: 8,
+      gap: 12,
     });
     expect(screen.getByTestId(PredictHomeTestIds.HOME_SPORTS)).toHaveStyle({
       marginLeft: -16,

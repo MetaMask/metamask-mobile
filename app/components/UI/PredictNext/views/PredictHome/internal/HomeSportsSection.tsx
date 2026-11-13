@@ -38,7 +38,7 @@ interface HomeSportsSectionProps {
 
 /**
  * Home's Sports row: a "Sports" header with a chevron, then a free-scrolling
- * row of small game cards 8pt apart, with no snapping and no pagination. The
+ * row of small game cards 12pt apart, with no snapping and no pagination. The
  * row spans the screen edge to edge, so the first card starts 16pt in; the
  * header keeps its own 16pt padding. Skeleton cards of the same size stand in
  * while loading, and nothing renders once loaded without an Event.
@@ -75,7 +75,7 @@ export const HomeSportsSection = ({
         testID={PredictHomeTestIds.HOME_SPORTS_ROW}
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-2')}
+        contentContainerStyle={tw.style('px-4 gap-3')}
       >
         {isLoading
           ? Array.from({ length: SKELETON_COUNT }, (_, index) => (
