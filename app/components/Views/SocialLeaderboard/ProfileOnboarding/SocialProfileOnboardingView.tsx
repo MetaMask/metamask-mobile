@@ -114,6 +114,8 @@ import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
 } from '../terms/socialTermsAcceptance';
+import { useOpenPendingSocialPreviewTarget } from '../TraderPreviewSheet/useOpenPendingSocialPreviewTarget';
+import { takePendingSocialPreviewTarget } from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
@@ -513,6 +515,15 @@ const SocialProfileOnboardingView: React.FC = () => {
     fetchAndUpdateProfile,
   } = useProfileController();
   const isTermsOnlyRoute = route.params?.termsOnly === true;
+  const openPendingSocialPreviewTarget = useOpenPendingSocialPreviewTarget();
+  // A trader preview link is only opened by this onboarding run. Leaving
+  // without finishing drops it, so a later onboarding is not redirected.
+  useEffect(
+    () => () => {
+      takePendingSocialPreviewTarget('onboarding');
+    },
+    [],
+  );
   // The entry gates only read ProfileController, which is empty on a fresh
   // install until the profile is fetched. Ask the server before offering to
   // create one, so an existing profile is never replaced.
@@ -934,6 +945,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       // The termsOnly route is pushed by a Social entry gate that expects to
       // return to its caller. An existing profile found on open has no caller
       // to return to, so it opens the Social tab instead.
+      if (openPendingSocialPreviewTarget(navigation)) {
+        return;
+      }
       if (isTermsOnlyRoute) {
         navigation.goBack();
       } else {
@@ -952,6 +966,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     beginConnectX,
     isTermsOnlyRoute,
     navigation,
+    openPendingSocialPreviewTarget,
     pendingTermsOnly,
     pendingTermsPath,
     startManualPath,
@@ -1272,6 +1287,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     if (!profileCreatedRef.current) {
       return;
     }
+    if (openPendingSocialPreviewTarget(navigation)) {
+      return;
+    }
     if (draft.path === 'x') {
       // Replace drops onboarding from the stack. My Profile's replace is a pop,
       // so this screen's slide_from_left plays and it leaves toward the left.
@@ -1279,7 +1297,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       return;
     }
     finishProfileOnboardingToSocialTab(navigation);
-  }, [draft.path, navigation]);
+  }, [draft.path, navigation, openPendingSocialPreviewTarget]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);

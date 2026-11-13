@@ -11,6 +11,12 @@ import {
 import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { waitFor } from '@testing-library/react-native';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
+
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview',
+  () => ({ openSocialTraderPreviewIfNotJoined: jest.fn(() => false) }),
+);
 
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
@@ -82,6 +88,36 @@ describe('handleSocialTraderPositionUrl', () => {
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockIsSocialV1Treatment.mockReturnValue(false);
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(true);
+    jest.mocked(openSocialTraderPreviewIfNotJoined).mockReturnValue(false);
+  });
+
+  it('opens the trader preview for a shared link when the user has not joined Social', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(openSocialTraderPreviewIfNotJoined).mockReturnValue(true);
+
+    handleSocialTraderPositionUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+
+    expect(openSocialTraderPreviewIfNotJoined).toHaveBeenCalledWith(
+      NavigationService.navigation,
+      { kind: 'position', traderId: 'trader-1', positionId: 'position-1' },
+    );
+    expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+    expect(mockNavigateToSocialV1Profile).not.toHaveBeenCalled();
+  });
+
+  it('keeps the terms gate for a notification instead of the trader preview', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
+    });
+
+    expect(openSocialTraderPreviewIfNotJoined).not.toHaveBeenCalled();
+    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
   });
 
   it('tracks the notification click but does not open the position when the Social terms are not accepted', () => {

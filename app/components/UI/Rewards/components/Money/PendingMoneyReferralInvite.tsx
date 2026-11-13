@@ -18,6 +18,7 @@ import { detectAppInstallation } from '../../../../../core/DeeplinkManager/util/
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { runAfterInteractions } from '../../utils/runAfterInteractions';
+import { usePendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 
 /**
  * How long the referral me read may take before the code is dropped. The push
@@ -149,6 +150,10 @@ const PendingMoneyReferralInvite = () => {
   const dispatch = useDispatch();
   const referralCode = useSelector(selectPendingMoneyReferralCode);
   const isReferralLinkPending = useSelector(selectIsReferralLinkPending);
+  // A Social link opened before joining Social offers the code in the trader
+  // preview instead, which answers it when it closes.
+  const isSocialPreviewOpen =
+    usePendingSocialPreviewTarget()?.stage === 'previewing';
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -165,7 +170,12 @@ const PendingMoneyReferralInvite = () => {
     }
   }, [canOfferInvite, dispatch, referralCode]);
 
-  if (!referralCode || !canOfferInvite || isReferralLinkPending) {
+  if (
+    !referralCode ||
+    !canOfferInvite ||
+    isReferralLinkPending ||
+    isSocialPreviewOpen
+  ) {
     return null;
   }
 

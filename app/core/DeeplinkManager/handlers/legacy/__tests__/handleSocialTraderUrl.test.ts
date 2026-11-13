@@ -8,6 +8,12 @@ import {
   popToSocialTab,
 } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
+
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview',
+  () => ({ openSocialTraderPreviewIfNotJoined: jest.fn(() => false) }),
+);
 
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
@@ -43,22 +49,32 @@ describe('handleSocialTraderUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
   const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
   const mockEnsureSocialTermsAccepted = jest.mocked(ensureSocialTermsAccepted);
+  const mockOpenPreview = jest.mocked(openSocialTraderPreviewIfNotJoined);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialV1Treatment.mockReturnValue(false);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
+    mockOpenPreview.mockReturnValue(false);
   });
 
-  it('stops before opening a profile when the Social terms are not accepted', () => {
+  it('opens the trader preview instead of the profile when the user has not joined Social', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
-    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+    mockOpenPreview.mockReturnValue(true);
 
     handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
 
-    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOpenPreview).toHaveBeenCalledWith(NavigationService.navigation, {
+      kind: 'trader',
+      traderId: 'trader-1',
+    });
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
+  });
+
+  it('does not open the trader preview for the Social V1 control', () => {
+    handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
+
+    expect(mockOpenPreview).not.toHaveBeenCalled();
   });
 
   it('opens the V0 trader profile when the Social V1 flag is control', () => {

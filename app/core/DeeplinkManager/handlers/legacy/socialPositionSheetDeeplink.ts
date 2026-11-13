@@ -3,6 +3,9 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import ReactQueryService from '../../../ReactQueryService';
+import NavigationService from '../../../NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import type { SocialV1FeedAuthor } from '../../../../components/UI/SocialFeed/types';
 import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedCardStats';
@@ -121,4 +124,46 @@ export const resolveSharedSocialPosition = async (
     author: await resolveSocialPositionAuthor(authorProfileId, logPrefix),
     isOwnerMismatch: true,
   };
+};
+
+/**
+ * A shared position opens like a profile row tap: the trader's Social V1
+ * profile, with the position sheet over it. A position that can no longer be
+ * fetched leaves the user on the profile. A position the trader doesn't own
+ * opens on its real owner's profile instead.
+ */
+export const openSharedPositionOnProfile = (
+  positionId: string,
+  traderId: string,
+  logPrefix: string,
+): void => {
+  navigateToSocialV1Profile(NavigationService.navigation, {
+    traderId,
+    source: 'deep_link',
+  });
+  resolveSharedSocialPosition(positionId, traderId, logPrefix)
+    .then((shared) => {
+      if (!shared) {
+        return;
+      }
+      const { position, author, isOwnerMismatch } = shared;
+      if (isOwnerMismatch) {
+        navigateToSocialV1Profile(NavigationService.navigation, {
+          traderId: author.id,
+          traderName: author.username,
+          traderAddress: author.address,
+          traderAvatarUri: author.avatarUri ?? undefined,
+          source: 'deep_link',
+        });
+      }
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId,
+        position,
+        author,
+        shareSource: 'deep_link',
+      });
+    })
+    .catch((error: unknown) => {
+      DevLogger.log(`${logPrefix} Failed to open the position sheet:`, error);
+    });
 };

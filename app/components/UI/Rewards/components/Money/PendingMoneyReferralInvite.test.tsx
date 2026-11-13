@@ -15,6 +15,7 @@ import * as SettingsSelectors from '../../../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as RewardsMoneyFlagSelectors from '../../../../../selectors/featureFlagController/rewardsMoneyController';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import { setPendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 import PendingMoneyReferralInvite, {
   MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
   MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS,
@@ -190,6 +191,27 @@ describe('PendingMoneyReferralInvite', () => {
 
     await act(async () => {
       store.dispatch(setReferralLinkPending(false));
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        { referralCode: 'KOL1', entryType: 'deeplink' },
+      );
+    });
+  });
+
+  it('waits while the Social trader preview is open', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'previewing',
+    });
+    renderInvite();
+    expect(mockFetchReferralMe).not.toHaveBeenCalled();
+
+    await act(async () => {
+      setPendingSocialPreviewTarget(null);
     });
 
     await waitFor(() => {
