@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 import {
   Box,
@@ -31,6 +31,8 @@ const SKELETON_COUNT = 3;
 
 interface PredictLiveNowSectionProps {
   testID?: string;
+  /** Fired when the rail leaves or re-enters its initial load. */
+  onSettledChange?: (settled: boolean) => void;
 }
 
 type CarouselItem = PredictMarketType | undefined;
@@ -44,6 +46,7 @@ type CarouselItem = PredictMarketType | undefined;
  */
 const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
+  onSettledChange,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -56,6 +59,9 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   // interval (not just cardWidth) to stay in sync with the snapped card.
   const snapInterval = useMemo(() => cardWidth + CARD_GAP, [cardWidth]);
   const { items, isLoading, isEmpty, config } = usePredictLiveNowSection();
+  useEffect(() => {
+    onSettledChange?.(!isLoading);
+  }, [isLoading, onSettledChange]);
   const isCustom = config.mode === 'custom';
   const isHeaderInteractive = !isCustom || Boolean(config.deeplink);
 

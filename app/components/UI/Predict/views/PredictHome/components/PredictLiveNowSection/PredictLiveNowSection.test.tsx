@@ -200,6 +200,23 @@ describe('PredictLiveNowSection', () => {
     jest.clearAllMocks();
   });
 
+  it('reports when the rail is still loading and when it has settled', () => {
+    const onSettledChange = jest.fn();
+    setSection({ isLoading: true, items: [] });
+
+    const { rerender } = renderWithProvider(
+      <PredictLiveNowSection onSettledChange={onSettledChange} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(onSettledChange).toHaveBeenCalledWith(false);
+
+    setSection({ isLoading: false, items: [createLiveMarket('L1')] });
+    rerender(<PredictLiveNowSection onSettledChange={onSettledChange} />);
+
+    expect(onSettledChange).toHaveBeenLastCalledWith(true);
+  });
+
   it('renders a market card for each live item', () => {
     setSection({ items: [createLiveMarket('L1'), createLiveMarket('L2')] });
 

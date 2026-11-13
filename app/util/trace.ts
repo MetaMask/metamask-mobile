@@ -252,6 +252,7 @@ export enum TraceName {
   /** Reconnect start -> first fresh positions delivered. */
   PerpsWebSocketReconnectToFreshData = 'Perps WebSocket Reconnect To Fresh Data',
   // Predict
+  PredictHomeView = 'Predict Home View',
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
   PredictBuyPreviewView = 'Predict Buy Preview View',
