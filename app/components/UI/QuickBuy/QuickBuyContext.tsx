@@ -1,4 +1,18 @@
-import React, { createContext, useCallback, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { selectDestToken } from '../../../core/redux/slices/bridge';
+import { isNegativeSecurityType } from '../Bridge/utils/tokenSecurityUtils';
+import { TokenWarningModalMode } from '../Bridge/components/TokenWarningModal/constants';
+import { getQuickBuyEntryPoint } from './utils/getQuickBuyEntryPoint';
 import {
   useQuickBuyController,
   type UseQuickBuyControllerResult,
@@ -25,9 +39,11 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   setActiveScreen: (screen: QuickBuyScreen) => void;
   sellQuickPercentages: QuickBuySellPercentTuple;
   /**
-   * Called by the Buy button. When the high-price-impact modal feature is
-   * enabled and the active quote exceeds the error threshold, this navigates
-   * to the `priceImpactConfirm` screen instead of submitting immediately.
+   * Called by the Buy button. A flagged destination token first opens the
+   * token warning modal, which continues below on Proceed. When the
+   * high-price-impact modal feature is enabled and the active quote exceeds
+   * the error threshold, this navigates to the `priceImpactConfirm` screen
+   * instead of submitting immediately.
    * Otherwise it delegates directly to `handleConfirm`.
    */
   handleBuy: () => Promise<void>;
@@ -93,7 +109,7 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     [],
   );
 
-  const handleBuy = useCallback(async () => {
+  const proceedToConfirm = useCallback(async () => {
     if (!isPresetAddFundsMode && isPriceImpactError) {
       // We guard here to ensure no high-impact trade ever silently proceeds.
       if (features.highPriceImpactModal) {
@@ -108,6 +124,41 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     isPriceImpactError,
     handleConfirm,
     setActiveScreen,
+  ]);
+
+  // The warning modal calls this after it closes, by which time the quote may
+  // have refreshed, so it must read the latest version.
+  const proceedToConfirmRef = useRef(proceedToConfirm);
+  proceedToConfirmRef.current = proceedToConfirm;
+
+  const navigation = useNavigation<AppNavigationProp>();
+  const securityData = useSelector(selectDestToken)?.securityData;
+
+  const handleBuy = useCallback(async () => {
+    if (
+      !isPresetAddFundsMode &&
+      securityData &&
+      isNegativeSecurityType(securityData.type)
+    ) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params: {
+          warningType: securityData.type,
+          features: securityData.metadata?.features ?? [],
+          mode: TokenWarningModalMode.Execution,
+          location: getQuickBuyEntryPoint(analyticsContext.source),
+          onProceed: () => proceedToConfirmRef.current(),
+        },
+      });
+      return;
+    }
+    await proceedToConfirm();
+  }, [
+    analyticsContext.source,
+    isPresetAddFundsMode,
+    navigation,
+    proceedToConfirm,
+    securityData,
   ]);
 
   // When the modal feature is off the button must be disabled for any

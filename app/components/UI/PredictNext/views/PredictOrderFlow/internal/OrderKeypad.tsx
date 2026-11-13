@@ -27,6 +27,9 @@ interface OrderKeypadProps {
   onDelete: () => void;
   /** Hides the decimal-point key for integer-only entry, as in sell mode. */
   showsDecimalKey?: boolean;
+  /** Puts the period and delete keys on the same filled tile as the digits
+   * (the buy sheet); otherwise they sit on a transparent tile. */
+  hasFilledActionKeys?: boolean;
 }
 
 interface KeyProps {
@@ -67,13 +70,14 @@ const Key = ({
 /**
  * The in-sheet numeric keypad, styled after the legacy Base/Keypad: muted
  * 48px tiles on a 12px grid, DisplayMd labels at medium weight (the legacy
- * keypad overrides the variant's bold default with font-medium), a bare
- * period key and a bare backspace key.
+ * keypad overrides the variant's bold default with font-medium). The period
+ * and backspace keys are bare unless `hasFilledActionKeys` is set.
  */
 export const OrderKeypad = ({
   onKeyPress,
   onDelete,
   showsDecimalKey = true,
+  hasFilledActionKeys = false,
 }: OrderKeypadProps) => (
   <Box testID={PredictOrderFlowTestIds.KEYPAD} twClassName="gap-3 px-4 py-4">
     {DIGIT_ROWS.map((row) => (
@@ -97,7 +101,7 @@ export const OrderKeypad = ({
     <Box twClassName="flex-row gap-3">
       {showsDecimalKey ? (
         <Key
-          isPlain
+          isPlain={!hasFilledActionKeys}
           testID={PredictOrderFlowTestIds.KEYPAD_KEY('.')}
           onPress={() => onKeyPress('.')}
         >
@@ -118,7 +122,7 @@ export const OrderKeypad = ({
         </Text>
       </Key>
       <Key
-        isPlain
+        isPlain={!hasFilledActionKeys}
         testID={PredictOrderFlowTestIds.KEYPAD_KEY('delete')}
         onPress={onDelete}
         accessibilityLabel={strings('predict_next.order_preview.delete')}

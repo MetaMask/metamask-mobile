@@ -173,6 +173,229 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBe('🔥');
   });
 
+  it('keeps the order it is given on mount instead of re-ranking', () => {
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '😡', count: 1 },
+            { emotion: '❤️', count: 2 },
+            { emotion: '🔥', count: 0 },
+          ],
+          null,
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '😡', count: 1 },
+      { emotion: '❤️', count: 2 },
+    ]);
+  });
+
+  it('keeps chips in place when the server re-sorts after the viewer reacts', async () => {
+    mockReactToComment.mockResolvedValue({
+      reactions: [
+        { emotion: '😡', count: 2 },
+        { emotion: '❤️', count: 1 },
+      ],
+      userReaction: '😡',
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+          '❤️',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😡');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 1 },
+      { emotion: '😡', count: 2 },
+    ]);
+    expect(mockPatchFeedCommentEngagementInCache).toHaveBeenCalledWith(
+      expect.any(QueryClient),
+      'comment-1',
+      {
+        reactions: [
+          { emotion: '❤️', count: 1 },
+          { emotion: '😡', count: 2 },
+        ],
+        userReaction: '😡',
+      },
+    );
+  });
+
+  it('keeps the original order when the request fails', async () => {
+    mockReactToComment.mockRejectedValue(new Error('offline'));
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+          '❤️',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😡');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 2 },
+      { emotion: '😡', count: 1 },
+    ]);
+    expect(result.current.userReaction).toBe('❤️');
+  });
+
+  it('keeps the other chips in place when a middle chip drops to zero', async () => {
+    mockRemoveCommentReaction.mockResolvedValue({
+      reactions: [
+        { emotion: '🔥', count: 3 },
+        { emotion: '🚀', count: 1 },
+        { emotion: '👀', count: 1 },
+      ],
+      userReaction: null,
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '🔥', count: 3 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+            { emotion: '🚀', count: 1 },
+          ],
+          '😂',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 3 },
+      { emotion: '👀', count: 1 },
+      { emotion: '🚀', count: 1 },
+    ]);
+  });
+
+  it('puts a chip back in its old slot when the server keeps what the viewer removed', async () => {
+    mockRemoveCommentReaction.mockResolvedValue({
+      reactions: [
+        { emotion: '🔥', count: 3 },
+        { emotion: '😂', count: 1 },
+        { emotion: '👀', count: 1 },
+      ],
+      userReaction: null,
+    });
+    const { result } = renderHook(
+      () =>
+        useFeedPostReaction(
+          'comment-1',
+          [
+            { emotion: '🔥', count: 3 },
+            { emotion: '😂', count: 1 },
+            { emotion: '👀', count: 1 },
+          ],
+          '😂',
+        ),
+      { wrapper: wrapper(new QueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '🔥', count: 3 },
+      { emotion: '😂', count: 1 },
+      { emotion: '👀', count: 1 },
+    ]);
+  });
+
+  it('keeps chips in place when refreshed feed props re-sort the same post', () => {
+    const { result, rerender } = renderHook(
+      ({ reactions }: { reactions: { emotion: string; count: number }[] }) =>
+        useFeedPostReaction('comment-1', reactions, null),
+      {
+        wrapper: wrapper(new QueryClient()),
+        initialProps: {
+          reactions: [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+        },
+      },
+    );
+
+    rerender({
+      reactions: [
+        { emotion: '😡', count: 5 },
+        { emotion: '🚀', count: 3 },
+        { emotion: '❤️', count: 2 },
+      ],
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '❤️', count: 2 },
+      { emotion: '😡', count: 5 },
+      { emotion: '🚀', count: 3 },
+    ]);
+  });
+
+  it('takes a different post in its own order', () => {
+    const { result, rerender } = renderHook(
+      ({
+        commentId,
+        reactions,
+      }: {
+        commentId: string;
+        reactions: { emotion: string; count: number }[];
+      }) => useFeedPostReaction(commentId, reactions, null),
+      {
+        wrapper: wrapper(new QueryClient()),
+        initialProps: {
+          commentId: 'comment-1',
+          reactions: [
+            { emotion: '❤️', count: 2 },
+            { emotion: '😡', count: 1 },
+          ],
+        },
+      },
+    );
+
+    rerender({
+      commentId: 'comment-2',
+      reactions: [
+        { emotion: '😡', count: 4 },
+        { emotion: '❤️', count: 1 },
+      ],
+    });
+
+    expect(result.current.reactions).toStrictEqual([
+      { emotion: '😡', count: 4 },
+      { emotion: '❤️', count: 1 },
+    ]);
+  });
+
   it('ignores a second pick while a request is pending', async () => {
     const queryClient = new QueryClient();
     let resolvePut: (value: {

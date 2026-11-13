@@ -1,6 +1,6 @@
 // third party dependencies
 import { View } from 'react-native';
-import { HeaderStandard, Text } from '@metamask/design-system-react-native';
+import { Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -56,6 +56,8 @@ import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
 import { getEvmNetworkConfigurationsByHexChainId } from './utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface NetworkManagerParams {
   /** Set only when opened from the Tokens list; used for analytics. */
@@ -83,6 +85,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 };
 
 const NetworkManager = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { searchQuery } = useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -351,7 +354,9 @@ const NetworkManager = () => {
         shouldNavigateBack
       >
         <View style={containerStyle}>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isFloating={false}
+            isGlass={isGlassHeader}
             title={strings('wallet.networks')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
           />

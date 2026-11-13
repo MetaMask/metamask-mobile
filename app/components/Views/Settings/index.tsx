@@ -12,18 +12,24 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  SectionDivider,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -35,6 +41,7 @@ const createStyles = (colors: Colors) =>
 
 const Settings = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const tw = useTailwind();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
@@ -111,13 +118,12 @@ const Settings = () => {
     navigation.navigate(Routes.FEATURE_FLAG_OVERRIDE);
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   const onPressSnaps = () => {
     navigateWithDetails(navigation, createSnapsSettingsListNavDetails());
   };
-  ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandardGlass
@@ -133,14 +139,37 @@ const Settings = () => {
         style={styles.wrapper}
         testID={SettingsViewSelectorsIDs.SETTINGS_SCROLL_ID}
       >
+        <Box
+          style={tw.style('px-4 py-3')}
+          testID={SettingsViewSelectorsIDs.GROUP_GENERAL}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.general')}
+          </Text>
+        </Box>
         <SettingsDrawer
-          description={strings('app_settings.general_desc')}
           onPress={onPressGeneral}
-          title={strings('app_settings.general_title')}
+          title={strings('app_settings.preferences_and_display_title')}
           testID={SettingsViewSelectorsIDs.GENERAL}
         />
+        {isNotificationsFeatureEnabled() && (
+          <SettingsDrawer
+            onPress={onPressNotifications}
+            title={strings('app_settings.notifications_title')}
+            testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
+          />
+        )}
+
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
+          testID={SettingsViewSelectorsIDs.GROUP_SECURITY_AND_PRIVACY}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.security_and_privacy')}
+          </Text>
+        </Box>
         <SettingsDrawer
-          description={strings('app_settings.security_desc')}
           onPress={onPressSecurity}
           title={strings('app_settings.security_title')}
           warning={
@@ -151,48 +180,49 @@ const Settings = () => {
           testID={SettingsViewSelectorsIDs.SECURITY}
         />
         <SettingsDrawer
-          description={strings('app_settings.advanced_desc')}
-          onPress={onPressAdvanced}
-          title={strings('app_settings.advanced_title')}
-          testID={SettingsViewSelectorsIDs.ADVANCED}
-        />
-        <SettingsDrawer
-          description={strings('backupAndSync.description')}
           onPress={onPressBackupAndSync}
           title={strings('backupAndSync.title')}
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
-        {isNotificationsFeatureEnabled() && (
-          <SettingsDrawer
-            description={strings('app_settings.notifications_desc')}
-            onPress={onPressNotifications}
-            title={strings('app_settings.notifications_title')}
-            testID={SettingsViewSelectorsIDs.NOTIFICATIONS}
-          />
-        )}
-        {
-          ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-        }
+
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
+          testID={SettingsViewSelectorsIDs.GROUP_TRANSACTIONS_AND_ASSETS}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.transactions_and_assets')}
+          </Text>
+        </Box>
+        <SettingsDrawer
+          title={strings('app_settings.fiat_on_ramp.title')}
+          onPress={onPressOnRamp}
+          testID={SettingsViewSelectorsIDs.ON_RAMP}
+        />
+
+        <SectionDivider marginVertical={1} twClassName="mx-4" />
+        <Box
+          style={tw.style('px-4 py-3')}
+          testID={SettingsViewSelectorsIDs.GROUP_MORE}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('app_settings.groups.more')}
+          </Text>
+        </Box>
+        <SettingsDrawer
+          onPress={onPressAdvanced}
+          title={strings('app_settings.advanced_title')}
+          testID={SettingsViewSelectorsIDs.ADVANCED}
+        />
         {CAN_INSTALL_THIRD_PARTY_SNAPS && (
           <SettingsDrawer
             title={strings('app_settings.snaps.title')}
-            description={strings('app_settings.snaps.description')}
             onPress={onPressSnaps}
             testID={SettingsViewSelectorsIDs.SNAPS}
           />
         )}
-        {
-          ///: END:ONLY_INCLUDE_IF
-        }
-        <SettingsDrawer
-          title={strings('app_settings.fiat_on_ramp.title')}
-          description={strings('app_settings.fiat_on_ramp.description')}
-          onPress={onPressOnRamp}
-          testID={SettingsViewSelectorsIDs.ON_RAMP}
-        />
         <SettingsDrawer
           title={strings('app_settings.experimental_title')}
-          description={strings('app_settings.experimental_desc')}
           onPress={onPressExperimental}
           testID={SettingsViewSelectorsIDs.EXPERIMENTAL}
         />
@@ -206,9 +236,6 @@ const Settings = () => {
           isTestEnvironment && (
             <SettingsDrawer
               title={strings('app_settings.aes_crypto_test_form_title')}
-              description={strings(
-                'app_settings.aes_crypto_test_form_description',
-              )}
               onPress={onPressAesCryptoTestForm}
               testID={SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM}
             />
@@ -223,9 +250,6 @@ const Settings = () => {
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (
           <SettingsDrawer
             title={strings('app_settings.feature_flag_override.title')}
-            description={strings(
-              'app_settings.feature_flag_override.description',
-            )}
             onPress={onPressFeatureFlagOverride}
           />
         )}

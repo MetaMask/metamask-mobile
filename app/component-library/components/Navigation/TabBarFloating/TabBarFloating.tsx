@@ -15,7 +15,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
-import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../components/UI/Money/hooks/useMoneyHomeNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -76,7 +76,7 @@ const TabBarFloating = ({
   const { bottom: bottomInset } = useSafeAreaInsets();
 
   const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const lastReportedHeight = useRef<number>(0);
   const handleLayout = useCallback(
@@ -134,6 +134,12 @@ const TabBarFloating = ({
           previousTabIndexRef.current = index;
         }
         options.callback?.();
+        // Lets a focused screen react to its own tab being tapped again.
+        navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {

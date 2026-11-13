@@ -7,14 +7,11 @@ import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
-import {
-  getPermissionsHandler,
-  requestPermissionsHandler,
-  revokePermissionsHandler,
-} from '@metamask/eip1193-permission-middleware';
+import { methodHandlers } from '@metamask/eip1193-permission-middleware';
 import RPCMethods from './index.js';
 import { toHex } from '@metamask/controller-utils';
 import {
+  MethodNames,
   PermissionController,
   PermissionDoesNotExistError,
   RequestedPermissions,
@@ -55,14 +52,12 @@ const Engine = ImportedEngine as any;
 
 let appVersion = '';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 export const SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES = {
   confirmAccountCreation: 'snap_manageAccounts:confirmAccountCreation',
   confirmAccountRemoval: 'snap_manageAccounts:confirmAccountRemoval',
   showSnapAccountRedirect: 'snap_manageAccounts:showSnapAccountRedirect',
   showNameSnapAccount: 'snap_manageAccounts:showNameSnapAccount',
 };
-///: END:ONLY_INCLUDE_IF
 
 export enum ApprovalTypes {
   CONNECT_ACCOUNTS = 'CONNECT_ACCOUNTS',
@@ -78,11 +73,9 @@ export enum ApprovalTypes {
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
   CONFIRM_MEMBERSHIP = 'confirm_membership',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface RPCMethodsMiddleParameters {
@@ -564,11 +557,9 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rpcMethods: any = {
+    const rpcMethods: Record<string, () => unknown> = {
       wallet_revokePermissions: async () =>
-        await revokePermissionsHandler.implementation(
+        await methodHandlers[MethodNames.RevokePermissions].implementation(
           req,
           res,
           next,
@@ -594,10 +585,10 @@ export const getRpcMethodMiddleware = ({
           },
         ),
       wallet_getPermissions: async () =>
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        new Promise<any>((resolve) => {
-          const handle = getPermissionsHandler.implementation(
+        new Promise<void>((resolve) => {
+          const handle = methodHandlers[
+            MethodNames.GetPermissions
+          ].implementation(
             req,
             res,
             next,
@@ -618,10 +609,8 @@ export const getRpcMethodMiddleware = ({
           });
         }),
       wallet_requestPermissions: async () =>
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        new Promise<any>((resolve, reject) => {
-          requestPermissionsHandler
+        new Promise<void>((resolve, reject) => {
+          methodHandlers[MethodNames.RequestPermissions]
             .implementation(
               req,
               res,

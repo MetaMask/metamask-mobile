@@ -1,8 +1,13 @@
 import '../mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
+import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
 import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
@@ -13,6 +18,13 @@ import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/
 import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
 import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
+import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
+import RewardsTabSkeleton from '../../../app/components/UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { useRewardsMoneyTabRouting } from '../../../app/components/UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard.testIds';
+import type { RootState } from '../../../app/reducers';
+import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
+import { selectSessionProfileId } from '../../../app/selectors/identity';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
@@ -23,6 +35,7 @@ import RewardsEarningsHistoryView from '../../../app/components/UI/Rewards/Views
 import RewardsMoneyReferralAcceptedSplashView from '../../../app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import type { MoneyReferralEntryType } from '../../../app/components/UI/Rewards/types/navigation';
 import RewardsTaxFormView from '../../../app/components/UI/Rewards/Views/RewardsTaxFormView';
+import SupportConsentSheet from '../../../app/components/UI/SupportConsentSheet';
 import { RewardsMoneyClaimRefusalError } from '../../../app/core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import type {
   ClaimDto,
@@ -37,6 +50,7 @@ import type {
 import Routes from '../../../app/constants/navigation/Routes';
 import {
   createRouteParamsProbe,
+  getRouteParamsProbeTestId,
   getRouteProbeTestId,
   renderScreenWithRoutes,
 } from '../render';
@@ -72,7 +86,7 @@ export type InitiateClaimMode = 'hang' | 'under_review';
 
 export interface RewardsMoneyEngineOptions {
   referralMe?: ReferralMeDto;
-  summary?: EarningsSummaryDto;
+  summary?: EarningsSummaryDto | null;
   /** Returned by the unwindowed summary read after an under-review refusal. */
   summaryAfterRefusal?: EarningsSummaryDto;
   history?: LedgerEntryDto[] | 'pending';
@@ -138,6 +152,9 @@ export function installRewardsMoneyEngine({
       const params = summaryParams(args);
       const current =
         refused && summaryAfterRefusal ? summaryAfterRefusal : summary;
+      if (current == null) {
+        return Promise.resolve(null);
+      }
       if (params.from) {
         return Promise.resolve(
           windowedEarningsSummary(current, params.from, params.to),
@@ -288,6 +305,41 @@ function RewardsFlowProbe() {
   );
 }
 
+export const REWARDS_ROOT_MODAL_BACK_TEST_ID = 'rewards-root-modal-back';
+
+function SupportWebviewProbe() {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  return (
+    <>
+      <Text testID={getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)}>
+        {JSON.stringify(route.params ?? {})}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        testID={REWARDS_ROOT_MODAL_BACK_TEST_ID}
+        onPress={() => navigation.goBack()}
+      />
+    </>
+  );
+}
+
+function RootModalFlowProbe() {
+  return (
+    <FlowStack.Navigator screenOptions={{ headerShown: false }}>
+      <FlowStack.Screen
+        name={Routes.MODAL.SUPPORT_CONSENT_SHEET}
+        component={SupportConsentSheet}
+      />
+      <FlowStack.Screen
+        name={Routes.WEBVIEW.SIMPLE}
+        component={SupportWebviewProbe}
+      />
+    </FlowStack.Navigator>
+  );
+}
+
 function rewardsFlowRoutes() {
   return [
     { name: Routes.REWARDS_FLOW, Component: RewardsFlowProbe },
@@ -320,6 +372,10 @@ function rewardsFlowRoutes() {
     {
       name: Routes.WEBVIEW.MAIN,
       Component: SupportWebviewStack,
+    },
+    {
+      name: Routes.MODAL.ROOT_MODAL_FLOW,
+      Component: RootModalFlowProbe,
     },
   ];
 }
@@ -487,11 +543,53 @@ export function renderRewardsSettingsView(
     ...renderScreenWithRoutes(
       RewardsSettingsView as unknown as React.ComponentType,
       { name: Routes.REWARDS_SETTINGS_VIEW },
-      [{ name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW }],
+      [
+        { name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW },
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: createRouteParamsProbe(Routes.MODAL.ROOT_MODAL_FLOW),
+        },
+      ],
       { state },
     ),
     engine,
   };
+}
+
+function WaysToEarnAfterReferralLoad() {
+  const { moneyReferralResolved, moneyPersona } = useRewardsMoneyTabRouting();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const personaReady =
+    moneyPersona === 'referee' || moneyPersona === 'referrer';
+
+  if (!moneyReferralResolved || !profileId || !referralMe || !personaReady) {
+    return (
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+    );
+  }
+
+  return (
+    <WaysToEarnTab
+      profileId={profileId}
+      referralMe={referralMe}
+      isSubscribed={false}
+    />
+  );
+}
+
+export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
+  return renderMoneyScreen(WaysToEarnAfterReferralLoad, 'WaysToEarnTab', {
+    seedReferralMe: false,
+    moneyControllerEnabled: true,
+    handlers: {
+      'AuthenticationController:getSessionProfile': () =>
+        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
+      'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
+    },
+  });
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {

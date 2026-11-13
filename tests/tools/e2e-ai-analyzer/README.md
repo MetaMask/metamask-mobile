@@ -2,6 +2,10 @@
 
 AI-powered analysis system for E2E tests. Uses an agentic approach to make intelligent decisions about automated testing.
 
+> **This tool does not run Smart E2E Selection.** Smart E2E (choosing E2E smoke tags for a PR in CI) runs through the shared [`MetaMask/ai-analyzer`](https://github.com/MetaMask/ai-analyzer) with the `smart-e2e` mode in [`.ai-pr-analyzer/modes/smart-e2e/`](../../../.ai-pr-analyzer/modes/smart-e2e/README.md). To change Smart E2E's model, prompts or hard rules, edit that folder. Changes to `config.ts` or the providers here do not affect it.
+>
+> This tool now only backs RC test-plan generation (`generate-test-plan` mode, `.github/workflows/generate-rc-test-plan.yml`).
+
 ## Usage
 
 It is designed to be used in different **modes**, being each mode responsible for a different aspect of the analysis.
@@ -25,35 +29,18 @@ yarn test:e2e:ai-test-plan --pr <PR_NUMBER>
 #### Direct invocation
 
 ```bash
-# Analyze a PR (fetches changed files via gh CLI; requires gh auth and network)
-node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --pr <PR_NUMBER>
-
-# Analyze local changes vs base branch (default: origin/main)
-node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags
-
-# Analyze specific changed files (space-separated; files must have actual changes)
-node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --changed-files "path/to/file1 path/to/file2"
+# Generate a test plan for a PR (fetches changed files via gh CLI; requires gh auth and network)
+node -r esbuild-register tests/tools/e2e-ai-analyzer --mode generate-test-plan --pr <PR_NUMBER>
 
 # Run with a specific provider
-node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
+node -r esbuild-register tests/tools/e2e-ai-analyzer --mode generate-test-plan --pr <PR_NUMBER> --provider <provider-name>
 ```
 
-For PR analysis, the same command is used in CI (see `.github/actions/smart-e2e-selection/e2e-smart-selection.mjs`). Locally, results are printed to the console; in CI, they are also written to `e2e-ai-analysis.json` and used as workflow outputs.
+Run `node -r esbuild-register tests/tools/e2e-ai-analyzer --help` for all options.
 
 ### Modes
 
-- `select-tags`: Analyzes PR code changes and selects which E2E smoke test tags to run in CI. Output Example:
-
-```json
-{
-  "selectedTags": ["SmokeAccounts", "SmokeCore"],
-  "riskLevel": "medium",
-  "confidence": 80,
-  "reasoning": "The PR touches the accounts screen, so we need to run the accounts smoke test."
-}
-```
-
-Source code in `modes/select-tags/`.
+- `generate-test-plan`: Analyzes the changes in a release branch (compared to `main`) and generates an exploratory test plan with high-risk areas, test scenarios and platform-specific notes. Source code in `modes/generate-test-plan/`.
 
 ### Providers
 
@@ -84,8 +71,9 @@ e2e-ai-analyzer/
 ├── analysis/                   # Core AI agentic loop
 ├── modes/                      # Analysis modes
 │   ├── shared/                 # Shared prompt components
-│   └── select-tags/            # Mode: select-tags
+│   └── generate-test-plan/     # Mode: generate-test-plan
 │       ├── handlers.ts         # Parse, process, output
+│       ├── fast-analyzer.ts    # Single-pass analysis
 │       └── prompt.ts           # System & task prompts
 ├── ai-tools/                   # Tools AI can call during the analysis
 │   ├── tool-registry.ts        # Tools definitions, i.e. what tools are available to do

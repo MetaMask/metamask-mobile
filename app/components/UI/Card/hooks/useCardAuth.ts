@@ -36,7 +36,9 @@ export const useCardAuth = () => {
       if (result.done || result.onboardingRequired) {
         setCurrentStep(LOGIN_STEP);
         if (result.done) {
-          queryClient.invalidateQueries({ queryKey: cardQueries.keys.all() });
+          void queryClient.invalidateQueries({
+            queryKey: cardQueries.keys.all(),
+          });
         }
       } else if (result.nextStep) {
         setCurrentStep(result.nextStep);
@@ -51,6 +53,12 @@ export const useCardAuth = () => {
   const stepAction = useMutation({
     mutationKey: cardQueries.auth.keys.stepAction(),
     mutationFn: () => getController().executeStepAction(),
+    retry: false,
+  });
+
+  const requestEmailCode = useMutation({
+    mutationKey: cardQueries.auth.keys.requestEmailCode(),
+    mutationFn: (email: string) => getController().requestEmailLoginCode(email),
     retry: false,
   });
 
@@ -69,13 +77,15 @@ export const useCardAuth = () => {
     initiate.reset();
     submit.reset();
     stepAction.reset();
-  }, [initiate, submit, stepAction]);
+    requestEmailCode.reset();
+  }, [initiate, submit, stepAction, requestEmailCode]);
 
   return {
     currentStep,
     initiate,
     submit,
     stepAction,
+    requestEmailCode,
     logout,
     resetToLogin,
     getErrorMessage: getCardProviderErrorMessage,

@@ -1,4 +1,4 @@
-import { PREDICT_UI_SLOTS_V1_CONTRACTS as MOBILE_UI_SLOTS_CONTRACT_REGISTRY } from '../../../../../components/UI/Predict/uiSlots/contracts/v1';
+import { MOBILE_UI_SLOTS_CONTRACTS as MOBILE_UI_SLOTS_CONTRACT_REGISTRY } from '../../../../../components/UI/UiSlots/contractRegistry';
 import { parseUiSlotsResponse } from './v1';
 
 const makeResponse = (slots: unknown[]) => ({

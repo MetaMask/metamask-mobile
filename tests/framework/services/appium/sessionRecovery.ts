@@ -1,5 +1,8 @@
 import { isUiAutomator2SessionDeadError } from '../../Constants.ts';
 
+/** iOS XCUITest accessibility server died (`window/rect` → kAXErrorServerNotFound). */
+export const IOS_ACCESSIBILITY_SERVER_DOWN = /kAXErrorServerNotFound/i;
+
 const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /pm clear/i,
   /MainActivity.*does not exist/i,
@@ -14,6 +17,7 @@ const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /Could not proxy command to the remote server/i,
   /device offline/i,
   /protocol fault/i,
+  IOS_ACCESSIBILITY_SERVER_DOWN,
 ];
 
 let recreateRequested = false;
@@ -27,17 +31,25 @@ export type SharedSessionRecreateHandler = () => Promise<WebdriverIO.Browser>;
 
 let sharedSessionRecreateHandler: SharedSessionRecreateHandler | undefined;
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return typeof error === 'string' ? error : '';
+}
+
+/** True when iOS SpringBoard's accessibility server is gone, not a missing element. */
+export function isIosAccessibilityServerError(error: unknown): boolean {
+  const message = errorMessage(error);
+  return message.length > 0 && IOS_ACCESSIBILITY_SERVER_DOWN.test(message);
+}
+
 /** True when the error looks like emulator/session health failure, not a product assert. */
 export function isDeviceHealthError(error: unknown): boolean {
   if (isUiAutomator2SessionDeadError(error)) {
     return true;
   }
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : '';
+  const message = errorMessage(error);
   return (
     message.length > 0 &&
     DEVICE_HEALTH_ERROR_PATTERNS.some((pattern) => pattern.test(message))

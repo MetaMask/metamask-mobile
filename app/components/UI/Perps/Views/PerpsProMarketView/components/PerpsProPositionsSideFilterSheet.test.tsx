@@ -11,6 +11,11 @@ import { DEFAULT_PRO_POSITION_SIDE_FILTER } from '../utils/proPositionSideFilter
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import { playSelection } from '../../../../../../util/haptics';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('./ProPositionSideFilterIcon', () => 'ProPositionSideFilterIcon');
 
 jest.mock('../../../../../../../locales/i18n', () => ({

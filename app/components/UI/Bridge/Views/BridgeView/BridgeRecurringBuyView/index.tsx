@@ -61,6 +61,10 @@ import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { getOrderTypeFromDraftPriceRange } from '../../../utils/recurringOrders';
+import {
+  getAdvancedOrderTokenProperties,
+  getAdvancedOrderTradeProperties,
+} from '../../../utils/advancedOrders';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
@@ -188,6 +192,8 @@ const BridgeRecurringBuyViewContent = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
         .addProperties({
+          ...getAdvancedOrderTokenProperties({ sourceToken, destToken }),
+          ...getAdvancedOrderTradeProperties(activeQuote),
           location,
           feature_id: FeatureId.RECURRING_ORDER,
           order_type: getOrderTypeFromDraftPriceRange(priceRange),
@@ -197,11 +203,15 @@ const BridgeRecurringBuyViewContent = ({
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+      params: { location },
     });
   }, [
+    activeQuote,
+    destToken,
     dismissInputAndKeypad,
     navigation,
     priceRange,
+    sourceToken,
     trackEvent,
     createEventBuilder,
     feeTokenValidation.isValid,
