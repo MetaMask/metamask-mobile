@@ -166,19 +166,27 @@ jest.mock(
 );
 
 const mockTopTradersMounted = jest.fn();
+const mockTopTradersProps: { current: Record<string, unknown> } = {
+  current: {},
+};
 jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   function MockTopTradersSection({
     source,
     prefetchProfiles,
+    chains,
   }: {
     source?: string;
     prefetchProfiles?: boolean;
+    chains?: string[];
   }) {
     MockReact.useEffect(() => {
       mockTopTradersMounted();
     }, []);
+    MockReact.useEffect(() => {
+      mockTopTradersProps.current = { source, prefetchProfiles, chains };
+    });
     return MockReact.createElement(
       View,
       {
@@ -224,6 +232,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { PERP_CHAINS } from '../../shared/top-traders-constants';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   PerpsConnectionContext,
@@ -325,6 +334,12 @@ describe('PerpsTab', () => {
   it('renders the top traders section when the feature flag is enabled', () => {
     const { getByTestId } = renderPerpsTab();
     expect(getByTestId('top-traders-section')).toBeOnTheScreen();
+  });
+
+  it('passes the perps-only chains to the top traders section', () => {
+    renderPerpsTab();
+
+    expect(mockTopTradersProps.current.chains).toStrictEqual(PERP_CHAINS);
   });
 
   it('hides top traders when the social leaderboard flag is off', () => {

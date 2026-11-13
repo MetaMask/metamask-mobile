@@ -42,6 +42,7 @@ import { trackExploreInteracted } from '../search/analytics';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSection';
+import { PERP_CHAINS } from '../../shared/top-traders-constants';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../util/theme';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -67,6 +68,7 @@ const PerpsTabListHeader: React.FC<{
         <Box twClassName="pb-1">
           <TopTradersSection
             source="explore_perps"
+            chains={PERP_CHAINS}
             prefetchProfiles={prefetchTraderProfiles}
           />
         </Box>
