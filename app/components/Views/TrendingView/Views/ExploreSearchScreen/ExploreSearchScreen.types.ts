@@ -22,3 +22,16 @@ export interface ExploreSearchRouteParams {
 
 export const getTrimmedInitialQuery = (initialQuery: unknown): string =>
   typeof initialQuery === 'string' ? initialQuery.trim() : '';
+
+export const getSearchQueryFromRouteParams = (
+  routeParams?: ExploreSearchRouteParams,
+): string | undefined => {
+  if (
+    routeParams?.initialQuery === undefined &&
+    routeParams?.entryPoint !== 'deeplink'
+  ) {
+    return undefined;
+  }
+
+  return getTrimmedInitialQuery(routeParams.initialQuery);
+};

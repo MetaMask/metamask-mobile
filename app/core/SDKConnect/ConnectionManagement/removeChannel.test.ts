@@ -1,11 +1,14 @@
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import removeChannel from './removeChannel';
 
 jest.mock('../../../core/AppConstants');
+jest.mock('../../Engine', () => ({ context: {} }));
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
+jest.mock('../utils/revokeChannelPermissions.util');
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn().mockResolvedValue([]),
   getItem: jest.fn().mockResolvedValue(JSON.stringify({})),
@@ -118,7 +121,6 @@ describe('removeChannel', () => {
 
   it('revokes permissions and deletes the channel when terminate fails', async () => {
     const mockChannelId = 'mockChannelId';
-    const revokeAllPermissions = jest.fn();
     const mockHost = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockChannelId;
 
     mockInstance.state.connected[mockChannelId] = {
@@ -129,23 +131,14 @@ describe('removeChannel', () => {
     } as unknown as SDKConnect['state']['connections'][string];
     mockInstance.state.approvedHosts[mockHost] = 1234567890;
 
-    const engine = {
-      context: {
-        PermissionController: {
-          getPermissions: jest.fn().mockReturnValue({ eth_accounts: {} }),
-          revokeAllPermissions,
-        },
-      },
-    } as unknown as typeof Engine;
-
     const result = await removeChannel({
       channelId: mockChannelId,
-      engine,
+      engine: Engine,
       instance: mockInstance,
     });
 
     expect(result).toBe(true);
-    expect(revokeAllPermissions).toHaveBeenCalledWith(mockChannelId);
+    expect(revokeChannelPermissions).toHaveBeenCalledWith(mockChannelId);
     expect(mockInstance.state.connected[mockChannelId]).toBeUndefined();
     expect(mockInstance.state.connections[mockChannelId]).toBeUndefined();
     expect(mockInstance.state.approvedHosts[mockHost]).toBeUndefined();
@@ -159,21 +152,13 @@ describe('removeChannel', () => {
       removeConnection: jest.fn().mockResolvedValue(true),
     } as unknown as SDKConnect['state']['connected'][string];
     mockInstance.state.approvedHosts[mockHost] = 1234567890;
-
-    const engine = {
-      context: {
-        PermissionController: {
-          getPermissions: jest.fn().mockReturnValue({ eth_accounts: {} }),
-          revokeAllPermissions: jest.fn(() => {
-            throw new Error('revoke failed');
-          }),
-        },
-      },
-    } as unknown as typeof Engine;
+    jest.mocked(revokeChannelPermissions).mockImplementationOnce(() => {
+      throw new Error('revoke failed');
+    });
 
     const result = await removeChannel({
       channelId: mockChannelId,
-      engine,
+      engine: Engine,
       instance: mockInstance,
     });
 
@@ -193,5 +178,24 @@ describe('removeChannel', () => {
     });
 
     expect(mockInstance.state.connecting[mockChannelId]).toBeUndefined();
+  });
+
+  it('revokes the channel permissions when an engine is provided', async () => {
+    await removeChannel({
+      channelId: 'mockChannelId',
+      engine: Engine,
+      instance: mockInstance,
+    });
+
+    expect(revokeChannelPermissions).toHaveBeenCalledWith('mockChannelId');
+  });
+
+  it('does not revoke permissions without an engine', async () => {
+    await removeChannel({
+      channelId: 'mockChannelId',
+      instance: mockInstance,
+    });
+
+    expect(revokeChannelPermissions).not.toHaveBeenCalled();
   });
 });

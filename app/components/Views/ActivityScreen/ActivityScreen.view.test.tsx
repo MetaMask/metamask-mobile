@@ -11,7 +11,10 @@ import {
   getRouteParamsProbeTestId,
   getRouteProbeTestId,
 } from '../../../../tests/component-view/render';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import {
+  describeForPlatforms,
+  itForPlatforms,
+} from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
@@ -60,6 +63,7 @@ import {
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
+  initialStateActivity,
   initialStateActivityWithAccountsApi,
   initialStateActivityWithLocalTransactions,
   initialStateActivityWithPerpsDetails,
@@ -101,6 +105,7 @@ const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
 const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
 const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
 const ACTIVITY_LIST_LOADING_INDICATOR = 'activity-list-loading';
+const ACTIVITY_LIST_CONTAINER = 'activity-list';
 const AGGREGATED_CHECKBOX_CHECK_ICON = `${ActivityScreenSelectorsIDs.AGGREGATED_CHECKBOX}-check-icon`;
 
 const monToBaseBridgeState = (
@@ -670,11 +675,16 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       'activity_view.empty_state.transactions_funded.action',
     );
 
-    const { getAllByText, findByTestId, findByText, queryByTestId } =
-      renderActivityScreenViewWithRoutes({
-        state: emptyActivityStateFunded().build(),
-        extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
-      });
+    const {
+      getAllByText,
+      findByTestId,
+      findByText,
+      queryByTestId,
+      queryByText,
+    } = renderActivityScreenViewWithRoutes({
+      state: emptyActivityStateFunded().build(),
+      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    });
 
     await waitFor(() => {
       expect(
@@ -683,9 +693,13 @@ describeForPlatforms('ActivityScreen — empty state', () => {
       ).toBeGreaterThan(0);
     });
 
+    // The funded copy is the assertion subject. The list spinner is only gone
+    // once history has settled; waiting on the spinner alone flakes when that
+    // request never leaves `isInitialLoading`.
     await waitFor(
       () => {
         expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+        expect(queryByText(fundedDescription)).toBeOnTheScreen();
       },
       { timeout: 10000 },
     );
@@ -1839,18 +1853,20 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
       view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
     );
     fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    // The closing sheet's "All networks" row shares the chip's label, so
+    // assert on the chip.
     await waitFor(() => {
       expect(
-        view.queryByText(strings('activity_view.filter_all_networks')),
-      ).toBeNull();
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).not.toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
 
     await selectLimitOrdersFilter(view);
 
     await waitFor(() => {
       expect(
-        view.getAllByText(strings('activity_view.filter_all_networks')).length,
-      ).toBeGreaterThan(0);
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
     await waitFor(() => {
       expect(requests.length).toBeGreaterThan(0);
@@ -2280,4 +2296,55 @@ describeForPlatforms('ActivityScreen — Monad bridge status', () => {
 
     await assertDetailsAmountFeeTotal(screen);
   });
+});
+
+describe('ActivityScreen — glass header', () => {
+  const renderWithGlassHeaders = (enabled: boolean) =>
+    renderActivityScreenView({
+      state: initialStateActivity()
+        .withRemoteFeatureFlags({
+          glassHeaders: { enabled, minimumVersion: '0.0.0' },
+        })
+        .build(),
+    });
+
+  itForPlatforms(
+    'pads the list and its refresh spinner below the floating header',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(true);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+      const { paddingTop } = list.props.contentContainerStyle;
+
+      expect(paddingTop).toBeGreaterThan(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(
+        paddingTop,
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the list at the top edge when glass headers are off',
+    async () => {
+      const { findByTestId } = renderWithGlassHeaders(false);
+
+      const list = await findByTestId(ACTIVITY_LIST_CONTAINER);
+
+      expect(list.props.contentContainerStyle.paddingTop).toBe(0);
+      expect(list.props.refreshControl.props.progressViewOffset).toBe(0);
+    },
+  );
+
+  itForPlatforms(
+    'opens the type filter sheet from a glass filter chip',
+    async () => {
+      const { getByTestId, findByTestId } = renderWithGlassHeaders(true);
+
+      fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+
+      expect(
+        await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET),
+      ).toBeOnTheScreen();
+    },
+  );
 });

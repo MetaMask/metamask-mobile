@@ -41,6 +41,7 @@ const ProfilesToFollowView: React.FC = () => {
   const tw = useTailwind();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile: true,
   });
   const {
     traders,
@@ -103,6 +104,7 @@ const ProfilesToFollowView: React.FC = () => {
         address={item.address}
         avatarUri={item.avatarUri}
         isFollowing={item.isFollowing}
+        followVariant={ButtonVariant.Secondary}
         onFollowPress={() => {
           handleFollowPress(item).catch(() => undefined);
         }}

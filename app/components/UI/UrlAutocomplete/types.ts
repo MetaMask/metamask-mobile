@@ -4,6 +4,7 @@
 
 import type { Hex } from '@metamask/utils';
 import type { MarketType } from '@metamask/perps-controller';
+import type { PredictSearchResult } from '../PredictNext';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
@@ -103,22 +104,12 @@ export type PerpsSearchResult = {
 };
 
 /**
- * The result of a predictions market search
- * Re-exports PredictMarket from Predict types with category added
+ * A Predict search result: venue-neutral display values and the intent that
+ * opens it, from `usePredictSearchResults`. Render it with
+ * `PredictSearchResultRow` and open it with `openPredict(result.intent)`.
  */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictionsSearchResult = {
+export type PredictionsSearchResult = PredictSearchResult & {
   category: UrlAutocompleteCategory.Predictions;
-  id: string;
-  providerId: string;
-  slug: string;
-  title: string;
-  description: string;
-  endDate?: string;
-  image: string;
-  status: 'open' | 'closed' | 'resolved';
-  liquidity: number;
-  volume: number;
 };
 
 export type AutocompleteSearchResult =

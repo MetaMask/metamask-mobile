@@ -1,4 +1,3 @@
-import { PermissionController } from '@metamask/permission-controller';
 import {
   removeApprovedHost,
   removeConnection,
@@ -8,6 +7,7 @@ import AppConstants from '../../../core/AppConstants';
 import Engine from '../../Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 
 async function removeChannel({
   channelId,
@@ -49,16 +49,7 @@ async function removeChannel({
 
   if (engine) {
     try {
-      const permissionsController = (
-        engine.context as {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          PermissionController: PermissionController<any, any>;
-        }
-      ).PermissionController;
-      if (permissionsController.getPermissions(channelId)) {
-        permissionsController.revokeAllPermissions(channelId);
-      }
+      revokeChannelPermissions(channelId);
     } catch (error) {
       DevLogger.log(
         `SDKConnect::removeChannel channelId=${channelId} failed to revoke permissions`,

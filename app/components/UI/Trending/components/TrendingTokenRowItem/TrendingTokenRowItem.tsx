@@ -144,6 +144,7 @@ export const getAssetNavigationParams = (
       : undefined,
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
+    isStaked: false,
     isFromTrending: true,
     source,
     rwaData: token.rwaData,

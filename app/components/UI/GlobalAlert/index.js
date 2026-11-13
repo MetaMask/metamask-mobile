@@ -25,7 +25,7 @@ const createStyles = (colors) =>
       width: width || 180,
       backgroundColor: colors.overlay.alternative,
       padding: 20,
-      paddingTop: 30,
+      paddingTop: 32,
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',

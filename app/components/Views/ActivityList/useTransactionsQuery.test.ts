@@ -15,7 +15,7 @@ jest.mock('@tanstack/react-query', () => ({
 jest.mock('../../../core/apiClient', () => ({
   apiClient: {
     accounts: {
-      getV4MultiAccountTransactionsInfiniteQueryOptions: jest.fn(() => ({
+      getV5MultiAccountTransactionsInfiniteQueryOptions: jest.fn(() => ({
         queryKey: ['transactions'],
         queryFn: jest.fn(),
       })),
@@ -45,9 +45,9 @@ describe('useTransactionsQuery', () => {
     renderHook(() => useTransactionsQuery());
 
     expect(
-      apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
+      apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions,
     ).toHaveBeenCalledWith({
-      accountAddresses: ['eip155:0:0xGroupAddress'],
+      accountIds: ['eip155:0:0xGroupAddress'],
       networks: ['eip155:1'],
       includeTxMetadata: true,
     });
@@ -75,9 +75,9 @@ describe('useTransactionsQuery', () => {
     renderHook(() => useTransactionsQuery());
 
     expect(
-      apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
+      apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions,
     ).toHaveBeenCalledWith({
-      accountAddresses: ['eip155:0:0xGlobalAddress'],
+      accountIds: ['eip155:0:0xGlobalAddress'],
       networks: [],
       includeTxMetadata: true,
     });
@@ -98,9 +98,9 @@ describe('useTransactionsQuery', () => {
     renderHook(() => useTransactionsQuery());
 
     expect(
-      apiClient.accounts.getV4MultiAccountTransactionsInfiniteQueryOptions,
+      apiClient.accounts.getV5MultiAccountTransactionsInfiniteQueryOptions,
     ).toHaveBeenCalledWith({
-      accountAddresses: [],
+      accountIds: [],
       networks: ['eip155:1'],
       includeTxMetadata: true,
     });

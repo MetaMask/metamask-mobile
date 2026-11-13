@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BtcAccountType } from '@metamask/keyring-api';
+import {
+  BtcAccountType,
+  SolAccountType,
+  XlmAccountType,
+} from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
@@ -13,7 +17,6 @@ import {
   selectClaimLock,
   selectClaimWaitingUntil,
   selectReferralMeLocalizedText,
-  type MoneyDashboardPersona,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -37,8 +40,9 @@ import {
   queueClaimRewardsInPlaceOfSettledBanner,
   suppressSettledClaimBatchBanner,
 } from '../utils/claimBatchNotifications';
+import { useClaimMechanisms } from './useFollowTradeClaimOpen';
 import {
-  canClaimEarnings,
+  claimRouteOptions,
   claimFailureReason,
   claimOutcomeIsPartial,
   claimRoutesForSummary,
@@ -46,11 +50,16 @@ import {
   claimToastText,
   claimTypeForRoute,
   isClaimsPausedRefusal,
+  isTaxDeterminationRefusal,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
+  solanaAddressFromEarningAddress,
+  stellarAddressFromEarningAddress,
   isClaimSubmittable,
   runEarningsClaim,
   signBitcoinClaimMessage,
+  signSolanaClaimMessage,
+  signStellarClaimMessage,
   submitClaimVoucher,
   type ClaimRouteOutcome,
 } from '../utils/claimEarnings';
@@ -71,6 +80,42 @@ function bitcoinAccountForEarningAddress(earningAddress: string) {
     (account.type === BtcAccountType.P2wpkh && bitcoin.startsWith('bc1q')) ||
     (account.type === BtcAccountType.P2tr && bitcoin.startsWith('bc1p'));
   return typeMatches ? { account, bitcoin } : null;
+}
+
+/** A Solana account on this phone. The address is compared with its case. */
+function solanaAccountForEarningAddress(earningAddress: string) {
+  const address = solanaAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== SolAccountType.DataAccount
+  ) {
+    return null;
+  }
+  return { account, address };
+}
+
+/** A Stellar account on this phone. A lowercase `G` address is not a match. */
+function stellarAccountForEarningAddress(earningAddress: string) {
+  const address = stellarAddressFromEarningAddress(earningAddress);
+  if (!address) {
+    return null;
+  }
+  const account =
+    Engine.context.AccountsController.getAccountByAddress(address);
+  if (
+    !account ||
+    account.address !== address ||
+    account.type !== XlmAccountType.Account
+  ) {
+    return null;
+  }
+  return { account, address };
 }
 
 function branchClaimKey(
@@ -110,6 +155,15 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
   ].join('|');
 }
 
+export interface ClaimEarningsOptions {
+  /**
+   * Leave follow-trade out. The tax sheet is already open and income is
+   * blocked, so submitting it comes back `TAX_DETERMINATION_REQUIRED` and
+   * would open that sheet again. Cashback still submits.
+   */
+  omitFollowTrade?: boolean;
+}
+
 /**
  * Claims referee cashback that reaches the summary minimum, signs the
  * challenges, and submits the voucher. The claim stays on the current
@@ -120,19 +174,24 @@ export function earningsSummaryClaimKey(summary: EarningsSummaryDto): string {
 export function useClaimEarnings(
   profileId: string,
   {
-    persona,
     onOpened,
     onSubmitted,
     onClaimsPaused,
+    onTaxRequired,
     summary: liveSummary = null,
   }: {
-    persona?: MoneyDashboardPersona;
     onOpened?: () => void;
     /**
      * A whole-claim refusal that leaves money in `held` or `blocked`. The
      * caller opens the Claims paused sheet. No error toast.
      */
     onClaimsPaused?: () => void;
+    /**
+     * Nothing was submitted and a route refused with
+     * `TAX_DETERMINATION_REQUIRED`. The caller opens the tax flow. No
+     * paused sheet and no error toast.
+     */
+    onTaxRequired?: () => void;
     /**
      * Runs after a confirmed claim, before Claim is enabled again. A rejection
      * means the balance on screen is still the pre-claim one, so Claim stays
@@ -146,7 +205,10 @@ export function useClaimEarnings(
     summary?: EarningsSummaryDto | null;
   } = {},
 ): {
-  claim: (summary: EarningsSummaryDto) => Promise<void>;
+  claim: (
+    summary: EarningsSummaryDto,
+    options?: ClaimEarningsOptions,
+  ) => Promise<void>;
   isClaiming: boolean;
   /** True until a refusal's `Retry-After` elapses. Claim stays disabled. */
   isClaimWaiting: boolean;
@@ -222,15 +284,26 @@ export function useClaimEarnings(
     return () => clearTimeout(timer);
   }, [waitUntil, dispatch, profileId]);
 
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
   const claim = useCallback(
-    async (summary: EarningsSummaryDto) => {
+    async (summary: EarningsSummaryDto, options?: ClaimEarningsOptions) => {
       const waitingUntil = claimWaitingUntilRef.current;
+      const routeOptions = claimRouteOptions(
+        localizedText?.taxFormUrl,
+        followTradeClaimOpen,
+        revShareClaimOpen,
+      );
+      const routes = claimRoutesForSummary(summary, routeOptions).filter(
+        (route) =>
+          !(options?.omitFollowTrade && route === 'social-follow-trade'),
+      );
       if (
         !localizedText ||
         isClaimingRef.current ||
         claimLockRef.current != null ||
         (waitingUntil !== null && waitingUntil > Date.now()) ||
-        !canClaimEarnings(summary, persona)
+        routes.length === 0
       ) {
         return;
       }
@@ -244,7 +317,6 @@ export function useClaimEarnings(
       let lockArmed = false;
       let holdForFreshSummary = false;
       const startedAt = Date.now();
-      const routes = claimRoutesForSummary(summary);
       let tracked = false;
       const durationMs = () => Math.max(0, Date.now() - startedAt);
       const trackFailed = (route: ClaimRouteSlug, failureReason: string) => {
@@ -315,7 +387,11 @@ export function useClaimEarnings(
               body,
             ),
           canSignEarningAddress: (earningAddress) => {
-            if (bitcoinAccountForEarningAddress(earningAddress)) {
+            if (
+              bitcoinAccountForEarningAddress(earningAddress) ||
+              solanaAccountForEarningAddress(earningAddress) ||
+              stellarAccountForEarningAddress(earningAddress)
+            ) {
               return true;
             }
             const from = evmAddressFromEarningAddress(earningAddress);
@@ -332,6 +408,18 @@ export function useClaimEarnings(
                 bitcoin.bitcoin,
                 message,
               );
+            }
+            const solana = solanaAccountForEarningAddress(earningAddress);
+            if (solana) {
+              return signSolanaClaimMessage(
+                solana.account.id,
+                solana.address,
+                message,
+              );
+            }
+            const stellar = stellarAccountForEarningAddress(earningAddress);
+            if (stellar) {
+              return signStellarClaimMessage(stellar.account.id, message);
             }
             const from = evmAddressFromEarningAddress(earningAddress);
             if (!from) {
@@ -380,7 +468,9 @@ export function useClaimEarnings(
             outcome.reason === 'CONFIRMATION_FAILED' ||
             outcome.reason === 'CONFIRMATION_TIMEOUT',
         );
-        if (isClaimsPausedRefusal(outcomes)) {
+        if (isTaxDeterminationRefusal(outcomes)) {
+          onTaxRequired?.();
+        } else if (isClaimsPausedRefusal(outcomes)) {
           onClaimsPaused?.();
         } else if (
           key === 'claimSuccessToast' ||
@@ -480,13 +570,15 @@ export function useClaimEarnings(
     },
     [
       localizedText,
-      persona,
+      followTradeClaimOpen,
+      revShareClaimOpen,
       moneyAccount?.address,
       vaultConfig,
       isSponsorshipEnabled,
       onOpened,
       onSubmitted,
       onClaimsPaused,
+      onTaxRequired,
       showToast,
       RewardsToastOptions,
       dispatch,

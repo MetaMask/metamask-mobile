@@ -9,7 +9,6 @@ import { AddressSelectorParams } from './AddressSelector.types';
 import { AccountGroupId } from '@metamask/account-api';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -42,6 +41,8 @@ import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { strings } from '../../../../locales/i18n';
 import { AddressSelectorSelectors } from './AddressSelector.testIds';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export const createAddressSelectorNavDetails =
   createNavigationDetails<AddressSelectorParams>(
@@ -50,6 +51,7 @@ export const createAddressSelectorNavDetails =
   );
 
 const AddressSelector = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const { displayOnlyCaipChainIds, isEvmOnly } =
@@ -155,9 +157,12 @@ const AddressSelector = () => {
 
   return (
     <BottomSheet ref={sheetRef} isFullscreen goBack={navigation.goBack}>
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         {strings('address_selector.select_an_address')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         justifyContent={BoxJustifyContent.Center}
         alignItems={BoxAlignItems.Center}

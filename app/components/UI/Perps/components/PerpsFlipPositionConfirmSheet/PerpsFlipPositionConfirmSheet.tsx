@@ -7,7 +7,6 @@ import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   ButtonsAlignment,
@@ -47,6 +46,9 @@ import RewardsAnimations, {
 } from '../../../Rewards/components/RewardPointsAnimation';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -57,6 +59,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   onConfirm,
   enableHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<AppNavigationProp>();
@@ -228,9 +231,12 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       onClose={externalSheetRef ? onClose : undefined}
       testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader onClose={handleCloseInternal}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={handleCloseInternal}
+      >
         {strings('perps.flip_position.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <View style={styles.contentContainer}>
         {isFlipping ? (

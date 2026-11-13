@@ -1,14 +1,11 @@
 import { useCallback } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import { usePredictEntryActions } from '../../../../navigation/entry';
 
+/** Opens Predict Home for the Active Venue: the details screens' CTA. */
 export function useOpenPredictHome() {
-  const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
 
   return useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-    });
-  }, [navigation]);
+    openPredict({ type: 'home' });
+  }, [openPredict]);
 }

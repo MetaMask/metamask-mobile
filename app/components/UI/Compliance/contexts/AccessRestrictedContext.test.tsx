@@ -10,6 +10,11 @@ import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));

@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Button,
   ButtonVariant,
@@ -8,10 +7,7 @@ import {
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   FilterButton,
-  HeaderSubpage,
   IconColor,
   IconName,
   ListItemSelect,
@@ -50,6 +46,9 @@ import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTo
 import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
+import HeaderSubpageGlass from '../../../../../component-library/components-temp/HeaderSubpageGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsOrderBookDepthChart from '../../components/PerpsOrderBookDepthChart';
 import PerpsOrderBookTable, {
   type UnitDisplay,
@@ -79,11 +78,7 @@ import {
 } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
+import PerpsDirectionButton from '../../components/PerpsDirectionButton';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -103,11 +98,15 @@ import type {
   OrderBookRouteParams,
   PerpsOrderBookViewProps,
 } from './PerpsOrderBookView.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   testID = PerpsOrderBookViewSelectorsIDs.CONTAINER,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const route =
     useRoute<RouteProp<{ params: OrderBookRouteParams }, 'params'>>();
   const { symbol, marketData: routeMarketData } = route.params || {};
@@ -118,16 +117,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const { track } = usePerpsEventTracking();
   const insets = useSafeAreaInsets();
   const activeProvider = useSelector(selectPerpsProvider);
-
-  // A/B Testing: Button color test (TAT-1937)
-  const { variantName: buttonColorVariant } = useABTest(
-    PERPS_BUTTON_COLOR_AB_TEST_KEY,
-    BUTTON_COLOR_VARIANTS,
-    {
-      experimentName: 'Long/Short Button Color Test',
-      variationNames: { control: 'White/White', colors: 'Green/Red' },
-    },
-  );
 
   // Geo-restriction eligibility check
   const isEligible = useSelector(selectPerpsEligibility);
@@ -371,25 +360,37 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     setIsDepthBandSheetVisible(true);
   }, []);
 
-  const groupingSelectButton = useMemo(
-    () => (
+  const groupingSelectButton = useMemo(() => {
+    const selectButton = (
+      <SelectButton
+        testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
+        // Secondary has no fill of its own, so the glass shows through.
+        variant={
+          isBrandRefresh
+            ? SelectButtonVariant.Secondary
+            : SelectButtonVariant.Primary
+        }
+        size={SelectButtonSize.Md}
+        placeholder={currentGroupingLabel}
+        value={currentGroupingLabel}
+        onPress={handleDepthBandPress}
+      />
+    );
+    return (
       <View style={styles.groupingSelectButtonAccessory}>
-        <SelectButton
-          testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
-          variant={SelectButtonVariant.Primary}
-          size={SelectButtonSize.Md}
-          placeholder={currentGroupingLabel}
-          value={currentGroupingLabel}
-          onPress={handleDepthBandPress}
-        />
+        {isBrandRefresh ? (
+          <CapsuleGlass>{selectButton}</CapsuleGlass>
+        ) : (
+          selectButton
+        )}
       </View>
-    ),
-    [
-      currentGroupingLabel,
-      handleDepthBandPress,
-      styles.groupingSelectButtonAccessory,
-    ],
-  );
+    );
+  }, [
+    currentGroupingLabel,
+    handleDepthBandPress,
+    isBrandRefresh,
+    styles.groupingSelectButtonAccessory,
+  ]);
 
   const orderBookHeader = useMemo(() => {
     if (!symbol) {
@@ -408,7 +409,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     }
 
     return (
-      <HeaderSubpage
+      <HeaderSubpageGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         twClassName="min-h-14 h-auto bg-default justify-center"
         onBack={handleBack}
@@ -445,6 +448,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     currentPrice,
     groupingSelectButton,
     displaySymbol,
+    isBrandRefresh,
   ]);
 
   // Handle grouping selection
@@ -776,49 +780,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </View>
         ) : (
           <View style={styles.actionsContainer} accessible={false}>
-            {buttonColorVariant === 'colors' ? (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Success}
-                onPress={handleLongPress}
-                size={ButtonSize.Lg}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </ButtonSemantic>
-            ) : (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleLongPress}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-              >
-                {strings('perps.market.long')}
-              </Button>
-            )}
+            <PerpsDirectionButton
+              direction="long"
+              onPress={handleLongPress}
+              size={ButtonSize.Lg}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+            >
+              {strings('perps.market.long')}
+            </PerpsDirectionButton>
 
-            {buttonColorVariant === 'colors' ? (
-              <ButtonSemantic
-                severity={ButtonSemanticSeverity.Danger}
-                onPress={handleShortPress}
-                size={ButtonSize.Lg}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </ButtonSemantic>
-            ) : (
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleShortPress}
-                style={styles.actionButtonWrapper}
-                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-              >
-                {strings('perps.market.short')}
-              </Button>
-            )}
+            <PerpsDirectionButton
+              direction="short"
+              onPress={handleShortPress}
+              size={ButtonSize.Lg}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+            >
+              {strings('perps.market.short')}
+            </PerpsDirectionButton>
           </View>
         )}
       </View>
@@ -830,7 +810,8 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           onClose={handleDepthBandSheetClose}
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET}
         >
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={() =>
               depthBandSheetRef.current?.onCloseBottomSheet(
                 handleDepthBandSheetClose,
@@ -841,7 +822,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             }}
           >
             {strings('perps.order_book.depth_band.title')}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           {groupingOptions.map((value) => (
             <ListItemSelect
               key={value}
