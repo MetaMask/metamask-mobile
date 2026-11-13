@@ -3,7 +3,6 @@ import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -22,6 +21,9 @@ import {
 import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface DiscoverySelectDeviceScreenProps {
   devices: DiscoveredDevice[];
@@ -42,6 +44,7 @@ const DiscoverySelectDeviceScreen: React.FC<
   onSave,
   config,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasValidSelection = devices.some(
@@ -65,7 +68,8 @@ const DiscoverySelectDeviceScreen: React.FC<
       onClose={onClose}
       testID="discovery-select-device-sheet"
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: 'discovery-close-sheet',
@@ -74,7 +78,7 @@ const DiscoverySelectDeviceScreen: React.FC<
         <Text variant={TextVariant.HeadingMd}>
           {strings('ledger.select_device')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <View style={tw.style('bg-muted')}>
         {devices.map((hwDevice) => {

@@ -6,7 +6,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -23,6 +22,9 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskNameLightMode = require('../../../images/branding/metamask-name.png');
@@ -34,6 +36,7 @@ export const createOTAUpdatesModalNavDetails = createNavigationDetails(
 );
 
 const OTAUpdatesModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef | null>(null);
@@ -97,7 +100,9 @@ const OTAUpdatesModal = () => {
       shouldNavigateBack
       style={tw.style('bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         twClassName="px-4"
         onClose={() => dismissBottomSheet()}
         closeButtonProps={{ testID: 'close-button' }}
@@ -107,7 +112,7 @@ const OTAUpdatesModal = () => {
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderStandard>
+      </HeaderStandardGlass>
       <Box twClassName="px-6 pt-2 items-center">
         <Box twClassName="items-center py-6">
           <Box twClassName="items-center mb-6">

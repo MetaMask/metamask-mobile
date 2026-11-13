@@ -552,7 +552,61 @@ describe('persistConfig', () => {
         initialScreen: '',
         isAuthChecked: false,
         appServicesReady: false,
+        moneySplashSeen: false,
       });
+    });
+
+    it('backfills moneySplashSeen from moneyOnboardingSeen when absent', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({
+          userLoggedIn: false,
+          moneyOnboardingSeen: true,
+          passwordSet: true,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          moneyOnboardingSeen: true,
+          moneySplashSeen: true,
+        }),
+      );
+    });
+
+    it('keeps an explicit moneySplashSeen false', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({
+          userLoggedIn: false,
+          moneyOnboardingSeen: true,
+          moneySplashSeen: false,
+          passwordSet: true,
+        }),
+      ).toEqual(expect.objectContaining({ moneySplashSeen: false }));
+    });
+
+    it('defaults moneySplashSeen to false for a new state', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({ userLoggedIn: false, passwordSet: true }),
+      ).toEqual(expect.objectContaining({ moneySplashSeen: false }));
     });
 
     it('has onboarding transform configured', () => {

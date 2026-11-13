@@ -17,6 +17,11 @@ const mockCreateEventBuilder = jest.fn();
 const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,

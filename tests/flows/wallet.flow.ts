@@ -48,6 +48,7 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import { NewUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
 import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
 import {
@@ -684,14 +685,26 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     // The sheet is absent when notifications are pre-granted (e.g. Perps).
-    const sheetPresent = await isOptionalElementVisible(
-      () => Matchers.getElementByExactText('Never miss a move'),
-      OPTIONAL_SHEET_MAX_ABSENT_MS,
-    );
-    if (!sheetPresent) {
+    // It has an existing-user and a new-user copy; both close with "Not now".
+    let titleId: string | undefined;
+    for (const id of [
+      ExistingUserSheetSelectorsIDs.TITLE,
+      NewUserSheetSelectorsIDs.TITLE,
+    ]) {
+      if (
+        await isOptionalElementVisible(
+          () => Matchers.getElementByID(id),
+          OPTIONAL_SHEET_MAX_ABSENT_MS,
+        )
+      ) {
+        titleId = id;
+        break;
+      }
+    }
+    if (!titleId) {
       return;
     }
-    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
+    const sheetTitle = Matchers.getElementByID(titleId);
 
     try {
       try {

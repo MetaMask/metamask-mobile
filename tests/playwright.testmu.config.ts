@@ -68,6 +68,25 @@ export default defineConfig({
       },
     },
     {
+      name: 'testmu-android-dev-onboarding',
+      testMatch: '**/performance/dev-onboarding/**/*.spec.ts',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.TESTMU,
+          name: process.env.TESTMU_DEVICE || 'Pixel 8 Pro',
+          osVersion: process.env.TESTMU_OS_VERSION || '14',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.TESTMU_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.TESTMU_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
       name: 'testmu-android-onboarding-seedless',
       testMatch: '**/performance/onboarding/seedless-*.spec.ts',
       use: {

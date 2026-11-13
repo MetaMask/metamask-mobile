@@ -171,7 +171,6 @@ interface TokenStickyFooterProps {
    * container type mid-load and remounting the buttons (flicker).
    */
   reserveTraderPositionLayout?: boolean;
-  /** Reports the laid-out height of the sticky footer, including its safe-area inset. */
   onFooterLayout?: (height: number) => void;
 }
 
@@ -311,12 +310,19 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     );
   }, [expandedDetailsProgress, isTraderPositionExpanded]);
 
+  useEffect(() => {
+    if (!showTraderPositionLayout) {
+      onFooterLayout?.(0);
+    }
+  }, [onFooterLayout, showTraderPositionLayout]);
+
   const handleExpandedDetailsLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const measuredHeight = event.nativeEvent.layout.height;
       if (measuredHeight > 0) {
-        expandedDetailsHeight.value =
-          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING;
+        expandedDetailsHeight.set(
+          measuredHeight + EXPANDED_DETAILS_BOTTOM_SPACING,
+        );
       }
     },
     [expandedDetailsHeight],
@@ -344,17 +350,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         ])
         .onStart(() => {
           'worklet';
-          gestureStartProgress.value = expandedDetailsProgress.value;
+          gestureStartProgress.set(expandedDetailsProgress.value);
         })
         .onUpdate((event) => {
           'worklet';
           const detailsHeight = Math.max(expandedDetailsHeight.value, 1);
           const nextProgress =
             gestureStartProgress.value - event.translationY / detailsHeight;
-          expandedDetailsProgress.value = Math.max(
-            0,
-            Math.min(1, nextProgress),
-          );
+          expandedDetailsProgress.set(Math.max(0, Math.min(1, nextProgress)));
         })
         .onEnd((event) => {
           'worklet';
@@ -363,19 +366,22 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
             event.velocityY > 800;
           const targetProgress = shouldCollapse ? 0 : 1;
 
-          expandedDetailsProgress.value = withTiming(
-            targetProgress,
-            {
-              duration: 300,
-              easing: Easing.inOut(Easing.cubic),
-            },
-            (finished) => {
-              if (finished) {
-                scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
-              }
-            },
+          expandedDetailsProgress.set(
+            withTiming(
+              targetProgress,
+              {
+                duration: 300,
+                easing: Easing.inOut(Easing.cubic),
+              },
+              (finished) => {
+                if (finished) {
+                  scheduleOnRN(handleSwipeExpandedStateChange, !shouldCollapse);
+                }
+              },
+            ),
           );
-        }),
+        })
+        .withTestId('token-details-sticky-footer-sheet-gesture'),
     [
       expandedDetailsHeight,
       expandedDetailsProgress,
@@ -499,6 +505,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ],
   );
 
+  // Quick Buy shows its own token warning on Buy, so it skips the security sheet.
+  const handleQuickBuyAction = (action: () => void) => {
+    if (isRwaGeoRestricted) {
+      rwaUnavailableSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+    action();
+  };
+
   const handleOpenQuickBuy = (mode: QuickBuyTradeMode) => {
     if (!onOpenQuickBuy) return;
     trackStickyFooterTapped({
@@ -509,14 +524,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       indicatorsActive,
       tdp_version: tdpVersion,
     });
-    handleFooterAction(
-      () => onOpenQuickBuy(mode),
-      strings(
-        mode === 'sell'
-          ? 'asset_overview.sell_button'
-          : 'asset_overview.buy_button',
-      ),
-    );
+    handleQuickBuyAction(() => onOpenQuickBuy(mode));
   };
 
   // The trader-position footer renders inside a design-system BottomSheetDialog
@@ -610,7 +618,9 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   ) : null;
 
   const handleFooterLayout = (event: LayoutChangeEvent) => {
-    onFooterLayout?.(event.nativeEvent.layout.height);
+    if (expandedDetailsProgress.value === 0) {
+      onFooterLayout?.(event.nativeEvent.layout.height);
+    }
   };
 
   const positionContent = traderPositionPnl ? (
@@ -760,10 +770,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 indicatorsActive,
                 tdp_version: tdpVersion,
               });
-              handleFooterAction(
-                onQuickBuyPress,
-                strings('asset_overview.buy_button'),
-              );
+              handleQuickBuyAction(onQuickBuyPress);
             }}
           >
             <Icon
@@ -809,9 +816,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       </GestureDetector>
     </BottomSheetDialog>
   ) : (
-    <View onLayout={handleFooterLayout} style={legacyFooterStyle}>
-      {footerActions}
-    </View>
+    <View style={legacyFooterStyle}>{footerActions}</View>
   );
 
   return (

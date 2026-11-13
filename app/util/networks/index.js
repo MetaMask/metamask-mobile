@@ -232,6 +232,9 @@ export const isPolygonMainnetChainId = (chainId) =>
 
 export const isMonadMainnetChainId = (chainId) => chainId === CHAIN_IDS.MONAD;
 
+export const isArbitrumMainnetChainId = (chainId) =>
+  chainId === CHAIN_IDS.ARBITRUM;
+
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
 /**
@@ -346,7 +349,8 @@ export const canDeleteNetwork = (chainId) =>
       !isMainNet(chainId) &&
       !isLineaMainnetChainId(chainId) &&
       !isPolygonMainnetChainId(chainId) &&
-      !isMonadMainnetChainId(chainId),
+      !isMonadMainnetChainId(chainId) &&
+      !isArbitrumMainnetChainId(chainId),
   );
 
 export function getNetworkTypeById(id) {

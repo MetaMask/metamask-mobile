@@ -4,6 +4,11 @@ import { strings } from '../../../../../locales/i18n';
 import { NetworksManagementViewSelectorsIDs } from '../NetworksManagementView.testIds';
 import DeleteNetworkModal from './DeleteNetworkModal';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('DeleteNetworkModal', () => {
   const networkName = 'TestNet';
   const onClose = jest.fn();

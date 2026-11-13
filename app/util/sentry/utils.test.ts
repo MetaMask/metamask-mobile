@@ -5,6 +5,7 @@ import {
   getClient,
   getGlobalScope,
   init as sentryInit,
+  reactNativeTracingIntegration,
   reactNavigationIntegration,
   setTag as sentrySetTag,
 } from '@sentry/react-native';
@@ -28,6 +29,7 @@ import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import { resetOutgoingRequestAnnotationForTesting } from './outgoingRequestContext';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
@@ -1451,6 +1453,7 @@ describe('setupSentry', () => {
 
   afterEach(() => {
     process.env.MM_SENTRY_DSN = originalDsn;
+    resetOutgoingRequestAnnotationForTesting();
   });
 
   it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
@@ -1465,11 +1468,11 @@ describe('setupSentry', () => {
 
     // ReactNavigation (navIntegration) is the explicit addition in this PR.
     expect(integrationNames).toContain('ReactNavigation');
-
-    // ReactNativeTracing is NOT added explicitly — getDefaultIntegrations() pushes it
-    // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
-    // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
-    expect(integrationNames).not.toContain('ReactNativeTracing');
+    // Replaces the default tracing integration so nitro-fetch is instrumented.
+    expect(integrationNames).toContain('ReactNativeTracing');
+    expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
+      traceFetch: true,
+    });
   });
 
   it('sends a startup held for Sentry once Sentry is initialised', async () => {
@@ -1522,6 +1525,21 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('registers outgoing request annotation when a Sentry client exists', async () => {
+    const on = jest.fn();
+    mockedGetClient.mockReturnValue({
+      on,
+    } as unknown as ReturnType<typeof getClient>);
+
+    await setupSentry();
+
+    expect(on).toHaveBeenCalledWith(
+      'beforeOutgoingRequestSpan',
+      expect.any(Function),
+    );
+    mockedGetClient.mockReset();
   });
 
   it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {

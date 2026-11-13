@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { hasTestOverrides } from '../../../../util/test/utils';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
@@ -211,7 +212,9 @@ const ChartCandleSkeleton = ({
   height,
   testID = 'chart-candle-skeleton',
 }: ChartCandleSkeletonProps) => {
-  const [canAnimate] = useState(() => getHardwareTier() !== 'LOW');
+  const prefersReducedMotion = useReducedMotion() === true;
+  const [hardwareCanAnimate] = useState(() => getHardwareTier() !== 'LOW');
+  const canAnimate = hardwareCanAnimate && !prefersReducedMotion;
   const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
 
   useEffect(() => {

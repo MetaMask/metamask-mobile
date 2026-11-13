@@ -26,6 +26,10 @@ import {
 } from '../Performance/startupStageSpans';
 
 import ReduxService from '../redux';
+import {
+  FirstQuoteFlushVariant,
+  selectFirstQuoteFlushVariant,
+} from '../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
@@ -45,6 +49,10 @@ import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-
 const getPersistedAnalyticsId = (state: unknown): unknown =>
   (state as { AnalyticsController?: { analyticsId?: unknown } })
     ?.AnalyticsController?.analyticsId;
+
+const isFirstQuoteFlushTreatment = (): boolean =>
+  selectFirstQuoteFlushVariant(ReduxService.store.getState()) ===
+  FirstQuoteFlushVariant.Treatment;
 
 export class EngineService {
   private engineInitialized = false;
@@ -105,7 +113,16 @@ export class EngineService {
       }
       this.updateBatcher.add(controllerName);
 
-      if (controllerName === 'ApprovalController') {
+      // Each quote stream replaces the list with its first quote, which the
+      // user is waiting on. Later quotes stay batched.
+      const isFirstBridgeQuote =
+        controllerName === 'BridgeController' &&
+        engine.context.BridgeController.state.quotes.length === 1;
+
+      if (
+        controllerName === 'ApprovalController' ||
+        (isFirstBridgeQuote && isFirstQuoteFlushTreatment())
+      ) {
         this.updateBatcher.flush();
       }
     };

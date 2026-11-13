@@ -566,7 +566,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     it('does not subscribe to live prices when a different Explore tab is active', () => {
       arrangePerpsMoversMocks();
 
-      renderNowTab(defaultTabProps, { activeTab: 'Macro' });
+      renderNowTab(defaultTabProps, { activeTab: 'Perps' });
 
       expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
     });
@@ -594,7 +594,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
       rerender(
         <NavigationContainer>
-          <ExploreActiveTabProvider activeTab="Macro">
+          <ExploreActiveTabProvider activeTab="Perps">
             <NowTab {...defaultTabProps} />
           </ExploreActiveTabProvider>
         </NavigationContainer>,

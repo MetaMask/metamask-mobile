@@ -332,6 +332,7 @@ export enum TraceName {
   PredictNextSearchEvents = 'PredictNext Search Events',
   PredictNextOrderPreview = 'PredictNext Order Preview',
   PredictNextOrderCommit = 'PredictNext Order Commit',
+  PredictNextLiveDataConnect = 'PredictNext Live Data Connect',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -354,10 +355,12 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeHistoricalActivityTimeToContent = 'Money Home Historical Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
+  MoneyActivityVaultShareValuationsFetch = 'Money Activity Vault Share Valuations Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
   CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards

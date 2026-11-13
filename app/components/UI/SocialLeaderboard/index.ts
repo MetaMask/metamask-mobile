@@ -2,6 +2,7 @@ export { default as SocialLeaderboard } from './components/SocialLeaderboard';
 export type {
   SocialLeaderboardHandle,
   SocialLeaderboardProps,
+  SocialLeaderboardVirtualizedListProps,
 } from './components/SocialLeaderboard';
 export { SocialLeaderboardSelectorsIDs } from './components/SocialLeaderboard.testIds';
 export {

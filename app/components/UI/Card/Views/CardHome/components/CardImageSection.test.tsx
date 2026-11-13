@@ -36,6 +36,17 @@ const baseProps = {
 describe('CardImageSection', () => {
   beforeEach(() => jest.clearAllMocks());
 
+  it('shimmers the card image while loading', () => {
+    const { getByTestId, queryByTestId } = render(
+      <CardImageSection {...baseProps} isLoading />,
+    );
+
+    expect(
+      getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('card-image')).toBeNull();
+  });
+
   it('renders the card artwork when no details are present', () => {
     const { getByTestId, queryByTestId } = render(
       <CardImageSection {...baseProps} />,
