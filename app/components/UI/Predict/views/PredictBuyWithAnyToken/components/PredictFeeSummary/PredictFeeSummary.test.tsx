@@ -27,6 +27,16 @@ jest.mock('../../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
       : null;
 });
 
+jest.mock(
+  '../../../../../../../component-library/components-temp/Skeleton/Skeleton',
+  () => {
+    const { View: RNView } = jest.requireActual('react-native');
+    return function MockSkeleton(props: { width?: number }) {
+      return <RNView testID={`skeleton-${props.width}`} />;
+    };
+  },
+);
+
 jest.mock('../../../../utils/format', () => ({
   formatPrice: jest.fn(
     (value: number, options?: { maximumDecimals?: number }) =>
@@ -153,7 +163,7 @@ describe('PredictFeeSummary', () => {
     expect(mockUsePredictRewards).toHaveBeenCalledWith(1.5);
   });
 
-  it('renders skeleton layout when loading is true', () => {
+  it('renders total skeletons without an info icon placeholder while fees load', () => {
     setRewardsState({
       shouldShowRewardsRow: true,
       accountOptedIn: true,
@@ -163,6 +173,11 @@ describe('PredictFeeSummary', () => {
 
     expect(screen.queryByText('Total')).not.toBeOnTheScreen();
     expect(screen.queryByText('Estimated points')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-52')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-60')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-120')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-92')).toBeOnTheScreen();
+    expect(screen.queryByTestId('skeleton-16')).not.toBeOnTheScreen();
   });
 
   it('renders total and triggers fee info press callback', () => {

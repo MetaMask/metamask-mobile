@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
-import { providerErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { TransactionType } from '@metamask/transaction-controller';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { useSelector } from 'react-redux';
@@ -197,6 +197,14 @@ const MOCK_MONEY_ACCOUNT = {
 const MOCK_RECIPIENT = '0xrecipient';
 
 const MOCK_PROVIDER = {} as ReturnType<typeof getProviderByChainId>;
+// TransactionController rethrows it as an internal error, with no 4001 code.
+const createLedgerDeviceRejection = (): Error =>
+  rpcErrors.internal(
+    'MetaMask Pay: Relay: Ledger: User rejected action on device',
+  );
+const { isUserRejectedError: actualIsUserRejectedError } = jest.requireActual<
+  typeof import('../../../../util/errorHandling/isUserRejectedError')
+>('../../../../util/errorHandling/isUserRejectedError');
 const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockDepositFailed = jest.fn();
@@ -834,6 +842,31 @@ describe('useMoneyAccountDeposit', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockDepositFailed).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+  });
+
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
+    const ledgerRejection = createLedgerDeviceRejection();
+    mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
+    mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(ledgerRejection);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('forwards replaceConfirmation to confirmation navigation', async () => {
@@ -1256,6 +1289,31 @@ describe('useMoneyAccountWithdrawal', () => {
     );
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockWithdrawFailed).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+  });
+
+  it('rethrows a Ledger device rejection without reporting an error', async () => {
+    const ledgerRejection = createLedgerDeviceRejection();
+    mockIsUserRejectedError.mockImplementation(actualIsUserRejectedError);
+    mockAddTransactionBatch.mockRejectedValue(ledgerRejection);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBe(ledgerRejection);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(showDevErrorAlert).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 

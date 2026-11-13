@@ -131,10 +131,6 @@ const ChooseYourCard = () => {
             label: strings('card.choose_your_card.virtual_card.feature_2'),
             isHighlighted: false,
           },
-          {
-            label: strings('card.choose_your_card.virtual_card.feature_3'),
-            isHighlighted: false,
-          },
         ],
       },
       {
@@ -150,10 +146,6 @@ const ChooseYourCard = () => {
           },
           {
             label: strings('card.choose_your_card.metal_card.feature_1'),
-            isHighlighted: true,
-          },
-          {
-            label: strings('card.choose_your_card.metal_card.feature_2'),
             isHighlighted: true,
           },
           {
@@ -485,25 +477,6 @@ const ChooseYourCard = () => {
             {selectedCard.price}
           </Text>
         </Box>
-
-        {selectedCard.id === CardType.METAL && (
-          <Box twClassName="mt-2 w-full items-center justify-center">
-            <Box twClassName="rounded-full bg-primary-muted py-2 px-4 flex-row items-center gap-2">
-              <Icon
-                name={IconName.TrendUp}
-                size={IconSize.Sm}
-                color={IconColor.Info}
-              />
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Regular}
-                twClassName="text-info-default"
-              >
-                {strings('card.choose_your_card.earn_up_to_badge')}
-              </Text>
-            </Box>
-          </Box>
-        )}
 
         <Box twClassName="px-4 mt-4 gap-4 flex-1">
           {selectedCard.features.map((feature, index) =>

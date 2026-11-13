@@ -3,6 +3,11 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import PerpsProviderSelectorSheet from './PerpsProviderSelectorSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../hooks/usePerpsProvider', () => ({
   usePerpsProvider: jest.fn(),
 }));
