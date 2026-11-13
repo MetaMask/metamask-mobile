@@ -131,7 +131,7 @@
       "title": "Недостаточно средств"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "На вашем счете Money account пока нет средств для отправки. Сначала пополните счет."
     },
     "fiat_buy_amount_limit": {
       "title": "Сумма вне допустимого диапазона"
@@ -1152,7 +1152,8 @@
       "moonpay_privacy_policy_link": "Политика конфиденциальности MoonPay",
       "moonpay_terms_link": "Условия использования MoonPay",
       "powered_by": "На основе",
-      "button": "Получить реквизиты счета"
+      "button": "Получить реквизиты счета",
+      "feature_arrives_title_pix": "Поступает за считаные секунды"
     },
     "verify_identity": {
       "title": "Подтвердите свою личность",
@@ -1170,7 +1171,21 @@
       "terms_sheet_description": "Для подтверждения вашей личности ваши данные будут безопасно переданы указанным ниже специалистам. Прежде чем продолжить, ознакомьтесь с их политиками и условиями.",
       "metamask_privacy_policy": "Политика конфиденциальности MetaMask",
       "metamask_terms": "Условия использования MetaMask",
-      "terms_sheet_button": "Согласиться и начать проверку"
+      "terms_sheet_button": "Согласиться и начать проверку",
+      "subtitle": "Обычно это занимает несколько минут. Вам понадобится удостоверение личности, выданное государственным органом.",
+      "step_indicator": "Шаг {{current}} из {{total}}",
+      "partner_title": "Мы сотрудничаем с idOS для подтверждения вашей личности.",
+      "benefit_reuse_title": "Подтвердите личность один раз и используйте данные повторно.",
+      "benefit_reuse_description": "MetaMask надежно хранит зашифрованную копию ваших проверенных данных, чтобы вы могли быстрее регистрироваться у других партнеров.",
+      "benefit_control_title": "Вы управляете своими данными.",
+      "benefit_control_description": "Мы передаем ваши проверенные данные партнеру только с вашего согласия.",
+      "benefit_delete_title": "Удалите данные в любой момент.",
+      "benefit_delete_description": "Вы можете в любой момент удалить свои проверенные данные в настройках.",
+      "agreement": "Продолжая, я принимаю {{termsOfUse}} MetaMask, подтверждаю ознакомление с документом «{{privacyNotice}}» MetaMask и даю согласие на хранение моих данных в MetaMask и их передачу в idOS.",
+      "agreement_terms_of_use": "Условиями использования",
+      "agreement_privacy_notice": "Уведомлении о конфиденциальности",
+      "agree_and_continue_button": "Согласиться и продолжить",
+      "learn_more": "Узнайте подробнее."
     },
     "kyc_email": {
       "error_title": "Не удалось начать проверку",
@@ -1190,7 +1205,9 @@
     "kyc_taking_longer": {
       "title": "Проверка вашей личности...",
       "description": "Большинство проверок завершается примерно за 10 секунд. Вы можете вернуться позже. Мы сообщим вам, когда проверка будет завершена.",
-      "button": "Вернуться позже"
+      "button": "Вернуться позже",
+      "description_few_minutes": "Большинство проверок занимает несколько минут. Вы можете вернуться позже. Мы сообщим вам, когда проверка завершится.",
+      "done_button": "Выполнено"
     },
     "identity_verified": {
       "title": "Личность подтверждена",
@@ -1198,8 +1215,8 @@
       "button": "Продолжить"
     },
     "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
+      "title": "Открываем ваш счет…",
+      "description": "Большинство счетов открываются мгновенно.",
       "awaiting_provider": "Ожидаем, пока MoonPay одобрит ваш счет"
     },
     "kyc_rejected": {
@@ -1253,7 +1270,7 @@
     "vba_details": {
       "title": "Пополнить через Pix",
       "description": "Пополняйте напрямую из своего банка. Обычно средства поступают на ваш Money account в течение нескольких минут.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure": "Услуги, связанные с виртуальными активами, в Бразилии оказывает сторонний поставщик, деятельность которого регулируется.",
       "provider_disclosure_link": "Узнайте подробнее.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Ключ Pix",
@@ -1271,6 +1288,25 @@
       "load_error": "Не удалось обновить данные депозита. Мы попробуем ещё раз.",
       "setup_error": "Не удалось создать счет.",
       "retry": "Повторить попытку"
+    },
+    "partner_terms": {
+      "title": "Наши партнеры по проверке личности",
+      "description": "idOS проверяет вашу личность. Для завершения проверки idOS привлекает Sumsub.",
+      "section_title": "Условия и конфиденциальность",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "Я подтверждаю, что мои персональные данные будут обрабатываться в порядке, описанном в документе «{{notice}}».",
+      "sumsub_acknowledgement_us_residents": " Только для резидентов США: я подтверждаю, ознакомление с документом «{{privacyNotice}}», и даю согласие на обработку моих биометрических данных и биометрических идентификаторов в порядке, описанном в документе «{{biometricsConsent}}».",
+      "sumsub_notice": "Уведомление Sumsub об обработке персональных данных",
+      "sumsub_privacy_notice": "Уведомлении о конфиденциальности",
+      "sumsub_biometrics_consent": "Согласие на обработку биометрических данных в Sumsub",
+      "biometric_consent": "Я прямо соглашаюсь на обработку организацией idOS Association изображений моего лица и полученных из них биометрических данных для подтверждения моей личности в порядке, описанном в документе «{{privacyNotice}}».",
+      "biometric_consent_privacy_notice": "Уведомление о конфиденциальности idOS",
+      "agreement": "Нажимая «Согласиться и продолжить», я принимаю документ «{{termsAndConditions}}».",
+      "agreement_terms": "Условия использования idOS",
+      "scroll_to_continue_button": "Прокрутите вниз, чтобы продолжить",
+      "agree_to_consent_above_button": "Подтвердить согласие",
+      "button": "Согласиться и продолжить"
     }
   },
   "social": {
@@ -1280,9 +1316,9 @@
   },
   "social_leaderboard": {
     "account_disabled": {
-      "title": "Your account is temporarily disabled",
-      "reason": "Reason: {{reason}}",
-      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "title": "Ваш аккаунт временно отключен",
+      "reason": "Причина: {{reason}}",
+      "contact_support_description": "Обратитесь за помощью в службу поддержки по адресу {{email}} или через приложение.",
       "contact_support": "Связаться с поддержкой"
     },
     "entry_options": {
@@ -1447,7 +1483,8 @@
         "buy": "Купить",
         "sell": "Продать",
         "closed_ago": "Закрыта · {{age}}",
-        "sold_ago": "Продано · {{age}}"
+        "sold_ago": "Продано · {{age}}",
+        "opened_ago": "Открыта · {{age}}"
       }
     },
     "translation": {
@@ -1637,21 +1674,21 @@
     "position_flags": {
       "insider": "Распределение инсайдерам — исключено",
       "developer": "Создатель контракта — исключено",
-      "excluded": "Исключено из П/У",
+      "excluded": "Не учитывается в П/У",
       "short": {
-        "insider": "Insider",
-        "creator": "Creator",
-        "excluded": "Excluded"
+        "insider": "Инсайдер",
+        "creator": "Создатель",
+        "excluded": "Не учитывается"
       },
       "accessibility": {
-        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
-        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
-        "direction_up": "up",
-        "direction_down": "down",
-        "direction_flat": "unchanged",
-        "reason_insider": "insider",
-        "reason_creator": "creator",
-        "reason_excluded": "excluded"
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, не учитывается в П/У, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, не учитывается в П/У, {{reason}}",
+        "direction_up": "рост",
+        "direction_down": "снижение",
+        "direction_flat": "без изменений",
+        "reason_insider": "инсайдер",
+        "reason_creator": "создатель",
+        "reason_excluded": "не учитывается"
       }
     },
     "trader_profile": {
@@ -1723,7 +1760,7 @@
       "posts": "Публикации",
       "section_tokens": "Токены",
       "section_perpetuals": "Бессрочные контракты",
-      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_in_pnl": "Не учитывается в П/У",
       "empty_open": "Нет открытых позиций",
       "empty_closed": "Закрытые позиции отсутствуют",
       "empty_open_tokens": "Нет открытых позиций по токенам",
@@ -1731,13 +1768,25 @@
       "empty_open_perps": "Нет открытых позиций по бессрочным фьючерсам",
       "empty_closed_perps": "Нет закрытых позиций по бессрочным фьючерсам",
       "empty_title": "Публикаций пока нет",
-      "joined": "Регистрация: {{time}}",
+      "joined": "В сообществе уже {{time}}",
       "x_link": "X",
       "load_profile_error": "Не удалось загрузить ваш профиль.",
       "no_profile_title": "Создайте свой профиль",
       "no_profile_description": "Получите имя пользователя, чтобы появиться в ленте.",
       "create_profile": "Создать профиль",
-      "retry": "Повторить попытку"
+      "retry": "Повторить попытку",
+      "not_counted_section_a11y_one": "Не учитывается в П/У: 1 позиция. Узнайте почему",
+      "not_counted_section_a11y_other": "Не учитывается в П/У: {{count}} поз. Узнайте почему",
+      "not_counted_sheet_title": "Почему некоторые позиции не учитываются",
+      "not_counted_sheet_insider_label": "Инсайдер",
+      "not_counted_sheet_insider_body": "Этот трейдер получил токен в рамках распределения до его выхода в открытый доступ.",
+      "not_counted_sheet_insider_body_owner": "Вы получили токен в рамках распределения до его выхода в открытый доступ.",
+      "not_counted_sheet_developer_label": "Создатель контракта",
+      "not_counted_sheet_developer_body": "Этот трейдер развернул контракт токена.",
+      "not_counted_sheet_developer_body_owner": "Вы развернули контракт токена.",
+      "not_counted_sheet_unsupported_label": "Неподдерживаемый токен",
+      "not_counted_sheet_unsupported_body": "Мы не можем отслеживать П/У по неподдерживаемым токенам, например по депозитам в пулах кредитования.",
+      "not_counted_sheet_dismiss": "Понятно!"
     },
     "terms": {
       "title": "Наши Условия использования обновлены",
@@ -1820,8 +1869,8 @@
       "linked_social_account": "Привязанный счет Social",
       "save": "Сохранить",
       "save_error": "Не удалось сохранить изменения. Проверьте подключение и повторите попытку.",
-      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
-      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "bio_prohibited": "Часть описания недопустима. Отредактируйте его и повторите попытку.",
+      "display_name_unavailable": "Это имя недоступно. Попробуйте другое.",
       "username_unavailable": "Это имя пользователя недоступно. Выберите другое.",
       "username_too_short": "Используйте не менее {{min}} символов.",
       "username_too_long": "Используйте не более {{max}} символов.",
@@ -1832,7 +1881,8 @@
       "trading_activity_footnote": "Изменения применяются сразу. Ваши данные профиля и публикации в любом случае остаются видимыми.",
       "trading_activity_info": "Подробнее о торговой активности",
       "linked_account_footnote": "Сделки с этого счета будут отображаться в вашей ленте и таблице лидеров.",
-      "avatar_accessibility_label": "Аватар вашего профиля"
+      "avatar_accessibility_label": "Аватар вашего профиля",
+      "linked_account_cooldown": "Связанный счет можно менять только раз в {{days}} дн."
     },
     "position_sheet": {
       "title": "Сделка {{username}}",
@@ -1840,9 +1890,9 @@
       "following": "Подписки",
       "today": "Сегодня",
       "market_cap_suffix": "(РК)",
-      "posts_tab": "Posts ({{count}})",
-      "transactions_tab": "Transactions ({{count}})",
-      "no_posts": "No posts on this trade yet",
+      "posts_tab": "Публикации ({{count}})",
+      "transactions_tab": "Транзакции ({{count}})",
+      "no_posts": "Публикаций об этой сделке пока нет",
       "level": {
         "entry": "Вход",
         "exit": "Выйти",
@@ -1875,7 +1925,9 @@
         "spot_added": "Куплено ещё",
         "spot_reduced": "Частично продано",
         "spot_closed": "Всё продано"
-      }
+      },
+      "open_asset_accessibility_hint": "Открывает страницу актива",
+      "open_market_accessibility_hint": "Открывает сведения о рынке"
     },
     "trader_position": {
       "market_cap": "По рыночной капитализации",
@@ -2338,7 +2390,7 @@
         "isolated": "Изолированная",
         "cross": "Кросс",
         "close": "Закрыть",
-        "reverse": "Реверсировать",
+        "reverse": "Развернуть",
         "share": "Поделиться"
       },
       "order_card": {
@@ -2396,7 +2448,7 @@
       "trigger_price": "Триггерная цена",
       "liquidation_price": "Цена ликвидации",
       "fees": "Комиссии",
-      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
+      "fees_taker_maker": "Тейкер {{taker}}% / мейкер {{maker}}%",
       "estimated_points": "Прим. баллов",
       "market": "Рынок",
       "limit": "Лимит",
@@ -2664,7 +2716,8 @@
       "updating_your_order": "Обновление вашего ордера",
       "order_updated": "Ордер обновлен",
       "order_update_failed": "Не удалось обновить ордер",
-      "order_update_failed_subtitle": "Ваш ордер по-прежнему открыт с прежней ценой и размером."
+      "order_update_failed_subtitle": "Ваш ордер по-прежнему открыт с прежней ценой и размером.",
+      "order_update_post_only_would_cross": "Ваш ордер отменен, поскольку по новой цене он мог бы исполниться сразу, пересекая спред. Разместите его снова по другой цене или в обычном режиме."
     },
     "slippage": {
       "config_title": "Установить проскальзывание",
@@ -2994,7 +3047,9 @@
       "marginValidation": {
         "exceedsMaxRemovable": "Сумма превышает максимально допустимый размер удаляемой маржи",
         "insufficientMargin": "Позиция не имеет достаточно маржи для такого сокращения"
-      }
+      },
+      "postOnlyWindow": "После обновления сети торговля временно ограничена и вскоре возобновится. Повторите попытку через несколько минут.",
+      "postOnlyWouldCross": "По этой цене ордер пересек бы спред, поэтому пассивный ордер не размещен. Измените цену или разместите ордер в обычном режиме."
     },
     "position": {
       "title": "Позиции",
@@ -3667,7 +3722,7 @@
     "tp_on_chart": "ТП на графике",
     "sl_on_chart": "СЛ на графике",
     "pnl_hero_card": {
-      "title": "Карточка героя П/У",
+      "title": "Карточка П/У",
       "header_title": "Поделитесь своей сделкой",
       "share_button": "Поделиться",
       "share_message_without_referral_code": "Торгуйте перами на {{asset}} на MetaMask.",
@@ -3742,8 +3797,8 @@
     "unavailable_in_region": "Недоступно в вашем регионе",
     "home_title": "Прогнозы",
     "venue_selector": {
-      "button_label": "Choose a prediction market",
-      "title": "Prediction market",
+      "button_label": "Выберите рынок прогнозов",
+      "title": "Рынок прогнозов",
       "venues": {
         "polymarket": "Polymarket",
         "kalshi": "Kalshi"
@@ -3758,24 +3813,32 @@
       "your_positions": "Ваши позиции",
       "game_lines": "Линии игры",
       "outcomes": "Результаты",
-      "view_all_markets": "View all {{count}} markets",
+      "view_all_markets": "Показать все рынки: {{count}}",
       "market_layout": {
         "moneyline": "Манилайн",
         "spread": "Спред",
         "total_points": "Всего очков",
-        "team_total": "Team total",
-        "player_props": "Player props",
-        "anytime_touchdown": "Anytime touchdown",
-        "rushing_yards": "Rushing yards",
-        "receiving_yards": "Receiving yards",
-        "passing_yards": "Passing yards",
-        "full_game": "Full game",
-        "first_half": "1st half",
-        "second_half": "2nd half",
-        "q1": "1st quarter",
-        "q2": "2nd quarter",
-        "q3": "3rd quarter",
-        "q4": "4th quarter"
+        "team_total": "Тотал команды",
+        "player_props": "Ставки на показатели игроков",
+        "anytime_touchdown": "Тачдаун в любое время",
+        "rushing_yards": "Ярды на выносе",
+        "receiving_yards": "Ярды на приеме",
+        "passing_yards": "Ярды пасом",
+        "full_game": "Весь матч",
+        "first_half": "1-я половина",
+        "second_half": "2-я половина",
+        "q1": "1-я четверть",
+        "q2": "2-я четверть",
+        "q3": "3-я четверть",
+        "q4": "4-я четверть"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "Вероятность выигрыша: {{percent}}%",
+        "buy": "Купить {{price}}",
+        "buy_price_unavailable": "Купить, цена недоступна",
+        "holding": "Доли: {{shares}} по {{price}}",
+        "holding_shares": "{{shares}} акции(-ий)"
       }
     },
     "search": {
@@ -3864,7 +3927,7 @@
       "refresh": "Обновить",
       "retry": "Повторить попытку",
       "review": "Проверить ордер",
-      "venue_changed": "Your prediction market changed. Close this order to continue."
+      "venue_changed": "Рынок прогнозов изменился. Закройте этот ордер, чтобы продолжить."
     },
     "order_approval": {
       "title": "Проверьте свой заказ",
@@ -3897,8 +3960,12 @@
       "requote": "Повторить попытку"
     },
     "order_notification": {
-      "not_placed_title": "Order not placed",
-      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+      "not_placed_title": "Ордер не размещен",
+      "not_placed_description": "Средства с вашего баланса не списаны. Получите новую котировку и повторите попытку."
+    },
+    "home_section": {
+      "position_info": "{{costBasis}} при {{outcome}} для получения {{payout}}",
+      "pnl_unavailable": "Недоступно"
     }
   },
   "predict": {
@@ -4663,8 +4730,8 @@
     "sort_name": "Имя",
     "sort_high_to_low": "От высокого к низкому",
     "sort_low_to_high": "От низкого к высокому",
-    "sort_a_to_z": "A to Z",
-    "sort_z_to_a": "Z to A",
+    "sort_a_to_z": "От А до Я",
+    "sort_z_to_a": "От Я до А",
     "sort_apply": "Применить",
     "sort_reset": "Сбросить",
     "add_to_get_started": "Добавьте криптовалюту, чтобы начать",
@@ -4806,7 +4873,7 @@
       "all": "Все типы",
       "transactions": "Транзакции",
       "buy_sell": "Покупка/продажа",
-      "limit_orders": "Limit orders",
+      "limit_orders": "Лимитные ордера",
       "perps": "Перпы",
       "predictions": "Прогнозы",
       "metamask_card": "Карта"
@@ -4851,7 +4918,7 @@
         "action": "Внести средства"
       },
       "limit_orders": {
-        "description": "Your filled limit orders will show up here.",
+        "description": "Здесь будут отображаться исполненные лимитные ордера.",
         "action": "Обменять токены"
       },
       "metamask_card": {
@@ -5226,7 +5293,7 @@
     "card_update_badge": "Обновить",
     "settings": "Настройки",
     "networks": "Сети",
-    "log_out": "Выйти",
+    "log_out": "Заблокировать",
     "notifications": "Уведомления",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Подключить MetaMask Orange",
@@ -6173,7 +6240,7 @@
     "balance": "балансе. См. статью поддержки",
     "position_pnl": {
       "your_position": "Ваша позиция",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Нереализованные П/У",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6357,97 +6424,97 @@
   },
   "token_details_v1": {
     "security_pill": {
-      "screened": "Screened",
+      "screened": "Проверен",
       "flags": {
-        "one": "{{count}} flag",
-        "other": "{{count}} flags"
+        "one": "{{count}} предупреждение",
+        "other": "Предупреждения: {{count}}"
       },
       "high_risk": "Высокий риск",
-      "unscreened": "Unscreened",
+      "unscreened": "Не проверен",
       "pending": "Ожидающий",
-      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+      "accessibility_label": "Безопасность: {{verdict}}. Открыть вкладку «Безопасность»"
     },
     "social": {
-      "website": "Open website",
-      "x": "Open on X",
-      "telegram": "Open on Telegram",
-      "search_on_x": "Search on X",
-      "copy_address": "Copy contract address {{address}}"
+      "website": "Открыть сайт",
+      "x": "Открыть в X",
+      "telegram": "Открыть в Telegram",
+      "search_on_x": "Искать в X",
+      "copy_address": "Скопировать адрес контракта {{address}}"
     },
     "age": {
-      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "accessibility_label": "Возраст токена: {{age}}. Подробнее о возрасте токена.",
       "explainer": {
         "title": "Возраст токена",
-        "description": "Time since token creation. Seconds, minutes, hours, then days."
+        "description": "Время с момента создания токена. Отображается в секундах, минутах, часах, а затем в днях."
       }
     },
     "stats": {
-      "market_cap": "MCap",
+      "market_cap": "Кап.",
       "liquidity": "Ликвидность",
-      "volume_24h": "24h Vol",
+      "volume_24h": "Объем за 24 ч",
       "holders": "Владельцы",
-      "top_10": "Top 10",
-      "liquidity_to_market_cap": "Liq/MC",
-      "tax": "Tax",
-      "high_low_24h": "24h high/low",
+      "top_10": "Топ-10",
+      "liquidity_to_market_cap": "Ликв./кап.",
+      "tax": "Сбор",
+      "high_low_24h": "Макс./мин. за 24 ч",
       "circulating_supply": "Циркулирующее предложение",
-      "explain": "{{stat}}. Learn what this means",
+      "explain": "{{stat}}. Узнайте, что это значит",
       "explainers": {
         "market_cap": {
-          "title": "Market capitalization",
-          "description": "Current market capitalization of the circulating token supply."
+          "title": "Рыночная капитализация",
+          "description": "Текущая рыночная стоимость всех токенов в обращении."
         },
         "liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token's trading pools."
+          "title": "Общая ликвидность",
+          "description": "Стоимость средств, доступных в торговых пулах токена."
         },
         "volume_24h": {
-          "title": "24-hour trading volume",
-          "description": "Value traded over the last 24 hours."
+          "title": "Объем торгов за 24 часа",
+          "description": "Стоимость сделок за последние 24 часа."
         },
         "holders": {
           "title": "Владельцы",
-          "description": "Number of unique addresses holding this token."
+          "description": "Количество уникальных адресов, на которых хранится этот токен."
         },
         "top_10": {
           "title": "Топ-10 держателей",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+          "description": "Доля токенов у 10 крупнейших держателей без учета пулов, маршрутизаторов и адресов сжигания."
         },
         "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+          "title": "Отношение ликвидности к рыночной капитализации",
+          "description": "Общая ликвидность, деленная на рыночную капитализацию. Этот показатель рассчитывается отдельно и не входит в оценку Blockaid."
         },
         "tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          "title": "Сборы при покупке и продаже",
+          "description": "Заявленные комиссии при покупке и продаже токенов EVM. Отсутствие данных не означает отсутствия комиссий."
         },
         "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          "title": "Максимум и минимум за 24 часа",
+          "description": "Сначала указана самая высокая цена сделки за последние 24 часа, затем самая низкая."
         },
         "circulating_supply": {
           "title": "Циркулирующее предложение",
-          "description": "Amount of this token currently circulating."
+          "description": "Количество токенов, находящихся в обращении."
         },
         "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
+          "title": "Сожженные или заблокированные токены пула ликвидности",
+          "description": "Доля ликвидности основного пула, которая сожжена или заблокирована."
         },
         "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
+          "title": "Основной пул",
+          "description": "Основной торговый пул, указанный для этого токена."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
+          "title": "Признаки накрутки объема",
+          "description": "Эти признаки отображаются, когда Blockaid обнаруживает искусственную торговую активность, например фиктивные сделки или завышенный объем торгов."
         },
         "listed_on_exchange": {
           "title": "В листинге на бирже",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          "description": "Указывает, числится ли токен, по данным Blockaid, в листинге одной из ведущих централизованных бирж."
         },
         "created": {
           "title": "Создан",
-          "description": "Date the token contract was created, when reported by its source."
+          "description": "Дата создания контракта токена, если она указана в источнике данных."
         }
       }
     },
@@ -6479,40 +6546,40 @@
       "title": "Активность {{symbol}}"
     },
     "security_tab": {
-      "explain": "What does {{term}} mean?",
-      "contract_details_link": "See all contract security checks",
+      "explain": "Что означает «{{term}}»?",
+      "contract_details_link": "Посмотреть все проверки безопасности контракта",
       "sections": {
         "contract": "Контракт",
-        "contract_checks": "Contract checks",
-        "additional_checks": "Additional checks",
+        "contract_checks": "Проверки контракта",
+        "additional_checks": "Дополнительные проверки",
         "holders": "Владельцы",
         "liquidity": "Ликвидность",
         "trading": "Торговля",
         "origin": "Источник"
       },
       "checks": {
-        "no_honeypot": "No honeypot",
-        "contract_verified": "Contract verified",
-        "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "is_mintable": "Is mintable"
+        "no_honeypot": "Ловушка не обнаружена",
+        "contract_verified": "Контракт верифицирован",
+        "renounced": "Владелец отказался от прав",
+        "no_blacklist": "Черного списка нет",
+        "is_mintable": "Возможен дополнительный выпуск"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Honeypot not detected",
-          "fail": "Honeypot detected"
+          "pass": "Ловушка не обнаружена",
+          "fail": "Обнаружена ловушка"
         },
         "contract_verified": {
           "pass": "Да",
           "fail": "Нет"
         },
         "renounced": {
-          "pass": "Renounced",
-          "fail": "Not renounced"
+          "pass": "Владелец отказался от прав",
+          "fail": "Владелец сохраняет права"
         },
         "no_blacklist": {
-          "pass": "No controls",
-          "fail": "Control detected"
+          "pass": "Ограничения не обнаружены",
+          "fail": "Обнаружено ограничение"
         },
         "is_mintable": {
           "pass": "Да",
@@ -6522,127 +6589,127 @@
       "values": {
         "yes": "Да",
         "no": "Нет",
-        "none_detected": "None detected",
+        "none_detected": "Ничего не обнаружено",
         "detected": {
-          "one": "{{count}} detected",
-          "other": "{{count}} detected"
+          "one": "Обнаружено: {{count}}",
+          "other": "Обнаружено: {{count}}"
         }
       },
       "risk_banner": {
-        "one": "We found {{count}} risk",
-        "other": "We found {{count}} risks"
+        "one": "Мы обнаружили {{count}} риск",
+        "other": "Обнаруженные риски: {{count}}"
       },
       "risks": {
         "default": {
-          "title": "Risk detected"
+          "title": "Обнаружен риск"
         },
         "known_malicious": {
           "title": "Известный вредоносный",
-          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+          "description": "Blockaid обнаружил ранее известную вредоносную активность или признаки компрометации контракта токена."
         },
         "dangerous_contract_behavior": {
-          "title": "Dangerous contract behavior",
-          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+          "title": "Опасное поведение контракта",
+          "description": "В контракте есть подозрительный код или скрытые способы получить расширенные права доступа либо он работает не так, как ожидается."
         },
         "impersonation_risk": {
-          "title": "Impersonation risk",
-          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+          "title": "Риск подделки",
+          "description": "Этот токен может копировать название, символ, оформление или другие отличительные признаки подлинного токена."
         },
         "rug_pull": {
-          "title": "Rug pull detected",
-          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+          "title": "Обнаружен раг-пулл",
+          "description": "По данным Blockaid, создатели токена ранее устраивали мошеннические схемы с раг-пуллами и токенами-ловушками."
         },
         "exit_scam_risk": {
-          "title": "Exit scam risk",
-          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+          "title": "Риск мошеннического вывода средств",
+          "description": "Действия создателя или инсайдера указывают на риск вывода средств в ущерб держателям."
         },
         "high_token_fees": {
-          "title": "High token fees",
-          "description": "The token's transfer, buy, or sell fees are unusually high."
+          "title": "Высокие комиссии по токену",
+          "description": "Комиссии за перевод, покупку или продажу токена необычно высоки."
         },
         "low_liquidity_risk": {
-          "title": "Low liquidity risk",
-          "description": "Limited liquidity could make the token price volatile."
+          "title": "Риск низкой ликвидности",
+          "description": "При низкой ликвидности цена токена может резко меняться."
         },
         "concentrated_ownership": {
-          "title": "Concentrated ownership",
-          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+          "title": "Концентрация токенов у держателей",
+          "description": "Небольшая группа держателей контролирует значительную долю токенов. Это повышает риск манипулирования ценой и давления со стороны продавцов."
         },
         "wash_trading": {
-          "title": "Wash trading activity",
-          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+          "title": "Признаки фиктивных сделок",
+          "description": "Фиктивные сделки или торговые счета могут искусственно завышать активность или объем торгов токеном."
         },
         "sniped_at_launch": {
-          "title": "Sniped at launch",
-          "description": "One or more wallets acquired supply in the same block as the token's creation."
+          "title": "Токен скупали в момент запуска",
+          "description": "Один или несколько кошельков приобрели токены в том же блоке, в котором токен был создан."
         },
         "suspicious_creator": {
-          "title": "Suspicious creator",
-          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+          "title": "Подозрительный создатель",
+          "description": "Репутация создателя или история финансирования токена указывает на дополнительные риски."
         },
         "sanctioned_creator": {
           "title": "Создатель под санкциями",
-          "description": "The token's creator is sanctioned by a government or financial institution."
+          "description": "В отношении создателя токена действуют санкции со стороны государства или финансовой организации."
         },
         "suspicious_airdrop": {
           "title": "Подозрительный аирдроп",
-          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+          "description": "Раздача токена в блокчейне или его метаданные могут вводить в заблуждение или иметь признаки спама."
         },
         "liquidity_withdrawal_risk": {
-          "title": "Liquidity withdrawal risk",
-          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+          "title": "Риск вывода ликвидности",
+          "description": "Оператор может вывести ликвидность, если заблокировано слишком мало средств или блокировка снимается при миграции."
         }
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now",
+        "age_clause": "· время обновления: {{count}} мин назад",
+        "age_clause_just_now": "· только что обновлено",
         "explainer": {
-          "title": "Security verification",
-          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+          "title": "Проверка безопасности",
+          "description": "Blockaid проверяет безопасность по истории операций в блокчейне. Результаты предоставляются исключительно для информации и не являются финансовой, юридической или инвестиционной рекомендацией. Результат проверки не означает, что MetaMask одобряет токен."
         }
       },
       "stats": {
         "holders": "Владельцы",
-        "top_ten": "Top 10",
-        "total_liquidity": "Total liquidity",
-        "liquidity_to_market_cap": "Liq/MC",
-        "lp_burned_locked": "LP burned/locked",
-        "primary_pool": "Primary pool",
-        "buy_sell_tax": "Buy/sell tax",
-        "volume_flags": "Volume flags",
+        "top_ten": "Топ-10",
+        "total_liquidity": "Общая ликвидность",
+        "liquidity_to_market_cap": "Ликв./кап.",
+        "lp_burned_locked": "Токены пула сожжены/заблокированы",
+        "primary_pool": "Основной пул",
+        "buy_sell_tax": "Сборы при покупке и продаже",
+        "volume_flags": "Признаки накрутки объема",
         "listed_on_exchange": "В листинге на бирже",
         "created": "Создан"
       },
       "holders": {
-        "top_ten": "Top 10",
-        "remaining": "Remaining holders"
+        "top_ten": "Топ-10",
+        "remaining": "Остальные держатели"
       },
       "explainers": {
         "no_honeypot": {
-          "title": "No honeypot",
-          "description": "Whether the token can be sold."
+          "title": "Ловушка не обнаружена",
+          "description": "Можно ли продать токен."
         },
         "contract_verified": {
-          "title": "Contract verified",
-          "description": "Whether the contract source is reported as verified."
+          "title": "Контракт верифицирован",
+          "description": "Отмечен ли исходный код контракта как верифицированный."
         },
         "renounced": {
-          "title": "Renounced",
-          "description": "Whether contract ownership has been renounced."
+          "title": "Владелец отказался от прав",
+          "description": "Отказался ли владелец от прав на контракт."
         },
         "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
+          "title": "Черного списка нет",
+          "description": "Можно ли заблокировать для адреса возможность торговать."
         },
         "is_mintable": {
-          "title": "Is mintable",
-          "description": "Whether a token can mint additional supply."
+          "title": "Возможен дополнительный выпуск",
+          "description": "Можно ли выпустить дополнительные токены."
         }
       }
     },
     "contract_security": {
-      "title": "Contract security"
+      "title": "Безопасность контракта"
     },
     "tab_placeholder": "Скоро появятся"
   },
@@ -9543,8 +9610,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "title": "Конвертируйте средства в цифровые доллары",
+        "description": "Отправьте BRL, USD или EUR со своего банковского счета и получите mUSD на счет Money account. Без комиссий.",
         "cta": "С чего начать"
       },
       "account_is_ready": {
@@ -9567,6 +9634,11 @@
         "description": "Сейчас мы не можем предложить вам банковские переводы. Обратитесь за помощью в службу поддержки.",
         "cta": "Узнайте подробнее.",
         "dismiss": "Отклонить"
+      },
+      "identity_verified": {
+        "title": "Личность подтверждена",
+        "description": "Теперь получите реквизиты виртуального счета, чтобы пополнять его со своего банковского счета.",
+        "cta": "Получить реквизиты счета"
       }
     },
     "first_time_deposit": {
@@ -9698,7 +9770,8 @@
       "add_musd": "Добавить mUSD",
       "receive_external": "Внешний адрес",
       "coming_soon": "Скоро появятся",
-      "new_badge": "Новые"
+      "new_badge": "Новые",
+      "no_fees": "Без комиссий"
     },
     "more_sheet": {
       "title": "Еще",
@@ -9817,9 +9890,9 @@
     "transaction": {
       "deposited": "Внесено",
       "bank_transfer": "Банковский перевод",
-      "microdeposit": "Verification deposit",
-      "microdeposit_from": "From {{name}}",
-      "microdeposit_from_bank": "From your bank",
+      "microdeposit": "Проверочный депозит",
+      "microdeposit_from": "От {{name}}",
+      "microdeposit_from_bank": "Из вашего банка",
       "received": "Получено",
       "sent": "Отправлено",
       "card_transaction": "Транзакция по карте",
@@ -10253,7 +10326,7 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_deposit_header": "Add to MetaMask Money",
+      "money_account_deposit_header": "Пополнить MetaMask Money",
       "money_account_send": "Отправить"
     },
     "sub_title": {
@@ -10276,12 +10349,6 @@
       "predict_deposit": {
         "transaction_fee": "Мы обменяем ваши токены на pUSD в Polygon — сети, используемой Прогнозами. Поставщикик услуг обмена могут взимать комиссию, но MetaMask — нет."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask автоматически обменяет ваш токен на желаемый. При обмене на mUSD комиссия MetaMask не взимается."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask автоматически обменяет ваш токен на желаемый. При обмене на mUSD комиссия MetaMask не взимается."
-      },
       "musd_conversion": {
         "transaction_fee": "В стоимость конвертации mUSD входят расходы сети, а также могут входить комиссии поставщика. При обмене на mUSD комиссия MetaMask не взимается."
       },
@@ -10294,7 +10361,13 @@
       "title": {
         "transaction_fee": "Комиссии за транзакцию"
       },
-      "network_fee": "Комиссии сети зависят от загруженности сети и сложности транзакции."
+      "network_fee": "Комиссии сети зависят от загруженности сети и сложности транзакции.",
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
+      }
     },
     "spending_cap": "Лимит расходов",
     "withdraw": "Вывести",
@@ -10393,7 +10466,7 @@
     "available_balance": "Доступный баланс: ",
     "edit_amount_done": "Продолжить",
     "deposit_edit_amount_done": "Внести средства",
-    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
+    "deposit_edit_amount_convert_token": "Конвертировать {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Вывести средства",
     "deposit_edit_amount_money_account_send": "Отправить",
     "deposit_edit_amount_musd_conversion": "Конвертировать в mUSD",
@@ -10528,8 +10601,8 @@
       "order_created_description": "Мы сообщим вам, когда он будет исполнен.",
       "order_canceled_title": "Ордер отменен",
       "usd_price_notice": "Цены отображаются в выбранной вами валюте, но ордер размещается в USD по обменному курсу на момент создания ордера. Текущий курс: 1 USD = {{rate}} {{currency}}.",
-      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
-      "swap_into_token": "Swap into {{symbol}}",
+      "insufficient_balance_warning": "На балансе недостаточно {{symbol}} для исполнения ордера. Если средств по-прежнему будет недостаточно, когда выполнится условие срабатывания, ордер не исполнится.",
+      "swap_into_token": "Обменять на {{symbol}}",
       "activity_title_filled": "{{source}} обменян в {{dest}}",
       "activity_title_expired": "{{source}} на {{dest}}: срок истек",
       "activity_title_canceled": "{{source}} на {{dest}}: отменен",
@@ -10548,8 +10621,8 @@
       "confirm": "Подтвердить",
       "preview_order": "Предпросмотр ордера",
       "confirm_title": "Подтвердить регулярный ордер",
-      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
-      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "unsupported_fee_token_pair": "Регулярные свопы для этой пары токенов недоступны. Чтобы продолжить, замените хотя бы один токен на один из следующих: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Не удалось загрузить список токенов для оплаты комиссии. Повторите попытку.",
       "try_again": "Повторить попытку",
       "order_created_toast_title": "Ордер создан",
       "order_created_toast_body": "Мы сообщим вам, когда он будет исполнен.",
@@ -10562,9 +10635,9 @@
       "expires_after": "Истекает после",
       "slippage_all_orders": "Проскальзывание (все ордера)",
       "est_network_fee_per_order": "Прим. комиссия сети (за ордер)",
-      "account_upgrade_fee": "Account upgrade fee",
-      "account_upgrade_fee_info_title": "Account upgrade fee",
-      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
+      "account_upgrade_fee": "Комиссия за обновление счета",
+      "account_upgrade_fee_info_title": "Комиссия за обновление счета",
+      "account_upgrade_fee_info_body": "Обновите счет до smart account, чтобы выполнять регулярные свопы. Как и за любое действие в блокчейне, за обновление взимается небольшая сетевая комиссия.",
       "got_it": "Понятно",
       "repeat_info_title": "Повторяющиеся ордера",
       "repeat_info_body": "Мы рандомизируем время и размер ваших ордеров, чтобы ваши обмены не следовали предсказуемому шаблону.",
@@ -10572,7 +10645,7 @@
       "max_is": "Максимум — {{max}}",
       "price_range": {
         "label": "Диапазон цен",
-        "input_label": "Price range (optional)",
+        "input_label": "Диапазон цен (необязательно)",
         "not_set": "Не заданы",
         "token": "Токен",
         "price": "Цена",
@@ -10809,7 +10882,7 @@
     "quote_stream_complete_rwa_market_unavailable": "Рынок для этого актива в настоящее время недоступен. Попробуйте позже.",
     "max": "Максимум",
     "approval_needed": "Одобряет токен для обмена.",
-    "tooltip_accessibility_hint": "Shows more information",
+    "tooltip_accessibility_hint": "Показывает дополнительную информацию",
     "approval_tooltip_title": "Предоставить точный доступ",
     "approval_tooltip_content": "Вы разрешаете доступ к указанной сумме: {{amount}} {{symbol}}. Контракт не будет использовать дополнительные средства.",
     "minimum_received": "Полученный минимум",
@@ -12541,7 +12614,7 @@
       "total_participants": "Всего участников",
       "total_volume": "Общий объем",
       "top_return": "Лучшая доходность",
-      "top_pnl": "Лучший показатель П/У",
+      "top_pnl": "Лучшие П/У",
       "total_yield": "Общая доходность",
       "total_winners": "Всего победителей"
     },
@@ -12667,7 +12740,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "Требуется {{amount}} $",
       "stats_qualified_title": "Вы соответствуете требованиям",
-      "stats_qualified_description": "Продолжайте торговать, чтобы улучшить свой показатель прибыли и убытков (П/У) и подняться в таблице лидеров до окончания соревнования.",
+      "stats_qualified_description": "Продолжайте торговать, чтобы улучшить свой П/У и подняться в рейтинге до окончания соревнования.",
       "stats_qualify_for_rank_title": "Пройти квалификацию для таблицы лидеров",
       "stats_qualify_for_rank_description": "Наторгуйте еще {{notionalRemaining}} номинального объема, чтобы получить право на участие.",
       "stats_error_title": "Не удалось загрузить статистику",
@@ -12681,7 +12754,7 @@
       "label_your_rank": "Ваш ранг",
       "label_roi": "ROI (после вычета комиссий)",
       "label_total_volume": "Общий объем",
-      "label_pnl": "PnL (после вычета комиссий)",
+      "label_pnl": "П/У (с учетом комиссий)",
       "predict_now_cta": "Сделать прогноз",
       "positions_title": "Ваши прогнозы",
       "positions_open_section": "Открыть",
@@ -13490,16 +13563,16 @@
       }
     },
     "payment": {
-      "processing_title": "Processing payment",
+      "processing_title": "Обрабатываем платеж",
       "processing_body": "Это может занять несколько минут.",
-      "active_title": "Your membership is active",
-      "view_membership": "View membership",
+      "active_title": "Ваша подписка активна",
+      "view_membership": "Посмотреть подписку",
       "failed_title": "Платеж не выполнен",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "Переведите средства на счет Money account, чтобы сохранить доступ к преимуществам подписки.",
       "try_again": "Повторить попытку"
     },
     "success": {
-      "title": "You just leveled up",
+      "title": "Вы перешли на новый уровень",
       "description": "Пора начинать зарабатывать.",
       "cta": "Продолжить"
     }

@@ -8,10 +8,10 @@ import {
 } from 'react-native';
 import {
   Box,
-  FontWeight,
   HelpText,
   HelpTextSeverity,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -41,6 +41,7 @@ export interface StepProps<Name extends MfaFlowStep['name']> {
 }
 
 interface StepLayoutProps {
+  onAction: (action: MfaFlowAction) => void;
   title: string;
   description?: string;
   error?: MfaFlowErrorCode;
@@ -66,30 +67,33 @@ export const MfaShield = () => {
 export const StepError = ({
   code,
   method,
+  onAction,
 }: {
   code: MfaFlowErrorCode;
   method?: MfaMethod;
+  onAction: (action: MfaFlowAction) => void;
 }) => {
   const link = getErrorLink(code);
   return (
     <HelpText
       severity={HelpTextSeverity.Danger}
-      fontWeight={FontWeight.Medium}
+      accessibilityRole="alert"
       testID={MfaFlowSelectorsIDs.ERROR}
     >
       {getErrorMessage(code, method)}
       {link ? (
         <>
           {' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
-            onPress={() => Linking.openURL(link)}
+            onPress={() => {
+              onAction({ type: 'errorCtaClicked', cta: 'learn_more' });
+              Linking.openURL(link).catch(() => undefined);
+            }}
             testID={MfaFlowSelectorsIDs.ERROR_LINK}
           >
             {strings('mfa.errors.learn_more')}
-          </Text>
+          </TextButton>
         </>
       ) : null}
     </HelpText>
@@ -132,6 +136,7 @@ export const StepHeader = ({
 };
 
 const StepLayout = ({
+  onAction,
   title,
   description,
   error,
@@ -164,7 +169,7 @@ const StepLayout = ({
           isCentered={top !== undefined}
         />
         {children}
-        {error ? <StepError code={error} /> : null}
+        {error ? <StepError code={error} onAction={onAction} /> : null}
       </ScrollView>
       {footer ? (
         <Box

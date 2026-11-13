@@ -5,6 +5,7 @@ import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PriceChartProvider } from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { CHART_DATA_THRESHOLD } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
 import TraderPriceChart from './TraderPriceChart';
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -243,8 +244,8 @@ describe('TraderPriceChart', () => {
       expect(result.queryByTestId('trade-marker-0xoutside')).toBeNull();
     });
 
-    it('does not render markers when the chart has insufficient data (< 5 points)', () => {
-      const prices = makePrices(3);
+    it('does not render markers when the chart has insufficient data', () => {
+      const prices = makePrices(CHART_DATA_THRESHOLD - 1);
       const trade = makeTrade({
         transactionHash: '0xnoshow',
         timestamp: BASE_TS + 1 * INTERVAL,

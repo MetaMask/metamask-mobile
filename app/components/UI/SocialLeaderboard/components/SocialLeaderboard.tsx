@@ -71,6 +71,9 @@ const rowLayoutTransition = LinearTransition.duration(
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
 
+/** Stable empty chain list so an unready source does not change the hook deps. */
+const NO_LEADERBOARD_CHAINS: readonly string[] = [];
+
 /** Lets a host that owns the scroll view drive pull-to-refresh. */
 export interface SocialLeaderboardHandle {
   refresh: () => Promise<void>;
@@ -98,6 +101,8 @@ export interface SocialLeaderboardProps {
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
+  /** Gates Follow behind a linked social wallet on Social V1 hosts. */
+  requireSocialProfile?: boolean;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -119,6 +124,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   showViewerRow = false,
   onOutcomeChange,
   performance,
+  requireSocialProfile,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -127,6 +133,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { track } = useSocialLeaderboardAnalytics();
   const { followWithSetup } = useFollowWithNotificationSetup({
     requireSocialTerms: true,
+    requireSocialProfile,
   });
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
@@ -154,8 +161,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       : undefined,
   });
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
   const hydrateSnapshotRow = useCallback(
     (trader: TopTrader): RankedTrader => ({
       ...trader,
@@ -175,12 +180,30 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     hydrateRow: hydrateSnapshotRow,
   });
 
-  const { viewerRow, rowsWithoutViewer, viewerProfileId, viewerAddress } =
-    useLeaderboardViewerRow(
-      traders,
-      sort,
-      showViewerRow && resolution.status === 'ready',
-    );
+  const {
+    viewerRow,
+    rowsWithoutViewer,
+    viewerProfileId,
+    viewerAddress,
+    refreshViewerProfile,
+  } = useLeaderboardViewerRow(
+    traders,
+    sort,
+    showViewerRow && resolution.status === 'ready' && hasFetched,
+    {
+      timeframe,
+      chains:
+        resolution.status === 'ready'
+          ? resolution.chains
+          : NO_LEADERBOARD_CHAINS,
+    },
+  );
+
+  const refreshAll = useCallback(async () => {
+    await Promise.all([refresh(), refreshViewerProfile()]);
+  }, [refresh, refreshViewerProfile]);
+
+  useImperativeHandle(ref, () => ({ refresh: refreshAll }), [refreshAll]);
 
   const rows = useMemo(
     () =>
@@ -250,8 +273,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   }, [navigation, viewerAddress, viewerProfileId]);
 
   const handleRetry = useCallback(() => {
-    refresh().catch(() => undefined);
-  }, [refresh]);
+    refreshAll().catch(() => undefined);
+  }, [refreshAll]);
 
   const firstContentState =
     !isEnabled || resolution.status === 'hidden'
@@ -372,6 +395,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             highlighted
             hideRank={viewerRow.hideRank}
             showLeaderboardDetails
+            omitPercentage={viewerRow.omitPercentage}
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
         ) : null}

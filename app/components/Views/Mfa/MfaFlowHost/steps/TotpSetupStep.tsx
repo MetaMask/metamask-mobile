@@ -95,6 +95,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
         includesTopInset
       />
       <StepLayout
+        onAction={onAction}
         title={strings('mfa.totp_setup.title')}
         description={strings('mfa.totp_setup.description')}
         error={state.error}

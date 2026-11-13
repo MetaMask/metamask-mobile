@@ -57,12 +57,15 @@ import {
 } from '../../../../util/haptics';
 import {
   buildFollowTradingTokenContext,
+  SocialEvent,
   SocialLeaderboardEventProperties,
+  useSocialAnalytics,
   useSocialLeaderboardAnalytics,
   type TraderProfileScreenViewedSource,
 } from '../analytics';
 
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
@@ -95,6 +98,7 @@ import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
+import { getPositionFlagLabelKey } from './utils/positionFlags';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -148,7 +152,9 @@ const TraderProfileView = () => {
   const source = (sourceParam ??
     'deep_link') as TraderProfileScreenViewedSource;
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
 
   const {
     profile,
@@ -219,7 +225,9 @@ const TraderProfileView = () => {
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
   const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
-  const { followWithSetup } = useFollowWithNotificationSetup();
+  const { followWithSetup } = useFollowWithNotificationSetup({
+    requireSocialProfile: isSocialV1Enabled,
+  });
   const handleMutePress = useCallback(
     () => onMutePress(traderId),
     [onMutePress, traderId],
@@ -251,8 +259,16 @@ const TraderProfileView = () => {
   }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
-    shareSocialProfile(traderId);
-  }, [traderId]);
+    playSelection().catch(() => undefined);
+    shareSocialProfile(traderId, () => {
+      trackSocialPost({
+        interaction_type: SocialEvent.Interaction.POST_SHARED,
+        screen_name: SocialEvent.Screen.MY_PROFILE,
+        source: SocialEvent.Source.TRADER_PROFILE,
+        share_destination: SocialEvent.ShareDestination.EXTERNAL,
+      });
+    });
+  }, [trackSocialPost, traderId]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -285,6 +301,7 @@ const TraderProfileView = () => {
   const handleTabChange = useCallback(
     (tab: TraderProfileTab) => {
       if (activeTab === tab) return;
+      playSelection().catch(() => undefined);
       setActiveTab(tab);
       if (traderAddress && tab !== 'posts') {
         queueMicrotask(() => {
@@ -643,9 +660,14 @@ const TraderProfileView = () => {
                       <PositionRow
                         key={getPositionListKey(position)}
                         position={position}
-                        onPress={handlePositionPress}
+                        onPress={
+                          getPositionFlagLabelKey(position)
+                            ? undefined
+                            : handlePositionPress
+                        }
                         isClosed={activeTab === 'closed'}
                         showTradeDate={currentSortKey === 'recent'}
+                        flaggedPresentation="excluded"
                       />
                     ))
                   )}
