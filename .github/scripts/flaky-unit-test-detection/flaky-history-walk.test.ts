@@ -24,16 +24,7 @@ jest.mock('@actions/github', () => ({ getOctokit: jest.fn() }), {
 
 const FILE = 'app/core/createAsyncBatcher.test.ts';
 
-/**
- * Recorded shape of a same-run re-run whose latest attempt is green.
- *
- * Run 43118958390 on 2026-11-11 concluded `success` at attempt 2.
- * `GET /actions/runs/43118958390/jobs?filter=all` reported 136 jobs, and
- * `Unit tests (4)` had failed on attempt 1 and passed on attempt 2.
- * `listWorkflowRuns` only returns the green latest row. The padding forces
- * the confirming jobs onto a second page of 100, which a fixed `first: 100`
- * check-run selection used to call truncation.
- */
+/** Green latest attempt; Unit tests (4) failed then passed, split across two pages. */
 const SAME_RUN_RERUN = {
   id: 43118958390,
   conclusion: 'success' as const,

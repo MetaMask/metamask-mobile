@@ -26,7 +26,7 @@ import {
   candidateShaGroupsNewestFirst,
   classifyBatchFailure,
   classifyLoglessJob,
-  confirmedFailThenPassJobs,
+  confirmedFailThenPassFromAttemptJobs,
   groupRunsByHeadSha,
   jobListTruncated,
   listedWorkflowRunFromApi,
@@ -49,20 +49,10 @@ const RUNS_PAGE_SIZE = 100;
 const JOBS_PAGE_SIZE = 100;
 const DOWNLOAD_CONCURRENCY = 8;
 
-/**
- * REST requests measured for a heavy weekday: listing ~600–800 runs plus
- * about two job pages for each re-run. The per-day cap sits above this so
- * that day can finish. The build cap stays under the 1000-request hourly
- * limit, leaving room for the prior-artifact lookup, log downloads, and
- * retries.
- */
+/** Measured heavy-weekday cost. The per-day cap sits above this. */
 export const HEAVY_DAY_REST_REQUESTS = 350;
 
-/**
- * One heavy day fits in this, and two of them fit in the build budget. A
- * third day waits for the next night instead of taking a share too small
- * to finish.
- */
+/** Two of these fit in the build budget. A third day waits. */
 export const MAX_REST_REQUESTS_PER_DAY = 400;
 
 export const MAX_REST_REQUESTS_PER_BUILD = 800;
@@ -80,13 +70,7 @@ export function newWalkBudget(): WalkBudget {
   return { restRequests: 0, logFetches: 0 };
 }
 
-/**
- * How many REST requests the next day may spend.
- *
- * Days are walked one at a time and each may use up to a full heavy day.
- * Dividing the build budget by the number of queued days left every day
- * short of a page of jobs, so none of them ever finished.
- */
+/** Next day's request share. A full heavy day, not budget divided by queued days. */
 export function requestShareForDay({
   spent,
   buildBudget = MAX_REST_REQUESTS_PER_BUILD,
@@ -558,7 +542,7 @@ export async function walkDay({
   let infrastructureFailures = 0;
 
   for (const jobs of jobsBySha.values()) {
-    const confirmed = confirmedFailThenPassJobs(jobs);
+    const confirmed = confirmedFailThenPassFromAttemptJobs(jobs);
     if (confirmed.length === 0) {
       continue;
     }

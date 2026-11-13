@@ -7,8 +7,8 @@
  * commit are both valid; fail on SHA A then pass on SHA B is not.
  *
  * Stage 1 walks an ID-first funnel: list runs, keep SHAs that can be a
- * retry, read that run's jobs across attempts, confirm the same job name
- * later succeeded, then download logs only for those jobs.
+ * retry, GraphQL-batch failed Unit tests check runs, confirm the same job
+ * name later succeeded, then download logs only for those jobs.
  */
 import type { CoverageWindow, UnattributedRerun } from './flaky-types';
 import type { IndexCoverage } from './flaky-history-index';
@@ -17,6 +17,7 @@ import { isFlakyWorkflowUnitTestPath } from './flaky-unit-test-path';
 export type { CoverageWindow, UnattributedRerun };
 
 export const UNIT_TEST_JOB_PREFIX = 'Unit tests';
+export const CI_WORKFLOW_NAME = 'ci';
 
 export type ListedWorkflowRun = {
   id: number;
@@ -108,10 +109,38 @@ export function jobLogUrl(
   return `${serverUrl}/${repo}/actions/runs/${runId}/job/${jobId}`;
 }
 
+export type FailedUnitCheckRun = {
+  name: string;
+  jobId: number;
+  runId: number;
+  runAttempt: number;
+  suiteOrder: number;
+};
+
+export type CiSuite = {
+  suiteOrder: number;
+  runId: number;
+  runAttempt: number;
+  failedUnit: FailedUnitCheckRun[];
+  passedUnitNames: string[];
+};
+
+export type ShaCheckResult = {
+  headSha: string;
+  suites: CiSuite[];
+  /** A connection returned fewer nodes than its totalCount, so a suite or check run is missing. */
+  truncated: boolean;
+};
+
 export type ConfirmedFailThenPassJob = {
   name: string;
   jobId: number;
   runId: number;
+};
+
+export type ShaBatchQuery = {
+  query: string;
+  variables: Record<string, string>;
 };
 
 export function groupRunsByHeadSha(
@@ -130,12 +159,10 @@ export function groupRunsByHeadSha(
 }
 
 /**
- * Whether earlier attempts of one run are all present in the listed rows.
- *
- * `listWorkflowRuns` returns a single row per run id — the latest attempt and
- * its conclusion. A re-run that failed and then passed is therefore one row
- * with `runAttempt > 1` and `conclusion: 'success'`, and the failed attempt is
- * not in the list at all.
+ * `listWorkflowRuns` returns one row per run: the latest attempt. A green
+ * re-run is therefore `runAttempt > 1` with conclusion `success`, and the
+ * failed attempt is not in the list. Keep it. Skip a re-run only when every
+ * attempt is present and succeeded.
  */
 function listedAttemptsCover(
   attempts: ListedWorkflowRun[],
@@ -150,20 +177,6 @@ function listedAttemptsCover(
   return true;
 }
 
-/**
- * A fail-then-pass needs a failed Unit tests job and a later success of that
- * same job on the identical commit.
- *
- * A listed conclusion of `success` does not prove the first attempt passed.
- * The list endpoint only reports the latest attempt, so a green re-run is
- * kept and the jobs API decides whether an earlier attempt failed. The only
- * re-run skipped here is one whose every attempt is present and succeeded,
- * which the list endpoint does not actually return.
- *
- * A re-run that stayed red is kept too: GitHub concludes the whole run on
- * every job, so "Unit tests passed, lint still failed" looks identical to
- * "nothing passed".
- */
 export function isCandidateShaGroup(runsForSha: ListedWorkflowRun[]): boolean {
   const byId = new Map<number, ListedWorkflowRun[]>();
   for (const run of runsForSha) {
@@ -208,10 +221,256 @@ export function candidateShaGroupsNewestFirst(
   });
 }
 
+export function chunkArray<T>(items: T[], size: number): T[][] {
+  if (size <= 0) {
+    return items.length === 0 ? [] : [items];
+  }
+  const chunks: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size));
+  }
+  return chunks;
+}
+
 /**
- * One job execution from `GET /actions/runs/{run_id}/jobs?filter=all`.
- * `filter=all` is required: the default `latest` drops the failed attempt.
+ * `appId: 15368` is the GitHub Actions app: it drops the third-party suites
+ * (measured: 27 suites on a PR head, 16 of them Actions) that can never hold a
+ * Unit tests job. `totalCount` next to every connection is what proves the
+ * page was not truncated — guessing `first` sizes silently loses confirmations.
  */
+export const GITHUB_ACTIONS_APP_ID = 15368;
+
+const COMMIT_FIELDS = `{
+  oid
+  checkSuites(first: 50, filterBy: { appId: ${GITHUB_ACTIONS_APP_ID} }) {
+    totalCount
+    nodes {
+      workflowRun {
+        databaseId
+        runAttempt
+        workflow { name }
+      }
+      failed: checkRuns(first: 50, filterBy: { checkType: ALL, conclusions: [FAILURE] }) {
+        totalCount
+        nodes { name detailsUrl }
+      }
+      passed: checkRuns(first: 100, filterBy: { checkType: LATEST, conclusions: [SUCCESS] }) {
+        totalCount
+        nodes { name }
+      }
+    }
+  }
+}`;
+
+export function buildShaBatchQuery(
+  shas: string[],
+  owner: string,
+  name: string,
+): ShaBatchQuery {
+  const variables: Record<string, string> = { owner, name };
+  const shaParams: string[] = [];
+  const aliases: string[] = [];
+  shas.forEach((sha, index) => {
+    const alias = `c${index}`;
+    const varName = `sha${index}`;
+    variables[varName] = sha;
+    shaParams.push(`$${varName}: GitObjectID!`);
+    aliases.push(
+      `${alias}: object(oid: $${varName}) { ... on Commit ${COMMIT_FIELDS} }`,
+    );
+  });
+  const query = `query ShaBatch($owner: String!, $name: String!, ${shaParams.join(', ')}) {
+  repository(owner: $owner, name: $name) {
+    ${aliases.join('\n    ')}
+  }
+}`;
+  return { query, variables };
+}
+
+const JOB_URL_PATTERN = /\/runs\/(\d+)\/job\/(\d+)(?:\/|$)/;
+
+export function jobIdFromDetailsUrl(
+  detailsUrl: string,
+): { runId: number; jobId: number } | null {
+  const match = JOB_URL_PATTERN.exec(detailsUrl);
+  if (!match) {
+    return null;
+  }
+  return { runId: Number(match[1]), jobId: Number(match[2]) };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function asString(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+/** True when a connection returned fewer nodes than it says exist. */
+function connectionTruncated(connection: unknown): boolean {
+  if (!isRecord(connection)) {
+    return false;
+  }
+  const total = asNumber(connection.totalCount);
+  if (total === null) {
+    return false;
+  }
+  return asArray(connection.nodes).length < total;
+}
+
+function parseSuite(node: unknown): CiSuite | null {
+  if (!isRecord(node)) {
+    return null;
+  }
+  const workflowRun = node.workflowRun;
+  if (!isRecord(workflowRun)) {
+    return null;
+  }
+  const workflow = workflowRun.workflow;
+  const workflowName = isRecord(workflow) ? asString(workflow.name) : '';
+  if (workflowName.toLowerCase() !== CI_WORKFLOW_NAME) {
+    return null;
+  }
+  const suiteOrder = asNumber(workflowRun.databaseId);
+  const runAttempt = asNumber(workflowRun.runAttempt) ?? 1;
+  if (suiteOrder === null) {
+    return null;
+  }
+
+  const failedUnit: FailedUnitCheckRun[] = [];
+  const failedNodes = isRecord(node.failed) ? asArray(node.failed.nodes) : [];
+  for (const failed of failedNodes) {
+    if (!isRecord(failed)) {
+      continue;
+    }
+    const checkName = asString(failed.name);
+    if (!checkName.startsWith(UNIT_TEST_JOB_PREFIX)) {
+      continue;
+    }
+    const ids = jobIdFromDetailsUrl(asString(failed.detailsUrl));
+    if (!ids) {
+      continue;
+    }
+    failedUnit.push({
+      name: checkName,
+      jobId: ids.jobId,
+      runId: ids.runId,
+      runAttempt,
+      suiteOrder,
+    });
+  }
+
+  const passedUnitNames: string[] = [];
+  const passedNodes = isRecord(node.passed) ? asArray(node.passed.nodes) : [];
+  for (const passed of passedNodes) {
+    if (!isRecord(passed)) {
+      continue;
+    }
+    const checkName = asString(passed.name);
+    if (checkName.startsWith(UNIT_TEST_JOB_PREFIX)) {
+      passedUnitNames.push(checkName);
+    }
+  }
+
+  return {
+    suiteOrder,
+    runId: failedUnit[0]?.runId ?? 0,
+    runAttempt,
+    failedUnit,
+    passedUnitNames,
+  };
+}
+
+function parseCommitObject(
+  value: unknown,
+  requestedSha: string,
+): ShaCheckResult {
+  if (!isRecord(value)) {
+    return { headSha: requestedSha, suites: [], truncated: false };
+  }
+  const suiteNodes = isRecord(value.checkSuites)
+    ? asArray(value.checkSuites.nodes)
+    : [];
+  const parsed = suiteNodes.map((node) => ({ node, suite: parseSuite(node) }));
+  const suites = parsed
+    .map(({ suite }) => suite)
+    .filter((suite): suite is CiSuite => suite !== null)
+    .sort((a, b) => a.suiteOrder - b.suiteOrder);
+
+  // A hidden suite could be the ci one, so a truncated suite page is always a
+  // gap. Truncated check-run pages only matter inside a ci suite — no other
+  // workflow can hold a Unit tests job.
+  const truncated =
+    connectionTruncated(value.checkSuites) ||
+    parsed.some(
+      ({ node, suite }) =>
+        suite !== null &&
+        isRecord(node) &&
+        (connectionTruncated(node.failed) || connectionTruncated(node.passed)),
+    );
+
+  return {
+    headSha: asString(value.oid) || requestedSha,
+    suites,
+    truncated,
+  };
+}
+
+export function parseShaBatchResponse(
+  response: unknown,
+  requestedShas: string[],
+): ShaCheckResult[] {
+  const repository = isRecord(response)
+    ? isRecord(response.repository)
+      ? response.repository
+      : response
+    : {};
+  return requestedShas.map((sha, index) =>
+    parseCommitObject(repository[`c${index}`], sha),
+  );
+}
+
+export function confirmedFailThenPassJobs(
+  sha: ShaCheckResult,
+): ConfirmedFailThenPassJob[] {
+  const confirmed: ConfirmedFailThenPassJob[] = [];
+  const seenJobs = new Set<number>();
+
+  for (const suite of sha.suites) {
+    for (const failed of suite.failedUnit) {
+      const laterPassInSameSuite = suite.passedUnitNames.includes(failed.name);
+      const laterPassInLaterSuite = sha.suites.some(
+        (other) =>
+          other.suiteOrder > suite.suiteOrder &&
+          other.passedUnitNames.includes(failed.name),
+      );
+      if (!laterPassInSameSuite && !laterPassInLaterSuite) {
+        continue;
+      }
+      if (seenJobs.has(failed.jobId)) {
+        continue;
+      }
+      seenJobs.add(failed.jobId);
+      confirmed.push({
+        name: failed.name,
+        jobId: failed.jobId,
+        runId: failed.runId,
+      });
+    }
+  }
+  return confirmed;
+}
+
+/** One job from `GET /actions/runs/{id}/jobs?filter=all`. */
 export type AttemptJob = {
   id: number;
   runId: number;
@@ -220,15 +479,13 @@ export type AttemptJob = {
   conclusion: string | null;
 };
 
-export type WorkflowJobListItem = {
+export function attemptJobFromApi(job: {
   id: number;
   run_id?: number;
   run_attempt?: number;
   name?: string | null;
   conclusion?: string | null;
-};
-
-export function attemptJobFromApi(job: WorkflowJobListItem): AttemptJob {
+}): AttemptJob {
   return {
     id: job.id,
     runId: job.run_id ?? 0,
@@ -238,15 +495,7 @@ export function attemptJobFromApi(job: WorkflowJobListItem): AttemptJob {
   };
 }
 
-/**
- * True when the jobs endpoint says this run has executions we did not fetch.
- *
- * A ci.yml run has more than 100 jobs (measured around 116–250 once every
- * attempt is included). A caller that stops after the first page has not seen
- * the later attempt, so the day cannot be treated as fully walked.
- * `totalCount === null` means the response did not say, and the caller ends
- * the walk on a short page instead.
- */
+/** True when fetched jobs are fewer than the endpoint's total_count. */
 export function jobListTruncated(
   fetched: number,
   totalCount: number | null,
@@ -259,12 +508,9 @@ export function jobListTruncated(
 
 /**
  * Failed Unit tests jobs whose same name later succeeded, on one SHA.
- *
- * Order is run id, then attempt, then job id. A pass on a later attempt of
- * the same run and a pass on a later ci.yml run of the same commit are both
- * the signal. A pass of a different shard is not.
+ * Order is run id, then attempt, then job id.
  */
-export function confirmedFailThenPassJobs(
+export function confirmedFailThenPassFromAttemptJobs(
   jobs: AttemptJob[],
 ): ConfirmedFailThenPassJob[] {
   const byName = new Map<string, AttemptJob[]>();
@@ -338,18 +584,18 @@ export function classifyLoglessJob(job: {
   return 'missing_log';
 }
 
-/** How many job-list requests may fail before the walk gives up on the rest. */
-export const MAX_FAILED_JOB_LISTS = 3;
+/** How many batches may fail before the walk gives up on the rest. */
+export const MAX_FAILED_GRAPHQL_BATCHES = 3;
 
 export type BatchFailureAction = 'stop' | 'skip';
 
 /**
- * What a failed jobs request means for the rest of the walk.
+ * What a failed GraphQL batch means for the rest of the walk.
  *
- * A rate limit applies to every later request too, so the walk stops. A
+ * A rate limit applies to every later query too, so the walk stops. A
  * transient server error (GitHub returns plain 502s under load) only lost
- * that run; continuing still inspects the remaining candidates, which is the
- * difference between a partial history and none at all. A run that keeps
+ * those 20 SHAs; continuing still inspects the remaining candidates, which is
+ * the difference between a partial history and none at all. A run that keeps
  * failing is an outage rather than a blip, so it stops after a few.
  */
 export function classifyBatchFailure({
@@ -362,7 +608,7 @@ export function classifyBatchFailure({
   if (status === 403 || status === 429) {
     return 'stop';
   }
-  return failedBatches >= MAX_FAILED_JOB_LISTS ? 'stop' : 'skip';
+  return failedBatches >= MAX_FAILED_GRAPHQL_BATCHES ? 'stop' : 'skip';
 }
 
 export function parseJestFailPaths(logText: string): string[] {

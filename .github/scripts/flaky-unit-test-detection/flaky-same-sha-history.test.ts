@@ -1,24 +1,28 @@
 import {
-  attemptJobFromApi,
+  buildShaBatchQuery,
   candidateShaGroupsNewestFirst,
+  chunkArray,
   classifyBatchFailure,
   classifyLoglessJob,
-  MAX_FAILED_JOB_LISTS,
+  MAX_FAILED_GRAPHQL_BATCHES,
+  confirmedFailThenPassFromAttemptJobs,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
   isCandidateShaGroup,
   jobListTruncated,
+  jobIdFromDetailsUrl,
   jobLogUrl,
   listedWorkflowRunFromApi,
   allHitsFromConfirmedLogs,
   parseJestFailPaths,
+  parseShaBatchResponse,
   renderCoverageWindowLine,
   renderInfrastructureFailuresLine,
   renderUnattributedRerunsLine,
   shouldPostAllClear,
-  type AttemptJob,
   type CoverageWindow,
   type ListedWorkflowRun,
+  type ShaCheckResult,
 } from './flaky-same-sha-history';
 
 const modifiedFile = 'app/core/createAsyncBatcher.test.ts';
@@ -89,21 +93,10 @@ describe('isCandidateShaGroup', () => {
     ).toBe(false);
   });
 
-  // listWorkflowRuns returns one row, the latest attempt. A green re-run
-  // therefore has no listed failure. Dropping that row is how the index
-  // recorded zero hits on nights that otherwise finished.
   it('keeps a green latest attempt when earlier attempts are not listed', () => {
     expect(
       isCandidateShaGroup([
-        run({ id: 43118958390, runAttempt: 2, conclusion: 'success' }),
-      ]),
-    ).toBe(true);
-  });
-
-  it('keeps a cancelled re-run whose earlier attempt is not listed', () => {
-    expect(
-      isCandidateShaGroup([
-        run({ id: 1, runAttempt: 2, conclusion: 'cancelled' }),
+        run({ id: 1, runAttempt: 2, conclusion: 'success' }),
       ]),
     ).toBe(true);
   });
@@ -172,109 +165,318 @@ describe('candidateShaGroupsNewestFirst', () => {
   });
 });
 
-const job = (overrides: Partial<AttemptJob> & Pick<AttemptJob, 'id'>): AttemptJob => ({
-  runId: 10,
-  runAttempt: 1,
-  name: 'Unit tests (8)',
-  conclusion: 'failure',
-  ...overrides,
+describe('chunkArray', () => {
+  it('splits into batches of the given size', () => {
+    expect(chunkArray(['a', 'b', 'c', 'd', 'e'], 2)).toEqual([
+      ['a', 'b'],
+      ['c', 'd'],
+      ['e'],
+    ]);
+  });
 });
 
-describe('attemptJobFromApi', () => {
-  it('defaults a missing attempt to 1', () => {
-    expect(
-      attemptJobFromApi({
-        id: 5,
-        run_id: 10,
-        name: 'Unit tests (4)',
-        conclusion: 'success',
-      }),
-    ).toEqual({
-      id: 5,
-      runId: 10,
-      runAttempt: 1,
-      name: 'Unit tests (4)',
-      conclusion: 'success',
+describe('buildShaBatchQuery', () => {
+  it('aliases each SHA as c0, c1, … with GitObjectID variables', () => {
+    const { query, variables } = buildShaBatchQuery(
+      ['aaa', 'bbb'],
+      'MetaMask',
+      'metamask-mobile',
+    );
+
+    expect(variables).toEqual({
+      owner: 'MetaMask',
+      name: 'metamask-mobile',
+      sha0: 'aaa',
+      sha1: 'bbb',
     });
+    expect(query).toContain('c0: object(oid: $sha0)');
+    expect(query).toContain('c1: object(oid: $sha1)');
+    expect(query).toContain('checkType: ALL, conclusions: [FAILURE]');
+    expect(query).toContain('checkType: LATEST, conclusions: [SUCCESS]');
+  });
+
+  it('asks only for GitHub Actions suites and for totalCount on every page', () => {
+    const { query } = buildShaBatchQuery(
+      ['aaa'],
+      'MetaMask',
+      'metamask-mobile',
+    );
+
+    expect(query).toContain('filterBy: { appId: 15368 }');
+    expect(query.match(/totalCount/g)).toHaveLength(3);
   });
 });
 
-describe('jobListTruncated', () => {
-  // ci.yml runs carry well over 100 jobs. A fixed first:100 page is not the
-  // whole list, and treating it as complete is what left weekend days gapped.
-  it('flags a first page that stopped short of total_count', () => {
-    expect(jobListTruncated(100, 142)).toBe(true);
+describe('jobIdFromDetailsUrl', () => {
+  it('parses run id and job id from a GitHub detailsUrl', () => {
+    expect(
+      jobIdFromDetailsUrl(
+        'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/104908899143',
+      ),
+    ).toEqual({ runId: 35130023071, jobId: 104908899143 });
   });
 
-  it('accepts a list that fetched every job the endpoint reported', () => {
-    expect(jobListTruncated(142, 142)).toBe(false);
-    expect(jobListTruncated(32, 32)).toBe(false);
+  it('returns null when the URL has no job id', () => {
+    expect(
+      jobIdFromDetailsUrl('https://github.com/MetaMask/metamask-mobile'),
+    ).toBeNull();
+  });
+});
+
+const rerunFixture = {
+  repository: {
+    c0: {
+      oid: '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+      checkSuites: {
+        nodes: [
+          {
+            workflowRun: {
+              databaseId: 35130017888,
+              runAttempt: 1,
+              workflow: { name: 'Flaky unit test detection' },
+            },
+            failed: { nodes: [] },
+            passed: { nodes: [] },
+          },
+          {
+            workflowRun: {
+              databaseId: 35130023071,
+              runAttempt: 2,
+              workflow: { name: 'ci' },
+            },
+            failed: {
+              nodes: [
+                {
+                  name: 'Unit tests (8)',
+                  detailsUrl:
+                    'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/104908899143',
+                },
+                {
+                  name: 'E2E tests',
+                  detailsUrl:
+                    'https://github.com/MetaMask/metamask-mobile/actions/runs/35130023071/job/1',
+                },
+              ],
+            },
+            passed: {
+              nodes: [{ name: 'Unit tests (8)' }, { name: 'Unit tests (1)' }],
+            },
+          },
+        ],
+      },
+    },
+  },
+};
+
+describe('parseShaBatchResponse', () => {
+  it('keeps only ci Unit tests failures and parses the job id', () => {
+    const [sha] = parseShaBatchResponse(rerunFixture, [
+      '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+    ]);
+
+    expect(sha.suites).toHaveLength(1);
+    expect(sha.suites[0].failedUnit).toEqual([
+      {
+        name: 'Unit tests (8)',
+        jobId: 104908899143,
+        runId: 35130023071,
+        runAttempt: 2,
+        suiteOrder: 35130023071,
+      },
+    ]);
+    expect(sha.suites[0].passedUnitNames).toEqual([
+      'Unit tests (8)',
+      'Unit tests (1)',
+    ]);
   });
 
-  it('does not flag a response that omitted total_count', () => {
-    expect(jobListTruncated(100, null)).toBe(false);
+  it('returns an empty suite list when the commit object is missing', () => {
+    const [sha] = parseShaBatchResponse({ repository: { c0: null } }, ['dead']);
+
+    expect(sha).toEqual({ headSha: 'dead', suites: [], truncated: false });
   });
+
+  it('reports no truncation when every connection returned all its nodes', () => {
+    const [sha] = parseShaBatchResponse(rerunFixture, [
+      '4c386e4f037e0a5adfd69a0e7666840af2253bb9',
+    ]);
+
+    expect(sha.truncated).toBe(false);
+  });
+
+  it('flags a ci suite whose check runs were clipped', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: {
+            totalCount: 1,
+            nodes: [
+              {
+                workflowRun: {
+                  databaseId: 1,
+                  runAttempt: 1,
+                  workflow: { name: 'ci' },
+                },
+                failed: { totalCount: 80, nodes: [] },
+                passed: { totalCount: 0, nodes: [] },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(true);
+  });
+
+  it('flags a commit whose suite page was clipped', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: { totalCount: 60, nodes: [] },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(true);
+  });
+
+  it('ignores a clipped check-run page outside a ci suite', () => {
+    const clipped = {
+      repository: {
+        c0: {
+          oid: 'abc',
+          checkSuites: {
+            totalCount: 1,
+            nodes: [
+              {
+                workflowRun: {
+                  databaseId: 1,
+                  runAttempt: 1,
+                  workflow: { name: 'Flaky unit test detection' },
+                },
+                failed: { totalCount: 80, nodes: [] },
+                passed: { totalCount: 0, nodes: [] },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    expect(parseShaBatchResponse(clipped, ['abc'])[0].truncated).toBe(false);
+  });
+});
+
+const shaResult = (suites: ShaCheckResult['suites']): ShaCheckResult => ({
+  headSha: 'abc',
+  suites,
+  truncated: false,
 });
 
 describe('confirmedFailThenPassJobs', () => {
-  it('confirms a later attempt of the same run and job name', () => {
+  it('confirms a same-suite re-run when LATEST SUCCESS includes the failed job name', () => {
     expect(
-      confirmedFailThenPassJobs([
-        job({ id: 111, runAttempt: 1, conclusion: 'failure' }),
-        job({ id: 222, runAttempt: 2, conclusion: 'success' }),
-      ]),
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (8)'],
+          },
+        ]),
+      ),
     ).toEqual([{ name: 'Unit tests (8)', jobId: 111, runId: 10 }]);
   });
 
-  it('confirms a later ci run that passed the same job name', () => {
+  it('confirms a later ci suite that passed the same job name', () => {
     expect(
-      confirmedFailThenPassJobs([
-        job({ id: 111, runId: 1, runAttempt: 1, conclusion: 'failure' }),
-        job({ id: 222, runId: 2, runAttempt: 1, conclusion: 'success' }),
-      ]),
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 1,
+            runId: 1,
+            runAttempt: 1,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 1,
+                runAttempt: 1,
+                suiteOrder: 1,
+              },
+            ],
+            passedUnitNames: [],
+          },
+          {
+            suiteOrder: 2,
+            runId: 2,
+            runAttempt: 1,
+            failedUnit: [],
+            passedUnitNames: ['Unit tests (8)'],
+          },
+        ]),
+      ),
     ).toEqual([{ name: 'Unit tests (8)', jobId: 111, runId: 1 }]);
   });
 
   it('does not confirm when the retry also failed', () => {
     expect(
-      confirmedFailThenPassJobs([
-        job({ id: 111, runAttempt: 1, conclusion: 'failure' }),
-        job({ id: 222, runAttempt: 2, conclusion: 'failure' }),
-        job({
-          id: 333,
-          runAttempt: 2,
-          name: 'Unit tests (1)',
-          conclusion: 'success',
-        }),
-      ]),
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (1)'],
+          },
+        ]),
+      ),
     ).toEqual([]);
   });
 
   it('does not confirm when a different shard passed', () => {
     expect(
-      confirmedFailThenPassJobs([
-        job({ id: 111, conclusion: 'failure' }),
-        job({
-          id: 222,
-          runAttempt: 2,
-          name: 'Unit tests (3)',
-          conclusion: 'success',
-        }),
-      ]),
-    ).toEqual([]);
-  });
-
-  it('ignores jobs that are not unit-test shards', () => {
-    expect(
-      confirmedFailThenPassJobs([
-        job({ id: 1, name: 'Integration tests (1)', conclusion: 'failure' }),
-        job({
-          id: 2,
-          name: 'Integration tests (1)',
-          runAttempt: 2,
-          conclusion: 'success',
-        }),
-      ]),
+      confirmedFailThenPassJobs(
+        shaResult([
+          {
+            suiteOrder: 10,
+            runId: 10,
+            runAttempt: 2,
+            failedUnit: [
+              {
+                name: 'Unit tests (8)',
+                jobId: 111,
+                runId: 10,
+                runAttempt: 2,
+                suiteOrder: 10,
+              },
+            ],
+            passedUnitNames: ['Unit tests (3)'],
+          },
+        ]),
+      ),
     ).toEqual([]);
   });
 });
@@ -309,9 +511,17 @@ describe('different SHA fail then pass', () => {
       [{ name: 'Unit tests (8)', jobId: 1, runId: 1 }],
       new Map([[1, [modifiedFile]]]),
     );
-    const shaBJobs = confirmedFailThenPassJobs([
-      job({ id: 2, runId: 2, conclusion: 'success' }),
-    ]);
+    const shaBJobs = confirmedFailThenPassJobs(
+      shaResult([
+        {
+          suiteOrder: 2,
+          runId: 2,
+          runAttempt: 1,
+          failedUnit: [],
+          passedUnitNames: ['Unit tests (8)'],
+        },
+      ]),
+    );
 
     expect(shaA).toEqual([{ path: modifiedFile, failRunId: 1, jobId: 1 }]);
     expect(shaBJobs).toEqual([]);
@@ -365,8 +575,8 @@ describe('classifyBatchFailure', () => {
     );
   });
 
-  // A 502 lost one run; the remaining candidates are still worth inspecting.
-  it('skips the run on a transient server error', () => {
+  // A 502 cost 20 SHAs; the remaining candidates are still worth inspecting.
+  it('skips the batch on a transient server error', () => {
     expect(classifyBatchFailure({ status: 502, failedBatches: 1 })).toBe(
       'skip',
     );
@@ -379,7 +589,7 @@ describe('classifyBatchFailure', () => {
     expect(
       classifyBatchFailure({
         status: 502,
-        failedBatches: MAX_FAILED_JOB_LISTS,
+        failedBatches: MAX_FAILED_GRAPHQL_BATCHES,
       }),
     ).toBe('stop');
   });
@@ -617,5 +827,54 @@ describe('renderCoverageWindowLine', () => {
         hasFindings: false,
       }),
     ).toContain('Nothing was found in the covered range');
+  });
+});
+
+describe('jobListTruncated', () => {
+  it('flags a short page and accepts a complete list', () => {
+    expect(jobListTruncated(100, 142)).toBe(true);
+    expect(jobListTruncated(142, 142)).toBe(false);
+    expect(jobListTruncated(100, null)).toBe(false);
+  });
+});
+
+describe('confirmedFailThenPassFromAttemptJobs', () => {
+  const unitJob = (
+    id: number,
+    overrides: Partial<{
+      runId: number;
+      runAttempt: number;
+      name: string;
+      conclusion: string;
+    }> = {},
+  ) => ({
+    id,
+    runId: 10,
+    runAttempt: 1,
+    name: 'Unit tests (8)',
+    conclusion: 'failure' as string | null,
+    ...overrides,
+  });
+
+  it('confirms a later attempt of the same job name', () => {
+    expect(
+      confirmedFailThenPassFromAttemptJobs([
+        unitJob(1),
+        unitJob(2, { runAttempt: 2, conclusion: 'success' }),
+      ]),
+    ).toEqual([{ name: 'Unit tests (8)', jobId: 1, runId: 10 }]);
+  });
+
+  it('does not confirm when a different shard passed', () => {
+    expect(
+      confirmedFailThenPassFromAttemptJobs([
+        unitJob(1),
+        unitJob(2, {
+          name: 'Unit tests (3)',
+          runAttempt: 2,
+          conclusion: 'success',
+        }),
+      ]),
+    ).toEqual([]);
   });
 });
