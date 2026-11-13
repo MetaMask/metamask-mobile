@@ -71,6 +71,7 @@ export function useSendNavbar() {
           backButtonProps={{ testID: 'send-navbar-back-button' }}
           closeButtonProps={{ testID: 'send-navbar-close-button' }}
           includesTopInset
+          isNativeHeaderAllowed={false}
         />
       ),
     },
@@ -81,6 +82,7 @@ export function useSendNavbar() {
           onBack={handleCancelPress}
           backButtonProps={{ testID: 'send-navbar-back-button' }}
           includesTopInset
+          isNativeHeaderAllowed={false}
         />
       ),
     },
@@ -93,6 +95,7 @@ export function useSendNavbar() {
           backButtonProps={{ testID: 'send-navbar-back-button' }}
           closeButtonProps={{ testID: 'send-navbar-close-button' }}
           includesTopInset
+          isNativeHeaderAllowed={false}
         />
       ),
     },

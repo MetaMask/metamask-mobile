@@ -8,6 +8,10 @@ import type {
 } from '@react-navigation/native-stack';
 
 import { strings } from '../../../../locales/i18n';
+import {
+  resolveEndButtonIconProps,
+  resolveStartButtonIconProps,
+} from '../HeaderGlass/headerGlassAccessories';
 import type { HeaderStandardGlassProps } from './HeaderStandardGlass';
 
 type SfSymbolName = Extract<
@@ -76,24 +80,18 @@ const toButton = (
   };
 };
 
+const BACK_LABEL_KEY = 'navigation.back';
+const CLOSE_LABEL_KEY = 'navigation.close';
+
 /**
  * The header as a native bar config, or `undefined` when the header has
  * content the native bar cannot draw (a subtitle, custom accessories, a
  * non-text title or an icon with no SF Symbol). Those keep the JS header.
  */
-export const getNativeHeaderConfig = ({
-  title,
-  subtitle,
-  children,
-  startAccessory,
-  endAccessory,
-  startButtonIconProps,
-  endButtonIconProps = [],
-  onBack,
-  backButtonProps,
-  onClose,
-  closeButtonProps,
-}: HeaderStandardGlassProps): NativeHeaderConfig | undefined => {
+export const getNativeHeaderConfig = (
+  props: HeaderStandardGlassProps,
+): NativeHeaderConfig | undefined => {
+  const { title, subtitle, children, startAccessory, endAccessory } = props;
   if (
     typeof title !== 'string' ||
     subtitle ||
@@ -104,39 +102,18 @@ export const getNativeHeaderConfig = ({
     return undefined;
   }
 
-  const startProps: ButtonIconProps | undefined =
-    startButtonIconProps ??
-    (onBack || backButtonProps
-      ? {
-          iconName: IconName.ArrowLeft,
-          accessibilityLabel: strings('navigation.back'),
-          ...backButtonProps,
-          onPress: backButtonProps?.onPress ?? onBack,
-        }
-      : undefined);
-
-  // As in MMDS, close comes first and the first icon sits rightmost.
-  const endProps: ButtonIconProps[] =
-    onClose || closeButtonProps
-      ? [
-          {
-            iconName: IconName.Close,
-            accessibilityLabel: strings('navigation.close'),
-            ...closeButtonProps,
-            onPress: closeButtonProps?.onPress ?? onClose,
-          },
-          ...endButtonIconProps,
-        ]
-      : endButtonIconProps;
-
   const handlers: Record<string, () => void> = {};
+
   const left: NativeHeaderButton[] = [];
+  const startProps = resolveStartButtonIconProps(props);
   if (startProps) {
+    const isBack = startProps.iconName === IconName.ArrowLeft;
     const start = toButton(
-      startProps,
-      startProps.iconName === IconName.ArrowLeft
-        ? 'header-back'
-        : `header-${startProps.iconName}`,
+      {
+        accessibilityLabel: isBack ? strings(BACK_LABEL_KEY) : undefined,
+        ...startProps,
+      },
+      isBack ? 'header-back' : `header-start-${startProps.iconName}`,
       handlers,
     );
     if (!start) {
@@ -146,10 +123,16 @@ export const getNativeHeaderConfig = ({
   }
 
   const right: NativeHeaderButton[] = [];
-  for (const [index, props] of endProps.entries()) {
-    const identifier = `header-${props.iconName}`;
+  for (const [index, endProps] of resolveEndButtonIconProps(props).entries()) {
+    const identifier = `header-end-${endProps.iconName}`;
     const button = toButton(
-      props,
+      {
+        accessibilityLabel:
+          endProps.iconName === IconName.Close
+            ? strings(CLOSE_LABEL_KEY)
+            : undefined,
+        ...endProps,
+      },
       right.some((item) => item.identifier === identifier)
         ? `${identifier}-${index}`
         : identifier,
@@ -158,6 +141,7 @@ export const getNativeHeaderConfig = ({
     if (!button) {
       return undefined;
     }
+    // As in MMDS, the first end icon sits rightmost.
     right.unshift(button);
   }
 

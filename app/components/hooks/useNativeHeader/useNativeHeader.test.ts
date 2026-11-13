@@ -62,21 +62,18 @@ describe('useNativeHeader', () => {
     );
   });
 
-  it('shows a solid bar with a title and no system back button', () => {
+  it('shows a title and hides the system back button when asked', () => {
     renderHook(() =>
       useNativeHeader({
         leftItems,
         title: 'Settings',
         titleStyle: { fontFamily: 'Geist-Bold', fontSize: 16 },
-        isTransparent: false,
         hidesBackButton: true,
       }),
     );
 
     expect(mockSetOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        headerTransparent: false,
-        headerStyle: { backgroundColor: expect.any(String) },
         headerBackVisible: false,
         title: 'Settings',
         headerTitleStyle: {
@@ -85,6 +82,14 @@ describe('useNativeHeader', () => {
           color: expect.any(String),
         },
       }),
+    );
+  });
+
+  it('leaves the system back button setting alone by default', () => {
+    renderHook(() => useNativeHeader({ leftItems }));
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ headerBackVisible: undefined }),
     );
   });
 

@@ -20,6 +20,11 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
   HeaderGlassOptions & {
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;
+    /**
+     * Set false when the header renders through a navigator's `header`
+     * option, which keeps UIKit's bar hidden. Defaults to true.
+     */
+    isNativeHeaderAllowed?: boolean;
   };
 
 /**
@@ -31,6 +36,7 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
  * On iOS 26 a screen's top header (`includesTopInset`, not floating) with a
  * text title and mappable icons moves into the native bar instead, so its
  * buttons morph between screens. Sheets never pass `includesTopInset`.
+ * Native bar buttons have no `testID`; they carry an accessibility label.
  */
 const HeaderStandardGlass = ({
   isGlass = true,
@@ -40,6 +46,7 @@ const HeaderStandardGlass = ({
   scrollY,
   onLayout,
   twClassName,
+  isNativeHeaderAllowed = true,
   ...props
 }: HeaderStandardGlassProps) => {
   const headerClassName = glassHeaderTwClassName(twClassName);
@@ -47,6 +54,7 @@ const HeaderStandardGlass = ({
   const isNativeSupported = useIsNativeHeader();
   const nativeConfig =
     isGlass &&
+    isNativeHeaderAllowed &&
     isNativeSupported &&
     isFloating === false &&
     props.includesTopInset &&
@@ -55,7 +63,15 @@ const HeaderStandardGlass = ({
       : undefined;
 
   if (nativeConfig) {
-    return <HeaderStandardNative config={nativeConfig} />;
+    return (
+      <HeaderStandardNative
+        config={nativeConfig}
+        twClassName={twClassName}
+        style={props.style}
+        testID={props.testID}
+        onLayout={onLayout}
+      />
+    );
   }
 
   if (!isGlass) {

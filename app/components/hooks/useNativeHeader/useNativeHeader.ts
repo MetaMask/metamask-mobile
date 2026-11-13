@@ -22,8 +22,6 @@ export interface NativeHeaderConfig {
   /** Centered bar title. */
   title?: string;
   titleStyle?: Pick<TextStyle, 'fontFamily' | 'fontSize'>;
-  /** A solid bar lays the content out below it, so the screen needs no top inset. */
-  isTransparent?: boolean;
   /** Hides UIKit's own back button, for screens whose left items handle back. */
   hidesBackButton?: boolean;
 }
@@ -34,7 +32,6 @@ export const NATIVE_HEADER_BAR_HEIGHT = 44;
 const HIDDEN_HEADER_OPTIONS: NativeStackNavigationOptions = {
   headerShown: false,
   headerTransparent: false,
-  headerStyle: undefined,
   headerBackVisible: undefined,
   unstable_headerLeftItems: undefined,
   unstable_headerRightItems: undefined,
@@ -63,7 +60,6 @@ export const useNativeHeader = ({
   hidesScrollEdgeEffect = false,
   title = '',
   titleStyle,
-  isTransparent = true,
   hidesBackButton = false,
 }: NativeHeaderConfig = {}): boolean => {
   const isNativeHeader = useIsNativeHeader() && isEnabled;
@@ -76,13 +72,11 @@ export const useNativeHeader = ({
     }
     navigation.setOptions({
       headerShown: true,
-      headerTransparent: isTransparent,
-      headerStyle: isTransparent
-        ? undefined
-        : { backgroundColor: colors.background.default },
+      headerTransparent: true,
       headerShadowVisible: false,
       headerTintColor: colors.icon.default,
-      headerBackVisible: !hidesBackButton,
+      // Left unset unless hiding: `true` would add UIKit's back button next to custom left items.
+      headerBackVisible: hidesBackButton ? false : undefined,
       // An empty title stops react-navigation printing the route name.
       title,
       headerTitleStyle: { ...titleStyle, color: colors.text.default },
@@ -94,14 +88,12 @@ export const useNativeHeader = ({
     isNativeHeader,
     navigation,
     colors.icon.default,
-    colors.background.default,
     colors.text.default,
     leftItems,
     rightItems,
     hidesScrollEdgeEffect,
     title,
     titleStyle,
-    isTransparent,
     hidesBackButton,
   ]);
 

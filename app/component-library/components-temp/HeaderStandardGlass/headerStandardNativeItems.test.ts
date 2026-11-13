@@ -70,9 +70,25 @@ describe('getNativeHeaderConfig', () => {
     });
 
     expect(config?.right.map((button) => button.identifier)).toEqual([
-      'header-Trash-1',
-      'header-Trash',
+      'header-end-Trash-1',
+      'header-end-Trash',
     ]);
+  });
+
+  it('keeps start and end buttons with the same icon apart', () => {
+    const onStart = jest.fn();
+    const onEnd = jest.fn();
+
+    const config = getNativeHeaderConfig({
+      title: 'Search',
+      startButtonIconProps: { iconName: IconName.Search, onPress: onStart },
+      endButtonIconProps: [{ iconName: IconName.Search, onPress: onEnd }],
+    });
+    config?.handlers[config.left[0].identifier]();
+
+    expect(config?.left[0].identifier).not.toBe(config?.right[0].identifier);
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onEnd).not.toHaveBeenCalled();
   });
 
   it.each([

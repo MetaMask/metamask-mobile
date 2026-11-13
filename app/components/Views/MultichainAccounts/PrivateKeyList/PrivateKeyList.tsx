@@ -163,6 +163,7 @@ export const PrivateKeyList = () => {
             onBack={() => navigation.goBack()}
             backButtonProps={{ testID: PrivateKeyListIds.GO_BACK }}
             includesTopInset
+            isNativeHeaderAllowed={false}
           />
         ),
         headerShown: true,

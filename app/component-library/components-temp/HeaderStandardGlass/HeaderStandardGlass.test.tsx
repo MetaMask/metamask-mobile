@@ -231,9 +231,11 @@ describe('HeaderStandardGlass', () => {
       const { queryByTestId } = renderInStack(screenHeader);
 
       expect(queryByTestId('back')).toBeNull();
-      expect(mockNativeHeader).toHaveBeenCalledWith({
-        config: expect.objectContaining({ title: 'Settings' }),
-      });
+      expect(mockNativeHeader).toHaveBeenCalledWith(
+        expect.objectContaining({
+          config: expect.objectContaining({ title: 'Settings' }),
+        }),
+      );
     });
 
     it('keeps the JS header where the OS has no native glass bar', () => {
@@ -282,6 +284,22 @@ describe('HeaderStandardGlass', () => {
       );
 
       expect(getByTestId('back')).toBeOnTheScreen();
+    });
+
+    it('keeps the JS header when the caller opts out', () => {
+      const { getByTestId } = renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          onBack={jest.fn()}
+          backButtonProps={{ testID: 'back' }}
+          isFloating={false}
+          includesTopInset
+          isNativeHeaderAllowed={false}
+        />,
+      );
+
+      expect(getByTestId('back')).toBeOnTheScreen();
+      expect(mockNativeHeader).not.toHaveBeenCalled();
     });
 
     it('keeps the JS header when glass is off', () => {
