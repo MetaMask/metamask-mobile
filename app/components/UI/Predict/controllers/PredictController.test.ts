@@ -11594,7 +11594,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+    it('swaps in the signed Safe call and keeps the original gas when gas estimation fails', async () => {
       mockPolymarketProvider.signWithdraw?.mockResolvedValue({
         callData: '0xnewdata' as `0x${string}`,
         amount: 100,
@@ -11613,14 +11613,30 @@ describe('PredictController', () => {
               amount: 0,
             };
           });
+          const transaction = {
+            ...mockTransactionMeta,
+            txParams: { ...mockTransactionMeta.txParams, gas: '0x1d8a8' },
+          } as unknown as TransactionMeta;
 
           const result = await controller.beforeSign({
-            transactionMeta: mockTransactionMeta as any,
+            transactionMeta: transaction,
           });
+          result?.updateTransaction?.(transaction);
 
-          expect(result).toBeUndefined();
-          expect(controller.state.withdrawTransaction?.status).toBe(
-            PredictWithdrawStatus.ERROR,
+          expect(transaction.txParams).toStrictEqual({
+            ...mockTransactionMeta.txParams,
+            data: '0xnewdata',
+            to: '0xPredict',
+            gas: '0x1d8a8',
+          });
+          expect(transaction.assetsFiatValues).toStrictEqual({
+            receiving: '100',
+          });
+          expect(controller.state.withdrawTransaction).toStrictEqual(
+            expect.objectContaining({
+              amount: 100,
+              status: PredictWithdrawStatus.PENDING,
+            }),
           );
         },
         {

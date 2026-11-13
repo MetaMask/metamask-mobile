@@ -4986,7 +4986,10 @@ export class PredictController extends BaseController<
       );
       updatedGas = estimateResult.gas as Hex;
     } catch (error) {
-      // Log the error but continue - we'll use the original gas values
+      // Keep the original gas but still swap in the signed Safe call. Without
+      // the swap, the transaction keeps the EOA `pUSD.transfer`, which the EOA
+      // can't fund, so the gas fee token check before publish can't find pUSD
+      // even though the pre-sign check quoted it for the Safe call.
       DevLogger.log(
         'PredictController: Gas estimation failed in beforeSign, using original gas values',
         {
@@ -4994,13 +4997,13 @@ export class PredictController extends BaseController<
           timestamp: new Date().toISOString(),
         },
       );
-      this.update((state) => {
-        if (state.withdrawTransaction) {
-          state.withdrawTransaction.status = PredictWithdrawStatus.ERROR;
-        }
-      });
-
-      return;
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('beforeSignWithdrawIfNeeded', {
+          operation: 'estimate_withdraw_gas',
+          transactionId: request.transactionMeta.id,
+        }),
+      );
     }
 
     this.update((state) => {

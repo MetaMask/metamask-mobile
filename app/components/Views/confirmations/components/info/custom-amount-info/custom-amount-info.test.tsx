@@ -97,6 +97,7 @@ jest.mock('../../../hooks/gas/usePredictWithdrawGasFeeToken', () => ({
   usePredictWithdrawGasFeeToken: () => ({
     isPending: false,
     isUnavailable: false,
+    recheck: () => Promise.resolve(true),
   }),
 }));
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');

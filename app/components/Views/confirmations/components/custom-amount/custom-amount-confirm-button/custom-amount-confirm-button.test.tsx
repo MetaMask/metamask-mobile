@@ -73,6 +73,7 @@ describe('CustomAmountConfirmButton', () => {
     usePredictWithdrawGasFeeToken,
   );
   const setIsConfirmationSubmittingMock = jest.fn();
+  const recheckMock = jest.fn();
 
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 
@@ -121,9 +122,11 @@ describe('CustomAmountConfirmButton', () => {
       onReject: jest.fn(),
     });
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    recheckMock.mockResolvedValue(true);
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: false,
       isUnavailable: false,
+      recheck: recheckMock,
     });
 
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -248,6 +251,7 @@ describe('CustomAmountConfirmButton', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: true,
       isUnavailable: false,
+      recheck: recheckMock,
     });
 
     const { getByTestId } = render({
@@ -258,5 +262,47 @@ describe('CustomAmountConfirmButton', () => {
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('checks the Predict withdraw gas fee token again before confirming', async () => {
+    const onConfirmMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+
+    const { getByTestId } = render({});
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(recheckMock).toHaveBeenCalledTimes(1);
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not confirm when the Predict withdraw gas fee token is no longer available', async () => {
+    const onConfirmMock = jest.fn();
+    const onContinueMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+    recheckMock.mockResolvedValue(false);
+
+    const { getByTestId } = render({ onContinue: onContinueMock });
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      );
+    });
+
+    expect(onConfirmMock).not.toHaveBeenCalled();
+    expect(onContinueMock).not.toHaveBeenCalled();
+    expect(setIsConfirmationSubmittingMock).toHaveBeenNthCalledWith(1, true);
+    expect(setIsConfirmationSubmittingMock).toHaveBeenNthCalledWith(2, false);
   });
 });

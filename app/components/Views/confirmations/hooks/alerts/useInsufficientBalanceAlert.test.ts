@@ -156,6 +156,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: false,
       isUnavailable: false,
+      recheck: jest.fn(),
     });
   });
 
@@ -371,6 +372,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: true,
       isUnavailable: false,
+      recheck: jest.fn(),
     });
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
@@ -395,6 +397,7 @@ describe('useInsufficientBalanceAlert', () => {
     usePredictWithdrawGasFeeTokenMock.mockReturnValue({
       isPending: false,
       isUnavailable: true,
+      recheck: jest.fn(),
     });
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
