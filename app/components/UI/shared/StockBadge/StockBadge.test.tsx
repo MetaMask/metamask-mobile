@@ -31,11 +31,15 @@ const mockUseRWAToken = useRWAToken as jest.MockedFunction<typeof useRWAToken>;
 
 describe('StockBadge', () => {
   const mockIsTokenTradingOpen = jest.fn();
+  const mockIsStockToken = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsStockToken.mockImplementation((token?: BridgeToken) =>
+      Boolean(token),
+    );
     mockUseRWAToken.mockReturnValue({
-      isStockToken: jest.fn(() => true),
+      isStockToken: mockIsStockToken,
       isTokenTradingOpen: mockIsTokenTradingOpen,
       isTokenTradable: jest.fn(() => true),
       isTokenMarketFullyClosed: jest.fn(() => false),
@@ -62,6 +66,22 @@ describe('StockBadge', () => {
         const textElement = getByText('Stock');
         expect(textElement).toBeOnTheScreen();
       });
+    });
+
+    it('renders a known label localized', () => {
+      mockIsTokenTradingOpen.mockReturnValue(true);
+
+      const { getByText } = render(<StockBadge label="stock" />);
+
+      expect(getByText('Stock')).toBeOnTheScreen();
+    });
+
+    it('renders an unknown label as provided', () => {
+      mockIsTokenTradingOpen.mockReturnValue(true);
+
+      const { getByText } = render(<StockBadge label="ETF" />);
+
+      expect(getByText('ETF')).toBeOnTheScreen();
     });
   });
 
@@ -102,6 +122,26 @@ describe('StockBadge', () => {
         });
         expect(clockIcon).toBeNull();
       });
+    });
+
+    it('does NOT display clock icon for tokens that are not stocks', () => {
+      mockIsStockToken.mockReturnValue(false);
+      mockIsTokenTradingOpen.mockReturnValue(false);
+
+      const { UNSAFE_queryByProps } = render(
+        <StockBadge
+          token={{
+            ...tokenWithRwaData,
+            rwaData: {
+              instrumentType: 'unspecified',
+              market: { nextOpen: '', nextClose: '' },
+            },
+          }}
+          label="Stock"
+        />,
+      );
+
+      expect(UNSAFE_queryByProps({ name: IconName.AfterHours })).toBeNull();
     });
 
     it('does NOT display clock icon when no token is provided', async () => {

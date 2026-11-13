@@ -3,6 +3,7 @@ import type {
   CreateProfileParams,
   Profile,
   UpdateProfileParams,
+  FieldValidityResponse,
   UsernameAvailabilityResponse,
   XProfile,
 } from '@metamask/profile-controller';
@@ -104,6 +105,9 @@ export interface UseProfileControllerResult {
   checkUsernameAvailability: (
     username: string,
   ) => Promise<UsernameAvailabilityResponse>;
+  checkDisplayNameValidity: (
+    displayName: string,
+  ) => Promise<FieldValidityResponse>;
   getXAuthorizationUrl: () => Promise<ConnectXSession>;
 }
 
@@ -134,6 +138,12 @@ export const useProfileController = (): UseProfileControllerResult => {
       await Engine.context.ProfileController.checkUsernameAvailability(
         username,
       ),
+    [],
+  );
+
+  const checkDisplayNameValidity = useCallback(
+    async (displayName: string): Promise<FieldValidityResponse> =>
+      await Engine.context.ProfileService.checkDisplayNameValidity(displayName),
     [],
   );
 
@@ -169,6 +179,7 @@ export const useProfileController = (): UseProfileControllerResult => {
     fetchAndUpdateXAccount,
     disconnectX,
     checkUsernameAvailability,
+    checkDisplayNameValidity,
     getXAuthorizationUrl,
   };
 };

@@ -27,6 +27,26 @@ const REASON_GROUP_BY_CODE: Record<string, string> = {
   PROFILE_LIMIT_REACHED: 'ineligible',
 };
 
+/** Known reason groups, in the order the codes arrived, with duplicates dropped. */
+const groupImmersveKycReasons = (reasons: string[] | undefined): string[] => {
+  const groups: string[] = [];
+  for (const code of reasons ?? []) {
+    const group = REASON_GROUP_BY_CODE[code];
+    if (!group || groups.includes(group)) {
+      continue;
+    }
+    groups.push(group);
+  }
+  return groups;
+};
+
+const describeReasonGroups = (groups: string[]): string =>
+  groups
+    .map((group) =>
+      strings(`card.card_onboarding.kyc_rejected.reasons.${group}`),
+    )
+    .join(' ');
+
 /**
  * Turns Immersve reason codes into one localized explanation.
  * Unknown codes, including RETRIABLE, KYC_RESET and UNKNOWN, use the generic
@@ -36,14 +56,7 @@ export function describeImmersveKycRejection(
   reasons: string[] | undefined,
   canRetry: boolean,
 ): string {
-  const groups: string[] = [];
-  for (const code of reasons ?? []) {
-    const group = REASON_GROUP_BY_CODE[code];
-    if (!group || groups.includes(group)) {
-      continue;
-    }
-    groups.push(group);
-  }
+  const groups = groupImmersveKycReasons(reasons);
 
   if (groups.length === 0) {
     return strings(
@@ -53,9 +66,22 @@ export function describeImmersveKycRejection(
     );
   }
 
-  return groups
-    .map((group) =>
-      strings(`card.card_onboarding.kyc_rejected.reasons.${group}`),
-    )
-    .join(' ');
+  return describeReasonGroups(groups);
+}
+
+/**
+ * Extra line under the permanent "Not eligible" screen.
+ * Null when no code maps to a specific reason, and when the only reason is
+ * ineligibility, because that repeats the screen title.
+ */
+export function describeImmersveKycFailureDetail(
+  reasons: string[] | undefined,
+): string | null {
+  const groups = groupImmersveKycReasons(reasons).filter(
+    (group) => group !== 'ineligible',
+  );
+  if (groups.length === 0) {
+    return null;
+  }
+  return describeReasonGroups(groups);
 }

@@ -16,13 +16,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { capitalize } from '../../../../../util/general';
 
 export interface MoneyMetricCardProps {
   iconName: IconName;
   label: string;
   /** Formatted USD total, or null when the amount is not known. */
   amount: string | null;
-  /** Copy under the amount, e.g. "recorded earnings". */
+  /** Copy under the amount, e.g. "Recorded earnings". Shown with its first letter capitalized. */
   caption: string;
   /** Renders a placeholder in place of the amount while the summary loads. */
   isLoading?: boolean;
@@ -85,7 +86,7 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
         <Text variant={TextVariant.HeadingMd}>{amount || '—'}</Text>
       ) : null}
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {caption}
+        {capitalize(caption)}
       </Text>
     </Box>
   );
