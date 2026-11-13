@@ -114,12 +114,10 @@ describe('OnboardingNotificationPermission', () => {
     mockThemeAppearance = 'light';
     mockFeatureEnabled = true;
     mockShowQuestionnaire = true;
-    jest
-      .mocked(resolveNativePushPermissionStatus)
-      .mockResolvedValue({
-        nativeOsPermissionEnabled: false,
-        nativeOsPermissionPromptable: true,
-      });
+    jest.mocked(resolveNativePushPermissionStatus).mockResolvedValue({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
   });
 
   it('bypasses the prompt when notifications are disabled', async () => {
