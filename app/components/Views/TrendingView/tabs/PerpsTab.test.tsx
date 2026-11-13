@@ -166,9 +166,7 @@ jest.mock(
 );
 
 const mockTopTradersMounted = jest.fn();
-const mockTopTradersProps: { current: Record<string, unknown> } = {
-  current: {},
-};
+const mockTopTradersProps = jest.fn();
 jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -185,7 +183,7 @@ jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
       mockTopTradersMounted();
     }, []);
     MockReact.useEffect(() => {
-      mockTopTradersProps.current = { source, prefetchProfiles, chains };
+      mockTopTradersProps({ source, prefetchProfiles, chains });
     });
     return MockReact.createElement(
       View,
@@ -337,9 +335,12 @@ describe('PerpsTab', () => {
   });
 
   it('passes the perps-only chains to the top traders section', () => {
-    renderPerpsTab();
+    const { getByTestId } = renderPerpsTab();
 
-    expect(mockTopTradersProps.current.chains).toStrictEqual(PERP_CHAINS);
+    expect(getByTestId('top-traders-section')).toBeOnTheScreen();
+    expect(mockTopTradersProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ chains: PERP_CHAINS }),
+    );
   });
 
   it('hides top traders when the social leaderboard flag is off', () => {
