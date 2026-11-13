@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { View } from 'react-native';
-import { BottomSheetHeader } from '@metamask/design-system-react-native';
 
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import BottomSheet, {
@@ -32,11 +31,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { EVM_SCOPE } from '../../../Earn/constants/networks';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID =
   'gas-impact-modal-close-button';
 
 const GasImpactModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route =
     useRoute<RouteProp<{ params: GasImpactModalRouteParams }, 'params'>>();
   const { styles } = useStyles(styleSheet, {});
@@ -169,12 +171,13 @@ const GasImpactModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.container}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ testID: GAS_IMPACT_MODAL_CLOSE_BUTTON_TEST_ID }}
         >
           {strings('stake.gas_cost_impact')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Text style={styles.content}>
           {strings('stake.gas_cost_impact_warning', { percentOverDeposit: 30 })}
         </Text>
