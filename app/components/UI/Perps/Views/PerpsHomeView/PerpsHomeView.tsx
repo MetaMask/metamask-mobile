@@ -1470,11 +1470,13 @@ const PerpsHomeView = () => {
         />
       )}
 
-      <PerpsBalanceBottomSheet
-        isVisible={isBalanceSheetVisible}
-        onClose={closeBalanceSheet}
-        buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
-      />
+      {isBalanceSheetVisible ? (
+        <PerpsBalanceBottomSheet
+          isVisible
+          onClose={closeBalanceSheet}
+          buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+        />
+      ) : null}
 
       {/* Cancel All Orders Bottom Sheet */}
       {showCancelAllSheet && (
