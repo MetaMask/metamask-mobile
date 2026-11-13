@@ -120,8 +120,23 @@ async function buildSimulationTokenBalanceChanges({
       continue;
     }
 
+    const parseResult = parseApprovalTransactionData(data as Hex);
+
+    if (!parseResult) {
+      continue;
+    }
+
+    const {
+      amountOrTokenId,
+      isApproveAll: isAll,
+      name,
+      tokenAddress: token,
+    } = parseResult;
+
+    const tokenAddress = token ?? to;
+
     const tokenData = await memoizedGetTokenStandardAndDetails({
-      tokenAddress: to,
+      tokenAddress,
       userAddress: from,
     });
 
@@ -133,14 +148,6 @@ async function buildSimulationTokenBalanceChanges({
       tokenData?.standard?.toLowerCase() as SimulationTokenStandard;
 
     const isNFT = standard !== SimulationTokenStandard.erc20;
-
-    const parseResult = parseApprovalTransactionData(data as Hex);
-
-    if (!parseResult) {
-      continue;
-    }
-
-    const { amountOrTokenId, isApproveAll: isAll, name } = parseResult;
     const amountOrTokenIdHex = add0x(amountOrTokenId?.toString(16) ?? '0x0');
 
     const difference =
@@ -154,7 +161,7 @@ async function buildSimulationTokenBalanceChanges({
         TOKEN_VALUE_UNLIMITED_THRESHOLD;
 
     const balanceChange: ApprovalSimulationBalanceChange = {
-      address: to as Hex,
+      address: tokenAddress,
       approveMethod: name,
       difference,
       id: tokenId,

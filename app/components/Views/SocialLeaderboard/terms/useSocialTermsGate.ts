@@ -4,7 +4,11 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { ensureSocialTermsAccepted } from './socialTermsAcceptance';
 
 export interface UseSocialTermsGateResult {
-  ensureSocialTermsAccepted: () => boolean;
+  /**
+   * @param onAccepted - Runs the blocked action again once the terms-only
+   * screen is accepted.
+   */
+  ensureSocialTermsAccepted: (onAccepted?: () => void) => boolean;
 }
 
 /**
@@ -15,7 +19,8 @@ export const useSocialTermsGate = (): UseSocialTermsGateResult => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const ensure = useCallback(
-    () => ensureSocialTermsAccepted(navigation.navigate),
+    (onAccepted?: () => void) =>
+      ensureSocialTermsAccepted(navigation.navigate, onAccepted),
     [navigation],
   );
 

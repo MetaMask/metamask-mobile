@@ -23,7 +23,12 @@ const parseTraderId = (actionPath: string): string | undefined => {
 
 const navigateToFallback = () => {
   if (isSocialV1Treatment()) {
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+    if (
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        navigateToFallback,
+      )
+    ) {
       return;
     }
     popToSocialTab(NavigationService.navigation);
