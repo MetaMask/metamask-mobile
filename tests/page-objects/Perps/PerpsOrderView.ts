@@ -234,19 +234,17 @@ class PerpsOrderView {
     return Matchers.getElementByText(label);
   }
 
-  /**
-   * Amount display element to read the USD amount from. Android exposes the
-   * first text glyph ("$10"); on iOS only the pressable wrapper is an
-   * accessibility element, so its label is read instead ("$10" on the screen,
-   * "Order amount, 10" on the bottom sheet).
-   */
+  /** First text glyph of the amount display, e.g. "$10". */
   private get amountValueText(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         `//*[@resource-id='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//android.widget.TextView`,
       );
     }
-    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+    // The amount container itself has no text on iOS; read its static text.
+    return Matchers.getElementByNativeXPath(
+      `//*[@name='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//XCUIElementTypeStaticText`,
+    );
   }
 
   /** Amount keypad key by testID (the text matcher is ambiguous on iOS). */
@@ -314,14 +312,7 @@ class PerpsOrderView {
   /** Current USD amount without thousands separators, e.g. "$5970". */
   async getAmountUsdText(): Promise<string> {
     const amountElement = await this.amountValueText;
-    if (PlatformDetector.isAndroid()) {
-      return ((await amountElement.textContent()) ?? '')
-        .trim()
-        .replace(/,/g, '');
-    }
-    const label = (await amountElement.getAttribute('label')) ?? '';
-    const value = label.split(', ').pop() ?? '';
-    return `$${value.replace(/[$,\s]/g, '')}`;
+    return ((await amountElement.textContent()) ?? '').trim().replace(/,/g, '');
   }
 
   /**
