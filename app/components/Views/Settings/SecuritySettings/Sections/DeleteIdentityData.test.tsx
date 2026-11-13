@@ -9,6 +9,7 @@ import Logger from '../../../../../util/Logger';
 import { MfaFlowError } from '../../../../../util/identity/mfa/engine/errors';
 import { selectKycSessionStatus } from '../../../../../selectors/kycController';
 import { selectNeobankMarkets } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { strings } from '../../../../../../locales/i18n';
 import { SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON } from '../SecuritySettings.constants';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -85,11 +86,11 @@ describe('DeleteIdentityData', () => {
   it('renders the delete section when verification has started', () => {
     const { getByText, getByTestId } = arrange();
 
-    expect(getByText('Delete Identity Data')).toBeOnTheScreen();
     expect(
-      getByText(
-        'Your identity details will be permanently deleted from MetaMask. Partners you verified with keep their own copy. You may need to verify again later.',
-      ),
+      getByText(strings('identity_verification.delete_section_title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('identity_verification.delete_section_description')),
     ).toBeOnTheScreen();
     expect(
       getByTestId(SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON),
@@ -99,13 +100,17 @@ describe('DeleteIdentityData', () => {
   it('renders nothing when the customer has no KYC session', () => {
     const { queryByText } = arrange({ hasSession: false });
 
-    expect(queryByText('Delete Identity Data')).toBeNull();
+    expect(
+      queryByText(strings('identity_verification.delete_section_title')),
+    ).toBeNull();
   });
 
   it('renders nothing when the feature flag is off', () => {
     const { queryByText } = arrange({ isFlagEnabled: false });
 
-    expect(queryByText('Delete Identity Data')).toBeNull();
+    expect(
+      queryByText(strings('identity_verification.delete_section_title')),
+    ).toBeNull();
   });
 
   describe('deleting identity data', () => {
@@ -128,8 +133,8 @@ describe('DeleteIdentityData', () => {
       const { alertSpy } = pressDelete(getByTestId);
 
       expect(alertSpy).toHaveBeenCalledWith(
-        'Delete identity data?',
-        'This cannot be undone.',
+        strings('identity_verification.delete_confirm_title'),
+        strings('identity_verification.delete_confirm_message'),
         expect.any(Array),
       );
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
@@ -158,8 +163,8 @@ describe('DeleteIdentityData', () => {
 
       await waitFor(() =>
         expect(alertSpy).toHaveBeenLastCalledWith(
-          'Identity data deleted',
-          'Your encrypted identity verification data has been deleted.',
+          strings('identity_verification.delete_success_title'),
+          strings('identity_verification.delete_success_message'),
         ),
       );
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
@@ -198,8 +203,8 @@ describe('DeleteIdentityData', () => {
 
       await waitFor(() =>
         expect(alertSpy).toHaveBeenLastCalledWith(
-          "Couldn't delete identity data",
-          'Something went wrong. Please try again.',
+          strings('identity_verification.delete_error_title'),
+          strings('identity_verification.delete_error_message'),
         ),
       );
       expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
@@ -217,8 +222,8 @@ describe('DeleteIdentityData', () => {
 
       await waitFor(() =>
         expect(alertSpy).toHaveBeenLastCalledWith(
-          "Couldn't delete identity data",
-          'Something went wrong. Please try again.',
+          strings('identity_verification.delete_error_title'),
+          strings('identity_verification.delete_error_message'),
         ),
       );
       expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
@@ -236,8 +241,8 @@ describe('DeleteIdentityData', () => {
 
       await waitFor(() =>
         expect(alertSpy).toHaveBeenLastCalledWith(
-          "Couldn't delete identity data",
-          'Something went wrong. Please try again.',
+          strings('identity_verification.delete_error_title'),
+          strings('identity_verification.delete_error_message'),
         ),
       );
       expect(Logger.error).toHaveBeenCalledWith(error, expect.any(String));
