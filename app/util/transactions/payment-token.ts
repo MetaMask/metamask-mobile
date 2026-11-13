@@ -1,14 +1,23 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import {
   KnownCaipNamespace,
   numberToHex,
   parseCaipAssetType,
+  toCaipAssetType,
   toCaipChainId,
   type CaipAssetType,
   type Hex,
 } from '@metamask/utils';
+
+/** SLIP-44 coin type of a native token, by chain, where it is not 60 (ETH). */
+const SLIP44_COIN_TYPE_BY_CHAIN: Partial<Record<Hex, number>> = {
+  [CHAIN_IDS.POLYGON]: 966,
+};
+
+const DEFAULT_SLIP44_COIN_TYPE = 60;
 
 /** Payment token on an EVM chain, with the chain and address derived from its asset ID. */
 export type EvmPaymentToken = TransactionPaymentToken & {
@@ -93,7 +102,13 @@ export function getEvmPaymentTokenAssetId(
       keys.find(
         (key) =>
           key.startsWith(chainPrefix) && assetsInfo[key].type === 'native',
-      ) ?? derivedAssetId
+      ) ??
+      toCaipAssetType(
+        KnownCaipNamespace.Eip155,
+        String(parseInt(chainId, 16)),
+        'slip44',
+        String(SLIP44_COIN_TYPE_BY_CHAIN[chainId] ?? DEFAULT_SLIP44_COIN_TYPE),
+      )
     );
   }
 

@@ -121,6 +121,27 @@ describe('payment-token', () => {
       ).toBe('eip155:137/slip44:966');
     });
 
+    it('falls back to the SLIP-44 native asset ID when native metadata is missing', () => {
+      expect(
+        getEvmPaymentTokenAssetId(
+          {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: '0x2105',
+          },
+          buildAssetsInfo({}),
+        ),
+      ).toBe('eip155:8453/slip44:60');
+      expect(
+        getEvmPaymentTokenAssetId(
+          {
+            address: '0x0000000000000000000000000000000000001010',
+            chainId: '0x89',
+          },
+          buildAssetsInfo({}),
+        ),
+      ).toBe('eip155:137/slip44:966');
+    });
+
     it('falls back to the derived asset ID when the token is not in state', () => {
       expect(
         getEvmPaymentTokenAssetId(
