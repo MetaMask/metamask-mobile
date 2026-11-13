@@ -52,7 +52,20 @@ jest.mock(
   },
 );
 
-jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+const mockEnsureSocialTermsAccepted = jest.fn<
+  boolean,
+  [unknown, (() => void)?]
+>(() => true);
+jest.mock(
+  '../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
+  () => ({
+    ...jest.requireActual(
+      '../../../Views/SocialLeaderboard/terms/__mocks__/socialTermsAcceptance',
+    ),
+    ensureSocialTermsAccepted: (navigate: unknown, onAccepted?: () => void) =>
+      mockEnsureSocialTermsAccepted(navigate, onAccepted),
+  }),
+);
 
 jest.mock('../../../../util/social/useSocialProfileId', () => ({
   useSocialProfileId: () => ({
@@ -290,6 +303,7 @@ describe('SocialFeedPostShell', () => {
     jest.clearAllMocks();
     mockGetHardwareTier.mockReturnValue('HIGH');
     mockEnsureSocialProfileOnboarding.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
     });
@@ -797,6 +811,23 @@ describe('SocialFeedPostShell', () => {
       expect(onPositionPress).toHaveBeenCalledWith(post);
     });
 
+    it('opens the position once the Social terms are accepted', () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+      const onPositionPress = jest.fn();
+      const post = basePost();
+      renderShell(post, { onPositionPress });
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-post-1`,
+        ),
+      );
+      expect(onPositionPress).not.toHaveBeenCalled();
+      mockEnsureSocialTermsAccepted.mock.calls[0][1]?.();
+
+      expect(onPositionPress).toHaveBeenCalledWith(post);
+    });
+
     it('keeps copy trade on its own press inside a pressable card', async () => {
       mockGate.mockImplementation((action: () => Promise<void> | void) =>
         Promise.resolve(action()),
@@ -872,6 +903,24 @@ describe('SocialFeedPostShell', () => {
         Promise.resolve(action()),
       );
       mockSelectPerpsEligibility.mockReturnValue(true);
+    });
+
+    it('opens the perps order once the Social terms are accepted', async () => {
+      mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+      renderShell(basePost());
+
+      fireEvent.press(
+        screen.getByTestId('social-feed-position-card-copy-trade-item-1'),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      mockEnsureSocialTermsAccepted.mock.calls[0][1]?.();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.PERPS.MODALS.ROOT,
+          expect.anything(),
+        );
+      });
     });
 
     it('opens a trending-feed perps order with the trending source', async () => {
