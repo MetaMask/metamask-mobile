@@ -8,7 +8,7 @@ import {
   selectTransactions,
 } from '../../../../selectors/transactionController';
 import {
-  selectAccountOverrideByTransactionId,
+  selectAccountOverrideAddressByTransactionId,
   selectTransactionPayFiatPaymentByTransactionId,
   selectTransactionPayRawQuotesByTransactionId,
 } from '../../../../selectors/transactionPayController';
@@ -48,7 +48,7 @@ export function isHardwareFundedDeposit(
   }
 
   const payingAccount =
-    selectAccountOverrideByTransactionId(state, transactionMeta.id) ??
+    selectAccountOverrideAddressByTransactionId(state, transactionMeta.id) ??
     transactionMeta.txParams?.from;
 
   return Boolean(payingAccount && isHardwareAccount(payingAccount));

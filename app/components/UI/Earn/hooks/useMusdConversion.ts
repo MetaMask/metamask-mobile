@@ -26,6 +26,7 @@ import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
+import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment-token';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -288,6 +289,7 @@ export const useMusdConversion = () => {
           });
 
           const {
+            AssetsController,
             TransactionPayController,
             GasFeeController,
             ApprovalController,
@@ -307,8 +309,10 @@ export const useMusdConversion = () => {
             // Set payment token - this triggers automatic Relay quote fetching
             TransactionPayController.updatePaymentToken({
               transactionId,
-              tokenAddress,
-              chainId: tokenChainId,
+              assetId: getEvmPaymentTokenAssetId(
+                { address: tokenAddress, chainId: tokenChainId },
+                AssetsController.state.assetsInfo,
+              ),
             });
 
             EngineService.flushState();

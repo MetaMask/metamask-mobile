@@ -316,7 +316,7 @@
     "@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch",
     "@metamask/eth-sig-util": "^9.0.0",
     "@metamask/profile-sync-controller": "^36.1.1",
-    "@metamask/account-tree-controller": "^11.1.0",
+    "@metamask/account-tree-controller": "^11.2.0",
     "expo@npm:^57.0.0": "57.0.22",
     "expo-modules-core@npm:~57.0.18": "57.0.18",
     "expo-updates@npm:~57.0.22": "57.0.22",
@@ -348,7 +348,7 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^2.0.0",
-    "@metamask/account-tree-controller": "^11.1.0",
+    "@metamask/account-tree-controller": "^11.2.0",
     "@metamask/accounts-controller": "^40.1.0",
     "@metamask/address-book-controller": "^8.0.0",
     "@metamask/ai-controllers": "^1.0.0",
@@ -957,6 +957,12 @@
       "eas-cli>@expo/logger>bunyan>dtrace-provider": false,
       "appium-uiautomator2-driver>appium-android-driver>appium-chromedriver>@appium/base-driver>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
+    }
+  },
+  "previewBuilds": {
+    "@metamask/transaction-pay-controller": {
+      "type": "breaking",
+      "previewVersion": "31.1.0-preview-0c535b603"
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
