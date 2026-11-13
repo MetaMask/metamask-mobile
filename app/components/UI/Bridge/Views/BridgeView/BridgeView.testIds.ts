@@ -28,6 +28,7 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_TAB: 'bridge-limit-tab',
   LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
+  RECURRING_TAB_NEW_DOT: 'bridge-recurring-tab-new-dot',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
   LIMIT_ORDER_DISMISS_AREA: 'bridge-limit-order-dismiss-area',
