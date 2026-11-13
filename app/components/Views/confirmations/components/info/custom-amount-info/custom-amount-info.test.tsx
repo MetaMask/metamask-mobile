@@ -620,12 +620,12 @@ describe('CustomAmountInfo', () => {
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
 
-    const { getByText } = render({
+    const { getByTestId } = render({
       transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
     });
 
     expect(
-      getByText(
+      within(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).getByText(
         'We’ll add $123.45 to your Money account to cover this payment.',
       ),
     ).toBeOnTheScreen();

@@ -493,9 +493,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 <>
                   {!hidePayTokenAmount &&
                     disablePay !== true &&
-                    (isMembershipSubscription ? (
-                      <MembershipInfo amountFiat={amountFiat} />
-                    ) : isMoneyAccountDeposit ? (
+                    !isMembershipSubscription &&
+                    (isMoneyAccountDeposit ? (
                       <BalanceProjection
                         amountFiat={amountFiat}
                         projectedYears={1}
@@ -517,6 +516,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
+          {isMembershipSubscription &&
+            !hasAlert &&
+            !hidePayTokenAmount &&
+            disablePay !== true && (
+              // The one-line caption is absolutely positioned under the amount.
+              // This banner is taller, so it stays in the bottom block and
+              // does not cover From or Pay with.
+              <MembershipInfo amountFiat={amountFiat} />
+            )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&

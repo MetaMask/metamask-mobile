@@ -28,6 +28,7 @@ import { ConfirmMembershipApprovalTestIds } from '../../ConfirmMembershipApprova
 export interface ConfirmMembershipContentProps {
   monthlyAmount: string;
   totalAmount: string;
+  isAnnual?: boolean;
   renewDate: string;
   isTrial?: boolean;
   billedOn?: string;
@@ -38,6 +39,7 @@ export interface ConfirmMembershipContentProps {
 export function ConfirmMembershipContent({
   monthlyAmount,
   totalAmount,
+  isAnnual = false,
   renewDate,
   isTrial = false,
   billedOn = '',
@@ -48,7 +50,7 @@ export function ConfirmMembershipContent({
     <Box testID={ConfirmMembershipApprovalTestIds.CONTAINER}>
       <Header onClose={onClose} />
       <Box twClassName="px-4 gap-4">
-        <AmountSection monthlyAmount={monthlyAmount} />
+        <AmountSection monthlyAmount={monthlyAmount} isAnnual={isAnnual} />
         <Box>
           <MoneyAccountFromRow />
           <TotalRow totalAmount={totalAmount} />
@@ -57,7 +59,9 @@ export function ConfirmMembershipContent({
         <ConfirmButton isTrial={isTrial} onPress={onConfirm} />
         <Disclaimer
           isTrial={isTrial}
+          isAnnual={isAnnual}
           monthlyAmount={monthlyAmount}
+          totalAmount={totalAmount}
           renewDate={renewDate}
         />
       </Box>
@@ -86,7 +90,13 @@ function Header({ onClose }: { onClose: () => void }) {
   );
 }
 
-function AmountSection({ monthlyAmount }: { monthlyAmount: string }) {
+function AmountSection({
+  monthlyAmount,
+  isAnnual,
+}: {
+  monthlyAmount: string;
+  isAnnual: boolean;
+}) {
   const formattedAmount = moneyFormatUsd(new BigNumber(monthlyAmount || '0'));
   const { styles: amountStyles } = useStyles(customAmountStyleSheet, {
     amountLength: formattedAmount.length,
@@ -109,7 +119,11 @@ function AmountSection({ monthlyAmount }: { monthlyAmount: string }) {
         color={TextColor.TextAlternative}
         testID={ConfirmMembershipApprovalTestIds.PLAN_NAME}
       >
-        {strings('confirm_membership.plan_name')}
+        {strings(
+          isAnnual
+            ? 'confirm_membership.plan_name_annual'
+            : 'confirm_membership.plan_name',
+        )}
       </Text>
     </Box>
   );
@@ -210,13 +224,30 @@ function ConfirmButton({
 
 function Disclaimer({
   isTrial,
+  isAnnual,
   monthlyAmount,
+  totalAmount,
   renewDate,
 }: {
   isTrial: boolean;
+  isAnnual: boolean;
   monthlyAmount: string;
+  totalAmount: string;
   renewDate: string;
 }) {
+  const confirmAndPay = getConfirmButtonLabel(isTrial);
+  const disclaimer = isAnnual
+    ? strings('confirm_membership.disclaimer.part1_annual', {
+        confirmAndPay,
+        amount: moneyFormatUsd(new BigNumber(totalAmount || '0')),
+        renewDate,
+      })
+    : strings('confirm_membership.disclaimer.part1', {
+        confirmAndPay,
+        monthlyAmount: moneyFormatUsd(new BigNumber(monthlyAmount || '0')),
+        renewDate,
+      });
+
   return (
     <Text
       variant={TextVariant.BodyXs}
@@ -224,11 +255,7 @@ function Disclaimer({
       twClassName="text-center"
       testID={ConfirmMembershipApprovalTestIds.DISCLAIMER}
     >
-      {strings('confirm_membership.disclaimer.part1', {
-        confirmAndPay: getConfirmButtonLabel(isTrial),
-        monthlyAmount: moneyFormatUsd(new BigNumber(monthlyAmount || '0')),
-        renewDate,
-      })}
+      {disclaimer}
       <TextButton
         variant={TextVariant.BodyXs}
         onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
