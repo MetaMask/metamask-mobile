@@ -23,6 +23,7 @@ import {
   isPerformanceSuiteActive,
 } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
 import WalletView from './WalletView';
 import { AccountHubSelectorsIDs } from '../../../app/components/Views/AccountHub/AccountHub.testIds';
@@ -909,20 +910,16 @@ class AccountListBottomSheet {
 
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
-    /**
-     * Short existence probe for Syncing/Discovering chrome.
-     * Default `isVisible()` waits ~3–4s when the node is absent, so Step 1's
-     * 5s window only got one Syncing+Discovering pair and burned ~14s per
-     * Add-account attempt even when sync never appeared (Account 3 suite
-     * timeout). Match TabBarComponent / Utilities short-probe callers.
-     */
-    const SYNC_CHROME_PROBE_MS = 500;
-    const isTextVisible = async (text: string): Promise<boolean> =>
-      Utilities.isElementVisible(
-        Matchers.getElementByNativeXPath(
-          this.getCatchAllXPath(text),
-        ) as Promise<AppiumElement>,
-        SYNC_CHROME_PROBE_MS,
+    // Factory form required: a pre-started promise runs its XPath lookup under
+    // the session 3.5s implicit wait; isOptionalElementVisible overrides that
+    // to a short wait so an absent node costs ~maxAbsentMs, not ~7s.
+    const isTextVisible = (text: string): Promise<boolean> =>
+      isOptionalElementVisible(
+        () =>
+          Matchers.getElementByNativeXPath(
+            this.getCatchAllXPath(text),
+          ) as Promise<AppiumElement>,
+        500,
       );
 
     // Step 1: Wait up to initialWaitTimeout for "Syncing" or "Discovering" to appear
