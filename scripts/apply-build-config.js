@@ -4,8 +4,8 @@
  * Runs at workflow runtime (during the "Apply build config" step).
  *
  * Exports: env. Does NOT handle secrets
- * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
- * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
+ * (those are injected via set-secrets-from-config.js from the secrets each workflow
+ * step maps explicitly; validate-build-config.js checks that list against builds.yml).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod

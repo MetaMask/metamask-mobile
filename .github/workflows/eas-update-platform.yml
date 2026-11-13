@@ -140,10 +140,62 @@ jobs:
           eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
           node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
 
+      # Every secret builds.yml maps, listed explicitly instead of toJSON(secrets) so this
+      # step never sees unrelated secrets. scripts/validate-build-config.js fails builds
+      # when builds.yml maps a secret that is missing here.
       - name: Set secrets from builds.yml mapping
         env:
           CONFIG_SECRETS: ${{ inputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          E2E_BYOA_AUTH_SECRET: ${{ secrets.E2E_BYOA_AUTH_SECRET }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          IN_BUILD_SRP: ${{ secrets.IN_BUILD_SRP }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
+          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
         run: node scripts/set-secrets-from-config.js
 
       - name: Determine signing secret name
@@ -168,14 +220,26 @@ jobs:
           esac
           echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
 
+      # Credentials go to step outputs, not the job environment, so later steps cannot
+      # re-read the signer secret from Secrets Manager.
       - name: Configure AWS credentials
+        id: aws
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: 'us-east-2'
+          output-credentials: true
+          output-env-credentials: false
 
-      - name: Fetch secret and export as environment variables
+      # The signer goes to a 0600 temp file (RUNNER_TEMP is emptied at the end of every
+      # job), not GITHUB_ENV, so only the step that signs the update can read it.
+      - name: Fetch signing secret into a temp env file
+        id: expo-signer
         shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+          AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+          AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
         run: |
           echo "🔐 Fetching secret from Secrets Manager..."
           secret_json=$(aws secretsmanager get-secret-value \
@@ -184,13 +248,22 @@ jobs:
             --query SecretString \
             --output text)
 
+          env_file="$RUNNER_TEMP/expo-signer.env"
+          (umask 077 && : > "$env_file")
+
           keys=$(echo "$secret_json" | jq -r 'keys[]')
           for key in $keys; do
+            # The file is sourced by bash, so only plain variable names are allowed.
+            if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+              echo "::warning::Skipping signer secret key '$key': not a valid environment variable name."
+              continue
+            fi
             value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
             echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            echo "✅ Set secret for key: $key"
+            printf 'export %s=%q\n' "$key" "$value" >> "$env_file"
+            echo "✅ Stored secret for key: $key"
           done
+          echo "env-file=$env_file" >> "$GITHUB_OUTPUT"
 
       - name: Display configuration
         env:
@@ -228,6 +301,7 @@ jobs:
           NODE_OPTIONS: '--max_old_space_size=8192'
           # Verbose Expo/EAS logging so a stalled asset upload shows where it hangs.
           EXPO_DEBUG: '1'
+          EXPO_SIGNER_ENV_FILE: ${{ steps.expo-signer.outputs.env-file }}
         run: |
           # --- Resource monitor ---------------------------------------------------
           # GitHub-hosted runners expose no live machine metrics, so log memory,
@@ -248,6 +322,8 @@ jobs:
           trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
 
           echo "📦 Configuring EXPO key..."
+          # shellcheck source=/dev/null
+          . "$EXPO_SIGNER_ENV_FILE"
           if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
             echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
             exit 1
