@@ -19,11 +19,39 @@ import type { ManageProfileTextEditorField } from './manageProfileTextEditorFiel
  */
 const REJECTED_CONTENT_STATUS = 400;
 
+/** Every code that names a refusal of some editor field. */
+const FIELD_REJECTION_CODES = new Set<string>(
+  Object.values(PROFILE_FIELD_REJECTION_CODES).flatMap((codes) => codes ?? []),
+);
+
 /** Whether the code names a refusal of some editor field. */
 const isFieldRejectionCode = (code: string): boolean =>
-  Object.values(PROFILE_FIELD_REJECTION_CODES).some((codes) =>
-    codes?.includes(code as ProfileApiErrorCodeId),
-  );
+  FIELD_REJECTION_CODES.has(code);
+
+/** Whether the code names a refusal of the field being edited. */
+const isRejectedFieldCode = (
+  code: string,
+  field: ManageProfileTextEditorField,
+): boolean =>
+  PROFILE_FIELD_REJECTION_CODES[field]?.includes(
+    code as ProfileApiErrorCodeId,
+  ) ?? false;
+
+/** The copy for a field the server refused, or null when it has none. */
+const fieldRejectionCopy = (fieldMessageKey?: string): string | null =>
+  fieldMessageKey ? strings(fieldMessageKey) : null;
+
+/**
+ * The field copy for a 400 that refuses the value in this field, even when the
+ * code has no copy of its own.
+ */
+const rejectedValueCopy = (
+  error: unknown,
+  fieldMessageKey?: string,
+): string | null =>
+  extractHttpStatus(error) === REJECTED_CONTENT_STATUS
+    ? fieldRejectionCopy(fieldMessageKey)
+    : null;
 
 /**
  * The copy for a field the server refused, or null when the error is not a
@@ -36,35 +64,28 @@ export const getProfileSaveError = (
   const code = findProfileServiceError(error)?.code;
   const fieldMessageKey = PROFILE_FIELD_REJECTION_MESSAGE_KEYS[field];
 
-  if (code) {
-    const fieldCodes = PROFILE_FIELD_REJECTION_CODES[field];
-
-    if (fieldCodes?.some((fieldCode) => fieldCode === code)) {
-      return fieldMessageKey ? strings(fieldMessageKey) : null;
-    }
-
-    const messageCopy = getProfileSaveErrorCopy(error);
-    if (messageCopy) {
-      // A 400 that refuses the value in this field keeps the field copy, even
-      // when the envelope only says VALIDATION_FAILED.
-      return code === ProfileApiErrorCode.ValidationFailed &&
-        extractHttpStatus(error) === REJECTED_CONTENT_STATUS &&
-        fieldMessageKey
-        ? strings(fieldMessageKey)
-        : messageCopy;
-    }
-
-    // The code refused a different field, so this editor is not the one to
-    // explain it.
-    if (isFieldRejectionCode(code)) {
-      return null;
-    }
+  // Older deployments send no code and rely on the status alone.
+  if (!code) {
+    return rejectedValueCopy(error, fieldMessageKey);
   }
 
-  // A 400 still refuses the value in the field when its code has no copy of
-  // its own: older deployments send no code, and newer ones can answer a
-  // field rejection with a generic `VALIDATION_FAILED`.
-  return fieldMessageKey && extractHttpStatus(error) === REJECTED_CONTENT_STATUS
-    ? strings(fieldMessageKey)
-    : null;
+  if (isRejectedFieldCode(code, field)) {
+    return fieldRejectionCopy(fieldMessageKey);
+  }
+
+  const messageCopy = getProfileSaveErrorCopy(error);
+
+  if (!messageCopy) {
+    // The code refused a different field, so this editor is not the one to
+    // explain it.
+    return isFieldRejectionCode(code)
+      ? null
+      : rejectedValueCopy(error, fieldMessageKey);
+  }
+
+  // A 400 that refuses the value in this field keeps the field copy, even when
+  // the envelope only says VALIDATION_FAILED.
+  return code === ProfileApiErrorCode.ValidationFailed
+    ? (rejectedValueCopy(error, fieldMessageKey) ?? messageCopy)
+    : messageCopy;
 };

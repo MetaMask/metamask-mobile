@@ -1,11 +1,14 @@
 import {
-  findProfileServiceError,
   ProfileApiErrorCode,
   type ProfileApiErrorCodeId,
 } from '@metamask/profile-controller';
-import { strings } from '../../../../../../locales/i18n';
 import { MIN_USERNAME_LENGTH } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { MAX_USERNAME_LENGTH } from '../../ProfileOnboarding/generateUsername';
+import {
+  SESSION_EXPIRED_COPY,
+  SERVER_ERROR_COPY,
+  createProfileApiErrorCopy,
+} from '../../../../../util/social/profileApiErrorCopy';
 
 /**
  * UI copy for the Profile API error codes.
@@ -51,68 +54,52 @@ export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS = {
 /** The window the API enforces, used when a refusal carries no day count. */
 export const LINKED_ADDRESS_COOLDOWN_POLICY_DAYS = 30;
 
-/** Copy for profile save/update failures that are not field-specific. */
-export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
-  {
-    [ProfileApiErrorCode.AuthTokenMissing]:
-      'social_leaderboard.manage_profile.session_expired',
-    [ProfileApiErrorCode.AuthTokenInvalid]:
-      'social_leaderboard.manage_profile.session_expired',
-    [ProfileApiErrorCode.AuthTokenExpired]:
-      'social_leaderboard.manage_profile.session_expired',
-    [ProfileApiErrorCode.AuthTokenSubjectMissing]:
-      'social_leaderboard.manage_profile.session_expired',
-    [ProfileApiErrorCode.AuthEarlyAccessRequired]:
-      'social_leaderboard.manage_profile.social_profiles_unavailable',
-    [ProfileApiErrorCode.AuthProfileAccessDenied]:
-      'social_leaderboard.manage_profile.save_retry',
-    [ProfileApiErrorCode.RateLimitExceeded]:
-      'social_leaderboard.manage_profile.rate_limited',
-    [ProfileApiErrorCode.ProfileNotFound]:
-      'social_leaderboard.manage_profile.profile_not_found',
-    [ProfileApiErrorCode.ProfileAlreadyExists]:
-      'social_leaderboard.manage_profile.profile_already_exists',
-    [ProfileApiErrorCode.ProfileUsernameImmutable]:
-      'social_leaderboard.manage_profile.username_immutable',
-    [ProfileApiErrorCode.ProfileConflict]:
-      'social_leaderboard.manage_profile.profile_changed',
-    [ProfileApiErrorCode.ProfileUpdateConflict]:
-      'social_leaderboard.manage_profile.profile_changed',
-    [ProfileApiErrorCode.Conflict]:
-      'social_leaderboard.manage_profile.profile_changed',
-    [ProfileApiErrorCode.UsernameRequired]:
-      'social_leaderboard.manage_profile.username_invalid',
-    [ProfileApiErrorCode.UsernameInvalidCharacters]:
-      'social_leaderboard.manage_profile.username_invalid',
-    [ProfileApiErrorCode.UsernameInvalidFormat]:
-      'social_leaderboard.manage_profile.username_invalid',
-    [ProfileApiErrorCode.UsernameTooShort]:
-      'social_leaderboard.manage_profile.username_too_short',
-    [ProfileApiErrorCode.UsernameTooLong]:
-      'social_leaderboard.manage_profile.username_too_long',
-    [ProfileApiErrorCode.UsernameUnavailable]:
-      'social_leaderboard.manage_profile.username_unavailable',
-    [ProfileApiErrorCode.UsernameReserved]:
-      'social_leaderboard.manage_profile.username_reserved',
-    [ProfileApiErrorCode.UsernameTaken]:
-      'social_leaderboard.manage_profile.username_unavailable',
-    [ProfileApiErrorCode.UsernameValidationUnavailable]:
-      'social_leaderboard.manage_profile.handle_check_unavailable',
-    [ProfileApiErrorCode.ValidationFailed]:
-      'social_leaderboard.manage_profile.input_rejected',
-    [ProfileApiErrorCode.NotImplemented]:
-      'social_leaderboard.manage_profile.server_error',
-    [ProfileApiErrorCode.BadGateway]:
-      'social_leaderboard.manage_profile.server_error',
-    [ProfileApiErrorCode.ServiceUnavailable]:
-      'social_leaderboard.manage_profile.server_error',
-    [ProfileApiErrorCode.GatewayTimeout]:
-      'social_leaderboard.manage_profile.server_error',
-    [ProfileApiErrorCode.RequestTimeout]:
-      'social_leaderboard.manage_profile.server_error',
-    [ProfileApiErrorCode.InternalError]:
-      'social_leaderboard.manage_profile.server_error',
-  };
+/**
+ * Copy for profile save/update failures that are not field-specific. Codes
+ * left out keep the generic save error.
+ */
+export const PROFILE_SAVE_ERROR_MESSAGE_KEYS = {
+  ...SESSION_EXPIRED_COPY,
+  ...SERVER_ERROR_COPY,
+  [ProfileApiErrorCode.AuthEarlyAccessRequired]:
+    'social_leaderboard.manage_profile.social_profiles_unavailable',
+  [ProfileApiErrorCode.AuthProfileAccessDenied]:
+    'social_leaderboard.manage_profile.save_retry',
+  [ProfileApiErrorCode.RateLimitExceeded]:
+    'social_leaderboard.manage_profile.rate_limited',
+  [ProfileApiErrorCode.ProfileNotFound]:
+    'social_leaderboard.manage_profile.profile_not_found',
+  [ProfileApiErrorCode.ProfileAlreadyExists]:
+    'social_leaderboard.manage_profile.profile_already_exists',
+  [ProfileApiErrorCode.ProfileUsernameImmutable]:
+    'social_leaderboard.manage_profile.username_immutable',
+  [ProfileApiErrorCode.ProfileConflict]:
+    'social_leaderboard.manage_profile.profile_changed',
+  [ProfileApiErrorCode.ProfileUpdateConflict]:
+    'social_leaderboard.manage_profile.profile_changed',
+  [ProfileApiErrorCode.Conflict]:
+    'social_leaderboard.manage_profile.profile_changed',
+  [ProfileApiErrorCode.UsernameRequired]:
+    'social_leaderboard.manage_profile.username_invalid',
+  [ProfileApiErrorCode.UsernameInvalidCharacters]:
+    'social_leaderboard.manage_profile.username_invalid',
+  [ProfileApiErrorCode.UsernameInvalidFormat]:
+    'social_leaderboard.manage_profile.username_invalid',
+  [ProfileApiErrorCode.UsernameTooShort]:
+    'social_leaderboard.manage_profile.username_too_short',
+  [ProfileApiErrorCode.UsernameTooLong]:
+    'social_leaderboard.manage_profile.username_too_long',
+  [ProfileApiErrorCode.UsernameUnavailable]:
+    'social_leaderboard.manage_profile.username_unavailable',
+  [ProfileApiErrorCode.UsernameReserved]:
+    'social_leaderboard.manage_profile.username_reserved',
+  [ProfileApiErrorCode.UsernameTaken]:
+    'social_leaderboard.manage_profile.username_unavailable',
+  [ProfileApiErrorCode.UsernameValidationUnavailable]:
+    'social_leaderboard.manage_profile.handle_check_unavailable',
+  [ProfileApiErrorCode.ValidationFailed]:
+    'social_leaderboard.manage_profile.input_rejected',
+};
 
 /**
  * Copy for a failed profile create on onboarding's last screen. The create
@@ -120,9 +107,7 @@ export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
  * read differently there. `PROFILE_NOT_FOUND` and `PROFILE_USERNAME_IMMUTABLE`
  * come along in the spread but cannot be returned while creating.
  */
-export const PROFILE_CREATE_ERROR_MESSAGE_KEYS: Partial<
-  Record<string, string>
-> = {
+export const PROFILE_CREATE_ERROR_MESSAGE_KEYS = {
   ...PROFILE_SAVE_ERROR_MESSAGE_KEYS,
   [ProfileApiErrorCode.AuthProfileAccessDenied]:
     'social_leaderboard.manage_profile.create_retry',
@@ -142,15 +127,9 @@ export const PROFILE_CREATE_ERROR_MESSAGE_KEYS: Partial<
  * Copy for the X auth codes that give the user something specific to do.
  * Every other X failure keeps the generic connect copy.
  */
-export const X_CONNECT_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
-  [ProfileApiErrorCode.AuthTokenMissing]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenInvalid]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenExpired]:
-    'social_leaderboard.manage_profile.session_expired',
-  [ProfileApiErrorCode.AuthTokenSubjectMissing]:
-    'social_leaderboard.manage_profile.session_expired',
+export const X_CONNECT_ERROR_MESSAGE_KEYS = {
+  ...SESSION_EXPIRED_COPY,
+  ...SERVER_ERROR_COPY,
   [ProfileApiErrorCode.AuthEarlyAccessRequired]:
     'social_leaderboard.manage_profile.social_profiles_unavailable',
   [ProfileApiErrorCode.AuthProfileAccessDenied]:
@@ -170,48 +149,22 @@ export const X_CONNECT_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
   // A bare CONFLICT is the same refusal as X_ACCOUNT_LINK_CONFLICT.
   [ProfileApiErrorCode.Conflict]:
     'social_leaderboard.manage_profile.x_account_link_conflict',
-  [ProfileApiErrorCode.NotImplemented]:
-    'social_leaderboard.manage_profile.server_error',
-  [ProfileApiErrorCode.BadGateway]:
-    'social_leaderboard.manage_profile.server_error',
-  [ProfileApiErrorCode.ServiceUnavailable]:
-    'social_leaderboard.manage_profile.server_error',
-  [ProfileApiErrorCode.GatewayTimeout]:
-    'social_leaderboard.manage_profile.server_error',
-  [ProfileApiErrorCode.RequestTimeout]:
-    'social_leaderboard.manage_profile.server_error',
-  [ProfileApiErrorCode.InternalError]:
-    'social_leaderboard.manage_profile.server_error',
-};
-
-/** The length copy states the allowed range, so it needs the same numbers the on-device rules use. */
-const paramsForCode = (code: string): Record<string, number> | undefined => {
-  if (code === ProfileApiErrorCode.UsernameTooShort) {
-    return { min: MIN_USERNAME_LENGTH };
-  }
-  if (code === ProfileApiErrorCode.UsernameTooLong) {
-    return { max: MAX_USERNAME_LENGTH };
-  }
-  return undefined;
-};
-
-/** The copy for a mapped code, with its placeholders filled in. */
-const copyForCode = (
-  code: string,
-  messageKeys: Partial<Record<string, string>>,
-): string | null => {
-  const messageKey = messageKeys[code];
-  return messageKey ? strings(messageKey, paramsForCode(code)) : null;
 };
 
 /** The save copy for a Profile API error, when its code is mapped. */
-export const getProfileSaveErrorCopy = (error: unknown): string | null => {
-  const code = findProfileServiceError(error)?.code;
-  return code ? copyForCode(code, PROFILE_SAVE_ERROR_MESSAGE_KEYS) : null;
-};
+export const getProfileSaveErrorCopy = createProfileApiErrorCopy({
+  copy: PROFILE_SAVE_ERROR_MESSAGE_KEYS,
+  paramsByCode: {
+    [ProfileApiErrorCode.UsernameTooShort]: { min: MIN_USERNAME_LENGTH },
+    [ProfileApiErrorCode.UsernameTooLong]: { max: MAX_USERNAME_LENGTH },
+  },
+});
 
 /** The create-profile copy for a Profile API error, when its code is mapped. */
-export const getProfileCreateErrorCopy = (error: unknown): string | null => {
-  const code = findProfileServiceError(error)?.code;
-  return code ? copyForCode(code, PROFILE_CREATE_ERROR_MESSAGE_KEYS) : null;
-};
+export const getProfileCreateErrorCopy = createProfileApiErrorCopy({
+  copy: PROFILE_CREATE_ERROR_MESSAGE_KEYS,
+  paramsByCode: {
+    [ProfileApiErrorCode.UsernameTooShort]: { min: MIN_USERNAME_LENGTH },
+    [ProfileApiErrorCode.UsernameTooLong]: { max: MAX_USERNAME_LENGTH },
+  },
+});

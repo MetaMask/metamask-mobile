@@ -5461,6 +5461,7 @@
     "x_account_disconnect_sheet_title": "Disconnect X account?",
     "x_account_disconnect_sheet_body": "{{handle}} on X will no longer be connected to your MetaMask profile. Your username, posts, bio, wallets, and privacy settings stay the same.",
     "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
     "x_account_disconnect_success": "X account has been disconnected"
   },
   "app_settings": {
