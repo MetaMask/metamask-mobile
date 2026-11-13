@@ -711,14 +711,14 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: expect.objectContaining({
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      expect.objectContaining({
         newTabUrl: 'https://www.coindesk.com/article',
         fromTrending: true,
         fromMarketInsights: true,
       }),
-    });
+    );
   });
 
   it('opens trend sources sheet for tweet-only trend and passes tweet sources', () => {
