@@ -648,6 +648,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsSWAPS5043AbtestFirstQuoteFlush: {
+    name: 'swapsSWAPS5043AbtestFirstQuoteFlush',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: 'control',
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeQuoteStatusManager: {
     name: 'bridgeQuoteStatusManager',
     type: FeatureFlagType.Remote,

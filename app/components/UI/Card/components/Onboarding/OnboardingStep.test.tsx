@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -18,8 +18,54 @@ jest.mock('react-redux', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  // pb-N is N * 4pt, so the keyboard offset math is observable.
+  tw.style = jest.fn((className?: string): { paddingBottom?: number } => {
+    const match = className?.match(/pb-(\d+)/);
+    return match ? { paddingBottom: Number(match[1]) * 4 } : {};
+  });
   return { useTailwind: () => tw };
+});
+
+const mockAssureFocusedInputVisible = jest.fn();
+const mockRemoveKeyboardListener = jest.fn();
+const mockKeyboardDidShowHandlers: (() => void)[] = [];
+const mockKeyboardAwareScrollProps: { bottomOffset?: number } = {};
+
+jest.mock('react-native-keyboard-controller', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+
+  return {
+    KeyboardAwareScrollView: ReactActual.forwardRef(
+      (
+        props: {
+          children?: React.ReactNode;
+          testID?: string;
+          bottomOffset?: number;
+        },
+        ref: React.Ref<{ assureFocusedInputVisible: () => void }>,
+      ) => {
+        mockKeyboardAwareScrollProps.bottomOffset = props.bottomOffset;
+        ReactActual.useImperativeHandle(ref, () => ({
+          assureFocusedInputVisible: mockAssureFocusedInputVisible,
+        }));
+        return ReactActual.createElement(
+          ScrollView,
+          { testID: props.testID },
+          props.children,
+        );
+      },
+    ),
+    KeyboardEvents: {
+      addListener: (
+        _event: string,
+        handler: () => void,
+      ): { remove: () => void } => {
+        mockKeyboardDidShowHandlers.push(handler);
+        return { remove: mockRemoveKeyboardListener };
+      },
+    },
+  };
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -158,6 +204,7 @@ describe('OnboardingStep Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKeyboardDidShowHandlers.length = 0;
   });
 
   describe('Component Rendering', () => {
@@ -681,6 +728,38 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('nested-form-container')).toBeTruthy();
       expect(getByTestId('nested-form-section')).toBeTruthy();
       expect(getByTestId('nested-form-field')).toBeTruthy();
+    });
+  });
+
+  describe('Keyboard', () => {
+    it('leaves a gap above the footer for the focused field', () => {
+      const { getByTestId } = render(<OnboardingStep {...defaultProps} />);
+
+      // pb-4 keyboard gap (16) plus pb-6 field gap (24), before the footer
+      // reports its height.
+      expect(mockKeyboardAwareScrollProps.bottomOffset).toBe(40);
+
+      fireEvent(getByTestId('onboarding-step-actions'), 'layout', {
+        nativeEvent: { layout: { height: 120, width: 0, x: 0, y: 0 } },
+      });
+
+      expect(mockKeyboardAwareScrollProps.bottomOffset).toBe(160);
+    });
+
+    it('scrolls the focused field into view once the keyboard is shown', () => {
+      render(<OnboardingStep {...defaultProps} />);
+
+      mockKeyboardDidShowHandlers.forEach((handler) => handler());
+
+      expect(mockAssureFocusedInputVisible).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops listening for the keyboard when the step unmounts', () => {
+      const { unmount } = render(<OnboardingStep {...defaultProps} />);
+
+      unmount();
+
+      expect(mockRemoveKeyboardListener).toHaveBeenCalledTimes(1);
     });
   });
 

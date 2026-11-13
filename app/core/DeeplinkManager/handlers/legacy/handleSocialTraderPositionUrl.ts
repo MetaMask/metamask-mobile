@@ -13,10 +13,7 @@ import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
-import {
-  fetchSocialPosition,
-  resolveSocialPositionAuthor,
-} from './socialPositionSheetDeeplink';
+import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
 
 const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
 
@@ -49,7 +46,8 @@ const logPositionQueryInvalidationError = (invalidationError: unknown) => {
 /**
  * A shared position opens like a profile row tap: the trader's Social V1
  * profile, with the position sheet over it. A position that can no longer be
- * fetched leaves the user on the profile.
+ * fetched leaves the user on the profile. A position the trader doesn't own
+ * opens on its real owner's profile instead.
  */
 const openSharedPositionOnProfile = (
   positionId: string,
@@ -59,13 +57,20 @@ const openSharedPositionOnProfile = (
     traderId,
     source: 'deep_link',
   });
-  Promise.all([
-    fetchSocialPosition(positionId, LOG_PREFIX),
-    resolveSocialPositionAuthor(traderId, LOG_PREFIX),
-  ])
-    .then(([position, author]) => {
-      if (!position) {
+  resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)
+    .then((shared) => {
+      if (!shared) {
         return;
+      }
+      const { position, author, isOwnerMismatch } = shared;
+      if (isOwnerMismatch) {
+        navigateToSocialV1Profile(NavigationService.navigation, {
+          traderId: author.id,
+          traderName: author.username,
+          traderAddress: author.address,
+          traderAvatarUri: author.avatarUri ?? undefined,
+          source: 'deep_link',
+        });
       }
       NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId,
