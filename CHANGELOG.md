@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a Security settings control to delete encrypted identity verification data (#39037)
+- Added a trader preview when opening a Social profile or position link before joining Social, which opens the linked trader after onboarding (#39697)
+- Added a link to the referral invite terms on the invite sheet and in Rewards settings (#39613)
 - Added display name validation during Social onboarding and profile editing, with errors for rejected names or failed checks (#39583)
 - Included the user's referral code in Social share links and preview cards when available (#39568)
 - Enabled tapping the active Social tab or Social in the bottom navigation to scroll the feed to the top (#39495)
@@ -48,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Sped up returning to Posts on a profile by keeping the posts feed mounted (#39696)
 - Reduced the delay between triggered in-app messages so a banner-triggered full-screen message can appear after a recent message (#39676)
 - Polished the Social leaderboard, Trending, position sheets, onboarding, and caption translations (#39562)
 - Grouped the Settings root screen with section headings that match the extension layout (#39527)
@@ -137,6 +141,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Social feed and Leaderboard staying broken after a slow network until the app restarts (#39687)
+- Fixed an issue where a rejected proof of address reopened the upload screen without an explanation (#39497)
+- Fixed Wallet Home onboarding remaining on the Fund step after a completed Buy flow (#38996)
 - Moved the Rewards "Social rewards" info icon next to its label (#39592)
 - Capitalized "Recorded earnings" on the Rewards earnings cards (#39596)
 - Fixed USD amounts showing US$ instead of $ in the Token Details P&L footer and parts of the Quick Buy sheet on non-US English locales (#39161)
