@@ -629,6 +629,48 @@ describe('TokenList', () => {
       });
     });
 
+    it('matches a listed token address that differs only by case', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
+
+      renderComponent({
+        isFullView: true,
+        tokenKeys: [
+          {
+            address: '0X123',
+            chainId: '0x1',
+            isStaked: false,
+          },
+        ],
+      });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x123',
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).toHaveBeenCalledWith({
+        index: 0,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
+
+    it('does not scroll when the event address is missing', () => {
+      mockUseSelector.mockImplementation((selector) => selector({}));
+
+      renderComponent({ isFullView: true });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
     it('cleans up event listener on unmount', () => {
       mockUseSelector.mockImplementation((selector) => selector({}));
 
