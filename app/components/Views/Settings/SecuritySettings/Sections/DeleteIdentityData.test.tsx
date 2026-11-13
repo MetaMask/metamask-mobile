@@ -8,7 +8,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { MfaFlowError } from '../../../../../util/identity/mfa/engine/errors';
 import { selectKycSessionStatus } from '../../../../../selectors/kycController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNeobankMarkets } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON } from '../SecuritySettings.constants';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -39,7 +39,7 @@ jest.mock('../../../../../selectors/kycController', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/moneyAccount',
   () => ({
-    selectMoneyMovementNeobank: jest.fn(),
+    selectNeobankMarkets: jest.fn(),
   }),
 );
 
@@ -47,7 +47,7 @@ const mockDeleteEncryptedStorage = jest.mocked(
   Engine.context.KycController.deleteEncryptedStorage,
 );
 const mockSelectKycSessionStatus = jest.mocked(selectKycSessionStatus);
-const mockSelectMoneyMovementNeobank = jest.mocked(selectMoneyMovementNeobank);
+const mockSelectNeobankMarkets = jest.mocked(selectNeobankMarkets);
 
 const AAL2_TOKEN = 'aal2-token';
 
@@ -67,14 +67,9 @@ const arrange = ({
   mockSelectKycSessionStatus.mockReturnValue(
     hasSession ? SESSION_STATUS : null,
   );
-  mockSelectMoneyMovementNeobank.mockReturnValue({
-    isEnabled: isFlagEnabled,
-    regions: [],
-    regionCurrencies: {},
-    defaultCurrency: undefined,
-    chooseCurrency: false,
-    regionOverride: undefined,
-  } as ReturnType<typeof selectMoneyMovementNeobank>);
+  mockSelectNeobankMarkets.mockReturnValue(
+    isFlagEnabled ? [{ currency: 'BRL', regions: ['BR'] }] : [],
+  );
 
   return renderWithProvider(<DeleteIdentityData />);
 };

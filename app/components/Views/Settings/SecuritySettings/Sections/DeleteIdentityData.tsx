@@ -16,18 +16,16 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useMfa } from '../../../../../util/identity/mfa';
 import { selectKycSessionStatus } from '../../../../../selectors/kycController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectNeobankMarkets } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { SECURITY_SETTINGS_DELETE_IDENTITY_DATA_BUTTON } from '../SecuritySettings.constants';
 
 /**
  * Security settings section that deletes the encrypted identity data MetaMask
- * stores. Hidden until the customer has started verification, since there is
- * nothing to delete otherwise.
+ * stores. Hidden when no neobank market is open, or until the customer has
+ * started verification, since there is nothing to delete otherwise.
  */
 const DeleteIdentityData = () => {
-  const { isEnabled: isNeobankEnabled } = useSelector(
-    selectMoneyMovementNeobank,
-  );
+  const neobankMarkets = useSelector(selectNeobankMarkets);
   const kycSessionStatus = useSelector(selectKycSessionStatus);
   const [isDeleting, setIsDeleting] = useState(false);
   const { verifyOrEnroll } = useMfa();
@@ -83,7 +81,7 @@ const DeleteIdentityData = () => {
     );
   }, [deleteIdentityData]);
 
-  if (!isNeobankEnabled || !kycSessionStatus) {
+  if (neobankMarkets.length === 0 || !kycSessionStatus) {
     return null;
   }
 
