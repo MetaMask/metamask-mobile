@@ -23,6 +23,14 @@ const LINKED_ADDRESS_COOLDOWN_PATTERN =
 const SECONDS_PER_DAY = 86_400;
 
 /**
+ * The message carried by a thrown error, or '' for a value that is not one.
+ * Envelope-shaped API errors are read through `findProfileServiceError`; this
+ * covers the older deployments that throw a plain `Error`.
+ */
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : '';
+
+/**
  * The time left in the cooldown, from the `RETRY_AFTER` detail. The message
  * carries the full window and does not shrink as the cooldown elapses, so it
  * is not a time left. A refusal without the detail returns null.
@@ -49,16 +57,15 @@ const getCooldownCopy = (error: unknown): string => {
 
   if (days !== null) {
     return days === 1
-      ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.one)
-      : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, { days });
+      ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft.one)
+      : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft.other, { days });
   }
 
   const serviceError = findProfileServiceError(error);
-  const message =
-    serviceError?.message ?? (error instanceof Error ? error.message : '');
+  const message = serviceError?.message ?? getErrorMessage(error);
   const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
 
-  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.noDayCount, {
+  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.window, {
     days: fromMessage
       ? Number(fromMessage)
       : LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
@@ -78,7 +85,7 @@ export const getLinkedAccountUpdateError = (error: unknown): string | null => {
       return null;
     }
   } else {
-    const message = error instanceof Error ? error.message : '';
+    const message = getErrorMessage(error);
     if (
       extractHttpStatus(error) !== LINKED_ADDRESS_COOLDOWN_STATUS ||
       !LINKED_ADDRESS_COOLDOWN_PATTERN.test(message)
