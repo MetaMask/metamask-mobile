@@ -1,0 +1,123 @@
+{
+  "Tap the Swap button on the wallet home": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "wallet-swap-button"
+      }
+    }
+  ],
+  "Select USDC on BNB Chain as the destination token": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "dest-token-area"
+      }
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "text",
+        "value": "BNB"
+      }
+    },
+    {
+      "type": "swipe",
+      "direction": "down"
+    },
+    {
+      "type": "swipe",
+      "direction": "down"
+    },
+    {
+      "type": "swipe",
+      "direction": "down"
+    },
+    {
+      "type": "swipe",
+      "direction": "down"
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "asset-0x38-USDC"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "dest-token-area"
+      },
+      "textPattern": "USDC"
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "dest-token-area"
+      },
+      "textPattern": "USDC",
+      "proof": true
+    }
+  ],
+  "Enter 0.1 as the source amount": [
+    {
+      "type": "type",
+      "locator": {
+        "strategy": "testID",
+        "value": "source-token-area-input"
+      },
+      "text": "0.1",
+      "method": {
+        "input": "keypad",
+        "pace": "burst",
+        "keys": {
+          "0": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-0"
+            },
+            "center": {
+              "x": 504,
+              "y": 2046
+            }
+          },
+          "1": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-1"
+            },
+            "center": {
+              "x": 185,
+              "y": 1641
+            }
+          },
+          ".": {
+            "locator": {
+              "strategy": "testID",
+              "value": "keypad-key-dot"
+            },
+            "center": {
+              "x": 185,
+              "y": 2046
+            }
+          }
+        },
+        "deleteKey": {
+          "locator": {
+            "strategy": "testID",
+            "value": "keypad-delete-button"
+          },
+          "center": {
+            "x": 824,
+            "y": 2046
+          }
+        }
+      }
+    }
+  ]
+}

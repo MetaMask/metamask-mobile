@@ -4,10 +4,16 @@
 # Only emits specs that can match playwright.testmu.config.ts grep /@Performance\b/.
 # Specs tagged only with area tags (for example @PerformanceSwaps) are excluded.
 #
-# Usage: BUILD_TYPE=onboarding|imported-wallet ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
+# Agent-driven Markdown scenarios (*.scenario.spec.ts, tag @PerformanceShadow) run
+# through tests/playwright.scenario-shadow.config.ts. They are emitted only when
+# GREP_TAGS selects @PerformanceShadow, so an unfiltered run (schedule, full-suite
+# label) is unchanged.
+#
+# Usage: BUILD_TYPE=onboarding|imported-wallet [GREP_TAGS=...] ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
 set -euo pipefail
 
 BUILD_TYPE="${BUILD_TYPE:-}"
+GREP_TAGS="${GREP_TAGS:-}"
 if [[ -z "$BUILD_TYPE" ]]; then
   echo "BUILD_TYPE is required (onboarding|imported-wallet)" >&2
   exit 1
@@ -34,9 +40,26 @@ has_performance_type_tag() {
     "$file"
 }
 
+include_scenarios=false
+include_specs=true
+if [[ "$GREP_TAGS" == *@PerformanceShadow* ]]; then
+  include_scenarios=true
+fi
+# A scenarios-only selection would leave every other spec as an empty task.
+if [[ "$GREP_TAGS" == "@PerformanceShadow" ]]; then
+  include_specs=false
+fi
+
 found=0
 while IFS= read -r -d '' file; do
-  if has_performance_type_tag "$file"; then
+  if [[ "$file" == *.scenario.spec.ts ]]; then
+    selected="$include_scenarios"
+  elif [[ "$include_specs" == true ]] && has_performance_type_tag "$file"; then
+    selected=true
+  else
+    selected=false
+  fi
+  if [[ "$selected" == true ]]; then
     printf '%s\n' "$file"
     found=$((found + 1))
   fi

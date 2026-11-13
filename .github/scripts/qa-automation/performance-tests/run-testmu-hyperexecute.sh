@@ -176,6 +176,7 @@ env:
   E2E_PASSWORD: \${{.secrets.E2E_PASSWORD}}
   ANTHROPIC_API_KEY: \${{.secrets.ANTHROPIC_API_KEY}}
   AI_LOCATOR_RECOVERY_ENABLED: "$(yaml_escape "${AI_LOCATOR_RECOVERY_ENABLED:-false}")"
+  ANTHROPIC_MODEL: "$(yaml_escape "${ANTHROPIC_MODEL:-}")"
   E2E_PERFORMANCE_SENTRY_DSN: \${{.secrets.E2E_PERFORMANCE_SENTRY_DSN}}
   E2E_PERFORMANCE_SENTRY_ENVIRONMENT: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_ENVIRONMENT:-github-actions-performance-e2e-testmu-he}")"
   E2E_PERFORMANCE_SENTRY_RELEASE: "$(yaml_escape "${E2E_PERFORMANCE_SENTRY_RELEASE:-}")"
@@ -197,6 +198,7 @@ uploadArtefacts:
     path:
       - tests/reporters/reports/**
       - tests/test-reports/**
+      - tests/performance/**/*.scenario.cache.json
 
 testDiscovery:
   type: raw
@@ -279,6 +281,11 @@ else
 fi
 
 mkdir -p tests/reporters/reports tests/test-reports/playwright-report artifacts
+if [[ -n "$HE_JOB_ID" ]]; then
+  # Linked from the scenario heal PR and summary.
+  printf '{"jobId":"%s","buildType":"%s","url":"https://hyperexecute.lambdatest.com/hyperexecute/task?jobId=%s"}\n' \
+    "$HE_JOB_ID" "$BUILD_TYPE" "$HE_JOB_ID" > "tests/reporters/reports/hyperexecute-job-${BUILD_TYPE}.json"
+fi
 if [[ -d "$HE_ARTIFACTS_DIR" ]]; then
   cp -R "$HE_ARTIFACTS_DIR"/. artifacts/ 2>/dev/null || true
 fi

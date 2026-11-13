@@ -1,0 +1,55 @@
+{
+  "Tap the Predictions section header on the wallet home (testID homepage-section-title-predictions; scroll down to find it)": [
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "homepage-section-title-predictions"
+      }
+    }
+  ],
+  "Tap Add funds on the Predict home (testID predict-portfolio-action-add-funds)": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "predict-portfolio-action-add-funds"
+      }
+    }
+  ],
+  "Enter 1 as the deposit amount on the keypad": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "keypad-key-1"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "custom-amount-input-value"
+      },
+      "textPattern": "1",
+      "proof": true
+    }
+  ],
+  "Tap the Continue button on the deposit keypad (testID deposit-keyboard-done-button); it only opens the deposit confirmation, nothing is submitted": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "deposit-keyboard-done-button"
+      }
+    }
+  ]
+}
