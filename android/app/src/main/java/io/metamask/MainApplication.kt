@@ -71,10 +71,13 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         super.onCreate()
 
         // Fill the edge-to-edge host; HTML templates use --braze-safe-area-inset-* for content padding.
+        // Braze defaults to 30s between triggered in-app messages; allow a
+        // banner-triggered full-screen message to follow the previous IAM quickly.
         Braze.configure(
             this,
             BrazeConfig.Builder()
                 .setIsHtmlInAppMessageApplyWindowInsetsEnabled(false)
+                .setTriggerActionMinimumTimeIntervalSeconds(3)
                 .build()
         )
 

@@ -108,6 +108,9 @@ class AppDelegate: ExpoAppDelegate {
       configuration.forwardUniversalLinks = true
       // Explicit: native default is 10s. Backgrounding longer than this starts a new session.
       configuration.sessionTimeout = 120
+      // Braze defaults to 30s between triggered in-app messages. Allow a
+      // banner-triggered full-screen message to follow the previous IAM quickly.
+      configuration.triggerMinimumTimeInterval = 3
       // swiftlint:disable:next force_cast
       let braze = BrazeHelperInit(configuration) as! Braze
       braze.delegate = self
