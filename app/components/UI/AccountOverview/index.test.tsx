@@ -84,6 +84,9 @@ const mockInitialState = {
   security: { dataCollectionForMarketing: false },
 };
 
+const EXPECTED_PORTFOLIO_URL =
+  'https://portfolio.metamask.io/?metamaskEntry=mobile&metricsEnabled=true&marketingEnabled=false';
+
 describe('AccountOverview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -167,7 +170,7 @@ describe('AccountOverview', () => {
       Routes.BROWSER.HOME,
       expect.objectContaining({
         timestamp: expect.any(Number),
-        newTabUrl: expect.any(String),
+        newTabUrl: EXPECTED_PORTFOLIO_URL,
       }),
     );
   });
