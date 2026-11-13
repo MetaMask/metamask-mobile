@@ -122,7 +122,7 @@ async function mockAPICall(server: Mockttp, response: MockResponse) {
       const decodedPath = getDecodedProxiedURL(url);
 
       const [requestBodyJson, requestBodyText] = await Promise.all([
-        body.getJson<object | string>(),
+        body.getJson(),
         body.getText(),
       ]);
       const requestBody = requestBodyJson ?? requestBodyText;
