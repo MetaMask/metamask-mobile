@@ -128,6 +128,7 @@ describe('postTradeShareSession', () => {
       target,
       copyTradeOrigin: undefined,
       tradeMode: 'buy',
+      traderAddress: undefined,
     });
     expect(getPostTradeShareSession()).toBeNull();
   });
@@ -153,6 +154,7 @@ describe('postTradeShareSession', () => {
       target,
       copyTradeOrigin,
       tradeMode: 'buy',
+      traderAddress: undefined,
     });
     expect(getPostTradeShareSession()).toBeNull();
   });

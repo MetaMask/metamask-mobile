@@ -94,7 +94,9 @@ describe('RewardsSettingsView', () => {
 
     expect(input).toHaveProp('value', storedCode);
     expect(
-      getByText(REFERRAL_LOCALIZED_TEXT.settingsReferralLinkedDescription),
+      getByText(REFERRAL_LOCALIZED_TEXT.settingsReferralLinkedDescription, {
+        exact: false,
+      }),
     ).toBeOnTheScreen();
 
     fireEvent.changeText(input, 'NEWCODE');

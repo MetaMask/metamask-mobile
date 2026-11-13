@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -25,6 +31,7 @@ import {
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { InviteTermsLink } from '../InviteTermsLink';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type {
@@ -44,6 +51,7 @@ import {
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
@@ -54,6 +62,7 @@ export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CODE_ERROR: 'accept-invite-sheet-code-error',
   DECLINE: 'accept-invite-sheet-decline',
   ACCEPT: 'accept-invite-sheet-accept',
+  TERMS_LINK: 'accept-invite-sheet-terms-link',
 } as const;
 
 /** Alphanumeric upper-case only, capped at the Money code max length. */
@@ -76,6 +85,7 @@ function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
     () => ({
       title: localizedText?.inviteTitle ?? '',
       body: localizedText?.inviteMessageBody ?? '',
+      termsLink: resolveInviteTermsLink(localizedText),
       codeLabel:
         localizedText?.inviteReferralCode ??
         strings('rewards.referral.referral_code'),
@@ -121,6 +131,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
+  // Mirrors the ref for the terms link, which can only see props. Set in the
+  // same turn as the ref so a tap during accept cannot open the browser.
+  const [acceptLocked, setAcceptLocked] = useState(false);
   // Once Accept has been pressed, a late geo exclusion must not close the
   // sheet: that would interrupt registerReferee, hide a server region
   // refusal, or pop the accepted splash after a successful navigate.
@@ -375,6 +388,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Registration is the accept. A refused write leaves the sheet open, so
     // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
+    setAcceptLocked(true);
     acceptReferralCode(referralCode, { onAccepted: handleAccepted })
       .then((result) => {
         if (result.accepted) {
@@ -388,6 +402,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       .catch(() => undefined)
       .finally(() => {
         acceptInFlightRef.current = false;
+        setAcceptLocked(false);
       });
   }, [
     acceptReferralCode,
@@ -439,6 +454,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     trackResponded,
   ]);
 
+  const termsLink = copy.termsLink;
+
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
   // referrer or referee, or a geo-blocked country.
@@ -468,6 +485,16 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             testID={ACCEPT_INVITE_SHEET_TEST_IDS.BODY}
           >
             {copy.body}
+            {termsLink ? (
+              <>
+                {' '}
+                <InviteTermsLink
+                  link={termsLink}
+                  disabled={isAccepting || acceptLocked}
+                  testID={ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK}
+                />
+              </>
+            ) : null}
           </Text>
         )}
         <Box

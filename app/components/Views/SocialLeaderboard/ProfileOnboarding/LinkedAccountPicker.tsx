@@ -85,7 +85,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box gap={4}>
+      <Box gap={3}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={strings(
@@ -147,14 +147,18 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           >
             {tradingActivityLabel}
           </Text>
-          <Switch
-            value={shareTradingActivity}
-            onValueChange={onShareTradingActivityChange}
-            accessibilityRole="switch"
-            accessibilityLabel={tradingActivityLabel}
-            accessibilityState={{ checked: shareTradingActivity }}
-            testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
-          />
+          {/* The native switch draws at the top of a stretched frame. A 32px
+              slot matches the control, and the row centers that slot on the label. */}
+          <Box twClassName="h-8 items-center justify-center">
+            <Switch
+              value={shareTradingActivity}
+              onValueChange={onShareTradingActivityChange}
+              accessibilityRole="switch"
+              accessibilityLabel={tradingActivityLabel}
+              accessibilityState={{ checked: shareTradingActivity }}
+              testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
+            />
+          </Box>
         </Box>
 
         <TradingActivityBenefits

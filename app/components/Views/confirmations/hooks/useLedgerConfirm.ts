@@ -29,6 +29,16 @@ function getExpectedQuoteCount(transactionId: string): number {
   );
 }
 
+/**
+ * On Android, closing a screen before its last update is drawn can crash the
+ * app, so wait two frames for pending updates to mount.
+ */
+function waitForPendingUpdates(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+  });
+}
+
 interface UseLedgerConfirmOptions {
   fromAddress: string;
   onReject: () => void;
@@ -182,6 +192,7 @@ export function useLedgerConfirm({
         showHardwareWalletError(err);
       }
 
+      await waitForPendingUpdates();
       rejectOnce();
     } finally {
       stopWatchingSignedTransactions();

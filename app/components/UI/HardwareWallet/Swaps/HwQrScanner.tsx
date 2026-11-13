@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Image, Linking, StyleSheet, View } from 'react-native';
 import {
@@ -33,7 +27,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { completeHwSwapSuccess } from './hwSwapSuccess';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { UR } from '@ngraveio/bc-ur';
@@ -179,7 +172,6 @@ export function HwQrScanner() {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const isFocused = useIsFocused();
-  const toastRef = useContext(ToastContext)?.toastRef;
   const hasCompletedOnSuccessRef = useRef(false);
   const { qr } = useHardwareWallet();
   const {
@@ -215,7 +207,7 @@ export function HwQrScanner() {
           if (isLastStep && completeOnScan) {
             if (!hasCompletedOnSuccessRef.current) {
               hasCompletedOnSuccessRef.current = true;
-              completeHwSwapSuccess({ dispatch, navigation, toastRef });
+              completeHwSwapSuccess({ dispatch, navigation });
             }
           } else {
             // Bridge returns to its lifecycle, which waits for submit settlement
@@ -248,7 +240,6 @@ export function HwQrScanner() {
       completeOnScan,
       dispatch,
       navigation,
-      toastRef,
     ],
   );
 

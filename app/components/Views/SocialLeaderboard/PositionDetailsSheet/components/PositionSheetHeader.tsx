@@ -7,6 +7,7 @@ import {
   Button,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   Icon,
@@ -115,6 +116,23 @@ const PositionSheetHeader = ({
         gap={2}
         twClassName="shrink-0"
       >
+        {onShare && isSharing ? (
+          <Box twClassName="h-10 w-10 items-center justify-center">
+            <ShareButtonSpinner
+              testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
+            />
+          </Box>
+        ) : onShare ? (
+          <ButtonIcon
+            iconName={IconName.Share}
+            variant={ButtonIconVariant.Filled}
+            size={ButtonIconSize.Lg}
+            iconProps={{ color: IconColor.IconDefault, size: IconSize.Md }}
+            onPress={onShare}
+            accessibilityLabel={strings('social.profile.share_position')}
+            testID={PositionDetailsSheetSelectorsIDs.SHARE_BUTTON}
+          />
+        ) : null}
         {isOwnPost ? null : (
           <Button
             variant={ButtonVariant.Secondary}
@@ -129,20 +147,6 @@ const PositionSheetHeader = ({
             )}
           </Button>
         )}
-        {onShare && isSharing ? (
-          <ShareButtonSpinner
-            testID={PositionDetailsSheetSelectorsIDs.SHARE_SPINNER}
-          />
-        ) : onShare ? (
-          <ButtonIcon
-            iconName={IconName.Share}
-            iconProps={{ color: IconColor.IconDefault }}
-            size={ButtonIconSize.Md}
-            onPress={onShare}
-            accessibilityLabel={strings('social.profile.share_position')}
-            testID={PositionDetailsSheetSelectorsIDs.SHARE_BUTTON}
-          />
-        ) : null}
       </Box>
     </Box>
   );
