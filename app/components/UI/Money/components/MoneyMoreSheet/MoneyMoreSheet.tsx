@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   FontWeight,
   Icon,
   IconColor,
@@ -31,6 +30,9 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface MenuOption {
   label: string;
@@ -40,6 +42,7 @@ interface MenuOption {
 }
 
 const MoneyMoreSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -126,11 +129,14 @@ const MoneyMoreSheet = () => {
       testID={MoneyMoreSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.more_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         {options.map((item) => (
           <TouchableOpacity

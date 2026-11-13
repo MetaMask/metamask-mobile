@@ -10,6 +10,8 @@ import {
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { type AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
 import WalletView from './WalletView';
 import TokensFullView from './HomeSections';
 
@@ -265,7 +267,9 @@ class NetworkManager {
   }
 
   /**
-   * Navigate back from TokensFullView to the homepage.
+   * Navigate back from TokensFullView to the homepage and wait until wallet
+   * home is ready. Back can leave wallet chrome mid-settle, which makes the
+   * next Explore tab step burn its retry budget.
    */
   async navigateBackFromTokensFullView(): Promise<void> {
     const backButton = Matchers.getElementByID(
@@ -274,6 +278,7 @@ class NetworkManager {
     await Gestures.waitAndTap(backButton, {
       elemDescription: 'Back button (return from TokensFullView)',
     });
+    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
   }
 
   /**

@@ -21,6 +21,28 @@ Locking the wallet or turning Kalshi off drops the plaintext key and A2T;
 leaving the Predict stack does not discard the Engine session. The encrypted
 copy remains until wallet reset calls `PredictDeviceAuthService:reset`.
 
+Lock, wallet reset, and replacement of the Predict User or authentication
+profile synchronously revoke in-flight signing work. Each operation and
+server-proposed read captures a session generation and the active identity,
+profile, and public key. The service rechecks them after preparation, after
+an approval claim, immediately before key use, and after cryptography settles.
+A lock followed by an unlock cannot revive an older operation. Cryptography
+already running may finish, but its revoked envelope is never returned.
+
+Reset clears the active session and plaintext key before its first await,
+queues deletion behind outstanding key storage work, and refuses new key
+preparation until deletion settles. An older key load cannot repopulate memory
+or return public material through the service after reset. Other lifecycle
+clears keep the encrypted device key; they do not silently rotate its slot.
+
+Approval claims and clears remain serialized, including both the initial pin
+and later signature-count writes. A clear revokes a pending claim immediately;
+the old write settles before the queued clear and any new-generation claim.
+The ledger is a soft approval-use policy, not a cryptographic replay boundary.
+The server's idempotency key remains the order replay boundary. Only an actual
+user confirmation may authorize a new pin; renewal and recovery do not grant
+new confirmation.
+
 The private key never leaves the module. Callers receive the 65-byte
 uncompressed public point (`0x04 || X || Y`), the 16-byte salt, and the
 unpadded base64url forms of both. The profile-bound implementation returns a

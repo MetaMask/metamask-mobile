@@ -26,7 +26,8 @@ const OPTIMISM = PopularNetworksList.Optimism.providerConfig.nickname;
 appiumTest.describe(
   SmokeNetworkAbstractions('Chain Permission Management'),
   () => {
-    appiumTest.describe.configure({ timeout: 300_000 });
+    // Matches the sibling permission-system-update-permissions suite (360s).
+    appiumTest.describe.configure({ timeout: 360_000 });
 
     appiumTest(
       'handles permission cleanup when removing a connected chain',

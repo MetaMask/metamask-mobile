@@ -12,6 +12,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -31,7 +32,6 @@ import React, {
 import { Image, Linking, ScrollView, TouchableOpacity } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
