@@ -3953,6 +3953,9 @@
         "title": "No activity yet",
         "description": "Your trades and settlements will appear here."
       },
+      "activity_continue_description": "More activity history is available to check. Load the next page to continue.",
+      "activity_load_more": "Load more activity",
+      "settlements_permission_denied": "Settlements are unavailable in this demo environment. Your trades are still shown.",
       "load_failed": "Couldn't load.",
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
@@ -4010,6 +4013,9 @@
       "exchange_fee": "Exchange fee",
       "metamask_fee": "MetaMask fee",
       "total_debit": "Total debit",
+      "max_cost": "Maximum cost (signed)",
+      "proceeds_if_fully_filled": "Proceeds if fully filled (signed)",
+      "partial_fill_proceeds_description": "This amount assumes all contracts fill. A partial fill can result in lower proceeds. If no contracts fill, you receive no proceeds and nothing is sold.",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
       "predictions_balance": "Predictions balance",
@@ -4061,7 +4067,10 @@
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
-      "requote": "Try again"
+      "requote": "Try again",
+      "needs_review_title": "We couldn't confirm this order",
+      "needs_review_description": "Order outcome could not be confirmed. Check your activity or contact support.",
+      "done": "Done"
     },
     "order_notification": {
       "not_placed_title": "Order not placed",

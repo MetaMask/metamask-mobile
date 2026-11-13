@@ -64,23 +64,26 @@ const toastRef = {
  * Engine.controllerMessenger. */
 let rootMessenger: Messenger<MockAnyNamespace, never, never>;
 
+/** A $20 buy the device can actually sign: 41 contracts at 0.4651 plus the
+ * 2¢/contract fee ceiling is $19.89, inside the approved $20. */
 const makePreview = () => ({
   previewId: PREVIEW_ID,
   venueId: 'kalshi',
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  limitPrice: '0.4651',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: new Date(Date.now() + 30_000).toISOString(),
 });
 
@@ -108,7 +111,7 @@ const jsonResponse = (body: unknown) =>
 const stubOrderRoutes = () => {
   const commits: ((body: unknown) => void)[] = [];
   fetchMock.mockImplementation(async (url) => {
-    if (String(url).endsWith('/orders/commit')) {
+    if (/\/orders\/[^/]+\/commit$/u.test(String(url))) {
       return new Promise<Response>((resolve) => {
         commits.push((body) => resolve(jsonResponse(body)));
       });
@@ -119,7 +122,7 @@ const stubOrderRoutes = () => {
     answerCommit: (body: unknown) => commits.shift()?.(body),
     commitCount: () =>
       fetchMock.mock.calls.filter(([url]) =>
-        String(url).endsWith('/orders/commit'),
+        /\/orders\/[^/]+\/commit$/u.test(String(url)),
       ).length,
   };
 };
@@ -303,6 +306,47 @@ describe('Predict order notifications across Active Venue changes', () => {
     expect(routes.commitCount()).toBe(1);
   });
 
+  it.each([
+    ['needs_manual_review', "We couldn't confirm this order"],
+    ['not_filled', 'Order not filled'],
+  ])(
+    'notifies a dismissed %s order without inventing a fill outcome',
+    async (status, title) => {
+      const routes = stubOrderRoutes();
+      const view = renderApp('kalshi');
+      await approveOrder();
+      selectVenue(view, 'polymarket');
+      expect(await screen.findByTestId(LEGACY_HOME)).toBeOnTheScreen();
+
+      await act(async () => {
+        routes.answerCommit({
+          ...filledReceipt,
+          status,
+          venueOrderId: null,
+          filledContracts: null,
+          actualSpend: null,
+          averageFillPrice: null,
+          fee: null,
+          payoutExposure: null,
+        });
+      });
+
+      await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1));
+      expect(toastTitles()).toEqual([title]);
+      if (status === 'needs_manual_review') {
+        expect(showToast.mock.calls[0][0].labelOptions).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              label:
+                'Order outcome could not be confirmed. Check your activity or contact support.',
+            }),
+          ]),
+        );
+        expect(toastTitles()).not.toContain('Order not filled');
+      }
+      expect(routes.commitCount()).toBe(1);
+    },
+  );
   it('does not repeat a completion the open Order sheet already shows', async () => {
     const routes = stubOrderRoutes();
     renderApp('kalshi');
