@@ -271,7 +271,7 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000));
+    expect(result.current.errors).toContain(getLimitPriceTooFarMessage());
   });
 
   it('returns error when the limit price is far below the reference price band', async () => {
@@ -293,7 +293,7 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000));
+    expect(result.current.errors).toContain(getLimitPriceTooFarMessage());
   });
 
   it('uses the reference (mark) price, not the mid currentPrice, for the band', async () => {
@@ -319,7 +319,7 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(50000));
+    expect(result.current.errors).toContain(getLimitPriceTooFarMessage());
   });
 
   it('re-evaluates the price band when the market moves after the limit price is set', async () => {
@@ -345,15 +345,13 @@ describe('usePerpsClosePositionValidation', () => {
     await waitFor(() => {
       expect(result.current.isValidating).toBe(false);
     });
-    expect(result.current.errors).not.toContain(
-      getLimitPriceTooFarMessage(50000),
-    );
+    expect(result.current.errors).not.toContain(getLimitPriceTooFarMessage());
 
     // Market crashes far below the resting limit price, pushing it out of band
     rerender({ ...baseParams, currentPrice: 2000, referencePrice: 2000 });
 
     await waitFor(() => {
-      expect(result.current.errors).toContain(getLimitPriceTooFarMessage(2000));
+      expect(result.current.errors).toContain(getLimitPriceTooFarMessage());
     });
     expect(result.current.isValid).toBe(false);
   });
@@ -381,7 +379,7 @@ describe('usePerpsClosePositionValidation', () => {
     });
 
     expect(result.current.isValid).toBe(false);
-    expect(result.current.errors).toContain(getLimitPriceTooFarMessage(1000));
+    expect(result.current.errors).toContain(getLimitPriceTooFarMessage());
   });
 
   it('should return error for market order with 0% close', async () => {

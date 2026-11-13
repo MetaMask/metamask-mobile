@@ -171,28 +171,68 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.originalMetamaskFeeRate,
   );
 
+  // Limit price errors only apply to limit closes. The input hook validates the
+  // stored price regardless of order type, so gate it here. Nothing is shown
+  // while the keypad is open: the message appears once the user stops typing.
+  // "Too far from market" is the blocking message above Close, and only when
+  // the price is outside the deviation band. Direction warnings stay on the row.
   // A position under the minimum must be closed in full for a market order.
   // Limit closes don't show that message.
+  const limitPriceError =
+    effectiveOrderType === 'limit' ? limitPriceInput.error : '';
+  const limitPriceTooFarError = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
+  );
+  const isLimitPriceBandError = limitPriceError.startsWith(
+    limitPriceTooFarError,
+  );
+  const showLimitPriceErrorOnRow =
+    Boolean(limitPriceError) && !isLimitPriceBandError && !isEditingLimitPrice;
   const mustCloseFullBelowMinimumError = strings(
     'perps.close_position.must_close_full_below_minimum',
   );
+
   const displayedErrors = useMemo(() => {
-    const withoutLimitPriceDuplicate = limitPriceInput.error
-      ? filteredErrors.filter((error) => error !== limitPriceInput.error)
+    // The amount display colors itself from this list, and the footer that
+    // renders it is hidden while the keypad is open. Keep limit-price errors
+    // out until typing stops, or the close amount flashes red on each digit.
+    // Direction warnings are not blocking, so they never join the list.
+    const withoutLimitPriceWhileEditing = isEditingLimitPrice
+      ? filteredErrors.filter(
+          (error) =>
+            error !== limitPriceError &&
+            !error.startsWith(limitPriceTooFarError),
+        )
       : filteredErrors;
+    const withoutRowDuplicate = showLimitPriceErrorOnRow
+      ? withoutLimitPriceWhileEditing.filter(
+          (error) => error !== limitPriceError,
+        )
+      : withoutLimitPriceWhileEditing;
+
+    const withLimitPriceError =
+      !isEditingLimitPrice &&
+      !showLimitPriceErrorOnRow &&
+      limitPriceError &&
+      !withoutRowDuplicate.includes(limitPriceError)
+        ? [...withoutRowDuplicate, limitPriceError]
+        : withoutRowDuplicate;
 
     if (effectiveOrderType !== 'limit') {
-      return withoutLimitPriceDuplicate;
+      return withLimitPriceError;
     }
 
-    return withoutLimitPriceDuplicate.filter(
+    return withLimitPriceError.filter(
       (error) => !error.startsWith(mustCloseFullBelowMinimumError),
     );
   }, [
     effectiveOrderType,
     filteredErrors,
-    limitPriceInput.error,
+    isEditingLimitPrice,
+    limitPriceError,
+    limitPriceTooFarError,
     mustCloseFullBelowMinimumError,
+    showLimitPriceErrorOnRow,
   ]);
 
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
@@ -261,7 +301,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         <PerpsLimitPriceRow
           value={limitPriceInput.formattedLimitPrice.replace(/^\$/, '')}
           hasValue={hasLimitPriceValue}
-          error={limitPriceInput.error}
+          error={showLimitPriceErrorOnRow ? limitPriceError : ''}
           isEditing={isEditingLimitPrice}
           onPress={handleLimitPriceRowPress}
         />
@@ -276,10 +316,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       )}
 
       {/* Figma puts the keypad over the CTA, so the whole footer hides with it.
-          Blocking errors sit with the CTA they are blocking, centered
-          directly above it. Errors about the limit
-          price itself stay on that row, where they are still visible while the
-          keypad is open. */}
+          Blocking errors, including a limit price outside the band, sit with
+          the CTA they are blocking, and only after the keypad closes.
+          Direction warnings stay on the limit row once typing stops. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
           <PerpsRebateBanner

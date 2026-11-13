@@ -7909,13 +7909,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(result.current.priceCardMessage).toEqual({
         severity: 'error',
-        message:
-          strings('perps.order.limit_price_modal.limit_price_too_far') +
-          ' ' +
-          strings('perps.order.limit_price_modal.limit_price_too_far_range', {
-            min: '$150.00',
-            max: '$60,000.00',
-          }),
+        message: strings('perps.order.limit_price_modal.limit_price_too_far'),
       });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });

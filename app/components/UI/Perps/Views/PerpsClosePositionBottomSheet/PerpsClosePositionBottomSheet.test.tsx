@@ -637,7 +637,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toHaveTextContent(strings('perps.order.set_price'));
     });
 
-    it('colors Set price as an error when the limit price is unset', () => {
+    it('colors Set price as default text when the limit price is unset', () => {
       const utils = renderSheet();
 
       toggleOrderType(utils);
@@ -654,7 +654,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           (text) => text.props.children === strings('perps.order.set_price'),
         );
 
-      expect(setPriceText?.props.color).toBe(TextColor.ErrorDefault);
+      expect(setPriceText?.props.color).toBe(TextColor.TextDefault);
     });
 
     it('shows the review state when the limit order flag is off despite a remembered limit type', () => {
@@ -694,6 +694,18 @@ describe('PerpsClosePositionBottomSheet', () => {
       fireEvent.press(utils.getByText(strings('perps.order.set_price')));
 
       expect(utils.getByTestId('mock-keypad')).toBeOnTheScreen();
+    });
+
+    it('gives the 32px limit price row a 40px touch target', () => {
+      const utils = renderSheet();
+
+      toggleOrderType(utils);
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+        ).props.hitSlop,
+      ).toEqual({ top: 4, bottom: 4, left: 0, right: 0 });
     });
 
     it("announces the row's state to assistive tech, not just its label", () => {
@@ -830,6 +842,16 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('limit price validation', () => {
+    const closeAmountColor = (
+      utils: ReturnType<typeof renderSheet>,
+    ): string | undefined =>
+      utils
+        .UNSAFE_getAllByType(Text)
+        .find(
+          (node) =>
+            node.props.testID === PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+        )?.props.color;
+
     const selectLimitAndEnterPrice = (value: string) => {
       mockKeypadValue = value;
       const utils = renderSheet();
@@ -840,19 +862,43 @@ describe('PerpsClosePositionBottomSheet', () => {
       return utils;
     };
 
-    it('does not repeat a limit-price error already shown on the field', () => {
-      const tooFarError = getLimitPriceTooFarMessage(
-        Number.parseFloat(defaultPerpsLivePricesMock.ETH.price),
-      );
+    it('hides the limit-price error while the price is being entered', () => {
+      const tooFarError = getLimitPriceTooFarMessage();
       usePerpsClosePositionValidationMock.mockReturnValue({
         ...defaultPerpsClosePositionValidationMock,
         errors: [tooFarError],
         isValid: false,
       });
 
-      const { getAllByText } = selectLimitAndEnterPrice('6');
+      const utils = selectLimitAndEnterPrice('6');
 
-      expect(getAllByText(tooFarError)).toHaveLength(1);
+      expect(utils.queryByText(tooFarError)).toBeNull();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
+    });
+
+    it('shows the limit-price band error above Close once the keypad closes', () => {
+      const tooFarError = getLimitPriceTooFarMessage();
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        ...defaultPerpsClosePositionValidationMock,
+        errors: [tooFarError],
+        isValid: false,
+      });
+
+      const utils = selectLimitAndEnterPrice('6');
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(utils.getAllByText(tooFarError)).toHaveLength(1);
+      expect(closeAmountColor(utils)).toBe(TextColor.ErrorDefault);
+      expect(
+        utils.queryByTestId(
+          PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
+        ),
+      ).toBeNull();
     });
 
     it('does not warn when the limit price is a zero that renders as an empty field', () => {
@@ -864,11 +910,23 @@ describe('PerpsClosePositionBottomSheet', () => {
     });
 
     it('warns once a limit price below the market price is entered', () => {
-      const { getByText } = selectLimitAndEnterPrice('2900');
+      const utils = selectLimitAndEnterPrice('2900');
 
       expect(
-        getByText(strings('perps.order.limit_price_modal.limit_price_below')),
+        utils.queryByText(
+          strings('perps.order.limit_price_modal.limit_price_below'),
+        ),
+      ).toBeNull();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
+
+      fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
+
+      expect(
+        utils.getByText(
+          strings('perps.order.limit_price_modal.limit_price_below'),
+        ),
       ).toBeOnTheScreen();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
     });
   });
 

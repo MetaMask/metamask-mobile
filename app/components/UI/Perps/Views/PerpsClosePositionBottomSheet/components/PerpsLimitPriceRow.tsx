@@ -5,8 +5,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HelpText,
-  HelpTextSeverity,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -17,6 +20,9 @@ import { useBlinkingCursor } from '../../../../../../component-library/component
 
 /** Muted stand-in that reads as an input the keypad is waiting to fill. */
 const EMPTY_LIMIT_PRICE_DISPLAY = '0.00';
+
+/** Visual row is 32px (`h-8`). 4px above and below makes the touch target 40px. */
+const LIMIT_PRICE_ROW_HIT_SLOP = { top: 4, bottom: 4, left: 0, right: 0 };
 
 export interface PerpsLimitPriceRowProps {
   /** Numeric portion only; the row renders its own `$`. */
@@ -51,6 +57,10 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
   }
 
   const isEmptyInReview = !hasValue && !isEditing;
+  const priceAnnouncement = isEmptyInReview
+    ? strings('perps.order.set_price')
+    : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`;
+  const rowLabel = `${strings('perps.order.limit_price')}, ${priceAnnouncement}`;
 
   const cursor = isEditing ? (
     <Animated.View
@@ -66,46 +76,60 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
     <>
       <TouchableOpacity
         accessibilityRole="button"
-        accessibilityLabel={`${strings('perps.order.limit_price')}, ${
-          isEmptyInReview
-            ? strings('perps.order.set_price')
-            : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`
-        }`}
+        accessibilityLabel={error ? `${rowLabel}. ${error}` : rowLabel}
         onPress={onPress}
+        hitSlop={LIMIT_PRICE_ROW_HIT_SLOP}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
       >
-        <Box twClassName="flex-row items-center justify-between px-4 py-2">
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('perps.order.limit_price')}
+        <Box twClassName="flex-row items-center justify-between px-4 h-8">
+          <Text
+            variant={TextVariant.BodySm}
+            color={error ? TextColor.ErrorDefault : TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+            numberOfLines={1}
+            twClassName="flex-1 mr-3"
+          >
+            {error || strings('perps.order.limit_price')}
           </Text>
 
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={1}
+            gap={0.5}
           >
             {isEmptyInReview ? (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.ErrorDefault}
-                testID={
-                  PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
-                }
-              >
-                {strings('perps.order.set_price')}
-              </Text>
+              <>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Medium}
+                  testID={
+                    PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
+                  }
+                >
+                  {strings('perps.order.set_price')}
+                </Text>
+                <Icon
+                  name={IconName.ArrowRight}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
+                  twClassName="pt-0.5"
+                />
+              </>
             ) : (
               <>
                 <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Medium}
                 >
                   $
                 </Text>
                 {!hasValue ? cursor : null}
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.BodySm}
                   color={priceColor}
+                  fontWeight={FontWeight.Medium}
                   testID={
                     PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
                   }
@@ -113,19 +137,19 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
                   {hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}
                 </Text>
                 {hasValue ? cursor : null}
+                {!isEditing ? (
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.IconDefault}
+                    twClassName="pt-0.5"
+                  />
+                ) : null}
               </>
             )}
           </Box>
         </Box>
       </TouchableOpacity>
-
-      {error ? (
-        <Box twClassName="px-4">
-          <HelpText severity={HelpTextSeverity.Danger} showIcon>
-            {error}
-          </HelpText>
-        </Box>
-      ) : null}
     </>
   );
 };
