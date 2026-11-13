@@ -233,6 +233,7 @@ import { getLimitPriceCrossingWarning } from '../../utils/triggerOrderValidation
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { selectIsProfileTradingActivityPrivate } from '../../../../../selectors/profileController';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import {
   postCopyTradeIntent,
@@ -562,6 +563,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     undefined,
   );
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
   const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
@@ -2230,7 +2234,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : undefined;
     perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
       amountUsd: orderForm.amount,
-      leverage: orderForm.leverage,
     })
       ? resolvedPerpsPostTradePrompt
       : undefined;
