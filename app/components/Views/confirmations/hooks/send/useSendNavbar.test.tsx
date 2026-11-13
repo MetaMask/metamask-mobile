@@ -131,7 +131,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('pops the outer stack when a previous non-Home route exists', () => {
@@ -193,7 +193,7 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('pops the nested Send stack when nested history exists', () => {
@@ -253,7 +253,7 @@ describe('useSendNavbar', () => {
       fireEvent.press(getByTestId('send-navbar-back-button'));
 
       expect(mockHandleCancelPress).toHaveBeenCalled();
-      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockParentNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('calls handleCancelPress when close button is pressed', () => {

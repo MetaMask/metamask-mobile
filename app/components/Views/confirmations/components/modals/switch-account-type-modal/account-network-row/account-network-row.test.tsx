@@ -209,7 +209,7 @@ describe('Account Network Row', () => {
 
     fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
 
-    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('returns early when switchRequestSubmitted is true', async () => {
