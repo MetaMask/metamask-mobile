@@ -23,22 +23,12 @@ const LINKED_ADDRESS_COOLDOWN_PATTERN =
 const SECONDS_PER_DAY = 86_400;
 
 /**
- * The cooldown window in days as the API reported it. The message carries the
- * full window; the `RETRY_AFTER` detail carries the remaining time, which is
- * the whole window on the race path where the message has no day count. A
- * refusal with neither returns null, and the caller states the policy window.
+ * The time left in the cooldown, from the `RETRY_AFTER` detail. The message
+ * carries the full window and does not shrink as the cooldown elapses, so it
+ * is not a time left. A refusal without the detail returns null.
  */
 const getCooldownDays = (error: unknown): number | null => {
-  const serviceError = findProfileServiceError(error);
-  const message =
-    serviceError?.message ?? (error instanceof Error ? error.message : '');
-  const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
-
-  if (fromMessage) {
-    return Number(fromMessage);
-  }
-
-  const retryAfterSeconds = serviceError?.details?.find(
+  const retryAfterSeconds = findProfileServiceError(error)?.details?.find(
     (detail) => detail.code === 'RETRY_AFTER',
   )?.meta?.retry_after_seconds;
 
@@ -49,16 +39,30 @@ const getCooldownDays = (error: unknown): number | null => {
   return null;
 };
 
-/** The cooldown copy, pluralised for a one-day window. */
-const getCooldownCopy = (days: number | null): string => {
-  if (days === null) {
-    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.noDayCount, {
-      days: LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
-    });
+/**
+ * The cooldown copy: the time left, pluralised for a one-day remainder, when
+ * the refusal reports it. Otherwise the window the message states, so the user
+ * is not told to wait longer than they need to.
+ */
+const getCooldownCopy = (error: unknown): string => {
+  const days = getCooldownDays(error);
+
+  if (days !== null) {
+    return days === 1
+      ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.one)
+      : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, { days });
   }
-  return days === 1
-    ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.one)
-    : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, { days });
+
+  const serviceError = findProfileServiceError(error);
+  const message =
+    serviceError?.message ?? (error instanceof Error ? error.message : '');
+  const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
+
+  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.noDayCount, {
+    days: fromMessage
+      ? Number(fromMessage)
+      : LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
+  });
 };
 
 /**
@@ -83,5 +87,5 @@ export const getLinkedAccountUpdateError = (error: unknown): string | null => {
     }
   }
 
-  return getCooldownCopy(getCooldownDays(error));
+  return getCooldownCopy(error);
 };

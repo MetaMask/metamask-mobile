@@ -41,9 +41,9 @@ export const PROFILE_FIELD_REJECTION_MESSAGE_KEYS: Partial<
 };
 
 /**
- * Copy for the linked-address cooldown refusal. The day count picks the `one`
- * or `other` form; a refusal with no count falls back to the policy window,
- * which is the window the screen's footnote states.
+ * Copy for the linked-address cooldown refusal. `one`/`other` state the time
+ * left and need the `RETRY_AFTER` detail; `noDayCount` states the policy
+ * window when the refusal only carries the window.
  */
 export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS = {
   one: 'social_leaderboard.manage_profile.linked_account_cooldown_one',
