@@ -31,6 +31,18 @@ const CANCELLED_RESULT: AssetActivationActionResult = {
   errorMessage: null,
 };
 
+const withLoadingFlag = async <Result>(
+  setLoading: (isLoading: boolean) => void,
+  action: () => Promise<Result>,
+): Promise<Result> => {
+  setLoading(true);
+  try {
+    return await action();
+  } finally {
+    setLoading(false);
+  }
+};
+
 /**
  * Manages trustline activation and deactivation for supported assets (currently Stellar classic tokens).
  *
@@ -94,43 +106,39 @@ export const useAssetActivation = ({
       const hasNonZeroBalance = Boolean(balanceAmount && balanceAmount !== '0');
       const balanceDisplay = balanceAmount ?? '0';
 
-      setIsDeactivating(true);
-      let actionResult: AssetActivationActionResult;
-      try {
-        if (hasNonZeroBalance) {
-          actionResult = {
-            success: false,
-            errorMessage: strings(
-              'asset_activation.deactivate_error_non_zero_balance_stellar',
-              {
-                balance: balanceDisplay,
-                symbol: assetSymbol,
-              },
-            ),
-          };
-        } else {
+      return withLoadingFlag(setIsDeactivating, async () => {
+        try {
+          if (hasNonZeroBalance) {
+            return {
+              success: false,
+              errorMessage: strings(
+                'asset_activation.deactivate_error_non_zero_balance_stellar',
+                {
+                  balance: balanceDisplay,
+                  symbol: assetSymbol,
+                },
+              ),
+            };
+          }
           await requestStellarChangeTrustOptDelete({
             accountId: resolvedAccountId,
             assetId,
             scope: chainId,
           });
-          actionResult = { success: true, errorMessage: null };
-        }
-      } catch (error: unknown) {
-        const errorCode = (error as { code?: number })?.code;
-        const isUserRejection =
-          errorCode === errorCodes.provider.userRejectedRequest;
-        if (isUserRejection) {
-          actionResult = CANCELLED_RESULT;
-        } else {
-          actionResult = {
+          return { success: true, errorMessage: null };
+        } catch (error: unknown) {
+          const errorCode = (error as { code?: number })?.code;
+          const isUserRejection =
+            errorCode === errorCodes.provider.userRejectedRequest;
+          if (isUserRejection) {
+            return CANCELLED_RESULT;
+          }
+          return {
             success: false,
             errorMessage: strings('asset_activation.deactivate_error'),
           };
         }
-      }
-      setIsDeactivating(false);
-      return actionResult;
+      });
     }, [
       assetId,
       assetSymbol,
@@ -152,36 +160,32 @@ export const useAssetActivation = ({
         return CANCELLED_RESULT;
       }
 
-      setIsActivating(true);
-      let actionResult: AssetActivationActionResult;
-      try {
-        const result = await requestStellarChangeTrustOptAdd({
-          accountId: resolvedAccountId,
-          assetId,
-          scope: chainId,
-        });
+      return withLoadingFlag(setIsActivating, async () => {
+        try {
+          const result = await requestStellarChangeTrustOptAdd({
+            accountId: resolvedAccountId,
+            assetId,
+            scope: chainId,
+          });
 
-        if (result.status === false) {
-          // Snap showed the account funding prompt; no trustline tx was submitted.
-          actionResult = CANCELLED_RESULT;
-        } else {
-          actionResult = { success: true, errorMessage: null };
-        }
-      } catch (error: unknown) {
-        const errorCode = (error as { code?: number })?.code;
-        const isUserRejection =
-          errorCode === errorCodes.provider.userRejectedRequest;
-        if (isUserRejection) {
-          actionResult = CANCELLED_RESULT;
-        } else {
-          actionResult = {
+          if (result.status === false) {
+            // Snap showed the account funding prompt; no trustline tx was submitted.
+            return CANCELLED_RESULT;
+          }
+          return { success: true, errorMessage: null };
+        } catch (error: unknown) {
+          const errorCode = (error as { code?: number })?.code;
+          const isUserRejection =
+            errorCode === errorCodes.provider.userRejectedRequest;
+          if (isUserRejection) {
+            return CANCELLED_RESULT;
+          }
+          return {
             success: false,
             errorMessage: strings('asset_activation.activate_error'),
           };
         }
-      }
-      setIsActivating(false);
-      return actionResult;
+      });
     }, [assetId, chainId, requiresActivate, resolvedAccountId]);
 
   return {
