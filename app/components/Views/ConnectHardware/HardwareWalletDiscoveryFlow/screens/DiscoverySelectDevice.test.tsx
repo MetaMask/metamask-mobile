@@ -12,6 +12,11 @@ import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types'
 
 const mockOnCloseBottomSheet = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
     const tw = () => ({});

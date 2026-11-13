@@ -159,7 +159,7 @@ describe('EarningsHistoryRow', () => {
           />,
         );
 
-        expect(getByText('today')).toBeOnTheScreen();
+        expect(getByText('Today')).toBeOnTheScreen();
         expect(queryByText('19h ago')).toBeNull();
       },
     );
@@ -183,7 +183,7 @@ describe('EarningsHistoryRow', () => {
             formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
           ),
         ).toBeOnTheScreen();
-        expect(queryByText('today')).toBeNull();
+        expect(queryByText('Today')).toBeNull();
       },
     );
 
@@ -200,7 +200,7 @@ describe('EarningsHistoryRow', () => {
           formatRewardsRelativeTime(new Date('2026-09-01T17:47:00.000Z')),
         ),
       ).toBeOnTheScreen();
-      expect(queryByText('today')).toBeNull();
+      expect(queryByText('Today')).toBeNull();
     });
   });
 });

@@ -205,6 +205,22 @@ describe('useSocialFeedRealtime', () => {
     expect(afterChanged).not.toBe(beforeChanged);
   });
 
+  it('keeps the post when a new page rebuilds the row around the same position', () => {
+    const row = buildRow({ positionId: 'pos-a' });
+    const { result, rerender } = renderRealtime({
+      rows: [row],
+      dataUpdatedAt: 1_000,
+    });
+    const before = result.current?.posts[0];
+
+    rerender({
+      rows: [{ ...row, item: { ...row.item } }],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(result.current?.posts[0]).toBe(before);
+  });
+
   it('keeps shown posts in place when a refresh returns one moved forward', () => {
     const { result, rerender } = renderRealtime({
       rows: [
