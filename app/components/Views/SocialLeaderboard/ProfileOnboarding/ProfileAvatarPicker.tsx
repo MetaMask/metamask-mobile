@@ -10,8 +10,8 @@ import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingVi
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 
 const AVATAR_TILE_SIZE = 60;
-/** Width of four 60pt tiles with 20pt gaps. */
-const AVATAR_GRID_WIDTH = 300;
+/** Width of four 60pt tiles with 16pt gaps. */
+const AVATAR_GRID_WIDTH = 288;
 
 interface ProfileAvatarPickerProps {
   avatarPresetId: string;
@@ -60,7 +60,7 @@ const ProfileAvatarPicker: React.FC<ProfileAvatarPickerProps> = ({
         isLowTier={isLowTier}
       />
       <Box
-        twClassName="flex-row flex-wrap justify-center gap-5 mt-11"
+        twClassName="flex-row flex-wrap justify-center gap-4 mt-11"
         style={tw.style({ width: AVATAR_GRID_WIDTH })}
       >
         {PROFILE_AVATAR_PRESETS.map((preset, index) => {
