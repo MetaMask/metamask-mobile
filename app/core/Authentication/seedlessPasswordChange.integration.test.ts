@@ -58,7 +58,7 @@ const NEW_PASSWORD = 'new-password';
 const LATEST_PASSWORD = 'latest-password';
 const PRIMARY_SRP = new Uint8Array(64).fill(1);
 
-const useEngine = (
+const installEngine = (
   controller: SeedlessOnboardingController,
   keyring: FakeKeyringController,
 ) => {
@@ -79,7 +79,7 @@ const createWallet = async () => {
   await install.controller.storeKeyringEncryptionKey(
     await keyring.exportEncryptionKey(),
   );
-  useEngine(install.controller, keyring);
+  installEngine(install.controller, keyring);
   return { harness, controller: install.controller, keyring };
 };
 
@@ -93,7 +93,7 @@ const restart = (
 ) => {
   const next = harness.newInstall(persistedState(controller)).controller;
   keyring.lock();
-  useEngine(next, keyring);
+  installEngine(next, keyring);
   return next;
 };
 
