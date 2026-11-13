@@ -1895,6 +1895,11 @@
       "private": "Your account address stays private.",
       "follow": "Other traders can follow your profile."
     },
+    "errors": {
+      "display_name_invalid": "This name isn’t valid. Try something different.",
+      "display_name_too_long": "Use at most {{max}} characters.",
+      "display_name_check_error": "Couldn't check that name. Check your connection and try again."
+    },
     "manage_profile": {
       "title": "Manage profile",
       "about": "About",

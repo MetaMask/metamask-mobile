@@ -128,6 +128,7 @@ const controllerResult = (
   disconnectX: jest.fn().mockResolvedValue(undefined),
   getXAuthorizationUrl: jest.fn(),
   checkUsernameAvailability: jest.fn(),
+  checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
   ...overrides,
 });
 

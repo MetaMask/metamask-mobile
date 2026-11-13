@@ -36,7 +36,7 @@ export const PROFILE_FIELD_REJECTION_CODES: Partial<
 export const PROFILE_FIELD_REJECTION_MESSAGE_KEYS: Partial<
   Record<string, string>
 > = {
-  displayName: 'social_leaderboard.manage_profile.display_name_unavailable',
+  displayName: 'social_leaderboard.errors.display_name_invalid',
   bio: 'social_leaderboard.manage_profile.bio_prohibited',
 };
 
