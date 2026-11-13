@@ -1,12 +1,18 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Skeleton } from '@metamask/design-system-react-native';
+import {
+  Skeleton,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import {
   CampaignLeaderboardEntryRow,
   CampaignLeaderboardNeighborSeparator,
   CampaignLeaderboardSkeleton,
   CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
 } from './CampaignLeaderboard';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getRankMedalTestId } from '../../../../Views/Homepage/Sections/TopTraders/topRank/RankMedal.testIds';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -50,7 +56,7 @@ const baseEntry = {
 };
 
 describe('CampaignLeaderboardEntryRow', () => {
-  it('renders padded rank, referral code, and formatted metric', () => {
+  it('renders rank, referral code, and formatted metric', () => {
     const formatPrimaryMetric = jest.fn(() => '+12.5%');
     const isPositivePrimaryMetric = jest.fn(() => true);
 
@@ -62,7 +68,7 @@ describe('CampaignLeaderboardEntryRow', () => {
       />,
     );
 
-    expect(getByText('07')).toBeDefined();
+    expect(getByText('7')).toBeDefined();
     expect(getByText('USER01')).toBeDefined();
     expect(getByText('+12.5%')).toBeDefined();
     expect(formatPrimaryMetric).toHaveBeenCalledWith(baseEntry);
@@ -80,6 +86,79 @@ describe('CampaignLeaderboardEntryRow', () => {
 
     const rank = getByText('10551');
     expect(rank.props.numberOfLines).toBe(1);
+  });
+
+  it.each([1, 2, 3])(
+    'renders a medal instead of the number for rank %i',
+    (rank) => {
+      const { getByTestId, queryByText } = render(
+        <CampaignLeaderboardEntryRow
+          entry={{ ...baseEntry, rank }}
+          formatPrimaryMetric={() => '+12.5%'}
+          isPositivePrimaryMetric={() => true}
+        />,
+      );
+
+      expect(getByTestId(getRankMedalTestId(rank))).toBeDefined();
+      expect(queryByText(String(rank))).toBeNull();
+    },
+  );
+
+  it('renders the rank number without a medal from rank 4', () => {
+    const { getByText, queryByTestId } = render(
+      <CampaignLeaderboardEntryRow
+        entry={{ ...baseEntry, rank: 4 }}
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    expect(getByText('4')).toBeDefined();
+    expect(queryByTestId(getRankMedalTestId(4))).toBeNull();
+  });
+
+  it.each([
+    [true, TextColor.SuccessDefault],
+    [false, TextColor.ErrorDefault],
+  ])(
+    'colors the metric by sign on every row (positive: %s)',
+    (isPositive, expectedColor) => {
+      const { UNSAFE_getAllByType } = render(
+        <CampaignLeaderboardEntryRow
+          entry={baseEntry}
+          formatPrimaryMetric={() => 'metric'}
+          isPositivePrimaryMetric={() => isPositive}
+        />,
+      );
+
+      const metric = UNSAFE_getAllByType(Text).find(
+        (node) => node.props.children === 'metric',
+      );
+      expect(metric?.props.color).toBe(expectedColor);
+    },
+  );
+
+  it('shows the highlight bar only on the current user row', () => {
+    const { getByTestId, rerender, queryByTestId } = render(
+      <CampaignLeaderboardEntryRow
+        entry={baseEntry}
+        isCurrentUser
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    expect(getByTestId(IDS.CURRENT_USER_BAR)).toBeDefined();
+
+    rerender(
+      <CampaignLeaderboardEntryRow
+        entry={baseEntry}
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    expect(queryByTestId(IDS.CURRENT_USER_BAR)).toBeNull();
   });
 
   it('shows crown based only on showCrown', () => {
