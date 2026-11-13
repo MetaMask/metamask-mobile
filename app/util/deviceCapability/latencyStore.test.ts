@@ -199,6 +199,25 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
+  it('drops in-flight samples that span a reconnect on the same transport', () => {
+    [300, 300, 300].forEach((duration) => record(duration));
+
+    emitNetInfo(netInfoState('wifi', false));
+    const epochWhileOffline = store.getLatencySampleEpoch();
+
+    emitNetInfo(netInfoState('wifi', true));
+    store.recordFetchSample(
+      { atMs: NOW_MS, durationMs: 30000 },
+      epochWhileOffline,
+    );
+    store.recordFetchSample(
+      { atMs: NOW_MS, durationMs: 30000 },
+      epochWhileOffline,
+    );
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
   it('adds no samples while the transport is NONE', () => {
     emitNetInfo(netInfoState('none', false));
 
