@@ -103,7 +103,7 @@ import type {
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
-  CardRootParamList,
+  CardRootEntryParams,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
@@ -334,7 +334,6 @@ interface ImportFromSecretRecoveryPhraseParams {
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
 interface ConfirmAddAssetParams {
   selectedAsset: ImportAsset[];
-  networkName: string;
   addTokenList: () => Promise<void>;
 }
 
@@ -647,8 +646,6 @@ export type RootStackParamList = {
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
-  RewardsOnboardingFlow: undefined;
-  RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -917,11 +914,13 @@ export type RootStackParamList = {
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
   MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
+  MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
   MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
+  MoneyAccountStatus: MoneyNavigationParamList['MoneyAccountStatus'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
@@ -1208,7 +1207,7 @@ export type RootStackParamList = {
   SampleFeature: undefined;
 
   // Card routes
-  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+  CardScreens: CardRootEntryParams | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
   CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
   CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
@@ -1239,7 +1238,6 @@ export type RootStackParamList = {
   CardOnboardingPhysicalAddress: CardOnboardingStackParamList['CardOnboardingPhysicalAddress'];
   CardOnboardingComplete: CardOnboardingStackParamList['CardOnboardingComplete'];
   CardOnboardingKYCFailed: CardOnboardingStackParamList['CardOnboardingKYCFailed'];
-  CardOnboardingKYCPending: CardOnboardingStackParamList['CardOnboardingKYCPending'];
   CardOnboardingImmersveKYC: CardOnboardingStackParamList['CardOnboardingImmersveKYC'];
   CardOnboardingKYCProcessing: CardScreensStackParamList['CardOnboardingKYCProcessing'];
   CardOnboardingFundingApproval: CardScreensStackParamList['CardOnboardingFundingApproval'];
@@ -1269,6 +1267,8 @@ export type RootStackParamList = {
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
+  AddCustomToken: undefined;
+  HiddenTokens: undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)

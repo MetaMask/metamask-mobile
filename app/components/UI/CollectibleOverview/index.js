@@ -11,6 +11,7 @@ import {
   Easing,
   Animated,
   TouchableWithoutFeedback,
+  useAnimatedValue,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RemoteImage from '../../Base/RemoteImage';
@@ -166,7 +167,7 @@ const CollectibleOverview = ({
   const [prevWrapperHeight, setPrevWrapperHeight] = useState(0);
   const [wrapperHeight, setWrapperHeight] = useState(0);
   const [position, setPosition] = useState(0);
-  const positionAnimated = useRef(new Animated.Value(0)).current;
+  const positionAnimated = useAnimatedValue(0);
   const scrollViewRef = useRef(null);
   const { colors } = useTheme();
   const styles = createStyles(colors);

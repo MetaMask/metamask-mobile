@@ -1,11 +1,12 @@
 import {
   getSocialEventSource,
   SocialEvent,
+  type SocialComposerEntry,
   type SocialEventSource,
 } from '../analytics';
 import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 
-const { Source } = SocialEvent;
+const { ComposerEntry, Source } = SocialEvent;
 
 /**
  * Social Screen Viewed `source` for the composer.
@@ -27,8 +28,35 @@ export const resolvePostComposerAnalyticsSource = (
   if (params.entryPoint === 'perps') {
     return Source.PERP_ASSET_SCREEN;
   }
-  if (params.entryPoint === 'token_details') {
+  if (
+    params.entryPoint === 'token_details' ||
+    params.composerEntry === ComposerEntry.TOKEN_DETAILS
+  ) {
     return Source.ASSET_DETAILS;
   }
   return undefined;
+};
+
+/**
+ * Which button or flow opened the composer. Undefined for an open that does
+ * not say, such as a deep link.
+ */
+export const resolvePostComposerEntry = (
+  params: SocialPostComposerViewParams | undefined,
+): SocialComposerEntry | undefined => {
+  if (!params) {
+    return undefined;
+  }
+  if (params.tradeInFlight) {
+    return params.preview && 'product' in params.preview
+      ? ComposerEntry.POST_TRADE_PERPS
+      : ComposerEntry.POST_TRADE_SPOT;
+  }
+  if (params.entryPoint === 'perps') {
+    return ComposerEntry.PERPS_POSITION;
+  }
+  if (params.entryPoint === 'token_details') {
+    return ComposerEntry.TOKEN_DETAILS;
+  }
+  return params.composerEntry;
 };

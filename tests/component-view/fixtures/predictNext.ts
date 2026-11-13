@@ -1,4 +1,5 @@
 import { within } from '@testing-library/react-native';
+import { escapeRegExp } from 'lodash';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -7,6 +8,15 @@ import {
 import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import type {
+  SignOperation,
+  SignRead,
+} from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
@@ -18,12 +28,14 @@ import type {
   PredictQuote,
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
+import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
 import type {
   PredictAmount,
   PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
+  PredictGameStatus,
   PredictMarket,
   PredictMarketLayout,
   PredictOutcome,
@@ -38,6 +50,10 @@ interface GameEventOptions {
   volume?: string;
   score?: { away: string; home: string };
   askPrices?: { away: string; home: string };
+  /** Defaults to `in_progress`. A `scheduled` Game has no score, period or clock. */
+  status?: PredictGameStatus;
+  /** ISO start time, set as the Event's `startsAt`. */
+  startsAt?: string;
 }
 
 const makeEvent = (
@@ -302,6 +318,8 @@ export const makePredictNextGameEvent = (
     volume = '1500000',
     score = { away: '17', home: '21' },
     askPrices = { away: '0.42', home: '0.58' },
+    status = 'in_progress',
+    startsAt,
   }: GameEventOptions = {},
 ): PredictEvent => {
   const event = makeEvent(id, `${awayTeam} vs ${homeTeam}`, askPrices);
@@ -310,6 +328,7 @@ export const makePredictNextGameEvent = (
   return {
     ...event,
     volume,
+    ...(startsAt ? { startsAt: startsAt as PredictTimestamp } : {}),
     sports: {
       sport: {
         id: 'american-football' as PredictEntityId,
@@ -320,12 +339,12 @@ export const makePredictNextGameEvent = (
         label: competition,
       },
       game: {
-        status: 'in_progress',
+        status,
         awayTeam: { name: awayTeam, abbreviation: awayTeam.slice(0, 3) },
         homeTeam: { name: homeTeam, abbreviation: homeTeam.slice(0, 3) },
-        score,
-        period: 'Q4',
-        clock: '12:22',
+        ...(status === 'scheduled'
+          ? {}
+          : { score, period: 'Q4', clock: '12:22' }),
         observedAt: '2026-08-19T12:00:00Z' as PredictTimestamp,
       },
     },
@@ -663,11 +682,18 @@ export const answerPredictNextCatalog = (
 export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
-  messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) =>
+  messengerCall.mockImplementation((action: string, ...params: unknown[]) => {
+    if (action === 'PredictOrderService:getRecovery') {
+      return [];
+    }
+    if (action === 'PredictOrderService:refreshRecovery') {
+      return Promise.resolve();
+    }
+    return (
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[])),
-  );
+      implementation(action, ...(params as never[]))
+    );
+  });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
@@ -677,6 +703,68 @@ export interface PredictNextPositionsPageFixture {
   positions: readonly unknown[];
   nextCursor?: string;
 }
+
+// Deterministic test envelopes; the real client still performs the exchange
+// and sends exactly the profile-rendered bytes, including the commit overlay.
+const signRead: SignRead = async ({ method, path, query }) => ({
+  name: VENUE_AUTHORIZATION_HEADER,
+  value: JSON.stringify({ method, path, query }),
+});
+
+/** Renders one intent from the bundled profile exactly as the Engine
+ * signer does, invariant included. */
+const renderIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  return renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+  );
+};
+
+/** Installs the Engine rendering seam used by the adapter's review dependency. */
+export const installPredictNextPreviewOperation = (): void => {
+  (
+    Engine.context as unknown as Record<string, unknown>
+  ).PredictDeviceAuthService = {
+    getApprovalGeneration: () => 0,
+    previewOperation: async (
+      operation: string,
+      input?: Parameters<SignOperation>[1],
+    ) => (await renderIntent(operation, input)).display,
+  };
+};
+
+const signOperation: SignOperation = async (operation, input) => {
+  const rendered = await renderIntent(operation, input);
+  return {
+    header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+    body: rendered.body,
+    idempotencyKey: rendered.idempotencyKey,
+  };
+};
 
 /**
  * Composes the real Order workflow service the way the Engine init does,
@@ -689,6 +777,8 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  // The adapter asks the Engine for checked review figures before approval.
+  installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -700,7 +790,15 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   return new PredictOrderService({
     messenger,
@@ -717,6 +815,7 @@ export const composePredictNextOrderService = (
  * by delegating its messenger adapter to the returned root.
  */
 export const composePredictNextPortfolioTrading = () => {
+  installPredictNextPreviewOperation();
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -726,7 +825,15 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   const portfolioService = new PredictPortfolioService({
     messenger: getPredictPortfolioServiceMessenger(
@@ -1008,6 +1115,12 @@ export const configurePredictNextFeeds = ({
   resetPredictNextCatalog();
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
         return catalogResponse;
@@ -1125,8 +1238,8 @@ export const expectPredictNextGameCard = (
     awayScore: string;
     homeScore: string;
     /**
-     * The quote's text. A compact card reads "ABBR · price"; a featured card
-     * reads "Team name · price" across two Texts, so pass a RegExp for it.
+     * The quote's text, "ABBR · price". A featured card renders it across two
+     * Texts, so this matches the quote's text content, not a single Text.
      */
     awayQuote: string | RegExp;
     homeQuote: string | RegExp;
@@ -1139,8 +1252,14 @@ export const expectPredictNextGameCard = (
   );
   const scoped = within(card);
 
-  expect(scoped.getByText(away)).toBeOnTheScreen();
-  expect(scoped.getByText(home)).toBeOnTheScreen();
+  // A featured card shows the Team abbreviation only, so the Team name is read
+  // from the quote's accessibility label ("Team name, price, buy").
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(away)}, `)),
+  ).toBeOnTheScreen();
+  expect(
+    scoped.getByLabelText(new RegExp(`^${escapeRegExp(home)}, `)),
+  ).toBeOnTheScreen();
   expect(scoped.getByText(awayScore)).toBeOnTheScreen();
   expect(scoped.getByText(homeScore)).toBeOnTheScreen();
   expect(
@@ -1156,3 +1275,63 @@ export const expectPredictNextGameCard = (
     expect(scoped.getByText(volume)).toBeOnTheScreen();
   }
 };
+
+/** Team logos are hidden from screen readers. */
+const INCLUDE_HIDDEN = { includeHiddenElements: true };
+
+/**
+ * Checks a small game card: the Competition and start, then each Team's logo
+ * fallback, abbreviation and price.
+ */
+export const expectPredictNextSmallGameCard = (
+  section: Parameters<typeof within>[0],
+  eventId: string,
+  {
+    competition,
+    start,
+    away,
+    home,
+  }: {
+    competition: string;
+    start: string;
+    away: { abbr: string; quote: string };
+    home: { abbr: string; quote: string };
+  },
+): void => {
+  const card = within(
+    within(section).getByTestId(PredictHomeTestIds.event('kalshi', eventId)),
+  );
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-competition`),
+  ).toHaveTextContent(competition);
+  expect(
+    card.getByTestId(`predict-next-game-header-${eventId}-start`),
+  ).toHaveTextContent(start);
+
+  (['away', 'home'] as const).forEach((side) => {
+    const { abbr, quote } = side === 'away' ? away : home;
+    const team = within(
+      card.getByTestId(`predict-next-game-team-${eventId}-${side}`),
+    );
+    expect(
+      team.getByTestId(
+        `predict-next-game-logo-fallback-${eventId}-${side}`,
+        INCLUDE_HIDDEN,
+      ),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(`predict-next-game-team-label-${eventId}-${side}`),
+    ).toHaveTextContent(abbr);
+    expect(
+      team.getByTestId(PredictHomeTestIds.gameQuote(eventId, side)),
+    ).toHaveTextContent(quote);
+  });
+};
+
+/** The Feed Screen's tab labels, in order. */
+export const feedScreenTabLabels = (
+  container: Parameters<typeof within>[0],
+): string[] =>
+  within(within(container).getByTestId(PredictFeedScreenTestIds.TABS))
+    .getAllByRole('button')
+    .map((tab) => tab.props.accessibilityLabel);

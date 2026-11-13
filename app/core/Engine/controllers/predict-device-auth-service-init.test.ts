@@ -5,12 +5,18 @@ import {
 } from './predict-device-auth-service-init';
 
 const mockClear = jest.fn();
+/** Drops the approved intents too; it clears the session like `clear`. */
+const mockClearApprovals = jest.fn(() => {
+  mockClear();
+  return Promise.resolve();
+});
 
 jest.mock(
   '../../../components/UI/PredictNext/services/PredictDeviceAuthService',
   () => ({
     PredictDeviceAuthService: jest.fn().mockImplementation(() => ({
       clear: mockClear,
+      clearApprovals: mockClearApprovals,
     })),
   }),
 );
@@ -124,11 +130,12 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(mockClear).toHaveBeenCalledTimes(1);
   });
 
-  it('clears credentials when the wallet locks', () => {
+  it('clears credentials and approved intents when the wallet locks', () => {
     const { subscribers } = initialize();
 
     subscribers.get('KeyringController:lock')?.();
 
+    expect(mockClearApprovals).toHaveBeenCalledTimes(1);
     expect(mockClear).toHaveBeenCalledTimes(1);
   });
 

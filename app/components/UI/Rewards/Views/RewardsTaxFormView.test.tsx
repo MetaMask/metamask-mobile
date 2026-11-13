@@ -1,4 +1,6 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import RewardsTaxFormView from './RewardsTaxFormView';
 import { REWARDS_TAX_FORM_VIEW_TEST_IDS } from './RewardsTaxFormView.testIds';
@@ -35,9 +37,14 @@ describe('RewardsTaxFormView', () => {
   it('insets the close control below the status bar', () => {
     const { getByTestId } = renderWithProvider(<RewardsTaxFormView />);
 
-    expect(
-      getByTestId(REWARDS_TAX_FORM_VIEW_TEST_IDS.CONTAINER).props.edges,
-    ).toEqual(['top']);
+    const container = getByTestId(REWARDS_TAX_FORM_VIEW_TEST_IDS.CONTAINER);
+    expect(container.props.edges).toEqual(['top']);
+    expect(StyleSheet.flatten(container.props.style).backgroundColor).toBe(
+      lightTheme.colors.background.default,
+    );
     expect(getByTestId(REWARDS_TAX_FORM_VIEW_TEST_IDS.CLOSE)).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_TAX_FORM_VIEW_TEST_IDS.WEBVIEW).props.style,
+    ).toEqual({ backgroundColor: lightTheme.colors.background.default });
   });
 });

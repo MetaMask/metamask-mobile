@@ -133,10 +133,10 @@ const ShareTokenBottomSheet = ({
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, chainId),
   );
-  const conversionRate =
-    useSelector((state: RootState) =>
-      selectConversionRateBySymbol(state, nativeCurrency),
-    ) ?? 1;
+  const selectedConversionRate = useSelector((state: RootState) =>
+    selectConversionRateBySymbol(state, nativeCurrency),
+  );
+  const conversionRate = selectedConversionRate ?? 1;
   const currentCurrencyCode = useSelector(selectCurrentCurrency);
 
   const reduxMarketEntry = useSelector(
@@ -244,29 +244,27 @@ const ShareTokenBottomSheet = ({
     [securityData?.financialStats?.markets, currentCurrencyCode],
   );
 
+  const marketTotalVolume = marketDetails?.totalVolume;
+  const tradeVolume24h = securityData?.financialStats?.tradeVolume24h;
+
   const volume24h = useMemo(() => {
-    if (marketDetails?.totalVolume) {
-      return marketDetails.totalVolume;
+    if (marketTotalVolume) {
+      return marketTotalVolume;
     }
 
-    const tradeVolume = securityData?.financialStats?.tradeVolume24h;
-    if (tradeVolume == null || tradeVolume <= 0) {
+    if (tradeVolume24h == null || tradeVolume24h <= 0) {
       return null;
     }
 
     return formatMarketDetails(
-      { totalVolume: tradeVolume },
+      { totalVolume: tradeVolume24h },
       {
         locale: i18n.locale,
         currentCurrency: currentCurrencyCode,
         needsConversion: false,
       },
     ).totalVolume;
-  }, [
-    marketDetails?.totalVolume,
-    securityData?.financialStats?.tradeVolume24h,
-    currentCurrencyCode,
-  ]);
+  }, [marketTotalVolume, tradeVolume24h, currentCurrencyCode]);
 
   const formattedPrice = useMemo(
     () => formatSharePrice(currentPrice, currentCurrency),

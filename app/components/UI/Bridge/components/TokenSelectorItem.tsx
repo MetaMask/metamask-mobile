@@ -167,7 +167,7 @@ interface TokenSelectorItemProps {
   shouldShowBalance?: boolean;
   children?: React.ReactNode;
   isNoFeeAsset?: boolean;
-  showStockBadge?: boolean;
+  badgeLabel?: string;
   secondaryRowContent?: React.ReactNode;
   tokenBalanceTextProps?: Partial<BalanceTextProps>;
   shouldChangeSelectedStyle?: boolean;
@@ -274,7 +274,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
   shouldShowBalance = true,
   children,
   isNoFeeAsset = false,
-  showStockBadge = false,
+  badgeLabel,
   secondaryRowContent,
   tokenBalanceTextProps,
   shouldChangeSelectedStyle = true,
@@ -498,7 +498,9 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
                 textColor={BOTTOM_ROW_BALANCE_TEXT_STYLE.textColor}
               />
             </Box>
-            {showStockBadge && <StockBadge token={token} />}
+            {badgeLabel ? (
+              <StockBadge token={token} label={badgeLabel} />
+            ) : null}
           </Box>
         </Box>
         {shouldIncludeChildrenInPressTarget && children ? (

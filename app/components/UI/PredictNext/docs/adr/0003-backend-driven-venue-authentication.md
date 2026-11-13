@@ -2,7 +2,13 @@
 
 The Predict API builds every account-scoped Venue request. The phone signs it with a device key, but only after checking it against a signing profile that ships with the app. The phone holds no Venue-specific code. It holds a generic signer and a small block of pinned data per Venue that describes what a legitimate request looks like. The Predict API can never change that data.
 
-Status: proposed, 2026-10-27. Discussion input for [#37727](https://github.com/MetaMask/metamask-mobile/pull/37727) (PRED-1370) and PRED-1362.
+Status: superseded for trading flows, 2026-11-09, by
+[ADR-0004](./0004-signed-venue-profiles.md). The backend-built request model
+stays in force only for the onboarding flows, which are temporary and
+demo-only: Universal KYC replaces them. The key and storage decisions here
+carry forward unchanged. Original status: proposed, 2026-10-27. Discussion
+input for [#37727](https://github.com/MetaMask/metamask-mobile/pull/37727)
+(PRED-1370) and PRED-1362.
 
 Implementation status: the initial Engine capability is implemented for the
 bundled Kalshi P-256 profile and opaque A2T issuance. The two-signature

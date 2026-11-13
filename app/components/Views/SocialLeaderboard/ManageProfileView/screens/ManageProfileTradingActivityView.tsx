@@ -3,10 +3,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
   FontWeight,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -14,7 +11,6 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, Switch } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
@@ -31,7 +27,6 @@ const styles = StyleSheet.create({
 });
 
 const ManageProfileTradingActivityView: React.FC = () => {
-  const { brandColors, colors } = useTheme();
   const { isControllerBacked, profile, updateProfile } = useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
@@ -92,7 +87,7 @@ const ManageProfileTradingActivityView: React.FC = () => {
       headerTestID={ManageProfileTradingActivitySelectorsIDs.HEADER}
       backTestID={ManageProfileTradingActivitySelectorsIDs.BACK_BUTTON}
     >
-      <Box twClassName="px-4 pt-2" gap={3}>
+      <Box twClassName="px-4 pt-2" gap={4}>
         <Box twClassName="bg-muted rounded-2xl px-4 py-3" style={styles.hug}>
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -100,27 +95,18 @@ const ManageProfileTradingActivityView: React.FC = () => {
             justifyContent={BoxJustifyContent.Between}
             style={styles.hug}
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               twClassName="flex-1 mr-3"
-              gap={1}
             >
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {strings(
-                  'social_leaderboard.manage_profile.show_trading_activity',
-                )}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.Info}
-                size={ButtonIconSize.Sm}
-                onPress={() => undefined}
-                accessibilityLabel={strings(
-                  'social_leaderboard.manage_profile.trading_activity_info',
-                )}
-                testID={ManageProfileTradingActivitySelectorsIDs.INFO_BUTTON}
-              />
-            </Box>
+              {strings(
+                'social_leaderboard.manage_profile.show_trading_activity',
+              )}
+            </Text>
+            {/* No track colors: the platform switch is the same green used on
+                social onboarding. A design-system Switch would wrap this
+                control and replace its accessibility label. */}
             <Switch
               value={isTradingActivityPublic}
               disabled={!isControllerBacked || isUpdating}
@@ -131,12 +117,6 @@ const ManageProfileTradingActivityView: React.FC = () => {
               accessibilityLabel={strings(
                 'social_leaderboard.manage_profile.show_trading_activity',
               )}
-              ios_backgroundColor={colors.border.muted}
-              thumbColor={brandColors.white}
-              trackColor={{
-                false: colors.border.muted,
-                true: colors.primary.default,
-              }}
               testID={ManageProfileTradingActivitySelectorsIDs.SWITCH}
             />
           </Box>
