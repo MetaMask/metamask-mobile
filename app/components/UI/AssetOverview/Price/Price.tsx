@@ -30,7 +30,6 @@ export type PriceProps = PriceSharedProps & {
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   /** Draws the controls under the chart as glass; the screen passes its flag. */
   isGlass?: boolean;
 };

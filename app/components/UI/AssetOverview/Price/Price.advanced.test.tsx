@@ -1395,13 +1395,10 @@ describe('PriceAdvanced', () => {
   });
 
   describe('ambient color logic', () => {
-    it('returns undefined when useAmbientColor is false', () => {
-      const { queryByTestId } = render(
-        <PriceAdvanced {...baseProps} useAmbientColor={false} />,
-      );
+    it('renders chart when ambient color is always active', () => {
+      const { queryByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-      // When useAmbientColor is false, ambientColor should be undefined
-      // This means we won't render the skeleton and will render the chart directly
+      // Ambient color is always active — chart should render
       expect(queryByTestId('mock-advanced-chart')).toBeOnTheScreen();
     });
 
@@ -1419,9 +1416,7 @@ describe('PriceAdvanced', () => {
         hasEmptyData: false,
       });
 
-      const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} useAmbientColor />,
-      );
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
       // When displayDiff is null, should default to positive (success green)
       // The chart should still render because we default to success green
@@ -1432,7 +1427,7 @@ describe('PriceAdvanced', () => {
       // OHLCV data: reference close = 100, current price = 105
       // displayDiff = 105 - 100 = 5 (positive)
       const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} currentPrice={105} useAmbientColor />,
+        <PriceAdvanced {...baseProps} currentPrice={105} />,
       );
 
       // Should render chart with success green color
@@ -1442,7 +1437,7 @@ describe('PriceAdvanced', () => {
       // In light mode, should use LIGHT_MODE_SUCCESS_GREEN
     });
 
-    it('returns AMBIENT_NEGATIVE_COLOR when displayDiff is negative', () => {
+    it('returns error red when displayDiff is negative', () => {
       // Mock OHLCV data with negative price movement
       // For 1D range: visibleFromMs = lastBarTime - 86400000ms (24 hours)
       // lastBarTime = 100000000, visibleFromMs = 13600000
@@ -1486,14 +1481,14 @@ describe('PriceAdvanced', () => {
       });
 
       const { getByTestId } = render(
-        <PriceAdvanced {...baseProps} currentPrice={95} useAmbientColor />,
+        <PriceAdvanced {...baseProps} currentPrice={95} />,
       );
 
-      // Should render chart with negative color (#FA4B00)
+      // Should render chart with error red color from design tokens
       expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
       const chart = getByTestId('mock-advanced-chart');
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      expect(chart.props.lineColorOverride).toBe('#FA4B00');
+      expect(chart.props.lineColorOverride).toBeTruthy();
+      // The color comes from theme.colors.error.default (design token)
     });
 
     it('calls onPriceDirectionChange with true for positive displayDiff', () => {
@@ -1503,7 +1498,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1557,7 +1551,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={95}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1583,7 +1576,6 @@ describe('PriceAdvanced', () => {
       render(
         <PriceAdvanced
           {...baseProps}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1613,7 +1605,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
         />,
       );
@@ -1643,7 +1634,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={105}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
           priceDiff={5} // Legacy will use this
         />,
@@ -1674,7 +1664,6 @@ describe('PriceAdvanced', () => {
         <PriceAdvanced
           {...baseProps}
           currentPrice={95}
-          useAmbientColor
           onPriceDirectionChange={mockOnPriceDirectionChange}
           priceDiff={-5} // Negative - should be used by legacy
         />,

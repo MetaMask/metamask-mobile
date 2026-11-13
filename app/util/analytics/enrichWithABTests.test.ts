@@ -27,15 +27,15 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment_1',
     });
 
     expect(result.properties).toMatchObject({
       screen: 'wallet',
       active_ab_tests: [
         createActiveABTestAssignment(
-          'assetsASSETS3205AbtestAmbientPriceColor',
-          'treatment',
+          'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+          'treatment_1',
         ),
       ],
     });
@@ -153,7 +153,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment',
     });
 
     expect(result.properties).toEqual({
@@ -218,12 +218,12 @@ describe('enrichWithABTests', () => {
     ).build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: { name: 'control' },
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: { name: 'control' },
     });
 
     expect(result.properties.active_ab_tests).toEqual([
       createActiveABTestAssignment(
-        'assetsASSETS3205AbtestAmbientPriceColor',
+        'swapsSWAPS5094AbtestQuickBuyEntrypoints',
         'control',
       ),
     ]);
@@ -425,7 +425,7 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      assetsASSETS3205AbtestAmbientPriceColor: 'control',
+      swapsSWAPS5094AbtestQuickBuyEntrypoints: 'control',
     });
 
     expect(result.properties.button_type).toBe('card');

@@ -47,7 +47,6 @@ export type AssetStackParamList = {
   Asset: AssetViewParams | undefined;
   SecurityTrust: TokenDetailsRouteParams & {
     isPricePositive?: boolean;
-    useAmbientColor?: boolean;
   };
   ContractSecurity: {
     token: TokenDetailsRouteParams;
