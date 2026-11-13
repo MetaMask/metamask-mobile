@@ -188,6 +188,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/kyc-controller": {
+      "type": "non-breaking",
+      "previewVersion": "0.16.0-preview-682f78a99"
+    }
+  },
   "resolutions": {
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
