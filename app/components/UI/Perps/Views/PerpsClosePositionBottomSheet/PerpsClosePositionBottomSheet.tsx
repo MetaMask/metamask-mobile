@@ -176,6 +176,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // while the keypad is open: the message appears once the user stops typing.
   // "Too far from market" is the blocking message above Close, and only when
   // the price is outside the deviation band. Direction warnings stay on the row.
+  // A position under the minimum must be closed in full for a market order.
+  // Limit closes don't show that message.
   const limitPriceError =
     effectiveOrderType === 'limit' ? limitPriceInput.error : '';
   const limitPriceTooFarError = strings(
@@ -186,22 +188,36 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const showLimitPriceErrorOnRow =
     Boolean(limitPriceError) && !isLimitPriceBandError && !isEditingLimitPrice;
+  const mustCloseFullBelowMinimumError = strings(
+    'perps.close_position.must_close_full_below_minimum',
+  );
 
   const displayedErrors = useMemo(() => {
     const withoutRowDuplicate = showLimitPriceErrorOnRow
       ? filteredErrors.filter((error) => error !== limitPriceError)
       : filteredErrors;
 
-    if (
+    const withLimitPriceError =
       !showLimitPriceErrorOnRow &&
       limitPriceError &&
       !withoutRowDuplicate.includes(limitPriceError)
-    ) {
-      return [...withoutRowDuplicate, limitPriceError];
+        ? [...withoutRowDuplicate, limitPriceError]
+        : withoutRowDuplicate;
+
+    if (effectiveOrderType !== 'limit') {
+      return withLimitPriceError;
     }
 
-    return withoutRowDuplicate;
-  }, [filteredErrors, limitPriceError, showLimitPriceErrorOnRow]);
+    return withLimitPriceError.filter(
+      (error) => !error.startsWith(mustCloseFullBelowMinimumError),
+    );
+  }, [
+    effectiveOrderType,
+    filteredErrors,
+    limitPriceError,
+    mustCloseFullBelowMinimumError,
+    showLimitPriceErrorOnRow,
+  ]);
 
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
