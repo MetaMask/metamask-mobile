@@ -409,17 +409,24 @@ export class AppLockService {
         authenticationError =
           error instanceof Error ? error : new Error(String(error));
       }
-      // If the vault is locked, clear the pending approvals and show the Login screen.
+      // If the vault is locked, show Login over the current screen. The
+      // screen underneath stays mounted, and a waiting confirmation stays.
       if (!KeyringController.isUnlocked()) {
-        this.#clearPendingApprovals();
         if (authenticationError) {
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.LOGIN }],
-          });
+          if (
+            NavigationService.getCurrentRoute()?.name !==
+            Routes.ONBOARDING.LOGIN
+          ) {
+            NavigationService.navigation?.navigate(Routes.ONBOARDING.LOGIN, {
+              resumeOverlay: true,
+            });
+          }
           trackErrorAsAnalytics(
             'Lockscreen: Authentication failed',
             authenticationError.message,
           ).catch(() => undefined);
+        } else {
+          this.#clearPendingApprovals();
         }
         return;
       }

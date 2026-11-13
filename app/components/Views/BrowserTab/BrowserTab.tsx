@@ -73,6 +73,7 @@ import {
 } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
+import { usePredictEntryActions } from '../../UI/PredictNext';
 import {
   isInternalDeepLink,
   isTransactionDeepLink,
@@ -183,6 +184,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     'use no memo';
     const navigation = useNavigation();
     const navigateToPerpsHome = useNavigateToPerpsHome();
+    const { openPredict } = usePredictEntryActions();
     const { styles } = useStyles(styleSheet, {});
     const [backEnabled, setBackEnabled] = useState(false);
     const [forwardEnabled, setForwardEnabled] = useState(false);
@@ -1561,13 +1563,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           case UrlAutocompleteCategory.Predictions:
             // Set flag to prevent onBlur from hiding autocomplete
             isNavigatingToDetailRef.current = true;
-            navigation.navigate(Routes.PREDICT.ROOT, {
-              screen: Routes.PREDICT.MARKET_DETAILS,
-              params: {
-                marketId: item.id,
-                providerId: item.providerId,
-              },
-            });
+            if (!openPredict(item.intent)) {
+              // The Active Venue cannot open this market: nothing navigated.
+              isNavigatingToDetailRef.current = false;
+            }
             break;
 
           case UrlAutocompleteCategory.Sites:
@@ -1578,7 +1577,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             break;
         }
       },
-      [onSubmitEditing, navigation],
+      [onSubmitEditing, navigation, openPredict],
     );
 
     /**

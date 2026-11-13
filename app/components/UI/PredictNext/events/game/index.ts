@@ -1,7 +1,8 @@
 export {
   createGamePresentation,
-  GAME_TEAM_ORDER,
+  formatGameStartShort,
   getEventGame,
+  getGameTeamOrder,
   getTeamAbbreviation,
 } from './createGamePresentation';
 export {
@@ -19,6 +20,12 @@ export type {
   GamePresentationVariant,
   GameSelection,
   GameStatusLine,
+  GameTeamOrder,
   GameTeamPresentation,
 } from './createGamePresentation';
-export { useGameTeamColors } from './useGameTeamColors';
+export {
+  getMatchupSlot,
+  shouldMirrorTeamLogo,
+  type MatchupSlot,
+} from './shouldMirrorTeamLogo';
+export { getReadableQuoteColors, useGameTeamColors } from './useGameTeamColors';

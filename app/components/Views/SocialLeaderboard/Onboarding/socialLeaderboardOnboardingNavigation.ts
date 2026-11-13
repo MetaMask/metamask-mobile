@@ -3,6 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { SocialLeaderboardTabParams } from '../../../Nav/Main/types/navigation';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   selectFeatureFlagThresholdGroups,
@@ -14,7 +15,11 @@ import {
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
 import type { SocialShellTab } from '../shell/types';
-import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
+import {
+  ensureSocialTermsAccepted,
+  hasAcceptedSocialTerms,
+  recordSocialTermsAcceptanceForExistingProfile,
+} from '../terms/socialTermsAcceptance';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
@@ -109,6 +114,19 @@ const ensureSocialProfileCreated = (
   return false;
 };
 
+/**
+ * Whether `navigateToSocialTab` would open the tab itself rather than
+ * redirecting to terms, profile setup, or onboarding.
+ */
+export const canOpenSocialTabDirectly = (): boolean => {
+  recordSocialTermsAcceptanceForExistingProfile();
+  return (
+    (!isSocialV1Treatment() ||
+      (hasAcceptedSocialTerms() && hasCreatedSocialProfile())) &&
+    !shouldShowSocialLeaderboardOnboarding()
+  );
+};
+
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
 ): SocialLeaderboardViewParams | undefined => {
@@ -127,8 +145,8 @@ const toHomeRouteParams = (
 
 /**
  * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
- * the current flow, after the first-time onboarding gate. Perps uses this so
- * Social stays inside the Perps flow.
+ * the current flow, after the first-time onboarding gate. The control arm of
+ * `navigateToSocialLeaderboard` uses this.
  *
  * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.
@@ -209,6 +227,43 @@ export const navigateToSocialTab = (
     return;
   }
   navigate(Routes.SOCIAL.TAB, toHomeRouteParams(params));
+};
+
+/**
+ * Pops the root stack and selects the Social tab under Home (Social V1 only).
+ * Unlike `navigateToSocialTab`, it skips the terms, profile and onboarding
+ * gates, so call it only after the user has passed them.
+ *
+ * @param navigation - The caller's navigation object.
+ * @param params - Optional Social tab params, such as the V1 `initialTab`.
+ */
+export const popToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+  params?: SocialLeaderboardTabParams,
+): void => {
+  navigation.navigate(
+    Routes.HOME_TABS,
+    params
+      ? { screen: Routes.SOCIAL.TAB, params }
+      : { screen: Routes.SOCIAL.TAB },
+    { pop: true },
+  );
+};
+
+/**
+ * Leaves profile onboarding after **Let's go** on the manual path. Pops the
+ * onboarding screen off the stack and selects the Social tab under Home, so the
+ * bottom tab bar stays visible and Back returns to the previous screen.
+ *
+ * The pop uses the onboarding screen's animation. The ready step sets that to
+ * `slide_from_left` before Let's go, so the ready screen leaves to the left.
+ *
+ * @param navigation - The onboarding screen's navigation object.
+ */
+export const finishProfileOnboardingToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+): void => {
+  popToSocialTab(navigation);
 };
 
 /**

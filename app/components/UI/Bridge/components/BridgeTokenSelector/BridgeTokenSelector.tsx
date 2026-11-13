@@ -82,7 +82,7 @@ import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
-import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { getBridgeTokenBadgeLabel } from '../../utils/getBridgeTokenBadgeLabel';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -146,7 +146,7 @@ interface BridgeTokenSelectorRowProps {
   token: BridgeToken;
   isSelected: boolean;
   isNoFeeAsset: boolean;
-  showStockBadge: boolean;
+  badgeLabel?: string;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -156,7 +156,7 @@ const BridgeTokenSelectorRow = React.memo(
     token,
     isSelected,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -179,7 +179,7 @@ const BridgeTokenSelectorRow = React.memo(
         onPress={onTokenPress}
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
-        showStockBadge={showStockBadge}
+        badgeLabel={badgeLabel}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -953,7 +953,7 @@ export const BridgeTokenSelectorContent: React.FC<
           onTokenPress={(token) => handleWatchlistTokenPress(token, index)}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
-          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          badgeLabel={getBridgeTokenBadgeLabel(item, isRWAEnabled)}
         />
       );
     },
@@ -1098,7 +1098,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}

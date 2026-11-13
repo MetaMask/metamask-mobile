@@ -1,3 +1,4 @@
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { parse, type ParseOutput } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { ETH_ACTIONS } from '../../../../constants/deeplinks';
@@ -14,6 +15,8 @@ import {
 import NavigationService from '../../../NavigationService';
 import handleApproveUrl from '../legacy/handleApproveUrl';
 import switchNetwork from '../../../../util/networks/switchNetwork';
+import { handleSendPageNavigation } from '../../../../components/Views/confirmations/utils/send';
+import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import AppConstants from '../../../AppConstants';
 import NotificationManager from '../../../NotificationManager';
 import { getPermittedAccounts } from '../../../Permissions';
@@ -71,8 +74,28 @@ jest.mock('../../../Engine', () => ({
       getNetworkClientById: jest.fn(() => ({
         configuration: { chainId: '0xe708' },
       })),
+      findNetworkClientIdByChainId: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../redux', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
+jest.mock('../../../../selectors/assets/assets-list', () => ({
+  selectAssetsBySelectedAccountGroup: jest.fn(),
+}));
+
+jest.mock('../../../../components/Views/confirmations/utils/send', () => ({
+  ...jest.requireActual(
+    '../../../../components/Views/confirmations/utils/send',
+  ),
+  handleSendPageNavigation: jest.fn(),
+}));
+
+jest.mock('../handleSolanaUrl', () => ({
+  mapDeeplinkOriginToInitSendLocation: jest.fn(() => 'Deeplink'),
 }));
 
 jest.mock('../../../../components/Views/confirmations/utils/deeplink');
@@ -111,6 +134,7 @@ describe('handleEthereumUrl', () => {
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
         chain_id: 1,
+        parameters: { uint256: '1' },
       }),
     );
 
@@ -183,6 +207,7 @@ describe('handleEthereumUrl', () => {
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
         chain_id: 1,
+        parameters: { uint256: '1' },
       }),
     );
 
@@ -251,6 +276,7 @@ describe('handleEthereumUrl', () => {
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
         chain_id: 1,
+        parameters: { uint256: '1' },
       }),
     );
 
@@ -267,6 +293,7 @@ describe('handleEthereumUrl', () => {
     expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith({
       function_name: ETH_ACTIONS.TRANSFER,
       chain_id: 1,
+      parameters: { uint256: '1' },
       source: url,
       origin,
     });
@@ -285,6 +312,7 @@ describe('handleEthereumUrl', () => {
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
         chain_id: 10,
+        parameters: { uint256: '1' },
       }),
     );
 
@@ -306,6 +334,7 @@ describe('handleEthereumUrl', () => {
       parsedUrl({
         function_name: ETH_ACTIONS.TRANSFER,
         chain_id: 1,
+        parameters: { uint256: '1' },
       }),
     );
     mockSwitchNetwork.mockImplementation(() => {
@@ -550,6 +579,20 @@ describe('handleEthereumUrl', () => {
       expect(mockShowSimpleNotification).toHaveBeenCalled();
     });
 
+    it('does not open Send for a link without an amount from a page that is not connected', async () => {
+      mockParse.mockReturnValue(
+        parsedUrl({
+          target_address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
+          chain_id: '1',
+        }),
+      );
+
+      await handleEthereumUrl({ url: 'ethereum:x', origin: pageOrigin });
+
+      expect(jest.mocked(handleSendPageNavigation)).not.toHaveBeenCalled();
+      expect(mockShowSimpleNotification).toHaveBeenCalled();
+    });
+
     it('adds the transaction when the page is connected to the selected account', async () => {
       mockGetPermittedAccounts.mockReturnValue([
         MOCK_SELECTED_ADDRESS.toLowerCase(),
@@ -573,6 +616,156 @@ describe('handleEthereumUrl', () => {
       expect(mockAddTransactionForDeeplink).toHaveBeenCalledWith(
         expect.objectContaining({ origin }),
       );
+    });
+  });
+
+  // Regression tests for https://github.com/MetaMask/metamask-mobile/issues/37818
+  describe('links without an amount', () => {
+    const RECIPIENT = '0xacdba8db799eff1e83b6aa95b493790f7a3df86b';
+    const USDC = '0xA0b86991c6218b36c1d19d4a2e9eB0cE3606eB48';
+    const nativeEthAsset = {
+      assetId: getNativeTokenAddress('0x1'),
+      chainId: '0x1',
+      symbol: 'ETH',
+    };
+    const usdcAsset = {
+      assetId: USDC.toLowerCase(),
+      chainId: '0x1',
+      symbol: 'USDC',
+    };
+
+    const mockHandleSendPageNavigation = jest.mocked(handleSendPageNavigation);
+    const mockSelectAssets = jest.mocked(selectAssetsBySelectedAccountGroup);
+    const mockFindNetworkClientIdByChainId = jest.mocked(
+      Engine.context.NetworkController.findNetworkClientIdByChainId,
+    );
+
+    beforeEach(() => {
+      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+      mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
+      mockSelectAssets.mockReturnValue({
+        '0x1': [nativeEthAsset, usdcAsset],
+      } as unknown as ReturnType<typeof selectAssetsBySelectedAccountGroup>);
+    });
+
+    it('opens the Send flow with native asset and recipient for a plain send without value', async () => {
+      mockParse.mockReturnValue(
+        parsedUrl({ target_address: RECIPIENT, chain_id: '1' }),
+      );
+
+      await handleEthereumUrl({
+        url: `ethereum:${RECIPIENT}@1`,
+        origin: 'test_origin',
+      });
+
+      expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(mockNavigate, {
+        location: 'Deeplink',
+        asset: nativeEthAsset,
+        predefinedRecipient: { address: RECIPIENT, chainType: 'evm' },
+      });
+      expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+    });
+
+    it('opens the Send flow with the token and recipient for a transfer without uint256', async () => {
+      mockParse.mockReturnValue(
+        parsedUrl({
+          function_name: ETH_ACTIONS.TRANSFER,
+          target_address: USDC,
+          chain_id: '1',
+          parameters: { address: RECIPIENT },
+        }),
+      );
+
+      await handleEthereumUrl({
+        url: `ethereum:${USDC}@1/transfer?address=${RECIPIENT}`,
+        origin: 'test_origin',
+      });
+
+      expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(mockNavigate, {
+        location: 'Deeplink',
+        asset: usdcAsset,
+        predefinedRecipient: { address: RECIPIENT, chainType: 'evm' },
+      });
+      expect(mockAddTransactionForDeeplink).not.toHaveBeenCalled();
+    });
+
+    it('starts at asset selection when the account does not hold the token', async () => {
+      mockSelectAssets.mockReturnValue({
+        '0x1': [nativeEthAsset],
+      } as unknown as ReturnType<typeof selectAssetsBySelectedAccountGroup>);
+      mockParse.mockReturnValue(
+        parsedUrl({
+          function_name: ETH_ACTIONS.TRANSFER,
+          target_address: USDC,
+          chain_id: '1',
+          parameters: { address: RECIPIENT },
+        }),
+      );
+
+      await handleEthereumUrl({
+        url: `ethereum:${USDC}@1/transfer?address=${RECIPIENT}`,
+        origin: 'test_origin',
+      });
+
+      expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(mockNavigate, {
+        location: 'Deeplink',
+        asset: undefined,
+        predefinedRecipient: { address: RECIPIENT, chainType: 'evm' },
+      });
+    });
+
+    it('falls back to mainnet when the link has no chain id', async () => {
+      mockParse.mockReturnValue(parsedUrl({ target_address: RECIPIENT }));
+
+      await handleEthereumUrl({
+        url: `ethereum:${RECIPIENT}`,
+        origin: 'test_origin',
+      });
+
+      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0x1');
+      expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
+        mockNavigate,
+        expect.objectContaining({ asset: nativeEthAsset }),
+      );
+    });
+
+    it('shows network not found alert when the chain is not in the wallet', async () => {
+      const spyAlert = jest.spyOn(Alert, 'alert');
+      mockFindNetworkClientIdByChainId.mockReturnValue(
+        undefined as unknown as string,
+      );
+      mockParse.mockReturnValue(
+        parsedUrl({ target_address: RECIPIENT, chain_id: '10' }),
+      );
+
+      await handleEthereumUrl({
+        url: `ethereum:${RECIPIENT}@10`,
+        origin: 'test_origin',
+      });
+
+      expect(spyAlert).toHaveBeenCalledWith(
+        'send.network_not_found_title',
+        'send.network_not_found_description',
+      );
+      expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+    });
+
+    it('still builds the transaction when the link has an amount', async () => {
+      mockParse.mockReturnValue(
+        parsedUrl({
+          target_address: RECIPIENT,
+          chain_id: '1',
+          parameters: { value: '1000' },
+        }),
+      );
+
+      await handleEthereumUrl({
+        url: `ethereum:${RECIPIENT}@1?value=1000`,
+        origin: 'test_origin',
+      });
+
+      expect(mockAddTransactionForDeeplink).toHaveBeenCalled();
+      expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
     });
   });
 });

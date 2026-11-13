@@ -35,6 +35,9 @@ import {
 
 const PRESET_SLOT_TW_CLASS_NAME = 'min-w-0 flex-1 shrink basis-0';
 const PRESET_CONTROL_TW_CLASS_NAME = 'w-full px-0';
+// Grows the 32pt pills to a 48pt touch target; the gap above and the card
+// padding below leave room for it without overlapping the fiat toggle.
+const PRESET_HIT_SLOP = { top: 8, bottom: 8 };
 const VALUE_FONT_SIZE = 14;
 const VALUE_LINE_HEIGHT = VALUE_FONT_SIZE * 1.25;
 const PERCENT_POSTFIX = '%';
@@ -163,6 +166,7 @@ export const ButtonPricePresetsSection = forwardRef<
           variant={ButtonVariant.Secondary}
           size={ButtonBaseSize.Sm}
           onPress={onMarketPress}
+          hitSlop={PRESET_HIT_SLOP}
           testID={LimitOrderPriceAdjustPresetsSelectorsIDs.MARKET}
           twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
         >
@@ -174,6 +178,7 @@ export const ButtonPricePresetsSection = forwardRef<
             variant={ButtonVariant.Secondary}
             size={ButtonBaseSize.Sm}
             onPress={() => onPercentPress(percent)}
+            hitSlop={PRESET_HIT_SLOP}
             testID={getLimitOrderPercentPresetTestId(percent)}
             twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
           >
@@ -214,6 +219,7 @@ export const ButtonPricePresetsSection = forwardRef<
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Sm}
               onPress={onCustomPress}
+              hitSlop={PRESET_HIT_SLOP}
               testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM}
               twClassName={PRESET_CONTROL_TW_CLASS_NAME}
             >

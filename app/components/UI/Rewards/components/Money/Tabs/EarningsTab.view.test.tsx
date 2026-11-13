@@ -6,13 +6,16 @@
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RewardsMoneyClaimRefusalError } from '../../../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   CLAIMED_EARNINGS_SUMMARY,
+  earningsSummaryFixture,
   EXACT_DOLLAR_EARNINGS_SUMMARY,
   PAUSED_EARNINGS_SUMMARY,
+  referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
   REFUSAL_REFRESH_SUMMARY,
   REWARDS_MONEY_ACCOUNT_ADDRESS,
@@ -20,6 +23,51 @@ import {
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
+}
+
+/** $1 of follow-trade, the claim minimum. Cashback stays at zero. */
+const FOLLOW_TRADE_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '1000000',
+  claimable: '1000000',
+  cashbackClaimable: '0',
+  followTradeClaimable: '1000000',
+});
+
+/** $1 of cashback and $1 of follow-trade, each at the claim minimum. */
+const CASHBACK_AND_FOLLOW_TRADE_SUMMARY = earningsSummaryFixture({
+  lifetimeTotal: '2000000',
+  claimable: '2000000',
+  cashbackClaimable: '1000000',
+  followTradeClaimable: '1000000',
+});
+
+function commissionsPage(followTradeClaimOpen: boolean) {
+  return () =>
+    Promise.resolve({
+      results: [],
+      mechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: false, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: followTradeClaimOpen,
+          reason: followTradeClaimOpen ? null : 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      has_more: false,
+      cursor: null,
+    });
+}
+
+/** An opened claim with no voucher, so the next route can start. */
+function openedClaim() {
+  return Promise.resolve({
+    kind: 'authorized',
+    body: {
+      claim: { id: 'claim-1' },
+      voucher: null,
+      excluded: [],
+      status: 'OPENED',
+    },
+  });
 }
 
 describe('EarningsTab', () => {
@@ -81,11 +129,13 @@ describe('EarningsTab', () => {
   });
 
   it('does not offer Claim to a referrer who has exactly $1 of cashback', async () => {
+    // Social V1 off: a referrer's claimable amount row stays hidden.
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,
       initiateClaim: 'hang',
+      socialV1: false,
     });
 
     expect(
@@ -106,6 +156,108 @@ describe('EarningsTab', () => {
     expect(
       callsFor(engine, 'RewardsMoneyController:initiateClaim'),
     ).toHaveLength(0);
+  });
+
+  it('does not offer Claim when the only balance is closed revenue share', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '1000000',
+      cashbackClaimable: '0',
+      revShareLifetime: '1000000',
+    });
+    summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      ...summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE,
+      claimable: '1000000',
+    };
+    const { findByTestId, queryByTestId } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      initiateClaim: 'hang',
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('claims follow-trade for a referrer when the claim route is open', async () => {
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      initiateClaim: 'hang',
+      handlers: {
+        'RewardsMoneyController:getCommissions': commissionsPage(true),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(callsFor(engine, 'RewardsMoneyController:initiateClaim')).toEqual([
+        [
+          'RewardsMoneyController:initiateClaim',
+          'social-follow-trade',
+          { money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS },
+        ],
+      ]);
+    });
+  });
+
+  it('does not offer Claim when follow-trade is closed', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary: FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      initiateClaim: 'hang',
+    });
+
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$1.00');
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('claims cashback and follow-trade together for a referee', async () => {
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary: CASHBACK_AND_FOLLOW_TRADE_SUMMARY,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getCommissions': commissionsPage(true),
+        'RewardsMoneyController:initiateClaim': openedClaim,
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
+    });
   });
 
   it.each([
@@ -146,6 +298,90 @@ describe('EarningsTab', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
   });
+
+  const WAIT_MINUTES_TOAST = 'Claim again in {minutes} minutes';
+
+  it.each([
+    {
+      caseId: 'G1',
+      label: 'payout address is not a Money account',
+      status: 422,
+      reason: 'PAYOUT_ADDRESS_NOT_MONEY_ACCOUNT',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureUnavailableToast,
+    },
+    {
+      caseId: 'G4',
+      label: 'address is blocked',
+      status: 422,
+      reason: 'ADDRESS_BLOCKED',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureAddressBlockedToast,
+    },
+    {
+      caseId: 'G5',
+      label: 'Money account check is unavailable',
+      status: 503,
+      reason: 'MONEY_ACCOUNT_CHECK_UNAVAILABLE',
+      message: () => REFERRAL_LOCALIZED_TEXT.claimFailureRetryToast,
+    },
+    {
+      caseId: 'G6',
+      label: 'release is still waiting',
+      status: 409,
+      reason: 'AWAITING_RELEASE',
+      retryAfterSeconds: 120,
+      message: () => 'Claim again in 2 minutes',
+    },
+    {
+      caseId: 'G6',
+      label: 'claim is rate limited',
+      status: 429,
+      reason: 'RATE_LIMITED',
+      retryAfterSeconds: 90,
+      message: () => 'Claim again in 2 minutes',
+    },
+  ])(
+    'shows the $label toast when a claim is refused ($caseId)',
+    async ({ status, reason, retryAfterSeconds, message }) => {
+      const view = renderEarningsTab({
+        persona: 'referee',
+        summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
+        claimReady: true,
+        referralMe: {
+          ...referralMeFixture('referee'),
+          localized_text: {
+            ...REFERRAL_LOCALIZED_TEXT,
+            claimFailureWaitMinutesToast: WAIT_MINUTES_TOAST,
+          },
+        },
+        handlers: {
+          'RewardsMoneyController:initiateClaim': () =>
+            Promise.reject(
+              new RewardsMoneyClaimRefusalError(
+                status,
+                reason,
+                retryAfterSeconds,
+              ),
+            ),
+        },
+      });
+
+      fireEvent.press(
+        await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      expect(await view.findByText(message())).toBeOnTheScreen();
+      expect(
+        view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          getRouteParamsProbeTestId(
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
 
   it('opens the claims paused sheet with the summary a refusal refresh returns', async () => {
     const { findByTestId, queryByTestId, engine } = renderEarningsTab({

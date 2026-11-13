@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
@@ -89,20 +90,9 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
   ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId, options),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(),
 }));
-
-jest.mock('../feeds/predictions/PredictionRowItem', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createElement } = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
-  return {
-    PredictionCarouselRowItem: ({ market }: { market: { id: string } }) =>
-      createElement(View, { testID: `predict-market-row-item-${market.id}` }),
-  };
-});
 
 jest.mock('../components/HorizontalCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -205,9 +195,8 @@ const mockPredictionsCarouselSection = jest.fn(
   },
 );
 
-jest.mock('../feeds/predictions/PredictionsCarouselSection', () => ({
-  __esModule: true,
-  default: (props: {
+jest.mock('../../../UI/PredictNext/trending/PredictTrendingCarousel', () => ({
+  PredictTrendingCarousel: (props: {
     idPrefix?: string;
     title?: string;
     onViewAll?: () => void;
@@ -226,6 +215,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import {
   PredictEventValues,
   selectPredictAvailability,
+  usePredictTrendingFeed,
 } from '../../../UI/PredictNext';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
@@ -236,7 +226,6 @@ import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import type { ExploreTabName } from '../search/analytics';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -245,7 +234,7 @@ import {
   EARN_MODULE_SCREEN_NAMES,
 } from '../../../UI/Earn/constants/earnModuleEvents';
 
-const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUseStocksFeed = jest.mocked(useStocksFeed);
 const mockWhatsHappeningImpl = jest.mocked(WhatsHappeningSection);
 
@@ -280,7 +269,10 @@ const createMockSelectorImpl =
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
     if (selector === selectIsExploreEarnSectionVisible)
       return earnSectionVisible;
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   };
 
 const arrangeMocks = () => {
@@ -574,7 +566,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     it('does not subscribe to live prices when a different Explore tab is active', () => {
       arrangePerpsMoversMocks();
 
-      renderNowTab(defaultTabProps, { activeTab: 'Macro' });
+      renderNowTab(defaultTabProps, { activeTab: 'Perps' });
 
       expect(mockSubscribeToSymbols).not.toHaveBeenCalled();
     });
@@ -602,7 +594,7 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
       rerender(
         <NavigationContainer>
-          <ExploreActiveTabProvider activeTab="Macro">
+          <ExploreActiveTabProvider activeTab="Perps">
             <NowTab {...defaultTabProps} />
           </ExploreActiveTabProvider>
         </NavigationContainer>,

@@ -122,6 +122,21 @@ describe('mapActivityEntry', () => {
     });
     expect(item.data).not.toHaveProperty('realizedPnl', expect.anything());
   });
+
+  it("names a Settlement's Outcome with its context's Market labels", () => {
+    const item = map({
+      ...settlement,
+      context: {
+        ...context,
+        outcomeLabel: 'No',
+        marketLabels: ['Kenneth Walker', '50+'],
+      },
+    } as PredictSettlementEntry);
+
+    expect(item.data).toMatchObject({
+      outcomeLabel: 'No · Kenneth Walker · 50+',
+    });
+  });
 });
 
 describe('getVenueActivityChainId', () => {

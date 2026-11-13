@@ -51,6 +51,7 @@ import {
   getVariant,
   resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
+import { resolveReferencePriceWindow } from '../../utils/referencePriceWindow';
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
@@ -269,6 +270,9 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
+  const referenceWindowSeconds = resolveReferencePriceWindow(
+    selectedMarket.twapWindowSeconds,
+  );
   const { data: targetPrice, isFetching: isTargetPriceFetching } =
     useCryptoTargetPrice({
       eventId: selectedMarket.id,
@@ -276,7 +280,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       eventStartTime: targetPriceEventStartTime ?? '',
       variant: getVariant(selectedMarket.series.recurrence),
       endDate: selectedMarket.endDate ?? '',
-      twapWindowSeconds: selectedMarket.twapWindowSeconds,
+      twapWindowSeconds: referenceWindowSeconds,
       enabled:
         !!targetPriceSymbol &&
         !!targetPriceEventStartTime &&
@@ -503,7 +507,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
-  const twapWindowSeconds = selectedMarket.twapWindowSeconds;
+  const twapWindowSeconds = referenceWindowSeconds;
   const bottomAccessory = twapWindowSeconds ? (
     <Box flexDirection={BoxFlexDirection.Row} twClassName="items-center gap-1">
       <Text

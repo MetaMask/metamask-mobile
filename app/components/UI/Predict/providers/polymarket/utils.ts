@@ -22,6 +22,7 @@ import {
   PredictOutcomeToken,
   PredictMarketGame,
   type PredictFeePolicy,
+  type CryptoPriceProvider,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -992,6 +993,40 @@ const parseEventPriceToBeat = (
     : undefined;
 };
 
+const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
+
+const isHostOf = (host: string, domain: string): boolean =>
+  host === domain || host.endsWith(`.${domain}`);
+
+/**
+ * Reads the vendor a market settles against from its Gamma resolution source.
+ * Settlement, not the series length, decides the vendor: on Gamma the hourly
+ * and daily crypto up/down series resolve on binance.com USDT pairs, while the
+ * 5m, 15m and 4h series resolve on data.chain.link streams.
+ *
+ * @param event - Gamma event.
+ * @param markets - The event's markets. Their own source wins over the event's.
+ * @returns The settlement vendor, or undefined when it is neither of the two.
+ */
+export const parseCryptoPriceProvider = (
+  event: Pick<PolymarketApiEvent, 'resolutionSource'>,
+  markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
+): CryptoPriceProvider | undefined => {
+  const source =
+    markets.find((market) => market.resolutionSource)?.resolutionSource ??
+    event.resolutionSource;
+  const host = source?.trim().match(RESOLUTION_SOURCE_HOST)?.[1]?.toLowerCase();
+  if (!host) {
+    return undefined;
+  }
+
+  if (isHostOf(host, 'binance.com')) {
+    return 'binance';
+  }
+
+  return isHostOf(host, 'chain.link') ? 'chainlink' : undefined;
+};
+
 const parseTwapWindowSeconds = (
   markets: PolymarketApiMarket[],
 ): 30 | 60 | undefined => {
@@ -1193,6 +1228,7 @@ export const parsePolymarketEvents = (
 
       const priceToBeat = parseEventPriceToBeat(event);
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
+      const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
 
       return [
         {
@@ -1217,6 +1253,7 @@ export const parsePolymarketEvents = (
           game,
           ...(priceToBeat !== undefined && { priceToBeat }),
           ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+          ...(cryptoPriceProvider && { cryptoPriceProvider }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,
@@ -2244,6 +2281,26 @@ export function encodeRouterRedeem({
   ]) as Hex;
 }
 
+// Buy previews poll every second; a market's tags do not change between ticks.
+const marketTagSlugsCache = new Map<string, Promise<string[]>>();
+
+export const clearMarketTagSlugsCache = () => {
+  marketTagSlugsCache.clear();
+};
+
+const getMarketTagSlugs = (marketId: string): Promise<string[]> => {
+  const cached = marketTagSlugsCache.get(marketId);
+  if (cached) {
+    return cached;
+  }
+  const slugs = getMarketDetailsFromGammaApi({ marketId }).then(
+    (market) => market.tags?.map((t) => t.slug) ?? [],
+  );
+  marketTagSlugsCache.set(marketId, slugs);
+  slugs.catch(() => marketTagSlugsCache.delete(marketId));
+  return slugs;
+};
+
 async function waiveFees({
   marketId,
   waiveList,
@@ -2252,10 +2309,8 @@ async function waiveFees({
   waiveList: string[];
 }): Promise<boolean> {
   try {
-    const market = await getMarketDetailsFromGammaApi({ marketId });
-    const { tags } = market;
-    const slugs = tags?.map((t) => t.slug);
-    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+    const slugs = await getMarketTagSlugs(marketId);
+    return slugs.some((slug) => waiveList?.includes(slug));
   } catch (error) {
     // A fee-waiver lookup failure must never fail the preview — degrade
     // to standard (non-waived) fees instead.

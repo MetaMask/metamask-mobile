@@ -287,6 +287,35 @@ describe('useAcceptMoneyReferralCode', () => {
   });
 
   describe('successful registration', () => {
+    it('reports the accept before opening the accepted splash', async () => {
+      mockMessenger();
+      const onAccepted = jest.fn(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+      const { result } = renderAcceptHook();
+
+      await act(async () => {
+        await result.current.acceptReferralCode('kol1', { onAccepted });
+      });
+
+      expect(onAccepted).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+      );
+    });
+
+    it('does not report an accept that register refused', async () => {
+      mockMessenger({ registerError: new Error('refused') });
+      const onAccepted = jest.fn();
+      const { result } = renderAcceptHook();
+
+      await act(async () => {
+        await result.current.acceptReferralCode('kol1', { onAccepted });
+      });
+
+      expect(onAccepted).not.toHaveBeenCalled();
+    });
+
     it('registers the normalized code, refreshes referral me and dismisses', async () => {
       mockMessenger();
 

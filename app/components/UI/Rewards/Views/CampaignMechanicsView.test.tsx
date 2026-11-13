@@ -16,6 +16,10 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: () => false,
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));

@@ -188,6 +188,30 @@ describe('toSocialV1FeedItem', () => {
       expect(result.asset.symbol).toBe(core.tokenSymbol);
     });
 
+    it('copies an X handle from the actor social handles', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          actor: {
+            profileId: 'profile-2',
+            address: '0x2222222222222222222222222222222222222222',
+            name: 'aparjey',
+            imageUrl: null,
+            socialHandles: { twitter: ' @aparjey ' },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.author.xHandle).toBe('aparjey');
+    });
+
+    it('leaves the X handle empty when the actor has none', () => {
+      const result = toSocialV1FeedItem(buildRow(mockPerpFeedItem()));
+
+      expect(result.author.xHandle).toBeNull();
+    });
+
     it('carries value, P&L and leverage straight from the mapped row', () => {
       const row = buildRow(mockPerpFeedItem());
 
@@ -498,26 +522,38 @@ describe('toSocialV1FeedItem', () => {
       expect(result.markPriceLabel).toBe(formatTradeUnitPrice(123.0005));
     });
 
-    it('derives the mark price of an open perp from its current value', () => {
+    // As the API sends an 8x long of 5 contracts entered at 10,000: sizes and
+    // cost basis are margin-sized, `currentValueUSD` is equity (margin + P&L).
+    const openLeveragedPerp = {
+      isOpen: true,
+      positionAmount: 0.625,
+      positionAmountWithLeverage: 5,
+      boughtUsd: 6_250,
+      costBasis: 6_250,
+      realizedPnl: 0,
+      trades: [
+        {
+          direction: 'buy' as const,
+          intent: 'enter' as const,
+          action: 'opened' as const,
+          tokenAmount: 0.625,
+          usdCost: 6_250,
+          timestamp: 1_700_000_000,
+          transactionHash: '0xa',
+          classification: 'perp' as const,
+          perpPositionType: 'long' as const,
+          perpLeverage: 8,
+        },
+      ],
+    };
+
+    it('derives the mark price of an open perp from its P&L on the leveraged size', () => {
       const row = buildRow(
         mockPerpFeedItem({
-          isOpen: true,
-          positionAmount: 5,
-          currentValueUSD: 60000,
-          trades: [
-            {
-              direction: 'buy',
-              intent: 'enter',
-              action: 'opened',
-              tokenAmount: 5,
-              usdCost: 50_000,
-              timestamp: 1_700_000_000,
-              transactionHash: '0xa',
-              classification: 'perp',
-              perpPositionType: 'long',
-              perpLeverage: 8,
-            },
-          ],
+          ...openLeveragedPerp,
+          // Marked at 12,000: 5 × (12,000 − 10,000) unrealized.
+          pnlValueUsd: 10_000,
+          currentValueUSD: 16_250,
         }),
       );
 
@@ -525,16 +561,52 @@ describe('toSocialV1FeedItem', () => {
 
       expect(result.variant).toBe('perpsOpen');
       if (result.variant !== 'perpsOpen') return;
-      // currentValueUSD 60,000 over 5 contracts.
       expect(result.markPriceLabel).toBe(formatTradeUnitPrice(12_000));
     });
 
-    it('omits the mark when the row has no current value', () => {
+    it('derives the mark price of an open perp short', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          ...openLeveragedPerp,
+          perpPositionType: 'short',
+          // Marked at 8,000: 5 × (10,000 − 8,000) unrealized.
+          pnlValueUsd: 10_000,
+          currentValueUSD: 16_250,
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsOpen');
+      if (result.variant !== 'perpsOpen') return;
+      expect(result.markPriceLabel).toBe(formatTradeUnitPrice(8_000));
+    });
+
+    it('subtracts realized P&L so the mark tracks only the unrealized move', () => {
+      const row = buildRow(
+        mockPerpFeedItem({
+          ...openLeveragedPerp,
+          // pnlValueUsd is unrealized + realized: 10,000 unrealized + 2,000
+          // realized. Marked at 12,000: 5 × (12,000 − 10,000) unrealized.
+          pnlValueUsd: 12_000,
+          realizedPnl: 2_000,
+          currentValueUSD: 18_250,
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.variant).toBe('perpsOpen');
+      if (result.variant !== 'perpsOpen') return;
+      expect(result.markPriceLabel).toBe(formatTradeUnitPrice(12_000));
+    });
+
+    it('omits the mark when the row has no P&L', () => {
       const row = buildRow(
         mockPerpFeedItem({
           isOpen: true,
           positionAmount: 5,
-          currentValueUSD: null,
+          pnlValueUsd: null,
           trades: [
             {
               direction: 'buy',
@@ -578,6 +650,36 @@ describe('toSocialV1FeedItem', () => {
       const result = toSocialV1FeedItem(row);
 
       expect(result.comment).toBe('Thesis unchanged.');
+    });
+
+    it('dates a commented card by its comment rather than its trade', () => {
+      const row = buildRow(
+        mockSpotFeedItem({
+          timestamp: 1_700_000_000,
+          authorComment: {
+            uid: 'comment-1',
+            text: 'Still holding the thesis.',
+            timestamp: 1_700_691_200,
+            engagement: {
+              reactions: [],
+              userReaction: null,
+              replyCount: 0,
+            },
+          },
+        }),
+      );
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(1_700_691_200_000);
+    });
+
+    it('dates a card with no comment by its trade', () => {
+      const row = buildRow(mockSpotFeedItem({ timestamp: 1_700_000_000 }));
+
+      const result = toSocialV1FeedItem(row);
+
+      expect(result.timestamp).toBe(row.item.timestamp);
     });
 
     it('strips a static.klipy.com gif url from the caption', () => {
@@ -835,6 +937,8 @@ describe('toSocialV1FeedItem', () => {
       if (afterFiveHours.variant !== 'spotOpen') return;
       expect(afterOneHour.holdTimeLabel).toBe('1h');
       expect(afterFiveHours.holdTimeLabel).toBe('5h');
+      expect(afterOneHour.holdStartedAtMs).toBe(openedAt * 1000);
+      expect(afterFiveHours.holdStartedAtMs).toBe(afterOneHour.holdStartedAtMs);
     });
 
     it('uses the reported hold time once the position is closed', () => {

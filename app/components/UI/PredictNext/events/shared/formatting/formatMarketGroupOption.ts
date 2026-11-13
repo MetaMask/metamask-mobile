@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 
@@ -8,6 +9,13 @@ export const formatMarketGroupOption = (
   const group = market.group;
   if (group?.option?.type !== 'number') {
     return undefined;
+  }
+
+  if (group.marketType === PREDICT_MARKET_TYPES.THRESHOLD) {
+    // Prints the value as sent: whole numbers are the API's job.
+    return strings('predict.market_groups.threshold_option', {
+      value: group.option.value,
+    });
   }
 
   if (group.marketType === PREDICT_MARKET_TYPES.SPREAD && side === undefined) {

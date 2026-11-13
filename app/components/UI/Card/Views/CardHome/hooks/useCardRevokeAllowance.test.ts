@@ -12,8 +12,11 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-function mockActiveProvider(providerId: string) {
-  mockUseSelector.mockImplementation(() => providerId);
+function mockActiveProvider(providerId: string, moneyAccountMode = false) {
+  mockUseSelector.mockImplementation(() => {
+    const call = mockUseSelector.mock.calls.length;
+    return call % 2 === 1 ? providerId : moneyAccountMode;
+  });
 }
 
 function homeDataWithCap(spendingCap: string | undefined) {
@@ -70,6 +73,16 @@ describe('useCardRevokeAllowance', () => {
 
     const { result } = renderHook(() =>
       useCardRevokeAllowance(homeDataWithCap('abc')),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
+  it('hides Unlink in NZ Money account mode so Card Home uses Unlink Money account', () => {
+    mockActiveProvider(CardProviderIds.Immersve, true);
+
+    const { result } = renderHook(() =>
+      useCardRevokeAllowance(homeDataWithCap('500000000')),
     );
 
     expect(result.current).toBe(false);
