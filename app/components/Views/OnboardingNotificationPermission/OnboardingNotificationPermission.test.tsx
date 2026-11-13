@@ -3,6 +3,18 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import OnboardingNotificationPermission from './OnboardingNotificationPermission';
 import { OnboardingNotificationPermissionTestIds } from './OnboardingNotificationPermission.testIds';
 
+import DarkBackground from '../../../images/notification-onboarding-background.png';
+import LightBackground from '../../../images/notification-onboarding-background-light.png';
+
+let mockThemeAppearance = 'light';
+jest.mock('../../../util/theme', () => ({
+  ...jest.requireActual('../../../util/theme'),
+  useTheme: () => ({
+    ...jest.requireActual('../../../util/theme').useTheme(),
+    themeAppearance: mockThemeAppearance,
+  }),
+}));
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOnComplete = jest.fn();
@@ -92,7 +104,24 @@ jest.mock(
 describe('OnboardingNotificationPermission', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockThemeAppearance = 'light';
   });
+
+  it.each(['light', 'dark'])(
+    'uses the %s wallet illustration',
+    async (theme) => {
+      mockThemeAppearance = theme;
+
+      const { findByTestId } = render(<OnboardingNotificationPermission />);
+      const background = await findByTestId(
+        OnboardingNotificationPermissionTestIds.BACKGROUND,
+      );
+
+      expect(background.props.source).toBe(
+        theme === 'dark' ? DarkBackground : LightBackground,
+      );
+    },
+  );
 
   it('requests notification permission and continues to the questionnaire', async () => {
     const { findByTestId, getByTestId } = render(

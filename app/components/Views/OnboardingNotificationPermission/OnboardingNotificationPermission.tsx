@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, ImageBackground } from 'react-native';
+import { Image, ImageBackground, StyleSheet } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -36,9 +37,21 @@ import NotificationService, {
   canOsPromptForPushPermission,
 } from '../../../util/notifications/services/NotificationService';
 import Logger from '../../../util/Logger';
+import { useTheme } from '../../../util/theme';
+import { AppThemeKey } from '../../../util/theme/models';
+import LightBackgroundImage from '../../../images/notification-onboarding-background-light.png';
 import BackgroundImage from '../../../images/notification-onboarding-background.png';
 import FoxImage from '../../../images/notification-onboarding-fox.png';
 import { OnboardingNotificationPermissionTestIds } from './OnboardingNotificationPermission.testIds';
+
+const styles = StyleSheet.create({
+  notificationShadow: {
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+});
 
 const METRICS_OPT_IN_LOCATION = 'onboarding_push_permission';
 
@@ -59,18 +72,26 @@ const NotificationCard = ({
   title,
 }: NotificationCardProps): React.ReactElement => {
   const tw = useTailwind();
+  const { colors } = useTheme();
 
   return (
     <BoxGlass
       isGlass={isGlass}
+      tintColor={`${colors.background.default}66`}
       radiusClassName="rounded-xl"
-      hasSheen
+      containerStyle={[
+        tw.style('border border-muted'),
+        styles.notificationShadow,
+        { shadowColor: colors.text.default },
+      ]}
       style={tw.style('h-[72px] flex-row items-center px-4')}
       accessibilityLabel={`${title}. ${message}. ${timestamp}`}
     >
       <Image
         source={FoxImage}
-        style={tw.style('mr-4 h-12 w-12 shrink-0 rounded-lg')}
+        style={tw.style(
+          'mr-4 h-12 w-12 shrink-0 rounded-lg border border-muted',
+        )}
       />
       <Box twClassName="min-w-0 flex-1">
         <Text
@@ -102,6 +123,7 @@ const NotificationCard = ({
 
 const OnboardingNotificationPermission = (): React.ReactElement => {
   const tw = useTailwind();
+  const { themeAppearance, colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
@@ -301,13 +323,32 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
 
         <Box twClassName="mt-8 flex-1 overflow-hidden">
           <ImageBackground
-            source={BackgroundImage}
+            testID={OnboardingNotificationPermissionTestIds.BACKGROUND}
+            source={
+              themeAppearance === AppThemeKey.dark
+                ? BackgroundImage
+                : LightBackgroundImage
+            }
             resizeMode="contain"
             style={[
-              tw.style('absolute left-0 right-0 top-0 bottom-0 opacity-70'),
-              { transform: [{ scale: 1.08 }] },
+              tw.style('absolute left-0 right-0 top-0 bottom-0 opacity-60'),
+              {
+                transform: [
+                  { scale: themeAppearance === AppThemeKey.dark ? 1.08 : 1 },
+                ],
+              },
             ]}
           />
+          {themeAppearance === AppThemeKey.light && (
+            <LinearGradient
+              pointerEvents="none"
+              colors={[
+                `${colors.background.default}00`,
+                colors.background.default,
+              ]}
+              style={tw.style('absolute bottom-0 left-0 right-0 h-24')}
+            />
+          )}
           <Box twClassName="mt-[92px] gap-[14px] px-1">
             {previews.map((preview) => (
               <NotificationCard
