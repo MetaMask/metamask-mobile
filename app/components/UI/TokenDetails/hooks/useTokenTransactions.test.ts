@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenTransactions } from './useTokenTransactions';
 import { TokenI } from '../../Tokens/types';
-import { TX_CONFIRMED } from '../../../../constants/transaction';
+import { TX_CONFIRMED, TX_SUBMITTED } from '../../../../constants/transaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectTokens } from '../../../../selectors/tokensController';
@@ -359,6 +359,145 @@ describe('useTokenTransactions', () => {
 
       // Gas-sponsored (zero gas fee) native sends must still appear
       expect(result.current.confirmedTxs.length).toBe(1);
+    });
+
+    it('includes a native transaction sent to the selected account when from is missing', async () => {
+      const tx = createMockTransaction({
+        txParams: { to: MOCK_ADDRESS },
+      });
+      setupMocks([tx]);
+
+      const asset = createAsset({
+        symbol: 'ETH',
+        isETH: true,
+        isNative: true,
+        address: '',
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'tx-1',
+      ]);
+    });
+
+    it('includes a native transaction with no chain id when the network id matches', async () => {
+      const tx = createMockTransaction({
+        chainId: undefined,
+        networkID: '1',
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT },
+      });
+      setupMocks([tx]);
+
+      const asset = createAsset({
+        symbol: 'ETH',
+        isETH: true,
+        isNative: true,
+        address: '',
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'tx-1',
+      ]);
+    });
+
+    it('excludes a native transaction with no chain id when the network id differs', async () => {
+      const tx = createMockTransaction({
+        chainId: undefined,
+        networkID: '5',
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT },
+      });
+      setupMocks([tx]);
+
+      const asset = createAsset({
+        symbol: 'ETH',
+        isETH: true,
+        isNative: true,
+        address: '',
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs).toStrictEqual([]);
+    });
+  });
+
+  describe('submitted nonce replacement', () => {
+    const ethAsset = createAsset({
+      symbol: 'ETH',
+      isETH: true,
+      isNative: true,
+      address: '',
+      chainId: ETH_CHAIN_ID,
+    });
+
+    it('drops a submitted transaction that repeats a confirmed nonce', async () => {
+      const confirmed = createMockTransaction({
+        id: 'confirmed-1',
+        status: TX_CONFIRMED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x1' },
+      });
+      const submitted = createMockTransaction({
+        id: 'submitted-1',
+        status: TX_SUBMITTED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x1' },
+      });
+      setupMocks([submitted, confirmed]);
+
+      const { result } = renderHook(() => useTokenTransactions(ethAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'confirmed-1',
+      ]);
+      expect(result.current.submittedTxs).toStrictEqual([]);
+    });
+
+    it('keeps a submitted transaction whose nonce is not confirmed', async () => {
+      const confirmed = createMockTransaction({
+        id: 'confirmed-1',
+        status: TX_CONFIRMED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x1' },
+      });
+      const submitted = createMockTransaction({
+        id: 'submitted-1',
+        status: TX_SUBMITTED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x2' },
+      });
+      setupMocks([submitted, confirmed]);
+
+      const { result } = renderHook(() => useTokenTransactions(ethAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'confirmed-1',
+      ]);
+      expect(result.current.submittedTxs.map((item) => item.id)).toStrictEqual([
+        'submitted-1',
+      ]);
     });
   });
 
