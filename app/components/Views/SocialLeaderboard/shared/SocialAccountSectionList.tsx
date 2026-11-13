@@ -45,8 +45,8 @@ const groupLinkableAccountsByWallet = (
   const sections: SocialAccountSection[] = [];
 
   accounts.forEach((account) => {
-    const previous = sections[sections.length - 1];
-    if (previous && previous.title === account.walletTitle) {
+    const previous = sections.at(-1);
+    if (previous?.title === account.walletTitle) {
       previous.accounts.push(account);
       return;
     }

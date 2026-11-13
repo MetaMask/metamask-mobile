@@ -100,7 +100,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
             accounts={accounts}
             disabled={!isControllerBacked || isUpdating}
             onSelect={(account) => {
-              handleAccountPress(account.linkedAddresses);
+              void handleAccountPress(account.linkedAddresses);
             }}
             rowTestIdPrefix={ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}
             selectedAccountId={selectedAccountId}
