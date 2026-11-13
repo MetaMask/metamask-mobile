@@ -10,7 +10,6 @@ import {
   ButtonSize,
   FontWeight,
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
@@ -31,6 +30,9 @@ import {
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../util/metrics';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createUkMigrationBottomSheetNavigationDetails =
   createNavigationDetails(
@@ -52,6 +54,7 @@ const MIGRATION_STEP_KEYS = [
  * via `useCardUkMigrationState` (clock-aware phase).
  */
 const UkMigrationBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedView = useRef(false);
   const navigation = useNavigation<AppNavigationProp>();
@@ -153,7 +156,8 @@ const UkMigrationBottomSheet = () => {
       keyboardAvoidingViewEnabled={false}
       testID={UkMigrationBottomSheetSelectors.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: UkMigrationBottomSheetSelectors.CLOSE_BUTTON,
@@ -165,7 +169,7 @@ const UkMigrationBottomSheet = () => {
         >
           {strings('card.uk_migration_bottom_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-6 gap-6">
         <Text

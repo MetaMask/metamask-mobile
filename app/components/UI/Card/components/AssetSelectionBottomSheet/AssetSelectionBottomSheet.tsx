@@ -11,7 +11,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   IconSize,
   Spinner,
@@ -44,6 +43,8 @@ import AssetSelectionRow, {
   type AssetSelectionRowItem,
 } from './AssetSelectionRow';
 import { AssetSelectionBottomSheetTestIds } from './AssetSelectionBottomSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -61,6 +62,7 @@ export const createAssetSelectionModalNavigationDetails =
   );
 
 const AssetSelectionBottomSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const {
@@ -371,9 +373,12 @@ const AssetSelectionBottomSheet: React.FC = () => {
       goBack={navigation.goBack}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         {strings('card.select_asset')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box style={tw.style('grow shrink flex-row min-h-[200px] max-h-[400px]')}>
         {renderBottomSheetContent()}
       </Box>
