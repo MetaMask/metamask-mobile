@@ -1,4 +1,7 @@
-import { computeNetworkTier } from './computeNetworkTier';
+import {
+  computeNetworkTier,
+  readCellularGeneration,
+} from './computeNetworkTier';
 import type { NetworkTier } from './types';
 
 type Input = Parameters<typeof computeNetworkTier>[0];
@@ -201,5 +204,18 @@ describe('computeNetworkTier', () => {
         expect(result).toBe(expected as NetworkTier | null);
       },
     );
+  });
+});
+
+describe('readCellularGeneration', () => {
+  it.each([
+    ['a string generation', { cellularGeneration: '4g' }, '4g'],
+    ['a null generation', { cellularGeneration: null }, null],
+    ['details without a generation', { ssid: 'home' }, null],
+    ['null details', null, null],
+  ])('reads %s', (_, details, expected) => {
+    const result = readCellularGeneration(details);
+
+    expect(result).toBe(expected);
   });
 });
