@@ -28,6 +28,10 @@ const createStyles = (colors: Theme['colors']) =>
       letterSpacing: -0.5,
       lineHeight: 74,
     },
+    tradeSheetAmount: {
+      fontSize: 64,
+      lineHeight: 64,
+    },
     amountValueActive: {
       color: colors.text.default,
     },

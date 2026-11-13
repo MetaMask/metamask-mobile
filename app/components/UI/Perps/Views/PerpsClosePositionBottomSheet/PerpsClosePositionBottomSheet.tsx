@@ -226,6 +226,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE
         }
         displayToggleIcon={<PerpsSwapIcon direction="vertical" />}
+        twClassName="py-8"
       />
 
       {!isEditingLimitPrice && !isInputFocused && (

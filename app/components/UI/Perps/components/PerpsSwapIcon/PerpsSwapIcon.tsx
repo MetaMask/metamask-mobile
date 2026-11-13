@@ -26,7 +26,7 @@ const SWAP_HORIZONTAL_PATH =
 const SWAP_HORIZONTAL_OFFSET = { x: 1.3333, y: 2.6667 };
 
 /** Native frame size of the exported glyphs; matches MMDS `IconSize.Sm`. */
-export const PERPS_SWAP_ICON_SIZE_SM = 16;
+export const PERPS_SWAP_ICON_SIZE_SM = 14;
 
 export interface PerpsSwapIconProps {
   direction: 'vertical' | 'horizontal';
