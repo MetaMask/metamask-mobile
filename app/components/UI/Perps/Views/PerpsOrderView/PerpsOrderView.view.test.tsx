@@ -4,7 +4,6 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
-import { Text } from 'react-native';
 import {
   act,
   cleanup,
@@ -62,6 +61,41 @@ import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 
 const TIMEOUT_MS = 5000;
+
+// The trade-sheet amount is one design-system text node. Walk its rendered
+// text instead of looking for a React Native Text per glyph.
+const amountLabelText = (node: {
+  props: { children?: unknown };
+  children: readonly unknown[];
+}): string => {
+  if (node.children.length > 0) {
+    return node.children
+      .map((child) =>
+        typeof child === 'string'
+          ? child
+          : amountLabelText(
+              child as {
+                props: { children?: unknown };
+                children: readonly unknown[];
+              },
+            ),
+      )
+      .join('');
+  }
+
+  const { children } = node.props;
+  if (typeof children === 'string' || typeof children === 'number') {
+    return String(children);
+  }
+  return '';
+};
+
+const readAmountLabelValue = () =>
+  Number(
+    amountLabelText(
+      screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+    ).replace(/[^0-9.]/g, ''),
+  );
 
 const GRANT_FEE_QUOTE = {
   feeRate: 0.0007,
@@ -1347,15 +1381,7 @@ describe('PerpsOrderView', () => {
     const SHORT_BALANCE = '13.67';
     const SHORT_PRICE = '941.95';
 
-    const readDisplayedAmount = () =>
-      Number(
-        screen
-          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
-          .findAllByType(Text)
-          .map((glyph) => glyph.props.children)
-          .join('')
-          .replace(/[^0-9.]/g, ''),
-      );
+    const readDisplayedAmount = () => readAmountLabelValue();
 
     const waitForDisplayedAmount = (expected: number) =>
       waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
@@ -1554,16 +1580,7 @@ describe('PerpsOrderView', () => {
 
     const renderAtMax = () => renderWithAmount(ABOVE_MAX_AMOUNT);
 
-    // The amount renders as one animated Text per glyph, so join their text.
-    const readDisplayedAmount = () =>
-      Number(
-        screen
-          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
-          .findAllByType(Text)
-          .map((glyph) => glyph.props.children)
-          .join('')
-          .replace(/[^0-9.]/g, ''),
-      );
+    const readDisplayedAmount = () => readAmountLabelValue();
 
     // Runs while the order form is still mounted, before the order is placed.
     const expectNoBalanceError = () => {
