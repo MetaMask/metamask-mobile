@@ -295,6 +295,7 @@ jobs:
         run: node scripts/set-secrets-from-config.js
 
       - name: Configure signing certificates
+        id: signing
         uses: ./.github/actions/configure-signing
         with:
           aws-role-to-assume: ${{ steps.config.outputs.signing_aws_role }}
@@ -371,11 +372,14 @@ jobs:
           REPACK_FINAL_APK: ${{ steps.donor.outputs.output }}
           REPACK_SOURCEMAP_PATH: sourcemaps/android/index.android.bundle.map
           REPACK_ANDROID_KEYSTORE_PATH: android/keystores/${{ steps.config.outputs.signing_android_keystore_path }}
+          SIGNING_ENV_FILE: ${{ steps.signing.outputs.env-file }}
         run: |
           set -euo pipefail
-          # configure-signing exports the RC signer's variables verbatim (the same names
+          # configure-signing stores the RC signer's variables verbatim (the same names
           # android/app/build.gradle reads for signingConfigs.mainRc); map them onto the
           # signer-agnostic names scripts/repack.js expects.
+          # shellcheck source=/dev/null
+          . "$SIGNING_ENV_FILE"
           if [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD:-}" ] || [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS:-}" ]; then
             echo "::error::RC keystore credentials missing; the signer secret did not expose BITRISEIO_ANDROID_RC_KEYSTORE_*."
             exit 1

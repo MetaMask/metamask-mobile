@@ -3,31 +3,34 @@
  * Maps GitHub Secrets to environment variables based on builds.yml config.
  * Runs at workflow runtime (during the "Set secrets" step).
  *
- * Reads CONFIG_SECRETS (the build's secrets map from builds.yml) and ALL_SECRETS
- * (the full secrets context via toJSON(secrets)) and injects each mapped secret
- * value into GITHUB_ENV so subsequent steps (e.g. build.sh) see them.
+ * Reads CONFIG_SECRETS (the build's secrets map from builds.yml) and injects each
+ * mapped secret value into GITHUB_ENV so subsequent steps (e.g. build.sh) see them.
  *
- * Using toJSON(secrets) means the workflow no longer needs an explicit per-secret
- * list — adding a secret to builds.yml and the GitHub Environment is sufficient.
+ * Secret values are read from the step's own environment, where the workflow maps
+ * each secret explicitly (`NAME: ${{ secrets.NAME }}`). Workflows that still pass
+ * the whole secrets context as ALL_SECRETS (toJSON(secrets)) are read from that.
  *
  * CONFIG_SECRETS format: { "ENV_VAR_NAME": "GITHUB_SECRET_NAME", ... }
  */
 
 const fs = require('fs');
 
-// No fallback: an unresolved toJSON(secrets) expands to an empty string, and
-// defaulting it to {} would skip every secret while still exiting 0 — producing
-// a signed binary with no Infura ID, Sentry DSN, or RPC failover URLs.
-if (!process.env.ALL_SECRETS) {
+// No fallback when ALL_SECRETS is present but empty: an unresolved toJSON(secrets)
+// expands to an empty string, and defaulting it to {} would skip every secret while
+// still exiting 0 — producing a signed binary with no Infura ID, Sentry DSN, or RPC
+// failover URLs.
+if ('ALL_SECRETS' in process.env && !process.env.ALL_SECRETS) {
   // GitHub Actions annotation so the error surfaces on the run summary.
   console.error(
-    '::error title=Secret injection failed::ALL_SECRETS is not defined. Expected toJSON(secrets).',
+    '::error title=Secret injection failed::ALL_SECRETS is empty. Expected toJSON(secrets).',
   );
   process.exit(1);
 }
 
 const secretsMapping = JSON.parse(process.env.CONFIG_SECRETS || '{}');
-const allSecrets = JSON.parse(process.env.ALL_SECRETS);
+const allSecrets = process.env.ALL_SECRETS
+  ? JSON.parse(process.env.ALL_SECRETS)
+  : process.env;
 const githubEnvPath = process.env.GITHUB_ENV;
 
 function appendToGithubEnv(name, value) {
