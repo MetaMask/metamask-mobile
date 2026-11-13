@@ -12,16 +12,18 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useRef } from 'react';
+import { View } from 'react-native';
+import { Laminar } from 'react-native-laminar';
 import Animated, {
   FadeIn,
   FadeOut,
   useAnimatedStyle,
+  useReducedMotion,
   withSpring,
   ZoomIn,
   ZoomOut,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { useLiquidGlass } from '../../../../../component-library/hooks/useLiquidGlass';
 import { playSelection } from '../../../../../util/haptics';
@@ -56,8 +58,7 @@ const LABEL_TEXT_PROPS = {
   variant: TextVariant.BodyMd,
 } as const;
 
-export const PENDING_POSTS_SLOTS_PROBE_TEST_ID =
-  'pending-posts-button-slots-probe';
+export const PENDING_POSTS_COUNT_TEST_ID = 'pending-posts-button-count';
 export const PENDING_POSTS_PILL_TEST_ID = 'pending-posts-pill';
 
 export interface PendingPostsButtonProps {
@@ -119,35 +120,46 @@ export const getPendingPostsLabelParts = (
 };
 
 /**
- * Laminar sizes the reel to the proportional digits but draws every slot as
- * wide as `0`, so the reel overflows onto the words beside it. A zero-height
- * all-zero probe in the same column widens the box to the drawn slots; it must
- * stay in flow because an absolute child is capped at the parent's width.
+ * Laminar sizes the reel to the measured digits but draws every slot as wide
+ * as `0`, so proportional digits leave a slot squeezed and clipped once a
+ * narrow digit like `1` has shown. Tabular digits keep the two widths equal.
  */
-const PendingPostsCount = ({ count }: { count: string }) => (
-  <Box>
-    <Text
-      {...LABEL_TEXT_PROPS}
-      accessible={false}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      numberOfLines={1}
-      testID={PENDING_POSTS_SLOTS_PROBE_TEST_ID}
-      twClassName="h-0 opacity-0"
-    >
-      {count.replace(/\d/gu, '0')}
-    </Text>
-    <AnimatedBalanceText
-      accessible={false}
-      color={LABEL_TEXT_PROPS.color}
-      fontFamily={LABEL_TEXT_PROPS.fontFamily}
-      isLoading={false}
-      loadingValue={count}
-      value={count}
-      variant={LABEL_TEXT_PROPS.variant}
-    />
-  </Box>
-);
+const PendingPostsCount = ({ count }: { count: string }) => {
+  const tw = useTailwind();
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return (
+      <Text
+        {...LABEL_TEXT_PROPS}
+        accessible={false}
+        testID={PENDING_POSTS_COUNT_TEST_ID}
+        twClassName="tabular-nums"
+      >
+        {count}
+      </Text>
+    );
+  }
+
+  return (
+    <View testID={PENDING_POSTS_COUNT_TEST_ID}>
+      <Laminar
+        align="left"
+        animationDuration={400}
+        animationPreset="smooth"
+        autoSize
+        style={tw.style(
+          `text-${LABEL_TEXT_PROPS.variant}`,
+          `font-${LABEL_TEXT_PROPS.fontFamily}-${LABEL_TEXT_PROPS.fontWeight}`,
+          LABEL_TEXT_PROPS.color,
+          'tabular-nums',
+        )}
+        text={count}
+        variant="slots"
+      />
+    </View>
+  );
+};
 
 interface PendingPostsPillProps extends PendingPostsButtonProps {
   isMaterialSurface: boolean;
