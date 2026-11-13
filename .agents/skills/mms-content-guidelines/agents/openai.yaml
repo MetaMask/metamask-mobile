@@ -1,0 +1,5 @@
+interface:
+  display_name: "mms-content-guidelines"
+  short_description: >-
+    Agent-readable implementation of approved MetaMask content guidance for user-facing strings in metamask-mobile and metamask-extension. Covers sentence case, voice, buttons, wallet and account, network fee, spending cap, Secret Recovery Phrase, and errors. Use when writing or reviewing locale files (en.json, messages.json), buttons, toasts, empty states, errors, confirmations, or the same standards in stories, constants, and README examples.
+  default_prompt: "Use $mms-content-guidelines for this task."
