@@ -25,6 +25,9 @@ export const VbaRendererTestIds = {
   OPEN_VENDOR_TERMS: 'vba-renderer-open-vendor-terms',
   OPEN_MONEY_SHEET: 'vba-renderer-open-money-sheet',
   CALLER: 'vba-renderer-caller',
+  WALLET_HOME: 'vba-renderer-wallet-home',
+  OPEN_CARD_HOME: 'vba-renderer-open-card-home',
+  CARD_HOME_BACK: 'vba-renderer-card-home-back',
 } as const;
 
 let restoreVbaReduxStore: (() => void) | undefined;
@@ -90,6 +93,51 @@ const VbaMoneyCaller = () => {
   );
 };
 
+/**
+ * Wallet home under a Card home stand-in. Card home's back only fails when
+ * something sits beneath it: opening a bank account used to drop that screen.
+ */
+const VbaWalletHomeCaller = (): React.ReactElement => {
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  return (
+    <>
+      <Text testID={VbaRendererTestIds.WALLET_HOME}>Wallet home</Text>
+      <Pressable
+        testID={VbaRendererTestIds.OPEN_CARD_HOME}
+        onPress={() => navigation.navigate('VbaCardHomeCaller')}
+      >
+        <Text>Open card home</Text>
+      </Pressable>
+    </>
+  );
+};
+
+/**
+ * Stand-in for Card home: the real Add money sheet, plus the header back
+ * (`navigation.goBack()` from `useCardHeaderHandlers('back')`).
+ */
+const VbaCardHomeCaller = (): React.ReactElement => {
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+
+  return (
+    <>
+      <Pressable
+        testID={VbaRendererTestIds.OPEN_MONEY_SHEET}
+        onPress={() => navigation.navigate(Routes.MONEY.MODALS.ADD_MONEY_SHEET)}
+      >
+        <Text>Open add money</Text>
+      </Pressable>
+      <Pressable
+        testID={VbaRendererTestIds.CARD_HOME_BACK}
+        onPress={() => navigation.goBack()}
+      >
+        <Text>Back</Text>
+      </Pressable>
+    </>
+  );
+};
+
 const buildVbaState = ({
   location,
   flagEnabled,
@@ -138,6 +186,42 @@ export const renderVbaMoneyEntry = (options: RenderVbaOptions = {}) => {
     VbaMoneyCaller,
     { name: 'VbaMoneyCaller' },
     [
+      {
+        name: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        Component: MoneyAddMoneySheet as unknown as React.ComponentType,
+      },
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component:
+          VbaOnboardingNavigator as unknown as React.ComponentType<object>,
+      },
+      {
+        name: Routes.RAMP.VBA_DETAILS,
+        Component: VbaDetails as unknown as React.ComponentType,
+      },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/**
+ * Card home opened on top of wallet home, then the real Add money sheet and
+ * bank screens. Back from the bank screen returns to Card home, and Card
+ * home's back returns to wallet home.
+ */
+export const renderVbaCardHomeEntry = (
+  options: RenderVbaOptions = {},
+): ReturnType<typeof renderScreenWithRoutes> => {
+  const result = renderScreenWithRoutes(
+    VbaWalletHomeCaller,
+    { name: 'VbaWalletHomeCaller' },
+    [
+      {
+        name: 'VbaCardHomeCaller',
+        Component: VbaCardHomeCaller,
+      },
       {
         name: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
         Component: MoneyAddMoneySheet as unknown as React.ComponentType,

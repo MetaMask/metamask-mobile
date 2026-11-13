@@ -341,6 +341,111 @@ describe('TokenDetailsActions', () => {
     });
   });
 
+  describe('navigation lock', () => {
+    it('calls onSend once when Send is pressed twice before the lock resets', () => {
+      const onSend = jest.fn();
+      const resetNavigationLockRef: { current: (() => void) | null } = {
+        current: null,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          hasBalance
+          onSend={onSend}
+          resetNavigationLockRef={resetNavigationLockRef}
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON);
+      fireEvent.press(sendButton);
+      fireEvent.press(sendButton);
+
+      expect(onSend).toHaveBeenCalledTimes(1);
+
+      resetNavigationLockRef.current?.();
+      fireEvent.press(sendButton);
+
+      expect(onSend).toHaveBeenCalledTimes(2);
+    });
+
+    it('calls onActionTapped when the navigation lock drops the Send handler', () => {
+      const onSend = jest.fn();
+      const onActionTapped = jest.fn();
+
+      const { getByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          hasBalance
+          onSend={onSend}
+          onActionTapped={onActionTapped}
+        />,
+        { state: mockInitialState },
+      );
+
+      const sendButton = getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON);
+      fireEvent.press(sendButton);
+      fireEvent.press(sendButton);
+
+      expect(onSend).toHaveBeenCalledTimes(1);
+      expect(onActionTapped.mock.calls).toStrictEqual([
+        [TokenDetailsAction.Send],
+        [TokenDetailsAction.Send],
+      ]);
+    });
+  });
+
+  describe('button order', () => {
+    it('renders Cash Buy, Send, Receive, then More', () => {
+      const { UNSAFE_getAllByType: getButtonsByType } = renderWithProvider(
+        <TokenDetailsActions {...defaultProps} isBuyable hasBalance />,
+        { state: mockInitialState },
+      );
+
+      const MainActionButton = jest.requireActual(
+        '../../../../component-library/components-temp/MainActionButton',
+      ).default;
+
+      expect(
+        getButtonsByType(MainActionButton).map(
+          (button: { props: { testID?: string } }) => button.props.testID,
+        ),
+      ).toStrictEqual([
+        TokenOverviewSelectorsIDs.BUY_BUTTON,
+        TokenOverviewSelectorsIDs.SEND_BUTTON,
+        TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+        TokenOverviewSelectorsIDs.MORE_BUTTON,
+      ]);
+    });
+
+    it('renders Long, Short, Receive, then More when there is no balance', () => {
+      const { UNSAFE_getAllByType: getButtonsByType } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          hasPerpsMarket
+          hasBalance={false}
+        />,
+        { state: mockInitialState },
+      );
+
+      const MainActionButton = jest.requireActual(
+        '../../../../component-library/components-temp/MainActionButton',
+      ).default;
+
+      expect(
+        getButtonsByType(MainActionButton).map(
+          (button: { props: { testID?: string } }) => button.props.testID,
+        ),
+      ).toStrictEqual([
+        TokenOverviewSelectorsIDs.LONG_BUTTON,
+        TokenOverviewSelectorsIDs.SHORT_BUTTON,
+        TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+        TokenOverviewSelectorsIDs.MORE_BUTTON,
+      ]);
+    });
+  });
+
   describe('glass', () => {
     it('keeps the opaque tiles by default', () => {
       const { queryAllByTestId } = renderWithProvider(

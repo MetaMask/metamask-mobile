@@ -94,6 +94,7 @@ export interface ExploreSearchInteractedProperties {
 export type ExploreTabName =
   | 'Now'
   | 'Macro'
+  | 'Perps'
   | 'RWAs'
   | 'Crypto'
   | 'Sports'
@@ -105,6 +106,7 @@ export type ExploreSectionName =
   | 'perps_movers'
   | 'perps_stocks_commodities'
   | 'perps_markets'
+  | 'perps_tab_markets'
   | 'perps_crypto'
   | 'stocks'
   | 'predictions_trending'

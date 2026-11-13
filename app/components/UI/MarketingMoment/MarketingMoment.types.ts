@@ -38,6 +38,11 @@ export interface MarketingMomentProps {
    */
   titleProps?: Partial<TextProps>;
   /**
+   * Replaces the copy block's default `mt-12`. The title, description, and
+   * children stay in that block.
+   */
+  copyClassName?: string;
+  /**
    * Supporting copy under the title. Strings render in the body `Text`; any
    * other node replaces it.
    */

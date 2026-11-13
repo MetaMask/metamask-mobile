@@ -111,7 +111,7 @@ const CreateBalancePostButton: React.FC<{ token: TokenDetailsRouteParams }> = ({
       return;
     }
     if (!sharePosition) {
-      openComposer();
+      openComposer({ composerEntry: 'token_details' });
       return;
     }
     openComposer({
@@ -140,7 +140,7 @@ const CreatePostButton: React.FC = () => {
   return (
     <Button
       variant={ButtonVariant.Secondary}
-      onPress={() => openComposer()}
+      onPress={() => openComposer({ composerEntry: 'token_details' })}
       twClassName="mt-4 self-center"
       testID={CREATE_POST_TEST_ID}
     >
