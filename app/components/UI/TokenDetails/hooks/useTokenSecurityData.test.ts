@@ -177,6 +177,20 @@ describe('useTokenSecurityData', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('returns null security data when the asset list is empty', async () => {
+    const assetId = 'eip155:1/erc20:0x1234' as CaipAssetType;
+    mockFetchTokenAssets.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useTokenSecurityData({ assetId }));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.securityData).toBeNull();
+    expect(result.current.error).toBeNull();
+  });
+
   it('refetches when assetId changes', async () => {
     const assetId1 = 'eip155:1/erc20:0x1111' as CaipAssetType;
     const assetId2 = 'eip155:1/erc20:0x2222' as CaipAssetType;
