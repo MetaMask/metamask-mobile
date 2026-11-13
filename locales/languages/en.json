@@ -9891,7 +9891,7 @@
     },
     "transfer_sheet": {
       "title": "Move funds",
-      "between_accounts": "Withdraw to accounts",
+      "between_accounts": "Your accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
