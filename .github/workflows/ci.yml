@@ -681,7 +681,14 @@ jobs:
     name: Dependency audit escalation
     needs:
       - dependency-audit
-    if: ${{ needs.dependency-audit.outputs.has-advisories == 'true' }}
+    # Fork pull requests receive a read-only GITHUB_TOKEN. Keep the advisory
+    # audit above running, but skip this write-capable triage workflow because
+    # it creates labels, PRs, and issues.
+    if: >-
+      ${{
+        needs.dependency-audit.outputs.has-advisories == 'true' &&
+        (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true)
+      }}
     # A reusable workflow's own `permissions:` block can only narrow what its
     # caller grants here, never widen it — this must be a superset of
     # dependency-audit-escalation.yml's own permissions block, or the call
