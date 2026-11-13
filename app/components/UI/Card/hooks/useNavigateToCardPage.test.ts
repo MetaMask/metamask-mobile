@@ -162,11 +162,8 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.BROWSER.HOME,
           expect.objectContaining({
-            screen: Routes.BROWSER.VIEW,
-            params: expect.objectContaining({
-              newTabUrl: url,
-              fromCard: true,
-            }),
+            newTabUrl: url,
+            fromCard: true,
           }),
         );
       });
@@ -192,12 +189,9 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.BROWSER.HOME,
           expect.objectContaining({
-            screen: Routes.BROWSER.VIEW,
-            params: expect.objectContaining({
-              existingTabId: tabId,
-              newTabUrl: undefined,
-              fromCard: true,
-            }),
+            existingTabId: tabId,
+            newTabUrl: undefined,
+            fromCard: true,
           }),
         );
       });
@@ -275,10 +269,9 @@ describe('useNavigateToInternalBrowserPage', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          params: expect.objectContaining({
-            existingTabId: 'first-tab',
-            fromCard: true,
-          }),
+          existingTabId: 'first-tab',
+          newTabUrl: undefined,
+          fromCard: true,
         }),
       );
     });
@@ -327,11 +320,8 @@ describe('useNavigateToCardPage', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.BROWSER.HOME,
         expect.objectContaining({
-          screen: Routes.BROWSER.VIEW,
-          params: expect.objectContaining({
-            newTabUrl: 'https://travel.metamask.io/access',
-            fromCard: true,
-          }),
+          newTabUrl: 'https://travel.metamask.io/access',
+          fromCard: true,
         }),
       );
     });
