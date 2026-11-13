@@ -8,14 +8,12 @@ import {
   popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
-import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
-import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
-
-const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
+import { openSharedPositionOnProfile } from './socialPositionSheetDeeplink';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -46,47 +44,6 @@ const logPositionQueryInvalidationError = (invalidationError: unknown) => {
     '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
     invalidationError,
   );
-};
-
-/**
- * A shared position opens like a profile row tap: the trader's Social V1
- * profile, with the position sheet over it. A position that can no longer be
- * fetched leaves the user on the profile. A position the trader doesn't own
- * opens on its real owner's profile instead.
- */
-const openSharedPositionOnProfile = (
-  positionId: string,
-  traderId: string,
-): void => {
-  navigateToSocialV1Profile(NavigationService.navigation, {
-    traderId,
-    source: 'deep_link',
-  });
-  resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)
-    .then((shared) => {
-      if (!shared) {
-        return;
-      }
-      const { position, author, isOwnerMismatch } = shared;
-      if (isOwnerMismatch) {
-        navigateToSocialV1Profile(NavigationService.navigation, {
-          traderId: author.id,
-          traderName: author.username,
-          traderAddress: author.address,
-          traderAvatarUri: author.avatarUri ?? undefined,
-          source: 'deep_link',
-        });
-      }
-      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
-        positionId,
-        position,
-        author,
-        shareSource: 'deep_link',
-      });
-    })
-    .catch((error: unknown) => {
-      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
-    });
 };
 
 /**
@@ -157,6 +114,20 @@ export const handleSocialTraderPositionUrl = ({
     const openedFromNotification = notificationSubtype !== undefined;
 
     const isV1Treatment = isSocialV1Treatment();
+    // A shared link from someone who has not joined Social previews the
+    // trader first. A notification only reaches Social members, so it keeps
+    // the plain terms gate.
+    if (
+      isV1Treatment &&
+      !openedFromNotification &&
+      openSocialTraderPreviewIfNotJoined(NavigationService.navigation, {
+        kind: 'position',
+        traderId,
+        positionId,
+      })
+    ) {
+      return;
+    }
     // Catches on its own because the terms screen can run it after this
     // handler's try/catch has returned.
     const openPosition = () => {

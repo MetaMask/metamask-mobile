@@ -153,6 +153,7 @@ const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockSetTitleSectionHeight = jest.fn();
 const mockScrollY = { value: 0 };
 const mockSocialFeedProps = jest.fn();
+const mockSocialFeedMount = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -321,6 +322,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     testID?: string;
   }) => {
     mockSocialFeedProps(props);
+    ReactActual.useEffect(() => {
+      mockSocialFeedMount();
+    }, []);
     const result = mockSocialFeedState;
     ReactActual.useImperativeHandle(props.refreshRef, () => ({
       refresh: result.refresh,
@@ -2278,6 +2282,19 @@ describe('MyProfileView', () => {
     ).toHaveStyle({ backgroundColor: lightTheme.colors.background.pressed });
     expect(screen.getByTestId('position-row-DOGE')).toBeOnTheScreen();
     expect(screen.queryByTestId('position-row-BTC')).toBeNull();
+  });
+
+  it('keeps the Posts feed mounted across a positions tab round trip', () => {
+    renderWithProvider(<MyProfileView />);
+    expect(mockSocialFeedMount).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+
+    expect(mockSocialFeedMount).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
+    ).toBeOnTheScreen();
   });
 
   it('requests every feed chain on Posts while the filter is All', () => {

@@ -175,6 +175,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
   '@metamask/eip1193-permission-middleware',
+  '@metamask/ai-controllers',
+  '@metamask/app-metadata-controller',
+  '@metamask/compliance-controller',
+  '@metamask/earn-controller',
+  '@metamask/multichain-transactions-controller',
+  '@metamask/react-data-query',
 ];
 
 const config = {

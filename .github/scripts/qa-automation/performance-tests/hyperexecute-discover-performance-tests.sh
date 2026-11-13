@@ -4,18 +4,21 @@
 # Only emits specs that can match playwright.testmu.config.ts grep /@Performance\b/.
 # Specs tagged only with area tags (for example @PerformanceSwaps) are excluded.
 #
-# Usage: BUILD_TYPE=onboarding|imported-wallet ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
+# Usage: BUILD_TYPE=onboarding|imported-wallet|dev-onboarding ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
 set -euo pipefail
 
 BUILD_TYPE="${BUILD_TYPE:-}"
 if [[ -z "$BUILD_TYPE" ]]; then
-  echo "BUILD_TYPE is required (onboarding|imported-wallet)" >&2
+  echo "BUILD_TYPE is required (onboarding|imported-wallet|dev-onboarding)" >&2
   exit 1
 fi
 
 case "$BUILD_TYPE" in
   onboarding)
     ROOTS=(tests/performance/onboarding)
+    ;;
+  dev-onboarding)
+    ROOTS=(tests/performance/dev-onboarding)
     ;;
   imported-wallet)
     ROOTS=(tests/performance/login)
