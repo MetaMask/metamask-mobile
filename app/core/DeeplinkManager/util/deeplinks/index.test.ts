@@ -1,4 +1,5 @@
 import {
+  getBranchShortLinkId,
   isInternalDeepLink,
   isMetaMaskSDKDeeplinkAction,
   isMetaMaskUniversalLink,
@@ -7,6 +8,42 @@ import {
 import { ACTIONS } from '../../../../constants/deeplinks';
 
 describe('deeplinks utils', () => {
+  describe('getBranchShortLinkId', () => {
+    it.each([
+      ['https://metamask-alternate.app.link/1WkF6GmE40b', '1WkF6GmE40b'],
+      ['https://metamask.app.link/1WkF6GmE40b?share=1', '1WkF6GmE40b'],
+      ['https://metamask.test-app.link/abc123/', 'abc123'],
+      ['https://metamask-alternate.test-app.link/abc123', 'abc123'],
+    ])('returns the Branch link id of %s', (url, expected) => {
+      expect(getBranchShortLinkId(url)).toBe(expected);
+    });
+
+    it.each([
+      [
+        'a Branch host link that names a route',
+        'https://metamask.app.link/swap',
+      ],
+      [
+        'a Branch host link with a nested route',
+        'https://metamask-alternate.app.link/social/profile?traderId=1',
+      ],
+      [
+        'a Branch host link with more than one segment',
+        'https://metamask.app.link/1WkF6GmE40b/extra',
+      ],
+      ['a Branch host link without a path', 'https://metamask.app.link/'],
+      ['a non Branch MetaMask host', 'https://link.metamask.io/1WkF6GmE40b'],
+      ['another host', 'https://example.app.link/1WkF6GmE40b'],
+      ['a custom scheme', 'metamask://1WkF6GmE40b'],
+      ['an unparseable value', 'not a url'],
+      ['an empty value', ''],
+      ['undefined', undefined],
+      ['null', null],
+    ])('returns null for %s', (_label, url) => {
+      expect(getBranchShortLinkId(url)).toBeNull();
+    });
+  });
+
   describe('isMetaMaskUniversalLink', () => {
     it('identifies MetaMask universal links by host', () => {
       expect(isMetaMaskUniversalLink('https://link.metamask.io/swap')).toBe(
