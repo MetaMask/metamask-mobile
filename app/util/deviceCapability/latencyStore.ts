@@ -97,7 +97,9 @@ export function isLatencyTransportNone(): boolean {
  * Selects the thresholds row and starts the reset listeners: AppState
  * `background` to `active` (in-flight samples are also dropped on
  * `inactive`), and NetInfo transport changes (`type` /
- * `cellularGeneration`; reachability-only flips do not reset). Idempotent.
+ * `cellularGeneration`). A reachability-only `null` ↔ `true` flip does not
+ * reset, but leaving the `NONE` tier (reconnect) does, so in-flight
+ * fetches that span the offline gap are dropped. Idempotent.
  */
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
@@ -126,8 +128,12 @@ export function startLatencyMonitoring(
     const changed =
       previousNetInfoKey !== undefined && key !== previousNetInfoKey;
     previousNetInfoKey = key;
+    const wasTransportNone = isTransportNone;
     isTransportNone = computeNetworkTier(input) === 'NONE';
-    if (changed || isTransportNone) {
+    // `wasTransportNone` covers leaving NONE without a transport key change
+    // (reachability false → true on the same transport): in-flight fetches
+    // span the offline gap, so their elapsed time is not a latency signal.
+    if (changed || isTransportNone || wasTransportNone) {
       clearLatencySamples();
     }
   });
