@@ -200,12 +200,14 @@ describe('PredictHome', () => {
       await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
       await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
 
-      expect(
-        queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION),
-      ).not.toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('omits the Popular Today divider and impression wrapper when the section hides itself', async () => {
@@ -219,12 +221,14 @@ describe('PredictHome', () => {
       await findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
       await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
 
-      expect(
-        queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION),
-      ).not.toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 
