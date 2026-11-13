@@ -143,10 +143,9 @@ async function main(): Promise<void> {
   const deferredDays: string[] = [];
   const attempted: string[] = [];
 
-  // Fresh days first, each with a share large enough to finish a heavy
-  // weekday. What a day does not spend stays available for the next one.
-  // Days that would get nothing wait for a later night instead of being
-  // recorded as gaps this build did not really walk.
+  // Fresh days first. A day starts only with enough requests to finish a
+  // heavy weekday. A smaller leftover waits for the next night. Starting it
+  // would mark the day incomplete and store a new gap.
   const ordered = orderDaysForWalk(days, prior.gapDays);
 
   for (const day of ordered) {

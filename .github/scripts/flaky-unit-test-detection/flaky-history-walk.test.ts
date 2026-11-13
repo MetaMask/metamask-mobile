@@ -132,6 +132,14 @@ describe('requestShareForDay', () => {
     ).toBe(2);
     expect(shares.filter((share) => share === 0).length).toBeGreaterThan(0);
   });
+
+  it('returns nothing when the leftover cannot finish a heavy weekday', () => {
+    const share = requestShareForDay({
+      spent: HEAVY_DAY_REST_REQUESTS * 2,
+    });
+
+    expect(share).toBe(0);
+  });
 });
 
 describe('orderDaysForWalk', () => {

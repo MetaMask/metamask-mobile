@@ -70,18 +70,28 @@ export function newWalkBudget(): WalkBudget {
   return { restRequests: 0, logFetches: 0 };
 }
 
-/** Next day's request share. A full heavy day, not budget divided by queued days. */
+/**
+ * Next day's request share. A full heavy day, not budget divided by queued days.
+ * A leftover below `minToStart` is 0 so the caller defers the day instead of
+ * opening it and recording a new gap.
+ */
 export function requestShareForDay({
   spent,
   buildBudget = MAX_REST_REQUESTS_PER_BUILD,
   perDay = MAX_REST_REQUESTS_PER_DAY,
+  minToStart = HEAVY_DAY_REST_REQUESTS,
 }: {
   spent: number;
   buildBudget?: number;
   perDay?: number;
+  minToStart?: number;
 }): number {
   const remaining = Math.max(0, buildBudget - Math.max(0, spent));
-  return Math.min(Math.max(0, perDay), remaining);
+  const share = Math.min(Math.max(0, perDay), remaining);
+  if (share < minToStart) {
+    return 0;
+  }
+  return share;
 }
 
 /**
