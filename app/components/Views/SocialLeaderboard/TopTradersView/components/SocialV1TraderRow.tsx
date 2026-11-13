@@ -37,6 +37,8 @@ import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 const AVATAR_SIZE = 40;
 const MEDAL_SIZE = 24;
 const RANK_COLUMN_WIDTH = 32;
+/** Shown in the position column when the viewer's rank is unknown. */
+const UNRANKED_POSITION_LABEL = '-';
 /**
  * Single-line row: rank, avatar, name + badges, PnL. Locked so the skeleton
  * occupies the same vertical space. Perps home and any caller that does not
@@ -145,7 +147,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           style={{ width: RANK_COLUMN_WIDTH }}
           testID={SocialV1TraderRowSelectorsIDs.RANK}
         >
-          {hideRank ? null : showMedal ? (
+          {showMedal ? (
             <RankMedal rank={trader.rank} size={MEDAL_SIZE} />
           ) : (
             <Text
@@ -155,7 +157,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
                 highlighted ? TextColor.TextAlternative : TextColor.TextMuted
               }
             >
-              {trader.rank}
+              {hideRank ? UNRANKED_POSITION_LABEL : trader.rank}
             </Text>
           )}
         </Box>

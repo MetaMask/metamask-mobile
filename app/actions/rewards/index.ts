@@ -4,8 +4,6 @@ export {
   setSeasonStatus,
   setSeasonStatusError,
   resetRewardsState,
-  resetOnboarding,
-  setOnboardingActiveStep,
   setCandidateSubscriptionId,
   setHideUnlinkedAccountsBanner,
   setGeoRewardsMetadata,
@@ -17,4 +15,3 @@ export {
 } from '../../reducers/rewards';
 
 export type { RewardsState } from '../../reducers/rewards';
-export { OnboardingStep } from '../../reducers/rewards/types';

@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   ListItemSelect,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -10,6 +9,9 @@ import { useHaptics } from '../../../../../../util/haptics';
 import { getPerpsProActivityViewSelector } from '../../../Perps.testIds';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import type { ProTwapView } from '../utils/proTwapViews';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsProActivityFilterSheetProps {
   isVisible: boolean;
@@ -43,6 +45,7 @@ const PerpsProActivityFilterSheet = ({
   onClose,
   testID = 'perps-pro-activity-filter-sheet',
 }: PerpsProActivityFilterSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -74,12 +77,13 @@ const PerpsProActivityFilterSheet = ({
   return (
     <PerpsProModalPortal onRequestClose={handleClose}>
       <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ testID: `${testID}-close` }}
         >
           {strings('perps.market_type.filter_by')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         {options.map((option) => {
           const isSelected = activityView === option;
 

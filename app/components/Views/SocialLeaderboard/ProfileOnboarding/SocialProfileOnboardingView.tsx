@@ -2,7 +2,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonVariant,
   FontWeight,
@@ -18,6 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   StackActions,
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -32,11 +32,11 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   type LayoutChangeEvent,
-  type TextStyle,
 } from 'react-native';
 import Animated, {
   Easing,
@@ -79,6 +79,7 @@ import {
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
+  MAX_DISPLAY_NAME_LENGTH,
   displayNameFromUsername,
   getUsernameStatus,
   isUneditedXUsername,
@@ -88,6 +89,7 @@ import {
   type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getDisplayNameError } from './utils/getDisplayNameError';
 import { getUsernameLocalError } from './utils/getUsernameLocalError';
 import { getUsernameFeedback } from './utils/getUsernameFeedback';
 import UsernameStatusLine from './UsernameStatusLine';
@@ -172,30 +174,17 @@ const LIVE_ACTIVITY = [
 /**
  * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
  * design-system hero face and falls back when the language is not in the font.
- * Spacing stays on the wrapper. The title paints its metrics as a style, so a
- * padding class on the text would lose to that style.
+ * DisplayLg on iOS is an 80% line (32px) with 8px of clip padding. Spacing
+ * stays on the wrapper.
  */
-/**
- * Design-system DisplayLg line box (40px font, 50px line). It replaces the
- * Grotzec tight metrics, so the clip padding and negative margin are cleared.
- */
-const DISPLAY_LG_LINE_STYLE: TextStyle = {
-  lineHeight: 50,
-  paddingTop: 0,
-  paddingBottom: 0,
-  marginBottom: 0,
-};
-
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
-  textStyle?: TextStyle;
-}> = ({ children, twClassName, textStyle }) => (
+}> = ({ children, twClassName }) => (
   <Box twClassName={twClassName}>
     <MarketingMomentTitle
       variant={TextVariant.DisplayLg}
       twClassName="w-full text-center"
-      style={textStyle}
     >
       {children}
     </MarketingMomentTitle>
@@ -501,6 +490,7 @@ const ReadyCardFallback: React.FC<{
 
 const SocialProfileOnboardingView: React.FC = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isFocused = useIsFocused();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<RouteProp<RootStackParamList, 'SocialProfileOnboardingView'>>();
@@ -517,6 +507,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const {
     profile: controllerProfile,
     checkUsernameAvailability,
+    checkDisplayNameValidity,
     createProfile,
     updateProfile,
     fetchAndUpdateProfile,
@@ -555,11 +546,29 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
     null,
   );
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const displayNameCheckId = useRef(0);
+
+  useEffect(() => {
+    displayNameCheckId.current += 1;
+    setDisplayNameError(null);
+  }, [draft.displayName]);
+
+  // VoiceOver keeps focus on Continue and ignores accessibilityLiveRegion, so
+  // announce the error explicitly. TalkBack reads the alert live region.
+  useEffect(() => {
+    if (!displayNameError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(displayNameError);
+  }, [displayNameError]);
   const [finishError, setFinishError] = useState<string | null>(null);
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
     useState<ProfileOnboardingPath | null>(null);
   const [pendingTermsOnly, setPendingTermsOnly] = useState(isTermsOnlyRoute);
+  const rivePaused =
+    !isFocused || Boolean(pendingTermsPath || pendingTermsOnly);
   const [connectXError, setConnectXError] = useState<string | null>(null);
   const [isConnectingX, setIsConnectingX] = useState(false);
   const [profileCreated, setProfileCreated] = useState(false);
@@ -796,6 +805,22 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction,
   ]);
 
+  const checkDisplayName = useCallback(
+    async (displayName: string): Promise<boolean> => {
+      const requestId = ++displayNameCheckId.current;
+      const error = await getDisplayNameError(
+        displayName,
+        checkDisplayNameValidity,
+      );
+      if (requestId !== displayNameCheckId.current) {
+        return false;
+      }
+      setDisplayNameError(error);
+      return error === null;
+    },
+    [checkDisplayNameValidity],
+  );
+
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
       ...current,
@@ -1020,11 +1045,21 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
+      if (step === 'username' && !(await checkDisplayName(draft.displayName))) {
+        return;
+      }
       setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
+  }, [
+    checkDisplayName,
+    checkHandle,
+    clearUsernameCheckTimer,
+    draft,
+    playSelection,
+    step,
+  ]);
 
   const fingerprintForDraft = (
     current: ProfileOnboardingDraft,
@@ -1316,6 +1351,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}
                     onStepChange={handleIntroSceneStep}
+                    paused={rivePaused}
                   />
                 }
                 artworkWrapperProps={{
@@ -1441,8 +1477,9 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.displayName}
                       onChangeText={handleDisplayNameChange}
+                      isError={Boolean(displayNameError)}
                       endAccessory={
-                        draft.displayName.trim() ? (
+                        draft.displayName.trim() && !displayNameError ? (
                           <Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
@@ -1452,10 +1489,21 @@ const SocialProfileOnboardingView: React.FC = () => {
                       }
                       inputProps={{
                         autoCapitalize: 'words',
+                        maxLength: MAX_DISPLAY_NAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
                       }}
                     />
+                    {displayNameError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        accessibilityRole="alert"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {displayNameError}
+                      </Text>
+                    ) : null}
                   </Box>
                 </Box>
               ) : null}
@@ -1478,14 +1526,11 @@ const SocialProfileOnboardingView: React.FC = () => {
 
               {step === 'account' ? (
                 <Box
-                  gap={4}
+                  gap={3}
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle
-                    twClassName="m-0.5 pt-3 px-3 pb-3"
-                    textStyle={DISPLAY_LG_LINE_STYLE}
-                  >
+                  <OnboardingTitle twClassName="m-0.5 pt-3 px-3 pb-3">
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
@@ -1544,6 +1589,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       avatarBackgroundId={draft.avatarBackgroundId}
                       imageUrl={readyImageUrl}
                       isVerified={isProfileCreatedAndVerified}
+                      paused={rivePaused}
                       fallback={
                         <ReadyCardFallback
                           avatarPresetId={draft.avatarPresetId}

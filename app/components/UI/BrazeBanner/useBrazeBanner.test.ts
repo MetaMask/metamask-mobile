@@ -83,7 +83,6 @@ const mockEndTrace = jest.mocked(endTrace);
 function makeRawProperties(props: {
   bannerName?: string;
   variantName?: string;
-  flushImmediately?: boolean;
   deeplink?: string;
   title?: string;
   body?: string;
@@ -95,11 +94,6 @@ function makeRawProperties(props: {
     result.campaign_name = { type: 'string', value: props.bannerName };
   if (props.variantName !== undefined)
     result.variant_name = { type: 'string', value: props.variantName };
-  if (props.flushImmediately !== undefined)
-    result.flush_immediately = {
-      type: 'boolean',
-      value: props.flushImmediately,
-    };
   if (props.deeplink !== undefined)
     result.deeplink = { type: 'string', value: props.deeplink };
   if (props.title !== undefined)
@@ -119,7 +113,6 @@ function makeBanner(
     placementId: string;
     bannerName: string;
     variantName: string;
-    flushImmediately: boolean;
     deeplink: string;
     title: string;
     body: string;
@@ -137,7 +130,6 @@ function makeBanner(
     properties: makeRawProperties({
       bannerName: overrides.bannerName,
       variantName: overrides.variantName,
-      flushImmediately: overrides.flushImmediately,
       deeplink: overrides.deeplink,
       title: overrides.title,
       body: overrides.body ?? 'Default body',
@@ -597,31 +589,6 @@ describe('useBrazeBanner', () => {
       expect(result.current.eventProperties).toEqual({
         campaign_name: 'campaign-abc',
       });
-    });
-  });
-
-  describe('flush_immediately property', () => {
-    it('defaults to false when no banner is loaded', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      expect(result.current.flushImmediately).toBe(false);
-    });
-
-    it('defaults to false when the property is absent', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      fireBannerEvent([makeBanner()]);
-      expect(result.current.flushImmediately).toBe(false);
-    });
-
-    it('is true when the campaign sets flush_immediately to true', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      fireBannerEvent([makeBanner({ flushImmediately: true })]);
-      expect(result.current.flushImmediately).toBe(true);
-    });
-
-    it('is false when the campaign sets flush_immediately to false', () => {
-      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      fireBannerEvent([makeBanner({ flushImmediately: false })]);
-      expect(result.current.flushImmediately).toBe(false);
     });
   });
 

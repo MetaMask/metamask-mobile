@@ -34,7 +34,6 @@ export interface RootState {
   rewards: {
     optinAllowedForGeo: boolean;
     optinAllowedForGeoLoading: boolean;
-    onboardingActiveStep: string;
     rewardsControllerState: {
       activeAccount: {
         subscriptionId: string | null;
@@ -72,7 +71,6 @@ export const createMockStore = (
     rewards: {
       optinAllowedForGeo: true,
       optinAllowedForGeoLoading: false,
-      onboardingActiveStep: 'STEP_1',
       rewardsControllerState: {
         activeAccount: {
           subscriptionId: null,
