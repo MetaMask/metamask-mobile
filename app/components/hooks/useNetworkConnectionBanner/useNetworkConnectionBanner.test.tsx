@@ -4,7 +4,12 @@ import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import useNetworkConnectionBanner from './useNetworkConnectionBanner';
+import useNetworkConnectionBanner, {
+  SLOW_NETWORK_BANNER_SNOOZE_MS,
+} from './useNetworkConnectionBanner';
+import { useNetworkLatency } from '../../../hooks/useNetworkLatency';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { RouteMessengerContext } from '../../../contexts/route-messenger';
 import type { RouteMessenger } from '../../../messengers/route-messenger';
@@ -25,6 +30,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 jest.mock('@react-navigation/native');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
+jest.mock('../../../hooks/useNetworkLatency');
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
   ...jest.requireActual(
     '../../../core/Engine/controllers/network-controller/utils',
@@ -59,6 +65,9 @@ const mockToastRef = {
 
 const statusMock = jest.mocked(selectNetworkConnectionBannerStatus);
 const networkMock = jest.mocked(selectNetworkConnectionBannerNetwork);
+const latencyMock = jest.mocked(useNetworkLatency);
+const getItemSyncMock = jest.mocked(StorageWrapper.getItemSync);
+const setItemMock = jest.mocked(StorageWrapper.setItem);
 
 /**
  * Configure the mocked controller selectors to describe a failing network.
@@ -92,6 +101,9 @@ describe('useNetworkConnectionBanner', () => {
 
     statusMock.mockReturnValue('available');
     networkMock.mockReturnValue(null);
+    latencyMock.mockReturnValue('OK');
+    getItemSyncMock.mockReturnValue(null);
+    setItemMock.mockResolvedValue(undefined);
 
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     jest.mocked(isPublicEndpointUrl).mockReturnValue(true);
@@ -213,6 +225,79 @@ describe('useNetworkConnectionBanner', () => {
   it('does not fire analytics when the banner is hidden', () => {
     renderHookWithProviders();
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  describe('isSlowNetwork', () => {
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+    });
+
+    afterEach(() => {
+      jest.mocked(Date.now).mockRestore();
+    });
+
+    it('is true when latency is slow and the RPC banner is hidden', () => {
+      latencyMock.mockReturnValue('SLOW');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('is false when latency is not slow', () => {
+      latencyMock.mockReturnValue('UNKNOWN');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('is false while the RPC banner is showing', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('is false within a week of being dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS + 60_000),
+      );
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('is true again once a week has passed since dismissal', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS - 60_000),
+      );
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('hides the banner and stores the dismissal time when dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result } = renderHookWithProviders();
+
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(setItemMock).toHaveBeenCalledWith(
+        SLOW_NETWORK_BANNER_DISMISSED_AT,
+        expect.stringMatching(/^\d+$/),
+      );
+    });
   });
 
   describe('updateRpc', () => {

@@ -13225,7 +13225,9 @@
     "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
     "check_network_connectivity": "Check your network connectivity.",
     "check_network_connectivity_or": "Check your network connectivity or",
-    "updated_to_metamask_default": "Updated to MetaMask default"
+    "updated_to_metamask_default": "Updated to MetaMask default",
+    "slow_network_title": "Slow connection",
+    "slow_network_description": "Data may take longer to load."
   },
   "trending": {
     "title": "Explore",

@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { hexToNumber } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
@@ -25,18 +25,37 @@ import {
 } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import { useNetworkLatency } from '../../../hooks/useNetworkLatency';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
+export const SLOW_NETWORK_BANNER_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 function sanitizeRpcUrl(rpcUrl: string) {
   return isPublicEndpointUrl(rpcUrl, infuraProjectId)
     ? onlyKeepHost(rpcUrl)
     : 'custom';
 }
 
+function isSlowNetworkBannerSnoozed(): boolean {
+  const dismissedAt = Number(
+    StorageWrapper.getItemSync(SLOW_NETWORK_BANNER_DISMISSED_AT),
+  );
+  return (
+    dismissedAt > 0 && Date.now() - dismissedAt < SLOW_NETWORK_BANNER_SNOOZE_MS
+  );
+}
+
 const useNetworkConnectionBanner = (): {
   status: NetworkConnectionBannerStatus;
   network: FailedNetwork | null;
+  /**
+   * True when requests are slow across the board and the RPC banner isn't
+   * already showing. Hidden for a week after the user dismisses it.
+   */
+  isSlowNetwork: boolean;
+  dismissSlowNetwork: () => void;
   updateRpc: () => void;
   /**
    * Switch the default RPC endpoint to Infura for the current unavailable network.
@@ -51,6 +70,23 @@ const useNetworkConnectionBanner = (): {
   const { toastRef } = useContext(ToastContext);
   const status = useSelector(selectNetworkConnectionBannerStatus);
   const network = useSelector(selectNetworkConnectionBannerNetwork);
+  const latency = useNetworkLatency();
+  const [isSlowNetworkSnoozed, setIsSlowNetworkSnoozed] = useState(
+    isSlowNetworkBannerSnoozed,
+  );
+
+  const isRpcBannerVisible =
+    (status === 'degraded' || status === 'unavailable') && Boolean(network);
+  const isSlowNetwork =
+    !isRpcBannerVisible && latency === 'SLOW' && !isSlowNetworkSnoozed;
+
+  const dismissSlowNetwork = useCallback(() => {
+    setIsSlowNetworkSnoozed(true);
+    StorageWrapper.setItem(
+      SLOW_NETWORK_BANNER_DISMISSED_AT,
+      String(Date.now()),
+    ).catch(() => undefined);
+  }, []);
 
   // Fire the "shown" analytics once each time the banner becomes visible for a
   // given status and network. The banner's show/hide and 5s/30s escalation are
@@ -164,6 +200,8 @@ const useNetworkConnectionBanner = (): {
   return {
     status,
     network,
+    isSlowNetwork,
+    dismissSlowNetwork,
     updateRpc,
     switchToInfura,
   };

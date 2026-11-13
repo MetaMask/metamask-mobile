@@ -22,8 +22,11 @@ import {
   IconProps,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+
+export const SLOW_NETWORK_BANNER_TEST_ID = 'slow-network-banner';
 
 interface BannerIcon {
   color: IconColor;
@@ -275,11 +278,48 @@ type NetworkConnectionBannerData = ReturnType<
 export const NetworkConnectionBannerContent = ({
   network,
   status,
+  isSlowNetwork,
+  dismissSlowNetwork,
   switchToInfura,
   updateRpc,
 }: NetworkConnectionBannerData) => {
   const theme = useAppTheme();
   const tw = useTailwind();
+
+  if (isSlowNetwork) {
+    return (
+      <BannerBase
+        testID={SLOW_NETWORK_BANNER_TEST_ID}
+        style={{
+          backgroundColor: theme.colors.background.section,
+          ...tw`rounded-2xl`,
+        }}
+        startAccessory={
+          <Icon
+            name={IconName.Wifi}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+            twClassName="mt-[0.1rem]"
+          />
+        }
+        title={
+          <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+            {strings('network_connection_banner.slow_network_title')}
+          </Text>
+        }
+        description={
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('network_connection_banner.slow_network_description')}
+          </Text>
+        }
+        onClose={dismissSlowNetwork}
+      />
+    );
+  }
 
   if ((status !== 'degraded' && status !== 'unavailable') || !network) {
     return null;
@@ -290,7 +330,7 @@ export const NetworkConnectionBannerContent = ({
 
   return (
     <BannerBase
-      style={{ backgroundColor, ...tw`rounded-md` }}
+      style={{ backgroundColor, ...tw`rounded-2xl` }}
       startAccessory={
         <icon.component
           name={icon.name}
