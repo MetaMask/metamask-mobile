@@ -12485,9 +12485,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/toprf-secure-backup@portal:../toprf-secure-backup/packages/toprf-secure-backup::locator=metamask%40workspace%3A.":
-  version: 0.0.0-use.local
-  resolution: "@metamask/toprf-secure-backup@portal:../toprf-secure-backup/packages/toprf-secure-backup::locator=metamask%40workspace%3A."
+"@metamask/toprf-secure-backup@npm:@metamask/toprf-secure-backup@1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/toprf-secure-backup@npm:1.1.0"
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@noble/ciphers": "npm:^1.2.1"
@@ -12499,8 +12499,9 @@ __metadata:
     "@toruslabs/fetch-node-details": "npm:^15.0.0"
     "@toruslabs/http-helpers": "npm:^8.1.1"
     bn.js: "npm:^5.2.2"
+  checksum: 10/2714a70eae53a1f46d293980c71a1ed2f59708247019444154e71fc15328e78ec95287ffc2d954a29f903224a1a9fe4d69fb17724e9039bcefd240752f1df26c
   languageName: node
-  linkType: soft
+  linkType: hard
 
 "@metamask/transaction-controller@npm:^73.0.0, @metamask/transaction-controller@npm:^73.1.0, @metamask/transaction-controller@npm:^73.1.1, @metamask/transaction-controller@npm:^73.1.2":
   version: 73.1.2
