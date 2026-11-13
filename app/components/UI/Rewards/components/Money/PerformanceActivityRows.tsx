@@ -52,29 +52,45 @@ export const PerformanceCommissionRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      twClassName="gap-4"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${item.id}`}
     >
       <PositionTokenAvatar
         position={commissionTokenAvatar(item.token)}
-        size={AvatarTokenSize.Md}
+        size={AvatarTokenSize.Lg}
       />
-      <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Box twClassName="min-w-0 flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
           {name}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {formatRewardsRelativeDay(item.day)}
         </Text>
       </Box>
       <Box alignItems={BoxAlignItems.End}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
           {formatMusdBaseUnits(item.musd_amount, {
             signed: true,
             maximumFractionDigits: 2,
           }) ?? '—'}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {copiedTimesLabel(localizedText, item.copied_times)}
         </Text>
       </Box>
