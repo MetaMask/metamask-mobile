@@ -13,6 +13,7 @@ import {
   DEFAULT_SELECTED_ORDER_TYPE,
   PerpsPlatformDependencies,
   VISIBLE_CANDLE_COUNT_CONFIG,
+  selectTradeConfiguration,
 } from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -37,6 +38,9 @@ jest.mock('@metamask/perps-controller', () => {
     '@metamask/perps-controller/PerpsController',
   );
   const actualUtils = jest.requireActual('@metamask/perps-controller/utils');
+  const actualSelectors = jest.requireActual(
+    '@metamask/perps-controller/selectors',
+  );
   const actualConstants = jest.requireActual(
     '@metamask/perps-controller/constants',
   );
@@ -48,6 +52,7 @@ jest.mock('@metamask/perps-controller', () => {
     InitializationState: actualPerpsController.InitializationState,
     PerpsController: jest.fn(),
     parseCommaSeparatedString: actualUtils.parseCommaSeparatedString,
+    selectTradeConfiguration: actualSelectors.selectTradeConfiguration,
     MARKET_SORTING_CONFIG: actualConstants.MARKET_SORTING_CONFIG,
     PerpsMode: actualConstants.PerpsMode,
     DEFAULT_PRO_LAYOUT_PREFERENCES:
@@ -128,6 +133,11 @@ describe('perps controller init', () => {
   it('controller state should be initial state when initial state is passed in', () => {
     const initialPerpsControllerState: PerpsControllerState = {
       activeProvider: 'hyperliquid',
+      defaultProvider: 'hyperliquid',
+      effectiveProvider: null,
+      hasExplicitDefaultProviderSelection: false,
+      hasMigratedToMultiProvider: false,
+      hasExplicitProviderSelection: false,
       isTestnet: true,
       accountState: null,
       perpsBalances: {},
@@ -296,6 +306,7 @@ interface PutNotificationPreferencesAction {
 
 function buildRealController(
   getNotificationPreferencesImpl: () => Promise<NotificationPreferences | null>,
+  persistedState: Partial<PerpsControllerState> = {},
 ) {
   // Use the real PerpsController from the preview build — the top-level
   // jest.mock replaces it with jest.fn() for the init tests above, so we
@@ -331,13 +342,67 @@ function buildRealController(
 
   const controller = new RealPerpsController({
     messenger: controllerMessenger,
-    state: getDefaultPerpsControllerState(),
+    state: { ...getDefaultPerpsControllerState(), ...persistedState },
     infrastructure: buildTestInfrastructure(),
     clientConfig: {},
   });
 
   return { controller, getSpy, putSpy };
 }
+
+describe('PerpsController saved settings upgrade', () => {
+  // Keep this fixture in the pre-upgrade [network][symbol] shape. The
+  // controller, not Mobile's persistence layer, owns the migration.
+  const legacyTradeConfigurations = {
+    mainnet: { BTC: { leverage: 7, marginMode: 'isolated' } },
+    testnet: { ETH: { leverage: 3, marginMode: 'cross' } },
+  };
+
+  it.each([
+    { isTestnet: false, symbol: 'BTC', leverage: 7, marginMode: 'isolated' },
+    { isTestnet: true, symbol: 'ETH', leverage: 3, marginMode: 'cross' },
+  ])(
+    'restores saved $symbol leverage and margin mode with multi-provider mode off',
+    ({ isTestnet, symbol, leverage, marginMode }) => {
+      const { controller } = buildRealController(() => Promise.resolve(null), {
+        isTestnet,
+        // Persisted snapshots can predate the current package's state type.
+        tradeConfigurations:
+          legacyTradeConfigurations as unknown as PerpsControllerState['tradeConfigurations'],
+      });
+
+      const savedConfiguration = controller.getTradeConfiguration(symbol);
+      const savedMarginMode = controller.getMarginMode(symbol);
+
+      expect(controller.state.activeProvider).toBe('hyperliquid');
+      expect(savedConfiguration).toEqual({ leverage });
+      expect(selectTradeConfiguration(controller.state, symbol)).toEqual({
+        leverage,
+      });
+      expect(savedMarginMode).toBe(marginMode);
+      expect(controller.state.tradeConfigurations).toEqual({
+        mainnet: { hyperliquid: legacyTradeConfigurations.mainnet },
+        testnet: { hyperliquid: legacyTradeConfigurations.testnet },
+      });
+    },
+  );
+
+  it('keeps migrated settings unchanged when the controller is restored again', () => {
+    const tradeConfigurations: PerpsControllerState['tradeConfigurations'] = {
+      mainnet: {
+        hyperliquid: { BTC: { leverage: 7, marginMode: 'isolated' } },
+      },
+      testnet: {},
+    };
+
+    const { controller } = buildRealController(() => Promise.resolve(null), {
+      tradeConfigurations,
+    });
+
+    expect(controller.getTradeConfiguration('BTC')).toEqual({ leverage: 7 });
+    expect(controller.state.tradeConfigurations).toEqual(tradeConfigurations);
+  });
+});
 
 describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => {
   beforeEach(() => {

@@ -117,6 +117,11 @@ export const createMockPerpsControllerState = (
   overrides: Partial<PerpsControllerState> = {},
 ): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
+  defaultProvider: 'hyperliquid',
+  effectiveProvider: null,
+  hasExplicitDefaultProviderSelection: false,
+  hasMigratedToMultiProvider: false,
+  hasExplicitProviderSelection: false,
   isTestnet: false,
   initializationState: 'initialized' as InitializationState,
   initializationError: null,

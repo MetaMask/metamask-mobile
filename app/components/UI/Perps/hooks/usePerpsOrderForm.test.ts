@@ -303,10 +303,12 @@ describe('usePerpsOrderForm', () => {
               isTestnet: false,
               tradeConfigurations: {
                 mainnet: {
-                  BTC: {
-                    pendingConfig: {
-                      amount: '125',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    BTC: {
+                      pendingConfig: {
+                        amount: '125',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },
@@ -333,11 +335,13 @@ describe('usePerpsOrderForm', () => {
               isTestnet: false,
               tradeConfigurations: {
                 mainnet: {
-                  BTC: {
-                    pendingConfig: {
-                      amount: '125',
-                      direction: 'short',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    BTC: {
+                      pendingConfig: {
+                        amount: '125',
+                        direction: 'short',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },
@@ -366,11 +370,13 @@ describe('usePerpsOrderForm', () => {
               isTestnet: false,
               tradeConfigurations: {
                 mainnet: {
-                  BTC: {
-                    pendingConfig: {
-                      amount: '125',
-                      direction: 'short',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    BTC: {
+                      pendingConfig: {
+                        amount: '125',
+                        direction: 'short',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },
@@ -403,11 +409,13 @@ describe('usePerpsOrderForm', () => {
             selectedOrderType: 'limit',
             tradeConfigurations: {
               mainnet: {
-                BTC: {
-                  pendingConfig: {
-                    amount: '125',
-                    orderType: 'market',
-                    timestamp: Date.now(),
+                hyperliquid: {
+                  BTC: {
+                    pendingConfig: {
+                      amount: '125',
+                      orderType: 'market',
+                      timestamp: Date.now(),
+                    },
                   },
                 },
               },
@@ -483,7 +491,9 @@ describe('usePerpsOrderForm', () => {
                   isTestnet: false,
                   tradeConfigurations: {
                     mainnet: {
-                      BTC: { leverage: 5 },
+                      hyperliquid: {
+                        BTC: { leverage: 5 },
+                      },
                     },
                     testnet: {},
                   },
@@ -534,7 +544,9 @@ describe('usePerpsOrderForm', () => {
                   isTestnet: false,
                   tradeConfigurations: {
                     mainnet: {
-                      BTC: { leverage: 5 },
+                      hyperliquid: {
+                        BTC: { leverage: 5 },
+                      },
                     },
                     testnet: {},
                   },
