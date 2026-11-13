@@ -33,13 +33,13 @@ describe('classifyFetchSample', () => {
       elapsedMs: 1200,
     });
 
-    expect(result).toEqual({ atMs: START_MS + 1200, durationMs: 1200 });
+    expect(result).toBe(1200);
   });
 
   it('records the raw duration for a response without headers', () => {
     const result = classify({ outcome: { response: {} }, elapsedMs: 300 });
 
-    expect(result).toEqual({ atMs: START_MS + 300, durationMs: 300 });
+    expect(result).toBe(300);
   });
 
   it('skips a connection failure under hungMs', () => {
@@ -58,7 +58,7 @@ describe('classifyFetchSample', () => {
       elapsedMs: 31000,
     });
 
-    expect(result?.durationMs).toBe(31000);
+    expect(result).toBe(31000);
   });
 
   it('skips an AbortError at 8000 ms on LOW', () => {
@@ -78,7 +78,7 @@ describe('classifyFetchSample', () => {
       hardwareTier: 'LOW',
     });
 
-    expect(result).toEqual({ atMs: START_MS + 30000, durationMs: 30000 });
+    expect(result).toBe(30000);
   });
 
   it('skips an AbortError at 7999 ms', () => {

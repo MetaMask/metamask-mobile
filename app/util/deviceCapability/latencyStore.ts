@@ -1,4 +1,4 @@
-import { AppState, type AppStateStatus } from 'react-native';
+import { AppState } from 'react-native';
 import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
@@ -8,22 +8,19 @@ import {
   computeNetworkTier,
   readCellularGeneration,
 } from './computeNetworkTier';
-import { latencyThresholdsFor } from './latencyThresholdsFor';
-import { LATENCY_SAMPLE_SIZE } from './thresholds';
-import type {
-  HardwareTier,
-  LatencyBucket,
-  LatencySample,
-  LatencyThresholds,
-} from './types';
+import { LATENCY_SAMPLE_SIZE, LATENCY_THRESHOLDS } from './thresholds';
+import type { HardwareTier, LatencyBucket, LatencyThresholds } from './types';
 
 // Module memory only: samples are never dispatched to Redux or persisted.
-let samples: LatencySample[] = [];
+let samples: number[] = [];
 let bucket: LatencyBucket = 'UNKNOWN';
-let thresholds: LatencyThresholds = latencyThresholdsFor(null);
+let thresholds: LatencyThresholds = LATENCY_THRESHOLDS.MID;
 // Starts true: until the first NetInfo event the transport is unknown, so
 // cold-start samples (recorded before any NetInfo callback) are dropped.
 let isTransportNone = true;
+// Android goes active → background with no `inactive`, so background itself
+// must refuse samples (OS-throttled polls would otherwise look hung).
+let isBackground = AppState.currentState === 'background';
 let isMonitoring = false;
 // Bumped on every clear. A fetch keeps the value from before its await.
 let sampleEpoch = 0;
@@ -54,13 +51,13 @@ export function getLatencySampleEpoch(): number {
  * `epochAtStart` must be the epoch from before the await; a clear in between drops the sample.
  */
 export function recordFetchSample(
-  sample: LatencySample,
+  durationMs: number,
   epochAtStart: number,
 ): void {
-  if (isTransportNone || epochAtStart !== sampleEpoch) {
+  if (isBackground || isTransportNone || epochAtStart !== sampleEpoch) {
     return;
   }
-  samples = [...samples, sample].slice(-LATENCY_SAMPLE_SIZE);
+  samples = [...samples, durationMs].slice(-LATENCY_SAMPLE_SIZE);
   setBucket(
     computeLatencyBucket({
       previous: bucket,
@@ -88,23 +85,18 @@ export function getLatencyThresholds(): LatencyThresholds {
   return thresholds;
 }
 
-/** True while the NetInfo transport tier is `NONE`. */
-export function isLatencyTransportNone(): boolean {
-  return isTransportNone;
-}
-
 /**
- * Selects the thresholds row and starts the reset listeners: AppState
- * `background` to `active` (in-flight samples are also dropped on
- * `inactive`), and NetInfo transport changes (`type` /
- * `cellularGeneration`). A reachability-only `null` ↔ `true` flip does not
- * reset, but leaving the `NONE` tier (reconnect) does, so in-flight
- * fetches that span the offline gap are dropped. Idempotent.
+ * Selects the thresholds row and starts the reset listeners. `inactive`
+ * drops in-flight samples only. `background` clears samples and blocks new
+ * ones until `active`. NetInfo transport changes (`type` /
+ * `cellularGeneration`) also clear. A reachability-only `null` ↔ `true`
+ * flip does not reset, but leaving the `NONE` tier (reconnect) does, so
+ * in-flight fetches that span the offline gap are dropped. Idempotent.
  */
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
 ): void {
-  thresholds = latencyThresholdsFor(hardwareTier);
+  thresholds = LATENCY_THRESHOLDS[hardwareTier ?? 'MID'];
   if (isMonitoring) {
     return;
   }
@@ -138,17 +130,21 @@ export function startLatencyMonitoring(
     }
   });
 
-  let previousAppState: AppStateStatus = AppState.currentState;
-  AppState.addEventListener('change', (next: AppStateStatus) => {
+  AppState.addEventListener('change', (next) => {
     if (next === 'inactive') {
       // Drop in-flight samples that will include JS pause time, but keep
       // already-recorded samples so a Control Center visit does not reset the bucket.
       sampleEpoch += 1;
       return;
     }
-    if (previousAppState === 'background' && next === 'active') {
+    if (next === 'background') {
+      if (isBackground) {
+        return;
+      }
+      isBackground = true;
       clearLatencySamples();
+      return;
     }
-    previousAppState = next;
+    isBackground = false;
   });
 }

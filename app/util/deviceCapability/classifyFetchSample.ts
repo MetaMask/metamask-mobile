@@ -1,4 +1,4 @@
-import type { LatencySample, LatencyThresholds } from './types';
+import type { LatencyThresholds } from './types';
 
 export type FetchOutcome =
   | { response: { headers?: Pick<Headers, 'has'> } }
@@ -12,8 +12,8 @@ interface ClassifyFetchSampleInput {
 }
 
 /**
- * Turns one settled `fetch` into a latency sample, or `null` when it must not
- * be recorded. Never reads the URL, headers other than `nitroPrefetched`, or
+ * Turns one settled `fetch` into a duration, or `null` when it must not be
+ * recorded. Never reads the URL, headers other than `nitroPrefetched`, or
  * the error message.
  *
  * `TypeError` is a JS pre-flight miss (`blob:`, bad `data:` URL,
@@ -26,14 +26,14 @@ export function classifyFetchSample({
   startMs,
   endMs,
   thresholds,
-}: ClassifyFetchSampleInput): LatencySample | null {
+}: ClassifyFetchSampleInput): number | null {
   const elapsedMs = Math.max(0, endMs - startMs);
 
   if ('response' in outcome) {
     if (outcome.response.headers?.has('nitroPrefetched')) {
       return null;
     }
-    return { atMs: endMs, durationMs: elapsedMs };
+    return elapsedMs;
   }
 
   const { error } = outcome;
@@ -41,5 +41,5 @@ export function classifyFetchSample({
     return null;
   }
 
-  return { atMs: endMs, durationMs: elapsedMs };
+  return elapsedMs;
 }

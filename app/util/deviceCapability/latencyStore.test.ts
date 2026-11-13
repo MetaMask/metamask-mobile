@@ -11,8 +11,6 @@ jest.mock('@react-native-community/netinfo', () => ({
 type NetInfoListener = (state: NetInfoState) => void;
 type AppStateListener = (state: AppStateStatus) => void;
 
-const NOW_MS = 1_000_000;
-
 const netInfoState = (
   type: string,
   isInternetReachable: boolean | null = true,
@@ -24,11 +22,8 @@ describe('latencyStore', () => {
   let emitNetInfo: NetInfoListener;
   let emitAppState: AppStateListener;
 
-  const record = (durationMs: number, atMs = NOW_MS) =>
-    store.recordFetchSample(
-      { atMs, durationMs },
-      store.getLatencySampleEpoch(),
-    );
+  const record = (durationMs: number) =>
+    store.recordFetchSample(durationMs, store.getLatencySampleEpoch());
 
   beforeEach(() => {
     jest.mocked(addNetInfoEventListener).mockImplementation((listener) => {
@@ -112,8 +107,8 @@ describe('latencyStore', () => {
     const epochAtStart = store.getLatencySampleEpoch();
 
     store.clearLatencySamples();
-    store.recordFetchSample({ atMs: NOW_MS, durationMs: 8000 }, epochAtStart);
-    store.recordFetchSample({ atMs: NOW_MS, durationMs: 8000 }, epochAtStart);
+    store.recordFetchSample(8000, epochAtStart);
+    store.recordFetchSample(8000, epochAtStart);
 
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
@@ -127,13 +122,23 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
-  it('resets slow to unknown on background to active', () => {
+  it('clears samples on background and ignores records until active', () => {
     [8000, 8000].forEach((duration) => record(duration));
 
     emitAppState('background');
-    emitAppState('active');
 
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+
+    emitAppState('active');
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
   it('keeps samples through inactive', () => {
@@ -151,8 +156,8 @@ describe('latencyStore', () => {
 
     emitAppState('inactive');
     emitAppState('active');
-    store.recordFetchSample({ atMs: NOW_MS, durationMs: 30000 }, epochAtStart);
-    store.recordFetchSample({ atMs: NOW_MS, durationMs: 30000 }, epochAtStart);
+    store.recordFetchSample(30000, epochAtStart);
+    store.recordFetchSample(30000, epochAtStart);
 
     expect(store.getLatencySnapshot()).toBe('OK');
   });
@@ -190,7 +195,6 @@ describe('latencyStore', () => {
 
     [8000, 8000].forEach((duration) => record(duration));
 
-    expect(store.isLatencyTransportNone()).toBe(true);
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
 
     emitNetInfo(netInfoState('wifi'));
@@ -206,14 +210,8 @@ describe('latencyStore', () => {
     const epochWhileOffline = store.getLatencySampleEpoch();
 
     emitNetInfo(netInfoState('wifi', true));
-    store.recordFetchSample(
-      { atMs: NOW_MS, durationMs: 30000 },
-      epochWhileOffline,
-    );
-    store.recordFetchSample(
-      { atMs: NOW_MS, durationMs: 30000 },
-      epochWhileOffline,
-    );
+    store.recordFetchSample(30000, epochWhileOffline);
+    store.recordFetchSample(30000, epochWhileOffline);
 
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
@@ -223,7 +221,6 @@ describe('latencyStore', () => {
 
     [8000, 8000].forEach((duration) => record(duration));
 
-    expect(store.isLatencyTransportNone()).toBe(true);
     expect(store.getLatencySnapshot()).toBe('UNKNOWN');
   });
 

@@ -4,22 +4,22 @@ import {
   LATENCY_MIN_SAMPLES,
   LATENCY_SAMPLE_SIZE,
 } from './thresholds';
-import type { LatencyBucket, LatencySample, LatencyThresholds } from './types';
+import type { LatencyBucket, LatencyThresholds } from './types';
 
 interface LatencySamplesInput {
-  samples: readonly LatencySample[];
+  samples: readonly number[];
   thresholds: LatencyThresholds;
 }
 
 export interface LatencySummary {
-  recent: LatencySample[];
+  recent: number[];
   hungCount: number;
   medianMs: number | null;
 }
 
 /**
  * Newest `LATENCY_SAMPLE_SIZE` samples, with their hung count and median.
- * `samples` must be oldest first. Age does not drop a sample.
+ * `samples` must be oldest first.
  */
 export function summarizeLatencySamples({
   samples,
@@ -27,12 +27,10 @@ export function summarizeLatencySamples({
 }: LatencySamplesInput): LatencySummary {
   const recent = samples.slice(-LATENCY_SAMPLE_SIZE);
   const hungCount = recent.filter(
-    ({ durationMs }) => durationMs >= thresholds.hungMs,
+    (durationMs) => durationMs >= thresholds.hungMs,
   ).length;
 
-  const sorted = recent
-    .map(({ durationMs }) => durationMs)
-    .sort((a, b) => a - b);
+  const sorted = [...recent].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   let medianMs: number | null = null;
   if (sorted.length > 0) {
@@ -61,7 +59,7 @@ export function computeLatencyBucket({
     const newest = recent.slice(-LATENCY_GOOD_TO_EXIT);
     const released =
       newest.length === LATENCY_GOOD_TO_EXIT &&
-      newest.every(({ durationMs }) => durationMs <= slowMs);
+      newest.every((durationMs) => durationMs <= slowMs);
     return released ? 'OK' : 'SLOW';
   }
 
