@@ -29,8 +29,9 @@ import {
   RETENTION_DAYS,
 } from './flaky-history-index';
 import {
-  MAX_GRAPHQL_QUERIES_PER_BUILD,
   newWalkBudget,
+  orderDaysForWalk,
+  requestShareForDay,
   walkDay,
 } from './flaky-history-walk';
 import type { HistoryIndex } from './flaky-types';
@@ -70,6 +71,7 @@ export function loadPriorIndex(path: string): HistoryIndex {
 export function renderBuildSummary({
   daysWalked,
   gapDays,
+  deferredDays = [],
   runsScanned,
   newHits,
   index,
@@ -77,6 +79,8 @@ export function renderBuildSummary({
 }: {
   daysWalked: string[];
   gapDays: string[];
+  /** Queued days this build did not start, because an earlier day used the hour. */
+  deferredDays?: string[];
   runsScanned: number;
   newHits: number;
   index: HistoryIndex;
@@ -95,6 +99,7 @@ export function renderBuildSummary({
     '| --- | --- |',
     `| Days walked | ${daysWalked.length > 0 ? daysWalked.join(', ') : 'none, already up to date'} |`,
     `| Days left as gaps | ${gapDays.length > 0 ? gapDays.join(', ') : 'none'} |`,
+    `| Days deferred | ${deferredDays.length > 0 ? deferredDays.join(', ') : 'none'} |`,
     `| ci.yml runs scanned | ${runsScanned} |`,
     `| Fail-then-pass hits found | ${newHits} |`,
     `| Tests tracked | ${Object.keys(index.entries).length} |`,
@@ -119,8 +124,8 @@ async function main(): Promise<void> {
   const days = daysToWalk({
     index: prior,
     today,
-    // Clamped because a dispatch asking for more days than the GraphQL budget
-    // covers would walk them all badly and record most of them as gaps.
+    // Clamped because a dispatch asking for more days than one hourly budget
+    // can finish would walk them all badly and record most of them as gaps.
     maxBackfill:
       env.backfillDays > 0
         ? Math.min(env.backfillDays, MAX_BACKFILL_DAYS)
@@ -135,21 +140,32 @@ async function main(): Promise<void> {
   let runsScanned = 0;
   let newHits = 0;
   const gapDays: string[] = [];
+  const deferredDays: string[] = [];
+  const attempted: string[] = [];
 
-  // An even share, so one unusually busy day cannot starve the rest.
-  const maxQueriesForDay = Math.max(
-    2,
-    Math.floor(MAX_GRAPHQL_QUERIES_PER_BUILD / Math.max(days.length, 1)),
-  );
+  // Fresh days first, each with a share large enough to finish a heavy
+  // weekday. What a day does not spend stays available for the next one.
+  // Days that would get nothing wait for a later night instead of being
+  // recorded as gaps this build did not really walk.
+  const ordered = orderDaysForWalk(days, prior.gapDays);
 
-  for (const day of days) {
+  for (const day of ordered) {
+    const maxRequestsForDay = requestShareForDay({
+      spent: budget.restRequests,
+    });
+    if (maxRequestsForDay <= 0) {
+      deferredDays.push(day);
+      core.info(`${day}: deferred, REST budget exhausted`);
+      continue;
+    }
+    attempted.push(day);
     const result = await walkDay({
       octokit,
       owner,
       repo,
       day,
       budget,
-      maxQueriesForDay,
+      maxRequestsForDay,
     });
     runsScanned += result.runsScanned;
     newHits += result.hits.length;
@@ -186,8 +202,9 @@ async function main(): Promise<void> {
   core.info(`Wrote ${outputPath}`);
 
   const summary = renderBuildSummary({
-    daysWalked: days,
+    daysWalked: attempted,
     gapDays,
+    deferredDays,
     runsScanned,
     newHits,
     index,
@@ -197,15 +214,16 @@ async function main(): Promise<void> {
     mkdirSync(dirname(process.env.GITHUB_STEP_SUMMARY), { recursive: true });
     writeFileSync(process.env.GITHUB_STEP_SUMMARY, summary, { flag: 'a' });
   }
-  core.setOutput('days_walked', String(days.length));
+  core.setOutput('days_walked', String(attempted.length));
   core.setOutput('gap_days', String(gapDays.length));
   core.setOutput('tests_tracked', String(Object.keys(index.entries).length));
 
   // A build that walked nothing it was asked to walk has not moved the index
-  // forward, and a silent nightly is how an index rots unnoticed.
-  if (days.length > 0 && gapDays.length === days.length) {
+  // forward, and a silent nightly is how an index rots unnoticed. Deferred
+  // days were not walked, so they do not count as either success or failure.
+  if (attempted.length > 0 && gapDays.length === attempted.length) {
     core.setFailed(
-      `Every one of the ${days.length} day(s) this build walked was left incomplete.`,
+      `Every one of the ${attempted.length} day(s) this build walked was left incomplete.`,
     );
   }
 }
