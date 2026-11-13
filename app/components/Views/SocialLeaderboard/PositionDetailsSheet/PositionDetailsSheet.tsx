@@ -515,35 +515,38 @@ const PositionDetailsSheet = () => {
     [openQuickBuy, trackInteraction],
   );
 
-  const handleCopyTrade = useCallback(() => {
-    if (!ensureSocialTermsAccepted()) {
-      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
-        blocked_reason: BlockedReason.TERMS,
-      });
-      return;
-    }
-    if (!ensureSocialProfileOnboarding()) {
-      trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
-        blocked_reason: BlockedReason.PROFILE_ONBOARDING,
-      });
-      return;
-    }
-    trackInteraction(Interaction.COPY_TRADE_TAPPED);
-    if (data.isPerp) {
-      openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
-      return;
-    }
-    openQuickBuy('buy', true);
-  }, [
-    data.isPerp,
-    data.perpDirection,
-    data.leverage,
-    ensureSocialProfileOnboarding,
-    ensureSocialTermsAccepted,
-    openPerpsMarketOrder,
-    openQuickBuy,
-    trackInteraction,
-  ]);
+  const handleCopyTrade = useCallback(
+    function copyTrade(): void {
+      if (!ensureSocialTermsAccepted(copyTrade)) {
+        trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+          blocked_reason: BlockedReason.TERMS,
+        });
+        return;
+      }
+      if (!ensureSocialProfileOnboarding()) {
+        trackInteraction(Interaction.COPY_TRADE_BLOCKED, {
+          blocked_reason: BlockedReason.PROFILE_ONBOARDING,
+        });
+        return;
+      }
+      trackInteraction(Interaction.COPY_TRADE_TAPPED);
+      if (data.isPerp) {
+        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
+        return;
+      }
+      openQuickBuy('buy', true);
+    },
+    [
+      data.isPerp,
+      data.perpDirection,
+      data.leverage,
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openPerpsMarketOrder,
+      openQuickBuy,
+      trackInteraction,
+    ],
+  );
 
   const fillMarketCapPerPrice =
     !data.isPerp && position ? deriveMarketCapPerPrice(position) : null;

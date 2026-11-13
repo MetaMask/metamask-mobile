@@ -23,6 +23,11 @@ const mockIsFocused = jest.fn();
 const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
