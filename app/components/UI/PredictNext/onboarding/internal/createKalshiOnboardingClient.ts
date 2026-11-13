@@ -1,12 +1,13 @@
 import Engine from '../../../../../core/Engine';
 import packageJSON from '../../../../../../package.json';
+import { getPredictApiUrl } from '../../config/predictClusterUrls';
 import { KalshiOnboardingClient } from '../../adapters/remote/KalshiOnboardingClient';
 import { createP256DeviceKey } from '../../auth/p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../auth/venueAuthProfiles';
 
 export const createKalshiOnboardingClient = (): KalshiOnboardingClient =>
   new KalshiOnboardingClient({
-    baseUrl: process.env.MM_PREDICT_API_URL,
+    baseUrl: getPredictApiUrl(),
     clientVersion: packageJSON.version,
     getBearerToken: () =>
       Engine.context.AuthenticationController.getBearerToken(),

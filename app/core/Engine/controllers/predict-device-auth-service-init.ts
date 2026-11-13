@@ -1,3 +1,4 @@
+import { resolvePredictDeviceAuthIssuerUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
   parsePredictConfig,
   resolveSelectedAuthProfile,
@@ -10,34 +11,6 @@ import {
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
-
-const KALSHI_A2T_ISSUER_URL = {
-  dev: 'https://authentication.dev-api.cx.metamask.io',
-  uat: 'https://authentication.uat-api.cx.metamask.io',
-} as const;
-
-/**
- * A2T issuer base. `MM_PREDICT_A2T_URL` wins when set. Otherwise a
- * debug build falls back to the dev host, and other builds stay blank.
- */
-export const resolvePredictDeviceAuthIssuerUrl = (
-  rawApiEnv: string | undefined,
-  override: string | undefined,
-  isDevelopment: boolean,
-): string | undefined => {
-  if (typeof override === 'string' && override.trim().length > 0) {
-    return override;
-  }
-
-  const apiEnv = (rawApiEnv ?? '').trim().toLowerCase();
-  if (apiEnv === 'dev' || (apiEnv === '' && isDevelopment)) {
-    return KALSHI_A2T_ISSUER_URL.dev;
-  }
-  if (apiEnv === 'uat') {
-    return KALSHI_A2T_ISSUER_URL.uat;
-  }
-  return undefined;
-};
 
 const getConfiguredIssuerUrl = (): string | undefined =>
   resolvePredictDeviceAuthIssuerUrl(

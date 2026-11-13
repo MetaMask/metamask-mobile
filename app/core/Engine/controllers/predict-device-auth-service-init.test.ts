@@ -1,8 +1,5 @@
 import { PredictDeviceAuthService } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
-import {
-  predictDeviceAuthServiceInit,
-  resolvePredictDeviceAuthIssuerUrl,
-} from './predict-device-auth-service-init';
+import { predictDeviceAuthServiceInit } from './predict-device-auth-service-init';
 
 const mockClear = jest.fn();
 /** Drops the approved intents too; it clears the session like `clear`. */
@@ -227,71 +224,5 @@ describe('predictDeviceAuthServiceInit', () => {
     expect(deps.isEnabled()).toBe(false);
 
     expect(call).toHaveBeenCalledWith('RemoteFeatureFlagController:getState');
-  });
-});
-
-describe('resolvePredictDeviceAuthIssuerUrl', () => {
-  const devIssuerUrl = 'https://authentication.dev-api.cx.metamask.io';
-  const uatIssuerUrl = 'https://authentication.uat-api.cx.metamask.io';
-
-  it('uses the dev issuer for the dev cluster', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl('dev', undefined, false)).toBe(
-      devIssuerUrl,
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl('DEV', undefined, true)).toBe(
-      devIssuerUrl,
-    );
-  });
-
-  it('uses the uat issuer for the uat cluster', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl('uat', undefined, false)).toBe(
-      uatIssuerUrl,
-    );
-  });
-
-  it('leaves prod blank when the build does not set an issuer', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl('prod', undefined, false)).toBe(
-      undefined,
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl('prod', undefined, true)).toBe(
-      undefined,
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl('prod', '  ', false)).toBe(
-      undefined,
-    );
-  });
-
-  it('uses the dev issuer in development when MM_API_ENV is unset', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl(undefined, undefined, true)).toBe(
-      devIssuerUrl,
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl('  ', undefined, true)).toBe(
-      devIssuerUrl,
-    );
-  });
-
-  it('stays blank in release when MM_API_ENV and MM_PREDICT_A2T_URL are unset', () => {
-    expect(resolvePredictDeviceAuthIssuerUrl(undefined, undefined, false)).toBe(
-      undefined,
-    );
-    expect(resolvePredictDeviceAuthIssuerUrl(undefined, '  ', false)).toBe(
-      undefined,
-    );
-  });
-
-  it('uses MM_PREDICT_A2T_URL in every build when set', () => {
-    expect(
-      resolvePredictDeviceAuthIssuerUrl('dev', 'https://issuer.example', true),
-    ).toBe('https://issuer.example');
-    expect(
-      resolvePredictDeviceAuthIssuerUrl('uat', 'https://issuer.example', false),
-    ).toBe('https://issuer.example');
-    expect(
-      resolvePredictDeviceAuthIssuerUrl(
-        'prod',
-        'https://issuer.example',
-        false,
-      ),
-    ).toBe('https://issuer.example');
   });
 });

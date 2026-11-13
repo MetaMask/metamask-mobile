@@ -13,7 +13,7 @@ export interface VenueAuthenticationProfile {
     readonly keySlot: string;
   };
   readonly a2t: {
-    /** Appended to the issuer base from `MM_PREDICT_A2T_URL` or the dev default. */
+    /** Appended to the issuer base from `MM_API_ENV`, or `MM_PREDICT_A2T_URL` when set. */
     readonly tokenPath: string;
   };
 }
