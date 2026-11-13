@@ -102,4 +102,20 @@ describe('DeleteMetaMetricsData', () => {
       ),
     ).toHaveLength(0);
   });
+
+  it('says the wallet stays as it is and links to the Privacy Notice', () => {
+    const { getByText, queryByText } = renderComponent(true);
+
+    expect(
+      getByText(
+        strings('app_settings.delete_metrics_description_before_delete'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('app_settings.delete_metrics_description_privacy_policy'),
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('Privacy Policy.')).toBeNull();
+  });
 });
