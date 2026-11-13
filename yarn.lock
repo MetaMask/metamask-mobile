@@ -11233,26 +11233,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^4.0.0, @metamask/multichain-network-controller@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@metamask/multichain-network-controller@npm:4.1.0"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^40.1.0"
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-api": "npm:^24.3.0"
-    "@metamask/keyring-internal-api": "npm:^12.1.2"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/network-controller": "npm:^37.1.1"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.1"
-    "@solana/addresses": "npm:^2.3.0"
-    lodash-es: "npm:^4.18.1"
-  checksum: 10/5a25487619113296892d0428a48a41e3ec4c5125b1aa3311749e62a7732bfb5ba12d338c424e5f6289dc3aa1a28e506b0ea43aed0aac243236abc96d0c5335c4
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-network-controller@npm:^4.1.1":
+"@metamask/multichain-network-controller@npm:^4.0.0, @metamask/multichain-network-controller@npm:^4.1.0, @metamask/multichain-network-controller@npm:^4.1.1":
   version: 4.1.1
   resolution: "@metamask/multichain-network-controller@npm:4.1.1"
   dependencies:
