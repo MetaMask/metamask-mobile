@@ -52,6 +52,8 @@ interface TradingActivityListViewProps<T extends { id: string }> {
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
   emptyActionLabel?: string;
   emptyOnAction?: () => void;
+  /** Defaults to the trading-activity icon. Copy trading passes People. */
+  emptyIconName?: IconName;
   /** Sits above the list, the empty state, and the loading skeleton. */
   header?: React.ReactElement | null;
 }
@@ -76,6 +78,7 @@ function TradingActivityListView<T extends { id: string }>({
   emptyDescription,
   emptyActionLabel,
   emptyOnAction,
+  emptyIconName = IconName.Activity,
   header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -155,7 +158,7 @@ function TradingActivityListView<T extends { id: string }>({
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={emptyIconName}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -185,6 +188,7 @@ function TradingActivityListView<T extends { id: string }>({
   }, [
     emptyActionLabel,
     emptyDescription,
+    emptyIconName,
     emptyOnAction,
     error,
     renderErrorBanner,

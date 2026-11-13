@@ -247,6 +247,11 @@ jest.mock('../../../../selectors/cardController', () => ({
 }));
 
 jest.mock('../../../../constants/navigation/Routes', () => ({
+  HOME_TABS: 'Home',
+  MONEY: {
+    ROOT: 'MoneyScreens',
+    HOME: 'MoneyHome',
+  },
   CARD: {
     HOME: 'CardHome',
     APPLE_PAY_SPLASH: 'CardApplePaySplash',

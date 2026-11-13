@@ -1,5 +1,4 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
@@ -14,6 +13,9 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { SortTrendingBy } from '@metamask/assets-controllers';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export enum TimeOption {
   TwentyFourHours = '24h',
@@ -75,6 +77,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
   onTimeSelect,
   selectedTime: initialSelectedTime,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
   // make default selected time 24 hours
@@ -139,7 +142,9 @@ const TrendingTokenTimeBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-time-bottom-sheet"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('trending.time')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { AccessibilityInfo, Linking, View as NativeView } from 'react-native';
 import Share from 'react-native-share';
 import { IconName } from '@metamask/design-system-react-native';
 import { brandColor, lightTheme } from '@metamask/design-tokens';
@@ -20,6 +20,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
+import {
+  getSocialEntryReportReasonTestId,
+  SocialEntryOptionsBottomSheetSelectorsIDs,
+} from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import {
@@ -66,6 +71,44 @@ jest.mock('../navigation/socialOgImageService', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockScrollTo = jest.fn();
+const mockScrollHost = {};
+const mockScrollContent = {};
+
+const attachScrollContent = (ref: { current: unknown } | undefined) => {
+  if (ref) {
+    ref.current = mockScrollContent;
+  }
+};
+
+// The RN test ScrollView exposes no instance, so stand in one with `scrollTo`.
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  const { forwardRef, createElement, useImperativeHandle } =
+    jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+  const MockAnimatedScrollView = forwardRef(
+    (
+      props: Record<string, unknown> & {
+        innerViewRef?: { current: unknown };
+      },
+      ref: unknown,
+    ) => {
+      useImperativeHandle(ref, () => ({
+        scrollTo: mockScrollTo,
+        getNativeScrollRef: () => mockScrollHost,
+      }));
+      attachScrollContent(props.innerViewRef);
+      const { innerViewRef: _innerViewRef, ...rest } = props;
+      return createElement(ScrollView, rest);
+    },
+  );
+  return {
+    ...actual,
+    __esModule: true,
+    default: { ...actual.default, ScrollView: MockAnimatedScrollView },
+  };
+});
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
@@ -108,6 +151,7 @@ const setMockSocialFeedState = (
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockSetTitleSectionHeight = jest.fn();
+const mockScrollY = { value: 0 };
 const mockSocialFeedProps = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -174,7 +218,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     BottomSheet: MockBottomSheet,
     HeaderStandardAnimated: MockHeaderStandardAnimated,
     useHeaderStandardAnimated: () => ({
-      scrollY: { value: 0 },
+      scrollY: mockScrollY,
       onScroll: jest.fn(),
       setTitleSectionHeight: mockSetTitleSectionHeight,
       titleSectionHeightSv: { value: 0 },
@@ -519,6 +563,7 @@ const foreignTraderProfileResult = (
 describe('MyProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockScrollY.value = 0;
     mockHasNotificationPreferences = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockProfileRouteParams = undefined;
@@ -1028,6 +1073,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'current-user' }),
         isClosed: false,
         isSnapshotLive: false,
+        analyticsSource: 'trader_profile',
         shareSource: 'trader_feed',
       });
     });
@@ -1056,6 +1102,7 @@ describe('MyProfileView', () => {
         author: expect.objectContaining({ id: 'foreign-profile-id' }),
         isClosed: true,
         isSnapshotLive: false,
+        analyticsSource: 'trader_profile',
         shareSource: 'trader_feed',
       });
     });
@@ -1837,12 +1884,88 @@ describe('MyProfileView', () => {
     });
 
     expect(mockBlock).toHaveBeenCalledTimes(1);
+    expect(mockBlock).toHaveBeenCalledWith();
     expect(toggleFollow).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'trader_profile',
         traderAddress: '0xabc',
       }),
     );
+  });
+
+  it('reports a followed trader with the reason and unfollows them', async () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const toggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(true, toggleFollow),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(
+          SocialEntryReportReason.ScamsAndPhishing,
+        ),
+      ),
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+        ),
+      );
+    });
+
+    expect(mockBlock).toHaveBeenCalledWith('scams_and_phishing');
+    expect(toggleFollow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0xabc',
+      }),
+    );
+  });
+
+  it('keeps an impersonation report off the block request', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(false, jest.fn()),
+    );
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(ProfileOptionsSheetSelectorsIDs.REPORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getSocialEntryReportReasonTestId(SocialEntryReportReason.Impersonation),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.REPORT_SUBMIT,
+      ),
+    );
+
+    expect(mockBlock).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(
+        SocialEntryOptionsBottomSheetSelectorsIDs.IMPERSONATION_SUPPORT,
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('hides owner actions and shows follow for another trader', () => {
@@ -2291,8 +2414,59 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
+  });
+
+  it('shows the uncounted note and section on the owner profile', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        ...foreignTraderProfile,
+        stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+      },
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [flagged],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(screen.getByText('1 position not counted in P&L')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('position-row-Nigel')).toBeOnTheScreen();
   });
 
   it('opens the position sheet from a Closed row', () => {
@@ -2339,6 +2513,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: true,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
   });
@@ -2407,6 +2582,374 @@ describe('MyProfileView', () => {
     ).toBeNull();
   });
 
+  it('scrolls to the uncounted section when the P&L note is pressed', () => {
+    const plain: Position = {
+      positionId: 'eth',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: '0xeth',
+      chain: 'ethereum',
+      positionAmount: 1,
+      boughtUsd: 100,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 100,
+      trades: [],
+      lastTradeAt: 1,
+    };
+    const nigel: Position = {
+      ...plain,
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      flags: ['insider'],
+    };
+    const moodeng: Position = {
+      ...plain,
+      positionId: 'moodeng',
+      tokenSymbol: 'Moodeng',
+      flags: ['developer'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        ...foreignTraderProfile,
+        stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+      },
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [plain, nigel, moodeng],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+    const measureLayout = jest
+      .spyOn(NativeView.prototype, 'measureLayout')
+      .mockImplementation((_node, onSuccess) => {
+        onSuccess(0, 640, 320, 80);
+      });
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+      .mockImplementation(() => undefined);
+    const findHeader = jest
+      .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+      .mockReturnValue(44);
+
+    try {
+      renderWithProvider(<MyProfileView />);
+
+      expect(
+        screen.getByRole('button', {
+          name: '2 positions not counted in P&L',
+        }),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+      );
+
+      expect(measureLayout).toHaveBeenCalledWith(
+        mockScrollContent,
+        expect.any(Function),
+        expect.any(Function),
+      );
+      expect(mockScrollTo).toHaveBeenCalledWith({ y: 640, animated: true });
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+      fireEvent(
+        screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL),
+        'momentumScrollEnd',
+        { nativeEvent: { velocity: { x: 0, y: 0 } } },
+      );
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+      ).toBeOnTheScreen();
+    } finally {
+      measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
+    }
+  });
+
+  describe('uncounted header focus timing', () => {
+    const flagged: Position = {
+      positionId: 'nigel',
+      tokenSymbol: 'Nigel',
+      tokenName: 'Nigel',
+      tokenAddress: '0xnigel',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['insider'],
+    };
+    let measureLayout: jest.SpyInstance;
+    let setAccessibilityFocus: jest.SpyInstance;
+    let findHeader: jest.SpyInstance;
+
+    const pressNote = (
+      measuredY: number,
+      layout?: { content: number; viewport: number },
+    ) => {
+      mockProfileRouteParams = {
+        traderId: 'trader-1',
+        traderName: 'alpha.eth',
+      };
+      mockUseTraderProfile.mockReturnValue({
+        ...foreignTraderProfileResult(),
+        profile: {
+          ...foreignTraderProfile,
+          stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+        },
+      });
+      mockUseTraderPositions.mockReturnValue({
+        openPositions: [flagged],
+        closedPositions: [],
+        isLoadingOpen: false,
+        isLoadingClosed: false,
+        error: null,
+        openError: null,
+        closedError: null,
+        refetch: jest.fn().mockResolvedValue(undefined),
+      });
+      measureLayout = jest
+        .spyOn(NativeView.prototype, 'measureLayout')
+        .mockImplementation((_node, onSuccess) => {
+          onSuccess(0, measuredY, 320, 80);
+        });
+      setAccessibilityFocus = jest
+        .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+        .mockImplementation(() => undefined);
+      findHeader = jest
+        .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+        .mockReturnValue(44);
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
+      if (layout) {
+        const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+        fireEvent(scroll, 'layout', {
+          nativeEvent: {
+            layout: { x: 0, y: 0, width: 400, height: layout.viewport },
+          },
+        });
+        fireEvent(scroll, 'contentSizeChange', 400, layout.content);
+      }
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+      );
+    };
+
+    afterEach(() => {
+      measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
+    });
+
+    it('focuses when the list cannot reach the measured offset', () => {
+      pressNote(640, { content: 500, viewport: 800 });
+      expect(mockScrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('focuses after a short wait when the scroll never settles', () => {
+      jest.useFakeTimers();
+      try {
+        pressNote(640);
+        expect(setAccessibilityFocus).not.toHaveBeenCalled();
+        act(() => {
+          jest.advanceTimersByTime(400);
+        });
+        expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  it('opens the tab that holds uncounted rows before scrolling from Posts', () => {
+    const moodeng: Position = {
+      positionId: 'moodeng',
+      tokenSymbol: 'Moodeng',
+      tokenName: 'Moodeng',
+      tokenAddress: '0xmoodeng',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['developer'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        ...foreignTraderProfile,
+        stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+      },
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [moodeng],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+    const measureLayout = jest
+      .spyOn(NativeView.prototype, 'measureLayout')
+      .mockImplementation((_node, onSuccess) => {
+        onSuccess(0, 480, 320, 80);
+      });
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, 'setAccessibilityFocus')
+      .mockImplementation(() => undefined);
+    const findHeader = jest
+      .spyOn(jest.requireActual('react-native'), 'findNodeHandle')
+      .mockReturnValue(44);
+
+    try {
+      renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+      const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
+      fireEvent(scroll, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 400, height: 800 } },
+      });
+      fireEvent(scroll, 'contentSizeChange', 400, 400);
+
+      expect(
+        screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+      ).toBeNull();
+
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+      );
+
+      expect(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+      ).toBeOnTheScreen();
+
+      fireEvent(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+        'layout',
+        {
+          nativeEvent: { layout: { x: 0, y: 480, width: 320, height: 80 } },
+        },
+      );
+
+      expect(measureLayout).toHaveBeenCalledWith(
+        mockScrollContent,
+        expect.any(Function),
+        expect.any(Function),
+      );
+      expect(mockScrollTo).toHaveBeenCalledWith({ y: 480, animated: true });
+      expect(setAccessibilityFocus).not.toHaveBeenCalled();
+
+      fireEvent(scroll, 'contentSizeChange', 400, 500);
+      expect(mockScrollTo).toHaveBeenLastCalledWith({ y: 0, animated: true });
+      expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+    } finally {
+      measureLayout.mockRestore();
+      setAccessibilityFocus.mockRestore();
+      findHeader.mockRestore();
+    }
+  });
+
+  it('ignores a pending uncounted scroll after the asset filter changes', () => {
+    const moodeng: Position = {
+      positionId: 'moodeng',
+      tokenSymbol: 'Moodeng',
+      tokenName: 'Moodeng',
+      tokenAddress: '0xmoodeng',
+      chain: 'solana',
+      positionAmount: 1,
+      boughtUsd: 10,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 10,
+      trades: [],
+      lastTradeAt: 1,
+      flags: ['developer'],
+    };
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+    };
+    mockUseTraderProfile.mockReturnValue({
+      profile: {
+        ...foreignTraderProfile,
+        stats: { ...foreignTraderProfile.stats, pnl30d: 80 },
+      },
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn().mockResolvedValue(undefined),
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [moodeng],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL_UNCOUNTED),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.ASSET_FILTER_TOKENS),
+    );
+    fireEvent(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 480, width: 320, height: 80 } },
+      },
+    );
+
+    expect(mockScrollTo).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNCOUNTED_SECTION),
+    ).toBeOnTheScreen();
+  });
+
   it('pins the owner flagged positions and opens history from that row', () => {
     const flagged: Position = {
       positionId: 'nigel',
@@ -2461,6 +3004,7 @@ describe('MyProfileView', () => {
         xHandle: 'giga-whale',
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
 
@@ -2550,6 +3094,7 @@ describe('MyProfileView', () => {
         xHandle: null,
       },
       isClosed: false,
+      analyticsSource: 'trader_profile',
       shareSource: 'profile_position',
     });
   });

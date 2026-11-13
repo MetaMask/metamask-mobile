@@ -37,10 +37,13 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  AccessibilityInfo,
+  findNodeHandle,
   RefreshControl,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type View,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -73,7 +76,10 @@ import {
   buildSocialProfileOpenGraph,
   readTraderShareName,
 } from '../navigation/socialShareOpenGraph';
-import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import {
+  shareSocialProfile,
+  type SocialShareCardContext,
+} from '../navigation/socialTraderDeeplink';
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import ShareButtonSpinner from '../components/ShareButtonSpinner';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -98,6 +104,7 @@ import SocialFeed, {
   type SocialFeedRefreshHandle,
 } from '../../../UI/SocialFeed/components/SocialFeed';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
+import { SocialEntryReportReason } from '../../../UI/SocialFeed/reportReasons';
 import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
@@ -114,6 +121,7 @@ import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 
 import { useMyProfile, useMyProfileAddress } from './hooks';
 import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
+import { resolveUncountedNoteTarget } from './utils/partitionUncountedPositions';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import ProfileAssetFilterSheet from './components/ProfileAssetFilterSheet';
@@ -142,6 +150,8 @@ const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
 const PROFILE_CONTENT_TABS = ['posts', 'open', 'closed'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
+const SCROLL_OFFSET_EPSILON_PX = 2;
+const UNCOUNTED_FOCUS_FALLBACK_MS = 400;
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
 const NO_POSITIONS: Position[] = [];
@@ -291,10 +301,39 @@ const MyProfileView: React.FC = () => {
   const privacyLoadError = isPrivacyPending ? liveProfile.error : null;
   const isContentHidden = isBlocked || isPrivate || isPrivacyPending;
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
-  const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
-    state: [isLoading, Boolean(error), Boolean(displayProfile)],
-    isActive: isOwner,
-  });
+  const viewedTraderAddress = isOwner
+    ? undefined
+    : (displayProfile?.linkedAccountAddress ?? traderAddress);
+  const viewedTraderUsername = isOwner
+    ? undefined
+    : (displayProfile?.handle ?? traderName);
+  const viewedTraderAnalytics = useMemo(
+    () =>
+      isOwner
+        ? undefined
+        : {
+            ...(viewedTraderAddress
+              ? { trader_address: viewedTraderAddress }
+              : {}),
+            ...(viewedTraderUsername
+              ? { trader_username: viewedTraderUsername }
+              : {}),
+          },
+    [isOwner, viewedTraderAddress, viewedTraderUsername],
+  );
+  const trackInteraction = useSocialScreenAnalytics(
+    isOwner ? Screen.MY_PROFILE : Screen.TRADER_PROFILE,
+    {
+      state: isOwner
+        ? [isLoading, Boolean(error), Boolean(displayProfile)]
+        : [
+            liveProfile.isLoading,
+            Boolean(liveProfile.error),
+            Boolean(displayProfile),
+          ],
+      properties: viewedTraderAnalytics,
+    },
+  );
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
   const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const profileTabs = useMemo<TabItem[]>(
@@ -320,18 +359,46 @@ const MyProfileView: React.FC = () => {
     ],
     [],
   );
+  const pendingUncountedScrollRef = useRef(false);
+  const pendingUncountedHeaderFocusRef = useRef(false);
+  const uncountedFocusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const scrollViewportHeightRef = useRef(0);
+  const scrollContentHeightRef = useRef(0);
+  const scrollContentSizeStaleRef = useRef(false);
+  const clearUncountedFocusTimeout = useCallback(() => {
+    if (uncountedFocusTimeoutRef.current != null) {
+      clearTimeout(uncountedFocusTimeoutRef.current);
+      uncountedFocusTimeoutRef.current = null;
+    }
+  }, []);
+  const cancelPendingUncountedHeaderFocus = useCallback(() => {
+    pendingUncountedHeaderFocusRef.current = false;
+    clearUncountedFocusTimeout();
+  }, [clearUncountedFocusTimeout]);
+  useEffect(
+    () => () => cancelPendingUncountedHeaderFocus(),
+    [cancelPendingUncountedHeaderFocus],
+  );
   const handleProfileTabPress = useCallback(
     (index: number) => {
       const nextTab = PROFILE_CONTENT_TABS[index];
       if (!nextTab || nextTab === activeTab) {
         return;
       }
+      pendingUncountedScrollRef.current = false;
+      cancelPendingUncountedHeaderFocus();
+      scrollContentSizeStaleRef.current = true;
       playSelection().catch(() => undefined);
       setActiveTab(nextTab);
     },
-    [activeTab],
+    [activeTab, cancelPendingUncountedHeaderFocus],
   );
   const scrollRef = useRef<Animated.ScrollView>(null);
+  const scrollContentRef = useRef<View>(null);
+  const uncountedSectionRef = useRef<View>(null);
+  const uncountedHeaderRef = useRef<View>(null);
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
   const isSocialV1 = useSelector(selectIsSocialV1Enabled);
   const networkTier = useNetworkTier();
@@ -357,7 +424,7 @@ const MyProfileView: React.FC = () => {
   } = useTraderPositions(addressOrId ?? '', {
     enabled: !isContentHidden,
     paginated: isSocialV1,
-    refetchInterval: positionsRefreshIntervalMs,
+    refetchInterval: isFocused ? positionsRefreshIntervalMs : undefined,
   });
   // Disabled queries still return cached data, e.g. from an earlier visit.
   const openPositions = isContentHidden ? NO_POSITIONS : fetchedOpenPositions;
@@ -382,6 +449,87 @@ const MyProfileView: React.FC = () => {
     loadMoreForTab?.();
   }, [isClosedPositionsTab, loadMoreClosed, loadMoreOpen]);
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
+  const uncountedTarget = useMemo(
+    () =>
+      resolveUncountedNoteTarget({
+        activeTab,
+        filter: assetFilter,
+        openPositions,
+        closedPositions,
+      }),
+    [activeTab, assetFilter, closedPositions, openPositions],
+  );
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+  const focusUncountedHeader = useCallback(() => {
+    clearUncountedFocusTimeout();
+    pendingUncountedHeaderFocusRef.current = false;
+    // The P&L label and value are separate text nodes, so focus the
+    // section header instead of repeating that value.
+    const headerTag = findNodeHandle(uncountedHeaderRef.current);
+    if (headerTag != null) {
+      AccessibilityInfo.setAccessibilityFocus(headerTag);
+    }
+  }, [clearUncountedFocusTimeout]);
+  const scrollToUncountedSection = useCallback(() => {
+    const scrollView = scrollRef.current;
+    const section = uncountedSectionRef.current;
+    const scrollContent = scrollContentRef.current;
+    if (!scrollView || !section || !scrollContent) {
+      return;
+    }
+    section.measureLayout(
+      scrollContent,
+      (_x, y) => {
+        const contentHeight = scrollContentHeightRef.current;
+        const viewportHeight = scrollViewportHeightRef.current;
+        const canClamp =
+          !scrollContentSizeStaleRef.current &&
+          contentHeight > 0 &&
+          viewportHeight > 0;
+        const maxOffset = canClamp
+          ? Math.max(0, contentHeight - viewportHeight)
+          : y;
+        const targetY = Math.min(y, maxOffset);
+        scrollView.scrollTo({ y: targetY, animated: true });
+        if (
+          Math.abs(scrollYShared.value - targetY) <= SCROLL_OFFSET_EPSILON_PX
+        ) {
+          focusUncountedHeader();
+          return;
+        }
+        pendingUncountedHeaderFocusRef.current = true;
+        clearUncountedFocusTimeout();
+        uncountedFocusTimeoutRef.current = setTimeout(() => {
+          uncountedFocusTimeoutRef.current = null;
+          if (pendingUncountedHeaderFocusRef.current) {
+            focusUncountedHeader();
+          }
+        }, UNCOUNTED_FOCUS_FALLBACK_MS);
+      },
+      () => undefined,
+    );
+  }, [clearUncountedFocusTimeout, focusUncountedHeader, scrollYShared]);
+  const handleUncountedSectionLayout = useCallback(() => {
+    if (!pendingUncountedScrollRef.current) {
+      return;
+    }
+    pendingUncountedScrollRef.current = false;
+    scrollToUncountedSection();
+  }, [scrollToUncountedSection]);
+  const handleUncountedNotePress = useCallback(() => {
+    if (activeTab !== uncountedTarget.tab) {
+      pendingUncountedScrollRef.current = true;
+      scrollContentSizeStaleRef.current = true;
+      setActiveTab(uncountedTarget.tab);
+      return;
+    }
+    scrollToUncountedSection();
+  }, [activeTab, scrollToUncountedSection, uncountedTarget.tab]);
   const [isAssetFilterOpen, setIsAssetFilterOpen] = useState(false);
   const isAssetFilterActive = assetFilter !== 'all';
   const overlayedStats = useMemo(
@@ -398,12 +546,6 @@ const MyProfileView: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
   const [isUncountedSheetOpen, setIsUncountedSheetOpen] = useState(false);
-  const {
-    scrollY: scrollYShared,
-    onScroll,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -440,7 +582,7 @@ const MyProfileView: React.FC = () => {
   }, [addressOrId, isOwner, navigation]);
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer();
+    openComposer({ composerEntry: SocialEvent.ComposerEntry.MY_PROFILE });
   }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
@@ -448,24 +590,26 @@ const MyProfileView: React.FC = () => {
   }, [navigation]);
 
   const buildProfileOgImageRequest = useCallback(
-    (shareTraderId: string, username: string | undefined) => async () =>
-      buildSocialProfileOgImageRequest({
-        traderId: shareTraderId,
-        username: liveProfile.profile?.profile.name || username,
-        avatarUrl:
-          liveProfile.profile?.profile.imageUrl ||
-          displayProfile?.imageUrl ||
-          (displayProfile?.avatarPresetId
-            ? toFoxiconAvatarUrl(
-                displayProfile.avatarPresetId,
-                displayProfile.avatarBackgroundId ??
-                  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-              )
-            : undefined),
-        profile: liveProfile.profile,
-        closedPositions,
-        nowMs: Date.now(),
-      }),
+    (shareTraderId: string, username: string | undefined) =>
+      async ({ promoCode }: SocialShareCardContext) =>
+        buildSocialProfileOgImageRequest({
+          traderId: shareTraderId,
+          username: liveProfile.profile?.profile.name || username,
+          avatarUrl:
+            liveProfile.profile?.profile.imageUrl ||
+            displayProfile?.imageUrl ||
+            (displayProfile?.avatarPresetId
+              ? toFoxiconAvatarUrl(
+                  displayProfile.avatarPresetId,
+                  displayProfile.avatarBackgroundId ??
+                    DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+                )
+              : undefined),
+          profile: liveProfile.profile,
+          closedPositions,
+          nowMs: Date.now(),
+          promoCode,
+        }),
     [
       closedPositions,
       displayProfile?.avatarBackgroundId,
@@ -566,26 +710,44 @@ const MyProfileView: React.FC = () => {
     traderAddress,
   ]);
 
+  const blockAndUnfollow = useCallback(
+    async (reason?: string) => {
+      const wasFollowing = isFollowing;
+      const didBlock =
+        reason === undefined ? await block() : await block(reason);
+      if (didBlock && wasFollowing) {
+        await toggleFollow({
+          source: 'trader_profile',
+          traderAddress:
+            traderAddress || liveProfile.profile?.profile.address || '',
+          traderUsername: displayProfile?.displayName,
+          traderAvatarUri: displayProfile?.imageUrl,
+        });
+      }
+    },
+    [
+      block,
+      displayProfile,
+      isFollowing,
+      liveProfile.profile,
+      toggleFollow,
+      traderAddress,
+    ],
+  );
+
   const handleBlock = useCallback(async () => {
-    const wasFollowing = isFollowing;
-    const didBlock = await block();
-    if (didBlock && wasFollowing) {
-      await toggleFollow({
-        source: 'trader_profile',
-        traderAddress:
-          traderAddress || liveProfile.profile?.profile.address || '',
-        traderUsername: displayProfile?.displayName,
-        traderAvatarUri: displayProfile?.imageUrl,
-      });
-    }
-  }, [
-    block,
-    displayProfile,
-    isFollowing,
-    liveProfile.profile,
-    toggleFollow,
-    traderAddress,
-  ]);
+    await blockAndUnfollow();
+  }, [blockAndUnfollow]);
+
+  const handleReport = useCallback(
+    async (reason: SocialEntryReportReason) => {
+      if (reason === SocialEntryReportReason.Impersonation) {
+        return;
+      }
+      await blockAndUnfollow(reason);
+    },
+    [blockAndUnfollow],
+  );
 
   const handleUnblock = useCallback(async () => {
     await unblock();
@@ -648,10 +810,14 @@ const MyProfileView: React.FC = () => {
       if (!displayProfile) {
         return;
       }
+      const isClosed = activeTab === 'closed';
       trackInteraction(Interaction.TAP, {
         trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
+        asset: position.tokenSymbol,
+        position_status: isClosed
+          ? SocialEvent.PositionStatus.CLOSED
+          : SocialEvent.PositionStatus.OPEN,
       });
-      const isClosed = activeTab === 'closed';
       // Profile rows use the feed sheet. A row with no id stays on the
       // position screen, which can still render the snapshot.
       if (position.positionId) {
@@ -660,7 +826,8 @@ const MyProfileView: React.FC = () => {
           position,
           author: positionSheetAuthor(displayProfile, traderAddress),
           isClosed,
-          shareSource: 'profile_position',
+          analyticsSource: SocialEvent.Source.TRADER_PROFILE,
+          shareSource: SocialEvent.Source.PROFILE_POSITION,
         });
         return;
       }
@@ -683,6 +850,8 @@ const MyProfileView: React.FC = () => {
       if (nextFilter === assetFilter) {
         return;
       }
+      pendingUncountedScrollRef.current = false;
+      cancelPendingUncountedHeaderFocus();
       trackInteraction(Interaction.FILTER_APPLIED, {
         filter_name: Filter.PROFILE_ASSET_TYPE,
         previous_filter_value: assetFilter,
@@ -690,7 +859,7 @@ const MyProfileView: React.FC = () => {
       });
       setAssetFilter(nextFilter);
     },
-    [assetFilter, trackInteraction],
+    [assetFilter, cancelPendingUncountedHeaderFocus, trackInteraction],
   );
   const handleOpenAssetFilter = useCallback(() => {
     fireImpact(ImpactMoment.SecondaryCTA);
@@ -699,6 +868,22 @@ const MyProfileView: React.FC = () => {
   const handleCloseAssetFilter = useCallback(() => {
     setIsAssetFilterOpen(false);
   }, []);
+  const finishUncountedHeaderFocus = useCallback(
+    (
+      event: NativeSyntheticEvent<NativeScrollEvent>,
+      momentumFinished: boolean,
+    ) => {
+      if (!pendingUncountedHeaderFocusRef.current) {
+        return;
+      }
+      const velocityY = event.nativeEvent.velocity?.y ?? 0;
+      if (!momentumFinished && velocityY !== 0) {
+        return;
+      }
+      focusUncountedHeader();
+    },
+    [focusUncountedHeader],
+  );
   // Positions only: the Posts tab pages inside SocialFeed. Scroll-end pages in
   // the open or closed tab when more rows exist.
   const handleScrollSettled = useCallback(
@@ -715,6 +900,20 @@ const MyProfileView: React.FC = () => {
       }
     },
     [activeTab, loadMorePositions, positionsHasMore],
+  );
+  const handleScrollEndDrag = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      finishUncountedHeaderFocus(event, false);
+      handleScrollSettled(event);
+    },
+    [finishUncountedHeaderFocus, handleScrollSettled],
+  );
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      finishUncountedHeaderFocus(event, true);
+      handleScrollSettled(event);
+    },
+    [finishUncountedHeaderFocus, handleScrollSettled],
   );
   const isAwaitingPrivacy = isPrivacyPending && !privacyLoadError;
   const postsChains = profileAssetFilterChains(assetFilter);
@@ -748,8 +947,7 @@ const MyProfileView: React.FC = () => {
 
   return (
     <SocialFeedSurfaceProvider
-      location="my_profile"
-      analyticsEnabled={isOwner}
+      location={isOwner ? 'my_profile' : 'trader_profile'}
       showMockedFields
     >
       <SafeAreaView
@@ -894,13 +1092,30 @@ const MyProfileView: React.FC = () => {
         ) : displayProfile && overlayedStats ? (
           <Animated.ScrollView
             ref={scrollRef}
+            innerViewRef={scrollContentRef as React.RefObject<View>}
             testID={MyProfileViewSelectorsIDs.SCROLL}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-grow pb-6')}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScrollSettled}
-            onScrollEndDrag={handleScrollSettled}
+            onLayout={(event: LayoutChangeEvent) => {
+              scrollViewportHeightRef.current = event.nativeEvent.layout.height;
+            }}
+            onContentSizeChange={(_width: number, height: number) => {
+              scrollContentHeightRef.current = height;
+              if (!scrollContentSizeStaleRef.current) {
+                return;
+              }
+              scrollContentSizeStaleRef.current = false;
+              if (
+                pendingUncountedHeaderFocusRef.current ||
+                pendingUncountedScrollRef.current
+              ) {
+                scrollToUncountedSection();
+              }
+            }}
+            onMomentumScrollEnd={handleMomentumScrollEnd}
+            onScrollEndDrag={handleScrollEndDrag}
             refreshControl={
               <RefreshControl
                 colors={[colors.primary.default]}
@@ -1115,6 +1330,8 @@ const MyProfileView: React.FC = () => {
               <>
                 <MyProfilePerformanceStats
                   cells={overlayedStats.performanceCells}
+                  uncountedCount={uncountedTarget.count}
+                  onUncountedPress={handleUncountedNotePress}
                 />
 
                 <Box
@@ -1156,6 +1373,9 @@ const MyProfileView: React.FC = () => {
                     onPositionPress={handlePositionPress}
                     onRetry={handlePositionsRetry}
                     showFlaggedState={!isOwner}
+                    uncountedSectionRef={uncountedSectionRef}
+                    uncountedHeaderRef={uncountedHeaderRef}
+                    onUncountedSectionLayout={handleUncountedSectionLayout}
                     onUncountedHeaderPress={handleOpenUncountedSheet}
                   />
                 ) : isAwaitingPrivacy ? (
@@ -1238,6 +1458,7 @@ const MyProfileView: React.FC = () => {
           <ProfileOptionsSheet
             traderName={displayProfile.handle}
             onBlock={handleBlock}
+            onReport={handleReport}
             onClose={handleCloseProfileOptions}
           />
         ) : null}

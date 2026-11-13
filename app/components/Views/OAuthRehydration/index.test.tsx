@@ -283,9 +283,6 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
-      await waitFor(() => {
-        expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
-      });
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
@@ -303,11 +300,7 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('syncs marketing consent into Redux and analytics after unlock', async () => {
-      mockGetMarketingOptInStatus.mockResolvedValueOnce({
-        is_opt_in: true,
-      });
-
+    it('does not read marketing consent from the OAuth backend after unlock', async () => {
       const { getByTestId, store } = renderWithProvider(<OAuthRehydration />, {
         state: {
           engine: {
@@ -317,27 +310,17 @@ describe('OAuthRehydration', () => {
               },
             },
           },
+          security: { dataCollectionForMarketing: false },
         },
       });
       await enterPasswordAndSubmit(getByTestId);
 
       await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
-        expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-        });
-        expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-            properties: expect.objectContaining({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-              updated_after_onboarding: true,
-              location: 'oauth_rehydration',
-              account_type: AccountType.ImportedGoogle,
-            }),
-          }),
-        );
+        expect(mockTrackOnboarding).toHaveBeenCalled();
       });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
+      expect(mockAnalyticsIdentify).not.toHaveBeenCalled();
     });
 
     it('logs error when post-unlock biometric prompt fails', async () => {

@@ -17,7 +17,10 @@ import type {
   PredictTimestamp,
 } from '../../../types';
 import type { MarketLayoutCard } from './createMarketLayoutProjection';
-import { EventMarketLayoutCard } from './EventMarketLayoutCard';
+import {
+  EventMarketLayoutCard,
+  getLayoutCardMarketIds,
+} from './EventMarketLayoutCard';
 
 jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
@@ -341,5 +344,41 @@ describe('EventMarketLayoutCard', () => {
     expect(onRulesPress).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'single' }),
     );
+  });
+});
+
+describe('getLayoutCardMarketIds', () => {
+  it('names the one Market of a standard card', () => {
+    const market = createMarket('solo', { key: 'solo', groupType: 'choice' });
+    expect(
+      getLayoutCardMarketIds({ type: 'standard', key: 'solo', market }),
+    ).toEqual(['solo']);
+  });
+
+  it('names every row of a choice card', () => {
+    expect(getLayoutCardMarketIds(moneyline)).toEqual(['away', 'home']);
+  });
+
+  it('names only the selected line of a line picker', () => {
+    expect(getLayoutCardMarketIds(lines('totals', 'total'))).toEqual(['over']);
+    expect(
+      getLayoutCardMarketIds(
+        lines('totals', 'total'),
+        'over-2' as PredictEntityId,
+      ),
+    ).toEqual(['over-2']);
+    expect(
+      getLayoutCardMarketIds(
+        lines('totals', 'total'),
+        'gone' as PredictEntityId,
+      ),
+    ).toEqual(['over']);
+  });
+
+  it('names every line of a market type without a picker', () => {
+    expect(getLayoutCardMarketIds(lines('player-a', 'player_points'))).toEqual([
+      'over',
+      'over-2',
+    ]);
   });
 });

@@ -220,6 +220,46 @@ describe('useAlertSaveFlow', () => {
     ]);
   });
 
+  it('skips the cache patch when an edit has no patch', async () => {
+    const { result } = renderSaveFlow();
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        editingAlert,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(mockSetQueryData).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows an error toast and does not navigate when analytics tracking throws after submit', async () => {
+    const analytics = mockAnalytics();
+    jest.mocked(analytics.trackEvent).mockImplementation(() => {
+      throw new Error('analytics failed');
+    });
+    const { result } = renderSaveFlow();
+
+    await act(async () => {
+      await result.current.saveAlert({
+        submit: mockSubmit,
+        analyticsProperties: baseAnalyticsProperties,
+      });
+    });
+
+    expect(mockSubmit).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockPop).not.toHaveBeenCalled();
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Failed to save price alert. Try again.',
+      severity: ToastSeverity.Danger,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
+  });
+
   it('skips the cache patch on create', async () => {
     const { result } = renderSaveFlow();
 

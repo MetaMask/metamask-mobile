@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Icon,
   IconColor,
@@ -15,6 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 import CrossMarginIcon from '../../../../../images/perps/margin-mode/cross.svg';
 import { PerpsMarginModeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsSelectionOptionCard from '../PerpsSelectionBottomSheet/PerpsSelectionOptionCard';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsMarginModeBottomSheetProps {
   isVisible?: boolean;
@@ -40,6 +42,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
   isMarginModeLocked = false,
   onMarginModeSelect,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
@@ -80,7 +83,8 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
       goBack={!externalSheetRef ? onClose : undefined}
       onClose={externalSheetRef ? onClose : undefined}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PerpsMarginModeBottomSheetSelectorsIDs.CLOSE_BUTTON,
@@ -91,7 +95,7 @@ const PerpsMarginModeBottomSheet: React.FC<PerpsMarginModeBottomSheetProps> = ({
               market: marketLabel,
             })
           : strings('perps.margin_mode.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box accessibilityRole="radiogroup" gap={2} twClassName="px-4 pb-4">
         <PerpsSelectionOptionCard
           option={{

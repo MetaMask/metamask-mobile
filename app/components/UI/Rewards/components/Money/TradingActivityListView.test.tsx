@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Text } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton.testIds';
@@ -64,7 +65,11 @@ const listState = (
 
 const renderView = (
   list: UseCursorPaginatedListResult<Row>,
-  empty: { emptyActionLabel?: string; emptyOnAction?: () => void } = {},
+  empty: {
+    emptyActionLabel?: string;
+    emptyOnAction?: () => void;
+    emptyIconName?: IconName;
+  } = {},
 ) =>
   renderWithProvider(
     <TradingActivityListView
@@ -76,6 +81,7 @@ const renderView = (
       emptyDescription="Your activity is empty now. Start trading to earn today!"
       emptyActionLabel={empty.emptyActionLabel}
       emptyOnAction={empty.emptyOnAction}
+      emptyIconName={empty.emptyIconName}
     />,
   );
 
@@ -166,6 +172,26 @@ describe('TradingActivityListView', () => {
     expect(
       queryByTestId(`${TRADING_ACTIVITY_LIST_EMPTY_TEST_ID}-action`),
     ).toBeNull();
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.Activity);
+  });
+
+  it('uses the icon passed for the empty state', () => {
+    const { getByTestId } = renderView(
+      listState({ items: [], hasMore: false }),
+      {
+        emptyIconName: IconName.People,
+      },
+    );
+
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
   });
 
   it('calls the empty-state action when a label and handler are provided', () => {

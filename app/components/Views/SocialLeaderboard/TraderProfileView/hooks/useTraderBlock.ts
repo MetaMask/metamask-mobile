@@ -16,8 +16,11 @@ const TRADER_BLOCK_SOURCE = 'useTraderBlock';
 
 export interface UseTraderBlockResult {
   isBlocked: boolean;
-  /** Resolves `true` when the block was recorded. */
-  block: () => Promise<boolean>;
+  /**
+   * Resolves `true` when the block was recorded.
+   * Pass a report category to store it on the block.
+   */
+  block: (reason?: string) => Promise<boolean>;
   /** Resolves `true` when the block was removed. */
   unblock: () => Promise<boolean>;
 }
@@ -62,13 +65,15 @@ export const useTraderBlock = (
   }, [override, isBlockedOnServer]);
 
   const write = useCallback(
-    async (nextBlocked: boolean): Promise<boolean> => {
+    async (nextBlocked: boolean, reason?: string): Promise<boolean> => {
       if (!profileId) {
         return false;
       }
       setOverride(nextBlocked);
       try {
-        await (nextBlocked ? blockTrader(profileId) : unblockTrader(profileId));
+        await (nextBlocked
+          ? blockTrader(profileId, reason)
+          : unblockTrader(profileId));
       } catch (err) {
         setOverride(undefined);
         reportSocialServiceFailure(
@@ -92,7 +97,7 @@ export const useTraderBlock = (
     [profileId, refetch],
   );
 
-  const block = useCallback(() => write(true), [write]);
+  const block = useCallback((reason?: string) => write(true, reason), [write]);
   const unblock = useCallback(() => write(false), [write]);
 
   return {

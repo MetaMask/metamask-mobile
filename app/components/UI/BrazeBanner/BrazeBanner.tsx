@@ -43,7 +43,6 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   const {
     status,
     eventProperties,
-    flushImmediately,
     title,
     body,
     imageUrl,
@@ -78,7 +77,7 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
 
     // Every tap counts as a select, including banners with no deeplink, so
     // campaigns can trigger full-screen in-app messages from the banner.
-    logBrazeBannerClick(placementId, eventProperties, flushImmediately);
+    logBrazeBannerClick(placementId, eventProperties);
 
     if (!deeplink) {
       return;
@@ -98,7 +97,7 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
       .catch((error) => {
         Logger.error(error, 'BrazeBanner: failed to handle deeplink');
       });
-  }, [deeplink, eventProperties, flushImmediately, placementId]);
+  }, [deeplink, eventProperties, placementId]);
 
   if (status === 'empty' || status === 'dismissed' || status === 'loading')
     return null;

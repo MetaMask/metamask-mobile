@@ -186,6 +186,46 @@ describe('PredictHome', () => {
         queryByTestId(PredictFeedBannerSelectorsIDs.BANNER),
       ).not.toBeOnTheScreen();
     });
+
+    it('omits the Live Now divider and impression wrapper when the section hides itself', async () => {
+      // Live Now returns null when no sports/crypto markets survive filtering.
+      (
+        Engine.context.PredictController.listMarkets as jest.Mock
+      ).mockResolvedValue({ markets: [], nextCursor: null });
+
+      const { findByTestId, queryByTestId } = renderPredictHomeView();
+
+      // Wait for the rest of the shell to settle so we know the Live Now query
+      // has completed (empty) and the section has had a chance to hide.
+      await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
+
+      expect(
+        queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('omits the Popular Today divider and impression wrapper when the section hides itself', async () => {
+      // Popular Today returns null when the related-tags request yields no chips.
+      (
+        Engine.context.PredictController.listFilterOptions as jest.Mock
+      ).mockResolvedValue([]);
+
+      const { findByTestId, queryByTestId } = renderPredictHomeView();
+
+      await findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
+
+      expect(
+        queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('search interaction', () => {

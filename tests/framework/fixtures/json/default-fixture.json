@@ -71,6 +71,7 @@
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "immersveFundingSettling": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
@@ -910,7 +911,6 @@
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
-      "onboardingActiveStep": "INTRO",
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
