@@ -244,6 +244,44 @@ describe('useTokenSecurityData', () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
   });
 
+  it('keeps the previous security data and clears loading when a later fetch fails', async () => {
+    const assetId1 = 'eip155:1/erc20:0x1111' as CaipAssetType;
+    const assetId2 = 'eip155:1/erc20:0x2222' as CaipAssetType;
+    const fetchError = new Error('Later fetch failed');
+
+    mockFetchTokenAssets.mockResolvedValueOnce([
+      {
+        assetId: assetId1,
+        name: 'Test Token',
+        symbol: 'TEST',
+        decimals: 18,
+        securityData: mockSecurityData,
+      },
+    ]);
+    mockFetchTokenAssets.mockRejectedValueOnce(fetchError);
+
+    const { result, rerender } = renderHook(
+      ({ assetId }) => useTokenSecurityData({ assetId }),
+      { initialProps: { assetId: assetId1 } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.securityData).toBe(mockSecurityData);
+    expect(result.current.error).toBeNull();
+
+    rerender({ assetId: assetId2 });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(fetchError);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.securityData).toBe(mockSecurityData);
+    expect(mockFetchTokenAssets).toHaveBeenCalledTimes(2);
+  });
+
   it('stops loading when assetId changes to null', async () => {
     const testAssetId = 'eip155:1/erc20:0x1234' as CaipAssetType;
     mockFetchTokenAssets.mockResolvedValue([
