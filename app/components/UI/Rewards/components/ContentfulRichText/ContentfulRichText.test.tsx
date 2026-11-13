@@ -100,12 +100,12 @@ describe('ContentfulRichText', () => {
       <ContentfulRichText document={doc} testID="rt" />,
     );
     fireEvent.press(getByText('our terms'));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: expect.objectContaining({
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      expect.objectContaining({
         newTabUrl: 'https://example.com',
       }),
-    });
+    );
   });
 
   it('renders multiple paragraphs', () => {

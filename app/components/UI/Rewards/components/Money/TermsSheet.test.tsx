@@ -102,11 +102,8 @@ describe('TermsSheet', () => {
     fireEvent.press(getByTestId(TERMS_SHEET_TEST_IDS.LEARN_MORE));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: TERMS_URL,
-        timestamp: expect.any(Number),
-      },
+      newTabUrl: TERMS_URL,
+      timestamp: expect.any(Number),
     });
   });
 

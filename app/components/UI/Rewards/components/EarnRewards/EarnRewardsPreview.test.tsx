@@ -344,12 +344,12 @@ describe('EarnRewardsPreview', () => {
         { stopPropagation: jest.fn() },
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: expect.objectContaining({
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
           newTabUrl: MONEY_DISCLAIMER_URL,
         }),
-      });
+      );
       expect(mockHandleDeeplink).not.toHaveBeenCalled();
     });
 
