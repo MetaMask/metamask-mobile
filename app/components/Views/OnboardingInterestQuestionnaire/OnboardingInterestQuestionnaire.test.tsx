@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  fireEvent,
-  screen,
-  act,
-  within,
-} from '@testing-library/react-native';
+import { fireEvent, screen, act, within } from '@testing-library/react-native';
 import { BackHandler, Platform, View, Pressable, Text } from 'react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import OnboardingInterestQuestionnaire from './OnboardingInterestQuestionnaire';
