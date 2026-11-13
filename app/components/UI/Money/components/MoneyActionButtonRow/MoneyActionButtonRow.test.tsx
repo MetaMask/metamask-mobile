@@ -28,18 +28,6 @@ const defaultProps = {
 };
 
 describe('MoneyActionButtonRow', () => {
-  it('renders the provided transfer label', () => {
-    const { getByText, queryByText } = render(
-      <MoneyActionButtonRow
-        {...defaultProps}
-        transfer={{ onPress: noop, label: strings('money.action.withdraw') }}
-      />,
-    );
-
-    expect(getByText(strings('money.action.withdraw'))).toBeOnTheScreen();
-    expect(queryByText(strings('money.action.transfer'))).toBeNull();
-  });
-
   it('renders all three action buttons', () => {
     const { getByText } = render(<MoneyActionButtonRow {...defaultProps} />);
 

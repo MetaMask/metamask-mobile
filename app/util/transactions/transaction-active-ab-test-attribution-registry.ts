@@ -121,16 +121,6 @@ export function registerPendingTransactionActiveAbTestsForTransactionIds(
   registerTransactionAbTestAttributionForIds(transactionIds, pending);
 }
 
-/**
- * Reads attribution without removing it. Transaction Added peeks so
- * Transaction Finalized can still report the same assignment.
- */
-export function peekTransactionAbTestAttributionForTransaction(
-  transactionId: string,
-): TransactionActiveAbTestEntry[] | undefined {
-  return attributionByTransactionId.get(transactionId);
-}
-
 export function takeTransactionAbTestAttributionForTransaction(
   transactionId: string,
 ): TransactionActiveAbTestEntry[] | undefined {

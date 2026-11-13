@@ -124,13 +124,7 @@ import { Hex } from '@metamask/utils';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import type { MoneyHomeParams } from '../../types/navigation';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
-import { useABTest } from '../../../../../hooks/useABTest';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import {
-  MONEY_HOME_SEND_ACTION_AB_KEY,
-  MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
-  MONEY_HOME_SEND_ACTION_VARIANTS,
-} from '../../abTestConfig';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   CardActions,
@@ -203,12 +197,6 @@ const MoneyHomeView = () => {
   } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
   });
-
-  const { variant: sendActionVariant } = useABTest(
-    MONEY_HOME_SEND_ACTION_AB_KEY,
-    MONEY_HOME_SEND_ACTION_VARIANTS,
-    MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
-  );
 
   const {
     totalFiatFormatted,
@@ -660,7 +648,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: sendActionVariant.labelKey,
+      label_key: 'money.action.transfer',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -670,12 +658,7 @@ const MoneyHomeView = () => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [
-    actionButtonRowCount,
-    navigation,
-    sendActionVariant.labelKey,
-    trackButtonClicked,
-  ]);
+  }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
     markCardFlowOpened();
@@ -1280,7 +1263,6 @@ const MoneyHomeView = () => {
               }),
           }}
           transfer={{
-            label: strings(sendActionVariant.labelKey),
             onPress: handleTransferPress,
             // Keep Send available at $0 so pre-deposit users can inspect
             // withdrawal routes before adding funds.

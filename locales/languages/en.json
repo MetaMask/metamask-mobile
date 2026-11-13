@@ -9765,8 +9765,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Send",
-      "withdraw": "Withdraw",
+      "transfer": "Move",
       "card": "Card",
       "details": "Details"
     },
@@ -9891,10 +9890,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Send funds to",
-      "title_withdraw": "Withdraw to",
-      "between_accounts": "Another account",
-      "wallet": "Wallet",
+      "title": "Move funds",
+      "between_accounts": "Withdraw to accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",

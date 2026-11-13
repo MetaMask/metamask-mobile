@@ -12,15 +12,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useABTest } from '../../../../../hooks/useABTest';
 import Routes from '../../../../../constants/navigation/Routes';
-import { withPendingTransactionActiveAbTests } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import {
-  getMoneyHomeSendActionTransactionActiveAbTests,
-  MONEY_HOME_SEND_ACTION_AB_KEY,
-  MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
-  MONEY_HOME_SEND_ACTION_VARIANTS,
-} from '../../abTestConfig';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
@@ -88,25 +80,6 @@ const MoneyTransferSheetContent = () => {
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
   });
 
-  // Exposure is counted on Money home, where the label is shown. This read
-  // only keeps the sheet in sync with that assignment.
-  const {
-    variant: sendActionVariant,
-    variantName,
-    isActive,
-  } = useABTest(
-    MONEY_HOME_SEND_ACTION_AB_KEY,
-    MONEY_HOME_SEND_ACTION_VARIANTS,
-    {
-      ...MONEY_HOME_SEND_ACTION_AB_TEST_EXPOSURE_OPTIONS,
-      trackExposure: false,
-    },
-  );
-  const withdrawalAbTests = getMoneyHomeSendActionTransactionActiveAbTests(
-    isActive,
-    variantName,
-  );
-
   useMountEffect(trackBottomSheetViewed);
 
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
@@ -140,24 +113,12 @@ const MoneyTransferSheetContent = () => {
         return;
       }
       sheetRef.current?.onCloseBottomSheet(() => {
-        const logFailure = (error: Error): void => {
+        initiate().catch((error: Error) => {
           Logger.error(
             error,
             '[MoneyTransferSheet] Transfer initiation failed',
           );
-        };
-        const start = (): Promise<void> => initiate().catch(logFailure);
-
-        // Only the own-wallet withdrawal is the completion we compare. Perps,
-        // predictions, and the rescue send stay on their existing events.
-        if (action === 'withdraw') {
-          withPendingTransactionActiveAbTests(withdrawalAbTests, start).catch(
-            logFailure,
-          );
-          return;
-        }
-
-        start().catch(logFailure);
+        });
       });
     },
     [
@@ -165,7 +126,6 @@ const MoneyTransferSheetContent = () => {
       initiatePerpsDeposit,
       initiatePredictDeposit,
       navigation,
-      withdrawalAbTests,
     ],
   );
 
@@ -250,7 +210,7 @@ const MoneyTransferSheetContent = () => {
 
   const options: MoneySheetOption[] = [
     {
-      label: strings(sendActionVariant.destinationLabelKey),
+      label: strings('money.transfer_sheet.between_accounts'),
       icon: IconName.Arrow2UpRight,
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
@@ -308,7 +268,7 @@ const MoneyTransferSheetContent = () => {
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>
-          {strings(sendActionVariant.sheetTitleKey)}
+          {strings('money.transfer_sheet.title')}
         </Text>
       </BottomSheetHeader>
       <View style={styles.list}>

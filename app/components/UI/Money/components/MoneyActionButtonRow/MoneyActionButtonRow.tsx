@@ -12,8 +12,6 @@ import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 interface ActionButtonConfig {
   onPress: () => void;
   disabled?: boolean;
-  /** Overrides the default label. Used by the Money home send-label experiment. */
-  label?: string;
 }
 
 interface MoneyActionButtonRowProps {
@@ -57,7 +55,7 @@ const MoneyActionButtonRow = ({
     />
     <MainActionButtonGlass
       iconName={IconName.Arrow2UpRight}
-      label={transfer.label ?? strings('money.action.transfer')}
+      label={strings('money.action.transfer')}
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
