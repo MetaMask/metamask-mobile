@@ -1,7 +1,8 @@
 import { playImpact, ImpactMoment } from '../../util/haptics';
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
+import { resyncFollowingIfSyncInFlight } from '../../util/social/followingSync';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { selectIsUnlocked } from '../../selectors/keyringController';
@@ -13,6 +14,7 @@ import {
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
+import { invalidateFollowingFeed } from '../UI/SocialFeed/data/socialFeedQueries';
 import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
 import {
   clearOptimisticFollowerCounts,
@@ -47,10 +49,16 @@ export interface FollowToggleAnalyticsContext {
 }
 
 export interface UseFollowToggleManyResult {
-  isFollowing: (addressOrId: string) => boolean;
+  /**
+   * @param knownFollowing - Pass true when the caller already knows the viewer
+   * follows this trader (e.g. a row from the server's following list), so a
+   * stale `followingProfileIds` cannot report it as not followed.
+   */
+  isFollowing: (addressOrId: string, knownFollowing?: boolean) => boolean;
   toggleFollow: (
     addressOrId: string,
     analyticsContext?: FollowToggleAnalyticsContext,
+    knownFollowing?: boolean,
   ) => Promise<void>;
 }
 
@@ -133,6 +141,27 @@ const syncFollowToggleSession = (sessionKey: string): void => {
   lastFollowToggleSessionKey = sessionKey;
 };
 
+/**
+ * Drops overrides that `followingProfileIds` now agrees with. In-flight ids
+ * keep theirs until the following lists refetch; callers that pass
+ * `knownFollowing` would otherwise flip back to "Following" before the row
+ * leaves the list.
+ */
+const pruneSettledOverrides = (followingProfileIds: string[]): void => {
+  updateOptimisticFollowState((prev) => {
+    let changed = false;
+    const next: Record<string, boolean> = {};
+    for (const [id, value] of Object.entries(prev)) {
+      if (!inflightIds.has(id) && followingProfileIds.includes(id) === value) {
+        changed = true;
+        continue;
+      }
+      next[id] = value;
+    }
+    return changed ? next : prev;
+  });
+};
+
 /** Clears shared follow-toggle state between unit tests. */
 export const resetFollowToggleSharedStateForTests = (): void => {
   lastFollowToggleSessionKey = undefined;
@@ -193,10 +222,13 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
     getOptimisticFollowState,
   );
 
+  const followingProfileIdsRef = useRef(followingProfileIds);
+  followingProfileIdsRef.current = followingProfileIds;
+
   const isFollowing = useCallback(
-    (addressOrId: string): boolean =>
+    (addressOrId: string, knownFollowing = false): boolean =>
       optimisticOverrides[addressOrId] ??
-      followingProfileIds.includes(addressOrId),
+      (knownFollowing || followingProfileIds.includes(addressOrId)),
     [optimisticOverrides, followingProfileIds],
   );
 
@@ -204,10 +236,11 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
     async (
       addressOrId: string,
       analyticsContext?: FollowToggleAnalyticsContext,
+      knownFollowing = false,
     ): Promise<void> => {
       const currentlyFollowing =
         optimisticFollowState[addressOrId] ??
-        followingProfileIds.includes(addressOrId);
+        (knownFollowing || followingProfileIds.includes(addressOrId));
       const nextValue = !currentlyFollowing;
       const requestEpoch = followToggleSessionEpoch;
 
@@ -241,6 +274,34 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
         }
+        resyncFollowingIfSyncInFlight().catch((err: unknown) => {
+          reportSocialServiceFailure(
+            err,
+            {
+              surface: 'follow',
+              operation: 'resync_following',
+              extraMessage: 'Following state resync failed',
+              source: 'useFollowToggle',
+              endpoint: 'following',
+            },
+            { breadcrumb: false },
+          );
+        });
+        // Not awaited: a full feed refetch must not delay the follower-count
+        // commit below.
+        invalidateFollowingFeed().catch((err: unknown) => {
+          reportSocialServiceFailure(
+            err,
+            {
+              surface: 'follow',
+              operation: 'invalidate_following_feed',
+              extraMessage: 'Following feed invalidation failed',
+              source: 'useFollowToggle',
+              endpoint: 'feed',
+            },
+            { breadcrumb: false },
+          );
+        });
         await invalidateFollowingQuery();
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
@@ -287,6 +348,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
       } finally {
         if (requestEpoch === followToggleSessionEpoch) {
           inflightIds.delete(addressOrId);
+          pruneSettledOverrides(followingProfileIdsRef.current);
         }
       }
     },
@@ -294,18 +356,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
   );
 
   useEffect(() => {
-    updateOptimisticFollowState((prev) => {
-      let changed = false;
-      const next: Record<string, boolean> = {};
-      for (const [id, value] of Object.entries(prev)) {
-        if (followingProfileIds.includes(id) === value) {
-          changed = true;
-          continue;
-        }
-        next[id] = value;
-      }
-      return changed ? next : prev;
-    });
+    pruneSettledOverrides(followingProfileIds);
   }, [followingProfileIds]);
 
   return { isFollowing, toggleFollow };

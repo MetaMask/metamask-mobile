@@ -40,21 +40,28 @@ type Validator = (section: string, ctx: ValidatorContext) => ValidatorResult;
 
 // ─── Template loading (single read at module load) ───────────────────────────
 
-const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
+export const TEMPLATE_PATH = path.join(
+  __dirname,
+  '../../pull-request-template.md',
+);
 
 // Read once against the base-branch template (the workflow uses
 // pull_request_target without a ref override, so the checkout always reflects
 // the base branch, not the PR head — see check-template-and-add-labels.yml).
 const templateTokens = tokenize(fs.readFileSync(TEMPLATE_PATH, 'utf8'));
 
-// Every level-2 heading in the template (including the reviewer checklist) —
-// used by template.ts for structural presence checking.
+// Every level-2 heading in the template, including optional sections and the
+// reviewer checklist. Structural matching uses PR_TEMPLATE_SECTIONS instead.
 export const PR_TEMPLATE_SECTION_TITLES: string[] = templateTokens
   .filter((t) => t.kind === 'heading' && t.level === 2)
   .map((t) => t.raw);
 
-// Backward-compatible alias (template.ts consumes this directly as an array).
-export const PR_TEMPLATE_SECTIONS = PR_TEMPLATE_SECTION_TITLES;
+// Headings template.ts requires for the structural match. Sections marked
+// required=false are excluded so a PR body that omits them is not treated as
+// the wrong template. buildRequiredSectionTitles is a function declaration
+// (hoisted), so calling it here before its definition below is safe.
+export const PR_TEMPLATE_SECTIONS: string[] =
+  buildRequiredSectionTitles(templateTokens);
 
 // ─── Directive parsing ───────────────────────────────────────────────────────
 
@@ -113,6 +120,23 @@ export function buildValidationPlan(tokens: Token[]): ValidationPlanEntry[] {
   return plan;
 }
 
+/**
+ * Level-2 headings a PR body must contain to match the template structurally.
+ * Sections whose directive sets required=false are left out: a body without
+ * them is still the right template, and their content is not validated.
+ */
+export function buildRequiredSectionTitles(tokens: Token[]): string[] {
+  const optionalTitles = new Set(
+    buildValidationPlan(tokens)
+      .filter((entry) => !entry.required)
+      .map((entry) => entry.title),
+  );
+  return tokens
+    .filter((t) => t.kind === 'heading' && t.level === 2)
+    .map((t) => t.raw)
+    .filter((title) => !optionalTitles.has(title));
+}
+
 const VALIDATION_PLAN = buildValidationPlan(templateTokens);
 
 // ─── Validator registry ───────────────────────────────────────────────────────
@@ -155,11 +179,35 @@ validatePlanTypes(VALIDATION_PLAN, VALIDATORS);
 
 const SCREENSHOTS_SUBHEADINGS = /^\s*###\s*\*\*(Before|After)\*\*\s*$/gim;
 
-// Matches the verbatim Gherkin example shipped by the template. A real scenario
-// or `N/A — <reason>` removes all of these tokens, so a single regex covers
-// both "untouched template" and "partially edited but a slot was forgotten".
-const MANUAL_TESTING_TEMPLATE_MARKERS =
-  /Feature:\s*my feature name|\[(?:verb for user action|describe expected initial app state|describe expected outcome)\]/i;
+// Substrings that appear only in an unfilled Manual testing skeleton. A real
+// scenario or `N/A` removes all of them, so one regex covers an untouched
+// template and a partial edit that left a slot behind.
+//
+// Retired phrases from the previous skeleton stay in the list. This module
+// runs from the base branch (pull_request_target), so after the template
+// change it still checks PRs that were opened with the old example.
+//
+// The check does not require a Background block or a When/And action list.
+// Any non-placeholder steps pass, including older Given/When/Then scenarios.
+const MANUAL_TESTING_TEMPLATE_MARKERS = new RegExp(
+  [
+    String.raw`Feature:\s*my feature name`,
+    ...[
+      '[verb for user action]',
+      '[describe expected initial app state]',
+      '[describe expected outcome]',
+      '[feature name]',
+      '[flag, build, account, network, or test data]',
+      '[any other shared setup]',
+      '[one behavior]',
+      '[first concrete action]',
+      '[next action, in order]',
+      '[expected outcome]',
+      '[side effect, such as an Activity entry or balance change]',
+    ].map((phrase) => phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  ].join('|'),
+  'i',
+);
 
 // `Fixes:` / `Closes:` / `Refs:` on its own line, optionally wrapped in bold
 // markers (the PR template uses `## **Related issues**`, contributors sometimes

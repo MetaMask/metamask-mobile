@@ -25,12 +25,15 @@ jest.mock('./FeedItemEntryAnimation', () => {
     default: ({
       children,
       eventId,
+      itemKey,
     }: {
       children: React.ReactNode;
       eventId?: string;
+      itemKey?: string;
     }) => (
       <>
         {eventId ? <Text>{`entering ${eventId}`}</Text> : null}
+        {itemKey ? <Text>{`entrance-item ${itemKey}`}</Text> : null}
         {children}
       </>
     ),
@@ -77,6 +80,18 @@ describe('SocialFeedRow', () => {
 
     expect(wasEntering).toBe(true);
     expect(screen.queryByText('entering event-1')).toBeNull();
+  });
+
+  it('ties the entrance to the post a recycled cell is showing', () => {
+    render(
+      <SocialFeedRow
+        {...rowProps({
+          post: post({ id: 'post-a', realtimeEventId: 'event-1' }),
+        })}
+      />,
+    );
+
+    expect(screen.getByText('entrance-item post-a')).toBeOnTheScreen();
   });
 
   it('never plays an entrance without the realtime ledger', () => {
@@ -132,12 +147,23 @@ describe('areSocialFeedRowPropsEqual', () => {
     expect(motionEqual).toBe(false);
   });
 
-  it('rerenders when the clock moves so relative ages stay current', () => {
-    const previous = { ...rowProps(), now: 1_000 };
+  it('rerenders when the copy-trade profile gate changes', () => {
+    const previous = rowProps();
 
     const equal = areSocialFeedRowPropsEqual(previous, {
       ...previous,
-      now: 61_000,
+      requireSocialProfile: true,
+    });
+
+    expect(equal).toBe(false);
+  });
+
+  it('rerenders when the viewer profile ID changes', () => {
+    const previous = rowProps({ viewerProfileId: 'profile-1' });
+
+    const equal = areSocialFeedRowPropsEqual(previous, {
+      ...previous,
+      viewerProfileId: 'profile-2',
     });
 
     expect(equal).toBe(false);

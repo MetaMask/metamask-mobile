@@ -20,6 +20,7 @@ import {
   validateEmail,
   formatPercentChange,
   formatMusdBaseUnits,
+  isPositiveBaseUnits,
   isPercentChangeNonNegative,
   getChainHex,
   getAssetReference,
@@ -28,6 +29,8 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatPredictPositionPercent,
+  formatPredictPositionUsd,
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
@@ -51,6 +54,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params: Record<string, string> | undefined) => {
       const t: Record<string, string> = {
+        'rewards.today': 'Today',
         'rewards.events.to': 'to',
         'rewards.events.type.swap': 'Swap',
         'rewards.events.type.referral_action': 'Referral action',
@@ -254,7 +258,7 @@ describe('formatUtils', () => {
     });
 
     it('returns today for the current UTC day', () => {
-      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('today');
+      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('Today');
     });
 
     it('counts whole UTC days', () => {
@@ -1532,6 +1536,20 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('isPositiveBaseUnits', () => {
+    it('is true only for a positive integer string', () => {
+      expect(isPositiveBaseUnits('1')).toBe(true);
+      expect(isPositiveBaseUnits('1000000')).toBe(true);
+      expect(isPositiveBaseUnits('0')).toBe(false);
+      expect(isPositiveBaseUnits('-1')).toBe(false);
+      expect(isPositiveBaseUnits(undefined)).toBe(false);
+      expect(isPositiveBaseUnits(null)).toBe(false);
+      expect(isPositiveBaseUnits('')).toBe(false);
+      expect(isPositiveBaseUnits('not-a-number')).toBe(false);
+      expect(isPositiveBaseUnits('1.5')).toBe(false);
+    });
+  });
+
   describe('formatMusdBaseUnits', () => {
     it('shifts base units to USD at 6 decimals', () => {
       expect(formatMusdBaseUnits('41750000')).toBe('$41.75');
@@ -1789,6 +1807,34 @@ describe('formatUtils', () => {
       expect(formatUsd(undefined)).toBe('—');
       expect(formatUsd(Number.NaN)).toBe('—');
       expect(formatUsd('not-a-number')).toBe('—');
+    });
+  });
+
+  describe('formatPredictPositionUsd', () => {
+    it.each([
+      [10, '$10'],
+      [0, '$0'],
+      [12.5, '$12.50'],
+      [1234.567, '$1,234.57'],
+      [9.999, '$10'],
+      [-3.2, '-$3.20'],
+      [NaN, '$0.00'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionUsd(value)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictPositionPercent', () => {
+    it.each([
+      [25, '25%'],
+      [0, '0%'],
+      [-12.5, '-12.5%'],
+      [33.3333, '33.33%'],
+      [10.1, '10.1%'],
+      [-0.001, '0%'],
+      [NaN, '0%'],
+    ])('formats %p as %p', (value, expected) => {
+      expect(formatPredictPositionPercent(value)).toBe(expected);
     });
   });
 

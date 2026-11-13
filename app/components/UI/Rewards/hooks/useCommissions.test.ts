@@ -1,10 +1,13 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import type { CommissionsPageDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
-import { setCommissions } from '../../../../reducers/rewardsMoney';
+import {
+  setCommissionMechanisms,
+  setCommissions,
+} from '../../../../reducers/rewardsMoney';
 import {
   FOLLOW_TRADE_COMMISSIONS_ORIGIN,
   useCommissions,
@@ -95,10 +98,52 @@ describe('useCommissions', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setCommissions({ profileId: PROFILE_A, items: page.results }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCommissionMechanisms({
+        profileId: PROFILE_A,
+        mechanisms: page.mechanisms,
+      }),
+    );
   });
 
   it('does not fetch when disabled', async () => {
     renderHook(() => useCommissions(PROFILE_A, { enabled: false }));
+    await flushPromises();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('asks for a failed later page again only once', async () => {
+    mockEngineCall.mockResolvedValueOnce({
+      ...page,
+      has_more: true,
+      cursor: 'cursor-2',
+    });
+
+    const { result } = renderHook(() => useCommissions(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.items).not.toBeNull();
+    });
+
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not fetch without a profile', async () => {
+    renderHook(() => useCommissions(undefined));
     await flushPromises();
 
     expect(mockEngineCall).not.toHaveBeenCalled();

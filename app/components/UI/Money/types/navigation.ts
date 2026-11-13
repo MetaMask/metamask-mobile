@@ -14,21 +14,43 @@ import type { MoneyAccountDepositIntent } from '../utils/moneyAccountDepositInte
 
 export enum MoneyPostOnboardingRedirectType {
   DEPOSIT = 'deposit',
+  /** Return to Card after the Money account exists. */
+  CARD = 'card',
 }
+
+/** Card screen to open after Money onboarding when the redirect type is CARD. */
+export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
 export interface MoneyPreferredPaymentToken {
   address: Hex;
   chainId: Hex;
 }
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
-  postOnboardingRedirect?: {
-    type: MoneyPostOnboardingRedirectType;
-    preferredPaymentToken?: MoneyPreferredPaymentToken;
-    autoSelectFiatPayment?: boolean;
-    intent?: MoneyAccountDepositIntent;
-  };
+export const MoneyDepositTokenType = {
+  ATOKEN: 'atoken',
+} as const;
+
+export interface MoneyDepositDeeplinkParams {
+  tokenType?: string;
 }
+
+export type MoneyPostOnboardingRedirect =
+  | {
+      type: MoneyPostOnboardingRedirectType.DEPOSIT;
+      preferredPaymentToken?: MoneyPreferredPaymentToken;
+      autoSelectFiatPayment?: boolean;
+      intent?: MoneyAccountDepositIntent;
+    }
+  | {
+      type: MoneyPostOnboardingRedirectType.CARD;
+      cardScreen: MoneyCardReturnScreen;
+    };
+
+export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
+  postOnboardingRedirect?: MoneyPostOnboardingRedirect;
+}
+
+export type MoneySplashParams = MoneyOnboardingParams;
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
@@ -117,6 +139,8 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
     MoneyOnboarding: MoneyOnboardingParams | undefined;
+    MoneySplash: MoneySplashParams | undefined;
+    MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
@@ -130,6 +154,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
           neobankActivity?: NeobankBankTransferActivity;
         }
       | undefined;
+    MoneyAccountStatus: undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
     MoneyModals:
       | NavigatorScreenParams<MoneyModalsNavigationParamList>

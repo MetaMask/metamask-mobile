@@ -8,6 +8,7 @@ import {
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   hydrateSocialTermsAcceptance,
+  recordSocialTermsAcceptanceForExistingProfile,
   resetSocialTermsAcceptance,
 } from './socialTermsAcceptance';
 
@@ -131,7 +132,7 @@ describe('socialTermsAcceptance', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
     });
 
-    it('opens terms-only onboarding for users with an existing profile', () => {
+    it('records the current version and skips the sheet when a profile exists and nothing is stored', () => {
       mockGetItemSync.mockReturnValue(null);
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({
@@ -144,10 +145,81 @@ describe('socialTermsAcceptance', () => {
       } as typeof ReduxService.store);
       const navigate = jest.fn();
 
+      expect(ensureSocialTermsAccepted(navigate)).toBe(true);
+
+      expect(navigate).not.toHaveBeenCalled();
+      expect(mockSetItem).toHaveBeenCalledWith(
+        SOCIAL_TERMS_ACCEPTED,
+        SOCIAL_TERMS_VERSION,
+      );
+      expect(hasAcceptedSocialTerms()).toBe(true);
+    });
+
+    it('opens terms-only onboarding when a profile exists and an older version is stored', () => {
+      mockGetItemSync.mockReturnValue('v0');
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              ProfileController: { profile: { profileId: 'existing-profile' } },
+            },
+          },
+        }),
+      } as typeof ReduxService.store);
+      const navigate = jest.fn();
+
       expect(ensureSocialTermsAccepted(navigate)).toBe(false);
+
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING, {
         termsOnly: true,
       });
+      expect(mockSetItem).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('recordSocialTermsAcceptanceForExistingProfile', () => {
+    const mockEmptyProfileController = () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              ProfileController: { profile: { profileId: '' } },
+            },
+          },
+        }),
+      } as typeof ReduxService.store);
+    };
+
+    it('records the current version for a loaded profile before Redux shows it', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockEmptyProfileController();
+
+      recordSocialTermsAcceptanceForExistingProfile({ profileLoaded: true });
+
+      expect(mockSetItem).toHaveBeenCalledWith(
+        SOCIAL_TERMS_ACCEPTED,
+        SOCIAL_TERMS_VERSION,
+      );
+      expect(hasAcceptedSocialTerms()).toBe(true);
+    });
+
+    it('keeps an older stored version for a loaded profile', () => {
+      mockGetItemSync.mockReturnValue('v0');
+
+      recordSocialTermsAcceptanceForExistingProfile({ profileLoaded: true });
+
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('records nothing without a profile in Redux by default', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockEmptyProfileController();
+
+      recordSocialTermsAcceptanceForExistingProfile();
+
+      expect(mockSetItem).not.toHaveBeenCalled();
+      expect(hasAcceptedSocialTerms()).toBe(false);
     });
   });
 });

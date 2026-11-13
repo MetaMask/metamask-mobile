@@ -1,7 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
-import { selectExploreLaptopSearchApiRankingEnabled } from '../../../../UI/Trending/selectors/featureFlags';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { useTokensFeed } from './useTokensFeed';
@@ -12,18 +11,8 @@ jest.mock(
     useTrendingSearch: jest.fn(),
   }),
 );
-jest.mock('../../../../UI/Trending/selectors/featureFlags', () => ({
-  selectExploreLaptopSearchApiRankingEnabled: jest.fn(() => true),
-}));
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn((selector: () => boolean) => selector()),
-}));
 
 const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
-const mockSelectExploreLaptopSearchApiRankingEnabled = jest.mocked(
-  selectExploreLaptopSearchApiRankingEnabled,
-);
 
 describe('useTokensFeed', () => {
   const mockRefetch = jest.fn().mockResolvedValue(undefined);
@@ -52,7 +41,6 @@ describe('useTokensFeed', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectExploreLaptopSearchApiRankingEnabled.mockReturnValue(true);
     mockUseTrendingSearch.mockReturnValue({
       data: sampleTokens,
       isLoading: false,
@@ -72,18 +60,18 @@ describe('useTokensFeed', () => {
     expect(result.current.refetch).toBe(mockRefetch);
   });
 
-  it('sorts non-LAPTOP search results by market cap', () => {
+  it('returns search results in API relevance order without re-sorting', () => {
     const { result } = renderHook(() => useTokensFeed({ query: 'wrap' }));
 
     expect(result.current.data.map((t) => t.symbol)).toEqual([
+      'AAA',
       'WBTC',
       'WETH',
-      'AAA',
     ]);
   });
 
   it.each(['laptop', '$laptop'])(
-    'preserves API order for temporary query "%s"',
+    'returns API order for search query "%s"',
     (query) => {
       const { result } = renderHook(() => useTokensFeed({ query }));
 
@@ -94,18 +82,6 @@ describe('useTokensFeed', () => {
       ]);
     },
   );
-
-  it('sorts LAPTOP search results by market cap when the remote flag is off', () => {
-    mockSelectExploreLaptopSearchApiRankingEnabled.mockReturnValue(false);
-
-    const { result } = renderHook(() => useTokensFeed({ query: 'laptop' }));
-
-    expect(result.current.data.map((token) => token.symbol)).toEqual([
-      'WBTC',
-      'WETH',
-      'AAA',
-    ]);
-  });
 
   it('refetches when refresh trigger increments past initial mount', async () => {
     const refresh: RefreshConfig = { trigger: 0, silentRefresh: false };

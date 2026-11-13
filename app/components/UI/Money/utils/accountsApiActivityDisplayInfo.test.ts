@@ -91,6 +91,103 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.fiatAmount).toBe('+$10.00');
   });
 
+  it('renders a resolved historical mUSD amount in both amount lines', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: {
+        type: 'historical',
+        value: '968399999',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('-968.40 mUSD');
+    expect(info.fiatAmount).toBe('-$968.40');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('marks current-rate values as approximate', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...cashback,
+      displayAmount: {
+        type: 'approximate',
+        value: '300000',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('≈+0.30 mUSD');
+    expect(info.fiatAmount).toBe('≈+$0.30');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('renders a muted pending placeholder until the rate is available', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: { type: 'pending' },
+    });
+
+    expect(info.primaryAmount).toBe('—');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+    expect(info.isPrimaryAmountPending).toBe(true);
+  });
+
+  it('shows unavailable instead of relabeling raw shares', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...card,
+      displayAmount: { type: 'unavailable' },
+    });
+
+    expect(info.primaryAmount).toBe('Amount unavailable');
+    expect(info.fiatAmount).toBe('');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
+  it('ignores valuation display state on refunds', () => {
+    const info = accountsApiActivityDisplayInfo({
+      ...refund,
+      displayAmount: {
+        type: 'historical',
+        value: '999999999',
+        decimals: 6,
+      },
+    });
+
+    expect(info.primaryAmount).toBe('+10.00 mUSD');
+  });
+
+  it('keeps the mUSD primary line alongside a non-USD merchant amount', () => {
+    const enrichment: CardTransaction = {
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status: CardTransactionStatus.Completed,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      originalAmount: { value: '27.50', currency: 'BRL' },
+      merchant: { name: 'Coffee Shop' },
+      fundingSources: [],
+    };
+
+    const info = accountsApiActivityDisplayInfo(
+      {
+        ...card,
+        displayAmount: {
+          type: 'historical',
+          value: '968399999',
+          decimals: 6,
+        },
+      },
+      enrichment,
+    );
+
+    expect(info.primaryAmount).toBe('-968.40 mUSD');
+    expect(info.fiatAmount).toBe('-R$27.50');
+    expect(info.showPrimaryAmount).toBe(true);
+  });
+
   it('always shows the fiat amount in USD, regardless of preferred currency', () => {
     // mUSD is USD-pegged; the fiat line is dollars with proper $ formatting.
     const info = accountsApiActivityDisplayInfo(cashback);
@@ -119,5 +216,67 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.icon).toBe(IconName.Card);
     expect(info.description).toBe('Coffee Shop');
     expect(info.fiatAmount).toBe('-R$27.50');
+  });
+
+  describe('status', () => {
+    const settledEnrichment = (
+      status: CardTransactionStatus,
+    ): CardTransaction => ({
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      fundingSources: [{ txHash: card.hash }],
+    });
+
+    it('marks a card row as confirmed when there is no enrichment', () => {
+      expect(accountsApiActivityDisplayInfo(card).status).toBe('confirmed');
+    });
+
+    it.each([
+      ['declined', CardTransactionStatus.Failed],
+      ['reversed', CardTransactionStatus.Reversed],
+    ])(
+      'marks a settled but %s card purchase as failed',
+      (_label, status: CardTransactionStatus) => {
+        // The purchase settled on-chain, so the Accounts-API row looks like
+        // any successful spend — only the provider knows it did not stand.
+        const info = accountsApiActivityDisplayInfo(
+          card,
+          settledEnrichment(status),
+        );
+
+        expect(info.status).toBe('failed');
+      },
+    );
+
+    it.each([
+      ['completed', CardTransactionStatus.Completed],
+      ['pending', CardTransactionStatus.Pending],
+    ])(
+      'leaves a %s card purchase confirmed',
+      (_label, status: CardTransactionStatus) => {
+        // A pending authorization that already settled on-chain is final for
+        // the Money row; it must not regress into a spinner.
+        const info = accountsApiActivityDisplayInfo(
+          card,
+          settledEnrichment(status),
+        );
+
+        expect(info.status).toBe('confirmed');
+      },
+    );
+
+    it('does not apply a failed enrichment to a refund row', () => {
+      const info = accountsApiActivityDisplayInfo(
+        refund,
+        settledEnrichment(CardTransactionStatus.Failed),
+      );
+
+      expect(info.status).toBe('confirmed');
+    });
   });
 });

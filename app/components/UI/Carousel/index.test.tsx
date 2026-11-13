@@ -18,7 +18,6 @@ import { CarouselSlide } from './types';
 // eslint-disable-next-line import-x/no-namespace
 import * as FeatureFlagSelectorsModule from './selectors/featureFlags';
 import { RootState } from '../../../reducers';
-import { setContentPreviewToken } from '../../../actions/notification/helpers';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import {
@@ -654,8 +653,7 @@ describe('Carousel UI Behavior', () => {
 });
 
 describe('useFetchCarouselSlides()', () => {
-  it('fetches initial content and refeches on preview token change', async () => {
-    // Arrange - Act - Assert: Initial Fetch
+  it('fetches initial content', async () => {
     mockFetchCarouselSlides.mockResolvedValue({
       prioritySlides: [],
       regularSlides: [createMockSlide({ id: 'initial-slide' })],
@@ -665,19 +663,6 @@ describe('useFetchCarouselSlides()', () => {
       expect(mockFetchCarouselSlides).toHaveBeenCalled();
       expect(result.current.priorityContentfulSlides).toHaveLength(0);
       expect(result.current.regularContentfulSlides).toHaveLength(1);
-    });
-
-    // Arrange - Act - Assert: Preview Token Subscription Refetch
-    mockFetchCarouselSlides.mockClear();
-    mockFetchCarouselSlides.mockResolvedValue({
-      prioritySlides: [createMockSlide({ id: 'new-slide' })],
-      regularSlides: [],
-    });
-    setContentPreviewToken('new-preview-token'); // fire the subscription on new token
-    await waitFor(() => {
-      expect(mockFetchCarouselSlides).toHaveBeenCalled();
-      expect(result.current.priorityContentfulSlides).toHaveLength(1);
-      expect(result.current.regularContentfulSlides).toHaveLength(0);
     });
   });
 

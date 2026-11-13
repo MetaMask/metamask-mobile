@@ -26,7 +26,7 @@ export const BridgeViewSelectorsIDs = {
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
-  LIMIT_TAB_NEW_BADGE: 'bridge-limit-tab-new-badge',
+  LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
@@ -55,6 +55,7 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
     'recurring-fee-tokens-unavailable-banner',
   RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
+  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

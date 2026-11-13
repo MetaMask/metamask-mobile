@@ -7,11 +7,13 @@ import { useTheme } from '../../../../util/theme';
 import {
   clearMoneyEarnBannerDismissedTokens,
   setMoneyOnboardingSeen,
+  setMoneySplashSeen,
   setOnboardingStepperStep,
 } from '../../../../actions/user';
 import {
   selectMoneyEarnBannerDismissedTokens,
   selectMoneyOnboardingSeen,
+  selectMoneySplashSeen,
 } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useStyles } from '../../../../component-library/hooks';
@@ -29,6 +31,11 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  MONEY_HOME_CARD_DEV_OVERRIDES,
+  setMoneyHomeCardDevOverride,
+  useMoneyHomeCardDevOverride,
+} from '../hooks/moneyHomeCardDevOverride';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -37,6 +44,7 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const hasSeenMoneySplash = useSelector(selectMoneySplashSeen);
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
   );
@@ -48,9 +56,14 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const earnBannerDismissedCount = Object.keys(
     earnBannerDismissedTokens,
   ).length;
+  const homeCardOverride = useMoneyHomeCardDevOverride();
 
   const handleResetOnboardingSeenState = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(false));
+  }, [dispatch]);
+
+  const handleResetSplashSeenState = useCallback(() => {
+    dispatch(setMoneySplashSeen(false));
   }, [dispatch]);
 
   const handleResetOnboardingStepperStep = useCallback(() => {
@@ -99,6 +112,24 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'Reset onboarding screen'}
+        </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {`Splash seen: ${String(hasSeenMoneySplash)}`}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleResetSplashSeenState}
+          isFullWidth
+        >
+          {'Reset splash screen'}
         </Button>
       </Box>
       <Box>
@@ -156,6 +187,51 @@ export const MoneyUiDeveloperOptionsSection = () => {
           {'View animation'}
         </Button>
       </Box>
+      {__DEV__ && (
+        <Box>
+          <Text
+            color={TextColor.TextAlternative}
+            variant={TextVariant.BodyMd}
+            style={styles.desc}
+          >
+            {`Home card override: ${homeCardOverride?.label ?? 'Live routing'}`}
+          </Text>
+          <Text
+            color={TextColor.TextAlternative}
+            variant={TextVariant.BodyMd}
+            style={styles.desc}
+          >
+            {
+              'Eligible means a VBA-supported region. Pick a row, then open the Money tab. Dismiss on the KYC decision card falls through to Add funds or the card step.'
+            }
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            style={styles.accessory}
+            size={ButtonSize.Lg}
+            onPress={() => setMoneyHomeCardDevOverride(null)}
+            isFullWidth
+          >
+            {'Use live routing'}
+          </Button>
+          {MONEY_HOME_CARD_DEV_OVERRIDES.map((entry) => (
+            <Button
+              key={entry.id}
+              variant={
+                homeCardOverride?.id === entry.id
+                  ? ButtonVariant.Primary
+                  : ButtonVariant.Secondary
+              }
+              style={styles.accessory}
+              size={ButtonSize.Lg}
+              onPress={() => setMoneyHomeCardDevOverride(entry)}
+              isFullWidth
+            >
+              {entry.label}
+            </Button>
+          ))}
+        </Box>
+      )}
       <Box>
         <Text
           color={TextColor.TextAlternative}

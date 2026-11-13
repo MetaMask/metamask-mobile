@@ -4,6 +4,10 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
   Skeleton,
@@ -12,16 +16,19 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { capitalize } from '../../../../../util/general';
 
 export interface MoneyMetricCardProps {
   iconName: IconName;
   label: string;
   /** Formatted USD total, or null when the amount is not known. */
   amount: string | null;
-  /** Copy under the amount, e.g. "recorded earnings". */
+  /** Copy under the amount, e.g. "Recorded earnings". Shown with its first letter capitalized. */
   caption: string;
   /** Renders a placeholder in place of the amount while the summary loads. */
   isLoading?: boolean;
+  /** Opens an info sheet for this metric. Hidden when omitted. */
+  onInfoPress?: () => void;
   testID: string;
 }
 
@@ -36,6 +43,7 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
   amount,
   caption,
   isLoading = false,
+  onInfoPress,
   testID,
 }) => {
   const tw = useTailwind();
@@ -48,13 +56,32 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconDefault }}
       />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        twClassName="mt-3"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="mt-3 gap-0.5"
       >
-        {label}
-      </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="shrink"
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+        {onInfoPress ? (
+          // Xs is a 20px hit box around a 16px glyph, so the 2px gap reads as 4px.
+          <ButtonIcon
+            iconName={IconName.Info}
+            size={ButtonIconSize.Xs}
+            hitSlop={14}
+            iconProps={{ color: IconColor.IconAlternative }}
+            onPress={onInfoPress}
+            accessibilityLabel={label}
+            testID={`${testID}-info`}
+          />
+        ) : null}
+      </Box>
       {isLoading ? (
         <Skeleton style={tw.style('mt-1 h-6 w-20 rounded-md')} />
       ) : null}
@@ -62,7 +89,7 @@ const MoneyMetricCard: React.FC<MoneyMetricCardProps> = ({
         <Text variant={TextVariant.HeadingMd}>{amount || '—'}</Text>
       ) : null}
       <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {caption}
+        {capitalize(caption)}
       </Text>
     </Box>
   );

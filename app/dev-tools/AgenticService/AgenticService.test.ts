@@ -230,7 +230,7 @@ jest.mock('../../store/storage-wrapper', () => {
 jest.mock('../../constants/storage', () => ({
   OPTIN_META_METRICS_UI_SEEN: 'optin_meta_metrics_ui_seen',
   PERPS_GTM_MODAL_SHOWN: 'perps_gtm',
-  REWARDS_GTM_MODAL_SHOWN: 'rewards_gtm',
+  PUSH_PRE_PROMPT_SHOWN: 'push_pre_prompt',
 }));
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
@@ -398,6 +398,65 @@ function sharedOffscreenDescendant(
   target.return = alternate;
   installCurrentFiberRoot(root);
   return { root, committed, alternate };
+}
+
+type Frame = [number, number, number, number];
+interface NativeFrame {
+  [key: string]: unknown;
+  measureInWindow: jest.Mock<
+    void,
+    [(x: number, y: number, width: number, height: number) => void]
+  >;
+}
+// Native instances the mocked Fabric renderer hands out per host fiber.
+const nativeInstances = new WeakMap<FiberNode, NativeFrame>();
+
+function nativeFrame(frame: Frame): NativeFrame {
+  return { measureInWindow: jest.fn((callback) => callback(...frame)) };
+}
+
+function nativeOf(fiber: FiberNode): NativeFrame {
+  const native = nativeInstances.get(fiber);
+  if (!native) throw new Error('Host has no native instance');
+  return native;
+}
+
+function link(parent: FiberNode, children: FiberNode[]): FiberNode {
+  parent.child = children[0] ?? null;
+  children.forEach((child, index) => {
+    child.return = parent;
+    child.sibling = children[index + 1] ?? null;
+  });
+  return parent;
+}
+
+/** HostText fibers store their string as memoizedProps. */
+function hostText(text: string): FiberNode {
+  return Object.assign(makeFiber(), { tag: 6, memoizedProps: text });
+}
+
+/**
+ * Fabric host fiber. Its public instance stays null until a ref asks for it,
+ * as for most Text hosts; `hasRef` models a host whose ref already created it.
+ */
+function makeFabricHost(
+  type: string,
+  frame: Frame | null,
+  children: FiberNode[] = [],
+  hasRef = false,
+): FiberNode {
+  const native = frame ? nativeFrame(frame) : null;
+  const fiber = link(
+    {
+      ...makeFiber(),
+      tag: 5,
+      type,
+      stateNode: { canonical: { publicInstance: hasRef ? native : null } },
+    },
+    children,
+  );
+  if (native) nativeInstances.set(fiber, native);
+  return fiber;
 }
 
 function resetMockAccountState() {
@@ -2292,6 +2351,335 @@ describe('AgenticService.install', () => {
     });
   });
 
+  describe('viewport query on Fabric text leaves', () => {
+    // Jest's Dimensions mock reports a 750x1334 window.
+    const SCROLL_FRAME: Frame = [0, 126, 750, 1000];
+    const VALUE_ID = 'position-card-return-value';
+
+    // The Fabric renderer creates a host's public instance on demand.
+    let mockGetPublicInstance: jest.SpyInstance;
+
+    beforeEach(() => {
+      mockGetPublicInstance = jest
+        .spyOn(
+          jest.requireMock<{
+            getPublicInstanceFromInternalInstanceHandle: (
+              fiber: FiberNode,
+            ) => unknown;
+          }>('react-native/Libraries/ReactNative/RendererProxy'),
+          'getPublicInstanceFromInternalInstanceHandle',
+        )
+        .mockImplementation(
+          (fiber: FiberNode) => nativeInstances.get(fiber) ?? null,
+        );
+    });
+
+    afterEach(() => {
+      mockGetPublicInstance.mockRestore();
+      jest.useRealTimers();
+    });
+
+    function installReturnCard({
+      valueFrame,
+      cardFrame = [16, 640, 718, 80],
+      value = '+0.12%',
+      ownerType = 'RCTText',
+    }: {
+      valueFrame: Frame | null;
+      cardFrame?: Frame;
+      value?: string;
+      ownerType?: string;
+    }) {
+      const label = makeFabricHost(
+        'RCTText',
+        [16, 640, 157, 22],
+        [hostText('Return')],
+      );
+      const valueLeaf = hostText(value);
+      const valueOwner = makeFabricHost(ownerType, valueFrame, [valueLeaf]);
+      const valueComponent = link(makeFiber({ testID: VALUE_ID }), [
+        valueOwner,
+      ]);
+      const card = makeFabricHost('RCTView', cardFrame, [
+        label,
+        valueComponent,
+      ]);
+      card.memoizedProps = { testID: 'position-card-return' };
+      const scroll = makeFabricHost(
+        'RCTScrollView',
+        SCROLL_FRAME,
+        [card],
+        true,
+      );
+      installFiberHook(link(makeFiber(), [scroll]));
+      return { valueLeaf, valueOwner, scroll };
+    }
+
+    it.each([{ testId: VALUE_ID }, { textContains: '+0.12%' }])(
+      'reports an off-screen value hidden while its scroll ancestor is visible for %j',
+      async (query) => {
+        installReturnCard({ valueFrame: [217, -139, 157, 24] });
+
+        const result = await bridge().queryUiTarget({
+          ...query,
+          visibility: 'viewport',
+        });
+
+        expect(result).toMatchObject({
+          present: true,
+          visible: false,
+          rect: { x: 217, y: -139, width: 157, height: 24 },
+        });
+      },
+    );
+
+    it.each([{ testId: VALUE_ID }, { textContains: '+0.12%' }])(
+      'reports an on-screen value visible from its own text frame for %j',
+      async (query) => {
+        installReturnCard({ valueFrame: [217, 661, 157, 24] });
+
+        const result = await bridge().queryUiTarget({
+          ...query,
+          visibility: 'viewport',
+        });
+
+        expect(result).toMatchObject({
+          present: true,
+          visible: true,
+          rect: { x: 217, y: 661, width: 157, height: 24 },
+        });
+      },
+    );
+
+    it('measures nested text through its paragraph owner', async () => {
+      const leaf = hostText('0.12');
+      const span = makeFabricHost('RCTVirtualText', null, [leaf]);
+      const paragraph = makeFabricHost(
+        'RCTText',
+        [217, 661, 157, 24],
+        [link(makeFiber(), [span])],
+      );
+      const scroll = makeFabricHost(
+        'RCTScrollView',
+        SCROLL_FRAME,
+        [paragraph],
+        true,
+      );
+      installFiberHook(link(makeFiber(), [scroll]));
+
+      const result = await bridge().queryUiTarget({
+        textContains: '0.12',
+        visibility: 'viewport',
+      });
+
+      expect(result).toMatchObject({
+        visible: true,
+        rect: { x: 217, y: 661, width: 157, height: 24 },
+      });
+    });
+
+    it('measures a nested span testID through its paragraph owner', async () => {
+      const span = makeFabricHost(
+        'RCTVirtualText',
+        [0, 0, 0, 0],
+        [hostText('0.12')],
+      );
+      const spanComponent = link(makeFiber({ testID: 'nested-value' }), [span]);
+      const paragraph = makeFabricHost(
+        'RCTText',
+        [217, 661, 157, 24],
+        [spanComponent],
+      );
+      const scroll = makeFabricHost(
+        'RCTScrollView',
+        SCROLL_FRAME,
+        [paragraph],
+        true,
+      );
+      installFiberHook(link(makeFiber(), [scroll]));
+
+      const result = await bridge().queryUiTarget({
+        testId: 'nested-value',
+        visibility: 'viewport',
+      });
+
+      expect(result).toMatchObject({
+        visible: true,
+        rect: { x: 217, y: 661, width: 157, height: 24 },
+      });
+      expect(nativeOf(span).measureInWindow).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['under the scroll top', [217, 100, 157, 24]],
+      ['partly past the scroll bottom', [217, 1110, 157, 24]],
+    ] as const)(
+      'reports a value clipped %s as not visible',
+      async (_case, valueFrame) => {
+        installReturnCard({ valueFrame: [...valueFrame] });
+
+        const result = await bridge().queryUiTarget({
+          testId: VALUE_ID,
+          visibility: 'viewport',
+        });
+
+        expect(result.visible).toBe(false);
+      },
+    );
+
+    it.each([
+      ['without a native instance', { valueFrame: null }],
+      [
+        'outside a text paragraph',
+        { valueFrame: [217, 661, 157, 24], ownerType: 'RCTView' },
+      ],
+    ] as const)(
+      'fails closed for a text leaf %s instead of using its ancestors',
+      async (_case, card) => {
+        const { scroll } = installReturnCard({
+          ...card,
+          valueFrame: card.valueFrame ? [...card.valueFrame] : null,
+        });
+
+        const result = await bridge().queryUiTarget({
+          textContains: '+0.12%',
+          visibility: 'viewport',
+        });
+
+        expect(result.present).toBe(true);
+        expect(result.visible).toBe(false);
+        expect(result.rect).toBeUndefined();
+        expect(result.error).toMatch(/native frame/);
+        expect(nativeOf(scroll).measureInWindow).not.toHaveBeenCalled();
+      },
+    );
+
+    it('fails closed when the text measurement never reports a frame', async () => {
+      jest.useFakeTimers();
+      const { valueOwner } = installReturnCard({
+        valueFrame: [217, 661, 157, 24],
+      });
+      const silent = { measureInWindow: jest.fn() };
+      mockGetPublicInstance.mockImplementation((fiber: FiberNode) =>
+        fiber === valueOwner ? silent : null,
+      );
+
+      const pending = bridge().queryUiTarget({
+        testId: VALUE_ID,
+        visibility: 'viewport',
+      });
+      await jest.advanceTimersByTimeAsync(2500);
+      const result = await pending;
+
+      expect(result.visible).toBe(false);
+      expect(result.error).toMatch(/no frame/);
+    });
+
+    it.each([
+      [[217, -139, 157, 24], [217, 661, 157, 24], true],
+      [[217, -139, 157, 24], [217, 1400, 157, 24], false],
+    ] as const)(
+      'judges duplicate text by each leaf frame (%j, %j)',
+      async (first, second, visible) => {
+        const leaves = [first, second].map((frame) =>
+          makeFabricHost('RCTText', [...frame], [hostText('Return')]),
+        );
+        const scroll = makeFabricHost(
+          'RCTScrollView',
+          SCROLL_FRAME,
+          leaves,
+          true,
+        );
+        installFiberHook(link(makeFiber(), [scroll]));
+
+        const result = await bridge().queryUiTarget({
+          textContains: 'Return',
+          visibility: 'viewport',
+        });
+
+        expect(result.visible).toBe(visible);
+        if (visible) {
+          expect(result.rect).toEqual({
+            x: 217,
+            y: 661,
+            width: 157,
+            height: 24,
+          });
+        }
+      },
+    );
+
+    it.each(['replaced', 'detached'])(
+      'refuses a text frame when its owner is %s during measurement',
+      async (change) => {
+        const held = holdNativeMeasurement();
+        const { valueOwner } = installReturnCard({
+          valueFrame: [217, 661, 157, 24],
+        });
+        mockGetPublicInstance.mockImplementation((fiber: FiberNode) =>
+          fiber === valueOwner ? held.stateNode : null,
+        );
+
+        const pending = bridge().queryUiTarget({
+          testId: VALUE_ID,
+          visibility: 'viewport',
+        });
+        if (change === 'replaced') {
+          valueOwner.stateNode = { canonical: { publicInstance: null } };
+          mockGetPublicInstance.mockImplementation((fiber: FiberNode) =>
+            fiber === valueOwner ? nativeFrame([217, 661, 157, 24]) : null,
+          );
+        } else {
+          installFiberHook(link(makeFiber(), []));
+        }
+        held.release();
+        const result = await pending;
+
+        expect(result.visible).toBe(false);
+        expect(result.rect).toBeUndefined();
+      },
+    );
+
+    it('keeps container ID waits on the container frame', async () => {
+      installReturnCard({
+        valueFrame: [217, 661, 157, 24],
+        cardFrame: [16, 1050, 718, 120],
+      });
+
+      const result = await bridge().queryUiTarget({
+        testId: 'position-card-return',
+        visibility: 'viewport',
+      });
+
+      expect(result).toMatchObject({
+        present: true,
+        visible: true,
+        rect: { x: 16, y: 1050, width: 718, height: 120 },
+      });
+    });
+
+    it('reads the Return label with its value and nothing for a hidden value', () => {
+      installReturnCard({ valueFrame: [217, 661, 157, 24] });
+      const options = { requiredLabels: ['Return'], maxTexts: 2 };
+
+      const texts = bridge().getAncestorTextsByTestId(VALUE_ID, options);
+      const value = bridge().getRowValue('Return', '^[+-]\\d+\\.\\d{2}%$', {
+        anchorTestId: VALUE_ID,
+        maxTexts: 2,
+      });
+      installReturnCard({ valueFrame: [217, 661, 157, 24], value: '••••••' });
+      const hiddenValue = bridge().getRowValue(
+        'Return',
+        '^[+-]\\d+\\.\\d{2}%$',
+        { anchorTestId: VALUE_ID, maxTexts: 2 },
+      );
+
+      expect(texts).toEqual(['Return', '+0.12%']);
+      expect(value).toBe('+0.12%');
+      expect(hiddenValue).toBeNull();
+    });
+  });
+
   describe('scrollView', () => {
     it('scrolls a ScrollView via scrollTo', () => {
       const scrollTo = jest.fn();
@@ -2619,7 +3007,7 @@ describe('AgenticService.install', () => {
       });
       expect(StorageWrapper.setItem).toHaveBeenCalledWith('perps_gtm', 'true');
       expect(StorageWrapper.setItem).toHaveBeenCalledWith(
-        'rewards_gtm',
+        'push_pre_prompt',
         'true',
       );
     });

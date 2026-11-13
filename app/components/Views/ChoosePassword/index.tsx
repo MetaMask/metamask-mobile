@@ -44,11 +44,11 @@ import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { RouteMessengerInstance } from './messenger';
-import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   SEED_PHRASE_HINTS,
@@ -953,7 +953,7 @@ const ChoosePassword = () => {
         >
           <Box
             flexDirection={BoxFlexDirection.Column}
-            twClassName="flex-1"
+            twClassName="flex-1 pt-3"
             gap={4}
             testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >

@@ -7,6 +7,7 @@ import { moneyFormatUsd } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { formatCardAmount } from '../../Card/utils/cardTransactionAmount';
+import { isUnsuccessfulCardTransactionStatus } from '../../Card/utils/cardTransactionDisplayInfo';
 
 const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.transaction.purchase',
@@ -14,6 +15,32 @@ const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   refund: 'money.transaction.refund',
   bank_transfer: 'money.transaction.deposited',
 };
+
+function withCardEnrichment(
+  base: MoneyTransactionDisplayInfo,
+  enrichment: CardTransaction,
+): MoneyTransactionDisplayInfo {
+  // originalAmount is already the merchant-currency amount from the Card
+  // provider. formatCardAmount only formats it; USD stays on the mUSD line.
+  const original = enrichment.originalAmount;
+  const secondaryAmount =
+    original && original.currency.toUpperCase() !== 'USD'
+      ? formatCardAmount(original, enrichment.isDebit)
+      : base.fiatAmount;
+
+  return {
+    ...base,
+    description: enrichment.merchant?.name ?? base.description,
+    fiatAmount: secondaryAmount,
+    // A declined or reversed purchase can still settle on-chain, so the
+    // Accounts-API row is indistinguishable from a successful spend — the
+    // data service only sees the transfer. The card provider holds the real
+    // outcome, so let the enrichment override the status.
+    status: isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? 'failed'
+      : base.status,
+  };
+}
 
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
@@ -24,14 +51,31 @@ export function accountsApiActivityDisplayInfo(
     activity.kind === 'refund' ||
     activity.kind === 'bank_transfer';
   const sign = isIncoming ? '+' : '-';
+  const displayAmount =
+    activity.kind === 'card' || activity.kind === 'cashback'
+      ? activity.displayAmount
+      : undefined;
+  const usdValue =
+    displayAmount &&
+    (displayAmount.type === 'historical' ||
+      displayAmount.type === 'approximate')
+      ? new BigNumber(displayAmount.value).shiftedBy(-displayAmount.decimals)
+      : new BigNumber(activity.amount).shiftedBy(-activity.token.decimals);
+  const approximatePrefix = displayAmount?.type === 'approximate' ? '≈' : '';
+  const amountUnavailable =
+    displayAmount?.type === 'unavailable'
+      ? strings('money.api_activity_details.amount_unavailable')
+      : undefined;
+  const isAmountPending = displayAmount?.type === 'pending';
 
-  // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
-  const usdValue = new BigNumber(activity.amount).dividedBy(
-    new BigNumber(10).pow(activity.token.decimals),
-  );
-
-  const primaryAmount = `${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`;
-  const fiatAmount = `${sign}${moneyFormatUsd(usdValue)}`;
+  const primaryAmount = isAmountPending
+    ? '—'
+    : (amountUnavailable ??
+      `${approximatePrefix}${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`);
+  const fiatAmount =
+    amountUnavailable === undefined && !isAmountPending
+      ? `${approximatePrefix}${sign}${moneyFormatUsd(usdValue)}`
+      : '';
 
   const base: MoneyTransactionDisplayInfo = {
     description:
@@ -44,25 +88,17 @@ export function accountsApiActivityDisplayInfo(
     isIncoming,
     icon: activity.kind === 'bank_transfer' ? IconName.Add : IconName.Card,
     status: 'confirmed',
-    showPrimaryAmount: activity.kind === 'bank_transfer',
-    isFiatAmountMuted: activity.kind === 'bank_transfer',
+    showPrimaryAmount:
+      activity.kind === 'bank_transfer' || displayAmount !== undefined,
+    isPrimaryAmountPending: isAmountPending,
+    isFiatAmountMuted:
+      activity.kind === 'bank_transfer' ||
+      (displayAmount !== undefined && activity.kind === 'card'),
   };
 
   if (activity.kind !== 'card' || !enrichment) {
     return base;
   }
 
-  // originalAmount is already the merchant-currency amount from the Card
-  // provider. formatCardAmount only formats it; USD stays on the mUSD line.
-  const original = enrichment.originalAmount;
-  const secondaryAmount =
-    original && original.currency.toUpperCase() !== 'USD'
-      ? formatCardAmount(original, enrichment.isDebit)
-      : fiatAmount;
-
-  return {
-    ...base,
-    description: enrichment.merchant?.name ?? base.description,
-    fiatAmount: secondaryAmount,
-  };
+  return withCardEnrichment(base, enrichment);
 }

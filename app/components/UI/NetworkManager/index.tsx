@@ -1,6 +1,6 @@
 // third party dependencies
 import { View } from 'react-native';
-import { HeaderStandard, Text } from '@metamask/design-system-react-native';
+import { Text } from '@metamask/design-system-react-native';
 import React, { useRef, useMemo, useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -54,8 +54,10 @@ import {
 } from './index.types';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { getEvmNetworkConfigurationsByHexChainId } from './utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface NetworkManagerParams {
   /** Set only when opened from the Tokens list; used for analytics. */
@@ -83,6 +85,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 };
 
 const NetworkManager = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { searchQuery } = useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -137,20 +140,10 @@ const NetworkManager = () => {
    * Convert CAIP network configurations to hex-based format for RpcSelectionModal
    * Filter only EVM networks as RPC selection is only supported for EVM
    */
-  const evmNetworkConfigurations = useMemo(() => {
-    const evmConfigs: Record<string, NetworkConfiguration> = {};
-    Object.entries(networkConfigurations).forEach(([caipChainId, config]) => {
-      if (
-        !isNonEvmChainId(caipChainId as CaipChainId) &&
-        'rpcEndpoints' in config
-      ) {
-        const parsedCaipChainId = parseCaipChainId(caipChainId as CaipChainId);
-        const hexChainId = toHex(parsedCaipChainId.reference);
-        evmConfigs[hexChainId] = config as NetworkConfiguration;
-      }
-    });
-    return evmConfigs;
-  }, [networkConfigurations]);
+  const evmNetworkConfigurations = useMemo(
+    () => getEvmNetworkConfigurationsByHexChainId(networkConfigurations),
+    [networkConfigurations],
+  );
 
   const containerStyle = useMemo(
     () => [
@@ -361,7 +354,9 @@ const NetworkManager = () => {
         shouldNavigateBack
       >
         <View style={containerStyle}>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isFloating={false}
+            isGlass={isGlassHeader}
             title={strings('wallet.networks')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
           />

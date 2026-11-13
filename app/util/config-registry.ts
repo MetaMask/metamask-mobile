@@ -37,7 +37,6 @@ export interface PopularListNetworkShape {
     imageSource?: ImageSourcePropType;
   };
   ticker: string;
-  failoverRpcUrls?: string[];
   warning?: boolean;
   /**
    * Present and `RpcEndpointType.Infura` when the registry marks the default
@@ -109,11 +108,7 @@ export function registryConfigToPopularListShape(
 export function buildAddNetworkRpcEndpoint(
   network: Pick<
     PopularListNetworkShape,
-    | 'nickname'
-    | 'rpcUrl'
-    | 'failoverRpcUrls'
-    | 'rpcEndpointType'
-    | 'networkClientId'
+    'nickname' | 'rpcUrl' | 'rpcEndpointType' | 'networkClientId'
   >,
 ): [InfuraRpcEndpoint | AddNetworkCustomRpcEndpointFields] {
   return [
@@ -121,13 +116,11 @@ export function buildAddNetworkRpcEndpoint(
       ? ({
           type: RpcEndpointType.Infura,
           networkClientId: network.networkClientId,
-          failoverUrls: network.failoverRpcUrls,
           url: `https://${network.networkClientId}.infura.io/v3/{infuraProjectId}`,
         } as InfuraRpcEndpoint)
       : {
           type: RpcEndpointType.Custom,
           url: network.rpcUrl,
-          failoverUrls: network.failoverRpcUrls,
           name: network.nickname,
         },
   ];
