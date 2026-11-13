@@ -138,7 +138,7 @@ const BenefitCard = ({ benefit, variant, disabled }: Props) => {
               width: BENEFIT_PREVIEW_CARD_WIDTH,
               height: BENEFIT_PREVIEW_CARD_HEIGHT,
             })
-          : tw.style('bg-section rounded-lg p-4 h-[154px]')
+          : tw.style('bg-section rounded-lg p-4')
       }
       disabled={disabled}
       onPress={() =>
