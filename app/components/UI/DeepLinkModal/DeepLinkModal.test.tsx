@@ -325,12 +325,7 @@ describe('DeepLinkModal', () => {
       fireEvent.press(continueButton);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
-      screen: 'WalletTabStackFlow',
-      params: {
-        screen: 'WalletView',
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
     expect(mockOnContinue).toHaveBeenCalled();
   });
 

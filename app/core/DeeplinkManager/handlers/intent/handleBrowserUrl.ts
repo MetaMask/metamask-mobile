@@ -14,12 +14,9 @@ export const createBrowserDeeplinkIntent = ({
     type: 'home-tab',
     routeName: Routes.BROWSER.HOME,
     params: {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: url,
-        linkType: EXTERNAL_LINK_TYPE,
-        timestamp: Date.now(),
-      },
+      newTabUrl: url,
+      linkType: EXTERNAL_LINK_TYPE,
+      timestamp: Date.now(),
     },
   },
 });
