@@ -175,7 +175,16 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
   '@metamask/eip1193-permission-middleware',
+  // mockttp 4 depends on these ESM-only packages. get-port 7 stays nested
+  // under mockttp when the repo also resolves get-port 6.
+  'get-port',
+  'milliparsec',
+  'cacheable-lookup',
 ];
+
+// Packages above that Jest must still transpile when they are nested under an
+// otherwise ignored dependency (for example node_modules/mockttp/node_modules/get-port).
+const NESTED_ESM_PACKAGES = ['get-port', 'milliparsec', 'cacheable-lookup'];
 
 const config = {
   // RN 0.85 removes the bundled 'react-native' Jest preset in favor of the
@@ -185,7 +194,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    `node_modules/(?!(${DEPENDENCIES_TO_TRANSPILE.join('|')}))`,
+    `node_modules/(?!(${DEPENDENCIES_TO_TRANSPILE.join('|')}))(?!.*node_modules/(?:${NESTED_ESM_PACKAGES.join('|')})(?:/|$))`,
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],

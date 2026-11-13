@@ -449,8 +449,12 @@ jest.mock('react-native-quick-base64', () => {
 });
 
 // Mock global crypto
+const nodeRandomUUID = global.crypto?.randomUUID?.bind(global.crypto);
+
 global.crypto = {
   getRandomValues: (arr) => getRandomValuesCompat(arr),
+  // mockttp 4 assigns rule ids with the global Web Crypto API.
+  randomUUID: nodeRandomUUID,
 };
 
 // Mock react-native-fs

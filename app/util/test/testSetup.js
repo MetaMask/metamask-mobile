@@ -1156,6 +1156,8 @@ afterEach(() => {
   global.gc && global.gc(true);
 });
 
+const nodeRandomUUID = global.crypto?.randomUUID?.bind(global.crypto);
+
 global.crypto = {
   getRandomValues: (arr) => {
     const uint8Max = 255;
@@ -1164,6 +1166,8 @@ global.crypto = {
     }
     return arr;
   },
+  // mockttp 4 assigns rule ids with the global Web Crypto API.
+  randomUUID: nodeRandomUUID,
 };
 
 // Mock Sentry to prevent initialization issues in tests
