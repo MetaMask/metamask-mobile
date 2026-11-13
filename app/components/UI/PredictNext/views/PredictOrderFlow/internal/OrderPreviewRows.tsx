@@ -10,6 +10,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import type {
   PredictOrderPreview,
   PredictOrderPreviewFeeSource,
+  PredictOrderReview,
 } from '../../../types';
 import { formatCents } from '../../../utils/formatCents';
 import { formatUsd } from '../../../utils/formatUsd';
@@ -38,7 +39,11 @@ const EmphasizedTotalRow = ({
   testID: string;
 }) => (
   <Box twClassName="mt-1 flex-row items-center justify-between gap-4 border-t border-muted pt-3">
-    <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Bold}
+      twClassName="flex-1"
+    >
       {label}
     </Text>
     <Text
@@ -51,8 +56,15 @@ const EmphasizedTotalRow = ({
   </Box>
 );
 
-/** Server-quoted buy Preview rows: distinct canonical values, verbatim. */
-const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+/** Server-quoted buy Preview rows without the Total: a signed view swaps
+ * the Total for the invariant bound, so the quoted row must be omittable. */
+const BuyPreviewRows = ({
+  preview,
+  withTotal = true,
+}: {
+  preview: PredictOrderPreview;
+  withTotal?: boolean;
+}) => {
   if (preview.action !== 'buy') {
     return null;
   }
@@ -74,16 +86,18 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
         testID={PredictOrderFlowTestIds.POTENTIAL_PAYOUT}
         valueColor={TextColor.SuccessDefault}
       />
-      <QuoteRow
-        label={strings('predict_next.order_preview.potential_profit')}
-        value={formatUsd(preview.potentialProfit)}
-        testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
-        valueColor={
-          preview.potentialProfit.startsWith('-')
-            ? TextColor.ErrorDefault
-            : TextColor.SuccessDefault
-        }
-      />
+      {withTotal ? (
+        <QuoteRow
+          label={strings('predict_next.order_preview.potential_profit')}
+          value={formatUsd(preview.potentialProfit)}
+          testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
+          valueColor={
+            preview.potentialProfit.startsWith('-')
+              ? TextColor.ErrorDefault
+              : TextColor.SuccessDefault
+          }
+        />
+      ) : null}
       <Box twClassName="gap-1">
         <QuoteRow
           label={strings('predict_next.order_preview.fee')}
@@ -101,18 +115,26 @@ const BuyPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
           />
         ))}
       </Box>
-      <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.total_debit')}
-        value={formatUsd(preview.totalDebit)}
-        testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
-      />
+      {withTotal ? (
+        <EmphasizedTotalRow
+          label={strings('predict_next.order_preview.total_debit')}
+          value={formatUsd(preview.totalDebit)}
+          testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
+        />
+      ) : null}
     </>
   );
 };
 
 /** Server-quoted sell Preview rows: the Cash Out mirror of the buy rows,
  * with Net Proceeds — the sell counterpart of Total Debit — emphasized. */
-const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
+const SellPreviewRows = ({
+  preview,
+  withTotal = true,
+}: {
+  preview: PredictOrderPreview;
+  withTotal?: boolean;
+}) => {
   if (preview.action !== 'sell') {
     return null;
   }
@@ -156,24 +178,79 @@ const SellPreviewRows = ({ preview }: { preview: PredictOrderPreview }) => {
           />
         ))}
       </Box>
+      {withTotal ? (
+        <EmphasizedTotalRow
+          label={strings('predict_next.order_preview.net_proceeds')}
+          value={formatUsd(preview.estimatedNetProceeds)}
+          testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+        />
+      ) : null}
+    </>
+  );
+};
+
+/** The signed buy tail: the invariant's worst-case cost the phone signs,
+ * replacing the quoted Total; profit is measured against it. */
+const BuySignedTail = ({ display }: { display: PredictOrderReview }) => {
+  const profit = (Number(display.payout) - Number(display.maxCost)).toFixed(2);
+  return (
+    <>
       <EmphasizedTotalRow
-        label={strings('predict_next.order_preview.net_proceeds')}
-        value={formatUsd(preview.estimatedNetProceeds)}
-        testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+        label={strings('predict_next.order_preview.max_cost')}
+        value={formatUsd(display.maxCost)}
+        testID={PredictOrderFlowTestIds.TOTAL_DEBIT}
+      />
+      <QuoteRow
+        label={strings('predict_next.order_preview.potential_profit')}
+        value={formatUsd(profit)}
+        testID={PredictOrderFlowTestIds.POTENTIAL_PROFIT}
+        valueColor={
+          profit.startsWith('-')
+            ? TextColor.ErrorDefault
+            : TextColor.SuccessDefault
+        }
       />
     </>
   );
 };
 
-/** Server-quoted preview rows: distinct canonical values, verbatim, for the
- * quoted Order Action. */
+/** The signed sell total assumes every offered contract fills. IOC orders
+ * can fill only part of the count, or none of it. */
+const SellSignedTail = ({ display }: { display: PredictOrderReview }) => (
+  <>
+    <EmphasizedTotalRow
+      label={strings('predict_next.order_preview.proceeds_if_fully_filled')}
+      value={formatUsd(display.proceedsIfFullyFilled)}
+      testID={PredictOrderFlowTestIds.NET_PROCEEDS}
+    />
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {strings('predict_next.order_preview.partial_fill_proceeds_description')}
+    </Text>
+  </>
+);
+
+/** Server-quoted preview rows with the signed bound emphasized when available.
+ * Buy profit uses the signed maximum cost; the signed sell total is conditional
+ * on all offered contracts filling. */
 export const OrderPreviewRows = ({
   preview,
+  display,
 }: {
   preview: PredictOrderPreview;
-}) => (
-  <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
-    <BuyPreviewRows preview={preview} />
-    <SellPreviewRows preview={preview} />
-  </Box>
-);
+  display?: PredictOrderReview;
+}) => {
+  if (preview.action === 'buy') {
+    return (
+      <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+        <BuyPreviewRows preview={preview} withTotal={display === undefined} />
+        {display ? <BuySignedTail display={display} /> : null}
+      </Box>
+    );
+  }
+  return (
+    <Box twClassName="gap-2" testID={PredictOrderFlowTestIds.QUOTE}>
+      <SellPreviewRows preview={preview} withTotal={display === undefined} />
+      {display ? <SellSignedTail display={display} /> : null}
+    </Box>
+  );
+};

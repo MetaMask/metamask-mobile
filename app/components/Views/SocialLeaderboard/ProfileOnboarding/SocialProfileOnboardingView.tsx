@@ -116,6 +116,7 @@ import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -669,6 +670,14 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   useEffect(() => cancelConnectX, [cancelConnectX]);
 
+  // A declined entry must not run after a later, unrelated onboarding.
+  useEffect(
+    () => () => {
+      takePendingSocialEntry();
+    },
+    [],
+  );
+
   const handleClose = useCallback(() => {
     cancelConnectX();
     setIsConnectingX(false);
@@ -948,7 +957,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       // return to its caller. An existing profile found on open has no caller
       // to return to, so it opens the Social tab instead.
       if (isTermsOnlyRoute) {
+        const openPendingEntry = takePendingSocialEntry();
         navigation.goBack();
+        openPendingEntry?.();
       } else {
         finishProfileOnboardingToSocialTab(navigation);
       }
@@ -1290,6 +1301,12 @@ const SocialProfileOnboardingView: React.FC = () => {
       // Replace drops onboarding from the stack. My Profile's replace is a pop,
       // so this screen's slide_from_left plays and it leaves toward the left.
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
+      return;
+    }
+    const openPendingEntry = takePendingSocialEntry();
+    if (openPendingEntry) {
+      navigation.goBack();
+      openPendingEntry();
       return;
     }
     finishProfileOnboardingToSocialTab(navigation);

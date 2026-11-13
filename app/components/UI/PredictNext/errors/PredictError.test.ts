@@ -30,4 +30,19 @@ describe('PredictError', () => {
     expect(error.message).toBe('Service unavailable.');
     expect(error.metadata).toBe(metadata);
   });
+
+  it.each([
+    PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+    PredictErrorCode.ORDER_NOT_FOUND,
+  ])('never claims a missing or unknown order was not placed: %s', (code) => {
+    const error = PredictError.from(code);
+    expect(error.message).not.toContain('not placed');
+    expect(error.message).toMatch(/not.*confirmed/iu);
+  });
+
+  it('requires an app update without suggesting an authorization renewal', () => {
+    const error = PredictError.from(PredictErrorCode.APP_UPDATE_REQUIRED);
+    expect(error.recoverable).toBe(false);
+    expect(error.message).toContain('Update MetaMask');
+  });
 });

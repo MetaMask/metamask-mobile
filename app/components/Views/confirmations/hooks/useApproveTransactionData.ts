@@ -85,16 +85,6 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
   const { txParams, networkClientId } = transactionMetadata ?? {};
   const data = txParams?.data;
-  const contractAddress = txParams?.to;
-  const { details, isPending: isTokenStandardPending } =
-    useGetTokenStandardAndDetails(contractAddress, networkClientId);
-  const { tokenBalance } = useERC20TokenBalance(
-    contractAddress as string,
-    txParams?.from as string,
-    networkClientId as string,
-  );
-
-  const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize parsing operations
   const { fourByteCode, isApproval, parsedData } = useMemo(() => {
@@ -118,6 +108,21 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       parsedData: parseStandardTokenTransactionData(data),
     };
   }, [data]);
+
+  // Permit2 calls go to the Permit2 contract, so the token is in the calldata
+  const tokenAddress: string | undefined =
+    fourByteCode === APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE
+      ? parsedData?.args?.token
+      : txParams?.to;
+  const { details, isPending: isTokenStandardPending } =
+    useGetTokenStandardAndDetails(tokenAddress, networkClientId);
+  const { tokenBalance } = useERC20TokenBalance(
+    tokenAddress as string,
+    txParams?.from as string,
+    networkClientId as string,
+  );
+
+  const tokenStandard = details?.standard?.toUpperCase();
 
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
@@ -216,7 +221,9 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
         result.expiration = expiration?.toString();
-        result.isRevoke = amount?.toString() === ZERO_AMOUNT;
+        result.isRevoke =
+          tokenStandard !== TokenStandard.ERC721 &&
+          amount?.toString() === ZERO_AMOUNT;
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
         result.tokenBalance = calculateTokenBalance(
           tokenBalance ?? '0',
