@@ -36,10 +36,12 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1000';
 
       // Act
-      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
+      const { getByTestId } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - Uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals), trailing zeros removed
-      expect(getByText('$1,000')).toBeTruthy();
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,000');
     });
 
     it('displays $0 when amount is empty', () => {
@@ -47,10 +49,25 @@ describe('PerpsAmountDisplay', () => {
       const emptyAmount = '';
 
       // Act
-      const { getByText } = render(<PerpsAmountDisplay amount={emptyAmount} />);
+      const { getByTestId } = render(
+        <PerpsAmountDisplay amount={emptyAmount} />,
+      );
 
       // Assert
-      expect(getByText('$0')).toBeTruthy();
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$0');
+    });
+
+    it('replaces the amount while loading', () => {
+      render(<PerpsAmountDisplay amount="1000" isLoading />);
+
+      expect(
+        screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.CONTAINER),
+      ).not.toHaveTextContent('$1,000');
     });
 
     it('displays label when provided', () => {
@@ -84,11 +101,13 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      // There will be 2 elements: one in the main display and one in the token amount section
-      const tokenElements = screen.getAllByText(
-        `${tokenAmount} ${tokenSymbol}`,
-      );
-      expect(tokenElements.length).toBe(2);
+      // The amount and the max row are separate nodes that show the same value.
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent(`${tokenAmount} ${tokenSymbol}`);
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.MAX_LABEL),
+      ).toHaveTextContent(`${tokenAmount} ${tokenSymbol}`);
       expect(formatPositionSize).toHaveBeenCalledWith(tokenAmount);
     });
   });
@@ -137,10 +156,10 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1000';
 
       // Act
-      const { getByText } = render(
+      const { getByTestId } = render(
         <PerpsAmountDisplay amount={amount} onPress={onPressMock} />,
       );
-      fireEvent.press(getByText('$1,000'));
+      fireEvent.press(getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL));
 
       // Assert
       expect(onPressMock).toHaveBeenCalledTimes(1);
@@ -158,6 +177,25 @@ describe('PerpsAmountDisplay', () => {
       expect(
         screen.getByRole('button', { name: 'Order amount, 1000' }),
       ).toBeOnTheScreen();
+    });
+
+    it('includes the asset unit in the accessible trade sheet button label', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          showTokenAmount
+          variant="tradeSheet"
+          onPress={jest.fn()}
+          accessibilityLabel="Order amount, 0.5"
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Order amount, 0.5 ETH' }),
+      ).toBeOnTheScreen();
+      expect(screen.queryByRole('text', { name: '0.5' })).toBeNull();
     });
 
     it('switches between fiat and asset values in the trade sheet', () => {
@@ -333,10 +371,12 @@ describe('PerpsAmountDisplay', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        within(screen.getByTestId('amount-toggle')).getByText('0.5 ETH'),
-      ).toBeOnTheScreen();
+        within(screen.getByTestId('amount-toggle')).getByTestId(
+          PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL,
+        ),
+      ).toHaveTextContent('0.5 ETH');
       expect(
-        screen.getByRole('button', { name: 'Show asset value' }),
+        screen.getByRole('button', { name: '0.5 ETH, Show asset value' }),
       ).toBeOnTheScreen();
     });
 
@@ -345,10 +385,14 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1000';
 
       // Act
-      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
+      const { getByTestId } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - This should not throw an error
-      expect(() => fireEvent.press(getByText('$1,000'))).not.toThrow();
+      expect(() =>
+        fireEvent.press(
+          getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+        ),
+      ).not.toThrow();
     });
   });
 
@@ -363,7 +407,7 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      expect(getByTestId('cursor')).toBeTruthy();
+      expect(getByTestId('cursor')).toBeOnTheScreen();
     });
 
     it('hides cursor when isActive is false', () => {
@@ -458,8 +502,12 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      const tokenElements = screen.getAllByText('1.5 BTC');
-      expect(tokenElements.length).toBe(2); // Main display and token amount section
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('1.5 BTC');
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.MAX_LABEL),
+      ).toHaveTextContent('1.5 BTC');
     });
 
     it('strips DEX prefix from token symbol when showing max amount', () => {
@@ -469,7 +517,7 @@ describe('PerpsAmountDisplay', () => {
       const tokenSymbol = 'xyz:TSLA';
 
       // Act
-      const { getByText } = render(
+      const { getByTestId } = render(
         <PerpsAmountDisplay
           amount={amount}
           showMaxAmount
@@ -479,7 +527,9 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      expect(getByText('100 TSLA')).toBeTruthy();
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.MAX_LABEL),
+      ).toHaveTextContent('100 TSLA');
     });
 
     it('keeps regular token symbols unchanged', () => {
@@ -499,8 +549,12 @@ describe('PerpsAmountDisplay', () => {
       );
 
       // Assert
-      const tokenElements = screen.getAllByText('2.5 SOL');
-      expect(tokenElements.length).toBe(2);
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('2.5 SOL');
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.MAX_LABEL),
+      ).toHaveTextContent('2.5 SOL');
     });
   });
 
@@ -510,10 +564,12 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1234.56';
 
       // Act
-      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
+      const { getByTestId } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - Now uses formatPerpsFiat with PRICE_RANGES_MINIMAL_VIEW (fixed 2 decimals)
-      expect(getByText('$1,234.56')).toBeTruthy();
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,234.56');
     });
 
     it('formats USD amounts with maximum 2 decimal places', () => {
@@ -521,10 +577,12 @@ describe('PerpsAmountDisplay', () => {
       const amount = '1234.5678';
 
       // Act
-      const { getByText } = render(<PerpsAmountDisplay amount={amount} />);
+      const { getByTestId } = render(<PerpsAmountDisplay amount={amount} />);
 
       // Assert - Verify USD amounts are limited to 2 decimal places
-      expect(getByText('$1,234.57')).toBeTruthy(); // Rounded to 2 decimals
+      expect(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('$1,234.57'); // Rounded to 2 decimals
     });
   });
 });

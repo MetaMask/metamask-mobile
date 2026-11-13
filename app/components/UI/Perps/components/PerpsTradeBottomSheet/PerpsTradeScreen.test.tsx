@@ -466,7 +466,7 @@ describe('PerpsTradeScreen errors', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Show asset value' }),
+      screen.getByRole('button', { name: /Show asset value/ }),
     ).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_0));
@@ -492,7 +492,7 @@ describe('PerpsTradeScreen errors', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Show asset value' }),
+      screen.getByRole('button', { name: /Show asset value/ }),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
@@ -509,13 +509,13 @@ describe('PerpsTradeScreen errors', () => {
   it('ignores the size toggle before a price can project coin', () => {
     render(<PerpsTradeScreen {...defaultProps} amountPrice={0} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
-    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByRole('button', { name: /Show asset value/ }));
+    fireEvent.press(screen.getByRole('button', { name: /Show asset value/ }));
 
     expect(getTestOrderBookCurrency()).toBe('usd');
     expect(getTestOrderBookWriteCount()).toBe(0);
     expect(
-      screen.getByRole('button', { name: 'Show asset value' }),
+      screen.getByRole('button', { name: /Show asset value/ }),
     ).toBeOnTheScreen();
   });
 
@@ -549,12 +549,12 @@ describe('PerpsTradeScreen errors', () => {
       </Provider>,
     );
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByRole('button', { name: /Show asset value/ }));
 
     expect(getTestOrderBookWriteCount()).toBe(writesBeforeToggle);
     expect(getTestOrderBookCurrency()).toBe('base');
     expect(
-      screen.getByRole('button', { name: 'Show asset value' }),
+      screen.getByRole('button', { name: /Show asset value/ }),
     ).toBeOnTheScreen();
   });
 
@@ -574,7 +574,7 @@ describe('PerpsTradeScreen errors', () => {
       />,
     );
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByRole('button', { name: /Show asset value/ }));
     fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_1));
 
     expect(onKeypadChange).toHaveBeenCalledWith(
@@ -600,7 +600,7 @@ describe('PerpsTradeScreen errors', () => {
 
     expect(within(toggle).getByTestId('perps-swap-icon')).toBeOnTheScreen();
     expect(
-      screen.getByRole('button', { name: 'Show asset value' }),
+      screen.getByRole('button', { name: /Show asset value/ }),
     ).toBeOnTheScreen();
   });
 
@@ -608,7 +608,7 @@ describe('PerpsTradeScreen errors', () => {
     setTestOrderBookCurrency('base');
     render(<PerpsTradeScreen {...defaultProps} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show fiat value' }));
+    fireEvent.press(screen.getByRole('button', { name: /Show fiat value/ }));
 
     expect(getTestOrderBookCurrency()).toBe('usd');
   });
@@ -616,16 +616,16 @@ describe('PerpsTradeScreen errors', () => {
   it('keeps coin sizing after the trade screen remounts', () => {
     const { unmount } = render(<PerpsTradeScreen {...defaultProps} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
+    fireEvent.press(screen.getByRole('button', { name: /Show asset value/ }));
     expect(
-      screen.getByRole('button', { name: 'Show fiat value' }),
+      screen.getByRole('button', { name: /Show fiat value/ }),
     ).toBeOnTheScreen();
 
     unmount();
     render(<PerpsTradeScreen {...defaultProps} />);
 
     expect(
-      screen.getByRole('button', { name: 'Show fiat value' }),
+      screen.getByRole('button', { name: /Show fiat value/ }),
     ).toBeOnTheScreen();
   });
 

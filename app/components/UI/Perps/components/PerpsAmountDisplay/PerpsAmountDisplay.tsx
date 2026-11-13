@@ -155,16 +155,30 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
+    // Callers pass a label for the number. The unit is a separate text node,
+    // so append it or the button replaces both nodes and drops the symbol.
+    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
+      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
+    }`;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
+    // The amount sits inside the toggle, which hides its text from the
+    // accessibility tree. Keep the value in the button name.
+    const secondaryToggleAccessibilityLabel = secondaryDisplayValue
+      ? [secondaryDisplayValue, displayToggleAccessibilityLabel]
+          .filter(Boolean)
+          .join(', ')
+      : undefined;
     const primaryColor = hasError
       ? TextColor.ErrorDefault
       : TextColor.TextDefault;
 
     const primaryAmount = (
       <Box
-        accessible={false}
+        accessible={!onPress}
+        accessibilityLabel={onPress ? undefined : primaryAccessibilityLabel}
+        accessibilityRole={onPress ? undefined : 'text'}
         testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -173,6 +187,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <Skeleton width={80} height={40} />
         ) : (
           <Text
+            accessible={false}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -187,6 +202,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         ) : null}
         {!isLoading && primaryDisplayUnit ? (
           <Text
+            accessible={false}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -210,7 +226,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <TouchableOpacity
             testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
             accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={primaryAccessibilityLabel}
             onPress={onPress}
             activeOpacity={0.7}
           >
@@ -234,7 +250,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               // as one button.
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={displayToggleAccessibilityLabel}
+                accessibilityLabel={secondaryToggleAccessibilityLabel}
                 testID={displayToggleTestID}
                 onPress={onDisplayToggle}
                 hitSlop={8}
@@ -247,6 +263,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
               >
                 <Text
                   accessible={false}
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
                   variant={TextVariant.BodySm}
                   color={TextColor.TextDefault}
                   fontWeight={FontWeight.Medium}
@@ -262,6 +279,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
                   <Box accessible={false} twClassName="h-6 w-6" />
                 ) : null}
                 <Text
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                   fontWeight={FontWeight.Medium}

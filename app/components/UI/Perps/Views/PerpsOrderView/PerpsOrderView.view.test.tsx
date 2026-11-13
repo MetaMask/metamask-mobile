@@ -2060,7 +2060,7 @@ describe('PerpsOrderView', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: strings('perps.trade_sheet.show_asset_value'),
+          name: new RegExp(strings('perps.trade_sheet.show_asset_value')),
         }),
       ).toBeOnTheScreen();
 
@@ -2082,7 +2082,7 @@ describe('PerpsOrderView', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: strings('perps.trade_sheet.show_fiat_value'),
+          name: new RegExp(strings('perps.trade_sheet.show_fiat_value')),
         }),
       ).toBeOnTheScreen();
 
@@ -2153,7 +2153,7 @@ describe('PerpsOrderView', () => {
 
       expect(
         await screen.findByRole('button', {
-          name: strings('perps.trade_sheet.show_asset_value'),
+          name: new RegExp(strings('perps.trade_sheet.show_asset_value')),
         }),
       ).toBeOnTheScreen();
 
@@ -2223,7 +2223,7 @@ describe('PerpsOrderView', () => {
 
         expect(
           await screen.findByRole('button', {
-            name: strings('perps.trade_sheet.show_fiat_value'),
+            name: new RegExp(strings('perps.trade_sheet.show_fiat_value')),
           }),
         ).toBeOnTheScreen();
         expect(
@@ -2248,7 +2248,7 @@ describe('PerpsOrderView', () => {
 
         expect(
           await screen.findByRole('button', {
-            name: strings('perps.trade_sheet.show_fiat_value'),
+            name: new RegExp(strings('perps.trade_sheet.show_fiat_value')),
           }),
         ).toBeOnTheScreen();
         expect(
