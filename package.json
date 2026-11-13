@@ -332,7 +332,7 @@
   "previewBuilds": {
     "@metamask/ramps-controller": {
       "type": "breaking",
-      "previewVersion": "29.0.0-preview-9dfb538be"
+      "previewVersion": "29.0.0-preview-d0ecc4dd6"
     }
   },
   "dependencies": {
