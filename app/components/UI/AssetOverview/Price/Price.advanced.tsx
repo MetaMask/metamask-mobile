@@ -7,6 +7,7 @@ import type {
 import { PriceProvider } from './Price.context';
 import { PriceHeader } from './Price.Header';
 import { PriceChartSection } from './Price.Chart';
+import type { RestingHeader } from './restingHeader';
 
 export interface PriceAdvancedProps {
   asset: TokenI;
@@ -22,6 +23,7 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
+  onRestingHeader?: (header: RestingHeader) => void;
   useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
   /** Draws the controls under the chart as glass; the screen passes its flag. */

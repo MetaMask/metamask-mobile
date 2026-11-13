@@ -18,6 +18,7 @@ import {
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenI } from '../../Tokens/types';
+import type { RestingHeader } from './restingHeader';
 import { resolveOhlcvChartAssetId } from './resolveOhlcvChartAssetId';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
@@ -129,6 +130,12 @@ export interface UsePriceChartStateParams {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
+  /**
+   * Header price and period change while the chart is not being scrubbed.
+   * Lets the balance row follow the number above the chart without
+   * rerendering the page on every tick.
+   */
+  onRestingHeader?: (header: RestingHeader) => void;
   useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
 }
@@ -148,6 +155,7 @@ export const usePriceChartState = ({
   prices = [],
   setTimePeriod,
   onPriceDirectionChange,
+  onRestingHeader,
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: UsePriceChartStateParams) => {
@@ -1076,6 +1084,51 @@ export const usePriceChartState = ({
     },
     [],
   );
+
+  // Price and percent the header shows when the user is not scrubbing the chart.
+  // Line mode titles use the spot price; candles use the latest bar, including
+  // the realtime close. A crosshair read is left out so a drag does not reprice
+  // the balance.
+  const restingPrice = isLineMode
+    ? currentPrice
+    : (stablePrice ?? lastBarClose ?? currentPrice);
+  const restingPercent = (() => {
+    if (
+      isLineMode ||
+      dynamicComparePrice === null ||
+      !Number.isFinite(dynamicComparePrice)
+    ) {
+      if (
+        !Number.isFinite(priceDiff) ||
+        !Number.isFinite(comparePrice) ||
+        comparePrice === 0
+      ) {
+        return undefined;
+      }
+      return (priceDiff / comparePrice) * 100;
+    }
+    if (dynamicComparePrice === 0 || !Number.isFinite(restingPrice)) {
+      return undefined;
+    }
+    return ((restingPrice - dynamicComparePrice) / dynamicComparePrice) * 100;
+  })();
+
+  useEffect(() => {
+    if (
+      !onRestingHeader ||
+      !Number.isFinite(restingPrice) ||
+      restingPrice <= 0
+    ) {
+      return;
+    }
+    onRestingHeader({
+      price: restingPrice,
+      percent:
+        restingPercent !== undefined && Number.isFinite(restingPercent)
+          ? restingPercent
+          : undefined,
+    });
+  }, [onRestingHeader, restingPercent, restingPrice]);
 
   // Extract preset values to avoid react-compiler false positive on `useSubscriptPriceFormat`
   const chartPresets = advancedChartLineChromePresets.tokenOverview;

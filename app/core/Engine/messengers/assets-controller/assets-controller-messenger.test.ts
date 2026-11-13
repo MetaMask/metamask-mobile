@@ -20,6 +20,10 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:isInitialized',
   'ClientController:getState',
   'KeyringController:isUnlocked',
+  'MarketStatsService:subscribe',
+  'MarketStatsService:unsubscribe',
+  'MarketStatsService:getSubscriptions',
+  'MarketStatsService:getChainStatuses',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
@@ -44,6 +48,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
   'RemoteFeatureFlagController:stateChange',
+  'MarketStatsService:chainStatusChanged',
 ] as const;
 
 const getRootMessenger = () =>

@@ -1,4 +1,9 @@
-import React, { type ReactNode, useCallback, useMemo } from 'react';
+import React, {
+  type ReactNode,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+} from 'react';
 import { View } from 'react-native';
 import {
   CaipAssetId,
@@ -48,6 +53,12 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
+import {
+  emptyRestingHeaderStore,
+  formatBalanceAtPrice,
+  formatSignedPercent,
+  type RestingHeaderStore,
+} from '../Price/restingHeader';
 
 interface BalanceProps {
   asset: TokenI;
@@ -59,7 +70,23 @@ interface BalanceProps {
   priceChangeOverrideColor?: TextColor;
   hideTitleHeading?: boolean;
   hidePercentageChange?: boolean;
+  /** Unformatted token amount. With a resting header price, reprices `mainBalance`. */
+  balanceAmount?: number;
+  /** Display currency for the repriced fiat amount. */
+  fiatCurrency?: string;
+  /** Chart header price while the chart is not being scrubbed. */
+  restingHeaderStore?: RestingHeaderStore;
 }
+
+const percentColor = (percent: number): TextColor => {
+  if (percent > 0) {
+    return TextColor.Success;
+  }
+  if (percent < 0) {
+    return TextColor.Error;
+  }
+  return TextColor.Alternative;
+};
 
 export const NetworkBadgeSource = (chainId: Hex) => {
   if (isTestNet(chainId)) return getTestNetImageByChainId(chainId);
@@ -107,8 +134,28 @@ const Balance = ({
   priceChangeOverrideColor,
   hideTitleHeading,
   hidePercentageChange,
+  balanceAmount,
+  fiatCurrency,
+  restingHeaderStore,
 }: BalanceProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const headerStore = restingHeaderStore ?? emptyRestingHeaderStore;
+  const restingHeader = useSyncExternalStore(
+    headerStore.subscribe,
+    headerStore.getSnapshot,
+    headerStore.getSnapshot,
+  );
+  const liveFiat = formatBalanceAtPrice(
+    balanceAmount,
+    restingHeader?.price,
+    fiatCurrency,
+  );
+  const shownMainBalance = liveFiat ?? mainBalance;
+  const livePercent =
+    restingHeader?.percent !== undefined &&
+    Number.isFinite(restingHeader.percent)
+      ? restingHeader.percent
+      : undefined;
   const { isStockToken } = useRWAToken();
   const networkConfigurationByChainId = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
@@ -203,16 +250,23 @@ const Balance = ({
       <AssetElement
         disabled={isDisabled}
         asset={asset}
-        balance={mainBalance}
+        balance={shownMainBalance}
         secondaryBalance={
           hidePercentageChange
             ? undefined
-            : (priceChangeOverride ?? percentageText)
+            : (priceChangeOverride ??
+              (livePercent === undefined
+                ? percentageText
+                : formatSignedPercent(livePercent)))
         }
         secondaryBalanceColor={
           hidePercentageChange
             ? undefined
-            : (priceChangeOverrideColor ?? percentageColor)
+            : priceChangeOverride
+              ? priceChangeOverrideColor
+              : livePercent === undefined
+                ? percentageColor
+                : percentColor(livePercent)
         }
         privacyMode={privacyMode}
         hideSecondaryBalanceInPrivacyMode={false}

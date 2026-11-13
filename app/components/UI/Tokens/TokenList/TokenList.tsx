@@ -27,6 +27,11 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 import { useMoneyTokenListCta } from '../../Money/hooks/useMoneyTokenListCta';
 import { SCREEN_NAMES } from '../../Money/constants/moneyEvents';
+import {
+  readLiveQuote,
+  useLiveAssetPrices,
+  useWatchAssetPrices,
+} from '../../../../hooks/assets/market-stats-live-prices';
 
 export interface FlashListAssetKey {
   address: string;
@@ -79,6 +84,11 @@ const TokenListComponent = ({
 }: TokenListProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
+  // One subscription for the list. Rows receive the quote object, which stays
+  // the same reference until that asset's tick, so unchanged rows skip render.
+  // Streaming follows shouldStreamLivePrices: every hardware tier, while the
+  // app is active and the network is not NONE.
+  const livePrices = useLiveAssetPrices();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const privacyMode = useSelector(selectPrivacyMode);
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
@@ -101,6 +111,11 @@ const TokenListComponent = ({
     () => (tokenKeys || []).slice(0, maxItems || undefined),
     [tokenKeys, maxItems],
   );
+  const watchedAssetIds = useMemo(
+    () => displayTokenKeys.map((item) => item.address),
+    [displayTokenKeys],
+  );
+  useWatchAssetPrices(watchedAssetIds);
 
   // Determine if we should show the "View all tokens" button
   const shouldShowViewAllButton = useMemo(
@@ -180,6 +195,7 @@ const TokenListComponent = ({
         tokenPositionInList={index + 1}
         tokensInList={displayTokenKeys.length}
         hideSecondaryPriceRow={hideSecondaryPriceRow}
+        liveQuote={readLiveQuote(livePrices, item.address)}
       />
     ),
     [
@@ -191,6 +207,7 @@ const TokenListComponent = ({
       tokenListItemCta,
       displayTokenKeys.length,
       hideSecondaryPriceRow,
+      livePrices,
     ],
   );
 
@@ -214,6 +231,7 @@ const TokenListComponent = ({
           tokenPositionInList={index + 1}
           tokensInList={displayTokenKeys.length}
           hideSecondaryPriceRow={hideSecondaryPriceRow}
+          liveQuote={readLiveQuote(livePrices, item.address)}
         />
       ))}
       {shouldShowViewAllButton && (
@@ -252,7 +270,10 @@ const TokenListComponent = ({
             />
           )
         }
-        extraData={{ isTokenNetworkFilterEqualCurrentNetwork }}
+        extraData={{
+          isTokenNetworkFilterEqualCurrentNetwork,
+          livePrices,
+        }}
         contentContainerStyle={
           isFullView
             ? tw.style('px-4', { paddingBottom: bottomInset })
