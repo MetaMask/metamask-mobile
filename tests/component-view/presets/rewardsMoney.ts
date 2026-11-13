@@ -1,5 +1,3 @@
-import type { MoneyAccount } from '@metamask/money-account-controller';
-import ExtendedKeyringTypes from '../../../app/constants/keyringTypes';
 import type {
   ClaimDto,
   CommissionEntryView,
@@ -19,20 +17,19 @@ import {
   SocialV1Variant,
 } from '../../../app/constants/socialV1';
 import { createStateFixture } from '../stateFixture';
+import {
+  MONAD_MAINNET_CHAIN_ID,
+  MONAD_VAULT,
+  MONEY_TEST_ACCOUNT_ADDRESS,
+  MONEY_TEST_KEYRING_ID,
+  moneyAccount,
+  withMoneyAccountOverrides,
+} from './moneyAccount';
 
 export const REWARDS_MONEY_PROFILE_ID = 'profile-a';
-export const REWARDS_MONEY_KEYRING_ID = 'entropy-source-1';
-export const REWARDS_MONEY_ACCOUNT_ADDRESS =
-  '0x1111111111111111111111111111111111111111';
-export const MONAD_MAINNET_CHAIN_ID = '0x8f';
-
-const MONAD_VAULT = {
-  chainId: MONAD_MAINNET_CHAIN_ID,
-  boringVault: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
-  tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999C8117',
-  accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
-  lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
-} as const;
+export const REWARDS_MONEY_KEYRING_ID = MONEY_TEST_KEYRING_ID;
+export const REWARDS_MONEY_ACCOUNT_ADDRESS = MONEY_TEST_ACCOUNT_ADDRESS;
+export { MONAD_MAINNET_CHAIN_ID };
 
 /**
  * Every Contentful key the tip serves. Asserted copy uses the renamed keys
@@ -471,21 +468,17 @@ export function referralMeFixture(
   };
 }
 
-function moneyAccount(): MoneyAccount {
+export const REFEREE_INVITED_BENEFIT_TITLE = '30% on Perps';
+
+export function referralMeWithInvitedBenefit(
+  invitedBenefitTitle: string = REFEREE_INVITED_BENEFIT_TITLE,
+): ReferralMeDto {
+  const referralMe = referralMeFixture('referee');
   return {
-    id: 'money-1',
-    address: REWARDS_MONEY_ACCOUNT_ADDRESS,
-    type: 'eip155:eoa',
-    scopes: [],
-    methods: [],
-    options: {
-      entropy: {
-        type: 'mnemonic',
-        id: REWARDS_MONEY_KEYRING_ID,
-        derivationPath: "m/44'/60'/0'/0/0",
-        groupIndex: 0,
-      },
-      exportable: false,
+    ...referralMe,
+    localized_text: {
+      ...referralMe.localized_text,
+      invitedBenefitTitle,
     },
   };
 }
@@ -511,6 +504,8 @@ export interface RewardsMoneyViewStateOptions {
    * gear and referral field read this cache, the `REFERRER` role, and geo.
    */
   referralMe?: ReferralMeDto;
+  /** When false, referral me is loaded by the screen instead of the preset. */
+  seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
   /** Device country. Null fails open for a Money referral. */
@@ -556,6 +551,7 @@ export function rewardsMoneyViewState({
   claimReady = false,
   claimGates,
   referralMe: referralMeOverride,
+  seedReferralMe = true,
   subscriptionId = null,
   geoLocation = null,
   moneyControllerEnabled = false,
@@ -567,7 +563,9 @@ export function rewardsMoneyViewState({
   supportPreferenceSaved = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
-  const referralMe = referralMeOverride ?? referralMeFixture(persona);
+  const referralMe = seedReferralMe
+    ? (referralMeOverride ?? referralMeFixture(persona))
+    : undefined;
   const account = moneyAccount();
   const monadVault = claimGates?.monadVault ?? claimReady;
   const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
@@ -624,9 +622,11 @@ export function rewardsMoneyViewState({
         : {}),
       rewardsMoney: {
         ...rewardsMoneyInitialState,
-        referralMe: {
-          [profileId]: { loading: false, error: false, data: referralMe },
-        },
+        referralMe: referralMe
+          ? {
+              [profileId]: { loading: false, error: false, data: referralMe },
+            }
+          : {},
         earningsSummary: {
           [profileId]: {
             loading: false,
@@ -640,24 +640,14 @@ export function rewardsMoneyViewState({
       },
       engine: {
         backgroundState: {
-          KeyringController: {
-            keyrings: [
-              {
-                type: ExtendedKeyringTypes.hd,
-                accounts: ['0x0000000000000000000000000000000000000001'],
-                metadata: { id: REWARDS_MONEY_KEYRING_ID },
-              },
-            ],
-          },
+          ...withMoneyAccountOverrides(account, { includeMoneyAccount }).engine
+            .backgroundState,
           AuthenticationController: {
             srpSessionData: {
               [REWARDS_MONEY_KEYRING_ID]: {
                 profile: { profileId },
               },
             },
-          },
-          MoneyAccountController: {
-            moneyAccounts: includeMoneyAccount ? { [account.id]: account } : {},
           },
           ...(subscriptionId
             ? {

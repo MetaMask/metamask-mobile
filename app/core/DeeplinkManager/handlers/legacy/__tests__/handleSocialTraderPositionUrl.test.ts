@@ -4,8 +4,13 @@ import NavigationService from '../../../../NavigationService';
 import ReactQueryService from '../../../../ReactQueryService';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
-import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  isSocialV1Treatment,
+  popToSocialTab,
+} from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { waitFor } from '@testing-library/react-native';
 
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
@@ -26,9 +31,15 @@ jest.mock('../../../../ReactQueryService', () => ({
   default: {
     queryClient: {
       invalidateQueries: jest.fn(),
+      query: jest.fn(),
     },
   },
 }));
+
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile',
+  () => ({ navigateToSocialV1Profile: jest.fn() }),
+);
 
 jest.mock('../../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -41,6 +52,7 @@ jest.mock(
   () => ({
     getFollowTradingHomeRoute: () => 'SocialV0View',
     isSocialV1Treatment: jest.fn(() => false),
+    popToSocialTab: jest.fn(),
   }),
 );
 
@@ -60,6 +72,8 @@ describe('handleSocialTraderPositionUrl', () => {
   const mockInvalidateQueries = ReactQueryService.queryClient
     .invalidateQueries as jest.Mock;
   const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
+  const mockQuery = ReactQueryService.queryClient.query as jest.Mock;
+  const mockNavigateToSocialV1Profile = jest.mocked(navigateToSocialV1Profile);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -128,17 +142,238 @@ describe('handleSocialTraderPositionUrl', () => {
     });
   });
 
-  it('marks the position as Social V1 when the flag is treatment', () => {
+  it('marks a notification position as Social V1 when the flag is treatment', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
 
     handleSocialTraderPositionUrl({
-      actionPath: '?positionId=position-1&traderId=trader-1',
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&notification_subtype=follow_newtrade_buy',
     });
 
+    expect(mockNavigateToSocialV1Profile).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.POSITION,
       expect.objectContaining({ isSocialV1: true }),
     );
+  });
+
+  describe('shared position link on Social V1', () => {
+    const position = { positionId: 'position-1', tokenSymbol: 'PEPE' };
+    const profileResponse = {
+      profile: {
+        profileId: 'trader-1',
+        address: '0xabc',
+        name: 'alice',
+        imageUrl: 'https://example.com/alice.png',
+      },
+      stats: { winRate30d: 0.5, pnl30d: 120, tradeCount30d: 4 },
+      followerCount: 9,
+    };
+
+    const mockQueries = ({
+      positionResult = position,
+      positionError,
+    }: {
+      positionResult?: unknown;
+      positionError?: Error;
+    } = {}) => {
+      mockQuery.mockImplementation(({ queryKey }: { queryKey: unknown[] }) => {
+        if (queryKey[0] === 'SocialService:fetchPositionById') {
+          return positionError
+            ? Promise.reject(positionError)
+            : Promise.resolve(positionResult);
+        }
+        return Promise.resolve(profileResponse);
+      });
+    };
+
+    beforeEach(() => {
+      mockIsSocialV1Treatment.mockReturnValue(true);
+    });
+
+    it('opens the trader profile, then the position sheet with a share button', async () => {
+      mockQueries();
+
+      handleSocialTraderPositionUrl({
+        actionPath: '?positionId=position-1&traderId=trader-1',
+      });
+
+      expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
+        NavigationService.navigation,
+        { traderId: 'trader-1', source: 'deep_link' },
+      );
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.SOCIAL.POSITION_SHEET,
+          {
+            positionId: 'position-1',
+            position,
+            author: expect.objectContaining({
+              id: 'trader-1',
+              username: 'alice',
+              address: '0xabc',
+            }),
+            shareSource: 'deep_link',
+          },
+        ),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL.POSITION,
+        expect.anything(),
+      );
+      expect(
+        mockNavigateToSocialV1Profile.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockNavigate.mock.invocationCallOrder[0]);
+    });
+
+    it('stays on the profile when the position cannot be fetched', async () => {
+      mockQueries({ positionError: new Error('not found') });
+
+      handleSocialTraderPositionUrl({
+        actionPath: '?positionId=position-1&traderId=trader-1',
+      });
+
+      await waitFor(() =>
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          '[handleSocialTraderPositionUrl] Failed to fetch the position:',
+          expect.any(Error),
+        ),
+      );
+      expect(mockNavigateToSocialV1Profile).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the sheet with a fallback author when the profile lookup fails', async () => {
+      mockQuery.mockImplementation(({ queryKey }: { queryKey: unknown[] }) =>
+        queryKey[0] === 'SocialService:fetchPositionById'
+          ? Promise.resolve(position)
+          : Promise.reject(new Error('profile failure')),
+      );
+
+      handleSocialTraderPositionUrl({
+        actionPath: '?positionId=position-1&traderId=trader-1',
+      });
+
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.SOCIAL.POSITION_SHEET,
+          expect.objectContaining({
+            author: { id: 'trader-1', username: '', winRatePercent: null },
+          }),
+        ),
+      );
+    });
+
+    describe('position ownership', () => {
+      const ownerProfileResponse = {
+        profile: {
+          profileId: 'owner-1',
+          address: '0xowner',
+          name: 'bob',
+          imageUrl: 'https://example.com/bob.png',
+        },
+        stats: { winRate30d: 0.7, pnl30d: 300, tradeCount30d: 8 },
+        followerCount: 3,
+      };
+
+      const mockOwnedPosition = (ownerProfileId: string) => {
+        const ownedPosition = { ...position, profileId: ownerProfileId };
+        mockQuery.mockImplementation(
+          ({ queryKey }: { queryKey: unknown[] }) => {
+            if (queryKey[0] === 'SocialService:fetchPositionById') {
+              return Promise.resolve(ownedPosition);
+            }
+            const { addressOrId } = queryKey[1] as { addressOrId: string };
+            return Promise.resolve(
+              addressOrId === 'owner-1'
+                ? ownerProfileResponse
+                : profileResponse,
+            );
+          },
+        );
+        return ownedPosition;
+      };
+
+      it('fetches the trader profile in parallel with the position', () => {
+        mockQueries();
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=trader-1',
+        });
+
+        expect(mockQuery).toHaveBeenCalledWith({
+          queryKey: [
+            'SocialService:fetchPositionById',
+            { positionId: 'position-1' },
+          ],
+        });
+        expect(mockQuery).toHaveBeenCalledWith({
+          queryKey: [
+            'SocialService:fetchTraderProfile',
+            { addressOrId: 'trader-1' },
+          ],
+        });
+      });
+
+      it('shows the position under the link trader when its resolved profile owns it', async () => {
+        const ownedPosition = mockOwnedPosition('trader-1');
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=0xabc',
+        });
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.SOCIAL.POSITION_SHEET,
+            expect.objectContaining({
+              position: ownedPosition,
+              author: expect.objectContaining({ id: 'trader-1' }),
+            }),
+          ),
+        );
+        expect(mockNavigateToSocialV1Profile).toHaveBeenCalledTimes(1);
+      });
+
+      it('opens the real owner profile and attributes the position to them on a mismatch', async () => {
+        const ownedPosition = mockOwnedPosition('owner-1');
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=trader-1',
+        });
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.SOCIAL.POSITION_SHEET,
+            {
+              positionId: 'position-1',
+              position: ownedPosition,
+              author: expect.objectContaining({
+                id: 'owner-1',
+                username: 'bob',
+                address: '0xowner',
+              }),
+              shareSource: 'deep_link',
+            },
+          ),
+        );
+        expect(mockNavigateToSocialV1Profile).toHaveBeenLastCalledWith(
+          NavigationService.navigation,
+          {
+            traderId: 'owner-1',
+            traderName: 'bob',
+            traderAddress: '0xowner',
+            traderAvatarUri: 'https://example.com/bob.png',
+            source: 'deep_link',
+          },
+        );
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.SOCIAL.POSITION_SHEET,
+          expect.objectContaining({
+            author: expect.objectContaining({ id: 'trader-1' }),
+          }),
+        );
+      });
+    });
   });
 
   it('decodes encoded positionId, traderId, and subtype values', () => {
@@ -351,5 +586,24 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.SOCIAL.V0, undefined, {
       pop: true,
     });
+  });
+
+  it('falls back to social leaderboard on the Social tab for the Social V1 treatment', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    handleSocialTraderPositionUrl({ actionPath: '' });
+
+    expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not fall back to the Social tab when the Social V1 terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
+
+    handleSocialTraderPositionUrl({ actionPath: '' });
+
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

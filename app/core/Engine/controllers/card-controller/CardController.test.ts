@@ -726,6 +726,30 @@ describe('CardController — auth methods', () => {
     });
   });
 
+  describe('requestEmailLoginCode', () => {
+    it('delegates to the active provider', async () => {
+      const provider = buildMockProvider();
+      provider.requestEmailLoginCode = jest.fn().mockResolvedValue(undefined);
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      const controller = buildController(provider);
+
+      await controller.initiateAuth('US');
+      await controller.requestEmailLoginCode('user@example.com');
+
+      expect(provider.requestEmailLoginCode).toHaveBeenCalledWith(
+        'user@example.com',
+      );
+    });
+
+    it('throws when no session has been initiated', async () => {
+      const controller = buildController(buildMockProvider());
+
+      await expect(
+        controller.requestEmailLoginCode('user@example.com'),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+    });
+  });
+
   describe('logout', () => {
     it('calls provider.logout, removes tokens, sets isAuthenticated to false', async () => {
       const provider = buildMockProvider();
@@ -1914,6 +1938,25 @@ describe('CardController — fetchCardHomeData', () => {
     expect(controller.state.cardHomeDataStatus).toBe('success');
     expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
     expect(controller.state.cardHomeDataError).toBeNull();
+  });
+
+  it('keeps cardHomeData and records an error when a later fetch throws', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    await controller.fetchCardHomeData({ force: true });
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataError).toEqual(
+      expect.objectContaining({ reason: 'unknown' }),
+    );
   });
 
   it('marks the session as fetched so persisted data is revalidated only once', async () => {
