@@ -23,6 +23,14 @@ inputs:
     description: 'Whether to post the GitHub commit status after computing the fingerprint'
     required: false
     default: 'true'
+  debug-artifact-name:
+    description: >-
+      When set, uploads the full fingerprint (every source plus its individual
+      hash and debugInfo) as a build artifact with this name, so a future
+      "why did the fingerprint change?" investigation can diff two runs'
+      source JSON instead of re-deriving it from scratch. Skipped when empty.
+    required: false
+    default: ''
 
 outputs:
   fingerprint:
@@ -35,10 +43,21 @@ runs:
     - name: Generate fingerprint
       id: generate-fingerprint
       shell: bash
+      env:
+        FINGERPRINT_DEBUG_JSON_PATH: ${{ runner.temp }}/fingerprint-debug.json
       run: |
         FINGERPRINT=$(yarn fingerprint:generate)
         echo "fingerprint=$FINGERPRINT" >> "$GITHUB_OUTPUT"
         echo "Current fingerprint: ${FINGERPRINT}"
+
+    - name: Upload fingerprint debug artifact
+      if: ${{ inputs.debug-artifact-name != '' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.debug-artifact-name }}
+        path: ${{ runner.temp }}/fingerprint-debug.json
+        retention-days: 14
+        if-no-files-found: warn
 
     - name: Post commit status
       if: ${{ inputs.post-status == 'true' }}
