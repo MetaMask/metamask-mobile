@@ -57,6 +57,12 @@ describe('PositionCardHeader', () => {
     ).toHaveLength(3);
   });
 
+  it('reads the live price as one label', () => {
+    renderHeader({ live: { reduceMotion: false }, testID: 'header' });
+
+    expect(screen.getByLabelText('$3,400')).toBeOnTheScreen();
+  });
+
   it('hides the reserved lines from screen readers', () => {
     renderHeader({ subtitleLabel: undefined });
 
