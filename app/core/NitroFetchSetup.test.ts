@@ -29,7 +29,30 @@ jest.mock('./Engine/controllers/remote-feature-flag-controller/utils', () => ({
   getFeatureFlagAppEnvironment: jest.fn(() => 'production'),
 }));
 
+const mockRecordFetchSample = jest.fn();
+
+jest.mock('../util/deviceCapability/latencyStore', () => {
+  const actual = jest.requireActual<
+    typeof import('../util/deviceCapability/latencyStore')
+  >('../util/deviceCapability/latencyStore');
+  return {
+    ...actual,
+    recordFetchSample: (
+      sample: Parameters<typeof actual.recordFetchSample>[0],
+      epochAtStart: Parameters<typeof actual.recordFetchSample>[1],
+    ) => {
+      mockRecordFetchSample(sample);
+      actual.recordFetchSample(sample, epochAtStart);
+    },
+  };
+});
+
 import './NitroFetchSetup';
+import {
+  clearLatencySamples,
+  getLatencySnapshot,
+  getLatencyThresholds,
+} from '../util/deviceCapability/latencyStore';
 
 const mockNitroFetch = jest.mocked(nitroFetch);
 const mockPrefetchOnAppStart = jest.mocked(prefetchOnAppStart);
@@ -310,6 +333,123 @@ describe('NitroFetchSetup', () => {
         const [, passedInit] = mockNitroFetch.mock.calls[0];
         expect(passedInit?.method).toBe('POST');
         expect(passedInit?.body).toBe(JSON.stringify({ data: 'value' }));
+      });
+    });
+
+    describe('latency sampling', () => {
+      beforeEach(() => {
+        clearLatencySamples();
+        mockRecordFetchSample.mockClear();
+      });
+
+      const settleHungFetches = async (duringFlight?: () => void) => {
+        const hungMs = getLatencyThresholds().hungMs;
+        const originalDateNow = Date.now;
+        let now = 0;
+        let started = 0;
+        let release: () => void = () => undefined;
+        const gate = new Promise<void>((resolve) => {
+          release = resolve;
+        });
+        Date.now = () => now;
+        mockNitroFetch.mockImplementation(async () => {
+          started += 1;
+          if (started === 2) {
+            duringFlight?.();
+            now = hungMs;
+            release();
+          }
+          await gate;
+          return new Response(null, { status: 200 });
+        });
+
+        try {
+          await Promise.all([
+            global.fetch('https://example.com/a'),
+            global.fetch('https://example.com/b'),
+          ]);
+        } finally {
+          Date.now = originalDateNow;
+          mockNitroFetch.mockResolvedValue(new Response(null, { status: 200 }));
+        }
+      };
+
+      it('drops fetches that were in flight across a latency clear', async () => {
+        await settleHungFetches(() => {
+          clearLatencySamples();
+        });
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(2);
+        expect(getLatencySnapshot()).toBe('UNKNOWN');
+      });
+
+      it('records hung fetches that settle without a latency clear', async () => {
+        await settleHungFetches();
+
+        expect(getLatencySnapshot()).toBe('SLOW');
+      });
+
+      it('records one sample for an HTTP response', async () => {
+        mockNitroFetch.mockResolvedValueOnce(
+          new Response(null, { status: 500 }),
+        );
+
+        await global.fetch('https://example.com/api?secret=1');
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+        expect(mockRecordFetchSample).toHaveBeenCalledWith(
+          expect.objectContaining({
+            atMs: expect.any(Number),
+            durationMs: expect.any(Number),
+          }),
+        );
+      });
+
+      it('records a connection failure as its elapsed time and rethrows it', async () => {
+        const failure = new Error(
+          'Cronet failed: net::ERR_CONNECTION_TIMED_OUT',
+        );
+        mockNitroFetch.mockRejectedValueOnce(failure);
+
+        await expect(global.fetch('https://example.com')).rejects.toBe(failure);
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+        const [{ durationMs }] = mockRecordFetchSample.mock.calls[0] as [
+          { durationMs: number },
+        ];
+        expect(durationMs).toBeLessThan(getLatencyThresholds().hungMs);
+      });
+
+      it('skips a short AbortError and rethrows it', async () => {
+        const abort = new Error('Aborted');
+        abort.name = 'AbortError';
+        mockNitroFetch.mockRejectedValueOnce(abort);
+
+        await expect(global.fetch('https://example.com')).rejects.toBe(abort);
+
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
+      });
+
+      it('skips a nitroPrefetched response', async () => {
+        mockNitroFetch.mockResolvedValueOnce(
+          new Response(null, { headers: { nitroPrefetched: 'true' } }),
+        );
+
+        await global.fetch(METAMASK_STALELIST_URL);
+
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
+      });
+
+      it('passes a stream fetch through without a sample', async () => {
+        const init = { stream: true } as RequestInit;
+
+        await global.fetch('https://example.com/stream', init);
+
+        expect(mockNitroFetch).toHaveBeenCalledWith(
+          'https://example.com/stream',
+          init,
+        );
+        expect(mockRecordFetchSample).not.toHaveBeenCalled();
       });
     });
 
