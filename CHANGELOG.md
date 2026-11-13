@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a Money referral invite when opening a MetaMask link with a referral code, shown over the link's destination and before the notifications prompt (#38666)
+- Added access to tax documentation from Claim, including tax questions and the tax form, and displayed held balances when tax documentation was the only hold (#38707)
+- Added a bottom sheet explaining positions not counted in P&L (#38681)
+- Added an "Identity verified" card on Money home for users who passed identity verification but have not set up their virtual account yet (#38911)
+- Added copy-trading commissions and follow-trade claims when available under Social V1 (#38913)
 - Opened position history from flagged profile positions (#38566)
 - Enabled opening asset pages and perpetual market details from the position sheet price header (#38928)
 - Linked position sheet headers to trader profiles (#38927)
@@ -39,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated the Predict buy preview and Price details sheet typography and spacing (#39245)
+- Changed the Bank transfer badge on the Add funds sheet to a neutral "No fees" tag and removed the External address coming soon row (#39038)
+- Redesigned the identity verification screens to explain how idOS and Sumsub verify your identity and to require explicit consent for biometric processing (#38987)
+- Updated the identity verification pending screen to say checks take a few minutes and show a Done button (#38939)
 - Updated the position summary to match the feed card (#38932)
 - Smoothed animations when selecting or clearing token pills on the Social Trending feed (#38941)
 - Renamed the Perps home screen "Social feed" section to "Social" (#38771)
@@ -70,6 +79,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed the dismissible limit-order banner and "New" badge from Swaps (#39030)
+- Removed the full-screen Rewards join step and showed opt-in on the Rewards home (#38896)
 - Removed the outdated mUSD-only fee note from the transaction fee tooltip on Perps and Predict withdrawals (#38958)
 - Removed reference lines from the position chart (#38929)
 - Removed the Copy trade button from posts on your own profile while keeping it on other traders' posts (#38803)
@@ -77,6 +88,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed a bug where selecting Max in Quick Buy showed "Add funds" instead of the buy button (#39586)
+- Fixed Pro order form size label showing the HIP-3 `xyz:` prefix for stock perps such as NVIDIA (#39575)
+- Fixed Terms of Use and Privacy Notice links on the onboarding login sheet so they open again (#39553)
+- Fixed ETH unstaking from Trending, Movers, and Watchlist entries (#39508)
+- Fixed the tax form staying on Pending review after a new form was stored with the same result, fixed Claim after tax clears held income, and fixed the Contact support header in the rewards webview so its back and share buttons are reachable on iOS and Android (#39296)
+- Targeted Money deposit splash campaigns to eligible Aave token holders (#39036)
+- Fixed users being sent to the wallet home screen instead of back to identity verification after enabling camera or photo access in iOS Settings during bank account setup (#38388)
+- Fixed Social links on Perps home opening a screen with no tab bar or back button; they now open the Social tab (#39164)
+- Fixed the Perps trading competition leaderboard hiding ranks past 20 (#39266)
+- Fixed the Perps market price hiding behind the header when reopening a market on iOS (#39269)
+- Fixed the bank account setup screen incorrectly telling users in Brazil that Pix deposits arrive in a few business days instead of seconds (#39142)
+- Fixed Money home showing more than one onboarding card at a time (#39006)
+- Fixed Social V1 comment reactions being lost when realtime feed updates were applied (#38946)
+- Fixed undersized perpetuals orders being enlarged, Lighter position profit percentages displaying 100 times too high, Hyperliquid balance precision, and missing batch-cancellation counts in analytics (#38834)
+- Fixed Money title alignment with the balance on iOS devices of different widths (#38992)
+- Fixed the Social profile joined date to follow the app language (#39021)
+- Fixed the error shown when changing a linked social account within the 30-day limit (#39019)
+- Fixed Feed cards and Holders rows on token details not opening Social onboarding when tapped by users who had not onboarded to Social (#39023)
+- Fixed the Trending hot token rail continuously occupying the UI thread (#39026)
 - Disabled blur effects on low-memory iPhones and iPads to keep headers, the tab bar, and menus smooth (#38790)
 - Aligned the Money title with the balance on iOS (#38883)
 - Aligned Card form empty states and confirmation dialog text with the 16px screen gutter (#38805)
