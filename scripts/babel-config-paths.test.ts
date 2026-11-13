@@ -82,6 +82,7 @@ describe('babel.config.js path matching', () => {
     // Every override in babel.config.js, keyed by a file each `test` must
     // match. Adding an override there requires adding a row here.
     const OVERRIDE_TARGETS = [
+      '/node_modules/@cubist-labs/cubesigner-sdk/dist/index.js',
       '/node_modules/marked/src/marked.js',
       '/node_modules/@metamask/profile-sync-controller/dist/index.js',
       '/node_modules/@metamask/profile-controller/dist/index.js',

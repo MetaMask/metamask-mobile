@@ -69,7 +69,7 @@ const PasswordlessRecoveryDeveloperOptionsSection = () => {
           verifyOrEnroll({
             methods: ['passkey'],
             verifyWith: 'passkey',
-            reason: { operation: 'wallet.passwordless_recovery_setup' },
+            reason: { operation: 'settings.passwordless_recovery_setup' },
           }).then(() => undefined),
         linkSocialLogin: () =>
           linkSocialLogin({

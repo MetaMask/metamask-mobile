@@ -11659,9 +11659,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^36.1.1":
-  version: 36.1.1
-  resolution: "@metamask/profile-sync-controller@npm:36.1.1"
+"@metamask/profile-sync-controller@npm:36.1.0":
+  version: 36.1.0
+  resolution: "@metamask/profile-sync-controller@npm:36.1.0"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11681,7 +11681,33 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/26d5227624c3ea54ceb8f163e8db71e9b7953026990373ebd00c1917c8cde45adea67020014c83c77bb759943844ea452977dbbd02ce18af641e07fe2dc3f1c7
+  checksum: 10/35e3a0d447261ea8c869d7efa42441c905216eaf1dd04fb08642d54749b2a04bd106b6183f9f26d41cebeaf1bbdb49ddc77ff863aacfd8c7ed8a73a1256556cf
+  languageName: node
+  linkType: hard
+
+"@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch":
+  version: 36.1.0
+  resolution: "@metamask/profile-sync-controller@patch:@metamask/profile-sync-controller@npm%3A36.1.0#~/.yarn/patches/@metamask-profile-sync-controller-npm-36.1.0-51a8f486ca.patch::version=36.1.0&hash=bb5760"
+  dependencies:
+    "@metamask/address-book-controller": "npm:^8.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/controller-utils": "npm:^13.0.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/key-tree": "npm:^10.1.1"
+    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
+    "@metamask/utils": "npm:^12.0.1"
+    "@noble/curves": "npm:^1.9.7"
+    "@noble/hashes": "npm:^1.8.0"
+    "@signinwithethereum/siwe": "npm:^4.2.1"
+    immer: "npm:^11.1.18"
+    loglevel: "npm:^1.9.2"
+  peerDependencies:
+    "@metamask/providers": ^22.0.0
+    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
+  checksum: 10/807e7fa9cde67c65e455b77acd7a79ee92d9c4fefe138dbcf397fe6cd801db0648f2cc0c637b0feda3f7bf94c81d11f834d0a7148bba185038907e1ddd92eb19
   languageName: node
   linkType: hard
 
@@ -52639,14 +52665,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.4.3":
-  version: 4.4.3
-  resolution: "zod@npm:4.4.3"
-  checksum: 10/804b9a42aa8f35f2b3c5a8dff906291cb749115f83ee2afe3576d70b5b5c53c965365c7f4967690647a9c54af9838ff232a85ff9577a0a36c44b68bc6cdefe36
-  languageName: node
-  linkType: hard
-
-"zod@npm:^4.3.6":
+"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.0 || ^4.0.0, zod@npm:^4.3.6, zod@npm:^4.4.3":
   version: 4.6.7
   resolution: "zod@npm:4.6.7"
   checksum: 10/3ca8b8d6bb401538e59504c543db629ea7beaa775e504c3f22269b406fdffbf1431c856d59a597bf66d8487e4d2be12b03a55d76fc2c63d9f046eae1ca173bca

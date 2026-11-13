@@ -1,4 +1,5 @@
 import type { Identifier } from '@metamask/mfa-recovery-controller';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
 import { LinkSocialLoginError } from './linkSocialLogin';
 import {
@@ -28,7 +29,7 @@ const TOPRF = {
 
 function createDependencies(
   state: PasswordlessRecoverySetupDependencies['seedless']['state'] = {
-    authConnection: 'google',
+    authConnection: AuthConnection.Google,
     userId: 'google-user',
   },
 ): PasswordlessRecoverySetupDependencies & { seenSecret?: Uint8Array } {
@@ -95,7 +96,7 @@ describe('setupPasswordlessRecovery', () => {
 
   it('does nothing when the vault is already sealed', async () => {
     const dependencies = createDependencies({
-      authConnection: 'google',
+      authConnection: AuthConnection.Google,
       userId: 'google-user',
       envelope: { v: 1, vaultAuthPubKey: 'key' },
     });
