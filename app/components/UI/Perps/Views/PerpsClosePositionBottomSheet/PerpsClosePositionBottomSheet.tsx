@@ -171,13 +171,37 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.originalMetamaskFeeRate,
   );
 
-  const displayedErrors = useMemo(
-    () =>
-      limitPriceInput.error
-        ? filteredErrors.filter((error) => error !== limitPriceInput.error)
-        : filteredErrors,
-    [filteredErrors, limitPriceInput.error],
+  // Limit price errors only apply to limit closes. The input hook validates the
+  // stored price regardless of order type, so gate it here. Nothing is shown
+  // while the keypad is open: the message appears once the user stops typing.
+  // "Too far from market" is the blocking message above Close, and only when
+  // the price is outside the deviation band. Direction warnings stay on the row.
+  const limitPriceError =
+    effectiveOrderType === 'limit' ? limitPriceInput.error : '';
+  const limitPriceTooFarError = strings(
+    'perps.order.limit_price_modal.limit_price_too_far',
   );
+  const isLimitPriceBandError = limitPriceError.startsWith(
+    limitPriceTooFarError,
+  );
+  const showLimitPriceErrorOnRow =
+    Boolean(limitPriceError) && !isLimitPriceBandError && !isEditingLimitPrice;
+
+  const displayedErrors = useMemo(() => {
+    const withoutRowDuplicate = showLimitPriceErrorOnRow
+      ? filteredErrors.filter((error) => error !== limitPriceError)
+      : filteredErrors;
+
+    if (
+      !showLimitPriceErrorOnRow &&
+      limitPriceError &&
+      !withoutRowDuplicate.includes(limitPriceError)
+    ) {
+      return [...withoutRowDuplicate, limitPriceError];
+    }
+
+    return withoutRowDuplicate;
+  }, [filteredErrors, limitPriceError, showLimitPriceErrorOnRow]);
 
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
@@ -245,7 +269,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
         <PerpsLimitPriceRow
           value={limitPriceInput.formattedLimitPrice.replace(/^\$/, '')}
           hasValue={hasLimitPriceValue}
-          error={limitPriceInput.error}
+          error={showLimitPriceErrorOnRow ? limitPriceError : ''}
           isEditing={isEditingLimitPrice}
           onPress={handleLimitPriceRowPress}
         />
@@ -260,10 +284,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       )}
 
       {/* Figma puts the keypad over the CTA, so the whole footer hides with it.
-          Blocking errors sit with the CTA they are blocking, centered
-          directly above it. Errors about the limit
-          price itself stay on that row, where they are still visible while the
-          keypad is open. */}
+          Blocking errors, including a limit price outside the band, sit with
+          the CTA they are blocking, and only after the keypad closes.
+          Direction warnings stay on the limit row once typing stops. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
           <PerpsRebateBanner
