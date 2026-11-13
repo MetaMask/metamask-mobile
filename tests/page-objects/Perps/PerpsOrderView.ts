@@ -234,14 +234,24 @@ class PerpsOrderView {
     return Matchers.getElementByText(label);
   }
 
-  /** First text glyph of the amount display, e.g. "$10". */
+  /**
+   * Amount display element to read the USD amount from. Android exposes the
+   * first text glyph ("$10"); on iOS only the pressable wrapper is an
+   * accessibility element, so its label is read instead ("$10" on the screen,
+   * "Order amount, 10" on the bottom sheet).
+   */
   private get amountValueText(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         `//*[@resource-id='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//android.widget.TextView`,
       );
     }
-    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+  }
+
+  /** Amount keypad key by testID (the text matcher is ambiguous on iOS). */
+  private amountKeypadKey(key: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(`keypad-key-${key}`);
   }
 
   async waitForAmountSlider(surface: PerpsOrderSurface): Promise<void> {
@@ -282,7 +292,7 @@ class PerpsOrderView {
       });
     }
     for (const ch of amount) {
-      await Gestures.waitAndTap(this.getKeypadKey(ch), {
+      await Gestures.waitAndTap(this.amountKeypadKey(ch), {
         checkForDisplayed: true,
         elemDescription: `Keypad: ${ch}`,
       });
@@ -301,8 +311,17 @@ class PerpsOrderView {
     });
   }
 
+  /** Current USD amount without thousands separators, e.g. "$5970". */
   async getAmountUsdText(): Promise<string> {
-    return (await this.amountValueText).textContent();
+    const amountElement = await this.amountValueText;
+    if (PlatformDetector.isAndroid()) {
+      return ((await amountElement.textContent()) ?? '')
+        .trim()
+        .replace(/,/g, '');
+    }
+    const label = (await amountElement.getAttribute('label')) ?? '';
+    const value = label.split(', ').pop() ?? '';
+    return `$${value.replace(/[$,\s]/g, '')}`;
   }
 
   /**
@@ -327,9 +346,7 @@ class PerpsOrderView {
     const expected = `$${amount}`;
     await Utilities.executeWithRetry(
       async () => {
-        const actual = ((await this.getAmountUsdText()) ?? '')
-          .trim()
-          .replace(/,/g, '');
+        const actual = await this.getAmountUsdText();
         if (actual !== expected) {
           throw new Error(`Expected amount "${expected}" but got "${actual}"`);
         }
