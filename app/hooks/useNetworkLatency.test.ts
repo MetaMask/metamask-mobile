@@ -36,10 +36,7 @@ const MID_HUNG_MS = 15000;
 const recordSamples = (durations: number[]) =>
   act(() => {
     durations.forEach((durationMs) =>
-      recordFetchSample(
-        { atMs: Date.now(), durationMs },
-        getLatencySampleEpoch(),
-      ),
+      recordFetchSample(durationMs, getLatencySampleEpoch()),
     );
   });
 

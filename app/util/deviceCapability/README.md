@@ -46,7 +46,7 @@ import { useNetworkLatency } from '../../hooks/useNetworkLatency';
 const latency = useNetworkLatency(); // 'UNKNOWN' | 'OK' | 'SLOW'
 ```
 
-It comes from the newest in-memory samples over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). The newest five decide, however far apart they are. `SLOW` is entered when two of those calls pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row. Samples leave only when a newer one replaces them or a clear runs. Backgrounding then resuming, or a NetInfo transport change, resets it to `UNKNOWN`. A fetch still in flight across that clear is not recorded. Samples hold only `{ atMs, durationMs }` — no URL, hostname, headers, or body — and never go to Redux, Sentry, or analytics.
+It comes from the newest in-memory samples over production `global.fetch` (`app/core/NitroFetchSetup.ts`, `latencyStore.ts`). The newest five decide. `SLOW` is entered when two of those calls pass the hardware row's `hungMs`, or when at least three calls have a median above its `slowMs`. It is left only after three good calls in a row. Samples leave only when a newer one replaces them or a clear runs. Entering the background, or a NetInfo transport change, resets it to `UNKNOWN` and blocks new samples until the app is active. A fetch still in flight across that clear is not recorded. Each sample is only a duration in milliseconds — no URL, hostname, headers, or body — and never goes to Redux, Sentry, or analytics.
 
 **No fold.** `useNetworkTier()` and `useNetworkTierState()` do not read latency and do not re-render on it, so `SLOW_CELLULAR` still means 2g / 3g only. `useNetworkLatency()` returns `UNKNOWN` while the transport is `NONE`. `latency === 'SLOW'` is the trigger for a slow-connection signal, on any transport (including `WIFI`) and any hardware tier. Nothing in the UX matrix reads it yet.
 
@@ -98,7 +98,7 @@ Latency cutoffs per hardware tier (`LATENCY_THRESHOLDS`, from 90 days of product
 
 A call of about 3 s is above `slowMs` on `HIGH` only. On `MID` the median cutoff is 5.5 s, and on `LOW` it is 12.5 s. `global.fetch` records the real duration. It does not add delay. Enter `SLOW` with 2 samples at or above `hungMs` among the newest 5, or with at least 3 samples whose median is above `slowMs`. Leave `SLOW` only when the newest 3 are all at or below `slowMs`.
 
-Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortError` shorter than the hardware row's `hungMs`, fetches while the transport is `NONE`, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure, and an `AbortError` at or above that `hungMs`, record the elapsed time.
+Not sampled: non-HTTP URLs (`data:`, `file:`, `content:`), `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortError` shorter than the hardware row's `hungMs`, fetches while the transport is `NONE` or the app is backgrounded, a fetch still in flight when samples are cleared, XHR, axios, and WebSocket. A connection failure, and an `AbortError` at or above that `hungMs`, record the elapsed time.
 
 ## Files
 
@@ -108,8 +108,7 @@ Not sampled: `stream: true` fetches, `nitroPrefetched` cache hits, an `AbortErro
 | `thresholds.ts`                  | Per-platform RAM cutoffs, latency cutoffs      |
 | `computeHardwareTier.ts`         | Pure RAM → tier                                |
 | `computeNetworkTier.ts`          | Pure NetInfo fields → transport tier           |
-| `latencyThresholdsFor.ts`        | Hardware tier → latency row                    |
-| `classifyFetchSample.ts`         | Pure settled fetch → sample or skip            |
+| `classifyFetchSample.ts`         | Pure settled fetch → duration or skip          |
 | `computeLatencyBucket.ts`        | Pure samples → `UNKNOWN` / `OK` / `SLOW`       |
 | `latencyStore.ts`                | In-memory samples, bucket, and reset listeners |
 | `index.ts`                       | `getHardwareTier()`                            |

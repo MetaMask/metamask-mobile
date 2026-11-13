@@ -46,11 +46,11 @@ jest.mock('../util/deviceCapability/latencyStore', () => {
   return {
     ...actual,
     recordFetchSample: (
-      sample: Parameters<typeof actual.recordFetchSample>[0],
+      durationMs: Parameters<typeof actual.recordFetchSample>[0],
       epochAtStart: Parameters<typeof actual.recordFetchSample>[1],
     ) => {
-      mockRecordFetchSample(sample);
-      actual.recordFetchSample(sample, epochAtStart);
+      mockRecordFetchSample(durationMs);
+      actual.recordFetchSample(durationMs, epochAtStart);
     },
   };
 });
@@ -421,12 +421,7 @@ describe('NitroFetchSetup', () => {
         await global.fetch('https://example.com/api?secret=1');
 
         expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
-        expect(mockRecordFetchSample).toHaveBeenCalledWith(
-          expect.objectContaining({
-            atMs: expect.any(Number),
-            durationMs: expect.any(Number),
-          }),
-        );
+        expect(mockRecordFetchSample).toHaveBeenCalledWith(expect.any(Number));
       });
 
       it('rethrows a fast connection failure without a sample', async () => {
@@ -471,6 +466,16 @@ describe('NitroFetchSetup', () => {
         );
         expect(mockRecordFetchSample).not.toHaveBeenCalled();
       });
+
+      it.each(['data:application/json;base64,e30=', 'file:///tmp/token.json'])(
+        'passes a %s fetch through without a sample',
+        async (url) => {
+          await global.fetch(url);
+
+          expect(mockNitroFetch).toHaveBeenCalledWith(url, undefined);
+          expect(mockRecordFetchSample).not.toHaveBeenCalled();
+        },
+      );
     });
 
     describe('getUrl — input type normalization', () => {

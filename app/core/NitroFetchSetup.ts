@@ -139,19 +139,23 @@ function isStreamInit(init?: RequestInit): boolean {
   return (init as { stream?: unknown } | undefined)?.stream === true;
 }
 
+function isHttpInput(input: RequestInfo | URL): boolean {
+  return /^https?:/i.test(getUrl(input));
+}
+
 function recordFetchOutcome(
   outcome: FetchOutcome,
   startMs: number,
   epochAtStart: number,
 ): void {
-  const sample = classifyFetchSample({
+  const durationMs = classifyFetchSample({
     outcome,
     startMs,
     endMs: Date.now(),
     thresholds: getLatencyThresholds(),
   });
-  if (sample) {
-    recordFetchSample(sample, epochAtStart);
+  if (durationMs !== null) {
+    recordFetchSample(durationMs, epochAtStart);
   }
 }
 
@@ -165,7 +169,7 @@ function installProductionNitroFetch(): void {
   startLatencyMonitoring(getHardwareTier());
   global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const nitroInit = withPrefetchKey(input, normalizeBodyForNitroFetch(init));
-    if (isStreamInit(init)) {
+    if (isStreamInit(init) || !isHttpInput(input)) {
       return nitroFetch(input, nitroInit);
     }
     const startMs = Date.now();
