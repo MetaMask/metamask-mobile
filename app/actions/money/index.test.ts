@@ -10,6 +10,7 @@ import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import type { RootState } from '../../reducers';
+import type { Hex } from '@metamask/utils';
 
 jest.mock('../../core/Engine', () => ({
   __esModule: true,
@@ -108,6 +109,35 @@ describe('upgradeMoneyAccount', () => {
       expect.stringContaining('upgradeMoneyAccount'),
       'starting upgrade',
       { address: ADDRESS, lifecycle: 'notInIdentity', upgraded: false },
+    );
+  });
+
+  it('reads the recorded lifecycle and upgrade under the lowercased address', async () => {
+    const checksummedAddress = '0xAbCdEf0000000000000000000000000000000001';
+    const accountKey = checksummedAddress.toLowerCase() as Hex;
+    mockSelectPrimaryMoneyAccount.mockReturnValue({
+      address: checksummedAddress,
+    });
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      accountKey
+    ] = { type: 'notInIdentity' };
+    Engine.context.MoneyAccountUpgradeController.state = {
+      upgradedAccounts: {
+        [accountKey]: { configFingerprint: 'fingerprint', completedAt: 1 },
+      },
+    };
+
+    dispatchUpgrade();
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'starting upgrade',
+      {
+        address: checksummedAddress,
+        lifecycle: 'notInIdentity',
+        upgraded: true,
+      },
     );
   });
 

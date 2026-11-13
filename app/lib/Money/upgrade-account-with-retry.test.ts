@@ -109,10 +109,12 @@ describe('upgradeAccountWithRetry', () => {
   });
 
   it.each([
-    ['a CHOMP 5xx', () => new ChompApiError(502, 'GET /identities failed')],
+    ['a CHOMP 500', () => new ChompApiError(500, 'GET /identities failed')],
+    ['a CHOMP 502', () => new ChompApiError(502, 'GET /identities failed')],
     ['a CHOMP 429', () => new ChompApiError(429, 'GET /identities failed')],
     ['an open circuit breaker', () => new BrokenCircuitError()],
     ['a network failure', () => new TypeError('Network request failed')],
+    ['a network timeout', () => new TypeError('Network request timed out')],
   ])(
     'retries %s and resolves when a later attempt succeeds',
     async (_label, createError) => {
@@ -131,6 +133,28 @@ describe('upgradeAccountWithRetry', () => {
 
   it('rethrows a CHOMP 4xx without retrying', async () => {
     const error = new ChompApiError(401, 'GET /identities failed');
+    const upgradeAccount = jest.fn().mockRejectedValue(error);
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows a TypeError that is not a network failure without retrying', async () => {
+    const error = new TypeError(
+      "Cannot read properties of undefined (reading 'address')",
+    );
+    const upgradeAccount = jest.fn().mockRejectedValue(error);
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows a 5xx from an error that is not a ChompApiError without retrying', async () => {
+    const error = Object.assign(new Error('upstream failed'), {
+      httpStatus: 502,
+    });
     const upgradeAccount = jest.fn().mockRejectedValue(error);
 
     await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);

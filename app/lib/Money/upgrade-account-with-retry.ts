@@ -50,9 +50,16 @@ export const isMoneyAccountUpgradeAbortedError = (
  * @param error - The value to test.
  * @returns Whether re-issuing the request may succeed.
  */
+const NETWORK_FAILURE_MESSAGES = [
+  'Network request failed',
+  'Network request timed out',
+  'Failed to fetch',
+  'fetch failed',
+];
+
 const isTransientRequestError = (error: unknown): boolean => {
   if (error instanceof TypeError) {
-    return true;
+    return NETWORK_FAILURE_MESSAGES.includes(error.message);
   }
   if (!(error instanceof Error)) {
     return false;
