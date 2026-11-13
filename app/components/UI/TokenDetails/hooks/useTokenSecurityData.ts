@@ -24,6 +24,13 @@ const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
   typeof (data as TokenSecurityData).resultType === 'string' &&
   Array.isArray((data as TokenSecurityData).features);
 
+const securityDataFromAssets = (
+  assets: Awaited<ReturnType<typeof fetchTokenAssets>>,
+): TokenSecurityData | null => {
+  const asset = assets?.[0];
+  return asset?.securityData ?? null;
+};
+
 export const useTokenSecurityData = ({
   assetId,
   prefetchedData: rawPrefetchedData,
@@ -46,16 +53,14 @@ export const useTokenSecurityData = ({
         includeTokenSecurityData: true,
       });
       if (!isMountedRef.current) return;
-      const asset = assets?.[0];
-      setSecurityData(asset?.securityData ?? null);
+      setSecurityData(securityDataFromAssets(assets));
       setError(null);
     } catch (err) {
       if (!isMountedRef.current) return;
       setError(err as Error);
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+    }
+    if (isMountedRef.current) {
+      setIsLoading(false);
     }
   }, [assetId]);
 
