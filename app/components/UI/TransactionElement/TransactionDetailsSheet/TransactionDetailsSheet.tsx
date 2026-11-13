@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Text,
   TextColor,
@@ -15,6 +14,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import TransactionDetails from '../TransactionDetails';
 import { toDateFormat } from '../../../../util/date';
 import { makeSelectTransactionMetadataById } from '../../../../selectors/transactionController';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface TransactionDetailsSheetParams {
   tx: {
@@ -53,6 +54,7 @@ type TransactionDetailsSheetRouteProp = RouteProp<
 >;
 
 const TransactionDetailsSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route = useRoute<TransactionDetailsSheetRouteProp>();
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -90,14 +92,14 @@ const TransactionDetailsSheet: React.FC = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={handleGoBack}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>
           {transactionElement?.actionKey}
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {currentTx?.time ? toDateFormat(currentTx.time) : null}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <TransactionDetails
         transactionObject={currentTx}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import type { CandlePeriod } from '@metamask/perps-controller';
@@ -131,4 +131,4 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   </PriceChartProvider>
 );
 
-export default TraderPositionChartSection;
+export default memo(TraderPositionChartSection);

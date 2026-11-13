@@ -21,31 +21,36 @@ describe('perpsPostTradeShare', () => {
   });
 
   describe('isPerpsPostTradeShareEligible', () => {
-    it('returns false when leveraged value is below the minimum', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: '5',
-        leverage: 1,
-      });
+    it('returns false when position size is below the minimum', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: '9.99' });
 
       expect(result).toBe(false);
     });
 
-    it('returns true when leverage brings the value to the minimum', () => {
+    it('returns true at the minimum position size', () => {
       const result = isPerpsPostTradeShareEligible({
-        amountUsd: '5',
-        leverage: 2,
+        amountUsd: String(MIN_POST_TRADE_SHARE_USD),
       });
 
       expect(result).toBe(true);
     });
 
-    it('returns true at the minimum value without leverage', () => {
-      const result = isPerpsPostTradeShareEligible({
-        amountUsd: String(MIN_POST_TRADE_SHARE_USD),
-        leverage: 1,
-      });
+    it('returns true for a $50 position at 10x even though margin is $5', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: '50' });
 
       expect(result).toBe(true);
+    });
+
+    it('returns false when position size is missing', () => {
+      const result = isPerpsPostTradeShareEligible({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when position size is not a number', () => {
+      const result = isPerpsPostTradeShareEligible({ amountUsd: 'abc' });
+
+      expect(result).toBe(false);
     });
   });
 
@@ -63,7 +68,10 @@ describe('perpsPostTradeShare', () => {
       }),
     ).toBe(false);
     expect(
-      canPromptPerpsPostTrade({ orderType: 'market', activeProvider: 'myx' }),
+      canPromptPerpsPostTrade({
+        orderType: 'market',
+        activeProvider: 'lighter',
+      }),
     ).toBe(false);
   });
 
@@ -140,15 +148,30 @@ describe('perpsPostTradeShare', () => {
     expect(getPostTradeShareSession()).toBeNull();
   });
 
-  it('opens a share for a leveraged copy-trade that reaches the minimum', () => {
+  it('keeps a leveraged copy-trade on the toast path when position size is below the minimum', () => {
     const sessionId = beginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
       asset: 'ETH',
       direction: 'long',
-      leverage: 2,
-      amountUsd: '5',
+      leverage: 10,
+      amountUsd: '9',
+    });
+
+    expect(sessionId).toBeUndefined();
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
+  it('opens a share for a leveraged copy-trade at the minimum position size', () => {
+    const sessionId = beginPerpsPostTradeShare({
+      copyTradeOrigin,
+      orderType: 'market',
+      activeProvider: 'hyperliquid',
+      asset: 'ETH',
+      direction: 'long',
+      leverage: 10,
+      amountUsd: String(MIN_POST_TRADE_SHARE_USD),
     });
 
     expect(sessionId).toBeDefined();
@@ -165,7 +188,7 @@ describe('perpsPostTradeShare', () => {
       asset: 'ETH',
       direction: 'long',
       leverage: 40,
-      amountUsd: '100',
+      amountUsd: '400',
     });
 
     expect(getPostTradeShareSession()?.status).toBe('pending');
@@ -192,6 +215,8 @@ describe('perpsPostTradeShare', () => {
       activeProvider: 'hyperliquid',
       asset: 'ETH',
       direction: 'long',
+      leverage: 1,
+      amountUsd: '100',
     });
 
     const completed = completePerpsPostTradeShare(sessionId, {

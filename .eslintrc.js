@@ -196,32 +196,112 @@ module.exports = {
           },
         ],
 
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
+        // Fast checks. These do not need type information. The options match
+        // the shared config.
         //
-        // TODO: Remove these modifications after the ESLint v9 update
+        // no-wrapper-object-types and prefer-enum-initializers are errors in
+        // @metamask/eslint-config-typescript, so this file does not set them.
+        // Their existing hits are in eslint-suppressions.json.
+        // no-empty-object-type is an error in that package too, and stays a
+        // warning here: its hits are interface aliases and generic defaults
+        // such as Props = {}. The style rules and no-unused-vars stay
+        // warnings for now.
+        '@typescript-eslint/explicit-function-return-type': 'warn',
+        '@typescript-eslint/naming-convention': [
+          'warn',
+          {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
+          },
+        ],
+        '@typescript-eslint/no-empty-object-type': 'warn',
+        '@typescript-eslint/no-unused-vars': [
+          'warn',
+          {
+            vars: 'all',
+            args: 'all',
+            argsIgnorePattern: '[_]+',
+            ignoreRestSiblings: true,
+          },
+        ],
+        // Slow type checks. The shared ESLint config turns these on, but they
+        // need type information, so they stay off through the ESLint 9
+        // upgrade. Turn them on in Oxlint and park existing hits in
+        // oxlint-suppressions.json.
         '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
         '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-redundant-type-constituents': 'off',
         '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
@@ -875,6 +955,15 @@ module.exports = {
     'react-compiler/react-compiler': 'warn',
     'no-catch-shadow': 'off',
     'no-console': ['error', { allow: ['warn', 'error'] }],
+    // Code fencing was removed: nothing strips fence-marker blocks any more, so
+    // fenced code would ship in every build. Gate features at runtime instead.
+    'no-warning-comments': [
+      'error',
+      {
+        terms: ['BEGIN:ONLY_INCLUDE_IF', 'END:ONLY_INCLUDE_IF'],
+        location: 'anywhere',
+      },
+    ],
     quotes: [
       'error',
       'single',
@@ -983,13 +1072,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
-    'react-hooks/rules-of-hooks': 'off',
-    'no-loss-of-precision': 'off',
+    // rules-of-hooks is an error from @react-native/eslint-config. Existing
+    // hits are in eslint-suppressions.json.
+    'react-hooks/rules-of-hooks': 'error',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],

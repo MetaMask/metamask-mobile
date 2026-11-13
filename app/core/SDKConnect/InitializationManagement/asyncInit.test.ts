@@ -2,6 +2,9 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import AppConstants from '../../AppConstants';
+import Engine from '../../Engine';
+import { store } from '../../../store';
 import SDKConnect from '../SDKConnect';
 import { wait } from '../utils/wait.util';
 import asyncInit from './asyncInit';
@@ -17,6 +20,14 @@ jest.mock('../../../util/Logger');
 jest.mock('../SDKConnect');
 jest.mock('../utils/DevLogger');
 jest.mock('../utils/wait.util');
+jest.mock('../../Engine', () => ({
+  context: {
+    PermissionController: {
+      getPermissions: jest.fn(),
+      revokeAllPermissions: jest.fn(),
+    },
+  },
+}));
 jest.mock('../../../store', () => ({
   store: {
     getState: jest.fn(() => ({
@@ -30,11 +41,21 @@ jest.mock('../../../store', () => ({
 }));
 
 describe('asyncInit', () => {
+  const { getPermissions, revokeAllPermissions } = (
+    Engine.context as unknown as {
+      PermissionController: {
+        getPermissions: jest.Mock;
+        revokeAllPermissions: jest.Mock;
+      };
+    }
+  ).PermissionController;
   let mockInstance = {} as unknown as SDKConnect;
   let mockNavigation = {} as unknown as NavigationContainerRef<ParamListBase>;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    getPermissions.mockReset();
+    revokeAllPermissions.mockReset();
 
     mockInstance = {
       state: {
@@ -96,6 +117,59 @@ describe('asyncInit', () => {
 
       expect(mockInstance.state.approvedHosts).toEqual({});
     });
+  });
+
+  it('revokes permissions when an expired connection is dropped', async () => {
+    getPermissions.mockReturnValue({ eth_accounts: {} });
+    (store.getState as jest.Mock).mockReturnValueOnce({
+      sdk: {
+        connections: {
+          channel1: { validUntil: Date.now() - 1000 },
+        },
+        approvedHosts: {},
+        dappConnections: {},
+      },
+    });
+
+    await asyncInit({
+      instance: mockInstance,
+      navigation: mockNavigation,
+    });
+
+    expect(revokeAllPermissions).toHaveBeenCalledWith('channel1');
+    expect(mockInstance.state.connections.channel1).toBeUndefined();
+  });
+
+  it('drops an expired connection even when its permissions cannot be revoked', async () => {
+    getPermissions.mockReturnValue({ eth_accounts: {} });
+    revokeAllPermissions.mockImplementationOnce(() => {
+      throw new Error('revoke failed');
+    });
+    (store.getState as jest.Mock).mockReturnValueOnce({
+      sdk: {
+        connections: {
+          channel1: { validUntil: Date.now() - 1000 },
+        },
+        approvedHosts: {
+          [`${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}channel1`]: 1,
+        },
+        dappConnections: {},
+      },
+    });
+
+    await asyncInit({
+      instance: mockInstance,
+      navigation: mockNavigation,
+    });
+
+    expect(revokeAllPermissions).toHaveBeenCalledWith('channel1');
+    expect(mockInstance.state.connections.channel1).toBeUndefined();
+    expect(
+      mockInstance.state.approvedHosts[
+        `${AppConstants.MM_SDK.SDK_REMOTE_ORIGIN}channel1`
+      ],
+    ).toBeUndefined();
+    expect(mockInstance.state._initialized).toBe(true);
   });
 
   it('should set the initialized state to true after successful initialization', async () => {

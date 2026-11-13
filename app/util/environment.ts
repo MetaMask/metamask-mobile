@@ -13,6 +13,11 @@ const FLASK_BUILD_TYPE = 'flask';
 export const isProduction = (): boolean =>
   process.env.METAMASK_ENVIRONMENT === 'production';
 
+export const isFlaskBuild =
+  process.env.METAMASK_BUILD_TYPE === FLASK_BUILD_TYPE;
+
+export const isBetaBuild = process.env.METAMASK_ENVIRONMENT === 'beta';
+
 export const isE2EMockOAuth = (): boolean =>
   process.env.E2E_MOCK_OAUTH === 'true';
 

@@ -11,8 +11,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { Suspense, useState } from 'react';
+import { Animated } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { RAIL_DRIFT_DECELERATION } from './hotTokenRailMotion';
 import { playSelection } from '../../../../../../util/haptics';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../types';
@@ -35,10 +37,6 @@ jest.mock('../../../../../../util/deviceCapability', () => ({
 
 jest.mock('../../../../../../util/haptics');
 
-const mockSetFrameCallbackActive = jest.fn();
-let mockFrameCallback:
-  | ((frame: { timeSincePreviousFrame: number | null }) => void)
-  | null = null;
 let mockReducedMotion = false;
 
 jest.mock('react-native-reanimated', () => {
@@ -48,22 +46,13 @@ jest.mock('react-native-reanimated', () => {
       if (prop === 'useReducedMotion') {
         return () => mockReducedMotion;
       }
-      if (prop === 'useFrameCallback') {
-        return (
-          callback: (frame: { timeSincePreviousFrame: number | null }) => void,
-        ) => {
-          mockFrameCallback = callback;
-          return {
-            setActive: mockSetFrameCallbackActive,
-            isActive: false,
-            callbackId: 1,
-          };
-        };
-      }
       return Reflect.get(target, prop, receiver);
     },
   });
 });
+
+const mockTimingStart = jest.fn();
+let timingSpy: jest.SpyInstance;
 
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
 
@@ -167,7 +156,19 @@ describe('HotTokensCarousel', () => {
     jest.clearAllMocks();
     mockGetHardwareTier.mockReturnValue(null);
     mockReducedMotion = false;
-    mockFrameCallback = null;
+    mockTimingStart.mockReset();
+    timingSpy = jest.spyOn(Animated, 'timing').mockImplementation(
+      () =>
+        ({
+          start: mockTimingStart,
+          stop: jest.fn(),
+          reset: jest.fn(),
+        }) as unknown as Animated.CompositeAnimation,
+    );
+  });
+
+  afterEach(() => {
+    timingSpy.mockRestore();
   });
 
   it('renders a chip per hot token', () => {
@@ -183,8 +184,12 @@ describe('HotTokensCarousel', () => {
     expect(chip).toHaveTextContent('Bitcoin perps');
     expect(chip).toHaveStyle({
       height: 40,
-      paddingLeft: 12,
+      paddingLeft: 8,
       paddingRight: 16,
+    });
+    expect(screen.getByTestId(SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID)).toHaveStyle({
+      paddingLeft: 8,
+      gap: 8,
     });
     expect(
       screen.UNSAFE_getByProps({
@@ -518,32 +523,40 @@ describe('HotTokensCarousel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('runs the marquee while its page is active', () => {
+  it('starts the native crawl once the rail overflows while its page is active', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel />);
+    expect(timingSpy).not.toHaveBeenCalled();
 
-    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+    layOutOverflowingRail();
+
+    expect(timingSpy).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({ toValue: 800, useNativeDriver: true }),
+    );
+    expect(mockTimingStart).toHaveBeenCalled();
   });
 
-  it('stops the marquee while its page is off screen', () => {
+  it('does not crawl while its page is off screen', () => {
     arrange([mockHotToken(), NVIDIA]);
 
     renderWithProvider(<HotTokensCarousel isActive={false} />);
+    layOutOverflowingRail();
 
-    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
-    expect(mockSetFrameCallbackActive).not.toHaveBeenCalledWith(true);
+    expect(timingSpy).not.toHaveBeenCalled();
   });
 
-  it('resumes the marquee when its page becomes active again', () => {
+  it('resumes the crawl when its page becomes active again', () => {
     arrange([mockHotToken(), NVIDIA]);
     const { rerender } = renderWithProvider(
       <HotTokensCarousel isActive={false} />,
     );
+    layOutOverflowingRail();
 
     rerender(<HotTokensCarousel isActive />);
 
-    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+    expect(mockTimingStart).toHaveBeenCalled();
   });
 
   describe('selection motion', () => {
@@ -710,18 +723,48 @@ describe('HotTokensCarousel', () => {
   });
 
   describe('marquee', () => {
-    it('crawls the rail each frame once the track overflows', () => {
+    it('crawls the rail once the track overflows', () => {
       arrange([mockHotToken(), NVIDIA]);
       renderWithProvider(<HotTokensCarousel />);
       layOutOverflowingRail();
 
-      expect(() =>
-        act(() => {
-          mockFrameCallback?.({ timeSincePreviousFrame: 16 });
-          mockFrameCallback?.({ timeSincePreviousFrame: null });
+      expect(mockTimingStart).toHaveBeenCalled();
+    });
+
+    it('coasts when a flick ends', () => {
+      const decayStart = jest.fn();
+      const decaySpy = jest.spyOn(Animated, 'decay').mockImplementation(
+        () =>
+          ({
+            start: decayStart,
+            stop: jest.fn(),
+            reset: jest.fn(),
+          }) as unknown as Animated.CompositeAnimation,
+      );
+      arrange([mockHotToken(), NVIDIA]);
+      renderWithProvider(<HotTokensCarousel />);
+      layOutOverflowingRail();
+
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId(SOCIAL_V1_HOT_TOKENS_PAN_GESTURE_ID),
+          [
+            { translationX: 0, velocityX: 0 },
+            { translationX: -80, velocityX: -400 },
+            { translationX: -120, velocityX: -900 },
+          ],
+        );
+      });
+
+      expect(decaySpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          velocity: 900 / 1000,
+          deceleration: RAIL_DRIFT_DECELERATION,
+          useNativeDriver: true,
         }),
-      ).not.toThrow();
-      expect(mockFrameCallback).not.toBeNull();
+      );
+      decaySpy.mockRestore();
     });
 
     it('lets the rail be scrubbed', () => {
@@ -753,8 +796,9 @@ describe('HotTokensCarousel', () => {
       arrange([mockHotToken(), NVIDIA]);
 
       renderWithProvider(<HotTokensCarousel />);
+      layOutOverflowingRail();
 
-      expect(mockSetFrameCallbackActive).not.toHaveBeenCalledWith(true);
+      expect(timingSpy).not.toHaveBeenCalled();
     });
 
     it('still lets the chips be scrubbed past the viewport', () => {

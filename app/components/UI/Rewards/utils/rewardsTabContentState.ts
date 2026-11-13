@@ -3,18 +3,16 @@ import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/se
 /**
  * Shared readiness rules for Rewards tab time-to-content and RewardsHome routing.
  *
- * Mirrors RewardsHome + OnboardingMainStep's skeleton gate:
+ * Mirrors RewardsHome's skeleton gate:
  * - version blocked → update-required screen is content
  * - Money enabled but the referral persona unresolved → hold the tab (no home)
  * - referrer / referee → the Money dashboard is content
- * - subscriptionId → enrolled dashboard shell is content
- * - candidate still pending/retry → onboarding is mounted as the discovery
- * surface; enrollment is not known yet, so TTC stays open
- * - otherwise onboarding is content
+ * - otherwise the points dashboard is content, with or without a subscription
+ * - candidate still pending/retry → the tab waits; Campaigns and Benefits
+ * depend on the subscription, so the dashboard is not content yet
  */
 export type RewardsTabContentVariant =
   | 'dashboard'
-  | 'onboarding'
   | 'update_required'
   | 'money_dashboard';
 
@@ -73,17 +71,13 @@ export function getRewardsTabContentState({
     return { status: 'ready', variant: 'money_dashboard' };
   }
 
-  if (subscriptionId) {
-    return { status: 'ready', variant: 'dashboard' };
-  }
-
   const candidateLoading =
     candidateSubscriptionId === 'pending' ||
     candidateSubscriptionId === 'retry';
 
-  if (candidateLoading) {
+  if (!subscriptionId && candidateLoading) {
     return { status: 'pending', reason: 'candidate_subscription' };
   }
 
-  return { status: 'ready', variant: 'onboarding' };
+  return { status: 'ready', variant: 'dashboard' };
 }

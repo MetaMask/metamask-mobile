@@ -26,8 +26,8 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
@@ -63,6 +63,7 @@ const renderDefinitions = (
         isMoneyAccountVisible: false,
         showSocialTab: false,
         isSocialV1Enabled: false,
+        canOpenSocialTabDirectly: false,
         showSocialTabNewBadge: false,
         trackMoneyTabPress: jest.fn(),
         ...overrides,
@@ -269,6 +270,48 @@ describe('useHomeTabDefinitions', () => {
       expect(social?.tabBarSelectionEnabled).toBe(false);
     });
 
+    it('lets UIKit select the Social V1 tab once no gate has to open', () => {
+      const { result } = renderDefinitions({
+        showSocialTab: true,
+        isSocialV1Enabled: true,
+        canOpenSocialTabDirectly: true,
+      });
+      const social = result.current.tabs.find(
+        (tab) => tab.name === Routes.SOCIAL.TAB,
+      );
+
+      expect(social?.tabBarSelectionEnabled).toBeUndefined();
+      expect(social?.initialParams).toEqual({ source: 'nav_tab' });
+    });
+
+    it.each([
+      ['another tab is selected', Routes.WALLET.HOME, 1],
+      ['Social is still the selected tab', Routes.SOCIAL.TAB, 0],
+    ])(
+      'restores the Social V1 tap source on blur when %s',
+      (_, selectedRoute, expectedCalls) => {
+        const { result } = renderDefinitions({
+          showSocialTab: true,
+          isSocialV1Enabled: true,
+        });
+        const social = result.current.tabs[4];
+        const navigation = {
+          navigate: jest.fn(),
+          setParams: jest.fn(),
+          getState: () => ({ index: 0, routes: [{ name: selectedRoute }] }),
+        } as unknown as NativeBottomTabNavigationProp<ParamListBase>;
+
+        result.current.getNativeTabListeners(social)({ navigation }).blur?.();
+
+        expect(navigation.setParams).toHaveBeenCalledTimes(expectedCalls);
+        if (expectedCalls) {
+          expect(navigation.setParams).toHaveBeenCalledWith({
+            source: 'nav_tab',
+          });
+        }
+      },
+    );
+
     it('leaves native selection on for the control Social tab', () => {
       const { result } = renderDefinitions({ showSocialTab: true });
       const social = result.current.tabs.find(
@@ -276,6 +319,7 @@ describe('useHomeTabDefinitions', () => {
       );
 
       expect(social?.tabBarSelectionEnabled).toBeUndefined();
+      expect(social?.initialParams).toBeUndefined();
     });
 
     it('selects the Social tab through the onboarding-aware tab helper', () => {

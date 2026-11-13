@@ -17,7 +17,10 @@ import type {
   PredictTimestamp,
 } from '../../../types';
 import type { MarketLayoutCard } from './createMarketLayoutProjection';
-import { EventMarketLayoutCard } from './EventMarketLayoutCard';
+import {
+  EventMarketLayoutCard,
+  getLayoutCardMarketIds,
+} from './EventMarketLayoutCard';
 
 jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
@@ -239,22 +242,16 @@ describe('EventMarketLayoutCard', () => {
   it.each([
     ['spread', 'spreads'],
     ['total', 'totals'],
-  ])(
-    'renders a %s line picker without a title or rules button',
-    (type, key) => {
-      renderCard(lines(key, type));
+  ])('renders a %s line picker without a title', (type, key) => {
+    renderCard(lines(key, type));
 
-      expect(
-        screen.getByTestId(MarketGroupCardTestIds.card(key)),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(MarketGroupCardTestIds.title(key)),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(MarketGroupCardTestIds.rulesButton(key)),
-      ).not.toBeOnTheScreen();
-    },
-  );
+    expect(
+      screen.getByTestId(MarketGroupCardTestIds.card(key)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MarketGroupCardTestIds.title(key)),
+    ).not.toBeOnTheScreen();
+  });
 
   it.each([
     ['away', game.awayTeam.name],
@@ -268,8 +265,8 @@ describe('EventMarketLayoutCard', () => {
         screen.getByTestId(MarketGroupCardTestIds.title('team-total')),
       ).toHaveTextContent(title);
       expect(
-        screen.queryByTestId(MarketGroupCardTestIds.rulesButton('team-total')),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId(MarketGroupCardTestIds.title('team-total')),
+      ).not.toHaveProp('accessibilityRole', 'button');
     },
   );
 
@@ -337,7 +334,7 @@ describe('EventMarketLayoutCard', () => {
       screen.getByTestId(MarketStandardCardTestIds.yesButton('single')),
     );
     fireEvent.press(
-      screen.getByTestId(MarketStandardCardTestIds.rulesButton('single')),
+      screen.getByTestId(MarketStandardCardTestIds.title('single')),
     );
 
     expect(onOrder).toHaveBeenCalledWith(
@@ -347,5 +344,41 @@ describe('EventMarketLayoutCard', () => {
     expect(onRulesPress).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'single' }),
     );
+  });
+});
+
+describe('getLayoutCardMarketIds', () => {
+  it('names the one Market of a standard card', () => {
+    const market = createMarket('solo', { key: 'solo', groupType: 'choice' });
+    expect(
+      getLayoutCardMarketIds({ type: 'standard', key: 'solo', market }),
+    ).toEqual(['solo']);
+  });
+
+  it('names every row of a choice card', () => {
+    expect(getLayoutCardMarketIds(moneyline)).toEqual(['away', 'home']);
+  });
+
+  it('names only the selected line of a line picker', () => {
+    expect(getLayoutCardMarketIds(lines('totals', 'total'))).toEqual(['over']);
+    expect(
+      getLayoutCardMarketIds(
+        lines('totals', 'total'),
+        'over-2' as PredictEntityId,
+      ),
+    ).toEqual(['over-2']);
+    expect(
+      getLayoutCardMarketIds(
+        lines('totals', 'total'),
+        'gone' as PredictEntityId,
+      ),
+    ).toEqual(['over']);
+  });
+
+  it('names every line of a market type without a picker', () => {
+    expect(getLayoutCardMarketIds(lines('player-a', 'player_points'))).toEqual([
+      'over',
+      'over-2',
+    ]);
   });
 });

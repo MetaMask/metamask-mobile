@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
 import {
   Box,
   BoxBackgroundColor,
@@ -26,10 +23,7 @@ import {
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -41,12 +35,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  getVbaSourceCurrencyForCountry,
-  isVbaSourceCurrency,
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
-} from '../../../../../util/region/getVbaSourceCurrency';
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -85,7 +78,7 @@ import {
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { AVENIA_URL } from './constants';
+import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
@@ -105,10 +98,13 @@ export const VbaDetailsSelectorsIDs = {
   BANK_NAME: 'vba-details-bank-name',
   PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
   PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
+  RISK_DISCLOSURE: 'vba-details-risk-disclosure',
+  RISK_DISCLOSURE_LINK: 'vba-details-risk-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
   DONE_BUTTON: 'vba-details-done-button',
+  COPY_ALL_BUTTON: 'vba-details-copy-all-button',
 } as const;
 
 interface AutorampCursor {
@@ -224,11 +220,20 @@ const buildDetailRows = (
   return rows;
 };
 
+/** Notes-friendly block: each label on its own line, a blank line between fields. */
+export const formatBankDetailsForCopy = (
+  rows: readonly { label: string; value: string }[],
+): string =>
+  rows
+    .filter((row) => row.value.length > 0)
+    .map((row) => `${row.label}\n${row.value}`)
+    .join('\n\n');
+
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the effective
- * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
- * IP country).
+ * wallet and creates the autoramp, in the currency of the open market flag
+ * listing the effective location (`moneyMovementNeobank.regionOverride` when
+ * set, otherwise the IP country).
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -241,33 +246,13 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const {
-    chooseCurrency,
-    regionCurrencies,
-    regions,
-    defaultCurrency,
-    regionOverride,
-  } = useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = regionOverride ?? location;
-  // With chooseCurrency on, only the picked currency may create an account.
-  const regionCurrency = chooseCurrency
-    ? undefined
-    : getVbaSourceCurrencyForCountry(
-        effectiveLocation,
-        regionCurrencies,
-        regions,
-        defaultCurrency,
-      );
-  const requestedCurrency = route.params?.sourceCurrency;
-  // EUR stays out until that deposit layout exists. Ignore anything else too.
-  const pickedCurrency =
-    isVbaSourceCurrency(requestedCurrency) &&
-    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
-      ? requestedCurrency
-      : undefined;
-  const sourceCurrency = pickedCurrency ?? regionCurrency;
+  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
+  const markets = useSelector(selectNeobankMarkets);
+  const sourceCurrency = getVbaMarketForCountry(
+    markets,
+    regionOverride ?? location,
+  )?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -760,6 +745,14 @@ const VbaDetails = () => {
     });
   }, []);
 
+  const handleOpenRiskInfo = useCallback(() => {
+    Linking.openURL(MOONPAY_RISK_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the risk link',
+      });
+    });
+  }, []);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -769,6 +762,18 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const handleCopyAll = useCallback(() => {
+    const message = formatBankDetailsForCopy(rows);
+    Clipboard.setString(message);
+    AccessibilityInfo.announceForAccessibility(
+      strings('virtual_bank_account.vba_details.copied_all_label'),
+    );
+    Share.open({ message, failOnCancel: false }).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the share sheet',
+      });
+    });
+  }, [rows]);
   const hasCurrentAccountState = stateAccountKey === accountKey;
   let accountDetailsContentState: VbaScreenContentState =
     VBA_SCREEN_CONTENT_STATE.EMPTY;
@@ -820,6 +825,8 @@ const VbaDetails = () => {
   const showProviderDisclosure = instructions
     ? instructions.type === 'Pix'
     : sourceCurrency === 'BRL';
+  const showRiskDisclosure =
+    instructions?.type === 'UsBank' && rows.length > 0 && !loadError;
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -984,6 +991,37 @@ const VbaDetails = () => {
               )}
             </TextButton>
           </Text>
+        ) : null}
+        {showRiskDisclosure ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE}
+          >
+            {strings('virtual_bank_account.vba_details.risk_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenRiskInfo}
+              testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK}
+            >
+              {/* Non-breaking spaces keep the link label on one line. */}
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              ).replace(/ /g, '\u00A0')}
+            </TextButton>
+          </Text>
+        ) : null}
+        {instructions?.type === 'UsBank' && rows.length > 0 ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleCopyAll}
+            testID={VbaDetailsSelectorsIDs.COPY_ALL_BUTTON}
+          >
+            {strings('virtual_bank_account.vba_details.copy_all_button')}
+          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

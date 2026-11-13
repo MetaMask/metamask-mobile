@@ -23,6 +23,8 @@ import {
 } from '../../constants/limitOrders';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
+import { LimitOrderGeoRestrictedError } from '../../api/limitOrders/create/errors';
+import Logger from '../../../../../util/Logger';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { ToastSeverity } from '@metamask/design-system-react-native';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
@@ -32,7 +34,11 @@ import { InsufficientBalanceBannerSelectorsIDs } from './InsufficientBalanceBann
 import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
-import { FeatureId } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+  MetricsSwapType,
+} from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { OrderType } from '../../types/advancedOrders';
@@ -45,7 +51,7 @@ const expectAdvancedOrderProperties = (
     feature_id: FeatureId;
     order_type: OrderType;
     error?: string;
-  },
+  } & Record<string, unknown>,
 ) => {
   const { createEventBuilder } = useAnalytics();
 
@@ -185,6 +191,18 @@ const mockDestToken = {
   symbol: 'USDC',
 };
 
+const EXPECTED_TOKEN_PROPERTIES = {
+  chain_id_source: 'eip155:1',
+  chain_id_destination: 'eip155:10',
+  token_symbol_source: 'ETH',
+  token_symbol_destination: 'USDC',
+  token_address_source: 'eip155:1/slip44:60',
+  token_address_destination:
+    'eip155:10/erc20:0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+  token_security_type_destination: null,
+  swap_type: MetricsSwapType.CROSSCHAIN,
+};
+
 const mockOrder = {
   sourceAssetId: 'eip155:1/slip44:60' as Caip19AssetId,
   sourceAmount: '100000000000000000',
@@ -219,6 +237,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   expiry: '7 days',
   order: mockOrder,
   triggerInput: mockTriggerInput,
+  location: MetaMetricsSwapsEventSource.TokenView,
 };
 
 const MOCK_DELEGATION = {
@@ -992,6 +1011,68 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  describe('when the order is not available in the user region', () => {
+    beforeEach(() => {
+      mockCreateLimitOrder.mockRejectedValue(
+        new LimitOrderGeoRestrictedError(),
+      );
+    });
+
+    it('displays the region banner instead of offering a retry', async () => {
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        createBridgeTestState({}),
+      );
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.quote_stream_complete_rwa_geo_restricted')),
+        ).toBeOnTheScreen();
+      });
+      expect(queryByText('Try again')).not.toBeOnTheScreen();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockToast).not.toHaveBeenCalled();
+    });
+
+    it('disables the confirm button once the rejection is shown', async () => {
+      const { getByTestId, getByText } = renderScreen(
+        createBridgeTestState({}),
+      );
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('bridge.quote_stream_complete_rwa_geo_restricted')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON)
+          .props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    it('does not report the rejection as an error', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expect(loggerErrorSpy).not.toHaveBeenCalled();
+      loggerErrorSpy.mockRestore();
+    });
+  });
+
   it.each([
     [
       'the limit price is unusable',
@@ -1160,7 +1241,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
       expectAdvancedOrderProperties(
         MetaMetricsEvents.ADVANCED_ORDER_COMPLETED,
         {
-          location: 'Main View',
+          ...EXPECTED_TOKEN_PROPERTIES,
+          location: 'Token View',
           feature_id: FeatureId.LIMIT_ORDER,
           order_type: OrderType.BUY_ABOVE,
         },
@@ -1181,7 +1263,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
         expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
-        location: 'Main View',
+        ...EXPECTED_TOKEN_PROPERTIES,
+        location: 'Token View',
         feature_id: FeatureId.LIMIT_ORDER,
         order_type: OrderType.BUY_ABOVE,
         error: 'delegation_failed',
@@ -1202,7 +1285,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
         expect(mockSignLimitOrderDelegations).not.toHaveBeenCalled();
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
-        location: 'Main View',
+        ...EXPECTED_TOKEN_PROPERTIES,
+        location: 'Token View',
         feature_id: FeatureId.LIMIT_ORDER,
         order_type: OrderType.BUY_ABOVE,
         error: 'delegation_failed',
@@ -1223,7 +1307,8 @@ describe('LimitOrderConfirmationModalScreen', () => {
         expect(mockCreateLimitOrder).not.toHaveBeenCalled();
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
-        location: 'Main View',
+        ...EXPECTED_TOKEN_PROPERTIES,
+        location: 'Token View',
         feature_id: FeatureId.LIMIT_ORDER,
         order_type: OrderType.BUY_ABOVE,
         error: 'delegation_failed',
@@ -1242,10 +1327,33 @@ describe('LimitOrderConfirmationModalScreen', () => {
         expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
       });
       expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
-        location: 'Main View',
+        ...EXPECTED_TOKEN_PROPERTIES,
+        location: 'Token View',
         feature_id: FeatureId.LIMIT_ORDER,
         order_type: OrderType.BUY_ABOVE,
         error: 'boom',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with a geo-restriction error when the order is not available in the user region', async () => {
+      mockCreateLimitOrder.mockRejectedValue(
+        new LimitOrderGeoRestrictedError(),
+      );
+      const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+      fireEvent.press(
+        getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockCreateLimitOrder).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        ...EXPECTED_TOKEN_PROPERTIES,
+        location: 'Token View',
+        feature_id: FeatureId.LIMIT_ORDER,
+        order_type: OrderType.BUY_ABOVE,
+        error: 'rwa_geo_restricted',
       });
     });
   });

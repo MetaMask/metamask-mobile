@@ -5,22 +5,28 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
+import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
+
+const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
 }
 
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
-  ) {
+  if (isSocialV1Treatment()) {
+    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+      return;
+    }
+    popToSocialTab(NavigationService.navigation);
     return;
   }
   NavigationService.navigation.navigate(
@@ -38,7 +44,50 @@ const logPositionQueryInvalidationError = (invalidationError: unknown) => {
 };
 
 /**
- * Handles notification-approved TraderPosition deeplinks.
+ * A shared position opens like a profile row tap: the trader's Social V1
+ * profile, with the position sheet over it. A position that can no longer be
+ * fetched leaves the user on the profile. A position the trader doesn't own
+ * opens on its real owner's profile instead.
+ */
+const openSharedPositionOnProfile = (
+  positionId: string,
+  traderId: string,
+): void => {
+  navigateToSocialV1Profile(NavigationService.navigation, {
+    traderId,
+    source: 'deep_link',
+  });
+  resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)
+    .then((shared) => {
+      if (!shared) {
+        return;
+      }
+      const { position, author, isOwnerMismatch } = shared;
+      if (isOwnerMismatch) {
+        navigateToSocialV1Profile(NavigationService.navigation, {
+          traderId: author.id,
+          traderName: author.username,
+          traderAddress: author.address,
+          traderAvatarUri: author.avatarUri ?? undefined,
+          source: 'deep_link',
+        });
+      }
+      NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId,
+        position,
+        author,
+        shareSource: 'deep_link',
+      });
+    })
+    .catch((error: unknown) => {
+      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
+    });
+};
+
+/**
+ * Handles TraderPosition deeplinks. On Social V1, a shared link opens the
+ * position sheet on the trader's profile; a notification still opens the
+ * position screen.
  *
  * Supported URL formats:
  * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
@@ -107,6 +156,10 @@ export const handleSocialTraderPositionUrl = ({
       isV1Treatment &&
       !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
     ) {
+      return;
+    }
+    if (isV1Treatment && !openedFromNotification) {
+      openSharedPositionOnProfile(positionId, traderId);
       return;
     }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {

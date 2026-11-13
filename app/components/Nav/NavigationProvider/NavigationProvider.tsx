@@ -19,6 +19,7 @@ import {
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import { NAVIGATION_CHILDREN_ROUTE } from './constants';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
 import { endNavigationInitializationAppStart } from '../../../util/sentry/navigationInitializationAppStart';
@@ -158,10 +159,10 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       ref={setNavigationRef}
     >
       <NativeStack.Navigator
-        initialRouteName="NavigationChildren"
+        initialRouteName={NAVIGATION_CHILDREN_ROUTE}
         screenOptions={clearNativeStackNavigatorOptions}
       >
-        <NativeStack.Screen name="NavigationChildren">
+        <NativeStack.Screen name={NAVIGATION_CHILDREN_ROUTE}>
           {() => <>{children}</>}
         </NativeStack.Screen>
       </NativeStack.Navigator>

@@ -75,7 +75,6 @@ describe('ProgressIndicator', () => {
           rewards: {
             optinAllowedForGeo: true,
             optinAllowedForGeoLoading: false,
-            onboardingActiveStep: 'INTRO',
             rewardsControllerState: {
               activeAccount: {
                 subscriptionId: null,
@@ -114,7 +113,6 @@ describe('ProgressIndicator', () => {
           rewards: {
             optinAllowedForGeo: true,
             optinAllowedForGeoLoading: false,
-            onboardingActiveStep: 'INTRO',
             rewardsControllerState: {
               activeAccount: {
                 subscriptionId: null,

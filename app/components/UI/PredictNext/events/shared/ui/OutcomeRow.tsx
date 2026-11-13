@@ -66,6 +66,7 @@ const Price = ({
   onPress,
   accessibilityLabel,
   testID,
+  twClassName = 'min-w-[64px] px-3',
 }: {
   /** Formatted Ask Price; a dash when undefined. */
   price?: string;
@@ -74,6 +75,8 @@ const Price = ({
   onPress: () => void;
   accessibilityLabel?: string;
   testID?: string;
+  /** The pill's size and padding; 48pt tall and at least 64pt wide when omitted. */
+  twClassName?: string;
 }) => (
   <Button
     testID={testID}
@@ -82,7 +85,7 @@ const Price = ({
     variant={ButtonVariant.Secondary}
     size={ButtonSize.Lg}
     onPress={onPress}
-    twClassName="min-w-[64px] px-3"
+    twClassName={twClassName}
   >
     <Text
       variant={TextVariant.BodyMd}

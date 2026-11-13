@@ -27,6 +27,7 @@ describe('getKycControllerMessenger', () => {
           'KycService:resetWrappingKeys',
           'KycService:createDeletion',
           'KycService:completeDeletion',
+          'KycService:getDataShares',
           'AuthenticatedUserStorageService:putIdentitySharingConsent',
           'AuthenticationController:getPartnerIdentityToken',
         ]),
