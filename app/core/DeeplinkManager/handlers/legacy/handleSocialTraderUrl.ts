@@ -4,9 +4,11 @@ import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
+  popToSocialTab,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
 
 interface HandleSocialTraderUrlParams {
   actionPath: string;
@@ -20,10 +22,16 @@ const parseTraderId = (actionPath: string): string | undefined => {
 };
 
 const navigateToFallback = () => {
-  if (
-    isSocialV1Treatment() &&
-    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
-  ) {
+  if (isSocialV1Treatment()) {
+    if (
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        navigateToFallback,
+      )
+    ) {
+      return;
+    }
+    popToSocialTab(NavigationService.navigation);
     return;
   }
   NavigationService.navigation.navigate(
@@ -66,7 +74,10 @@ export const handleSocialTraderUrl = ({
     const isV1Treatment = isSocialV1Treatment();
     if (
       isV1Treatment &&
-      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+      openSocialTraderPreviewIfNotJoined(NavigationService.navigation, {
+        kind: 'trader',
+        traderId,
+      })
     ) {
       return;
     }

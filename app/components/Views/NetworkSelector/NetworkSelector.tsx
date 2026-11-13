@@ -10,9 +10,6 @@ import type {
 // External dependencies.
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
 import {
@@ -27,14 +24,14 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  BottomSheet,
+  BottomSheetFooter,
+  ButtonsAlignment,
+  type BottomSheetFooterButtonProps,
+  type BottomSheetRef,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import {
-  ButtonSize as InternalButtonSize,
-  ButtonProps,
-} from '../../../component-library/components/Buttons/Button/Button.types';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
@@ -49,11 +46,8 @@ import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import { NetworksSelectorSelectorsIDs } from '../Settings/NetworksSettings/NetworksView.testIds';
 import NetworkSearchTextInput from './NetworkSearchTextInput';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction';
-import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
@@ -75,9 +69,7 @@ import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   selectIsEvmNetworkSelected,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectNonEvmNetworkConfigurationsByChainId,
-  ///: END:ONLY_INCLUDE_IF
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -89,12 +81,15 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFla
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
 import NetworkSelectorList from './NetworkSelectorList';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 interface NetworkSelectorProps {
   route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
 const NetworkSelector = ({ route }: NetworkSelectorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -127,11 +122,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmNetworkConfigurations = useSelector(
     selectNonEvmNetworkConfigurationsByChainId,
   );
-  ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
@@ -323,21 +316,16 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     return chainId === selectedChainId;
   };
 
-  const {
-    onSetRpcTarget,
-    onNetworkChange,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    onNonEvmNetworkChange,
-    ///: END:ONLY_INCLUDE_IF
-  } = useSwitchNetworks({
-    domainIsConnectedDapp,
-    origin,
-    selectedChainId,
-    selectedNetworkName,
-    dismissModal: () => sheetRef.current?.dismissModal(),
-    closeRpcModal,
-    parentSpan,
-  });
+  const { onSetRpcTarget, onNetworkChange, onNonEvmNetworkChange } =
+    useSwitchNetworks({
+      domainIsConnectedDapp,
+      origin,
+      selectedChainId,
+      selectedNetworkName,
+      dismissModal: () => sheetRef.current?.dismissModal(),
+      closeRpcModal,
+      parentSpan,
+    });
 
   useEffect(() => {
     endTrace({ name: TraceName.NetworkSwitch });
@@ -402,17 +390,15 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
     }
   };
 
-  const cancelButtonProps: ButtonProps = {
-    variant: ButtonVariants.Secondary,
-    label: strings('accountApproval.cancel'),
-    size: InternalButtonSize.Lg,
+  const cancelButtonProps: BottomSheetFooterButtonProps = {
+    children: strings('accountApproval.cancel'),
+    size: ButtonSize.Lg,
     onPress: () => closeDeleteModal(),
   };
 
-  const deleteButtonProps: ButtonProps = {
-    variant: ButtonVariants.Primary,
-    label: strings('app_settings.delete'),
-    size: InternalButtonSize.Lg,
+  const deleteButtonProps: BottomSheetFooterButtonProps = {
+    children: strings('app_settings.delete'),
+    size: ButtonSize.Lg,
     onPress: () => confirmRemoveRpc(),
   };
 
@@ -441,9 +427,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         >
           <NetworkSelectorList
             networkConfigurations={networkConfigurations}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             nonEvmNetworkConfigurations={nonEvmNetworkConfigurations}
-            ///: END:ONLY_INCLUDE_IF
             searchString={searchString}
             showTestNetworks={showTestNetworks}
             isSendFlow={isSendFlow}
@@ -460,9 +444,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
             isNetworkSelected={isNetworkSelected}
             onSetRpcTarget={onSetRpcTarget}
             onNetworkChange={onNetworkChange}
-            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
             onNonEvmNetworkChange={onNonEvmNetworkChange}
-            ///: END:ONLY_INCLUDE_IF
             openModal={openModal}
             openRpcModal={openRpcModal}
             onCancel={onCancel}
@@ -507,11 +489,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         ) : null}
 
         {showNetworkMenuModal.isVisible ? (
-          <BottomSheet
-            ref={networkMenuSheetRef}
-            onClose={closeModal}
-            shouldNavigateBack={false}
-          >
+          <BottomSheet ref={networkMenuSheetRef} onClose={closeModal}>
             <View style={styles.networkMenu}>
               <AccountAction
                 actionTitle={strings('transaction.edit')}
@@ -548,23 +526,20 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         />
 
         {showConfirmDeleteModal.isVisible ? (
-          <BottomSheet
-            ref={deleteModalSheetRef}
-            onClose={closeDeleteModal}
-            shouldNavigateBack={false}
-          >
-            <BottomSheetHeader>
+          <BottomSheet ref={deleteModalSheetRef} onClose={closeDeleteModal}>
+            <BottomSheetHeaderGlass isGlass={isGlassHeader}>
               {strings('app_settings.delete')}{' '}
               {showConfirmDeleteModal.networkName}{' '}
               {strings('asset_details.network')}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <View style={styles.containerDeleteText}>
               <Text variant={TextVariant.BodyMd} style={styles.textCentred}>
                 {strings('app_settings.network_delete')}
               </Text>
               <BottomSheetFooter
                 buttonsAlignment={ButtonsAlignment.Horizontal}
-                buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
+                secondaryButtonProps={cancelButtonProps}
+                primaryButtonProps={deleteButtonProps}
               />
             </View>
           </BottomSheet>

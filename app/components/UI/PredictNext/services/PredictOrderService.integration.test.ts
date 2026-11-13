@@ -8,10 +8,16 @@ import { hashKey } from '@tanstack/query-core';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { getPredictOrderServiceMessenger } from '../../../../core/Engine/messengers/predict-order-service-messenger';
 import {
+  MISSING_OPERATION_EXPIRY_GRACE_MS,
   PREDICT_ORDER_SERVICE_NAME,
   PredictOrderService,
 } from '../services/PredictOrderService';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
+import type { RootState } from '../../../../reducers';
+import type { PredictConfig } from '../config/predictConfig';
+import { subscribeToActiveVenueChanges } from '../implementation/subscribeToActiveVenueChanges';
+import type { PredictConfiguredVenue } from '../implementation/types';
+import type { PredictOrderServiceOrderResolvedEvent } from './PredictOrderService';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -19,17 +25,18 @@ const previewResponse = {
   marketId: 'KXTEST-26-A',
   side: 'yes',
   requestedAmount: '20.00',
-  orderAmount: '20.00',
-  estimatedContracts: 43,
+  orderAmount: '19.07',
+  estimatedContracts: 41,
   averagePrice: '0.4651',
-  fee: '0.86',
+  limitPrice: '0.4651',
+  fee: '0.82',
   feeBreakdown: [
-    { source: 'venue', amount: '0.43' },
-    { source: 'metamask', amount: '0.43' },
+    { source: 'venue', amount: '0.41' },
+    { source: 'metamask', amount: '0.41' },
   ],
-  totalDebit: '20.86',
-  potentialPayout: '43.00',
-  potentialProfit: '22.14',
+  totalDebit: '19.89',
+  potentialPayout: '41.00',
+  potentialProfit: '21.11',
   expiresAt: '2026-03-01T12:00:30.000Z',
 };
 
@@ -108,6 +115,17 @@ const position = {
   },
 };
 
+/** The signed Commit POST: `/orders/{previewId}/commit`. */
+const isCommitUrl = (url: unknown): boolean =>
+  /\/orders\/[^/]+\/commit$/u.test(String(url));
+/** The receipt read that observes it: `GET /orders/{previewId}`. */
+const isObserveUrl = (url: unknown): boolean =>
+  /\/orders\/[^/]+$/u.test(String(url)) &&
+  !String(url).endsWith('/orders/preview');
+/** The Preview reference a commit or observe URL names. */
+const previewIdOf = (url: unknown): string =>
+  /\/orders\/([^/]+)(?:\/commit)?$/u.exec(String(url))?.[1] ?? '';
+
 describe('PredictNext Order Preview request', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -183,6 +201,40 @@ describe('PredictNext Order Preview request', () => {
     });
   };
 
+  /** Quotes the buy fixture: a Commit is only sent for a Preview the
+   * service quoted for the current Predict User. */
+  const quoteBuy = async (orderService: PredictOrderService) => {
+    const preview = await orderService.requestQuote(KALSHI_VENUE_ID, {
+      marketId: 'KXTEST-26-A' as never,
+      side: 'yes',
+      action: 'buy',
+      amount: '20.00' as never,
+      idempotencyKey: previewResponse.previewId,
+    });
+    await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    return preview;
+  };
+
+  const quoteSell = async (orderService: PredictOrderService) => {
+    const preview = await orderService.requestQuote(KALSHI_VENUE_ID, {
+      marketId: 'KXTEST-26-A' as never,
+      side: 'yes',
+      action: 'sell',
+      contracts: '70' as never,
+      idempotencyKey: sellPreviewResponse.previewId,
+    });
+    await orderService.reviewPreview(KALSHI_VENUE_ID, preview.previewId);
+    return preview;
+  };
+
+  /** The exact bodies POSTed to the commit route, in send order. */
+  const commitBodies = (
+    harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+  ): unknown[] =>
+    harness.fetchMock.mock.calls
+      .filter(([url]) => isCommitUrl(url))
+      .map(([, init]) => JSON.parse(String(init?.body)));
+
   it('requests a Preview through the authenticated transport chain', async () => {
     const harness = buildPredictNextIntegrationHarness((url, init) =>
       String(url).endsWith('/v1/venues/kalshi/orders/preview') &&
@@ -196,10 +248,11 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20.00' as never,
+      idempotencyKey: previewResponse.previewId,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
-    expect(result).toMatchObject({ totalDebit: '20.86' });
+    expect(result).toMatchObject({ totalDebit: '19.89' });
     expect(result.feeBreakdown).toEqual(previewResponse.feeBreakdown);
     expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
     expect(harness.fetchMock).toHaveBeenCalledWith(
@@ -210,10 +263,13 @@ describe('PredictNext Order Preview request', () => {
           Authorization: 'Bearer test-bearer-token',
           'Content-Type': 'application/json',
         }),
+        // The key rides the preview body: it becomes the Order's
+        // `client_order_id`, so a re-quote reuses one idempotent operation.
         body: JSON.stringify({
           marketId: 'KXTEST-26-A',
           side: 'yes',
           amount: '20.00',
+          idempotencyKey: previewResponse.previewId,
         }),
       }),
     );
@@ -238,6 +294,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '999.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INSUFFICIENT_BALANCE' });
   });
@@ -260,6 +317,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -279,6 +337,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -298,6 +357,7 @@ describe('PredictNext Order Preview request', () => {
         side: 'yes',
         action: 'buy',
         amount: '20.00' as never,
+        idempotencyKey: previewResponse.previewId,
       }),
     ).rejects.toMatchObject({ code: 'INVALID_RESPONSE' });
   });
@@ -314,6 +374,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'buy',
       amount: '20' as never,
+      idempotencyKey: previewResponse.previewId,
     });
 
     expect(result.previewId).toBe(previewResponse.previewId);
@@ -332,6 +393,7 @@ describe('PredictNext Order Preview request', () => {
       side: 'yes',
       action: 'sell',
       contracts: '70' as never,
+      idempotencyKey: sellPreviewResponse.previewId,
     });
 
     expect(result.previewId).toBe(sellPreviewResponse.previewId);
@@ -348,9 +410,33 @@ describe('PredictNext Order Preview request', () => {
           side: 'yes',
           action: 'sell',
           contracts: '70',
+          idempotencyKey: sellPreviewResponse.previewId,
         }),
       }),
     );
+  });
+  it('keeps positions independently readable when the summary is rate limited without fabricating a balance', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) => {
+      if (String(url).includes('/portfolio/summary')) {
+        return { status: 429, body: { code: 'rate_limited' } };
+      }
+      if (String(url).includes('/positions')) {
+        return { body: { venueId: 'kalshi', positions: [] } };
+      }
+      return { status: 404 };
+    });
+
+    const positions = harness.portfolioService.getPositions(
+      KALSHI_VENUE_ID,
+      {},
+    );
+    await expect(
+      harness.portfolioService.getPortfolioSummary(KALSHI_VENUE_ID),
+    ).rejects.toMatchObject({ code: 'RATE_LIMITED' });
+    await expect(positions).resolves.toMatchObject({
+      venueId: 'kalshi',
+      positions: [],
+    });
   });
 
   it('commits a sell Preview to its receipt, and a terminal receipt invalidates the portfolio reads', async () => {
@@ -358,7 +444,10 @@ describe('PredictNext Order Preview request', () => {
     // after the Cash Out fills.
     let positionsBody: unknown = { venueId: 'kalshi', positions: [] };
     const harness = buildPredictNextIntegrationHarness((url, init) => {
-      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+      if (String(url).endsWith('/orders/preview') && init?.method === 'POST') {
+        return { body: sellPreviewResponse };
+      }
+      if (isCommitUrl(url) && init?.method === 'POST') {
         return { body: sellReceiptResponse };
       }
       if (String(url).endsWith('/positions')) {
@@ -417,9 +506,11 @@ describe('PredictNext Order Preview request', () => {
     // hydrates a service snapshot only when it is strictly newer.
     dateNow.mockReturnValue(61_000);
 
+    await quoteSell(orderService);
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       sellReceiptResponse.previewId,
+      { kind: 'user-approved' } as const,
     );
 
     expect(receipt).toMatchObject({
@@ -427,13 +518,20 @@ describe('PredictNext Order Preview request', () => {
       status: 'filled',
       netProceeds: '30.89',
     });
-    expect(harness.fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/v1/venues/kalshi/orders/commit',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ previewId: sellReceiptResponse.previewId }),
-      }),
-    );
+    // The device signs the venue create_order payload; those exact bytes are
+    // the whole body. The Preview reference rides in the path.
+    expect(commitBodies(harness)).toEqual([
+      {
+        ticker: 'KXTEST-26-A',
+        client_order_id: expect.any(String),
+        side: 'ask',
+        count: '70.00',
+        price: '0.4000',
+        time_in_force: 'immediate_or_cancel',
+        self_trade_prevention_type: 'taker_at_cross',
+        reduce_only: true,
+      },
+    ]);
 
     // The terminal receipt's invalidation must reach cache listeners with
     // the SECOND read's body — the UI-visible contract: a mounted query
@@ -463,7 +561,10 @@ describe('PredictNext Order Preview request', () => {
       available: '79.14',
     };
     const harness = buildPredictNextIntegrationHarness((url, init) => {
-      if (String(url).endsWith('/orders/commit') && init?.method === 'POST') {
+      if (String(url).endsWith('/orders/preview') && init?.method === 'POST') {
+        return { body: previewResponse };
+      }
+      if (isCommitUrl(url) && init?.method === 'POST') {
         return { body: buyReceiptResponse };
       }
       if (String(url).endsWith('/balance')) {
@@ -514,9 +615,11 @@ describe('PredictNext Order Preview request', () => {
     // hydrates a service snapshot only when it is strictly newer.
     dateNow.mockReturnValue(61_000);
 
+    await quoteBuy(orderService);
     const receipt = await orderService.commitPreview(
       KALSHI_VENUE_ID,
       buyReceiptResponse.previewId,
+      { kind: 'user-approved' } as const,
     );
 
     expect(receipt).toMatchObject({
@@ -525,13 +628,18 @@ describe('PredictNext Order Preview request', () => {
       actualSpend: '20.86',
       payoutExposure: '43.00',
     });
-    expect(harness.fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/v1/venues/kalshi/orders/commit',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ previewId: buyReceiptResponse.previewId }),
-      }),
-    );
+    expect(commitBodies(harness)).toEqual([
+      {
+        ticker: 'KXTEST-26-A',
+        client_order_id: expect.any(String),
+        side: 'bid',
+        count: '41.00',
+        price: '0.4651',
+        time_in_force: 'immediate_or_cancel',
+        self_trade_prevention_type: 'taker_at_cross',
+        reduce_only: false,
+      },
+    ]);
 
     // Let the fire-and-forget invalidation settle before re-reading.
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -554,7 +662,7 @@ describe('PredictNext Order Preview request', () => {
   });
 
   describe('platform reset', () => {
-    /** A pending Receipt: accepted, still working, so it is re-POSTed. */
+    /** A pending receipt is observed through GET, never another POST. */
     const pendingReceipt = {
       ...buyReceiptResponse,
       status: 'pending',
@@ -568,6 +676,7 @@ describe('PredictNext Order Preview request', () => {
 
     it('stops an observation loop without further commits or portfolio refreshes', async () => {
       let commitCalls = 0;
+      let observeCalls = 0;
       let releaseObservation: (body: unknown) => void = () => undefined;
       const harness = buildPredictNextIntegrationHarness((url) => {
         if (String(url).includes('/balance')) {
@@ -575,11 +684,15 @@ describe('PredictNext Order Preview request', () => {
             body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
           };
         }
-        if (String(url).endsWith('/orders/commit')) {
+        if (String(url).endsWith('/orders/preview')) {
+          return { body: previewResponse };
+        }
+        if (isCommitUrl(url)) {
           commitCalls += 1;
-          if (commitCalls === 1) {
-            return { body: pendingReceipt };
-          }
+          return { body: pendingReceipt };
+        }
+        if (isObserveUrl(url)) {
+          observeCalls += 1;
           // The observation the test abandons: it stays open until released.
           return new Promise<{ body: unknown }>((resolve) => {
             releaseObservation = (body) => resolve({ body });
@@ -608,11 +721,13 @@ describe('PredictNext Order Preview request', () => {
       await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
       expect(balanceCalls()).toBe(1);
 
+      await quoteBuy(orderService);
       const commit = orderService.commitPreview(
         KALSHI_VENUE_ID,
         buyReceiptResponse.previewId,
+        { kind: 'user-approved' } as const,
       );
-      await until(() => commitCalls === 2);
+      await until(() => observeCalls === 1);
 
       // The platform reset replaces the Predict User while the second
       // observation is in flight.
@@ -620,12 +735,458 @@ describe('PredictNext Order Preview request', () => {
       await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
 
       // The observation's terminal receipt arrives after the reset: the loop
-      // sends no further Commit and refreshes no portfolio read.
+      // sends no further request and refreshes no portfolio read.
       releaseObservation(buyReceiptResponse);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      expect(commitCalls).toBe(2);
+      expect(commitCalls).toBe(1);
+      expect(observeCalls).toBe(1);
       expect(balanceCalls()).toBe(1);
+    });
+  });
+  describe('Active Venue change', () => {
+    // REAL: selectActiveVenue, the Engine's Active Venue subscription, the
+    // Order service, KalshiRemoteAdapter and PredictApiReadClient on the
+    // Engine-root messenger. MOCKED: fetch, the bearer token, the Redux store.
+    const BOTH_VENUES: PredictConfig = {
+      enabled: true,
+      venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+      venueSelection: { enabled: true },
+    };
+
+    /** A Redux store reduced to what `selectActiveVenue` reads. Selecting a
+     * Venue writes the preference the way the picker does. */
+    const buildVenueStore = () => {
+      const listeners = new Set<() => void>();
+      const stateFor = (venue: PredictConfiguredVenue) =>
+        ({
+          settings: { basicFunctionalityEnabled: true },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { predictConfig: BOTH_VENUES },
+              },
+              PredictVenueController: {
+                venueSelectionPreference: venue,
+                lastActiveVenue: null,
+                sessionDefault: null,
+              },
+            },
+          },
+        }) as unknown as RootState;
+      let state = stateFor('kalshi');
+      return {
+        source: {
+          getState: () => state,
+          subscribe: (listener: () => void) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+          },
+        },
+        selectVenue: (venue: PredictConfiguredVenue) => {
+          state = stateFor(venue);
+          listeners.forEach((listener) => listener());
+        },
+      };
+    };
+
+    type Resolution = PredictOrderServiceOrderResolvedEvent['payload'][0];
+
+    const cleanups: (() => void)[] = [];
+
+    /** Composes the Order service the way `predictOrderServiceInit` does:
+     * on the Engine root, cancelled by the Active Venue subscription. */
+    const composeOrderFlow = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ) => {
+      const store = buildVenueStore();
+      const orderService = new PredictOrderService({
+        messenger: getPredictOrderServiceMessenger(
+          harness.messenger as unknown as Parameters<
+            typeof getPredictOrderServiceMessenger
+          >[0],
+        ),
+        trading: harness.adapter.trading,
+        venueId: harness.adapter.venueId,
+        observationDelayMs: 0,
+        backgroundObservationDelaysMs: [10],
+      });
+      const unsubscribe = subscribeToActiveVenueChanges(store.source, () =>
+        orderService.cancelUncommittedPreviews(),
+      );
+      const resolutions: Resolution[] = [];
+      (
+        harness.messenger as unknown as {
+          subscribe: (event: string, handler: (r: Resolution) => void) => void;
+        }
+      ).subscribe('PredictOrderService:orderResolved', (resolution) =>
+        resolutions.push(resolution),
+      );
+      cleanups.push(() => {
+        unsubscribe();
+        orderService.destroy();
+      });
+      return { orderService, store, resolutions };
+    };
+
+    beforeEach(() => {
+      // The shared test setup freezes Date.now; Preview expiry and the
+      // observation schedule need a clock that moves with the timers.
+      // `new Date()` reads the system clock, not Date.now.
+      jest.spyOn(Date, 'now').mockImplementation(() => new Date().getTime());
+    });
+    afterEach(() => {
+      cleanups.splice(0).forEach((cleanup) => cleanup());
+    });
+
+    /** A Preview the backend says is valid for `validForMs` from now. */
+    const freshPreview = (validForMs = 30_000) => ({
+      ...previewResponse,
+      expiresAt: new Date(Date.now() + validForMs).toISOString(),
+    });
+
+    const pendingReceipt = {
+      ...buyReceiptResponse,
+      status: 'pending',
+      venueOrderId: null,
+      filledContracts: null,
+      averageFillPrice: null,
+      fee: null,
+      actualSpend: null,
+      payoutExposure: null,
+    };
+
+    const callsTo = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      route: string,
+    ) =>
+      harness.fetchMock.mock.calls.filter(([url]) =>
+        String(url).endsWith(route),
+      );
+    const commitsTo = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ) => harness.fetchMock.mock.calls.filter(([url]) => isCommitUrl(url));
+    const observationsOf = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+    ) => harness.fetchMock.mock.calls.filter(([url]) => isObserveUrl(url));
+
+    it('before the quote returns: aborts the quote and never makes its Preview approvable', async () => {
+      let answerQuote: () => void = () => undefined;
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).endsWith('/orders/preview')) {
+          return new Promise((resolve) => {
+            answerQuote = () => resolve({ body: freshPreview() });
+          });
+        }
+        return { status: 404 };
+      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
+
+      const quoting = quoteBuy(orderService);
+      await until(() => callsTo(harness, '/orders/preview').length === 1);
+      store.selectVenue('polymarket');
+
+      const [, quoteInit] = callsTo(harness, '/orders/preview')[0];
+      expect(quoteInit?.signal?.aborted).toBe(true);
+      // The backend answers anyway: the answer is refused.
+      answerQuote();
+      await expect(quoting).rejects.toMatchObject({ code: 'PREVIEW_EXPIRED' });
+
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
+      ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+      expect(commitsTo(harness)).toHaveLength(0);
+      expect(resolutions).toHaveLength(0);
+    });
+
+    it('after the Preview: cancels it, refuses its Commit locally, and a switch back does not revive it', async () => {
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/orders/preview')
+          ? { body: freshPreview() }
+          : { body: buyReceiptResponse },
+      );
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
+
+      await quoteBuy(orderService);
+      store.selectVenue('polymarket');
+      store.selectVenue('kalshi');
+
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
+      ).rejects.toMatchObject({ code: 'PREVIEW_EXPIRED' });
+      expect(commitsTo(harness)).toHaveLength(0);
+      expect(resolutions).toHaveLength(0);
+    });
+
+    it('during the Commit: keeps the original Venue and Preview, keeps observing, and notifies once', async () => {
+      let commits = 0;
+      let observations = 0;
+      let answerFirstCommit: () => void = () => undefined;
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).endsWith('/orders/preview')) {
+          return { body: freshPreview() };
+        }
+        if (isCommitUrl(url)) {
+          commits += 1;
+          return new Promise((resolve) => {
+            answerFirstCommit = () => resolve({ body: pendingReceipt });
+          });
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
+          // Still working through the bounded loop, filled afterwards.
+          return {
+            body: observations < 5 ? pendingReceipt : buyReceiptResponse,
+          };
+        }
+        if (String(url).includes('/balance')) {
+          return {
+            body: { venueId: 'kalshi', currency: 'USD', available: '79.14' },
+          };
+        }
+        return { status: 404 };
+      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
+      await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+      await quoteBuy(orderService);
+
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        previewResponse.previewId,
+        { kind: 'user-approved' } as const,
+      );
+      await until(() => commits === 1);
+      // The Commit is on the wire when the Active Venue changes.
+      store.selectVenue('polymarket');
+      answerFirstCommit();
+
+      await expect(commit).resolves.toMatchObject({ status: 'pending' });
+      await until(() => resolutions.length === 1, 5_000);
+
+      // One signed Commit; every request after it reads the same
+      // operation at the original Venue, with the original Preview and the
+      // same person, and signs nothing.
+      const commitCalls = commitsTo(harness);
+      expect(commitCalls).toHaveLength(1);
+      expect(commitCalls[0]?.[0]).toBe(
+        `https://predict.example/v1/venues/kalshi/orders/${previewResponse.previewId}/commit`,
+      );
+      expect(JSON.parse(String(commitCalls[0]?.[1]?.body))).toMatchObject({
+        ticker: 'KXTEST-26-A',
+        side: 'bid',
+        count: '41.00',
+        price: '0.4651',
+      });
+      const observeCalls = observationsOf(harness);
+      expect(observeCalls).toHaveLength(5);
+      for (const [url, init] of observeCalls) {
+        expect(url).toBe(
+          `https://predict.example/v1/venues/kalshi/orders/${previewResponse.previewId}`,
+        );
+        expect(init?.method).toBe('GET');
+        expect(init?.headers).toMatchObject({
+          Authorization: 'Bearer test-bearer-token',
+        });
+      }
+      expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
+      expect(resolutions).toEqual([
+        {
+          venueId: KALSHI_VENUE_ID,
+          previewId: previewResponse.previewId,
+          outcome: {
+            status: 'settled',
+            receipt: expect.objectContaining({ status: 'filled' }),
+          },
+          presented: false,
+        },
+      ]);
+      // The terminal receipt refreshed the original Venue's reads.
+      await until(
+        () =>
+          harness.fetchMock.mock.calls.filter(([url]) =>
+            String(url).includes('/balance'),
+          ).length === 2,
+      );
+
+      // Nothing more is observed or notified.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(commitsTo(harness)).toHaveLength(1);
+      expect(observationsOf(harness)).toHaveLength(5);
+      expect(resolutions).toHaveLength(1);
+    });
+
+    it('with a lost response the backend received: observes the same Preview and notifies once', async () => {
+      const operations = new Set<string>();
+      let commits = 0;
+      let observations = 0;
+      const preview = freshPreview(500);
+      const harness = buildPredictNextIntegrationHarness((url, init) => {
+        if (String(url).endsWith('/orders/preview')) {
+          return { body: preview };
+        }
+        if (isCommitUrl(url) && init?.method === 'POST') {
+          commits += 1;
+          // The backend creates the operation; the response never arrives.
+          operations.add(previewIdOf(url));
+          throw new TypeError('Network request failed');
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
+          return operations.has(previewIdOf(url))
+            ? { body: buyReceiptResponse }
+            : { status: 404, body: { code: 'operation_not_found' } };
+        }
+        return { status: 404 };
+      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
+      await quoteBuy(orderService);
+
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        previewResponse.previewId,
+        { kind: 'user-approved' } as const,
+      );
+      store.selectVenue('polymarket');
+      await expect(commit).rejects.toMatchObject({
+        code: 'ORDER_OUTCOME_UNKNOWN',
+      });
+
+      await until(() => resolutions.length === 1, 5_000);
+      // One signed Commit, then a read of the same Preview reference.
+      expect(commits).toBe(1);
+      expect(observations).toBe(1);
+      expect(callsTo(harness, '/orders/preview')).toHaveLength(1);
+      expect(resolutions[0]).toMatchObject({
+        previewId: previewResponse.previewId,
+        outcome: { status: 'settled' },
+        presented: false,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(commits).toBe(1);
+      expect(observations).toBe(1);
+      expect(resolutions).toHaveLength(1);
+    });
+
+    it('keeps a lost POST unknown through observe404 beyond expiry, then accepts a late fill without another POST', async () => {
+      let commits = 0;
+      let observations = 0;
+      let expired = false;
+      const previewTtlMs = 30_000;
+      // Past the Preview expiry, still inside the missing-operation grace.
+      // A GET that starts after expiry plus that grace may resolve not-placed.
+      const beyondExpiryMs =
+        previewTtlMs + Math.floor(MISSING_OPERATION_EXPIRY_GRACE_MS / 2);
+      jest
+        .spyOn(Date, 'now')
+        .mockImplementation(
+          () => new Date().getTime() + (expired ? beyondExpiryMs : 0),
+        );
+      // This app targets ES2022, before Promise.withResolvers.
+      let releaseObservation!: () => void;
+      const observationGate = new Promise<void>((resolve) => {
+        releaseObservation = resolve;
+      });
+      let reportObservation!: () => void;
+      const observationStarted = new Promise<void>((resolve) => {
+        reportObservation = resolve;
+      });
+      const harness = buildPredictNextIntegrationHarness(async (url) => {
+        if (String(url).endsWith('/orders/preview')) {
+          return { body: freshPreview(previewTtlMs) };
+        }
+        if (isCommitUrl(url)) {
+          commits += 1;
+          throw new TypeError('Network request failed');
+        }
+        if (isObserveUrl(url)) {
+          observations += 1;
+          if (observations === 1) {
+            return { status: 404, body: { code: 'operation_not_found' } };
+          }
+          reportObservation();
+          await observationGate;
+          return { body: buyReceiptResponse };
+        }
+        return { status: 404 };
+      });
+      const { orderService, store, resolutions } = composeOrderFlow(harness);
+      await quoteBuy(orderService);
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId, {
+          kind: 'user-approved',
+        } as const),
+      ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      expired = true;
+      store.selectVenue('polymarket');
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
+      ).rejects.toMatchObject({ code: 'ORDER_OUTCOME_UNKNOWN' });
+      expect(resolutions).toEqual([]);
+      expect(commits).toBe(1);
+
+      await observationStarted;
+      const repeatedApproval = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        previewResponse.previewId,
+      );
+      releaseObservation();
+      await expect(repeatedApproval).resolves.toMatchObject({
+        status: 'filled',
+      });
+      expect(resolutions).toEqual([
+        expect.objectContaining({
+          outcome: expect.objectContaining({ status: 'settled' }),
+          presented: false,
+        }),
+      ]);
+      expect(commits).toBe(1);
+      expect(observations).toBe(2);
+    });
+  });
+
+  describe('identity replacement', () => {
+    it("never sends the previous person's Preview with the next person's bearer token", async () => {
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/orders/preview')
+          ? {
+              body: {
+                ...previewResponse,
+                expiresAt: new Date(Date.now() + 30_000).toISOString(),
+              },
+            }
+          : { body: buyReceiptResponse },
+      );
+      const orderService = buildService(harness);
+      await quoteBuy(orderService);
+
+      // The Commit is waiting for its bearer token when the wallet resets.
+      let issueToken: (token: string) => void = () => undefined;
+      harness.getBearerTokenMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            issueToken = resolve;
+          }),
+      );
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        previewResponse.previewId,
+        { kind: 'user-approved' } as const,
+      );
+      orderService.abandonCommits();
+      issueToken('next-person-token');
+      await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+      // Nor can anything commit it afterwards.
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, previewResponse.previewId),
+      ).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(
+        harness.fetchMock.mock.calls.filter(
+          ([url]) => isCommitUrl(url) || isObserveUrl(url),
+        ),
+      ).toHaveLength(0);
     });
   });
 });

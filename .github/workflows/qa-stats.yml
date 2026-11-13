@@ -8,6 +8,9 @@ jobs:
   collect-qa-stats:
     name: Collect QA Stats
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
 
     steps:
       - uses: actions/checkout@v6

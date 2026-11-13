@@ -1,3 +1,3 @@
-export interface VbaIdentityVerificationCompletion {
+export interface KycIdentityVerificationCompletion {
   status: 'submitted';
 }

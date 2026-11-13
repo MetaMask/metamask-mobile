@@ -38,12 +38,46 @@ import type {
   RootExtendedMessenger,
 } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
+import { store } from '../../../store';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
   predictPortfolioServiceInit,
 } from './predict-service-init';
+
+jest.mock('../../../store', () => ({
+  store: { subscribe: jest.fn() },
+}));
+beforeEach(() => {
+  jest.mocked(store.subscribe).mockReturnValue(jest.fn());
+});
+
+/** The Redux state an Active Venue resolves from. */
+const activeVenueState = (venue: 'kalshi' | 'polymarket') => ({
+  settings: { basicFunctionalityEnabled: true },
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictConfig: {
+            enabled: true,
+            venues: {
+              polymarket: { enabled: true },
+              kalshi: { enabled: true },
+            },
+            venueSelection: { enabled: true },
+          },
+        },
+      },
+      PredictVenueController: {
+        venueSelectionPreference: venue,
+        lastActiveVenue: null,
+        sessionDefault: null,
+      },
+    },
+  },
+});
 
 describe('Predict service initialization', () => {
   it('registers market-data actions on the Engine root messenger', async () => {
@@ -121,13 +155,23 @@ describe('Predict service initialization', () => {
       namespace: 'PredictOrderService',
       parent: rootMessenger,
     });
-    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const call = jest.fn((action: string) => {
+      if (action === 'KeyringController:getState') return { isUnlocked: false };
+      if (action === 'AuthenticationController:getState')
+        return { isSignedIn: false };
+      return Promise.resolve('test-bearer-token');
+    });
     const request = {
       ...buildMessengerClientInitRequestMock(
         rootMessenger as unknown as RootExtendedMessenger,
       ),
       controllerMessenger,
-      initMessenger: { call } as never,
+      initMessenger: {
+        call,
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as never,
+      getState: jest.fn(() => activeVenueState('kalshi')) as never,
     };
     const { controller } = predictOrderServiceInit(request);
 
@@ -141,6 +185,43 @@ describe('Predict service initialization', () => {
     expect(call).toHaveBeenCalledWith(
       'AuthenticationController:getBearerToken',
     );
+    controller.destroy();
+  });
+
+  it('cancels uncommitted Previews when the Active Venue changes', () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictOrderServiceActions,
+      PredictOrderServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictOrderServiceMessenger = new Messenger({
+      namespace: 'PredictOrderService',
+      parent: rootMessenger,
+    });
+    let state = activeVenueState('kalshi');
+    jest.mocked(store.subscribe).mockClear();
+    const { controller } = predictOrderServiceInit({
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: {
+        call: jest.fn(() => ({ isUnlocked: false, isSignedIn: false })),
+        subscribe: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as never,
+      getState: jest.fn(() => state) as never,
+    });
+    const cancel = jest.spyOn(controller, 'cancelUncommittedPreviews');
+    const onStoreChange = jest.mocked(store.subscribe).mock.calls[0][0];
+
+    // An unrelated store update leaves Previews alone.
+    onStoreChange();
+    expect(cancel).not.toHaveBeenCalled();
+
+    state = activeVenueState('polymarket');
+    onStoreChange();
+    expect(cancel).toHaveBeenCalledTimes(1);
     controller.destroy();
   });
 

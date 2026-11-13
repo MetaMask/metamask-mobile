@@ -2,6 +2,7 @@ import migrate from './069';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
 import { PRICE_API_CURRENCIES } from '../../core/Multichain/constants';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -43,7 +44,7 @@ describe('Migration: update currentCurrency in CurrencyController', () => {
 
     expect(migratedState).toBe(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       `Migration: Invalid CurrencyController state type 'object'`,
     );
   });

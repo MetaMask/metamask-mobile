@@ -1,21 +1,30 @@
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import type { CaipAccountId } from '@metamask/utils';
-import { useMemo } from 'react';
+import type { CaipAccountId, CaipChainId } from '@metamask/utils';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectUnifiedBalancesByAccountGroup } from '../../../UI/PortfolioBalance/selectUnifiedBalancesByAccountGroup';
+import {
+  selectAccountToGroupMap,
+  selectSelectedAccountGroupId,
+} from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
-import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
 import { renderShortAddress } from '../../../../util/address';
+import {
+  portfolioTotal,
+  readPortfolioTotal,
+  rememberPortfolioTotal,
+} from '../../../UI/PortfolioBalance/portfolioBalance';
+import { useNonTokenContribution } from '../../../UI/PortfolioBalance/useNonTokenContribution';
 
 export interface LinkableSocialAccount {
   id: string;
@@ -61,29 +70,71 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
   const seedAddressByGroupId = useSelector(
     selectAllAccountGroupIconSeedAddresses,
   );
-  const enabledChains = useSelector(selectEVMEnabledNetworks);
-  const currency = useSelector(selectCurrentCurrency);
-  const formattedTokens = useGetFormattedTokensPerChain(
-    evmAccounts,
-    true,
-    enabledChains,
+  const accountsToGroupMap = useSelector(selectAccountToGroupMap);
+  const selectedGroupId = useSelector(selectSelectedAccountGroupId);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const { popularNetworks } = useNetworkEnablement();
+  const contribution = useNonTokenContribution();
+  const popularChainIdsKey = useMemo(
+    () => (popularNetworks ?? []).join(','),
+    [popularNetworks],
   );
-  const totals = useGetTotalFiatBalanceCrossChains(
-    evmAccounts,
-    formattedTokens,
+  const chainIdsForBalance = useMemo<CaipChainId[]>(
+    () =>
+      popularChainIdsKey
+        ? (popularChainIdsKey.split(',') as CaipChainId[])
+        : [],
+    [popularChainIdsKey],
   );
+  const unifiedBalancesSelector = useMemo(
+    () => selectUnifiedBalancesByAccountGroup(chainIdsForBalance),
+    [chainIdsForBalance],
+  );
+  const unifiedBalances = useSelector(unifiedBalancesSelector);
+  const selectedBalance = selectedGroupId
+    ? unifiedBalances[selectedGroupId]
+    : undefined;
+
+  useEffect(() => {
+    if (!selectedGroupId || !selectedBalance || contribution.isLoading) {
+      return;
+    }
+    rememberPortfolioTotal(
+      selectedBalance.userCurrency,
+      selectedGroupId,
+      selectedBalance.totalBalanceInUserCurrency + contribution.totalFiat,
+    );
+  }, [
+    contribution.isLoading,
+    contribution.totalFiat,
+    selectedBalance,
+    selectedGroupId,
+  ]);
 
   return useMemo(() => {
-    const currencyCode = (currency || 'usd').toUpperCase();
-    const balanceLabelFor = (address: string): string => {
-      const fiat = totals[address]?.totalFiatBalance;
-      return typeof fiat === 'number'
-        ? formatWithThreshold(fiat, 0.01, I18n.locale, {
-            style: 'currency',
-            currency: currencyCode,
-          })
-        : '';
+    const balanceLabelFor = (groupId: string): string => {
+      if (privacyMode) {
+        return '';
+      }
+      const balance = unifiedBalances[groupId];
+      if (!balance?.userCurrency) {
+        return '';
+      }
+      const total = portfolioTotal({
+        isSelected: groupId === selectedGroupId,
+        tokenTotal: balance.totalBalanceInUserCurrency,
+        contribution,
+        cachedTotal: readPortfolioTotal(balance.userCurrency, groupId),
+      });
+      if (total === 0) {
+        return '';
+      }
+      return formatWithThreshold(total, 0.01, I18n.locale, {
+        style: 'currency',
+        currency: balance.userCurrency.toUpperCase(),
+      });
     };
+
     const accountsByAddress = new Map(
       Object.values(accountsById).map((account) => [
         account.address.toLowerCase(),
@@ -112,7 +163,7 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
             name:
               groupName || accountLabel(account.metadata.name, account.address),
             address: account.address,
-            balanceLabel: balanceLabelFor(account.address),
+            balanceLabel: balanceLabelFor(group.id),
             linkedAddresses: [
               evmCaipId,
               ...groupAddresses.filter((id) => id !== evmCaipId),
@@ -130,15 +181,18 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
       id: account.id,
       name: accountLabel(account.metadata.name, account.address),
       address: account.address,
-      balanceLabel: balanceLabelFor(account.address),
+      balanceLabel: balanceLabelFor(accountsToGroupMap[account.id]?.id ?? ''),
       linkedAddresses: [`eip155:1:${account.address}` as CaipAccountId],
     }));
   }, [
     accountSections,
     accountsById,
-    currency,
+    accountsToGroupMap,
+    contribution,
     evmAccounts,
+    privacyMode,
     seedAddressByGroupId,
-    totals,
+    selectedGroupId,
+    unifiedBalances,
   ]);
 };

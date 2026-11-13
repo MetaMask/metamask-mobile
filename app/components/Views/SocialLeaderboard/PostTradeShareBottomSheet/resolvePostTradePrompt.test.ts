@@ -1,8 +1,10 @@
 import {
+  isSpotPostTradeShareEligible,
   POST_TRADE_SHARE_SHEET_LIMIT,
   resolvePostTradePrompt,
   type ResolvePostTradePromptInput,
 } from './resolvePostTradePrompt';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 const input = (
   overrides: Partial<ResolvePostTradePromptInput> = {},
@@ -10,11 +12,34 @@ const input = (
   product: 'swap',
   isSocialV1Enabled: true,
   linkedEvmAddress: '0xabc',
-  isProfileTradingActivityPrivate: false,
   isLinkedAccountInSelectedGroup: true,
   shareSheetCount: 0,
   hasSeenClaimSheet: false,
   ...overrides,
+});
+
+describe('isSpotPostTradeShareEligible', () => {
+  it('returns true at the minimum postable trade value', () => {
+    const amountUsd = MIN_POST_TRADE_SHARE_USD;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true above the minimum postable trade value', () => {
+    const amountUsd = MIN_POST_TRADE_SHARE_USD + 0.5;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for non-finite amounts', () => {
+    const result = isSpotPostTradeShareEligible(Number.NaN);
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('resolvePostTradePrompt', () => {
@@ -45,23 +70,6 @@ describe('resolvePostTradePrompt', () => {
     expect(
       resolvePostTradePrompt(input({ isLinkedAccountInSelectedGroup: false })),
     ).toEqual({ kind: 'none' });
-  });
-
-  it('returns none for an existing private profile', () => {
-    expect(
-      resolvePostTradePrompt(input({ isProfileTradingActivityPrivate: true })),
-    ).toEqual({ kind: 'none' });
-  });
-
-  it('keeps the create profile prompt when no profile exists', () => {
-    expect(
-      resolvePostTradePrompt({
-        ...input({
-          linkedEvmAddress: null,
-          isProfileTradingActivityPrivate: true,
-        }),
-      }),
-    ).toEqual({ kind: 'claim_sheet' });
   });
 
   it.each([0, 1, POST_TRADE_SHARE_SHEET_LIMIT - 1])(

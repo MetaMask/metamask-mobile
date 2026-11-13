@@ -2,6 +2,11 @@
 /* eslint-disable import-x/no-namespace */
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  REDACTED_VALUE,
+  isSecretStateKey,
+  redactSecretValues,
+} from '../../../app/util/test/stateExportSecrets';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -257,6 +262,10 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.featureFlagThresholdGroups',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
+    // Seeded as 'pending', then replaced by RewardsController's result (often null
+    // for a fresh wallet) whenever the Rewards stack mounts. Whether the export
+    // captures it before or after that fetch is timing-dependent.
+    'rewards.candidateSubscriptionId',
 
     // ── Multichain runtime state (address-keyed, fetched live) ──
     'engine.backgroundState.MultichainAssetsController.accountsAssets',
@@ -309,6 +318,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.LoggingController',
     'engine.backgroundState.NetworkEnablementController',
     'engine.backgroundState.PredictController',
+    'engine.backgroundState.PredictVenueController',
     'engine.backgroundState.RewardsController',
     'engine.backgroundState.RewardsMoneyController',
     'engine.backgroundState.SeedlessOnboardingController',
@@ -509,6 +519,19 @@ export function mergeFixtureChanges(
   return sortObjectKeysDeep(result) as Record<string, unknown>;
 }
 
+/**
+ * Formats a mismatched value for the diff report without printing secrets.
+ * @param key - Dot path of the value.
+ * @param value - The value to format.
+ * @returns JSON for the value, with secret values replaced.
+ */
+function formatDiffValue(key: string, value: unknown): string {
+  if (isSecretStateKey(key)) {
+    return JSON.stringify(REDACTED_VALUE);
+  }
+  return JSON.stringify(redactSecretValues(value));
+}
+
 export function formatSchemaDiff(diff: FixtureSchemaDiff): string {
   const lines: string[] = [];
   const separator = '─'.repeat(60);
@@ -549,7 +572,7 @@ export function formatSchemaDiff(diff: FixtureSchemaDiff): string {
     lines.push(separator);
     for (const { key, expected, received } of diff.valueMismatches) {
       lines.push(
-        `  ~ ${key}: expected ${JSON.stringify(expected)}, received ${JSON.stringify(received)}`,
+        `  ~ ${key}: expected ${formatDiffValue(key, expected)}, received ${formatDiffValue(key, received)}`,
       );
     }
     lines.push('');

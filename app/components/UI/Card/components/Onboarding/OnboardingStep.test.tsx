@@ -1,13 +1,71 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { fireEvent, render } from '@testing-library/react-native';
+import { Text, View, TouchableOpacity, StatusBar } from 'react-native';
 import OnboardingStep from './OnboardingStep';
+import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 // Mock dependencies
+const mockUseFocusEffect = jest.fn((effect: () => void) => effect());
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (effect: () => void) => mockUseFocusEffect(effect),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
+  // pb-N is N * 4pt, so the keyboard offset math is observable.
+  tw.style = jest.fn((className?: string): { paddingBottom?: number } => {
+    const match = className?.match(/pb-(\d+)/);
+    return match ? { paddingBottom: Number(match[1]) * 4 } : {};
+  });
   return { useTailwind: () => tw };
+});
+
+const mockAssureFocusedInputVisible = jest.fn();
+const mockRemoveKeyboardListener = jest.fn();
+const mockKeyboardDidShowHandlers: (() => void)[] = [];
+const mockKeyboardAwareScrollProps: { bottomOffset?: number } = {};
+
+jest.mock('react-native-keyboard-controller', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+
+  return {
+    KeyboardAwareScrollView: ReactActual.forwardRef(
+      (
+        props: {
+          children?: React.ReactNode;
+          testID?: string;
+          bottomOffset?: number;
+        },
+        ref: React.Ref<{ assureFocusedInputVisible: () => void }>,
+      ) => {
+        mockKeyboardAwareScrollProps.bottomOffset = props.bottomOffset;
+        ReactActual.useImperativeHandle(ref, () => ({
+          assureFocusedInputVisible: mockAssureFocusedInputVisible,
+        }));
+        return ReactActual.createElement(
+          ScrollView,
+          { testID: props.testID },
+          props.children,
+        );
+      },
+    ),
+    KeyboardEvents: {
+      addListener: (
+        _event: string,
+        handler: () => void,
+      ): { remove: () => void } => {
+        mockKeyboardDidShowHandlers.push(handler);
+        return { remove: mockRemoveKeyboardListener };
+      },
+    },
+  };
 });
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -15,6 +73,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text: RNText } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({
       children,
       testID,
@@ -59,8 +121,74 @@ jest.mock('@metamask/design-system-react-native', () => {
       BodyMd: 'BodyMd',
     },
     HeaderStandard: () => null,
+    TextColor: {
+      TextAlternative: 'TextAlternative',
+    },
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      twClassName,
+    }: {
+      title: React.ReactNode;
+      bottomLabel?: React.ReactNode;
+      titleProps?: Record<string, unknown>;
+      bottomLabelProps?: Record<string, unknown>;
+      twClassName?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { 'data-tw-class': twClassName },
+        ReactActual.createElement(
+          RNText,
+          { 'data-variant': 'HeadingLg', ...titleProps },
+          title,
+        ),
+        bottomLabel
+          ? ReactActual.createElement(
+              RNText,
+              { 'data-variant': 'BodySm', ...bottomLabelProps },
+              bottomLabel,
+            )
+          : null,
+      ),
   };
 });
+
+const mockFooterGlass = jest.fn();
+jest.mock(
+  '../../../../../component-library/components-temp/FooterGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text: RNText } = jest.requireActual('react-native');
+    return (props: {
+      twClassName?: string;
+      primaryButtonProps?: { children?: React.ReactNode; testID?: string };
+      secondaryButtonProps?: { children?: React.ReactNode; testID?: string };
+      tertiaryButtonProps?: { children?: React.ReactNode; testID?: string };
+    }) => {
+      mockFooterGlass(props);
+      return ReactActual.createElement(
+        View,
+        { testID: 'footer-glass' },
+        [
+          props.primaryButtonProps,
+          props.secondaryButtonProps,
+          props.tertiaryButtonProps,
+        ]
+          .filter(Boolean)
+          .map((button, index) =>
+            ReactActual.createElement(
+              RNText,
+              { key: index, testID: button?.testID },
+              button?.children,
+            ),
+          ),
+      );
+    };
+  },
+);
 
 jest.mock('../../hooks/useCardHeaderHandlers', () => ({
   useCardHeaderHandlers: jest.fn(() => ({})),
@@ -71,11 +199,12 @@ describe('OnboardingStep Component', () => {
     title: 'Test Title',
     description: 'Test Description',
     formFields: <Text testID="test-form-fields">Form Fields</Text>,
-    actions: <Text testID="test-actions">Actions</Text>,
+    primaryButtonProps: { children: 'Actions', testID: 'test-actions' },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockKeyboardDidShowHandlers.length = 0;
   });
 
   describe('Component Rendering', () => {
@@ -94,7 +223,6 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('onboarding-step-title')).toBeTruthy();
       expect(getByTestId('onboarding-step-description')).toBeTruthy();
       expect(getByTestId('onboarding-step-form')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
     });
 
     it('displays the correct title', () => {
@@ -184,7 +312,10 @@ describe('OnboardingStep Component', () => {
         title: 'Critical Path Title',
         description: 'Critical Path Description',
         formFields: <Text testID="critical-form">Critical Form</Text>,
-        actions: <Text testID="critical-action">Critical Action</Text>,
+        primaryButtonProps: {
+          children: 'Critical Action',
+          testID: 'critical-action',
+        },
       };
 
       const { getByTestId } = render(<OnboardingStep {...testProps} />);
@@ -204,7 +335,10 @@ describe('OnboardingStep Component', () => {
         title: 'Alternative Title',
         description: 'Alternative Description',
         formFields: <Text testID="alt-form">Alternative Form</Text>,
-        actions: <Text testID="alt-action">Alternative Action</Text>,
+        primaryButtonProps: {
+          children: 'Alternative Action',
+          testID: 'alt-action',
+        },
       };
 
       const { getByTestId } = render(<OnboardingStep {...alternativeProps} />);
@@ -224,18 +358,14 @@ describe('OnboardingStep Component', () => {
       const titleElement = getByText('Test Title');
       expect(titleElement).toBeDefined();
       expect(titleElement.props['data-variant']).toBe('HeadingLg');
-      expect(titleElement.props['data-tw-class']).toContain('text-default');
     });
 
-    it('displays the description with correct variant and styling', () => {
+    it('renders the description as the TitleStandard bottom label', () => {
       const { getByText } = render(<OnboardingStep {...defaultProps} />);
 
       const descriptionElement = getByText('Test Description');
       expect(descriptionElement).toBeDefined();
-      expect(descriptionElement.props['data-variant']).toBe('BodyMd');
-      expect(descriptionElement.props['data-tw-class']).toContain(
-        'text-text-alternative',
-      );
+      expect(descriptionElement.props['data-variant']).toBe('BodySm');
     });
 
     it('renders form fields in the correct container', () => {
@@ -296,29 +426,27 @@ describe('OnboardingStep Component', () => {
       expect(formContainer.props.children).toBeNull();
     });
 
-    it('handles empty actions', () => {
+    it('omits the pinned footer when there are no actions', () => {
       const propsWithEmptyActions = {
         ...defaultProps,
-        actions: null,
+        primaryButtonProps: undefined,
       };
 
-      const { getByTestId } = render(
+      const { queryByTestId } = render(
         <OnboardingStep {...propsWithEmptyActions} />,
       );
 
-      const actionsContainer = getByTestId('onboarding-step-actions');
-      expect(actionsContainer).toBeTruthy();
-      expect(actionsContainer.props.children).toBeNull();
+      expect(queryByTestId('onboarding-step-actions')).toBeNull();
     });
 
     it('renders when both form fields and actions are empty', () => {
       const propsWithEmptyContent = {
         ...defaultProps,
         formFields: null,
-        actions: null,
+        primaryButtonProps: undefined,
       };
 
-      const { getByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <OnboardingStep {...propsWithEmptyContent} />,
       );
 
@@ -326,7 +454,7 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('onboarding-step-title')).toBeTruthy();
       expect(getByTestId('onboarding-step-description')).toBeTruthy();
       expect(getByTestId('onboarding-step-form')).toBeTruthy();
-      expect(getByTestId('onboarding-step-actions')).toBeTruthy();
+      expect(queryByTestId('onboarding-step-actions')).toBeNull();
     });
 
     it('renders with undefined form fields', () => {
@@ -346,15 +474,14 @@ describe('OnboardingStep Component', () => {
     it('renders with undefined actions', () => {
       const propsWithUndefinedActions = {
         ...defaultProps,
-        actions: undefined,
+        primaryButtonProps: undefined,
       };
 
-      const { getByTestId } = render(
+      const { queryByTestId } = render(
         <OnboardingStep {...propsWithUndefinedActions} />,
       );
 
-      const actionsContainer = getByTestId('onboarding-step-actions');
-      expect(actionsContainer).toBeTruthy();
+      expect(queryByTestId('onboarding-step-actions')).toBeNull();
     });
   });
 
@@ -373,7 +500,7 @@ describe('OnboardingStep Component', () => {
     it('handles empty actions gracefully', () => {
       const propsWithEmptyActions = {
         ...defaultProps,
-        actions: null,
+        primaryButtonProps: undefined,
       };
 
       expect(() =>
@@ -453,7 +580,7 @@ describe('OnboardingStep Component', () => {
       expect(titleElement.props['data-variant']).toBe('HeadingLg');
 
       const descriptionElement = getByText('Test Description');
-      expect(descriptionElement.props['data-variant']).toBe('BodyMd');
+      expect(descriptionElement.props['data-variant']).toBe('BodySm');
     });
 
     it('provides proper accessibility structure', () => {
@@ -517,32 +644,44 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('form-button')).toBeDefined();
     });
 
-    it('integrates properly with complex actions', () => {
-      const complexActions = (
-        <View testID="complex-actions">
-          <TouchableOpacity testID="primary-action">
-            <Text>Primary Action</Text>
-          </TouchableOpacity>
-          <TouchableOpacity testID="secondary-action">
-            <Text>Secondary Action</Text>
-          </TouchableOpacity>
-        </View>
+    it('renders primary, secondary and tertiary buttons through FooterGlass', () => {
+      const { getByTestId } = render(
+        <OnboardingStep
+          {...defaultProps}
+          primaryButtonProps={{ children: 'Next', testID: 'primary-action' }}
+          secondaryButtonProps={{
+            children: 'Maybe',
+            testID: 'secondary-action',
+          }}
+          tertiaryButtonProps={{ children: 'Skip', testID: 'tertiary-action' }}
+        />,
       );
 
-      const propsWithComplexActions = {
-        ...defaultProps,
-        actions: complexActions,
-      };
+      expect(getByTestId('footer-glass')).toBeOnTheScreen();
+      expect(getByTestId('primary-action')).toHaveTextContent('Next');
+      expect(getByTestId('secondary-action')).toHaveTextContent('Maybe');
+      expect(getByTestId('tertiary-action')).toHaveTextContent('Skip');
+    });
 
-      const { getByTestId, getByText } = render(
-        <OnboardingStep {...propsWithComplexActions} />,
+    it('keeps the 8pt gap between footer buttons and drops FooterGlass padding', () => {
+      render(<OnboardingStep {...defaultProps} />);
+
+      expect(mockFooterGlass).toHaveBeenCalledWith(
+        expect.objectContaining({ twClassName: 'px-0 gap-2' }),
+      );
+    });
+
+    it('renders the footer for a tertiary button on its own', () => {
+      const { getByTestId } = render(
+        <OnboardingStep
+          {...defaultProps}
+          primaryButtonProps={undefined}
+          tertiaryButtonProps={{ children: 'Skip', testID: 'tertiary-only' }}
+        />,
       );
 
-      expect(getByTestId('complex-actions')).toBeDefined();
-      expect(getByTestId('primary-action')).toBeDefined();
-      expect(getByTestId('secondary-action')).toBeDefined();
-      expect(getByText('Primary Action')).toBeDefined();
-      expect(getByText('Secondary Action')).toBeDefined();
+      expect(getByTestId('onboarding-step-actions')).toBeOnTheScreen();
+      expect(getByTestId('tertiary-only')).toBeOnTheScreen();
     });
 
     it('renders with complex form fields using Box components', () => {
@@ -568,27 +707,6 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('form-field-3')).toBeTruthy();
     });
 
-    it('renders with complex actions using Box components', () => {
-      const complexActions = (
-        <View>
-          <Text testID="action-1">Action 1</Text>
-          <Text testID="action-2">Action 2</Text>
-        </View>
-      );
-
-      const propsWithComplexActions = {
-        ...defaultProps,
-        actions: complexActions,
-      };
-
-      const { getByTestId } = render(
-        <OnboardingStep {...propsWithComplexActions} />,
-      );
-
-      expect(getByTestId('action-1')).toBeTruthy();
-      expect(getByTestId('action-2')).toBeTruthy();
-    });
-
     it('integrates properly with nested components', () => {
       const nestedFormFields = (
         <View testID="nested-form-container">
@@ -598,16 +716,9 @@ describe('OnboardingStep Component', () => {
         </View>
       );
 
-      const nestedActions = (
-        <View testID="nested-actions-container">
-          <Text testID="nested-action">Nested Action</Text>
-        </View>
-      );
-
       const propsWithNestedContent = {
         ...defaultProps,
         formFields: nestedFormFields,
-        actions: nestedActions,
       };
 
       const { getByTestId } = render(
@@ -617,8 +728,63 @@ describe('OnboardingStep Component', () => {
       expect(getByTestId('nested-form-container')).toBeTruthy();
       expect(getByTestId('nested-form-section')).toBeTruthy();
       expect(getByTestId('nested-form-field')).toBeTruthy();
-      expect(getByTestId('nested-actions-container')).toBeTruthy();
-      expect(getByTestId('nested-action')).toBeTruthy();
+    });
+  });
+
+  describe('Keyboard', () => {
+    it('leaves a gap above the footer for the focused field', () => {
+      const { getByTestId } = render(<OnboardingStep {...defaultProps} />);
+
+      // pb-4 keyboard gap (16) plus pb-6 field gap (24), before the footer
+      // reports its height.
+      expect(mockKeyboardAwareScrollProps.bottomOffset).toBe(40);
+
+      fireEvent(getByTestId('onboarding-step-actions'), 'layout', {
+        nativeEvent: { layout: { height: 120, width: 0, x: 0, y: 0 } },
+      });
+
+      expect(mockKeyboardAwareScrollProps.bottomOffset).toBe(160);
+    });
+
+    it('scrolls the focused field into view once the keyboard is shown', () => {
+      render(<OnboardingStep {...defaultProps} />);
+
+      mockKeyboardDidShowHandlers.forEach((handler) => handler());
+
+      expect(mockAssureFocusedInputVisible).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops listening for the keyboard when the step unmounts', () => {
+      const { unmount } = render(<OnboardingStep {...defaultProps} />);
+
+      unmount();
+
+      expect(mockRemoveKeyboardListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Status bar', () => {
+    it('sets dark-content on focus in the light theme', () => {
+      const setBarStyle = jest.spyOn(StatusBar, 'setBarStyle');
+
+      render(<OnboardingStep {...defaultProps} />);
+
+      expect(mockUseFocusEffect).toHaveBeenCalled();
+      expect(setBarStyle).toHaveBeenCalledWith('dark-content', true);
+    });
+
+    it('sets light-content on focus in the dark theme', () => {
+      const setBarStyle = jest.spyOn(StatusBar, 'setBarStyle');
+
+      render(
+        <ThemeContext.Provider
+          value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
+        >
+          <OnboardingStep {...defaultProps} />
+        </ThemeContext.Provider>,
+      );
+
+      expect(setBarStyle).toHaveBeenCalledWith('light-content', true);
     });
   });
 });

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
 import BottomSheet, {
   BottomSheetRef,
@@ -26,6 +25,9 @@ import {
 import { useNetworkFilterOptions } from '../../hooks/useNetworkFilterOptions';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 enum NetworkOption {
   AllNetworks = 'all',
@@ -34,6 +36,8 @@ enum NetworkOption {
 export interface ActivityNetworkFilterSheetParams {
   selectedNetwork?: CaipChainId[] | null;
   onNetworkSelect: (chainIds: CaipChainId[] | null) => void;
+  /** Only these networks are offered when given. */
+  enabledChainIds?: CaipChainId[];
 }
 
 export const createActivityNetworkFilterNavDetails =
@@ -46,10 +50,14 @@ const styles = StyleSheet.create({ optionsList: { paddingBottom: 16 } });
 
 /** ROOT_MODAL_FLOW network filter; writes via onNetworkSelect. */
 const ActivityNetworkFilterSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { selectedNetwork: initialSelectedNetwork, onNetworkSelect } =
-    useParams<ActivityNetworkFilterSheetParams>();
-  const networks = useNetworkFilterOptions();
+  const {
+    selectedNetwork: initialSelectedNetwork,
+    onNetworkSelect,
+    enabledChainIds,
+  } = useParams<ActivityNetworkFilterSheetParams>();
+  const networks = useNetworkFilterOptions(enabledChainIds);
 
   const [selectedNetwork, setSelectedNetwork] = useState<
     CaipChainId[] | null | NetworkOption
@@ -104,7 +112,9 @@ const ActivityNetworkFilterSheet: React.FC = () => {
       shouldNavigateBack
       testID={ActivityScreenSelectorsIDs.NETWORK_FILTER_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('trending.networks')}
         onClose={handleHeaderClose}
         closeButtonProps={{ testID: 'close-button' }}

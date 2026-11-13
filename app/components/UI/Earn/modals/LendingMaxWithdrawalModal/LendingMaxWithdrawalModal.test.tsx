@@ -5,6 +5,11 @@ import LendingMaxWithdrawalModal from './index';
 const mockGoBack = jest.fn();
 const mockIsFocused = jest.fn(() => true);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {

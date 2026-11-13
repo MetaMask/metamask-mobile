@@ -32,9 +32,12 @@ describe('recurringOrdersDataServiceInit', () => {
       order: {
         ...MOCK_RECURRING_OPEN_ORDER,
         state: RecurringOrderState.Cancelled,
+        isCancellable: false,
       },
     });
-    jest.mocked(getRecurringOrders).mockResolvedValue({ orders: [] });
+    jest
+      .mocked(getRecurringOrders)
+      .mockResolvedValue({ orders: [], hasNextPage: false });
     jest
       .mocked(getRecurringOrdersByAsset)
       .mockResolvedValue([MOCK_RECURRING_OPEN_ORDER]);
@@ -59,7 +62,7 @@ describe('recurringOrdersDataServiceInit', () => {
     await rootMessenger.call(
       'RecurringOrdersDataService:cancelRecurringOrder',
       'mock-recurring-order-open',
-      MOCK_RECURRING_OPEN_ORDER.account,
+      MOCK_RECURRING_OPEN_ORDER.accountAddress,
     );
     const result = await rootMessenger.call(
       'RecurringOrdersDataService:getRecurringOrders',
@@ -76,7 +79,7 @@ describe('recurringOrdersDataServiceInit', () => {
       },
     );
 
-    expect(result).toStrictEqual({ orders: [] });
+    expect(result).toStrictEqual({ orders: [], hasNextPage: false });
     expect(assetResult).toHaveLength(1);
     controller.destroy();
   });

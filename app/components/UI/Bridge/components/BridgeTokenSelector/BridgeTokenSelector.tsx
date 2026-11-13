@@ -52,7 +52,6 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -83,7 +82,7 @@ import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
-import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
+import { getBridgeTokenBadgeLabel } from '../../utils/getBridgeTokenBadgeLabel';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -100,6 +99,8 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -145,7 +146,7 @@ interface BridgeTokenSelectorRowProps {
   token: BridgeToken;
   isSelected: boolean;
   isNoFeeAsset: boolean;
-  showStockBadge: boolean;
+  badgeLabel?: string;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -155,7 +156,7 @@ const BridgeTokenSelectorRow = React.memo(
     token,
     isSelected,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -178,7 +179,7 @@ const BridgeTokenSelectorRow = React.memo(
         onPress={onTokenPress}
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
-        showStockBadge={showStockBadge}
+        badgeLabel={badgeLabel}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -952,7 +953,7 @@ export const BridgeTokenSelectorContent: React.FC<
           onTokenPress={(token) => handleWatchlistTokenPress(token, index)}
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
-          showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
+          badgeLabel={getBridgeTokenBadgeLabel(item, isRWAEnabled)}
         />
       );
     },
@@ -1097,7 +1098,7 @@ export const BridgeTokenSelectorContent: React.FC<
 
   return (
     <>
-      <Box twClassName="px-4 pb-3">
+      <Box twClassName="px-4 pt-1 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}
@@ -1149,6 +1150,7 @@ export const BridgeTokenSelectorContent: React.FC<
 };
 
 export const BridgeTokenSelector: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
@@ -1169,7 +1171,9 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
         includesTopInset

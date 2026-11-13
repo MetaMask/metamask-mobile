@@ -4,7 +4,7 @@
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
-  ActivityKind as ClientUtilsActivityKind,
+  ActivityKind,
   Fee as ActivityFee,
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
@@ -13,28 +13,11 @@ import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
 
 export type {
+  ActivityKind,
   PerpsOrderKind,
   Status,
   Fee as ActivityFee,
 } from '@metamask/client-utils';
-
-/*
- * Local kinds (PRED-1405): kinds mobile renders before `@metamask/client-utils`
- * ships them. Each maps to the client-utils kind whose item shape it reuses.
- * When a client-utils bump adds a kind, delete its entry here.
- */
-interface LocalActivityKindShapes {
-  predictionSettled: 'predictionClaimWinnings';
-}
-
-type LocalActivityKind = keyof LocalActivityKindShapes;
-
-export type ActivityKind = ClientUtilsActivityKind | LocalActivityKind;
-
-/** The client-utils kind whose item shape `Kind` uses. */
-type ShapeKindOf<Kind extends ActivityKind> = Kind extends LocalActivityKind
-  ? LocalActivityKindShapes[Kind]
-  : Kind;
 
 export type TokenAmount = ClientUtilsTokenAmount & {
   /**
@@ -43,6 +26,30 @@ export type TokenAmount = ClientUtilsTokenAmount & {
    */
   amountIsHumanReadable?: boolean;
 };
+
+/**
+ * Returns whether an asset type represents an NFT standard supported by the
+ * activity UI.
+ *
+ * @param assetType - The asset type to inspect.
+ * @returns `true` for ERC-721 and ERC-1155 assets.
+ */
+export function isNftAssetType(
+  assetType: string | undefined,
+): assetType is 'erc721' | 'erc1155' {
+  const normalizedAssetType = assetType?.toLowerCase();
+  return normalizedAssetType === 'erc721' || normalizedAssetType === 'erc1155';
+}
+
+/**
+ * Returns whether a token amount represents an NFT.
+ *
+ * @param token - The token amount to inspect.
+ * @returns `true` when the token uses an NFT standard.
+ */
+export function isNftToken(token: TokenAmount | undefined): boolean {
+  return isNftAssetType(token?.assetType);
+}
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
@@ -130,7 +137,7 @@ type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
   type: infer ActivityType;
   data: infer D;
 }
-  ? ShapeKindOf<Kind> extends Extract<ActivityType, ClientUtilsActivityKind>
+  ? Kind extends Extract<ActivityType, ActivityKind>
     ? Omit<T, 'type' | 'data'> & {
         type: Kind;
         data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;

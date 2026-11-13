@@ -16,6 +16,7 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
   setMoneyOnboardingSeen,
+  setMoneySplashSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -87,6 +88,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { clearSocialIdentityState } from '../../util/social/clearSocialIdentityState';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -1967,6 +1969,7 @@ class AuthenticationService {
     // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
     // Engine rebuild — without this, Money splash is skipped after reset.
     ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
+    ReduxService.store.dispatch(setMoneySplashSeen(false));
   };
 
   /**
@@ -2009,8 +2012,13 @@ class AuthenticationService {
       // discarded immediately, which is pure request noise.
       setBrazeResetInProgress(true);
 
-      // Previous profile must be gone before the throwaway vault unlocks.
+      // Previous auth session and social profile must be gone before the
+      // throwaway vault unlocks. ProfileController persists the social
+      // username separately from AuthenticationController, and
+      // Engine.resetState does not clear it (that path also recreates the
+      // vault on password change for the same SRP).
       this.clearAuthSession();
+      await clearSocialIdentityState(Engine.context);
 
       try {
         await this.newWalletAndKeychain(`${Date.now()}`, {
@@ -2040,6 +2048,8 @@ class AuthenticationService {
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
 
+        await Engine.controllerMessenger.call('PredictDeviceAuthService:reset');
+
         await Engine.controllerMessenger.call('RewardsController:resetAll');
 
         // Clear all Card auth/session/onboarding data (CARD-431)
@@ -2048,9 +2058,13 @@ class AuthenticationService {
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });
       } finally {
-        // Throwaway vault may have signed in while unlocked. Always wipe,
-        // including when a later step throws and resetWalletState swallows it.
+        // Throwaway vault may have signed in while unlocked and refetched the
+        // previous social profile into controller state or the query cache.
+        // Always wipe, including when a later step throws and resetWalletState
+        // swallows it.
         this.clearAuthSession();
+        await clearSocialIdentityState(Engine.context);
+        ReactQueryService.queryClient.clear();
         // The deferred `useAutoSignIn` effect has run by now (the app is
         // locked), so Braze identity sync can react to sign-in again.
         setBrazeResetInProgress(false);

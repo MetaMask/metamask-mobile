@@ -195,9 +195,40 @@ const mockCachedEvmTransactions = new Map<
 jest.mock(
   '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
   () => ({
-    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
-      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
-      undefined,
+    useCachedEvmTransaction: ({
+      txHash,
+      chainId,
+    }: {
+      txHash?: string;
+      chainId?: string;
+    }) => {
+      const cached = txHash
+        ? mockCachedEvmTransactions.get(txHash.toLowerCase())
+        : undefined;
+      const transactionProtocol = cached?.transactionProtocol;
+      if (!transactionProtocol) {
+        return undefined;
+      }
+
+      return {
+        accountId: 'eip155:0:0x0000000000000000000000000000000000000001',
+        tx: {
+          id: txHash,
+          chainId: chainId ?? 'eip155:1',
+          status: 'confirmed',
+          timestamp: 1,
+          date: new Date(0).toISOString(),
+          from: '0xfrom',
+          to: '0xto',
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '0',
+          transactionProtocol,
+        },
+        valueTransfers: [],
+        fee: null,
+      };
+    },
   }),
 );
 
@@ -1899,6 +1930,26 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
   });
 
+  it('renders an NFT send without inventing a zero amount', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'success',
+      token: {
+        direction: 'out',
+        symbol: 'I Love FLUF',
+        assetType: 'erc1155',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent I Love FLUF',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
   it('renders a named NFT buy with the collection name and the amount paid', () => {
     const item: ActivityListItem = {
       type: 'nftBuy',
@@ -2063,6 +2114,48 @@ describe('ActivityListItemRow — display currency conversion', () => {
     // 1 USD × (2300 / 2500) = 0.92 in the user's currency, not the raw $1.
     expect(primary).toContain('0.92');
     expect(primary).not.toContain('$');
+  });
+
+  it('converts a Kalshi row, which has no chain, through mainnet rates', () => {
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(2300);
+    mockUsdConversionRate.mockReturnValue(2500);
+    const placed = {
+      type: 'predictionPlaced',
+      chainId: KALSHI_VENUE_CHAIN_ID,
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'kalshi-trade-1',
+      data: {
+        token: {
+          amount: '10',
+          symbol: 'USD',
+          direction: 'out',
+          amountIsHumanReadable: true,
+        },
+        eventTitle: 'Kansas City at Buffalo',
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={placed} index={0} />,
+    );
+
+    expect(mockConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+      true,
+    );
+    expect(mockUsdConversionRate).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
+    const primary = getByTestId('activity-primary-amount-kalshi-trade-1').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    // 10 USD × (2300 / 2500) = 9.20 in the user's currency, not "-10 USD".
+    expect(primary).toContain('9.20');
+    expect(primary).not.toContain('USD');
   });
 
   it('omits the domain fiat for a non-USD user when rates are unavailable', () => {

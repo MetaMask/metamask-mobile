@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  HeaderStandard,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Animated, {
   type SharedValue,
@@ -19,7 +14,12 @@ import Animated, {
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
+import ShareButtonSpinner from '../../components/ShareButtonSpinner';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
+import { useSelector } from 'react-redux';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const COMPACT_TITLE_ENTER_OFFSET_PX = 8;
 const END_ACCESSORY_SPACER_SIZE = 40;
@@ -30,6 +30,7 @@ export interface TraderPositionAnimatedHeaderProps {
   traderName: string;
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   symbol: string;
   pricePercentChange: number | undefined;
   activeTimePeriodLabel: string;
@@ -38,6 +39,8 @@ export interface TraderPositionAnimatedHeaderProps {
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
+  /** Shows a spinner in place of the share button while the link is made. */
+  isSharing?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -66,6 +69,7 @@ const TraderPositionAnimatedHeader: React.FC<
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   symbol,
   pricePercentChange,
   activeTimePeriodLabel,
@@ -74,7 +78,9 @@ const TraderPositionAnimatedHeader: React.FC<
   onBack,
   onTraderPress,
   onShare,
+  isSharing = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const compactTokenProgress = useDerivedValue(() => {
     const hasMeasured = titleSectionHeight.value > 0;
     const isTokenSectionHidden =
@@ -115,14 +121,22 @@ const TraderPositionAnimatedHeader: React.FC<
   );
 
   return (
-    <HeaderStandard
+    <HeaderStandardGlass
+      isGlass={isGlassHeader}
+      isFloating={false}
       onBack={onBack}
       backButtonProps={{
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
       endAccessory={
-        onShare ? (
-          <ButtonIcon
+        onShare && isSharing ? (
+          <ShareButtonSpinner
+            isCapsule={isGlassHeader}
+            testID={TraderPositionViewSelectorsIDs.SHARE_SPINNER}
+          />
+        ) : onShare ? (
+          <ButtonIconGlass
+            isCapsule={isGlassHeader}
             iconName={IconName.Share}
             size={ButtonIconSize.Md}
             onPress={onShare}
@@ -145,6 +159,7 @@ const TraderPositionAnimatedHeader: React.FC<
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
             variant="nav"
             onPress={onTraderPress}
             testID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
@@ -163,11 +178,12 @@ const TraderPositionAnimatedHeader: React.FC<
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
             onTraderPress={onTraderPress}
           />
         </Animated.View>
       </View>
-    </HeaderStandard>
+    </HeaderStandardGlass>
   );
 };
 

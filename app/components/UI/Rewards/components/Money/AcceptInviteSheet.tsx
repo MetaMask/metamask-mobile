@@ -1,6 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -23,22 +29,28 @@ import {
   selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
 } from '../../../../../reducers/rewardsMoney/selectors';
+import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { InviteTermsLink } from '../InviteTermsLink';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import type { RewardsMoneyInviteSheetParams } from '../../types/navigation';
+import type {
+  MoneyReferralEntryType,
+  RewardsMoneyInviteSheetParams,
+} from '../../types/navigation';
 import { selectSessionProfileId } from '../../../../../selectors/identity';
 import {
   useAcceptMoneyReferralCode,
   type ReferralRefusalReason,
 } from '../../hooks/useAcceptMoneyReferralCode';
+import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import {
   MONEY_REFERRAL_CODE_MAX_LENGTH,
   MONEY_REFERRAL_CODE_MIN_LENGTH,
-  useValidateMoneyReferralCode,
-} from '../../hooks/useValidateMoneyReferralCode';
+} from '../../utils/moneyReferralCode';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
+import { resolveInviteTermsLink } from '../../utils/inviteTermsLink';
 
 export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CONTAINER: 'accept-invite-sheet',
@@ -49,6 +61,7 @@ export const ACCEPT_INVITE_SHEET_TEST_IDS = {
   CODE_ERROR: 'accept-invite-sheet-code-error',
   DECLINE: 'accept-invite-sheet-decline',
   ACCEPT: 'accept-invite-sheet-accept',
+  TERMS_LINK: 'accept-invite-sheet-terms-link',
 } as const;
 
 /** Alphanumeric upper-case only, capped at the Money code max length. */
@@ -71,6 +84,7 @@ function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
     () => ({
       title: localizedText?.inviteTitle ?? '',
       body: localizedText?.inviteMessageBody ?? '',
+      termsLink: resolveInviteTermsLink(localizedText),
       codeLabel:
         localizedText?.inviteReferralCode ??
         strings('rewards.referral.referral_code'),
@@ -107,12 +121,17 @@ export interface AcceptInviteSheetProps {
  */
 const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialReferralCode = route.params?.referralCode ?? '';
+  const entryType = route.params?.entryType;
   const hasTrackedOfferViewedRef = useRef(false);
   const hasRespondedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
+  // Mirrors the ref for the terms link, which can only see props. Set in the
+  // same turn as the ref so a tap during accept cannot open the browser.
+  const [acceptLocked, setAcceptLocked] = useState(false);
   // Once Accept has been pressed, a late geo exclusion must not close the
   // sheet: that would interrupt registerReferee, hide a server region
   // refusal, or pop the accepted splash after a successful navigate.
@@ -128,6 +147,27 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     selectMoneyReferralAllowedForGeo(state, profileId),
   );
   const referralMe = referralMeEntry?.data;
+
+  // A deeplink's code is answered once: whichever way this sheet closes, the
+  // code it was opened for must not prompt again. A newer link that arrived
+  // meanwhile was never shown, so it stays pending. After an accept, the
+  // accepted splash clears it instead, so the push pre-prompt waits for the
+  // splash too. A sheet opened without a code (manual entry) answers nothing,
+  // so a concurrent deeplink code must stay pending.
+  const hasAcceptedRef = useRef(false);
+  const handleAccepted = useCallback(() => {
+    hasAcceptedRef.current = true;
+  }, []);
+  const offeredReferralCode = route.params?.referralCode;
+  useEffect(
+    () => () => {
+      if (!hasAcceptedRef.current && offeredReferralCode) {
+        dispatch(clearPendingReferralCode(offeredReferralCode));
+      }
+    },
+    [dispatch, offeredReferralCode],
+  );
+
   // Once this sheet has shown an eligible invite, accept's own refresh to
   // REFEREE is not a reason to pop. Only a first settled payload that already
   // holds REFERRER or REFEREE (stale deeplink) is.
@@ -229,10 +269,17 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           ...(initialReferralCode
             ? { referral_code: initialReferralCode }
             : {}),
+          entry_type: entryType,
         })
         .build(),
     );
-  }, [createEventBuilder, initialReferralCode, isOfferOnScreen, trackEvent]);
+  }, [
+    createEventBuilder,
+    entryType,
+    initialReferralCode,
+    isOfferOnScreen,
+    trackEvent,
+  ]);
 
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
@@ -252,10 +299,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       const properties: {
         referral_code: string;
         interaction_type: 'accepted' | 'declined' | 'dismissed';
+        entry_type?: MoneyReferralEntryType;
         refusal_reason?: ReferralRefusalReason;
       } = {
         referral_code: referralCode,
         interaction_type: interactionType,
+        entry_type: entryType,
       };
       if (
         refusalReason &&
@@ -271,7 +320,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
           .build(),
       );
     },
-    [createEventBuilder, referralCode, refusalReason, trackEvent],
+    [createEventBuilder, entryType, referralCode, refusalReason, trackEvent],
   );
 
   // Failed Accept: the user tried to take the invite and the server turned
@@ -290,11 +339,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             referral_code: referralCode,
             interaction_type: 'refused',
             refusal_reason: reason,
+            entry_type: entryType,
           })
           .build(),
       );
     },
-    [createEventBuilder, referralCode, trackEvent],
+    [createEventBuilder, entryType, referralCode, trackEvent],
   );
 
   const handleChangeReferralCode = useCallback(
@@ -336,7 +386,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     // Registration is the accept. A refused write leaves the sheet open, so
     // `accepted` must not lock the funnel until the hook reports accepted.
     acceptInFlightRef.current = true;
-    acceptReferralCode(referralCode)
+    setAcceptLocked(true);
+    acceptReferralCode(referralCode, { onAccepted: handleAccepted })
       .then((result) => {
         if (result.accepted) {
           trackResponded('accepted');
@@ -349,10 +400,12 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
       .catch(() => undefined)
       .finally(() => {
         acceptInFlightRef.current = false;
+        setAcceptLocked(false);
       });
   }, [
     acceptReferralCode,
     canAccept,
+    handleAccepted,
     referralCode,
     trackRefused,
     trackResponded,
@@ -399,6 +452,8 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     trackResponded,
   ]);
 
+  const termsLink = copy.termsLink;
+
   // `roles` decides whether this profile may still accept an invite. Do not
   // flash an unusable invite while closing a stale deeplink for an existing
   // referrer or referee, or a geo-blocked country.
@@ -427,6 +482,16 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
             testID={ACCEPT_INVITE_SHEET_TEST_IDS.BODY}
           >
             {copy.body}
+            {termsLink ? (
+              <>
+                {' '}
+                <InviteTermsLink
+                  link={termsLink}
+                  disabled={isAccepting || acceptLocked}
+                  testID={ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK}
+                />
+              </>
+            ) : null}
           </Text>
         )}
         <Box

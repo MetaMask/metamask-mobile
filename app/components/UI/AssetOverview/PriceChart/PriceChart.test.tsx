@@ -89,22 +89,29 @@ describe('PriceChart', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows overlay when there are fewer than 5 data points', () => {
-      const fourPoints: TokenPrice[] = [
+    it('shows the empty overlay when a time period has no prices', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PriceChart {...defaultProps} prices={[]} timePeriodMs={86_400_000} />,
+      );
+
+      expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
+      expect(queryByTestId('price-chart-area')).not.toBeOnTheScreen();
+    });
+
+    it('shows overlay when there are fewer than 3 data points', () => {
+      const twoPoints: TokenPrice[] = [
         ['1736761237983', 100],
         ['1736761237986', 105],
-        ['1736761237989', 110],
-        ['1736761237992', 108],
       ];
 
       const { getByTestId } = render(
-        <PriceChart {...defaultProps} prices={fourPoints} />,
+        <PriceChart {...defaultProps} prices={twoPoints} />,
       );
 
       expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
     });
 
-    it('does not show overlay when there are at least 5 data points', () => {
+    it('does not show overlay when there are at least 3 data points', () => {
       const { queryByText } = render(
         <PriceChart {...defaultProps} prices={fiveTokenPrices()} />,
       );
@@ -316,6 +323,53 @@ describe('PriceChart', () => {
       // Release
       fireEvent(chartArea, 'responderRelease', createResponderEvent(200, 55));
       expect(mockOnChartIndexChange).toHaveBeenCalledTimes(3);
+    });
+
+    it('keeps the pan responder and calls the latest index callback after rerender', () => {
+      const prices = fiveTokenPrices();
+      const firstOnChartIndexChange = jest.fn();
+      const secondOnChartIndexChange = jest.fn();
+
+      const { getByTestId, rerender } = render(
+        <PriceChartProvider>
+          <PriceChart
+            {...defaultProps}
+            prices={prices}
+            priceDiff={8}
+            onChartIndexChange={firstOnChartIndexChange}
+          />
+        </PriceChartProvider>,
+      );
+
+      const chartArea = getByTestId('price-chart-area');
+      const onResponderGrant = chartArea.props.onResponderGrant;
+
+      fireEvent(chartArea, 'responderGrant', createResponderEvent(50, 50));
+      expect(firstOnChartIndexChange).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <PriceChartProvider>
+          <PriceChart
+            {...defaultProps}
+            prices={prices}
+            priceDiff={8}
+            onChartIndexChange={secondOnChartIndexChange}
+          />
+        </PriceChartProvider>,
+      );
+
+      const chartAreaAfterRerender = getByTestId('price-chart-area');
+      expect(chartAreaAfterRerender.props.onResponderGrant).toBe(
+        onResponderGrant,
+      );
+
+      fireEvent(
+        chartAreaAfterRerender,
+        'responderMove',
+        createResponderEvent(200, 55),
+      );
+      expect(secondOnChartIndexChange).toHaveBeenCalledTimes(1);
+      expect(firstOnChartIndexChange).toHaveBeenCalledTimes(1);
     });
 
     it('uses time-based updatePosition when timePeriodMs is provided', () => {

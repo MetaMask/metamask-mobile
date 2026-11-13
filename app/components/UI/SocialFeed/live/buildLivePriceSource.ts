@@ -1,5 +1,5 @@
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
-import type { FeedItem as CoreFeedItem } from '@metamask/social-controllers';
+import type { Position } from '@metamask/social-controllers';
 import type { CaipAssetType } from '@metamask/utils';
 import { chainNameToId } from '../utils/chainMapping';
 import {
@@ -18,7 +18,7 @@ export interface LivePriceDerivedFigures {
   marketCapPerPrice: number | null;
 }
 
-const toSpotAssetId = (core: CoreFeedItem): CaipAssetType | undefined => {
+const toSpotAssetId = (core: Position): CaipAssetType | undefined => {
   const chainId = chainNameToId(core.chain);
   const address = core.tokenAddress?.trim();
   if (!chainId || !address) {
@@ -38,7 +38,7 @@ const toSpotAssetId = (core: CoreFeedItem): CaipAssetType | undefined => {
  * it sent both, so a live percent continues the snapshot's rather than
  * switching basis on the first tick.
  */
-const derivePnlBaseUsd = (core: CoreFeedItem): number | null => {
+const derivePnlBaseUsd = (core: Position): number | null => {
   const { pnlValueUsd, pnlPercent, boughtUsd, costBasis } = core;
   if (
     isPresentNumber(pnlValueUsd) &&
@@ -62,11 +62,16 @@ const derivePnlBaseUsd = (core: CoreFeedItem): number | null => {
  * Returns `undefined` for closed positions and for assets no stream can price.
  */
 export function buildLivePriceSource(
-  core: CoreFeedItem,
+  core: Position,
   isClosed: boolean,
   derived: LivePriceDerivedFigures,
 ): SocialLivePriceSource | undefined {
-  const positionAmount = Math.abs(core.positionAmount);
+  // A perp's P&L moves with its leveraged size; `positionAmount` is margin-sized.
+  const positionAmount = Math.abs(
+    isPerpPosition(core)
+      ? (core.positionAmountWithLeverage ?? core.positionAmount)
+      : core.positionAmount,
+  );
   if (isClosed || !(positionAmount > 0)) {
     return undefined;
   }

@@ -4,11 +4,9 @@ import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed
 import {
   addPendingPost,
   confirmPendingPosts,
-  consumePostsTabFocus,
   dismissSettledPendingPosts,
   getPendingPostsSnapshot,
   PENDING_POST_CONFIRM_WINDOW_MS,
-  requestPostsTabFocus,
   resetPendingPosts,
   subscribePendingPosts,
 } from './pendingPostsStore';
@@ -55,7 +53,7 @@ describe('pendingPostsStore', () => {
         positionId: 'position-b',
         createdAtMs: NOW + 1,
         confirmedPost: null,
-        dismissedOn: { following: false, posts: false },
+        dismissedOn: { trending: false, following: false, posts: false },
       });
       expect(entries[0].post.isPending).toBe(true);
     });
@@ -113,12 +111,37 @@ describe('pendingPostsStore', () => {
       });
       confirmPendingPosts([buildPost('a', { id: 'server-row' })]);
 
-      dismissSettledPendingPosts('following', NOW + 1);
+      dismissSettledPendingPosts('trending', NOW + 1);
 
       expect(getPendingPostsSnapshot()[0].dismissedOn).toEqual({
-        following: true,
+        trending: true,
+        following: false,
         posts: false,
       });
+    });
+
+    it('releases only what the surface serves when given its comment ids', () => {
+      addPendingPost({
+        ownerProfileId: OWNER,
+        post: buildPost('a'),
+        nowMs: NOW,
+      });
+      addPendingPost({
+        ownerProfileId: OWNER,
+        post: buildPost('b'),
+        nowMs: NOW,
+      });
+      confirmPendingPosts([buildPost('a'), buildPost('b')]);
+
+      dismissSettledPendingPosts('trending', NOW + 1, new Set(['a']));
+
+      const byId = Object.fromEntries(
+        getPendingPostsSnapshot().map((entry) => [
+          entry.commentId,
+          entry.dismissedOn.trending,
+        ]),
+      );
+      expect(byId).toEqual({ a: true, b: false });
     });
 
     it('keeps an unconfirmed entry inside the confirmation window', () => {
@@ -128,9 +151,9 @@ describe('pendingPostsStore', () => {
         nowMs: NOW,
       });
 
-      dismissSettledPendingPosts('following', NOW + 1_000);
+      dismissSettledPendingPosts('posts', NOW + 30_000);
 
-      expect(getPendingPostsSnapshot()[0].dismissedOn.following).toBe(false);
+      expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(false);
     });
 
     it('releases an unconfirmed entry past the confirmation window', () => {
@@ -143,28 +166,6 @@ describe('pendingPostsStore', () => {
       dismissSettledPendingPosts('posts', NOW + PENDING_POST_CONFIRM_WINDOW_MS);
 
       expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(true);
-    });
-  });
-
-  describe('Posts tab focus', () => {
-    it('is consumed once after a request', () => {
-      requestPostsTabFocus(NOW);
-
-      expect(consumePostsTabFocus(NOW + 500)).toBe(true);
-      expect(consumePostsTabFocus(NOW + 600)).toBe(false);
-    });
-
-    it('expires when the profile is not reached soon after posting', () => {
-      requestPostsTabFocus(NOW);
-
-      expect(consumePostsTabFocus(NOW + 60_000)).toBe(false);
-    });
-
-    it('is cleared by a reset', () => {
-      requestPostsTabFocus(NOW);
-      resetPendingPosts();
-
-      expect(consumePostsTabFocus(NOW)).toBe(false);
     });
   });
 });

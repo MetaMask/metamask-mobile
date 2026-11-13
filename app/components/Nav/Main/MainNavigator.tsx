@@ -23,7 +23,6 @@ import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
 import AccountHub from '../../Views/AccountHub';
-import ProfileDrawer from '../../Views/SocialProfile/ProfileDrawer/ProfileDrawer';
 import ManageProfile from '../../Views/SocialProfile/ManageProfile/ManageProfile';
 import ManageProfileField from '../../Views/SocialProfile/ManageProfile/ManageProfileField';
 import ManageProfileXAccount from '../../Views/SocialProfile/ManageProfile/ManageProfileXAccount';
@@ -50,6 +49,8 @@ import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
+import HiddenTokensView from '../../Views/AddAsset/Views/HiddenTokensView/HiddenTokensView';
+import AddCustomTokenView from '../../Views/AddAsset/Views/AddCustomTokenView/AddCustomTokenView';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
@@ -93,7 +94,6 @@ import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequ
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
 import RewardsMoneyDashboard from '../../UI/Rewards/Views/RewardsMoneyDashboard';
-import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
@@ -133,6 +133,7 @@ import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
 import { useSocialTabNewBadge } from './HomeTabs/useSocialTabNewBadge';
+import { useCanOpenSocialTabDirectly } from './HomeTabs/useCanOpenSocialTabDirectly';
 import {
   TAB_BAR_VISIBLE_STYLE,
   toJsTabOptions,
@@ -143,20 +144,17 @@ import type {
   HomeTabKey,
   HomeTabRoute,
 } from './HomeTabs/homeTabs.types';
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsSettingsList } from '../../Views/Snaps/SnapsSettingsList';
 import {
   SnapSettings,
   ALLOWED_CAPABILITIES as SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
-///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   transparentModalStackOptions,
   slideFromRightNativeOptions,
-  slideFromLeftNativeOptions,
   fadeNativeOptions,
   fullScreenModalSlideFromBottomNativeOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -179,10 +177,11 @@ import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
 import {
   MoneyConfirmationScreenStack,
-  MoneyModalStack,
+  MoneyModalGateway,
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
+import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -200,9 +199,8 @@ import {
 import {
   PredictModalStack,
   PredictPreviewSheetProvider,
-  selectPredictEnabledFlag,
 } from '../../UI/Predict';
-import { PredictRoot } from '../../UI/PredictNext';
+import { PredictRoot, selectPredictAvailability } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 import {
@@ -228,6 +226,7 @@ import {
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
+  TraderPreviewSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -235,15 +234,13 @@ import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsVie
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
-///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
-///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
+import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
@@ -253,6 +250,10 @@ import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeason
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import TermsSheet from '../../UI/Rewards/components/Money/TermsSheet';
+import TaxFormQuestionSheet from '../../UI/Rewards/components/Money/TaxFormQuestionSheet';
+import TaxFormOpenFormSheet from '../../UI/Rewards/components/Money/TaxFormOpenFormSheet';
+import TaxFormContactUsSheet from '../../UI/Rewards/components/Money/TaxFormContactUsSheet';
+import RewardsTaxFormView from '../../UI/Rewards/Views/RewardsTaxFormView';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
@@ -317,6 +318,7 @@ interface ForwardedParamsHostProps {
 /** `Routes.CARD.ROOT` takes an animation override beside its nested params. */
 interface CardRootRouteParams {
   animation?: NativeStackNavigationOptions['animation'];
+  returnToCaller?: boolean;
 }
 
 /**
@@ -419,7 +421,6 @@ const TransactionsHome = () => {
 const REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT = {
   money_dashboard: Routes.REWARDS_MONEY_DASHBOARD,
   dashboard: Routes.REWARDS_DASHBOARD,
-  onboarding: Routes.REWARDS_ONBOARDING_FLOW,
 } as const;
 
 type RewardsHomeInitialVariant =
@@ -429,11 +430,7 @@ type RewardsHomeInitialVariant =
 function isRewardsHomeInitialVariant(
   variant: RewardsTabContentVariant,
 ): variant is RewardsHomeInitialVariant {
-  return (
-    variant === 'money_dashboard' ||
-    variant === 'dashboard' ||
-    variant === 'onboarding'
-  );
+  return variant === 'money_dashboard' || variant === 'dashboard';
 }
 
 const RewardsHome = () => {
@@ -442,24 +439,21 @@ const RewardsHome = () => {
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   // Fetch client version requirements at the Rewards tab entry point, before the
-  // onboarding/dashboard branch below. Both opted-in and onboarding users mount
-  // RewardsHome, so gating here ensures version-blocked clients always see the
-  // update-required screen (and the requirements are always fetched), regardless
-  // of subscription status.
+  // dashboard branch below. Every Rewards visitor mounts RewardsHome, so gating
+  // here ensures version-blocked clients always see the update-required screen
+  // (and the requirements are always fetched), regardless of subscription status.
   useRewardsVersionGuard();
-  // Resolve the candidate subscription ID here for the same reason: both the
-  // dashboard and onboarding branches depend on it (onboarding's OnboardingMainStep
-  // renders a full-screen skeleton until candidateSubscriptionId leaves its initial
-  // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
-  // this shared entry point prevents the onboarding tab from loading indefinitely.
+  // Resolve the candidate subscription ID here for the same reason: the dashboard
+  // waits while it is pending or retrying. Only RewardsHome mounts for users who
+  // have not joined, so fetching at this shared entry point keeps the tab from
+  // waiting forever.
   useCandidateSubscriptionId();
   // Same altitude, same reason: the Money referral persona decides which of the
-  // three homes this stack opens on, so it is resolved once here rather than by
+  // two homes this stack opens on, so it is resolved once here rather than by
   // whichever screen happened to mount.
   const { moneyEnabled, moneyReferralResolved, moneyPersona, navigatorKey } =
     useRewardsMoneyTabRouting();
-  // Tab time-to-content: tap Rewards → onboarding content, dashboard shell, or
-  // the Money dashboard.
+  // Tab time-to-content: tap Rewards → the points dashboard or the Money dashboard.
   useRewardsTabPerformance({
     isVersionBlocked,
     moneyEnabled,
@@ -493,13 +487,9 @@ const RewardsHome = () => {
     return <RewardsUpdateRequired />;
   }
 
-  // Only the Money persona gate holds the whole stack back. Candidate
-  // subscription pending still mounts onboarding as the discovery surface;
-  // OnboardingMainStep owns that skeleton and replace-to-dashboard.
-  if (
-    tabContent.status === 'pending' &&
-    tabContent.reason === 'money_referral'
-  ) {
+  // The screen itself is not behind Rewards opt-in. Wait only until the
+  // money persona or the candidate subscription is known, then open a home.
+  if (tabContent.status === 'pending') {
     return <RewardsTabSkeleton />;
   }
 
@@ -507,7 +497,7 @@ const RewardsHome = () => {
     tabContent.status === 'ready' &&
     isRewardsHomeInitialVariant(tabContent.variant)
       ? REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT[tabContent.variant]
-      : Routes.REWARDS_ONBOARDING_FLOW;
+      : Routes.REWARDS_DASHBOARD;
 
   return (
     <NativeStack.Navigator
@@ -515,10 +505,6 @@ const RewardsHome = () => {
       initialRouteName={initialRouteName}
       screenOptions={{ ...defaultScreenOptions, animation: 'none' }}
     >
-      <NativeStack.Screen
-        name={Routes.REWARDS_ONBOARDING_FLOW}
-        component={RewardsOnboardingNavigator}
-      />
       <NativeStack.Screen
         name={Routes.REWARDS_DASHBOARD}
         component={RewardsDashboard}
@@ -566,7 +552,6 @@ const BrowserFlow = (props: ForwardedParamsHostProps) => {
   );
 };
 
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -586,7 +571,6 @@ const SnapsSettingsStack = () => {
     </NativeStack.Navigator>
   );
 };
-///: END:ONLY_INCLUDE_IF
 
 const SettingsFlow = () => {
   const defaultScreenOptions = useDefaultStackScreenOptions();
@@ -712,18 +696,12 @@ const SettingsFlow = () => {
         name={Routes.SETTINGS.REGION_SELECTOR}
         component={RegionSelector}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-      }
       {CAN_INSTALL_THIRD_PARTY_SNAPS ? (
         <NativeStack.Screen
           name={Routes.SNAPS.SNAPS_SETTINGS_LIST}
           component={SnapsSettingsStack}
         />
       ) : null}
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
     </NativeStack.Navigator>
   );
 };
@@ -786,6 +764,8 @@ const HomeTabs = () => {
     (homeNavBarConfig.isSocialTabAllowed && isSocialTabEnabled);
   const isSocialV1Enabled = homeNavBarConfig.isSocialHeader;
   const { showSocialTabNewBadge } = useSocialTabNewBadge(isSocialV1Enabled);
+  const canOpenSocialTabDirectly =
+    useCanOpenSocialTabDirectly(isSocialV1Enabled);
   // Same TSA-1122 destination as the homepage Top Traders carousel: V1 for
   // treatment, legacy V0 for control. Exposure is recorded when the surface
   // itself mounts, not when the tab slot is registered.
@@ -810,6 +790,7 @@ const HomeTabs = () => {
       isMoneyAccountVisible,
       showSocialTab,
       isSocialV1Enabled,
+      canOpenSocialTabDirectly,
       showSocialTabNewBadge,
       trackMoneyTabPress,
     });
@@ -919,6 +900,7 @@ const HomeTabs = () => {
           : toNativeTabOptions(tab, undefined, colors.success.default)
       }
       listeners={getNativeTabListeners(tab)}
+      initialParams={tab.initialParams}
       component={tabComponentFor(tab)}
     />
   );
@@ -1050,6 +1032,15 @@ const SetPasswordFlow = () => (
   </NativeStack.Navigator>
 );
 
+// Only enabled when bundled with `INCLUDE_SAMPLE_FEATURE=true` (a local opt-in;
+// no build in builds.yml sets it); otherwise this is dead-code-eliminated.
+const SampleFeature =
+  process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the sample feature out of prod bundles
+      require('../../../features/SampleFeature/components/views/SampleFeature')
+        .default
+    : null;
+
 const MainNavigator = () => {
   const dispatch = useDispatch();
   // Announce to the saga layer (deeplink pipeline) that post-login screens
@@ -1065,12 +1056,9 @@ const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
-  // Get feature flag state for conditional Predict screen registration
-  const predictEnabledFlag = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => predictEnabledFlag,
-    [predictEnabledFlag],
-  );
+  // Predict routes are registered while Predict is available for the
+  // Active Venue, the same gate its entry points use.
+  const isPredictEnabled = useSelector(selectPredictAvailability);
   // Get feature flag state for conditional Market Insights screen registration.
   // The screen must be registered when either the token or perps insights flag is
   // on — both entry points navigate to the same screen.
@@ -1118,7 +1106,7 @@ const MainNavigator = () => {
       />
       {/*
        * Rewards sheets are registered on the root MainNavigator so they are
-       * reachable from both the Rewards tab (dashboard/onboarding) and
+       * reachable from both the Rewards tab (dashboard) and
        * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
        * animation: 'none' so only the BottomSheet's internal slide runs —
        * without it the native stack slides the entire screen (overlay
@@ -1161,7 +1149,24 @@ const MainNavigator = () => {
           name={Routes.MODAL.REWARDS_MONEY_TERMS_SHEET}
           component={TermsSheet}
         />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_QUESTION_SHEET}
+          component={TaxFormQuestionSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET}
+          component={TaxFormOpenFormSheet}
+        />
+        <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_TAX_CONTACT_SHEET}
+          component={TaxFormContactUsSheet}
+        />
       </NativeStack.Group>
+      <NativeStack.Screen
+        name={Routes.REWARDS_TAX_FORM_VIEW}
+        component={RewardsTaxFormView}
+        options={{ headerShown: false }}
+      />
       {/*
        * Post-accept confirmation. Registered on the root stack (not inside
        * RewardsNavigator) so it can fade over the Money dashboard after the
@@ -1200,6 +1205,16 @@ const MainNavigator = () => {
       </NativeStack.Group>
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
+        name={Routes.WALLET.ADD_CUSTOM_TOKEN}
+        component={AddCustomTokenView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.WALLET.HIDDEN_TOKENS}
+        component={HiddenTokensView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
         options={slideFromRightNativeOptions}
@@ -1210,13 +1225,6 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Group screenOptions={slideFromRightNativeOptions}>
-        {isSocialV1Enabled && (
-          <NativeStack.Screen
-            name={Routes.SOCIAL_PROFILE.DRAWER}
-            component={ProfileDrawer}
-            options={slideFromLeftNativeOptions}
-          />
-        )}
         <NativeStack.Screen
           name={Routes.SOCIAL_PROFILE.MANAGE_PROFILE}
           component={ManageProfile}
@@ -1262,7 +1270,6 @@ const MainNavigator = () => {
           component={RWATokensFullView}
         />
       </NativeStack.Group>
-
       <NativeStack.Screen name="Webview" component={Webview} />
       <NativeStack.Screen
         name="Send"
@@ -1400,11 +1407,20 @@ const MainNavigator = () => {
               name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
               component={MoneyApiActivityDetailsView}
             />
+            <NativeStack.Screen
+              name={Routes.MONEY.ACCOUNT_STATUS}
+              component={MoneyAccountStatusView}
+            />
           </NativeStack.Group>
           <NativeStack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
             options={fadeNativeOptions}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.SPLASH}
+            component={MoneySplashView}
+            options={{ ...fadeNativeOptions, gestureEnabled: false }}
           />
           <NativeStack.Screen
             name={Routes.MONEY.FIRST_TIME_DEPOSIT}
@@ -1415,17 +1431,20 @@ const MainNavigator = () => {
             }}
           />
           <NativeStack.Screen
-            name={Routes.MONEY.MODALS.ROOT}
-            component={MoneyModalStack}
-            options={transparentModalStackOptions}
-          />
-          <NativeStack.Screen
             name={Routes.TRANSACTIONS_VIEW}
             component={TransactionsHome}
             options={slideFromRightNativeOptions}
           />
         </>
       )}
+      {/* Always register this gateway so Money sheets opened from other app
+          screens, such as Card Home, show the unavailable notice when the
+          feature is disabled. */}
+      <NativeStack.Screen
+        name={Routes.MONEY.MODALS.ROOT}
+        component={MoneyModalGateway}
+        options={transparentModalStackOptions}
+      />
       {/*
        * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
        * - Maintenance modal when the feature is disabled.
@@ -1525,6 +1544,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MY_PROFILE}
             component={MyProfileView}
+            options={{
+              // A push replace would bring this screen in from the right. Pop
+              // uses the screen being replaced, so onboarding can leave to the left.
+              animationTypeForReplace: 'pop',
+            }}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.V1_PROFILE}
@@ -1564,6 +1588,13 @@ const MainNavigator = () => {
             component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
+      )}
+      {isSocialV1Enabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.TRADER_PREVIEW_SHEET}
+          component={TraderPreviewSheet}
+          options={transparentModalStackOptions}
+        />
       )}
       {isSocialExperienceEnabled && (
         <>
@@ -1641,16 +1672,12 @@ const MainNavigator = () => {
         component={DeFiProtocolPositionDetails}
         options={slideFromRightNativeOptions}
       />
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-      }
-      <NativeStack.Screen
-        name={Routes.SAMPLE_FEATURE}
-        component={SampleFeature}
-      />
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
+      {SampleFeature && (
+        <NativeStack.Screen
+          name={Routes.SAMPLE_FEATURE}
+          component={SampleFeature}
+        />
+      )}
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}

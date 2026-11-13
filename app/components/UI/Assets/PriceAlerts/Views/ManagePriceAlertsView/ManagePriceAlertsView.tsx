@@ -24,7 +24,6 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -72,6 +71,9 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -87,7 +89,40 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
+function failRequest(message: string): never {
+  throw new Error(message);
+}
+
+const requestAlertDeletion = (
+  priceAlert: Alert,
+  isPerpsMode: boolean,
+): Promise<Response> =>
+  isPerpsMode
+    ? deletePerpAlertByType(priceAlert)
+    : deleteAlertByType(priceAlert);
+
+const requestAlertUpdate = (
+  priceAlert: Alert,
+  isPerpsMode: boolean,
+  active: boolean,
+): Promise<Response> =>
+  isPerpsMode
+    ? updatePerpAlertByType(priceAlert, { active })
+    : updateAlertByType(priceAlert, { active });
+
+const trackedAssetId = (
+  isPerpsMode: boolean,
+  marketId: string | undefined,
+  assetId: string,
+): string => (isPerpsMode ? (marketId ?? '') : assetId);
+
+const trackedMarketType = (isPerpsMode: boolean): 'spot' | 'perps' =>
+  isPerpsMode
+    ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+    : PriceAlertAnalytics.MARKET_TYPE.SPOT;
+
 const ManagePriceAlertsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const hardwareTier = getHardwareTier();
@@ -258,21 +293,17 @@ const ManagePriceAlertsView: React.FC = () => {
       const target = previous.find((a) => a.id === id);
 
       try {
-        if (!target) throw new Error('Alert not found');
-        const response = isPerpsMode
-          ? await deletePerpAlertByType(target)
-          : await deleteAlertByType(target);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!target) failRequest('Alert not found');
+        const response = await requestAlertDeletion(target, isPerpsMode);
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
-              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
+              asset_id: trackedAssetId(isPerpsMode, marketId, assetId),
               token_symbol: displayTicker,
-              alert_market_type: isPerpsMode
-                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
-                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+              alert_market_type: trackedMarketType(isPerpsMode),
               ...analyticsPropsForAlert(target),
               alert_value: target.threshold,
               alert_recurring: target.recurring,
@@ -314,9 +345,8 @@ const ManagePriceAlertsView: React.FC = () => {
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
-      } finally {
-        finishDelete(id);
       }
+      finishDelete(id);
     },
     [
       navigation,
@@ -348,21 +378,21 @@ const ManagePriceAlertsView: React.FC = () => {
       );
 
       try {
-        if (!toggled) throw new Error('Alert not found');
-        const response = isPerpsMode
-          ? await updatePerpAlertByType(toggled, { active: newValue })
-          : await updateAlertByType(toggled, { active: newValue });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!toggled) failRequest('Alert not found');
+        const response = await requestAlertUpdate(
+          toggled,
+          isPerpsMode,
+          newValue,
+        );
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
+              asset_id: trackedAssetId(isPerpsMode, marketId, assetId),
               token_symbol: displayTicker,
-              alert_market_type: isPerpsMode
-                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
-                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+              alert_market_type: trackedMarketType(isPerpsMode),
               ...analyticsPropsForAlert(toggled),
               alert_value: toggled.threshold,
               alert_recurring: toggled.recurring,
@@ -384,9 +414,8 @@ const ManagePriceAlertsView: React.FC = () => {
           queryKey,
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
-      } finally {
-        finishToggle(id);
       }
+      finishToggle(id);
     },
     [
       assetId,
@@ -493,7 +522,9 @@ const ManagePriceAlertsView: React.FC = () => {
       testID={ManagePriceAlertsTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('price_alerts.manage_title')}
           onBack={handleBack}
         />

@@ -7,7 +7,7 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -27,13 +27,17 @@ import type {
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
+import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
 import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 
 export const PredictPortfolioScreen = () => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const route =
@@ -115,7 +119,9 @@ export const PredictPortfolioScreen = () => {
       testID={PredictPortfolioScreenTestIds.CONTAINER}
     >
       <Box testID={PredictPortfolioScreenTestIds.HEADER}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('predict_next.portfolio.title')}
           onBack={() => navigation.goBack()}
@@ -129,6 +135,7 @@ export const PredictPortfolioScreen = () => {
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
         />
+        <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
           <Box

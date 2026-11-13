@@ -32,7 +32,7 @@ import {
   getSocialFeedPostAvatarTestId,
   getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
-import { MINUTE } from '../../../../constants/time';
+import { HOUR, MINUTE } from '../../../../constants/time';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
@@ -204,7 +204,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('forwards the open spot item when Copy trade is pressed', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Buying the dip' });
     const onCopyTrade = jest.fn();
 
     renderWithProvider(
@@ -368,14 +368,16 @@ describe('SocialFeedPositionCard', () => {
       expect(style?.width).toBe('100%');
     });
 
-    it('keeps the leverage tag beside the symbol', () => {
+    it('keeps a neutral closed tag beside the symbol', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByText('15x social_leaderboard.trader_position.short'),
+        screen.getByText(
+          'social_leaderboard.feed.position_card.closed 15x social_leaderboard.trader_position.short',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -398,17 +400,20 @@ describe('SocialFeedPositionCard', () => {
     });
 
     // The side is spent once the position closes; the toned border says how.
-    it('titles a closed spot position with the bare symbol', () => {
+    it('titles a closed spot position with Sold beside the symbol', () => {
       const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
       expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
         screen.queryByText('social_leaderboard.feed.position_card.sell'),
       ).toBeNull();
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+        screen.getByText('social_leaderboard.feed.just_now'),
       ).toBeOnTheScreen();
     });
 
@@ -418,7 +423,9 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.getByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).getByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -428,13 +435,15 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(
-        screen.queryByText('social_leaderboard.feed.position_card.closed_ago'),
+        within(screen.getByTestId('position-card-header-closed')).queryByText(
+          'social_leaderboard.feed.just_now',
+        ),
       ).toBeNull();
     });
   });
 
   it('renders the open spot card with entry, hold time, cost and copy trade', () => {
-    const item = mockOpenSpotFeedItem();
+    const item = mockOpenSpotFeedItem({ comment: 'Buying the dip' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
@@ -454,6 +463,7 @@ describe('SocialFeedPositionCard', () => {
   describe('spot market cap', () => {
     it('quotes the open spot card in market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Buying the dip',
         marketCapLabel: '$1.2M',
         entryMarketCapLabel: '$800K',
       });
@@ -470,6 +480,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('falls back to price when the fills recorded no market cap', () => {
       const item = mockOpenSpotFeedItem({
+        comment: 'Buying the dip',
         marketCapLabel: undefined,
         entryMarketCapLabel: undefined,
       });
@@ -482,6 +493,7 @@ describe('SocialFeedPositionCard', () => {
 
     it('quotes the closed spot card entry and exit in market cap', () => {
       const item = mockClosedSpotFeedItem({
+        comment: 'Took profit',
         entryMarketCapLabel: '$800K',
         exitMarketCapLabel: '$1.1M',
       });
@@ -494,7 +506,7 @@ describe('SocialFeedPositionCard', () => {
   });
 
   it('renders the closed spot card with entry, exit and cost but no copy trade', () => {
-    const item = mockClosedSpotFeedItem();
+    const item = mockClosedSpotFeedItem({ comment: 'Took profit' });
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
@@ -517,6 +529,18 @@ describe('SocialFeedPositionCard', () => {
       getSocialFeedPositionCardStatTestId(item.id, 'holdTime'),
     );
     expect(within(row).getByText('\u2014')).toBeOnTheScreen();
+  });
+
+  it('formats an open hold from its start and the supplied instant', () => {
+    const now = new Date('2026-07-09T12:00:00Z').getTime();
+    const item = mockOpenPerpsFeedItem({
+      holdTimeLabel: '1d 18h',
+      holdStartedAtMs: now - 3 * HOUR,
+    });
+
+    renderWithProvider(<PositionCardBody item={item} now={now} />);
+
+    expect(statValue(item.id, 'holdTime')).toBe('3h');
   });
 
   it('renders a share spot card with entry, hold time, and copy trade', () => {
@@ -548,6 +572,175 @@ describe('SocialFeedPositionCard', () => {
     expect(
       screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
     ).toBeOnTheScreen();
+  });
+
+  describe('display modes', () => {
+    it('expands an open card without a comment when expanded', () => {
+      const item = mockOpenPerpsFeedItem({ comment: undefined });
+
+      renderWithProvider(<PositionCardBody item={item} expanded />);
+
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(statValue(item.id, 'entry')).toBe('$107,675');
+    });
+
+    it('expands a closed card without a comment when expanded', () => {
+      const item = mockClosedPerpsFeedItem({ comment: undefined });
+
+      renderWithProvider(<PositionCardBody item={item} expanded />);
+
+      expect(statValue(item.id, 'exit')).toBe('$1,842');
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId('position-card-shell-border').props.style,
+        )?.borderWidth,
+      ).toBe(1);
+    });
+
+    it('hides copy trade on an open card when showCopyTrade is false', () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(
+        <PositionCardBody item={item} showCopyTrade={false} />,
+      );
+
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).toBeNull();
+    });
+
+    it('keeps the compact layout on a feed post without a comment', () => {
+      const item = mockOpenPerpsFeedItem({ comment: undefined });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the divider, stats and copy trade on an open card with a comment', () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps only the symbol and P&L on an open card without a comment', () => {
+      const item = mockOpenPerpsFeedItem({ comment: undefined });
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('+$256.96K')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'entry'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardCopyTradeTestId(item.id)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the entry, exit and cost columns on a closed card with a comment', () => {
+      const item = mockClosedPerpsFeedItem();
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      expect(
+        screen.getByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).toBeOnTheScreen();
+      expect(statValue(item.id, 'entry')).toBe('$1,890');
+      expect(statValue(item.id, 'exit')).toBe('$1,842');
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId('position-card-shell-border').props.style,
+        )?.borderWidth,
+      ).toBe(1);
+    });
+
+    it('keeps only the header on a closed card without a comment', () => {
+      const item = mockClosedPerpsFeedItem({
+        comment: undefined,
+        closedAtMs: Date.now() - HOUR,
+      });
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      expect(
+        screen.getByText('social_leaderboard.feed.age.hours'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardSectionDividerTestId(item.id),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialFeedPositionCardStatTestId(item.id, 'exit'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        StyleSheet.flatten(
+          screen.getByTestId('position-card-shell-border').props.style,
+        )?.borderWidth,
+      ).toBe(1);
+    });
+
+    it('captions a closed spot card without a comment as sold and keeps no side tag', () => {
+      const item = mockClosedSpotFeedItem({
+        comment: undefined,
+        closedAtMs: Date.now() - HOUR,
+      });
+
+      renderWithProvider(<PositionCardBody item={item} />);
+
+      expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('social_leaderboard.feed.age.hours'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('AAPL')).toBeOnTheScreen();
+      expect(
+        screen.queryByText('social_leaderboard.feed.position_card.buy'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText('social_leaderboard.feed.position_card.sell'),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   // The wash follows the P&L in dark mode. Light mode keeps the border only.
@@ -780,6 +973,49 @@ describe('SocialFeedPositionCard', () => {
       expect(screen.getByText('$100,000')).toBeOnTheScreen();
     });
 
+    it('ticks a composer spot share once a live price arrives', () => {
+      const spotKey =
+        'spot:eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+      const store = new SocialLivePriceStore(0);
+      const item = {
+        ...mockOpenSpotFeedItem({
+          id: 'v1-feed-eth-share',
+          markPriceLabel: '$3,000',
+          live: {
+            key: spotKey,
+            kind: 'spot',
+            positionAmount: 1,
+            direction: 1,
+            snapshotPrice: 3_000,
+            snapshotPnlUsd: 1_000,
+            entryPrice: 2_500,
+            pnlBaseUsd: 2_500,
+            marketCapPerPrice: null,
+          },
+        }),
+        variant: 'spotShare' as const,
+        showCopyTrade: false,
+      };
+      renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: true,
+          }}
+        >
+          <SocialFeedPositionCard item={item} />
+        </SocialLivePricesContext.Provider>,
+      );
+
+      act(() => {
+        store.publish(spotKey, 3_300);
+      });
+
+      expect(screen.getByLabelText('$3,300')).toBeOnTheScreen();
+    });
+
     it('moves the wash with the live P&L sign', () => {
       const store = new SocialLivePriceStore(0);
       const item = mockOpenPerpsFeedItem({
@@ -834,6 +1070,42 @@ describe('SocialFeedPositionCard', () => {
       expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
       expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
       expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
+    });
+
+    it('lays out the live P&L by glyph so trailing units follow the digits', () => {
+      const store = new SocialLivePriceStore(0);
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        live: liveSource,
+      });
+      renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: false,
+          }}
+        >
+          <SocialFeedPositionCard item={item} />
+        </SocialLivePricesContext.Provider>,
+      );
+
+      act(() => {
+        store.publish('perp:BTC', 101_000);
+      });
+
+      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
+      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
+        '3',
+      );
+
+      expect(pnlValue).toBeOnTheScreen();
+      expect(pnlPercent).toBeOnTheScreen();
+      // The glyph row defaults to the condensed hero face. These numbers stay
+      // on Inter so a live card matches the static one.
+      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
+      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
     });
   });
 

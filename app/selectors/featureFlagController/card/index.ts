@@ -1,25 +1,34 @@
 import { createSelector } from 'reselect';
+import { Platform } from 'react-native';
 import { selectRemoteFeatureFlags } from '..';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 import { CardProviderIds } from '../../../core/Engine/controllers/card-controller/provider-types';
 import {
+  NO_PROVISIONING_WALLETS,
   readCardFeatureFlag,
   readCardLinkApiEnabled,
+  findImmersveFundingChannelById,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardImmersveMfaEnabled,
   readCardUkMigrationSignInRoutingEnabled,
+  readImmersveCountryFunding,
+  resolveCardProvisioningWallets,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
 } from './read';
 import type {
   CardFeatureFlag,
+  CardProvisioningFacts,
   CardProviderChains,
   CardUkMigrationState,
   GateVersionedFeatureFlag,
+  ImmersveFundingChannel,
   ImmersveProgramConfig,
+  ProvisioningPlatform,
+  ResolvedProvisioningWallet,
 } from './types';
 
 export { defaultCardFeatureFlag, defaultCardUkMigrationFlag } from './defaults';
@@ -33,14 +42,24 @@ export {
   isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardLinkApiEnabled,
+  findImmersveFundingChannelById,
+  isMoneyAccountFundingChannel,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  CARD_PROVISIONING_FLAG_KEYS,
+  IMPLEMENTED_PROVISIONING_WALLETS,
+  NO_PROVISIONING_WALLETS,
   readCardUkMigrationFlag,
   readCardImmersveMfaEnabled,
   readCardUkMigrationSignInRoutingEnabled,
+  readImmersveCountryFunding,
+  readImmersveFundingChannels,
   resolveCardProviderForCountry,
+  resolveCardProvisioningWallets,
+  immersveFundingChannelForCountry,
+  resolveImmersveFundingChannel,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
   type CardUkMigrationUpdateBadgeSeverity,
@@ -75,9 +94,18 @@ export const selectApplePayLearnMoreUrl = createSelector(
   },
 );
 
+const selectBasicFunctionalityForCardLink = (state: {
+  settings?: { basicFunctionalityEnabled?: boolean } | null;
+}): boolean => {
+  if (!('settings' in state) || state.settings == null) return true;
+  return Boolean(state.settings.basicFunctionalityEnabled);
+};
+
 export const selectCardLinkApiEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) =>
+  selectBasicFunctionalityForCardLink,
+  (remoteFeatureFlags, basicFunctionalityEnabled) =>
+    basicFunctionalityEnabled &&
     readCardLinkApiEnabled(remoteFeatureFlags as CardRemoteFeatureFlags),
 );
 
@@ -122,6 +150,13 @@ export const selectCardImmersveCountries = createSelector(
     ),
 );
 
+/** ISO country code -> resolved Immersve funding channel, from `cardImmersveCountries`. */
+export const selectCardImmersveCountryFunding = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): Record<string, ImmersveFundingChannel> =>
+    readImmersveCountryFunding(remoteFeatureFlags as CardRemoteFeatureFlags),
+);
+
 // -- Baanx-only sub-feature flags (renamed in the Baanx migration) --
 
 export const selectMetalCardCheckoutFeatureFlag = createSelector(
@@ -146,56 +181,53 @@ export const selectCardArrivalAnimationEnabledFlag = createSelector(
   },
 );
 
-export const selectGalileoAppleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.galileoAppleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const selectGalileoGoogleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.galileoGoogleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const selectImmersveAppleWalletProvisioningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.immersveAppleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 type PushProvisioningWallet = 'apple_wallet' | 'google_wallet';
+
+type CardProvisioningSelectorFacts = Pick<
+  CardProvisioningFacts,
+  'countryCode' | 'cardProcessor'
+>;
+
+const provisioningPlatform = (): ProvisioningPlatform | null => {
+  if (Platform.OS === 'ios' || Platform.OS === 'android') {
+    return Platform.OS;
+  }
+  return null;
+};
+
+/**
+ * Wallets the nested provisioning flag offers for this device. The empty
+ * result is {@link NO_PROVISIONING_WALLETS}.
+ */
+export function selectCardProvisioningWallets(
+  state: Parameters<typeof selectRemoteFeatureFlags>[0],
+  providerId: string | null | undefined,
+  facts: CardProvisioningSelectorFacts,
+): readonly ResolvedProvisioningWallet[] {
+  const platform = provisioningPlatform();
+  if (!platform || !providerId) {
+    return NO_PROVISIONING_WALLETS;
+  }
+  return resolveCardProvisioningWallets(
+    selectRemoteFeatureFlags(state) as CardRemoteFeatureFlags,
+    providerId,
+    {
+      platform,
+      countryCode: facts.countryCode,
+      cardProcessor: facts.cardProcessor,
+    },
+  );
+}
 
 export function selectPushProvisioningEnabled(
   state: Parameters<typeof selectRemoteFeatureFlags>[0],
   providerId: string | null | undefined,
   walletType: PushProvisioningWallet,
+  facts: CardProvisioningSelectorFacts,
 ): boolean {
-  if (providerId === CardProviderIds.Baanx && walletType === 'apple_wallet') {
-    return selectGalileoAppleWalletProvisioningEnabled(state);
-  }
-  if (providerId === CardProviderIds.Baanx && walletType === 'google_wallet') {
-    return selectGalileoGoogleWalletProvisioningEnabled(state);
-  }
-  if (
-    providerId === CardProviderIds.Immersve &&
-    walletType === 'apple_wallet'
-  ) {
-    return selectImmersveAppleWalletProvisioningEnabled(state);
-  }
-  return false;
+  return selectCardProvisioningWallets(state, providerId, facts).some(
+    (resolved) => resolved.wallet === walletType,
+  );
 }
 
 export const selectCardForgotPasswordFeatureEnabled = createSelector(
@@ -205,6 +237,19 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
       remoteFeatureFlags?.cardForgotPasswordFeature as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/** Selects the Baanx email-code sign-in flow. Off keeps email and password. */
+export const selectCardBaanxPasswordlessLoginEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardBaanxPasswordlessLogin as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 

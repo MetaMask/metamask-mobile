@@ -11,17 +11,19 @@ const NO_FEED_ID = '' as PredictFeedId;
 
 /**
  * Reads a paginated Feed for a Venue. An undefined `feedId` (the Venue does
- * not support the Feed's key) reads nothing and stays idle.
+ * not support the Feed's key) reads nothing and stays idle. `enabled: false`
+ * pauses the read but keeps any cached pages.
  */
 export const useFeed = (
   venueId: PredictVenueId,
   feedId: PredictFeedId | undefined,
   params: FeedParams,
+  { enabled = true }: { enabled?: boolean } = {},
 ) =>
   useInfiniteQuery<GetFeedResult>({
     queryKey: marketDataQueries.getFeed(venueId, feedId ?? NO_FEED_ID, params)
       .queryKey,
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-    enabled: feedId !== undefined,
+    enabled: enabled && feedId !== undefined,
   });

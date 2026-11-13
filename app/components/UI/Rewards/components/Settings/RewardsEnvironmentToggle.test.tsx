@@ -49,10 +49,6 @@ jest.mock('../../../../../reducers/rewardsMoney', () => ({
   })),
 }));
 
-jest.mock('../../../../../constants/navigation/Routes', () => ({
-  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
-}));
-
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {

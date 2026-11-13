@@ -1,12 +1,18 @@
 import { useCallback } from 'react';
-import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useSocialTermsGate } from '../terms/useSocialTermsGate';
+import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
+import { useRequireSocialProfileOnboarding } from './useRequireSocialProfileOnboarding';
 
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
 
 export interface UseFollowWithNotificationSetupOptions {
   requireSocialTerms?: boolean;
+  /**
+   * Gates Follow behind a linked social wallet. Social V1 hosts pass this;
+   * Social V0 and other embeds leave it off.
+   */
+  requireSocialProfile?: boolean;
 }
 
 export interface UseFollowWithNotificationSetupResult {
@@ -41,13 +47,27 @@ export interface UseFollowWithNotificationSetupResult {
  */
 export const useFollowWithNotificationSetup = ({
   requireSocialTerms = false,
+  requireSocialProfile = false,
 }: UseFollowWithNotificationSetupOptions = {}): UseFollowWithNotificationSetupResult => {
   const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
 
   const followWithSetup = useCallback(
-    async (isFollowing: boolean, performFollow: PerformFollow) => {
-      if (requireSocialTerms && !ensureSocialTermsAccepted()) {
+    async function follow(
+      isFollowing: boolean,
+      performFollow: PerformFollow,
+    ): Promise<void> {
+      // The gate blocked the toggle, so replaying it after Accept runs it once.
+      if (
+        requireSocialTerms &&
+        !ensureSocialTermsAccepted(() => {
+          follow(isFollowing, performFollow).catch(() => undefined);
+        })
+      ) {
+        return;
+      }
+      if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
         return;
       }
       await performFollow();
@@ -57,7 +77,13 @@ export const useFollowWithNotificationSetup = ({
         openSetupIfNeeded();
       }
     },
-    [ensureSocialTermsAccepted, openSetupIfNeeded, requireSocialTerms],
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
+      openSetupIfNeeded,
+      requireSocialProfile,
+      requireSocialTerms,
+    ],
   );
 
   return { followWithSetup };

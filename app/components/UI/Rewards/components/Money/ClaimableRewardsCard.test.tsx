@@ -2,8 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
+
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => false),
+}));
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
@@ -52,12 +57,28 @@ describe('claimButtonState', () => {
       claimButtonState('1000000', '50', true, '100000000', '12000000'),
     ).toBe('claim');
     expect(claimButtonState('0', '0', false, '100000000')).toBe('paused');
+    expect(claimButtonState('0', '0', false, '100000000', '0', true)).toBe(
+      'claim',
+    );
     expect(claimButtonState('0', '50', false, '0', '12000000')).toBe('paused');
     expect(claimButtonState('0', '50', false, '0', '0')).toBe('claimed');
+  });
+
+  it('keeps Claim for a tax hold even when another balance is blocked', () => {
+    expect(claimButtonState('0', '0', false, '120000', '130000', true)).toBe(
+      'claim',
+    );
+    expect(claimButtonState('0', '0', false, '120000', '130000')).toBe(
+      'paused',
+    );
   });
 });
 
 describe('ClaimableRewardsCard', () => {
+  beforeEach(() => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
+  });
+
   it('renders Claim when a route clears $1', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -180,6 +201,78 @@ describe('ClaimableRewardsCard', () => {
     expect(onPaused).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the held balance and Claim when tax documentation is the only hold', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          held: 'Held',
+        }}
+        claimable="0"
+        claimed="0"
+        held="2000000"
+        heldAmount="$2.00"
+        taxHeld
+        claimableAmount="$0.00"
+        recordedAmount="$2.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the held balance and Claim when tax is held beside a blocked balance', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          held: 'Held',
+        }}
+        claimable="0"
+        claimed="0"
+        held="120000"
+        blocked="130000"
+        heldAmount="$0.12"
+        taxHeld
+        claimableAmount="$0.00"
+        recordedAmount="$0.25"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$0.12');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps Claim when cashback is claimable and some money is held or blocked', () => {
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -238,7 +331,8 @@ describe('ClaimableRewardsCard', () => {
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the claimable amount row for a referrer', () => {
+  it('hides the claimable amount row for a referrer while Social V1 is off', () => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
     const { getByTestId, getByText, queryByTestId, queryByText } =
       renderWithProvider(
         <ClaimableRewardsCard
@@ -268,6 +362,32 @@ describe('ClaimableRewardsCard', () => {
     ).toHaveTextContent('$4.00');
     expect(getByText('Last 7 days')).toBeOnTheScreen();
     expect(getByText('Total earnings')).toBeOnTheScreen();
+  });
+
+  it('shows the claimable amount row for a referrer while Social V1 is on', () => {
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(true);
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isReferrer
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('hides the claimable amount row in the referrer skeleton', () => {

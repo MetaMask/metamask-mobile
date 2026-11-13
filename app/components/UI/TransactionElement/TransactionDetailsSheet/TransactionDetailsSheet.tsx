@@ -1,20 +1,21 @@
 import React, { useCallback, useRef, useMemo } from 'react';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import TransactionDetails from '../TransactionDetails';
 import { toDateFormat } from '../../../../util/date';
 import { makeSelectTransactionMetadataById } from '../../../../selectors/transactionController';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface TransactionDetailsSheetParams {
   tx: {
@@ -53,7 +54,9 @@ type TransactionDetailsSheetRouteProp = RouteProp<
 >;
 
 const TransactionDetailsSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route = useRoute<TransactionDetailsSheetRouteProp>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { tx, transactionElement, transactionDetails } = route.params;
@@ -75,6 +78,10 @@ const TransactionDetailsSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleSpeedUp = useCallback(() => {
     route.params.showSpeedUpModal();
   }, [route.params]);
@@ -84,15 +91,15 @@ const TransactionDetailsSheet: React.FC = () => {
   }, [route.params]);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClose}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>
           {transactionElement?.actionKey}
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {currentTx?.time ? toDateFormat(currentTx.time) : null}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <TransactionDetails
         transactionObject={currentTx}

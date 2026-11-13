@@ -49,6 +49,21 @@ export interface PredictMarketGroup {
   marketType?: PredictMarketType;
   option?: PredictMarketOption;
   displayOrder?: number;
+  /** The card's title when the client can't name it, such as a Player. */
+  label?: string;
+}
+
+/** One level of a Market's Event screen placement. Keys are opaque IDs. */
+export interface PredictMarketLayoutLevel {
+  key: string;
+  order: number;
+}
+
+/** Where a Market goes on the Event screen: tab › section › subgroup. */
+export interface PredictMarketLayout {
+  tab: PredictMarketLayoutLevel;
+  section: PredictMarketLayoutLevel;
+  subgroup?: PredictMarketLayoutLevel;
 }
 
 export interface PredictSport {
@@ -66,7 +81,17 @@ export interface PredictTeam {
   abbreviation?: string;
   logoUrl?: PredictHttpsUrl;
   primaryColor?: PredictHexColor;
+  /**
+   * The direction the logo art points. Absent when the logo has no
+   * direction; such a logo is never mirrored.
+   */
+  logoFacing?: PredictTeamLogoFacing;
 }
+
+export type PredictTeamLogoFacing = 'left' | 'right';
+
+/** The order a Game's Teams are listed in. Absent means `away_first`. */
+export type PredictGameTeamOrder = 'away_first' | 'home_first';
 
 export type PredictGameStatus =
   | 'scheduled'
@@ -79,6 +104,7 @@ export type PredictGameStatus =
 
 export interface PredictGame {
   status: PredictGameStatus;
+  teamOrder?: PredictGameTeamOrder;
   homeTeam: PredictTeam;
   awayTeam: PredictTeam;
   score?: {
@@ -134,6 +160,7 @@ export interface PredictMarket {
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   group?: PredictMarketGroup;
+  layout?: PredictMarketLayout;
   /**
    * Last traded price, yes-side, as of `updatedAt`. Absent when the Market has
    * never traded. Streamed only; the REST read model does not carry it.
@@ -244,6 +271,9 @@ export const PREDICT_FEED_KEYS = [
   'nfl-props',
   'college-football-games',
   'college-football-props',
+  'politics-trump',
+  'politics-congress',
+  'politics-iran',
 ] as const;
 export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
 
@@ -253,6 +283,9 @@ export interface PredictVenueCatalog {
   venueId: PredictVenueId;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  /** The Venue's Categories in display order, each named by its Feed key.
+   * Every key is in `feeds`, and the Category opens on that Feed. */
+  categories: readonly PredictFeedKey[];
   searchSupported: boolean;
 }
 
@@ -272,6 +305,8 @@ export type PredictOrderPreviewParams =
       action: 'buy';
       /** The entered maximum USD spend before fees. */
       amount: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     }
   | {
       marketId: PredictEntityId;
@@ -281,6 +316,8 @@ export type PredictOrderPreviewParams =
        * a Position is share-denominated and the Venue matches whole
        * contracts only. */
       contracts: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     };
 
 /** Wire-shape twin of PredictOrderPreviewParams for the API transport.
@@ -293,6 +330,7 @@ export type FetchOrderPreviewParams =
       marketId: string;
       side: PredictOutcomeSide;
       amount: string;
+      idempotencyKey: string;
     }
   | {
       marketId: string;
@@ -300,6 +338,7 @@ export type FetchOrderPreviewParams =
       action: 'sell';
       /** Positive-integer decimal string: whole contracts only. */
       contracts: string;
+      idempotencyKey: string;
     };
 
 /** Structured fee component source, keyed by the client into localized
@@ -321,6 +360,9 @@ interface PredictOrderPreviewBase {
   side: PredictOutcomeSide;
   estimatedContracts: number;
   averagePrice: PredictDecimal;
+  /** The worst per-contract price the quote walked — the worst ask on a
+   * buy, the worst bid on a sell. The commit signs its yes-leg form. */
+  limitPrice: PredictDecimal;
   fee: PredictAmount;
   /** Backend-owned breakdown of the fee; present when the backend reports it. */
   feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
@@ -330,11 +372,12 @@ interface PredictOrderPreviewBase {
 /** A buy Order Preview: estimated cost, fees, and potential return. */
 export interface PredictBuyOrderPreview extends PredictOrderPreviewBase {
   action: 'buy';
-  /** The entered maximum USD spend before fees. */
+  /** The entered maximum USD spend, fees included. */
   requestedAmount: PredictAmount;
-  /** Estimated cost of the quoted contracts; never above requestedAmount. */
+  /** Estimated cost of the quoted contracts, before the fee. */
   orderAmount: PredictAmount;
-  /** The Order amount plus the fee: the total expected debit. */
+  /** The Order amount plus the fee: the total expected debit. Never above
+   * requestedAmount. */
   totalDebit: PredictAmount;
   potentialPayout: PredictAmount;
   potentialProfit: PredictSignedAmount;
@@ -346,10 +389,6 @@ export interface PredictSellOrderPreview extends PredictOrderPreviewBase {
   action: 'sell';
   /** The requested whole-contract count. */
   requestedContracts: number;
-  /** The worst Bid the sale would consume: the Immediate Order price floor.
-   * Shared wire field — buy Previews report the worst ask, which the mobile
-   * buy schema masks rather than rejects. */
-  limitPrice: PredictDecimal;
   /** Gross Proceeds the quoted contracts sell for, before fees. */
   estimatedProceeds: PredictAmount;
   /** Proceeds minus the fee: the amount credited to the Venue Account. */
@@ -362,6 +401,21 @@ export type PredictOrderPreview =
   | PredictBuyOrderPreview
   | PredictSellOrderPreview;
 
+/** Emitted only by the user's explicit approval of the displayed Preview. */
+export interface PredictOrderApproval {
+  readonly kind: 'user-approved';
+}
+
+/** Venue-neutral bounds checked by the phone for the exact quoted Order. */
+export interface PredictOrderReview {
+  readonly previewId: string;
+  readonly maxCost: string;
+  readonly contracts: string;
+  readonly payout: string;
+  /** Sell proceeds for the full count; partial or no fill can produce less. */
+  readonly proceedsIfFullyFilled: string;
+}
+
 /** Wire-shape body for committing an approved Order Preview. Strictly the
  * Preview reference only: the backend derives every executable detail from
  * the stored, expiring Order Preview, so the client can never alter Market,
@@ -373,15 +427,16 @@ export interface FetchOrderCommitParams {
 /** Status of a committed Order operation, as projected by the backend onto
  * the canonical Order Receipt. `pending` and `submitted` are in-progress
  * projections: the backend has accepted the Commit and is still working, so
- * keep observing by committing the same Order Preview again — the Commit is
- * idempotent by `previewId`. `filled` is a complete fill of the quoted
+ * keep observing with the receipt GET, never another POST. `filled` is a
+ * complete fill of the quoted
  * contracts. `partially_filled` is a non-zero partial fill: a success
  * rendered with honest partial-fill copy. `not_filled` is the canonical
  * outcome for zero fills; nothing was spent and no Position changed.
  * `rejected` means the Venue refused the Order; nothing was filled.
  * `reconciliation_required` means the backend is still resolving the true
- * outcome; render it like an in-progress status and re-observe by committing
- * the same Order Preview again. */
+ * outcome; render it like an in-progress status and re-observe with GET.
+ * `needs_manual_review` means the order scan is too old to sign. The outcome
+ * is unknown; retain its recovery reference without automatic scanning. */
 export type PredictOrderReceiptStatus =
   | 'pending'
   | 'submitted'
@@ -389,7 +444,8 @@ export type PredictOrderReceiptStatus =
   | 'partially_filled'
   | 'not_filled'
   | 'rejected'
-  | 'reconciliation_required';
+  | 'reconciliation_required'
+  | 'needs_manual_review';
 
 /** Shared header of a committed Order's canonical result. One Order
  * produces exactly one Order Receipt, and repeated Commits of the same
@@ -446,6 +502,19 @@ export type PredictOrderReceipt =
   | PredictBuyOrderReceipt
   | PredictSellOrderReceipt;
 
+/** Owner-scoped discovery of financially unresolved operations. */
+export interface PredictUnresolvedOrder {
+  previewId: string;
+  receipt: PredictOrderReceipt;
+  createdAt: PredictTimestamp;
+  submittedAt: PredictTimestamp | null;
+}
+
+export interface PredictUnresolvedOrdersPage {
+  operations: readonly PredictUnresolvedOrder[];
+  nextCursor?: string;
+}
+
 export interface FetchPortfolioPageParams {
   cursor?: string;
   limit?: number;
@@ -474,6 +543,12 @@ export interface PredictEntryContext {
   outcomeLabel: string;
   /** The most specific approved image: the Market's, else the Event's. */
   imageUrl?: PredictHttpsUrl;
+  /**
+   * Ordered, display-ready parts naming the Market beyond its Outcome, such
+   * as `["Josh Jacobs", "60+"]` for a threshold line whose Outcome label is
+   * only "Yes" or "No". Absent when the Outcome label names it alone.
+   */
+  marketLabels?: string[];
 }
 
 /** `open` until the Market's result is determined. `claimable` needs a
@@ -590,10 +665,14 @@ export interface PredictPositionsPage {
 export interface PredictActivityPage {
   venueId: PredictVenueId;
   activity: PredictActivityEntry[];
+  /** Opaque continuation; it can be present even when activity is empty. */
   nextCursor?: string;
   /** Present when the page reaches history the Venue has archived:
    * Settlements before this instant may be missing. Trades stay complete. */
   settlementsCompleteFrom?: PredictTimestamp;
+  /** Explicit demo-only Trades fallback. Production permission failures are
+   * errors, not a successful page with silently missing Settlements. */
+  settlementsDegradedReason?: 'venue_permission_denied';
 }
 
 export interface PredictReadOptions {

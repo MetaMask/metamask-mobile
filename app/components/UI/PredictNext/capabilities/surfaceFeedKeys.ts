@@ -35,6 +35,7 @@ export const PREDICT_SURFACE_FEED_KEYS = {
   nextHomeSections: {
     'sports-football-nfl': 'nfl-games',
     'sports-football-ncaa': 'college-football-games',
+    politics: 'politics-trump',
   },
   /** PredictNext Feed Screen tabs, by Feed Screen and tab. */
   nextFeedScreenTabs: {
@@ -45,6 +46,24 @@ export const PREDICT_SURFACE_FEED_KEYS = {
     'sports-football-ncaa': {
       games: 'college-football-games',
       props: 'college-football-props',
+    },
+    sports: {
+      nfl: 'nfl-games',
+      ncaaf: 'college-football-games',
+    },
+    /**
+     * Home's Trending carousel ranks the Games of the NFL and college
+     * football Games reads, so its screen shows those Feeds. No PredictNext
+     * Venue serves a `trending` Feed yet.
+     */
+    trending: {
+      nfl: 'nfl-games',
+      ncaaf: 'college-football-games',
+    },
+    politics: {
+      trump: 'politics-trump',
+      congress: 'politics-congress',
+      iran: 'politics-iran',
     },
   },
 } as const satisfies {

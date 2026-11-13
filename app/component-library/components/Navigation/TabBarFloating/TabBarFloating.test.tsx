@@ -39,11 +39,14 @@ jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
 jest.mock('../../../../util/haptics');
 
 const mockNavigateToMoneyHome = jest.fn();
-jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
-    navigateToMoneyHome: mockNavigateToMoneyHome,
+jest.mock(
+  '../../../../components/UI/Money/hooks/useMoneyHomeNavigation',
+  () => ({
+    useMoneyHomeNavigation: () => ({
+      navigateToMoneyHome: mockNavigateToMoneyHome,
+    }),
   }),
-}));
+);
 
 const mockNavigateToSocialTab = jest.fn();
 jest.mock(
@@ -323,7 +326,9 @@ describe('TabBarFloating', () => {
 
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(trackExploreSearchOpened).toHaveBeenCalledWith('nav_bar');
-    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH);
+    expect(navigation.navigate).toHaveBeenCalledWith(Routes.EXPLORE_SEARCH, {
+      entryPoint: 'nav_bar',
+    });
   });
 
   describe('with the trade trailing action', () => {
@@ -365,6 +370,18 @@ describe('TabBarFloating', () => {
 
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET_VIEW,
+    });
+  });
+
+  it('emits tabPress to the tapped tab so its screen can react to a re-tap', () => {
+    const { getByTestId } = renderBar();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+
+    expect(navigation.emit).toHaveBeenCalledWith({
+      type: 'tabPress',
+      target: '4',
+      canPreventDefault: true,
     });
   });
 

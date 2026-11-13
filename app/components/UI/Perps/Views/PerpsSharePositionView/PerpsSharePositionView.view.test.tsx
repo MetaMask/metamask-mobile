@@ -196,8 +196,8 @@ const renderSharePositionSheet = ({
           : createParamsProbe(Routes.SOCIAL.POST_COMPOSER),
       },
       {
-        name: Routes.SOCIAL.V1,
-        Component: createParamsProbe(Routes.SOCIAL.V1),
+        name: Routes.HOME_TABS,
+        Component: createParamsProbe(Routes.HOME_TABS),
       },
     ],
   });
@@ -258,7 +258,6 @@ describe('PerpsSharePositionView', () => {
     expect(routeParamsByName[Routes.SOCIAL.POST_COMPOSER]).toEqual({
       position: socialEthLong,
       entryPoint: 'perps',
-      openFeedAfterPost: true,
     });
     await waitFor(() =>
       expect(
@@ -295,7 +294,7 @@ describe('PerpsSharePositionView', () => {
     ).toBeEnabled();
   });
 
-  it('posts through the composer and lands on the Social feed', async () => {
+  it('posts through the composer and lands on the Trending feed', async () => {
     const swapComment: SwapCommentResponse = {
       uid: 'comment-1',
       transactionHash: '0xabc',
@@ -317,13 +316,21 @@ describe('PerpsSharePositionView', () => {
         PerpsSharePositionSheetSelectorsIDs.POST_TO_METAMASK,
       ),
     );
+    fireEvent.changeText(
+      await screen.findByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'Long ETH into the weekend',
+    );
     fireEvent.press(
       await screen.findByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     );
 
     expect(
-      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+      await screen.findByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
     ).toBeOnTheScreen();
+    expect(routeParamsByName[Routes.HOME_TABS]).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { initialTab: 'trending' },
+    });
     expect(messengerSpy).toHaveBeenCalledWith(
       'SocialService:createSwapComment',
       expect.objectContaining({ positionUid: socialEthLong.positionId }),
