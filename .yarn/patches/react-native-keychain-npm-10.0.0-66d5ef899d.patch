@@ -1,0 +1,42 @@
+diff --git a/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesGcm.kt b/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesGcm.kt
+index 6b6e626161945d21d2cf1392a5d16d41d1675b57..efee972072adfee6ab13277ef53bd4bf2bcf13a6 100644
+--- a/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesGcm.kt
++++ b/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreAesGcm.kt
+@@ -128,6 +128,14 @@ class CipherStorageKeystoreAesGcm(
+ 
+         try {
+             key = extractGeneratedKey(safeAlias, level, retries)
++            // Device unlock authorizes this key for validityDuration seconds.
++            // Decrypting first skips BiometricPrompt for that window.
++            if (requiresAuth) {
++                handler.askAccessPermissions(
++                    CryptoContext(safeAlias, key!!, password, username, CryptoOperation.DECRYPT)
++                )
++                return
++            }
+             val results = CipherStorage.DecryptionResult(
+                 decryptBytes(key, username), decryptBytes(key, password)
+             )
+diff --git a/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.kt b/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.kt
+index fc8ebf18c60c1efb5f2b44ec7d8e0762c519213c..63833557fb3496d4c74c5b1eb39c4bc1929fcef8 100644
+--- a/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.kt
++++ b/android/src/main/java/com/oblador/keychain/cipherStorage/CipherStorageKeystoreRsaEcb.kt
+@@ -109,13 +109,11 @@ class CipherStorageKeystoreRsaEcb(reactContext: ReactApplicationContext) :
+             // key is always NOT NULL otherwise GeneralSecurityException raised
+             key = extractGeneratedKey(safeAlias, level, retries)
+ 
+-            val results =
+-                CipherStorage.DecryptionResult(
+-                    decryptBytes(key, username),
+-                    decryptBytes(key, password)
+-                )
+-
+-            handler.onDecrypt(results, null)
++            // Device unlock authorizes this key for validityDuration seconds.
++            // Always prompt so that window cannot skip BiometricPrompt.
++            handler.askAccessPermissions(
++                CryptoContext(safeAlias, key!!, password, username, CryptoOperation.DECRYPT)
++            )
+         } catch (ex: UserNotAuthenticatedException) {
+             Log.d(LOG_TAG, "Unlock of keystore is needed. Error: ${ex.message}", ex)
+ 

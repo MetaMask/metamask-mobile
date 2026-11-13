@@ -15,6 +15,11 @@ import type {
 import RulesBottomSheet from './RulesBottomSheet';
 import { RulesBottomSheetTestIds } from './RulesBottomSheet.testIds';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(() => Promise.resolve()),
 }));

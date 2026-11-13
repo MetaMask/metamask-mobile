@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useRef } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -37,12 +36,16 @@ import {
 } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ImmersveRevokeAllowanceSheetTestIds } from './ImmersveRevokeAllowanceSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ImmersveRevokeAllowanceSheetRouteParams {
   entrypoint?: CardEntryPoint | string;
 }
 
 const ImmersveRevokeAllowanceSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -180,7 +183,8 @@ const ImmersveRevokeAllowanceSheet = () => {
       testID={ImmersveRevokeAllowanceSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: ImmersveRevokeAllowanceSheetTestIds.CLOSE_BUTTON,
@@ -193,7 +197,7 @@ const ImmersveRevokeAllowanceSheet = () => {
         >
           {strings('card.revoke_allowance_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         <Text
           variant={TextVariant.BodyMd}

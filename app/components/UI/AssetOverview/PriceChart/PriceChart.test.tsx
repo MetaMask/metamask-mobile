@@ -160,8 +160,8 @@ describe('PriceChart', () => {
         <PriceChart {...defaultProps} isLoading />,
       );
 
-      // Should render loading overlay
       expect(getByTestId('price-chart-loading')).toBeOnTheScreen();
+      expect(getByTestId('chart-line-skeleton-line')).toBeOnTheScreen();
     });
 
     it('does not show no data overlay when loading', () => {
