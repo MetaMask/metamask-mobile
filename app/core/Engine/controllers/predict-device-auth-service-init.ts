@@ -118,14 +118,19 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     fetch: (input, init) => global.fetch(input, init),
   });
 
-  initMessenger.subscribe('KeyringController:lock', () => controller.clear());
+  // Lock, sign-out and a change of Predict User also drop the approved
+  // intents: a confirmation never outlives the session that gave it.
+  const clearApprovals = () => {
+    controller.clearApprovals().catch(() => undefined);
+  };
+  initMessenger.subscribe('KeyringController:lock', clearApprovals);
   initMessenger.subscribe('AuthenticationController:stateChange', () => {
     const currentAuthentication = initMessenger.call(
       'AuthenticationController:getState',
     );
     if (isSignedIn && !currentAuthentication.isSignedIn) {
       rememberCanonicalProfileId(undefined);
-      controller.clear();
+      clearApprovals();
     }
     isSignedIn = currentAuthentication.isSignedIn;
   });
@@ -133,7 +138,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     'AuthenticationController:profileSignIn',
     ({ profileId, profileIdChanged }) => {
       if (profileIdChanged) {
-        controller.clear();
+        clearApprovals();
       }
       rememberCanonicalProfileId(profileId);
     },

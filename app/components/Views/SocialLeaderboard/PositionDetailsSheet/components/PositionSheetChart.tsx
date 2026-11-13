@@ -9,8 +9,12 @@ import Svg, { Circle, ClipPath, Defs, G, Line, Path } from 'react-native-svg';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -21,7 +25,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
   buildChartScale,
@@ -30,29 +40,38 @@ import {
   findNearestMarkerIndex,
   measurePolylineLength,
 } from '../utils/chartGeometry';
-import { formatChartTimestamp } from '../utils/chartWindow';
 import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
 export const POSITION_SHEET_CHART_HEIGHT = 280;
+/** Hold before scrubbing starts, so a drag that begins on the chart still scrolls the sheet. */
+export const SCRUB_LONG_PRESS_MS = 200;
 const CHART_INSET_TOP = 24;
 const CHART_INSET_BOTTOM = 24;
 const LINE_WIDTH = 2;
 const CHART_HORIZONTAL_INSET = 16;
 const MARKER_SIZE = 16;
 const MARKER_HIT_SLOP = 16;
-const TOOLTIP_OFFSET = 64;
+/** Space between the marker edge and the active ring. */
+const MARKER_RING_GAP = 2;
+const MARKER_RING_WIDTH = 2;
+const MARKER_RING_SIZE =
+  MARKER_SIZE + (MARKER_RING_GAP + MARKER_RING_WIDTH) * 2;
+/** Space between the active ring's outer edge and the tooltip. */
+const TOOLTIP_GAP = 8;
 const TOOLTIP_EDGE_INSET = 8;
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 /** Full-height band between two x positions, for the scrub clip paths. */
-const rectPath = (fromX: number, toX: number): string =>
-  `M${fromX},0 H${Math.max(toX, fromX)} V${POSITION_SHEET_CHART_HEIGHT} H${fromX} Z`;
+const rectPath = (fromX: number, toX: number, height: number): string =>
+  `M${fromX},0 H${Math.max(toX, fromX)} V${height} H${fromX} Z`;
 
 export interface PositionSheetChartProps {
   prices: TokenPrice[];
   isLoading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
   timeAxisLabels: string[];
@@ -60,6 +79,8 @@ export interface PositionSheetChartProps {
   overlayStyle: React.ComponentProps<typeof Animated.View>['style'];
   /** Called with the scrubbed point, or `null` when the finger lifts. */
   onScrub: (point: TokenPrice | null) => void;
+  /** Plot height. Defaults to `POSITION_SHEET_CHART_HEIGHT`. */
+  height?: number;
 }
 
 /**
@@ -69,18 +90,26 @@ export interface PositionSheetChartProps {
 const PositionSheetChart = ({
   prices,
   isLoading,
+  isError = false,
+  onRetry,
   isTrendPositive,
   markers,
   timeAxisLabels,
   lineProgress,
   overlayStyle,
   onScrub,
+  height = POSITION_SHEET_CHART_HEIGHT,
 }: PositionSheetChartProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
   const clipId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const [width, setWidth] = useState(0);
   const [scrubIndex, setScrubIndex] = useState(-1);
+  const [tooltipFrame, setTooltipFrame] = useState<{
+    id: string;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const values = useMemo(() => prices.map((point) => point[1]), [prices]);
   const scale = useMemo(
@@ -89,12 +118,12 @@ const PositionSheetChart = ({
         values,
         frame: {
           width,
-          height: POSITION_SHEET_CHART_HEIGHT,
+          height,
           insetTop: CHART_INSET_TOP,
           insetBottom: CHART_INSET_BOTTOM,
         },
       }),
-    [values, width],
+    [values, width, height],
   );
 
   const points = useMemo(
@@ -114,10 +143,12 @@ const PositionSheetChart = ({
   );
 
   // The gesture is built once; its handlers read the latest data from here.
-  const scrubStateRef = useRef({ scale, prices, onScrub });
-  scrubStateRef.current = { scale, prices, onScrub };
+  const scrubStateRef = useRef({ scale, prices, points, markerXs, onScrub });
+  scrubStateRef.current = { scale, prices, points, markerXs, onScrub };
+  const scrubMarkerRef = useRef(-1);
 
-  // Horizontal-only activation so a vertical drag still swipes the sheet.
+  // A brief hold starts scrubbing. Moving before then fails the pan, so the
+  // sheet scrolls or drags as usual. Once active, vertical drift keeps scrubbing.
   const scrubGesture = useMemo(() => {
     const updateScrub = (x: number) => {
       const state = scrubStateRef.current;
@@ -125,15 +156,26 @@ const PositionSheetChart = ({
       const index = state.scale.indexAtX(x);
       setScrubIndex(index);
       state.onScrub(state.prices[index] ?? null);
+      const point = state.points[index];
+      const markerIndex = point
+        ? findNearestMarkerIndex(state.markerXs, point.x, MARKER_HIT_SLOP)
+        : -1;
+      if (markerIndex !== scrubMarkerRef.current) {
+        scrubMarkerRef.current = markerIndex;
+        if (markerIndex >= 0) void playSelection()?.catch(() => undefined);
+      }
     };
     return Gesture.Pan()
       .withTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB)
       .runOnJS(true)
-      .activeOffsetX([-6, 6])
-      .failOffsetY([-12, 12])
-      .onStart((event) => updateScrub(event.x))
+      .activateAfterLongPress(SCRUB_LONG_PRESS_MS)
+      .onStart((event) => {
+        void playImpact(ImpactMoment.ChartCrosshair)?.catch(() => undefined);
+        updateScrub(event.x);
+      })
       .onUpdate((event) => updateScrub(event.x))
       .onFinalize(() => {
+        scrubMarkerRef.current = -1;
         setScrubIndex(-1);
         scrubStateRef.current.onScrub(null);
       });
@@ -160,42 +202,87 @@ const PositionSheetChart = ({
 
   const renderTooltip = () => {
     if (!activeMarker || !activeMarkerPoint) return null;
-    const anchorLeft = activeMarkerPoint.x < width / 2;
+    const measured = tooltipFrame?.id === activeMarker.id ? tooltipFrame : null;
+    const tooltipWidth = measured?.width ?? 0;
+    const tooltipHeight = measured?.height ?? 0;
+    const unclampedLeft = activeMarkerPoint.x - tooltipWidth / 2;
+    const left = Math.min(
+      Math.max(unclampedLeft, TOOLTIP_EDGE_INSET),
+      Math.max(width - tooltipWidth - TOOLTIP_EDGE_INSET, TOOLTIP_EDGE_INSET),
+    );
     return (
       <View
         testID={PositionDetailsSheetSelectorsIDs.CHART_TOOLTIP}
         pointerEvents="none"
+        onLayout={(event) => {
+          const { width: nextWidth, height: nextHeight } =
+            event.nativeEvent.layout;
+          setTooltipFrame((current) =>
+            current?.id === activeMarker.id &&
+            current.width === nextWidth &&
+            current.height === nextHeight
+              ? current
+              : { id: activeMarker.id, width: nextWidth, height: nextHeight },
+          );
+        }}
         style={[
-          tw.style('absolute rounded-lg px-3 py-2 bg-default shadow-md'),
+          tw.style(
+            'absolute rounded-lg border border-muted bg-background-subsection',
+            measured ? 'opacity-100' : 'opacity-0',
+            {
+              paddingHorizontal: 10,
+              paddingVertical: 8,
+            },
+          ),
           {
-            top: Math.max(activeMarkerPoint.y - TOOLTIP_OFFSET, 0),
-            ...(anchorLeft
-              ? {
-                  left: Math.max(
-                    activeMarkerPoint.x - MARKER_SIZE,
-                    TOOLTIP_EDGE_INSET,
-                  ),
-                }
-              : {
-                  right: Math.max(
-                    width - activeMarkerPoint.x - MARKER_SIZE,
-                    TOOLTIP_EDGE_INSET,
-                  ),
-                }),
+            top: Math.max(
+              activeMarkerPoint.y -
+                MARKER_RING_SIZE / 2 -
+                TOOLTIP_GAP -
+                tooltipHeight,
+              0,
+            ),
+            left,
           },
         ]}
       >
-        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-          {activeMarker.tooltipLabel}
-        </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {formatChartTimestamp(activeMarker.timestampMs)}
+          {activeMarker.actionLabel}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName={
+            activeMarker.isValuePositive
+              ? 'text-success-default'
+              : 'text-error-default'
+          }
+        >
+          {activeMarker.valueLabel}
         </Text>
       </View>
     );
   };
 
   const renderChartBody = () => {
+    if (isError) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          style={{ height: POSITION_SHEET_CHART_HEIGHT }}
+        >
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={onRetry}
+            testID={PositionDetailsSheetSelectorsIDs.CHART_RETRY}
+          >
+            {strings('offline_mode.try_again')}
+          </Button>
+        </Box>
+      );
+    }
     if (isLoading) {
       return (
         <View testID={PositionDetailsSheetSelectorsIDs.CHART_LOADING}>
@@ -205,7 +292,7 @@ const PositionSheetChart = ({
           >
             <SkeletonPlaceholder.Item
               width={Math.max(width - CHART_HORIZONTAL_INSET * 2, 0)}
-              height={POSITION_SHEET_CHART_HEIGHT}
+              height={height}
               marginLeft={CHART_HORIZONTAL_INSET}
               borderRadius={6}
             />
@@ -219,15 +306,15 @@ const PositionSheetChart = ({
       <>
         <Svg
           width={width}
-          height={POSITION_SHEET_CHART_HEIGHT}
+          height={height}
           testID={PositionDetailsSheetSelectorsIDs.CHART_LINE}
         >
           <Defs>
             <ClipPath id={`${clipId}-active`}>
-              <Path d={rectPath(0, scrubX)} />
+              <Path d={rectPath(0, scrubX, height)} />
             </ClipPath>
             <ClipPath id={`${clipId}-inactive`}>
-              <Path d={rectPath(scrubX, width)} />
+              <Path d={rectPath(scrubX, width, height)} />
             </ClipPath>
           </Defs>
           <AnimatedPath
@@ -256,7 +343,7 @@ const PositionSheetChart = ({
                 x1={scrubPoint.x}
                 x2={scrubPoint.x}
                 y1={0}
-                y2={POSITION_SHEET_CHART_HEIGHT}
+                y2={height}
                 stroke={colors.icon.alternative}
                 strokeWidth={1}
                 strokeDasharray="4 4"
@@ -281,28 +368,48 @@ const PositionSheetChart = ({
             const point = points[marker.index];
             if (!point) return null;
             const isEnter = marker.intent === 'enter';
+            const isActive = activeMarker?.id === marker.id;
             return (
-              <View
-                key={marker.id}
-                testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${marker.id}`}
-                style={[
-                  tw.style(
-                    'absolute items-center justify-center rounded-full border-2 border-default',
-                    isEnter ? 'bg-success-default' : 'bg-error-default',
-                  ),
-                  {
-                    width: MARKER_SIZE,
-                    height: MARKER_SIZE,
-                    left: markerXs[index] - MARKER_SIZE / 2,
-                    top: point.y - MARKER_SIZE / 2,
-                  },
-                ]}
-              >
-                <Icon
-                  name={isEnter ? IconName.Add : IconName.Minus}
-                  size={IconSize.Xs}
-                  color={IconColor.PrimaryInverse}
-                />
+              <View key={marker.id}>
+                {isActive ? (
+                  <View
+                    pointerEvents="none"
+                    testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-ring-${marker.id}`}
+                    style={[
+                      tw.style('absolute rounded-full border-2'),
+                      {
+                        width: MARKER_RING_SIZE,
+                        height: MARKER_RING_SIZE,
+                        borderColor: isEnter
+                          ? colors.success.default
+                          : colors.error.default,
+                        left: markerXs[index] - MARKER_RING_SIZE / 2,
+                        top: point.y - MARKER_RING_SIZE / 2,
+                      },
+                    ]}
+                  />
+                ) : null}
+                <View
+                  testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${marker.id}`}
+                  style={[
+                    tw.style(
+                      'absolute items-center justify-center rounded-full',
+                      isEnter ? 'bg-success-default' : 'bg-error-default',
+                    ),
+                    {
+                      width: MARKER_SIZE,
+                      height: MARKER_SIZE,
+                      left: markerXs[index] - MARKER_SIZE / 2,
+                      top: point.y - MARKER_SIZE / 2,
+                    },
+                  ]}
+                >
+                  <Icon
+                    name={isEnter ? IconName.Add : IconName.Minus}
+                    size={IconSize.Xs}
+                    color={IconColor.PrimaryInverse}
+                  />
+                </View>
               </View>
             );
           })}
@@ -319,7 +426,7 @@ const PositionSheetChart = ({
         <View
           testID={PositionDetailsSheetSelectorsIDs.CHART}
           onLayout={handleLayout}
-          style={{ height: POSITION_SHEET_CHART_HEIGHT }}
+          style={{ height }}
         >
           {width > 0 ? renderChartBody() : null}
         </View>

@@ -1,3 +1,4 @@
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   useCallback,
@@ -838,7 +839,9 @@ export const usePerpsProSizeInput = ({
 
   const denomination = useMemo<PerpsProSizeDenomination>(
     () =>
-      showsAssetSize ? { unit: 'asset', symbol: assetSymbol } : { unit: 'usd' },
+      showsAssetSize
+        ? { unit: 'asset', symbol: getPerpsDisplaySymbol(assetSymbol) }
+        : { unit: 'usd' },
     [assetSymbol, showsAssetSize],
   );
 

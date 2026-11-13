@@ -59,7 +59,7 @@ const TokensFullView = () => {
           onBack={handleBackPress}
           endButtonIconProps={[
             {
-              iconName: IconName.Add,
+              iconName: IconName.Customize,
               onPress: goToAddToken,
               // Same ID the control bar's add button used, so existing E2E selectors keep working.
               testID: 'import-token-button',

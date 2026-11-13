@@ -418,7 +418,9 @@ export const usePriceChartState = ({
   );
 
   const assetIdRef = useRef(assetId);
-  assetIdRef.current = assetId;
+  useEffect(() => {
+    assetIdRef.current = assetId;
+  });
 
   const visibilityTraceStartedRef = useRef<string | null>(null);
   /** Matches pending manual trace so {@link endTrace} uses the same `TraceName` as {@link trace}. */
@@ -642,7 +644,7 @@ export const usePriceChartState = ({
   const wsEnabled =
     chartType === ChartType.Line ? lineWsEnabled : candleWsEnabled;
 
-  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  /** OHLCV or WebView init still in flight. Controls stay visible; only the chart skeletons. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
   /** First visit only; time-range / interval refresh keeps selector and bars visible. */
@@ -790,40 +792,52 @@ export const usePriceChartState = ({
     return firstVisible.close;
   }, [ohlcvData, visibleFromMs, isTechnicalIndicatorsEnabled, lastBarTime]);
 
-  // Store last good compare price to show during loading
-  const stableComparePriceRef = useRef<number | null>(null);
-  const stableSeriesKeyRef = useRef<string>(ohlcvSeriesKey);
+  // Last good compare price, used while loading or before the series key commits.
+  const [stableComparePrice, setStableComparePrice] = useState<number | null>(
+    currentComparePrice,
+  );
+  const [stableSeriesKey, setStableSeriesKey] = useState(ohlcvSeriesKey);
 
-  // Update stable compare price when chart finishes loading AND series matches
   useEffect(() => {
-    if (stableSeriesKeyRef.current !== ohlcvSeriesKey) {
-      stableSeriesKeyRef.current = ohlcvSeriesKey;
-    } else if (!chartLoading && currentComparePrice !== null) {
-      stableComparePriceRef.current = currentComparePrice;
+    if (stableSeriesKey !== ohlcvSeriesKey) {
+      setStableSeriesKey(ohlcvSeriesKey);
+    } else if (
+      !chartLoading &&
+      currentComparePrice !== null &&
+      stableComparePrice !== currentComparePrice
+    ) {
+      setStableComparePrice(currentComparePrice);
     }
-  }, [chartLoading, currentComparePrice, ohlcvSeriesKey]);
+  }, [
+    chartLoading,
+    currentComparePrice,
+    ohlcvSeriesKey,
+    stableSeriesKey,
+    stableComparePrice,
+  ]);
 
-  // Use stable while (loading OR series mismatch), otherwise use current
-  // TODO(ASSETS-3745): reads a ref during render, which is unsafe under
-  // concurrent rendering. Preserved verbatim here — behaviour change is out of
-  // scope for the compound-component refactor.
   const dynamicComparePrice =
-    (chartLoading || stableSeriesKeyRef.current !== ohlcvSeriesKey) &&
-    stableComparePriceRef.current !== null
-      ? stableComparePriceRef.current
+    (chartLoading || stableSeriesKey !== ohlcvSeriesKey) &&
+    stableComparePrice !== null
+      ? stableComparePrice
       : currentComparePrice;
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
   const realtimeClose = wsEnabled ? latestBar?.close : undefined;
 
-  // Hold the last WS price during time-range transitions to avoid stale API flicker
-  // TODO(ASSETS-3745): writes and reads a ref during render. Preserved verbatim.
-  const lastRealtimeRef = useRef<number | undefined>(undefined);
-  if (realtimeClose !== undefined) {
-    lastRealtimeRef.current = realtimeClose;
+  // Hold the last WS price during time-range transitions to avoid stale API flicker.
+  const [realtimeHold, setRealtimeHold] = useState(() => ({
+    tracked: realtimeClose,
+    last: realtimeClose,
+  }));
+  if (realtimeHold.tracked !== realtimeClose) {
+    setRealtimeHold({
+      tracked: realtimeClose,
+      last: realtimeClose !== undefined ? realtimeClose : realtimeHold.last,
+    });
   }
-  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+  const stablePrice = realtimeClose ?? realtimeHold.last;
 
   const displayPrice =
     crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
@@ -983,9 +997,10 @@ export const usePriceChartState = ({
     return undefined;
   };
 
-  // TODO(ASSETS-3745): writes a ref during render. Preserved verbatim.
   const showCandleEmptyStateRef = useRef(showCandleEmptyState);
-  showCandleEmptyStateRef.current = showCandleEmptyState;
+  useEffect(() => {
+    showCandleEmptyStateRef.current = showCandleEmptyState;
+  });
 
   useEffect(() => {
     if (!showCandleEmptyState) {

@@ -18,6 +18,7 @@ import * as reactRedux from 'react-redux';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { handleFetch } from '@metamask/controller-utils';
+import { act, waitFor } from '@testing-library/react-native';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -557,6 +558,73 @@ describe('TokenDetails', () => {
     expect(handleFetch).toHaveBeenCalledWith(
       expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
     );
+  });
+
+  it('keeps token details on screen when the spot price response is null', async () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    jest.mocked(handleFetch).mockReset();
+    jest.mocked(handleFetch).mockResolvedValue(null);
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { findByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+
+    expect(await findByText('Token details')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(handleFetch).toHaveBeenCalledTimes(1);
+    });
+    await act(async () => {
+      await jest.mocked(handleFetch).mock.results[0]?.value;
+    });
+    expect(queryByText('Market details')).not.toBeOnTheScreen();
+    expect(errorSpy).not.toHaveBeenCalledWith(
+      'Failed to fetch market data:',
+      expect.anything(),
+    );
+    errorSpy.mockRestore();
+  });
+
+  it('logs a spot price fetch failure and still renders token details', async () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    const failure = new Error('spot price unavailable');
+    jest.mocked(handleFetch).mockReset();
+    jest.mocked(handleFetch).mockRejectedValue(failure);
+    jest.spyOn(reactRedux, 'useSelector').mockImplementation(
+      mockUseSelectorImplementation({
+        selectTokenMarketData: null,
+        selectConversionRateBySymbol: mockExchangeRate,
+        selectNativeCurrencyByChainId: 'ETH',
+        isEvmNetwork: true,
+      }),
+    );
+
+    const { findByText, queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDAI} />,
+      { state: initialState },
+    );
+
+    expect(await findByText('Token details')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        'Failed to fetch market data:',
+        failure,
+      );
+    });
+    expect(queryByText('Market details')).not.toBeOnTheScreen();
+    errorSpy.mockRestore();
   });
 
   // Supplied data is already in the selected currency, so applying the native

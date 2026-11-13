@@ -44,14 +44,14 @@ export function claimButtonState(
   blocked?: string,
   /**
    * Income is held only until tax documentation is done. The button stays
-   * Claim. A blocked balance still shows Paused.
+   * Claim so the press opens the tax flow, even beside a blocked balance.
    */
   taxHeld = false,
 ): ClaimButtonState {
   if (canClaim && isPositiveBaseUnits(claimable)) {
     return 'claim';
   }
-  if (taxHeld && isPositiveBaseUnits(held) && !isPositiveBaseUnits(blocked)) {
+  if (taxHeld && isPositiveBaseUnits(held)) {
     return 'claim';
   }
   if (isPositiveBaseUnits(held) || isPositiveBaseUnits(blocked)) {

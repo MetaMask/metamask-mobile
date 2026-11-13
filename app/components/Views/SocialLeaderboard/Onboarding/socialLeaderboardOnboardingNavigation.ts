@@ -3,6 +3,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { SocialLeaderboardTabParams } from '../../../Nav/Main/types/navigation';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   selectFeatureFlagThresholdGroups,
@@ -154,7 +155,12 @@ export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(navigate, () =>
+      pushSocialLeaderboard(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {
@@ -185,7 +191,11 @@ export const navigateToSocialLeaderboard = (
     pushSocialLeaderboard(navigate, params);
     return;
   }
-  if (!ensureSocialTermsAccepted(navigate)) {
+  if (
+    !ensureSocialTermsAccepted(navigate, () =>
+      navigateToSocialLeaderboard(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {
@@ -212,7 +222,12 @@ export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(navigate, () =>
+      navigateToSocialTab(navigate, params),
+    )
+  ) {
     return;
   }
   if (!ensureSocialProfileCreated(navigate)) {
@@ -229,6 +244,27 @@ export const navigateToSocialTab = (
 };
 
 /**
+ * Pops the root stack and selects the Social tab under Home (Social V1 only).
+ * Unlike `navigateToSocialTab`, it skips the terms, profile and onboarding
+ * gates, so call it only after the user has passed them.
+ *
+ * @param navigation - The caller's navigation object.
+ * @param params - Optional Social tab params, such as the V1 `initialTab`.
+ */
+export const popToSocialTab = (
+  navigation: Pick<AppNavigationProp, 'navigate'>,
+  params?: SocialLeaderboardTabParams,
+): void => {
+  navigation.navigate(
+    Routes.HOME_TABS,
+    params
+      ? { screen: Routes.SOCIAL.TAB, params }
+      : { screen: Routes.SOCIAL.TAB },
+    { pop: true },
+  );
+};
+
+/**
  * Leaves profile onboarding after **Let's go** on the manual path. Pops the
  * onboarding screen off the stack and selects the Social tab under Home, so the
  * bottom tab bar stays visible and Back returns to the previous screen.
@@ -241,11 +277,7 @@ export const navigateToSocialTab = (
 export const finishProfileOnboardingToSocialTab = (
   navigation: Pick<AppNavigationProp, 'navigate'>,
 ): void => {
-  navigation.navigate(
-    Routes.HOME_TABS,
-    { screen: Routes.SOCIAL.TAB },
-    { pop: true },
-  );
+  popToSocialTab(navigation);
 };
 
 /**

@@ -9,6 +9,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   ButtonSize,
+  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -255,13 +256,21 @@ const OnboardingInterestQuestionnaire = () => {
               key={option.id}
               variant={ListItemVariant.OneLine}
               isSelected={isSelected}
-              showSelectedIcon
               endAccessory={
-                <Icon
-                  name={IconName.Add}
-                  size={IconSize.Lg}
-                  color={IconColor.IconDefault}
-                />
+                isSelected ? (
+                  <Checkbox
+                    isSelected
+                    onChange={() => handleOptionPress(option.id)}
+                    pointerEvents="none"
+                    accessibilityLabel={strings(option.labelKey)}
+                  />
+                ) : (
+                  <Icon
+                    name={IconName.Add}
+                    size={IconSize.Lg}
+                    color={IconColor.IconDefault}
+                  />
+                )
               }
               onPress={() => handleOptionPress(option.id)}
               twClassName={`rounded-full border pl-6 pr-6 py-4 ${

@@ -1,0 +1,117 @@
+import { sha256 } from '@noble/hashes/sha2';
+
+import {
+  coveredComponents,
+  type SigningProfile,
+} from '../venueSigningProfiles';
+import { TemplateError, type RenderedRequest } from './profileTemplates';
+
+/** One entry of `signatures` in the `Venue-Authorization` envelope. */
+export interface DeviceSignature {
+  requestId: string;
+  signatureInput: string;
+  signature: string;
+}
+
+/** Phone-owned values for one signing pass. */
+export interface DeviceSigningContext {
+  a2t: string;
+  /** Device public key, unpadded base64url. */
+  deviceKey: string;
+  /** Device salt, unpadded base64url. */
+  salt: string;
+}
+
+export interface DeviceSignerDependencies {
+  sign: (message: Uint8Array) => Promise<Uint8Array>;
+  requestId: () => string;
+  /** Unix time in seconds. */
+  now: () => number;
+}
+
+/** `Content-Digest` (RFC 9530) of the exact body bytes, standard base64. */
+export const contentDigest = (body: string): string =>
+  `sha-256=:${Buffer.from(sha256(new TextEncoder().encode(body))).toString(
+    'base64',
+  )}:`;
+
+const signatureParams = (
+  profile: SigningProfile,
+  request: RenderedRequest,
+  requestId: string,
+  created: number,
+): string => {
+  const { lifetimeSec, tag } = profile.implementation.params;
+  const covered = coveredComponents(profile, request.method)
+    .map((component) => `"${component}"`)
+    .join(' ');
+  return `(${covered});created=${created};expires=${
+    created + lifetimeSec
+  };nonce="${requestId}";tag="${tag}"`;
+};
+
+/**
+ * RFC 9421 signing base for one rendered request. The phone builds every line
+ * from the request it rendered, the pinned profile and its own session. It
+ * never signs a base it did not build.
+ */
+export const deviceSigningBase = (input: {
+  profile: SigningProfile;
+  request: RenderedRequest;
+  context: DeviceSigningContext;
+  requestId: string;
+  signatureParams: string;
+}): string => {
+  const { profile, request, context } = input;
+  const { authority, headers, tokenScheme } = profile.implementation.params;
+  const values = new Map<string, string>([
+    ['@method', request.method],
+    ['@authority', authority],
+    ['@path', request.path],
+    ['@query', `?${request.query}`],
+    ['authorization', `${tokenScheme} ${context.a2t}`],
+    [headers.requestId, input.requestId],
+    [headers.key, context.deviceKey],
+    [headers.salt, context.salt],
+    ['content-digest', contentDigest(request.body)],
+    // Template bodies are JSON or empty.
+    ['content-type', 'application/json'],
+  ]);
+  if (request.idempotencyKey !== undefined) {
+    values.set('idempotency-key', request.idempotencyKey);
+  }
+  const lines = coveredComponents(profile, request.method).map((component) => {
+    const value = values.get(component);
+    if (value === undefined) {
+      throw new TemplateError('template', `no value for ${component}`);
+    }
+    return `"${component}": ${value}`;
+  });
+  lines.push(`"@signature-params": ${input.signatureParams}`);
+  return lines.join('\n');
+};
+
+/** Signs one rendered request. */
+export const signDeviceRequest = async (
+  profile: SigningProfile,
+  request: RenderedRequest,
+  context: DeviceSigningContext,
+  deps: DeviceSignerDependencies,
+): Promise<DeviceSignature> => {
+  const requestId = deps.requestId();
+  const params = signatureParams(profile, request, requestId, deps.now());
+  const base = deviceSigningBase({
+    profile,
+    request,
+    context,
+    requestId,
+    signatureParams: params,
+  });
+  const raw = await deps.sign(new TextEncoder().encode(base));
+  const { label } = profile.implementation.params;
+  return {
+    requestId,
+    signatureInput: `${label}=${params}`,
+    signature: `${label}=:${Buffer.from(raw).toString('base64')}:`,
+  };
+};

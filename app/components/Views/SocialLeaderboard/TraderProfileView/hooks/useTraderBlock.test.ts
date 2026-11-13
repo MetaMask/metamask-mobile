@@ -127,6 +127,20 @@ describe('useTraderBlock', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
+  it('stores a report reason when blocking a trader', async () => {
+    const { result } = renderHook(() => useTraderBlock(PROFILE_ID));
+
+    await act(async () => {
+      await result.current.block('scams_and_phishing');
+    });
+
+    expect(mockCall).toHaveBeenCalledWith('SocialService:block', {
+      profileId: PROFILE_ID,
+      reason: 'scams_and_phishing',
+    });
+    expect(result.current.isBlocked).toBe(true);
+  });
+
   it('unblocks via SocialService:unblockProfile and flips optimistically', async () => {
     mockQueryData([PROFILE_ID]);
     const { result } = renderHook(() => useTraderBlock(PROFILE_ID));

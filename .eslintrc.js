@@ -196,21 +196,96 @@ module.exports = {
           },
         ],
 
-        // These rules are off because the shared ESLint config turned them on
-        // after v9, and ESLint 8 cannot save the existing hits. Every rule
-        // below stays off in this change.
+        // Fast checks. These do not need type information. The options match
+        // the shared config.
         //
-        // Fast checks. These do not need type information. Restore them in
-        // the ESLint 9 upgrade and park existing hits in ESLint's
-        // suppressions file.
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
-        // Slow type checks. Leave these off through the ESLint 9 upgrade.
-        // Turn them on in Oxlint and park existing hits in
+        // no-wrapper-object-types and prefer-enum-initializers are errors in
+        // @metamask/eslint-config-typescript, so this file does not set them.
+        // Their existing hits are in eslint-suppressions.json.
+        // no-empty-object-type is an error in that package too, and stays a
+        // warning here: its hits are interface aliases and generic defaults
+        // such as Props = {}. The style rules and no-unused-vars stay
+        // warnings for now.
+        '@typescript-eslint/explicit-function-return-type': 'warn',
+        '@typescript-eslint/naming-convention': [
+          'warn',
+          {
+            selector: 'default',
+            format: ['camelCase'],
+            leadingUnderscore: 'allow',
+            trailingUnderscore: 'forbid',
+          },
+          {
+            selector: 'enumMember',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'import',
+            format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+          },
+          {
+            selector: 'interface',
+            format: ['PascalCase'],
+            custom: {
+              regex: '^I[A-Z]',
+              match: false,
+            },
+          },
+          {
+            selector: 'objectLiteralMethod',
+            format: ['camelCase', 'PascalCase', 'UPPER_CASE'],
+          },
+          {
+            selector: 'objectLiteralProperty',
+            format: null,
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+          {
+            selector: 'typeParameter',
+            format: ['PascalCase'],
+            custom: { regex: '^.{3,}', match: true },
+          },
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'parameter',
+            format: ['camelCase', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: [
+              'classProperty',
+              'objectLiteralProperty',
+              'typeProperty',
+              'classMethod',
+              'objectLiteralMethod',
+              'typeMethod',
+              'accessor',
+              'enumMember',
+            ],
+            format: null,
+            modifiers: ['requiresQuotes'],
+          },
+        ],
+        '@typescript-eslint/no-empty-object-type': 'warn',
+        '@typescript-eslint/no-unused-vars': [
+          'warn',
+          {
+            vars: 'all',
+            args: 'all',
+            argsIgnorePattern: '[_]+',
+            ignoreRestSiblings: true,
+          },
+        ],
+        // Slow type checks. The shared ESLint config turns these on, but they
+        // need type information, so they stay off through the ESLint 9
+        // upgrade. Turn them on in Oxlint and park existing hits in
         // oxlint-suppressions.json.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
@@ -882,8 +957,6 @@ module.exports = {
     'no-console': ['error', { allow: ['warn', 'error'] }],
     // Code fencing was removed: nothing strips fence-marker blocks any more, so
     // fenced code would ship in every build. Gate features at runtime instead.
-    // scripts/check-no-code-fences.sh backs this up in CI for files ESLint
-    // doesn't lint.
     'no-warning-comments': [
       'error',
       {
@@ -999,11 +1072,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // Fast checks, off for the same reason as the block above. These do not
-    // need type information. Restore them in the ESLint 9 upgrade and park
-    // existing hits in ESLint's suppressions file.
-    'react-hooks/rules-of-hooks': 'off',
-    'no-loss-of-precision': 'off',
+    // rules-of-hooks is an error from @react-native/eslint-config. Existing
+    // hits are in eslint-suppressions.json.
+    'react-hooks/rules-of-hooks': 'error',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],

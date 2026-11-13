@@ -6,6 +6,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
+  openAsOnlyOnboardingRoute,
+  openCompletedVbaAccount,
   openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -79,6 +81,7 @@ const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockGetSessionStatusForVendor = jest.fn();
 const mockStartSession = jest.fn();
+const mockReset = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 const mockRampsState: {
   autoramps: { id: string; walletAddress: string; status: string }[];
@@ -103,6 +106,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       getSessionStatusForVendor: (...args: unknown[]) =>
         mockGetSessionStatusForVendor(...args),
       startSession: (...args: unknown[]) => mockStartSession(...args),
+      reset: () => mockReset(),
       recordVendorDisclaimers: (...args: unknown[]) =>
         mockRecordVendorDisclaimers(...args),
     },
@@ -161,6 +165,7 @@ describe('useOpenVbaOnboarding', () => {
     mockReadSessionStatus.mockReturnValue(null);
     mockGetSessionStatusForVendor.mockResolvedValue(null);
     mockStartSession.mockResolvedValue({ id: 'session-1' });
+    mockReset.mockResolvedValue(undefined);
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreateAutoramp.mockResolvedValue({
       id: 'autoramp-1',
@@ -734,7 +739,7 @@ describe('useOpenVbaOnboarding', () => {
     expect(rootDispatch).not.toHaveBeenCalled();
   });
 
-  it('keeps only the active caller and destination on first entry', () => {
+  it('keeps the screens under the caller on first entry', () => {
     const dispatch = jest.fn();
     const parentNavigate = jest.fn();
     const childNavigate = jest.fn();
@@ -765,8 +770,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { key: 'settings-1', name: 'Settings' },
             { key: 'home-1', name: 'Home' },
             {
               name: Routes.RAMP.VBA_ONBOARDING,
@@ -827,8 +833,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { name: 'Settings' },
             { name: 'Wallet' },
             {
               key: 'vba-1',
@@ -878,6 +885,83 @@ describe('useOpenVbaOnboarding', () => {
               state: {
                 index: 0,
                 routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+});
+
+describe('opening a bank account from card home', () => {
+  const cardHomeState = (): {
+    index: number;
+    routeNames: string[];
+    routes: { key: string; name: string }[];
+  } => ({
+    index: 1,
+    routeNames: [
+      'Home',
+      Routes.CARD.ROOT,
+      Routes.RAMP.VBA_ONBOARDING,
+      Routes.RAMP.VBA_DETAILS,
+    ],
+    routes: [
+      { key: 'home-1', name: 'Home' },
+      { key: 'card-1', name: Routes.CARD.ROOT },
+    ],
+  });
+
+  it('keeps wallet home under card home when the account details open', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openCompletedVbaAccount(navigationFromCardHome);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('keeps wallet home under card home when onboarding opens', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openAsOnlyOnboardingRoute(
+      navigationFromCardHome,
+      VbaOnboardingRoutes.LOADING,
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.LOADING }],
               },
             },
           ],
@@ -1151,6 +1235,84 @@ describe('resolveVbaOnboarding', () => {
     await expect(
       resolveVbaOnboarding('money-add-money-bank-account'),
     ).resolves.toEqual({ status: 'error' });
+    expect(mockHydrate).not.toHaveBeenCalled();
+  });
+
+  it('keeps the stored session when the geoCountry changed, then hydrates', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValueOnce(
+      new Error(
+        'KycController already initialized with a different geoCountry',
+      ),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
+
+    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockStartSession).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('resets empty KYC state when the geoCountry changed with no stored session', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController already initialized with a different geoCountry',
+        ),
+      )
+      .mockResolvedValueOnce({ id: 'session-remote' });
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(expect.objectContaining({ status: 'ready' }));
+
+    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockStartSession).toHaveBeenCalledTimes(2);
+    expect(mockReset.mock.invocationCallOrder[0]).toBeLessThan(
+      mockHydrate.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('continues as a new user when the retry after a geoCountry reset has no session and no AAL2 token', async () => {
+    mockGetSessionStatusForVendor.mockResolvedValue({ id: 'session-remote' });
+    mockStartSession
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController already initialized with a different geoCountry',
+        ),
+      )
+      .mockRejectedValueOnce(
+        new Error(
+          'KycController.startSession: aal2Token is required to create a KYC session.',
+        ),
+      );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(mockReset).toHaveBeenCalledTimes(1);
+    expect(mockHydrate).toHaveBeenCalled();
+  });
+
+  it('does not reset for an email mismatch and returns an error', async () => {
+    mockReadSessionStatus.mockReturnValue({ id: 'session-1' });
+    mockStartSession.mockRejectedValue(
+      new Error('KycController already initialized with a different email'),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual({ status: 'error' });
+    expect(mockReset).not.toHaveBeenCalled();
     expect(mockHydrate).not.toHaveBeenCalled();
   });
 

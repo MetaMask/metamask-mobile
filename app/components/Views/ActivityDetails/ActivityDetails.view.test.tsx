@@ -205,7 +205,6 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
             amount: '1000000',
             symbol: 'mUSD',
             decimal: 6,
-            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
             name: 'MetaMask USD',
             transferType: 'ERC20',
           },
