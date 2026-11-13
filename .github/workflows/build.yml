@@ -157,6 +157,7 @@ jobs:
         }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
+      production_release: ${{ steps.config.outputs.github_environment == 'build-production' || steps.config.outputs.github_environment == 'build-flask-prod' }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
       tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
@@ -286,9 +287,22 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       cache_mode: ${{ needs.prepare.outputs.cache_mode }}
 
+  # Production builds need two distinct release approvers. An environment's required
+  # reviewers approve one job at a time, so this job takes the first approval and the
+  # build job (same environment) takes the second; the build job then checks they differ.
+  release-approval:
+    name: Release approval
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.production_release == 'true' }}
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    permissions: {}
+    steps:
+      - run: echo "First release approval recorded."
+
   # Build
   build:
-    needs: [prepare, setup-dependencies]
+    needs: [prepare, setup-dependencies, release-approval]
     if: ${{ always() && !failure() && !cancelled() }}
     timeout-minutes: 120 # Must allow build step (115min) + setup; comment at Build step documents this
     strategy:
@@ -330,6 +344,62 @@ jobs:
       # Must match setup-node-modules.yml's CACHE_GENERATION; the two compose the same cache key.
       CACHE_GENERATION: v2
     steps:
+      # Run approval history needs Actions read; the token exchange provides it so callers
+      # of this workflow do not have to grant actions: read.
+      - name: Get token for the release approval check
+        id: release-approval-token
+        if: ${{ needs.prepare.outputs.production_release == 'true' }}
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            actions: read
+
+      # Runs before checkout so it does not depend on the checked-out commit.
+      - name: Verify release approvals
+        if: ${{ needs.prepare.outputs.production_release == 'true' }}
+        uses: actions/github-script@v9
+        env:
+          ENVIRONMENT: ${{ needs.prepare.outputs.github_environment }}
+          # Break-glass: a repo admin can set RELEASE_APPROVALS_REQUIRED to 1 (never 0).
+          REQUIRED_APPROVALS: ${{ vars.RELEASE_APPROVALS_REQUIRED || '2' }}
+        with:
+          github-token: ${{ steps.release-approval-token.outputs.token }}
+          script: |
+            const environment = process.env.ENVIRONMENT;
+            const required = Math.max(1, Number(process.env.REQUIRED_APPROVALS) || 2);
+            const excluded = new Set(
+              [context.actor, process.env.GITHUB_TRIGGERING_ACTOR]
+                .filter(Boolean)
+                .map((login) => login.toLowerCase()),
+            );
+            const approvals = await github.paginate(
+              'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+              { ...context.repo, run_id: context.runId },
+            );
+            const approvers = [
+              ...new Set(
+                approvals
+                  .filter(
+                    (approval) =>
+                      approval.state === 'approved' &&
+                      approval.environments.some((env) => env.name === environment),
+                  )
+                  .map((approval) => approval.user.login),
+              ),
+            ].filter((login) => !excluded.has(login.toLowerCase()));
+            if (required < 2) {
+              core.warning(`Break-glass: RELEASE_APPROVALS_REQUIRED is ${required}.`);
+            }
+            if (approvers.length < required) {
+              core.setFailed(
+                `Production release needs ${required} distinct approvers for ${environment}, ` +
+                  `not counting whoever triggered the run; found ${approvers.length} (${approvers.join(', ') || 'none'}).`,
+              );
+            } else {
+              core.notice(`Release approved by ${approvers.join(', ')}.`);
+            }
+
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
