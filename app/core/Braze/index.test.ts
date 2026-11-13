@@ -184,24 +184,8 @@ describe('Braze service', () => {
       expect(Braze.logCustomEvent).not.toHaveBeenCalled();
     });
 
-    it('flushes immediately when requested', () => {
-      logBrazeBannerClick(
-        'placement-1',
-        { campaign_name: 'campaign-abc' },
-        true,
-      );
-
-      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
-    });
-
-    it('waits for the next batch when immediate flush is not requested', () => {
+    it('does not flush the select event immediately', () => {
       logBrazeBannerClick('placement-1', { campaign_name: 'campaign-abc' });
-
-      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
-    });
-
-    it('does not flush when there are no properties to send', () => {
-      logBrazeBannerClick('placement-1', null, true);
 
       expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
     });

@@ -11,7 +11,7 @@ const CHECK_ERROR = strings(
 );
 
 describe('getDisplayNameError', () => {
-  it('reports the length rule without asking the API past 32 characters', async () => {
+  it('reports the length rule without asking the API past 50 characters', async () => {
     const checkDisplayNameValidity = jest.fn();
 
     const error = await getDisplayNameError(
