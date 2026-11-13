@@ -1,9 +1,6 @@
 import { test as appiumTest } from '../../../framework/fixtures/playwright/index.js';
 import { SmokeNetworkAbstractions } from '../../../tags.js';
-import {
-  loginToAppPlaywright,
-  waitForWalletHomePlaywright,
-} from '../../../flows/wallet.flow.js';
+import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
 import {
   connectToTestDapp,
   navigateToBrowserView,
@@ -13,10 +10,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.js';
 import Assertions from '../../../framework/Assertions.js';
 import Matchers from '../../../framework/Matchers.js';
-import {
-  DappVariants,
-  resolveE2EWaitTimeoutMs,
-} from '../../../framework/Constants.js';
+import { DappVariants } from '../../../framework/Constants.js';
 import { PopularNetworksList } from '../../../resources/networks.e2e.js';
 import Browser from '../../../page-objects/Browser/BrowserView.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
@@ -32,10 +26,8 @@ const OPTIMISM = PopularNetworksList.Optimism.providerConfig.nickname;
 appiumTest.describe(
   SmokeNetworkAbstractions('Chain Permission Management'),
   () => {
-    // Two Explore→Browser navigations plus TokensFullView network delete need
-    // more headroom than 300s when Explore tab validation retries (~40s each).
-    // Matches / exceeds the sibling update-permissions suite (360s).
-    appiumTest.describe.configure({ timeout: 420_000 });
+    // Matches the sibling permission-system-update-permissions suite (360s).
+    appiumTest.describe.configure({ timeout: 360_000 });
 
     appiumTest(
       'handles permission cleanup when removing a connected chain',
@@ -76,11 +68,6 @@ appiumTest.describe(
             await NetworkListModal.closeNetworkManager();
             await ToastModal.waitForToastToDismiss();
             await NetworkManager.navigateBackFromTokensFullView();
-            // TokensFullView back can leave wallet chrome mid-settle; Explore
-            // validation then burns ~40s of retries before browser opens.
-            await waitForWalletHomePlaywright(
-              resolveE2EWaitTimeoutMs(20_000),
-            );
 
             await navigateToBrowserView();
             await Browser.navigateToTestDApp();
