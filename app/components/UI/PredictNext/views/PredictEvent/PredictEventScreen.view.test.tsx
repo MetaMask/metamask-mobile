@@ -2456,12 +2456,35 @@ describe('PredictEventScreen', () => {
         )
         .map(([, , , cursor]) => cursor);
 
-    /** Lets a walk that has already stopped settle, so an extra page request
-     * would be observed before asserting the walk did not continue. */
-    const settleAfterWalk = (): Promise<void> =>
-      act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      });
+    /** The promise for one walked Positions page. It settles when that page
+     * has landed or failed, which is when the follow-up walk effect can run. */
+    const settledPositionPage = (cursor: string): Promise<void> => {
+      let callIndex = -1;
+      for (
+        let index = messengerCall.mock.calls.length - 1;
+        index >= 0;
+        index -= 1
+      ) {
+        const [action, , , walkedCursor] = messengerCall.mock.calls[index];
+        if (
+          action === 'PredictPortfolioService:getPositions' &&
+          walkedCursor === cursor
+        ) {
+          callIndex = index;
+          break;
+        }
+      }
+      const returned = messengerCall.mock.results[callIndex];
+      if (callIndex < 0 || returned?.type !== 'return') {
+        return Promise.reject(
+          new Error(`Positions page ${cursor} was not requested`),
+        );
+      }
+      return Promise.resolve(returned.value).then(
+        () => undefined,
+        () => undefined,
+      );
+    };
 
     beforeEach(() => {
       // Positions discovery is skipped while the device reports offline.
@@ -2732,24 +2755,27 @@ describe('PredictEventScreen', () => {
 
       const view = renderPredictEventScreen(routeParams);
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
-      // Each walk starts only after the previous page lands and re-renders,
-      // so wait for the whole bounded walk rather than a fixed delay.
+      const boundedCursors = [
+        'cursor-page-2',
+        'cursor-page-3',
+        'cursor-page-4',
+        'cursor-page-5',
+      ];
       await waitFor(
-        () =>
-          expect(walkedPositionCursors()).toEqual([
-            'cursor-page-2',
-            'cursor-page-3',
-            'cursor-page-4',
-            'cursor-page-5',
-          ]),
+        () => expect(walkedPositionCursors()).toEqual(boundedCursors),
+        // Each walk starts only after the previous page lands and re-renders.
         { timeout: 5000 },
       );
-      await settleAfterWalk();
+      // waitFor returns when the last page is requested, not when it lands.
+      // Awaiting that page lets the effect that would request the next one run.
+      await act(async () => {
+        await settledPositionPage('cursor-page-5');
+      });
 
       // Five pages in total (the initial read plus four walks) even though
       // the fixture keeps serving cursors: the walk must not exceed its
       // bound, so the sixth page's cursor is never requested.
-      expect(walkedPositionCursors()).toHaveLength(4);
+      expect(walkedPositionCursors()).toEqual(boundedCursors);
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).not.toBeOnTheScreen();
@@ -2771,12 +2797,17 @@ describe('PredictEventScreen', () => {
       await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
       await waitFor(
         () => expect(walkedPositionCursors()).toEqual(['cursor-page-2']),
+        // The second page is requested only after the first page lands.
         { timeout: 5000 },
       );
-      await settleAfterWalk();
+      // The failed page has to settle before the effect can choose not to
+      // retry.
+      await act(async () => {
+        await settledPositionPage('cursor-page-2');
+      });
 
       // Exactly one walk attempt: the failed page is never retried mid-visit.
-      expect(walkedPositionCursors()).toHaveLength(1);
+      expect(walkedPositionCursors()).toEqual(['cursor-page-2']);
       expect(
         view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).not.toBeOnTheScreen();
