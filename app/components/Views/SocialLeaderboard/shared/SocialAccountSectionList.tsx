@@ -94,7 +94,7 @@ const SocialAccountRow = memo(
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
             gap={3}
-            twClassName="px-4 py-3"
+            twClassName={`px-4 py-3 ${isSelected ? 'bg-section' : ''}`}
           >
             <AvatarAccount
               address={account.address}
