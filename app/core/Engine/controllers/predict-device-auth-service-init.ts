@@ -1,4 +1,4 @@
-import { resolvePredictDeviceAuthIssuerUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
+import { getPredictDeviceAuthIssuerUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
   parsePredictConfig,
   resolveSelectedAuthProfile,
@@ -11,13 +11,6 @@ import {
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
-
-const getConfiguredIssuerUrl = (): string | undefined =>
-  resolvePredictDeviceAuthIssuerUrl(
-    process.env.MM_API_ENV,
-    process.env.MM_PREDICT_A2T_URL,
-    __DEV__,
-  );
 
 export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   PredictDeviceAuthService,
@@ -53,7 +46,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   ).isSignedIn;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
     getProfile: () => resolveSelectedAuthProfile(readConfig()),
-    getIssuerUrl: getConfiguredIssuerUrl,
+    getIssuerUrl: getPredictDeviceAuthIssuerUrl,
     getAccessToken: async () => {
       const accessToken = await initMessenger.call(
         'AuthenticationController:getBearerToken',

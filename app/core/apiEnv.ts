@@ -26,6 +26,17 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
 };
 
 /**
+ * Parse an `MM_API_ENV` value, or `undefined` when it names no cluster.
+ *
+ * The single reading of the variable: every consumer goes through this, so a
+ * build cannot be `dev` for one service and `prod` for another. Surrounding
+ * whitespace and case are forgiven; anything unrecognized is not a cluster and
+ * each caller decides what that means.
+ */
+export const parseApiEnv = (rawValue: string | undefined): ApiEnv | undefined =>
+  API_ENV_BY_VALUE[(rawValue ?? '').trim().toLowerCase()];
+
+/**
  * Read at call time (not module load) so tests can set/unset
  * `process.env.MM_API_ENV` without juggling the module cache.
  *
@@ -35,7 +46,7 @@ const API_ENV_BY_VALUE: Record<string, ApiEnv> = {
  * @returns The cluster for this build.
  */
 export const getApiEnv = (): ApiEnv =>
-  API_ENV_BY_VALUE[(process.env.MM_API_ENV ?? '').toLowerCase()] ?? ApiEnv.Prod;
+  parseApiEnv(process.env.MM_API_ENV) ?? ApiEnv.Prod;
 
 const AUTH_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
   [ApiEnv.Dev]: Env.DEV,

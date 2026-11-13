@@ -42,6 +42,19 @@ describe.each([
     expect(resolveUrl(undefined, '  ', false)).toBeUndefined();
   });
 
+  it('stays blank for a value that names no cluster, even in a dev build', () => {
+    // Matches `getApiEnv`, which reads an unrecognized value as prod. A
+    // predict host here would point the client at an environment the A2T
+    // issuer does not match.
+    expect(resolveUrl('staging', undefined, true)).toBeUndefined();
+    expect(resolveUrl('staging', undefined, false)).toBeUndefined();
+  });
+
+  it('forgives surrounding whitespace and case in the cluster value', () => {
+    expect(resolveUrl('  DEV  ', undefined, false)).toBe(devUrl);
+    expect(resolveUrl(' UAT ', undefined, false)).toBe(uatUrl);
+  });
+
   it('uses an explicit URL in every cluster', () => {
     expect(resolveUrl('dev', 'https://predict.example', true)).toBe(
       'https://predict.example',
