@@ -129,7 +129,13 @@ const SocialAccountRow = memo(
         testID={testID}
       >
         <AccountListCell
-          accountGroup={account.accountGroup}
+          accountGroup={{
+            ...account.accountGroup,
+            metadata: {
+              ...account.accountGroup.metadata,
+              name: account.name,
+            },
+          }}
           avatarAccountType={avatarAccountType}
           hideMenu
           isSelected={isSelected}
