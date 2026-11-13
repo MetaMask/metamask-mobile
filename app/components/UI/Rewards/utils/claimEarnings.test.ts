@@ -290,7 +290,7 @@ describe('claimRoutesForSummary', () => {
     );
   });
 
-  it('lights the indicator when an open income route is held only for tax', () => {
+  it('lights the indicator when an open income route is held for tax', () => {
     const held = summary({ claimable: '0', cashback: '0', revShare: '0' });
     held.held = ONE_DOLLAR;
     const revShare = held.earned_by_others.by_claim_family.REFERRAL_REV_SHARE;
@@ -306,7 +306,7 @@ describe('claimRoutesForSummary', () => {
         { ...held, blocked: ONE_DOLLAR },
         { includeRevShare: true },
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('leaves revenue share off while that claim route is closed', () => {
