@@ -49,12 +49,7 @@ const NftOptions = () => {
   );
 
   const goToWalletPage = () => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    navigation.navigate(Routes.WALLET.HOME);
   };
 
   const goToBrowserUrl = (url: string) => {

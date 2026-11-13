@@ -177,7 +177,7 @@ const MoreTokenActionsMenu = () => {
   const goToBrowserUrl = useCallback(
     (url: string, title: string) => {
       closeBottomSheetAndNavigate(async () => {
-        navigation.navigate('WalletView');
+        navigation.navigate(Routes.WALLET.HOME);
 
         try {
           if (await InAppBrowser.isAvailable()) {
@@ -248,7 +248,7 @@ const MoreTokenActionsMenu = () => {
         screen: 'AssetHideConfirmation',
         params: {
           onConfirm: async () => {
-            navigation.navigate('WalletView');
+            navigation.navigate(Routes.WALLET.HOME);
             try {
               if (asset.chainId) {
                 if (isNonEvmChainId(asset.chainId)) {

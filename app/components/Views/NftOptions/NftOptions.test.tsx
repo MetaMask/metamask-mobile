@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import NftOptions from './NftOptions';
 import Engine from '../../../core/Engine';
+import Routes from '../../../constants/navigation/Routes';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Collectible } from '../../UI/CollectibleMedia/CollectibleMedia.types';
@@ -218,14 +219,6 @@ describe('NftOptions', () => {
     const { getByText } = render(<NftOptions />);
     fireEvent.press(getByText('Remove NFT'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        screen: expect.any(String),
-        params: expect.objectContaining({
-          screen: 'WalletView',
-        }),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 });
