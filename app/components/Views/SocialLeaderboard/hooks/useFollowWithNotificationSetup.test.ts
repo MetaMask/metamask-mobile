@@ -1,8 +1,10 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useFollowWithNotificationSetup } from './useFollowWithNotificationSetup';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 
-const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn<boolean, [(() => void)?]>(
+  () => true,
+);
 const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
 jest.mock('../terms/useSocialTermsGate', () => ({
   useSocialTermsGate: () => ({
@@ -47,6 +49,21 @@ describe('useFollowWithNotificationSetup', () => {
 
     expect(performFollow).not.toHaveBeenCalled();
     expect(openSetupIfNeeded).not.toHaveBeenCalled();
+  });
+
+  it('follows once the Social terms are accepted', async () => {
+    mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+    const openSetupIfNeeded = setGate(true);
+    const performFollow = jest.fn();
+    const { result } = renderHook(() =>
+      useFollowWithNotificationSetup({ requireSocialTerms: true }),
+    );
+    await result.current.followWithSetup(false, performFollow);
+
+    mockEnsureSocialTermsAccepted.mock.calls[0][0]?.();
+
+    await waitFor(() => expect(openSetupIfNeeded).toHaveBeenCalledTimes(1));
+    expect(performFollow).toHaveBeenCalledTimes(1);
   });
 
   it('skips the follow and setup when there is no linked social wallet', async () => {
