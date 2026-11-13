@@ -38,6 +38,13 @@ export const isMoneyAccountUpgradeAbortedError = (
 ): error is MoneyAccountUpgradeAbortedError =>
   error instanceof Error && error.name === 'MoneyAccountUpgradeAbortedError';
 
+const NETWORK_FAILURE_MESSAGES = [
+  'Network request failed',
+  'Network request timed out',
+  'Failed to fetch',
+  'fetch failed',
+];
+
 /**
  * Whether `error` is a request failure that may succeed if re-issued: a
  * CHOMP 429 or 5xx, an open circuit breaker, or a network failure. These
@@ -50,13 +57,6 @@ export const isMoneyAccountUpgradeAbortedError = (
  * @param error - The value to test.
  * @returns Whether re-issuing the request may succeed.
  */
-const NETWORK_FAILURE_MESSAGES = [
-  'Network request failed',
-  'Network request timed out',
-  'Failed to fetch',
-  'fetch failed',
-];
-
 const isTransientRequestError = (error: unknown): boolean => {
   if (error instanceof TypeError) {
     return NETWORK_FAILURE_MESSAGES.includes(error.message);

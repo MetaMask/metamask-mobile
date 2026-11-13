@@ -8,9 +8,9 @@ import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 /**
  * Initialize the MoneyAccountLifecycleController.
  *
- * Gated on the Money Account flag, so it tracks the lifecycle and runs the
- * upgrade for every Money Account user. Starting a migration is left to the
- * client.
+ * Gated on the Money Account flag, so it tracks the lifecycle and address
+ * registrations for every Money Account user. It never upgrades or migrates
+ * on its own: the client triggers both.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.

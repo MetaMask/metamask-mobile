@@ -57,8 +57,9 @@ function reportUpgradeError(
 /**
  * Reads what the upgrade recorded for `address`. `upgradeMoneyAccount()`
  * resolves without upgrading when the account is not ready or its lifecycle
- * does not call for an upgrade (e.g. it was migrated), so a settled call is
- * only evidence of an upgrade when `upgraded` is true.
+ * does not call for an upgrade (e.g. it was migrated), and `upgraded` is the
+ * recorded state rather than a delta, so a call only upgraded the account when
+ * `upgraded` went from false at the start to true once settled.
  *
  * @param address - The Money Account address.
  * @returns The account's lifecycle type and whether its upgrade is recorded.
