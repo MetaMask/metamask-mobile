@@ -58,7 +58,6 @@ describe('AlertAmountInput', () => {
       backgroundColor: mockTheme.colors.text.muted,
       height: Math.round(fontSize * 0.95),
       marginHorizontal: 0,
-      transform: [{ translateY: Math.round(fontSize * -0.04) }],
       width: 1,
     });
     expect(StyleSheet.flatten(getByText('4').props.style)).toMatchObject({

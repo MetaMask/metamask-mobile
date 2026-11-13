@@ -2,10 +2,10 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../util/theme';
 import {
   AnimatedAmountDisplay,
   getFontSizeForInputLength,
+  useAmountCursorStyle,
 } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import {
   getAlertAmountCursorTestId,
@@ -42,20 +42,17 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const affixCharacterReserve =
     (prefix ? PREFIX_CHARACTER_RESERVE : 0) +
     (suffix ? SUFFIX_CHARACTER_RESERVE : 0);
   const amountFontSize = getFontSizeForInputLength(
     text.length + INPUT_SIDE_MARGIN_CHARACTER_RESERVE + affixCharacterReserve,
   );
+  const amountCursorStyle = useAmountCursorStyle(amountFontSize);
   const cursorStyle = {
     flexShrink: 0,
     marginHorizontal: 0,
-    width: 1,
-    height: Math.round(amountFontSize * 0.95),
-    backgroundColor: colors.text.muted,
-    transform: [{ translateY: Math.round(amountFontSize * -0.04) }],
+    ...amountCursorStyle,
   };
 
   return (
