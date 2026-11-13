@@ -9,6 +9,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import type { V5TransactionRecord } from '@metamask/core-backend';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { ACTIVITY_CV_ACCOUNT } from '../presets/activity';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
@@ -65,8 +66,8 @@ function inferAssetClass(transferType?: string): 'ft' | 'nft' {
 function toCaipAssetId(
   chainId: number,
   transfer: NonNullable<MockAccountsApiTransaction['valueTransfers']>[number],
-) {
-  const chain = `eip155:${chainId}`;
+): CaipAssetType {
+  const chain: CaipChainId = `eip155:${chainId}`;
   if (transfer.contractAddress) {
     const assetClass = inferAssetClass(transfer.transferType);
     if (assetClass === 'nft') {
@@ -81,7 +82,7 @@ function toV5TransactionRecord(
   transaction: MockAccountsApiTransaction,
   subjectAddress: string,
 ): V5TransactionRecord {
-  const chainId = `eip155:${transaction.chainId}`;
+  const chainId: CaipChainId = `eip155:${transaction.chainId}`;
 
   return {
     accountId: `eip155:0:${subjectAddress}`,
