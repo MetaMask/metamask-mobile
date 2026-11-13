@@ -4,16 +4,11 @@ import { useOpenPositionHeader } from './useOpenPositionHeader';
 import { useTraderPositionPnl } from './useTraderPositionPnl';
 
 const mockOpenComposer = jest.fn();
-const mockSocialLeaderboardEnabled = jest.fn(() => true);
-const mockUseSocialV1 = jest.fn(() => true);
+const mockIsSocialV1Enabled = jest.fn(() => true);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: () => mockSocialLeaderboardEnabled(),
-}));
-
-jest.mock('../../../../hooks', () => ({
-  useABTest: () => ({ variant: { useSocialV1: mockUseSocialV1() } }),
+  useSelector: () => mockIsSocialV1Enabled(),
 }));
 
 jest.mock(
@@ -72,8 +67,7 @@ const renderPnl = () =>
 describe('useTraderPositionPnl', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSocialLeaderboardEnabled.mockReturnValue(true);
-    mockUseSocialV1.mockReturnValue(true);
+    mockIsSocialV1Enabled.mockReturnValue(true);
   });
 
   it('builds the position line from the header', () => {
@@ -131,8 +125,8 @@ describe('useTraderPositionPnl', () => {
     });
   });
 
-  it('omits Share to feed in the Social V1 control arm', () => {
-    mockUseSocialV1.mockReturnValue(false);
+  it('omits Share to feed when Social V1 is off', () => {
+    mockIsSocialV1Enabled.mockReturnValue(false);
     mockUseOpenPositionHeader.mockReturnValue({
       positionValue: '$2,000.00',
       pnl: { amount: '+$1,200.00', percentage: '+150.00%', isProfit: true },

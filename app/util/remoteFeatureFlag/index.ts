@@ -101,3 +101,28 @@ export const validatedVersionGatedFeatureFlag = (remoteFlag: unknown) => {
     hasMinimumRequiredVersion(normalizedFlag.minimumVersion)
   );
 };
+
+/**
+ * Checks only the `minimumVersion` of a version-gated remote flag, ignoring
+ * `enabled`. Lets a surface stay behind the flag's remote version floor while
+ * something other than `enabled` grants access.
+ *
+ * Returns false when the flag is missing, malformed, or a local override is
+ * active.
+ *
+ * @param remoteFlag - The raw remote flag value (direct or progressive rollout shape)
+ * @returns True if the app version meets the flag's `minimumVersion`
+ */
+export const hasVersionGatedFeatureFlagMinimumVersion = (
+  remoteFlag: unknown,
+): boolean => {
+  if (isRemoteFeatureFlagOverrideActivated) {
+    return false;
+  }
+
+  const normalizedFlag = unwrapVersionGatedFeatureFlag(remoteFlag);
+
+  return normalizedFlag
+    ? hasMinimumRequiredVersion(normalizedFlag.minimumVersion)
+    : false;
+};

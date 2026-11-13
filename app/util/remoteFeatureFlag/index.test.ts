@@ -1,6 +1,7 @@
 import { getVersion } from 'react-native-device-info';
 import {
   hasMinimumRequiredVersion,
+  hasVersionGatedFeatureFlagMinimumVersion,
   validatedVersionGatedFeatureFlag,
   isVersionGatedFeatureFlag,
   parseBlockedCountriesEnv,
@@ -610,5 +611,73 @@ describe('validatedVersionGatedFeatureFlag', () => {
       const result = validatedVersionGatedFeatureFlag(zeroVersionFlag);
       expect(result).toBe(true);
     });
+  });
+});
+
+describe('hasVersionGatedFeatureFlagMinimumVersion', () => {
+  beforeEach(() => {
+    jest.mocked(getVersion).mockReturnValue('8.21.0');
+  });
+
+  it('returns true when the version meets minimumVersion even if the flag is disabled', () => {
+    const flag: VersionGatedFeatureFlag = {
+      enabled: false,
+      minimumVersion: '8.21.0',
+    };
+
+    const result = hasVersionGatedFeatureFlagMinimumVersion(flag);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when the version is below minimumVersion', () => {
+    const flag: VersionGatedFeatureFlag = {
+      enabled: true,
+      minimumVersion: '8.22.0',
+    };
+
+    const result = hasVersionGatedFeatureFlagMinimumVersion(flag);
+
+    expect(result).toBe(false);
+  });
+
+  it('reads minimumVersion from the progressive rollout shape', () => {
+    const flag = {
+      name: 'group-a',
+      value: { enabled: false, minimumVersion: '8.20.0' },
+    };
+
+    const result = hasVersionGatedFeatureFlagMinimumVersion(flag);
+
+    expect(result).toBe(true);
+  });
+
+  it.each([undefined, null, {}, { enabled: true }, 'invalid'])(
+    'returns false for malformed flag %p',
+    (flag) => {
+      const result = hasVersionGatedFeatureFlagMinimumVersion(flag);
+
+      expect(result).toBe(false);
+    },
+  );
+
+  it('returns false when the remote feature flag override is activated', () => {
+    jest.resetModules();
+    jest.doMock('react-native-device-info', () => ({
+      getVersion: jest.fn().mockReturnValue('8.21.0'),
+    }));
+    jest.doMock(
+      '../../core/Engine/controllers/remote-feature-flag-controller',
+      () => ({
+        isRemoteFeatureFlagOverrideActivated: true,
+      }),
+    );
+    const { hasVersionGatedFeatureFlagMinimumVersion: testFunction } =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      require('.');
+
+    const result = testFunction({ enabled: true, minimumVersion: '1.0.0' });
+
+    expect(result).toBe(false);
   });
 });

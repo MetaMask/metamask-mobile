@@ -102,6 +102,14 @@ jest.mock(
   }),
 );
 
+const mockHasSocialV1Access = jest.fn(() => false);
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectHasSocialV1Access: () => mockHasSocialV1Access(),
+}));
+
 let mockIsMasterNotificationsEnabled = true;
 jest.mock('../../../../../selectors/notifications', () => ({
   ...jest.requireActual('../../../../../selectors/notifications'),
@@ -233,20 +241,12 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockImplementation((flagKey, variants) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: variants.control,
-          variantName: 'control',
-          isActive: false,
-        };
-      }
-      return {
-        variant: variants.control,
-        variantName: 'control',
-        isActive: false,
-      };
-    });
+    mockHasSocialV1Access.mockReturnValue(false);
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
+    }));
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
     mockIsMasterNotificationsEnabled = true;
@@ -509,20 +509,11 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the section header on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((flagKey, variants) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: variants.control,
-          variantName: 'control',
-          isActive: false,
-        };
-      }
-      return {
-        variant: variants.treatment,
-        variantName: 'treatment',
-        isActive: true,
-      };
-    });
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByText('Top traders'));
@@ -538,20 +529,11 @@ describe('TopTradersSection', () => {
   });
 
   it('lands the view-more card on the Feed tab with the All audience for the treatment variant', () => {
-    mockUseABTest.mockImplementation((flagKey, variants) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: variants.control,
-          variantName: 'control',
-          isActive: false,
-        };
-      }
-      return {
-        variant: variants.treatment,
-        variantName: 'treatment',
-        isActive: true,
-      };
-    });
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByTestId('top-traders-view-more-card'));
@@ -566,21 +548,8 @@ describe('TopTradersSection', () => {
     );
   });
 
-  it('opens Social Bundle V1 without TSA-1042 landing params for the treatment variant', () => {
-    mockUseABTest.mockImplementation((flagKey, variants) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: variants.treatment,
-          variantName: 'treatment',
-          isActive: true,
-        };
-      }
-      return {
-        variant: variants.control,
-        variantName: 'control',
-        isActive: false,
-      };
-    });
+  it('opens Social Bundle V1 without TSA-1042 landing params with Social V1 access', () => {
+    mockHasSocialV1Access.mockReturnValue(true);
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
     fireEvent.press(screen.getByText('Top traders'));

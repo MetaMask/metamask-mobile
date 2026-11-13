@@ -825,6 +825,10 @@
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"

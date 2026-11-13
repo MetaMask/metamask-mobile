@@ -24,14 +24,16 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const renderWithFlags = ({
   perpsSocialEnabled,
   socialV1Variant,
+  minimumVersion = '0.0.0',
 }: {
   perpsSocialEnabled: boolean;
   socialV1Variant?: SocialV1Variant;
+  minimumVersion?: string;
 }) => {
   const remoteFeatureFlags: Record<string, Json> = {
     [PERPS_SOCIAL_ENABLED_FLAG_KEY]: {
       enabled: perpsSocialEnabled,
-      minimumVersion: '0.0.0',
+      minimumVersion,
     },
   };
   if (socialV1Variant) {
@@ -67,10 +69,20 @@ describe('usePerpsSocialEnabled', () => {
     expect(result.current).toBe(true);
   });
 
-  it('returns false when perpsSocialEnabled is off even if Social V1 is in treatment', () => {
+  it('ignores perpsSocialEnabled.enabled when Social V1 is in treatment', () => {
     const { result } = renderWithFlags({
       perpsSocialEnabled: false,
       socialV1Variant: SocialV1Variant.Treatment,
+    });
+
+    expect(result.current).toBe(true);
+  });
+
+  it('returns false when the app is below perpsSocialEnabled.minimumVersion', () => {
+    const { result } = renderWithFlags({
+      perpsSocialEnabled: true,
+      socialV1Variant: SocialV1Variant.Treatment,
+      minimumVersion: '99.0.0',
     });
 
     expect(result.current).toBe(false);
