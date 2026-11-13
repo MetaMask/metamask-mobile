@@ -319,7 +319,9 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "@metamask/json-rpc-engine": "^11.0.0",
+    "@metamask/json-rpc-middleware-stream": "^9.0.0"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -394,8 +396,8 @@
     "@metamask/gator-permissions-controller": "^6.1.2",
     "@metamask/geolocation-controller": "^2.0.0",
     "@metamask/hw-wallet-sdk": "^1.0.0",
-    "@metamask/json-rpc-engine": "^10.5.0",
-    "@metamask/json-rpc-middleware-stream": "^8.0.7",
+    "@metamask/json-rpc-engine": "^11.0.0",
+    "@metamask/json-rpc-middleware-stream": "^9.0.0",
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch",
     "@metamask/keyring-api": "^24.3.0",
     "@metamask/keyring-controller": "^28.2.0",
