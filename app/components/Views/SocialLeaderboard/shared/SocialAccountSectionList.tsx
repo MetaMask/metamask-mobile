@@ -36,7 +36,7 @@ interface SocialAccountSection {
 }
 
 /**
- * Groups rows by consecutive wallet title, preserving the hook's order.
+ * Groups rows by consecutive wallet ID, preserving the hook's order.
  * Rows from the same wallet stay together because the hook walks wallets in tree order.
  */
 const groupLinkableAccountsByWallet = (
@@ -46,7 +46,10 @@ const groupLinkableAccountsByWallet = (
 
   accounts.forEach((account) => {
     const previous = sections[sections.length - 1];
-    if (previous && previous.title === account.walletTitle) {
+    const previousWalletId =
+      previous?.accounts[0].accountGroup?.id.split('/')[0];
+    const walletId = account.accountGroup?.id.split('/')[0];
+    if (previous && previousWalletId === walletId) {
       previous.accounts.push(account);
       return;
     }
