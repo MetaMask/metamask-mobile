@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { fireEvent, screen } from '@testing-library/react-native';
 
 import { playImpact, playSelection } from '#app/util/haptics';
@@ -8,8 +9,8 @@ import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '#app/components/UI/SocialFeed/
 import PendingPostsButton, {
   getPendingPostsAccessibilityLabel,
   getPendingPostsLabelParts,
+  PENDING_POSTS_COUNT_TEST_ID,
   PENDING_POSTS_PILL_TEST_ID,
-  PENDING_POSTS_SLOTS_PROBE_TEST_ID,
 } from './PendingPostsButton';
 
 jest.mock('#app/util/haptics', () => ({
@@ -17,6 +18,17 @@ jest.mock('#app/util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    useReducedMotion: jest.fn(() => false),
+  };
+});
+
+const mockUseReducedMotion = jest.mocked(useReducedMotion);
 const mockPlayImpact = jest.mocked(playImpact);
 const mockPlaySelection = jest.mocked(playSelection);
 
@@ -95,6 +107,7 @@ describe('PendingPostsButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseLiquidGlass.mockReturnValue(PLAIN_SURFACE);
+    mockUseReducedMotion.mockReturnValue(false);
   });
 
   it('renders the pill on Liquid Glass when glass is enabled', () => {
@@ -118,7 +131,7 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
   });
 
-  it('skips the fade animation on Liquid Glass', () => {
+  it('slides the Liquid Glass pill without mount animations', () => {
     mockUseLiquidGlass.mockReturnValue({
       ...PLAIN_SURFACE,
       isGlassEnabled: true,
@@ -132,6 +145,42 @@ describe('PendingPostsButton', () => {
     const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID);
     expect(pill.props.entering).toBeUndefined();
     expect(pill.props.exiting).toBeUndefined();
+    expect(pill.props.pointerEvents).toBe('auto');
+  });
+
+  it('keeps the Liquid Glass pill mounted and hidden without pending updates', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isGlassEnabled: true,
+    });
+
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />,
+    );
+
+    const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID, {
+      includeHiddenElements: true,
+    });
+    expect(mockGlassView).toHaveBeenCalled();
+    expect(pill.props.pointerEvents).toBe('none');
+    expect(pill.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(screen.queryByLabelText(/new update/)).toBeNull();
+  });
+
+  it('keeps the last count on the Liquid Glass pill while it slides out', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isBlurEnabled: true,
+    });
+    const { rerender } = renderWithProvider(
+      <PendingPostsButton pendingNewCount={4} onPress={jest.fn()} />,
+    );
+
+    rerender(<PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />);
+
+    expect(
+      screen.getByLabelText('4 new updates', { includeHiddenElements: true }),
+    ).toBeTruthy();
   });
 
   it('fades the plain pill in and out', () => {
@@ -194,21 +243,30 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText(`${count} new updates`)).toBeOnTheScreen();
   });
 
-  it('reserves the full slot width for the rolling count', () => {
+  it('rolls the count in tabular digits so every slot fits its digit', () => {
     renderWithProvider(
       <PendingPostsButton pendingNewCount={14} onPress={jest.fn()} />,
     );
 
-    const probe = screen.getByTestId(PENDING_POSTS_SLOTS_PROBE_TEST_ID, {
-      includeHiddenElements: true,
-    });
-    const probeStyle = StyleSheet.flatten(probe.props.style);
+    const count = screen.getByText('14');
 
-    expect(probe).toHaveTextContent('00');
-    expect(probeStyle).toEqual(
-      expect.objectContaining({ height: 0, opacity: 0 }),
+    expect(StyleSheet.flatten(count.props.style)).toEqual(
+      expect.objectContaining({ fontVariant: ['tabular-nums'] }),
     );
-    expect(probeStyle.position).toBeUndefined();
+  });
+
+  it('shows the count without rolling when reduced motion is on', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={14} onPress={jest.fn()} />,
+    );
+
+    const count = screen.getByTestId(PENDING_POSTS_COUNT_TEST_ID);
+
+    expect(count).toHaveTextContent('14');
+    expect(StyleSheet.flatten(count.props.style)).toEqual(
+      expect.objectContaining({ fontVariant: ['tabular-nums'] }),
+    );
   });
 
   it('renders nothing without pending updates', () => {
