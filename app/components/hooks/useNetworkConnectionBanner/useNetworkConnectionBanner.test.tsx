@@ -4,7 +4,12 @@ import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
-import useNetworkConnectionBanner from './useNetworkConnectionBanner';
+import useNetworkConnectionBanner, {
+  SLOW_NETWORK_BANNER_SNOOZE_MS,
+} from './useNetworkConnectionBanner';
+import { useNetworkLatency } from '../../../hooks/useNetworkLatency';
+import StorageWrapper from '../../../store/storage-wrapper';
+import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 import { RouteMessengerContext } from '../../../contexts/route-messenger';
 import type { RouteMessenger } from '../../../messengers/route-messenger';
@@ -25,6 +30,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 jest.mock('@react-navigation/native');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
+jest.mock('../../../hooks/useNetworkLatency');
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
   ...jest.requireActual(
     '../../../core/Engine/controllers/network-controller/utils',
@@ -59,6 +65,9 @@ const mockToastRef = {
 
 const statusMock = jest.mocked(selectNetworkConnectionBannerStatus);
 const networkMock = jest.mocked(selectNetworkConnectionBannerNetwork);
+const latencyMock = jest.mocked(useNetworkLatency);
+const getItemSyncMock = jest.mocked(StorageWrapper.getItemSync);
+const setItemMock = jest.mocked(StorageWrapper.setItem);
 
 /**
  * Configure the mocked controller selectors to describe a failing network.
@@ -92,6 +101,9 @@ describe('useNetworkConnectionBanner', () => {
 
     statusMock.mockReturnValue('available');
     networkMock.mockReturnValue(null);
+    latencyMock.mockReturnValue('OK');
+    getItemSyncMock.mockReturnValue(null);
+    setItemMock.mockResolvedValue(undefined);
 
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     jest.mocked(isPublicEndpointUrl).mockReturnValue(true);
@@ -213,6 +225,192 @@ describe('useNetworkConnectionBanner', () => {
   it('does not fire analytics when the banner is hidden', () => {
     renderHookWithProviders();
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  describe('isSlowNetwork', () => {
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(1_800_000_000_000);
+    });
+
+    afterEach(() => {
+      jest.mocked(Date.now).mockRestore();
+    });
+
+    it('is true when latency is slow and the RPC banner is hidden', () => {
+      latencyMock.mockReturnValue('SLOW');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('is false when latency is not slow', () => {
+      latencyMock.mockReturnValue('UNKNOWN');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('takes priority over the "Still connecting" RPC banner', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('gives way to the "Unable to connect" RPC banner', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(result.current.isVisible).toBe(true);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ banner_type: 'unavailable' }),
+      );
+    });
+
+    it('does not send the RPC banner shown event while the slow banner shows', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork();
+
+      renderHookWithProviders();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('shows the RPC banner once the slow banner is dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('degraded');
+      mockFailedNetwork();
+      const { result } = renderHookWithProviders();
+
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(result.current.isVisible).toBe(true);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN,
+      );
+    });
+
+    it('is false within a week of being dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS + 60_000),
+      );
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('is true again once a week has passed since dismissal', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS - 60_000),
+      );
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('hides the banner and stores the dismissal time when dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result } = renderHookWithProviders();
+
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(setItemMock).toHaveBeenCalledWith(
+        SLOW_NETWORK_BANNER_DISMISSED_AT,
+        expect.stringMatching(/^\d+$/),
+      );
+    });
+
+    it('stays true when latency resets to unknown after an app resume', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result, rerender } = renderHookWithProviders();
+
+      latencyMock.mockReturnValue('UNKNOWN');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('turns false once latency reads OK', () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result, rerender } = renderHookWithProviders();
+
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(false);
+    });
+
+    it('shows again mid-session once the week has run out', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(Date.now() - SLOW_NETWORK_BANNER_SNOOZE_MS + 60_000),
+      );
+      const { result, rerender } = renderHookWithProviders();
+      expect(result.current.isSlowNetwork).toBe(false);
+
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+      jest.mocked(Date.now).mockReturnValue(1_800_000_000_000 + 2 * 60_000);
+      latencyMock.mockReturnValue('SLOW');
+      rerender(undefined);
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+
+    it('is true when the stored dismissal time is in the future', () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(String(Date.now() + 60_000));
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(true);
+    });
+  });
+
+  describe('isVisible', () => {
+    it('is true while the RPC banner shows', () => {
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('is true while the slow network banner shows', () => {
+      latencyMock.mockReturnValue('SLOW');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('is false when neither banner shows', () => {
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isVisible).toBe(false);
+    });
   });
 
   describe('updateRpc', () => {

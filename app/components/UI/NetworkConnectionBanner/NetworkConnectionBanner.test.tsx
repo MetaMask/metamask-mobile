@@ -1,9 +1,12 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
-import NetworkConnectionBanner from './NetworkConnectionBanner';
+import NetworkConnectionBanner, {
+  SLOW_NETWORK_BANNER_TEST_ID,
+} from './NetworkConnectionBanner';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../hooks/useNetworkConnectionBanner');
@@ -67,6 +70,9 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'available',
         network: null,
+        isVisible: false,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -80,6 +86,9 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'degraded',
         network: null,
+        isVisible: false,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -121,6 +130,9 @@ describe('NetworkConnectionBanner', () => {
         useNetworkConnectionBannerMock.mockReturnValue({
           status,
           network: makeNetwork(),
+          isVisible: true,
+          isSlowNetwork: false,
+          dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -146,6 +158,9 @@ describe('NetworkConnectionBanner', () => {
             chainId: '0x1',
             isInfuraEndpoint: true,
           }),
+          isVisible: true,
+          isSlowNetwork: false,
+          dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -167,6 +182,9 @@ describe('NetworkConnectionBanner', () => {
         useNetworkConnectionBannerMock.mockReturnValue({
           status,
           network: makeNetwork(),
+          isVisible: true,
+          isSlowNetwork: false,
+          dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -179,6 +197,113 @@ describe('NetworkConnectionBanner', () => {
         expect(mockUpdateRpc).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('when the network is slow', () => {
+    it('renders the slow network message', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isVisible: true,
+        isSlowNetwork: true,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+
+      expect(getByTestId(SLOW_NETWORK_BANNER_TEST_ID)).toBeOnTheScreen();
+      expect(getByText('Slow connection')).toBeOnTheScreen();
+      expect(getByText('Data may take longer to load.')).toBeOnTheScreen();
+    });
+
+    it('dismisses when the close button is pressed', () => {
+      const mockDismiss = jest.fn();
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isVisible: true,
+        isSlowNetwork: true,
+        dismissSlowNetwork: mockDismiss,
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+      fireEvent.press(getByLabelText('Dismiss slow connection banner'));
+
+      expect(mockDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('labels the close button for screen readers', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isVisible: true,
+        isSlowNetwork: true,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+
+      expect(
+        getByLabelText('Dismiss slow connection banner'),
+      ).toBeOnTheScreen();
+    });
+
+    it('announces the banner to screen readers when it appears', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isVisible: true,
+        isSlowNetwork: true,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith(
+        'Slow connection. Data may take longer to load.',
+      );
+      announceSpy.mockRestore();
+    });
+
+    it('does not announce when the network is not slow', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isVisible: false,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).not.toHaveBeenCalled();
+      announceSpy.mockRestore();
+    });
   });
 
   describe('edge cases', () => {
@@ -204,6 +329,9 @@ describe('NetworkConnectionBanner', () => {
             chainId: '0x1',
             isInfuraEndpoint: true,
           }),
+          isVisible: true,
+          isSlowNetwork: false,
+          dismissSlowNetwork: jest.fn(),
           updateRpc: mockUpdateRpc,
           switchToInfura: jest.fn(),
         });
@@ -221,6 +349,9 @@ describe('NetworkConnectionBanner', () => {
           name: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
           rpcUrl: 'https://custom-rpc.example.com',
         }),
+        isVisible: true,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
@@ -237,6 +368,9 @@ describe('NetworkConnectionBanner', () => {
       useNetworkConnectionBannerMock.mockReturnValue({
         status: 'degraded',
         network: makeNetwork(),
+        isVisible: true,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
         updateRpc: mockUpdateRpc,
         switchToInfura: jest.fn(),
       });
