@@ -923,6 +923,19 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('confirm button', () => {
+    it('shows why Close is disabled when no amount is selected', () => {
+      const noAmountError = strings('perps.close_position.no_amount_selected');
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        ...defaultPerpsClosePositionValidationMock,
+        errors: [noAmountError],
+        isValid: false,
+      });
+
+      const { getByText } = renderSheet();
+
+      expect(getByText(noAmountError)).toBeOnTheScreen();
+    });
+
     it('is enabled for a valid market close', () => {
       const { getByTestId } = renderSheet();
 

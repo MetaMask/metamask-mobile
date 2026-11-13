@@ -258,8 +258,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       )}
 
       {/* Figma puts the keypad over the CTA, so the whole footer hides with it.
-          Blocking errors sit with the CTA they are blocking, left aligned
-          directly above it, matching the trade sheet. Errors about the limit
+          Blocking errors sit with the CTA they are blocking, centered
+          directly above it. Errors about the limit
           price itself stay on that row, where they are still visible while the
           keypad is open. */}
       {!isEditingLimitPrice && !isInputFocused && (
@@ -273,11 +273,8 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
-          {/* One BodySm line stays reserved so an error appearing while the
-              user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
             errors={displayedErrors}
-            alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
 

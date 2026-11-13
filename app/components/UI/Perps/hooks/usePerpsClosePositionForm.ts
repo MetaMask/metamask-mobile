@@ -985,8 +985,9 @@ export function usePerpsClosePositionForm(
   }, []);
 
   // Hide provider-level limit price required error on this UI. Surface the
-  // minimum amount error (e.g. minimum $10) and the "limit price too far"
-  // band error — both are blocking, so Close must explain why it is disabled.
+  // errors that disable Close with no other explanation: the minimum size
+  // (both the partial-close minimum and the must-close-100% variant), the
+  // "limit price too far" band, and a zero close.
   const filteredErrors = useMemo(() => {
     const minimumAmountErrorPrefix = strings(
       'perps.order.validation.minimum_amount',
@@ -994,14 +995,22 @@ export function usePerpsClosePositionForm(
         amount: '',
       },
     ).trimEnd();
+    const mustCloseFullBelowMinimumError = strings(
+      'perps.close_position.must_close_full_below_minimum',
+    );
     const limitPriceTooFarError = strings(
       'perps.order.limit_price_modal.limit_price_too_far',
+    );
+    const noAmountSelectedError = strings(
+      'perps.close_position.no_amount_selected',
     );
     // The actual minimum amount string includes the amount placeholder; match by key detection.
     return validationResult.errors.filter(
       (err) =>
         err.startsWith(minimumAmountErrorPrefix) ||
-        err.startsWith(limitPriceTooFarError),
+        err === mustCloseFullBelowMinimumError ||
+        err.startsWith(limitPriceTooFarError) ||
+        err === noAmountSelectedError,
     );
   }, [validationResult.errors]);
 
