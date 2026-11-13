@@ -118,7 +118,7 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
   });
 
-  it('skips the fade animation on Liquid Glass', () => {
+  it('slides the Liquid Glass pill without mount animations', () => {
     mockUseLiquidGlass.mockReturnValue({
       ...PLAIN_SURFACE,
       isGlassEnabled: true,
@@ -132,6 +132,42 @@ describe('PendingPostsButton', () => {
     const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID);
     expect(pill.props.entering).toBeUndefined();
     expect(pill.props.exiting).toBeUndefined();
+    expect(pill.props.pointerEvents).toBe('auto');
+  });
+
+  it('keeps the Liquid Glass pill mounted and hidden without pending updates', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isGlassEnabled: true,
+    });
+
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />,
+    );
+
+    const pill = screen.getByTestId(PENDING_POSTS_PILL_TEST_ID, {
+      includeHiddenElements: true,
+    });
+    expect(mockGlassView).toHaveBeenCalled();
+    expect(pill.props.pointerEvents).toBe('none');
+    expect(pill.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(screen.queryByLabelText(/new update/)).toBeNull();
+  });
+
+  it('keeps the last count on the Liquid Glass pill while it slides out', () => {
+    mockUseLiquidGlass.mockReturnValue({
+      ...PLAIN_SURFACE,
+      isBlurEnabled: true,
+    });
+    const { rerender } = renderWithProvider(
+      <PendingPostsButton pendingNewCount={4} onPress={jest.fn()} />,
+    );
+
+    rerender(<PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />);
+
+    expect(
+      screen.getByLabelText('4 new updates', { includeHiddenElements: true }),
+    ).toBeTruthy();
   });
 
   it('fades the plain pill in and out', () => {
