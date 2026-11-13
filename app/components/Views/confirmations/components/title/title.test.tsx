@@ -22,7 +22,10 @@ import {
   approveAllERC721TransactionStateMock,
   revokeAllERC721TransactionStateMock,
   decreaseAllowanceERC20TransactionStateMock,
+  approveERC20Permit2TransactionStateMock,
+  revokeERC20Permit2TransactionStateMock,
 } from '../../__mocks__/approve-transaction-mock';
+import { permit2TokenMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useGetTokenStandardAndDetails } from '../../hooks/useGetTokenStandardAndDetails';
 import { TokenStandard } from '../../types/token';
 import Title from './title';
@@ -490,6 +493,46 @@ describe('Confirm Title', () => {
       expect(
         getByText('This site wants decrease the spending cap for your tokens.'),
       ).toBeTruthy();
+    });
+
+    describe('permit2', () => {
+      beforeEach(() => {
+        mockUseGetTokenStandardAndDetails.mockImplementation(
+          (tokenAddress) =>
+            ({
+              details: {
+                standard:
+                  tokenAddress === permit2TokenMock
+                    ? TokenStandard.ERC20
+                    : TokenStandard.ERC721,
+                decimalsNumber: 0,
+              },
+              isPending: false,
+            }) as unknown as ReturnType<typeof useGetTokenStandardAndDetails>,
+        );
+      });
+
+      it('renders spending cap title for Permit2 approve', () => {
+        const { getByText } = renderWithProvider(<Title />, {
+          state: approveERC20Permit2TransactionStateMock,
+        });
+        expect(getByText('Spending cap request')).toBeTruthy();
+        expect(
+          getByText('This site wants permission to spend your tokens.'),
+        ).toBeTruthy();
+      });
+
+      it('renders remove permission title for Permit2 revoke', () => {
+        const { getByText } = renderWithProvider(<Title />, {
+          state: revokeERC20Permit2TransactionStateMock,
+        });
+        expect(getByText('Remove permission')).toBeTruthy();
+        expect(
+          getByText(
+            "You're removing someone's permission to spend tokens from your account.",
+          ),
+        ).toBeTruthy();
+      });
     });
   });
 
