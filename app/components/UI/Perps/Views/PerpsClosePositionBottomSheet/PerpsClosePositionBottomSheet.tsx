@@ -10,6 +10,7 @@ import {
   ButtonSize,
   ButtonVariant,
   SectionDivider,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { type OrdinaryOrderType } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -230,7 +231,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       />
 
       {!isEditingLimitPrice && !isInputFocused && (
-        <Box twClassName="px-4 py-4" onTouchCancel={handleSliderDragCancel}>
+        <Box twClassName="px-4 pt-4" onTouchCancel={handleSliderDragCancel}>
           <PerpsSlider
             value={displayClosePercentage}
             onValueChange={handleSliderValueChange}
@@ -272,12 +273,23 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             containerTwClassName="px-4 mb-3"
           />
 
-          <SectionDivider marginVertical={1} twClassName="mx-4" />
+          <SectionDivider twClassName="mx-4 mt-3 mb-3" />
 
           <PerpsValidationErrors
             errors={displayedErrors}
             twClassName="min-h-[22px] justify-center px-4"
           />
+
+          {feePercentage && displayedErrors.length === 0 ? (
+            <PerpsFeeCaption
+              feePercentage={feePercentage}
+              originalFeePercentage={originalFeePercentage}
+              feeDiscountPercentage={feeResults.feeDiscountPercentage}
+              feeDiscountKind={feeResults.feeDiscountKind}
+              testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
+              textVariant={TextVariant.BodySm}
+            />
+          ) : null}
 
           <BottomSheetFooter
             primaryButtonProps={{
@@ -290,17 +302,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             }}
             twClassName="pt-3"
           />
-
-          {feePercentage ? (
-            <PerpsFeeCaption
-              feePercentage={feePercentage}
-              originalFeePercentage={originalFeePercentage}
-              feeDiscountPercentage={feeResults.feeDiscountPercentage}
-              feeDiscountKind={feeResults.feeDiscountKind}
-              testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
-              twClassName="pt-2"
-            />
-          ) : null}
         </>
       )}
 
@@ -310,7 +311,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              twClassName="flex-1 rounded-xl"
               onPress={() => handlePercentagePress(0.25)}
             >
               25%
@@ -318,7 +319,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              twClassName="flex-1 rounded-xl"
               onPress={() => handlePercentagePress(0.5)}
             >
               50%
@@ -326,7 +327,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
-              twClassName="flex-1"
+              twClassName="flex-1 rounded-xl"
               onPress={handleMaxPress}
             >
               {strings('perps.deposit.max_button')}
@@ -334,6 +335,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
+              twClassName="rounded-xl"
               onPress={handleDonePress}
             >
               {strings('perps.deposit.done_button')}
