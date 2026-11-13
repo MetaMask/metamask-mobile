@@ -226,6 +226,7 @@ import {
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
+  TraderPreviewSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -1587,6 +1588,13 @@ const MainNavigator = () => {
             component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
+      )}
+      {isSocialV1Enabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.TRADER_PREVIEW_SHEET}
+          component={TraderPreviewSheet}
+          options={transparentModalStackOptions}
+        />
       )}
       {isSocialExperienceEnabled && (
         <>
