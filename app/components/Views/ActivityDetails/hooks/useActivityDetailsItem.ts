@@ -24,6 +24,7 @@ import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivi
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,
+  mapV5ActivityItem,
   shouldSkipUnrelatedTransaction,
 } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -192,6 +193,12 @@ export function useActivityDetailsItem(
   const fetchedApiItem = useMemo(() => {
     if (!apiTransaction || !evmAddress) {
       return undefined;
+    }
+
+    // v5 maps as-is, like the extension's details page.
+    if ('tx' in apiTransaction) {
+      const activity = mapV5ActivityItem(apiTransaction);
+      return chainId && activity.chainId !== chainId ? undefined : activity;
     }
 
     // Participation gate only. Without it, by-hash results whose top-level

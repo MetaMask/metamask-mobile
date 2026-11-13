@@ -1,7 +1,7 @@
 import type { Mockttp } from 'mockttp';
 import {
   buildRelayQuoteMock,
-  mockRelayQuoteWith,
+  mockRelayQuoteWithExecute,
   mockRelayStatusSuccess,
 } from './relay-mocks';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MUSD_MONAD = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const MUSD_MONAD_HEX = 'aca92e438df0b2401ff60da7e4337b687a2435da';
@@ -119,7 +120,9 @@ export async function MONEY_ACCOUNT_WITHDRAW_MOCKS(
     recipient,
   });
 
-  await mockRelayQuoteWith(mockServer, quote);
+  // Post-quote withdrawals are quoted and signed by the Money account, which
+  // cannot sign a plain transaction, so it gets an execute quote.
+  await mockRelayQuoteWithExecute(mockServer, quote, E2E_MONEY_ACCOUNT);
   await mockRelayStatusSuccess(mockServer);
 }
 
@@ -1121,26 +1124,7 @@ async function mockAccountsApiTransactions(
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {

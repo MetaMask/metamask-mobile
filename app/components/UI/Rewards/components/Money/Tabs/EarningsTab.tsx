@@ -341,7 +341,7 @@ const BreakdownSection: React.FC<{
       title={localizedText.breakdown}
       isInteractive={Boolean(onViewPerformance)}
       onPress={onViewPerformance}
-      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
     <Box twClassName="px-4">
@@ -419,7 +419,7 @@ const HistorySection: React.FC<{
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -475,7 +475,7 @@ const HistorySection: React.FC<{
         title={localizedText.history}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
       />
       <Box twClassName="px-4 pb-8">
@@ -654,7 +654,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       {/* Same block as the hero cards on Ways to Earn: the banner and the
           card share one padded box so the gap between them matches. */}
       {errorSource || summary.show ? (
-        <Box twClassName="mt-3 gap-3 px-4 pt-4">
+        <Box twClassName="gap-3 px-4 pt-4">
           {errorSource ? (
             <EarningsErrorBanner
               source={errorSource}
@@ -691,7 +691,9 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                         return;
                       }
                       void onClaimPress(summaryData, (options) =>
-                        claim(summaryData, options).catch(() => undefined),
+                        claim(options?.summary ?? summaryData, options).catch(
+                          () => undefined,
+                        ),
                       );
                     }
                   : undefined

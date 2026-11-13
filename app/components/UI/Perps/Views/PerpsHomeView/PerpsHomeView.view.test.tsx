@@ -811,7 +811,7 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('opens Social V1 on the Leaderboard tab from Top traders See more with the perps_home source', async () => {
+    it('switches to the Social tab on Leaderboard from Top traders See more with the perps_home source', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
@@ -831,9 +831,9 @@ describe('PerpsHomeView', () => {
         socialEnabled: true,
         extraRoutes: [
           {
-            name: Routes.SOCIAL.V1,
+            name: Routes.HOME_TABS,
             Component: createRouteParamsProbe(
-              Routes.SOCIAL.V1,
+              Routes.HOME_TABS,
             ) as ComponentType<unknown>,
           },
         ],
@@ -849,11 +849,11 @@ describe('PerpsHomeView', () => {
         );
 
         const probe = await screen.findByTestId(
-          getRouteParamsProbeTestId(Routes.SOCIAL.V1),
+          getRouteParamsProbeTestId(Routes.HOME_TABS),
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
-          source: 'perps_home',
-          initialTab: 'leaderboard',
+          screen: Routes.SOCIAL.TAB,
+          params: { source: 'perps_home', initialTab: 'leaderboard' },
         });
       } finally {
         unwire();
@@ -906,8 +906,14 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
       fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
+      // Retry refetches the leaderboard and the viewer profile together, and the
+      // error message stays up until the leaderboard rows arrive.
       expect(
-        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
+        await screen.findByTestId(
+          getTraderRowTestId(topFiveIds[0]),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1146,6 +1152,7 @@ describe('PerpsHomeView', () => {
         expect.objectContaining({
           positionId: feedItems[0].positionId,
           isClosed: true,
+          shareSource: 'perps_home',
         }),
       );
     });

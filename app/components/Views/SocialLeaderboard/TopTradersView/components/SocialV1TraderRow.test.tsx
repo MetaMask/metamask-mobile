@@ -112,7 +112,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
-  it('keeps the rank column width when hideRank is set', () => {
+  it('shows a dash in the rank column when hideRank is set', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -124,7 +124,7 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
@@ -192,26 +192,28 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted viewer card', () => {
+  it('wraps a highlighted row in the muted wash with a left bar', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
+        showLeaderboardDetails
       />,
     );
 
     const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+    const bar = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT_BAR);
 
     expect(card).toBeOnTheScreen();
     expect(card).toHaveStyle({
       backgroundColor: lightTheme.colors.background.muted,
-      borderWidth: 1,
-      borderRadius: 16,
-      paddingLeft: 8,
-      paddingRight: 8,
-      paddingTop: 12,
-      paddingBottom: 12,
+      height: 72,
+    });
+    expect(card).not.toHaveStyle({ borderRadius: 16, borderWidth: 1 });
+    expect(bar).toHaveStyle({
+      backgroundColor: lightTheme.colors.success.default,
+      width: 2,
     });
     expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
     expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({
@@ -321,7 +323,7 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
@@ -347,7 +349,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('$0.00')).toBeOnTheScreen();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
   });
 
   it('keeps followers and hides a missing percent on the pinned card', () => {

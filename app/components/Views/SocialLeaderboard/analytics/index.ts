@@ -19,7 +19,7 @@ export {
   getSocialReactionType,
   SocialEvent,
 } from './socialEvents';
-export type { SocialEventSource } from './socialEvents';
+export type { SocialComposerEntry, SocialEventSource } from './socialEvents';
 export type {
   FollowTradingTokenSource,
   LeaderboardScreenViewedSource,

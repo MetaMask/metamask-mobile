@@ -4,11 +4,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   IconName,
   TextField,
 } from '@metamask/design-system-react-native';
@@ -264,7 +265,7 @@ const ConfirmEmail = () => {
 
   const renderFormFields = () => (
     <>
-      <Box>
+      <Box gap={2}>
         <TextField
           inputRef={codeInputRef}
           onChangeText={handleConfirmCodeChange}
@@ -284,21 +285,20 @@ const ConfirmEmail = () => {
           }}
         />
         {verifyIsError && (
-          <Text
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID="confirm-email-error-text"
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
           >
             {verifyError}
-          </Text>
+          </HelpText>
         )}
-      </Box>
 
-      {/* Resend verification */}
-      <Box twClassName="mt-2">
+        {/* Resend verification */}
         <Text
           variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
+          color={TextColor.TextAlternative}
           testID="confirm-email-resend-verification"
         >
           {resendCooldown > 0 ? (
@@ -308,9 +308,8 @@ const ConfirmEmail = () => {
           ) : (
             <>
               {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
-              <Text
+              <TextButton
                 variant={TextVariant.BodySm}
-                twClassName="text-text-alternative underline"
                 onPress={
                   resendCooldown > 0 ? undefined : handleResendVerification
                 }
@@ -324,44 +323,22 @@ const ConfirmEmail = () => {
                 {strings(
                   'card.card_onboarding.confirm_email.resend_verification',
                 )}
-              </Text>
+              </TextButton>
             </>
           )}
         </Text>
         {emailVerificationIsError && (
-          <Text
+          <HelpText
+            severity={HelpTextSeverity.Danger}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             testID="confirm-email-error-text"
-            variant={TextVariant.BodySm}
-            twClassName="text-error-default"
           >
             {emailVerificationError}
-          </Text>
+          </HelpText>
         )}
       </Box>
     </>
-  );
-
-  const renderActions = () => (
-    <Box twClassName="flex flex-col items-center justify-center gap-2">
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        isFullWidth
-        isDisabled={isDisabled}
-        isLoading={verifyLoading}
-        testID="confirm-email-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
-      <Text
-        variant={TextVariant.BodySm}
-        testID="confirm-email-legal-terms"
-        twClassName="text-text-alternative text-center"
-      >
-        {strings('card.card_onboarding.confirm_email.legal_terms')}
-      </Text>
-    </Box>
   );
 
   return (
@@ -371,8 +348,23 @@ const ConfirmEmail = () => {
         email,
       })}
       formFields={renderFormFields()}
-      actions={renderActions()}
-      stickyActions
+      footerContent={
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+          testID="confirm-email-legal-terms"
+        >
+          {strings('card.card_onboarding.confirm_email.legal_terms')}
+        </Text>
+      }
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: verifyLoading,
+        testID: 'confirm-email-continue-button',
+      }}
       headerMode="back"
     />
   );

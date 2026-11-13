@@ -100,8 +100,10 @@ const openPerp: Position = {
   perpLeverage: 40,
   positionAmount: 0.01,
   positionAmountWithLeverage: 0.4,
-  costBasis: 43000,
-  currentValueUSD: 450,
+  // As the API sends a 40x short of 0.4 BTC entered at 45,105 and marked at
+  // 45,000: margin-sized cost basis, equity = margin + unrealized P&L.
+  costBasis: 451.05,
+  currentValueUSD: 493.05,
   pnlPercent: 9.4,
   pnlValueUsd: 42,
 };
@@ -198,6 +200,41 @@ describe('mapPositionToFeedItem', () => {
     } finally {
       nowSpy.mockRestore();
     }
+  });
+
+  it('derives a closed percent from realized P&L when the API omits pnlPercent', () => {
+    const position: Position = {
+      ...openPerp,
+      pnlPercent: null,
+      realizedPnl: 93.17,
+      boughtUsd: 311.13,
+      pnlValueUsd: 93.17,
+      currentValueUSD: 0,
+      positionAmount: 0,
+    };
+
+    const item = mapPositionToFeedItem(position, 'closed cl', {
+      isClosed: true,
+    });
+
+    expect(item.variant).toBe('perpsClosed');
+    expect(item.pnlLabel).toBe(`${(93.17 / 311.13) * 100}%`);
+  });
+
+  it('keeps a closed percent the API already sent', () => {
+    const item = mapPositionToFeedItem(
+      {
+        ...openPerp,
+        pnlPercent: 29.95,
+        realizedPnl: 1,
+        boughtUsd: 311.13,
+        currentValueUSD: 0,
+      },
+      'closed cl',
+      { isClosed: true },
+    );
+
+    expect(item.pnlLabel).toBe('29.95%');
   });
 
   it('maps a closed perp without copy trade', () => {
@@ -446,7 +483,7 @@ describe('mapPositionToFeedItem', () => {
         key: 'perp:BTC',
         kind: 'perp',
         symbol: 'BTC',
-        positionAmount: 0.01,
+        positionAmount: 0.4,
         direction: -1,
         snapshotPrice: expect.closeTo(45_000),
       }),

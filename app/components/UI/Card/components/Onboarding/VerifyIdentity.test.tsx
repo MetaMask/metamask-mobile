@@ -81,6 +81,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
 
@@ -88,12 +91,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -109,26 +114,124 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
-// Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
   const React = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // Added for the CARD-682 layout pass (CardFormField / HelpText / TextButton).
+    HelpText: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    TextButton: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      [key: string]: unknown;
+    }) =>
+      jest
+        .requireActual('react')
+        .createElement(
+          jest.requireActual('react-native').Text,
+          props,
+          children,
+        ),
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+      ErrorDefault: 'ErrorDefault',
+    },
+    FontWeight: { Medium: '500', Regular: '400' },
     Box: ({
       children,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(View, props, children),
+    BoxAlignItems: { Center: 'Center' },
+    BoxJustifyContent: { Center: 'Center', End: 'End' },
     Text: ({
       children,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) =>
       React.createElement(Text, props, children),
+    TitleStandard: ({
+      title,
+      bottomLabel,
+      titleProps,
+      bottomLabelProps,
+      topAccessory,
+    }: {
+      title?: string;
+      bottomLabel?: string;
+      titleProps?: { testID?: string };
+      bottomLabelProps?: { testID?: string };
+      topAccessory?: React.ReactNode;
+    }) =>
+      React.createElement(
+        View,
+        { testID: 'title-standard' },
+        topAccessory,
+        React.createElement(Text, { testID: titleProps?.testID }, title),
+        React.createElement(
+          Text,
+          { testID: bottomLabelProps?.testID },
+          bottomLabel,
+        ),
+      ),
+    ListItem: ({
+      title,
+      description,
+      testID,
+      avatar,
+    }: {
+      title?: string;
+      description?: string;
+      testID?: string;
+      avatar?: React.ReactNode;
+    }) =>
+      React.createElement(
+        View,
+        { testID },
+        avatar,
+        React.createElement(Text, null, title),
+        description ? React.createElement(Text, null, description) : null,
+      ),
+    ListItemVariant: {
+      OneLine: 'one-line',
+      TwoLines: 'two-lines',
+      MultiLine: 'multi-line',
+    },
+    AvatarIcon: ({
+      iconName,
+      ...props
+    }: { iconName?: string } & Record<string, unknown>) =>
+      React.createElement(View, {
+        ...props,
+        testID: `avatar-icon-${iconName}`,
+      }),
+    AvatarIconSeverity: { Neutral: 'Neutral' },
+    AvatarIconSize: { Lg: 'Lg', Md: 'Md' },
     Icon: ({ name, ...props }: { name: string } & Record<string, unknown>) =>
       React.createElement(View, { ...props, testID: `icon-${name}` }),
     TextVariant: {
@@ -137,6 +240,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     IconName: {
       EyeSlash: 'EyeSlash',
+      Fingerprint: 'Fingerprint',
       Verified: 'Verified',
     },
     IconSize: {
@@ -151,15 +255,16 @@ jest.mock('@metamask/design-system-react-native', () => {
       onPress,
       isDisabled,
       isFullWidth,
+      testID,
       ...props
     }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { TouchableOpacity, Text: RNText } =
+      const { TouchableOpacity: TO, Text: RNText } =
         jest.requireActual('react-native');
       return React.createElement(
-        TouchableOpacity,
+        TO,
         {
           ...props,
-          testID: 'verify-identity-continue-button',
+          testID: testID || 'verify-identity-continue-button',
           onPress,
           disabled: isDisabled,
         },
@@ -248,10 +353,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_onboarding.continue_button': 'Continue',
       'card.card_onboarding.verify_identity.start_verification_error':
         'Unable to start verification. Please try again.',
-      'card.card_onboarding.verify_identity.terms_1':
-        'Your identity data is encrypted and stored securely.',
-      'card.card_onboarding.verify_identity.terms_2':
-        'We verify your identity with a trusted partner.',
+      'card.card_onboarding.verify_identity.terms_1_title':
+        'MetaMask never sees your info',
+      'card.card_onboarding.verify_identity.terms_1_description':
+        'It goes straight to Veriff and Crypto Life.',
+      'card.card_onboarding.verify_identity.terms_2_title':
+        'Have your ID and proof of address ready',
+      'card.card_onboarding.verify_identity.terms_2_description':
+        'This usually takes 5 minutes.',
+      'card.card_onboarding.verify_identity.terms_2_us_description':
+        'Federal law (USA PATRIOT Act) requires us to verify your identity with ID and proof of address to help prevent terrorism and money laundering. This usually takes 5 minutes.',
     };
     return mockStrings[key] || key;
   }),
@@ -741,10 +852,33 @@ describe('VerifyIdentity Component', () => {
       );
 
       expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.verify_identity.terms_1',
+        'card.card_onboarding.verify_identity.terms_1_title',
       );
       expect(strings).toHaveBeenCalledWith(
-        'card.card_onboarding.verify_identity.terms_2',
+        'card.card_onboarding.verify_identity.terms_1_description',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'card.card_onboarding.verify_identity.terms_2_title',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'card.card_onboarding.verify_identity.terms_2_description',
+      );
+    });
+
+    it('uses US terms description for US users', () => {
+      const { strings } = jest.requireMock('../../../../../../locales/i18n');
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+      });
+
+      render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      expect(strings).toHaveBeenCalledWith(
+        'card.card_onboarding.verify_identity.terms_2_us_description',
       );
     });
   });

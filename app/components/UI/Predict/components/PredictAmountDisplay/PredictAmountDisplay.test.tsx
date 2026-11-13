@@ -1,6 +1,6 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { Platform, StyleSheet, Text } from 'react-native';
 import { mockTheme } from '../../../../../util/theme';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import PredictAmountDisplay from './PredictAmountDisplay';
@@ -26,6 +26,25 @@ describe('PredictAmountDisplay', () => {
   });
 
   describe('Rendering', () => {
+    it('renders the amount in Grotzec Cond Bold', () => {
+      const { getByTestId, getByText } = render(
+        <PredictAmountDisplay amount="1000" />,
+      );
+      const amountGlyphs = getAmountGlyphs(
+        getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL),
+      );
+
+      expect(StyleSheet.flatten(getByText('$').props.style)).toEqual(
+        expect.objectContaining({ fontFamily: 'GrotzecCond-Bold' }),
+      );
+      expect(amountGlyphs).not.toHaveLength(0);
+      amountGlyphs.forEach((glyph) => {
+        expect(StyleSheet.flatten(glyph.props.style)).toEqual(
+          expect.objectContaining({ fontFamily: 'GrotzecCond-Bold' }),
+        );
+      });
+    });
+
     it('displays amount with dollar sign', () => {
       const amount = '1000';
 
@@ -241,12 +260,11 @@ describe('PredictAmountDisplay', () => {
       amountGlyphs.forEach((glyph) => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
-            fontSize: 60,
-            lineHeight: 70,
+            fontSize: 64,
+            lineHeight: 64,
           }),
         );
       });
-      expect(amountText).toHaveStyle({ paddingLeft: 4, paddingRight: 4 });
       amountGlyphs.forEach((glyph) => {
         expect(StyleSheet.flatten(glyph.props.style)).not.toHaveProperty(
           'paddingHorizontal',
@@ -268,7 +286,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 48,
-            lineHeight: 58,
+            lineHeight: 48,
           }),
         );
       });
@@ -288,7 +306,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 32,
-            lineHeight: 42,
+            lineHeight: 32,
           }),
         );
       });
@@ -308,7 +326,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 24,
-            lineHeight: 34,
+            lineHeight: 24,
           }),
         );
       });
@@ -328,7 +346,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 18,
-            lineHeight: 28,
+            lineHeight: 18,
           }),
         );
       });
@@ -348,7 +366,7 @@ describe('PredictAmountDisplay', () => {
         expect(StyleSheet.flatten(glyph.props.style)).toEqual(
           expect.objectContaining({
             fontSize: 12,
-            lineHeight: 22,
+            lineHeight: 12,
           }),
         );
       });
@@ -395,10 +413,17 @@ describe('PredictAmountDisplay', () => {
       const cursor = getByTestId('cursor');
 
       expect(cursor).toHaveStyle({
-        backgroundColor: mockTheme.colors.text.default,
-        height: 43,
-        marginLeft: 0,
-        width: 2,
+        backgroundColor: mockTheme.colors.text.muted,
+        height: Math.round(64 * 0.95),
+        marginHorizontal: 0,
+        width: 1,
+        transform: [
+          {
+            translateY: Math.round(
+              64 * (Platform.OS === 'android' ? 0.02 : -0.04),
+            ),
+          },
+        ],
       });
     });
   });

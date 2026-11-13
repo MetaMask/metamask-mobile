@@ -1,5 +1,7 @@
 /**
- * Tax documentation opens from Claim. Cashback still submits. Income does not.
+ * Tax documentation opens from Claim only when cashback cannot be claimed.
+ * A cleared payee claims every open route. An uncleared payee with cashback
+ * at the minimum claims cashback alone.
  *
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tax.view.test.tsx --runInBand --coverage=false
  */
@@ -9,6 +11,8 @@ import { ButtonVariant } from '@metamask/design-system-react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import { WebView } from '@metamask/react-native-webview';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
+import { strings } from '../../../../../../../locales/i18n';
 import ReduxService from '../../../../../../core/redux';
 import {
   RewardsMoneyClaimRefusalError,
@@ -21,13 +25,17 @@ import type {
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import {
   renderEarningsTab as renderEarningsTabScreen,
+  REWARDS_ROOT_MODAL_BACK_TEST_ID,
   type RenderRewardsMoneyOptions,
 } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
+import { SUPPORT_CONSENT_SHEET_TEST_IDS } from '../../../../SupportConsentSheet/SupportConsentSheet.testIds';
 import {
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT,
   referralMeFixture,
+  REWARDS_MONEY_PROFILE_ID,
 } from '../../../../../../../tests/component-view/presets/rewardsMoney';
+import { selectCommissionMechanisms } from '../../../../../../reducers/rewardsMoney/selectors';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { TAX_FORM_QUESTION_SHEET_TEST_IDS } from '../TaxFormQuestionSheet.testIds';
 import { TAX_FORM_OPEN_FORM_SHEET_TEST_IDS } from '../TaxFormOpenFormSheet.testIds';
@@ -319,6 +327,53 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('opens the tax sheet when follow-trade is held for tax and revenue share is blocked', async () => {
+    const summary: EarningsSummaryDto = {
+      ...HELD_ONLY,
+      blocked: '130000',
+      earned_by_others: {
+        ...HELD_ONLY.earned_by_others,
+        by_claim_family: {
+          ...HELD_ONLY.earned_by_others.by_claim_family,
+          REFERRAL_REV_SHARE: {
+            lifetime: '130000',
+            claimable: '0',
+            held: '0',
+            blocked: '130000',
+            voided: '0',
+            pending: '0',
+            claimed: '0',
+            blocking_reason: 'MECHANISM_NOT_CLAIMABLE',
+          },
+        },
+      },
+    };
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(COPY.taxAttestationTitle);
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
   it('opens the tax sheet from a fresh read when a tax hold is cached as cleared', async () => {
     const { findByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
@@ -352,8 +407,8 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(0);
   });
 
-  it('shows the attestation and still submits cashback, not income', async () => {
-    const { findByTestId, engine } = renderEarningsTab({
+  it('submits cashback without the tax sheet when income is held', async () => {
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
       persona: 'referee',
       summary: CASHBACK_AND_HELD,
       claimReady: true,
@@ -367,15 +422,15 @@ describe('EarningsTab tax documentation', () => {
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(
-      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveTextContent(COPY.taxAttestationTitle);
     await waitFor(() => {
       const claims = callsFor(engine, 'RewardsMoneyController:initiateClaim');
       expect(claims.map((call) => call[1])).toEqual([
         'referral-trade-fee-cashback',
       ]);
     });
+    expect(
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens one tax sheet and does not submit follow-trade on its own', async () => {
@@ -410,13 +465,13 @@ describe('EarningsTab tax documentation', () => {
     ).toHaveLength(0);
   });
 
-  it('opens one tax sheet and submits cashback without follow-trade', async () => {
+  it('submits cashback without the tax sheet when copy trading is also claimable', async () => {
     const summary = earningsSummaryFixture({
       claimable: '2000000',
       cashbackClaimable: '1000000',
       followTradeClaimable: '1000000',
     });
-    const { findByTestId, findAllByTestId, engine } = renderEarningsTab({
+    const { findByTestId, queryByTestId, engine, store } = renderEarningsTab({
       persona: 'referee',
       summary,
       claimReady: true,
@@ -428,13 +483,19 @@ describe('EarningsTab tax documentation', () => {
       },
     });
 
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+      expect(
+        selectCommissionMechanisms(store.getState(), REWARDS_MONEY_PROFILE_ID)
+          ?.SOCIAL_FOLLOW_TRADE?.claim_open,
+      ).toBe(true);
+    });
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(
-      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveTextContent(COPY.taxAttestationTitle);
     await waitFor(() => {
       expect(
         callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
@@ -443,8 +504,8 @@ describe('EarningsTab tax documentation', () => {
       ).toEqual(['referral-trade-fee-cashback']);
     });
     expect(
-      await findAllByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
-    ).toHaveLength(1);
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the form after Yes', async () => {
@@ -892,27 +953,28 @@ describe('EarningsTab tax documentation', () => {
       pending: '0',
       claimed: '0',
     };
-    const { findByTestId, getByTestId, engine } = renderEarningsTab({
-      persona: 'referee',
-      summary,
-      claimReady: true,
-      handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
-        'RewardsMoneyController:getCommissions': () =>
-          Promise.resolve({
-            results: [],
-            mechanisms: {
-              REFERRAL_REV_SHARE: {
-                claim_open: false,
-                reason: 'MECHANISM_NOT_CLAIMABLE',
+    const { findByTestId, getByTestId, queryByTestId, engine } =
+      renderEarningsTab({
+        persona: 'referee',
+        summary,
+        claimReady: true,
+        handlers: {
+          'RewardsMoneyController:getTaxMe': () => Promise.resolve(CLEARED),
+          'RewardsMoneyController:getCommissions': () =>
+            Promise.resolve({
+              results: [],
+              mechanisms: {
+                REFERRAL_REV_SHARE: {
+                  claim_open: false,
+                  reason: 'MECHANISM_NOT_CLAIMABLE',
+                },
+                SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
               },
-              SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
-            },
-            has_more: false,
-            cursor: null,
-          }),
-      },
-    });
+              has_more: false,
+              cursor: null,
+            }),
+        },
+      });
 
     await waitFor(() => {
       expect(
@@ -930,6 +992,9 @@ describe('EarningsTab tax documentation', () => {
         ),
       ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
     });
+    expect(
+      queryByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the determination sheet for a provider 503 and does not retry', async () => {
@@ -1071,15 +1136,120 @@ describe('EarningsTab tax documentation', () => {
 
     expect(
       await view.findByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(
+      JSON.stringify({
+        url: METAMASK_SUPPORT_URL,
+        title: strings('app_settings.contact_support'),
+        isModal: false,
+      }),
+    );
+    // Support covers the sheet. Backing out of support closes the sheet.
+    fireEvent.press(view.getByTestId(REWARDS_ROOT_MODAL_BACK_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
   });
 
-  it('claims and shows the renewal question when the answer is about to expire', async () => {
+  it('keeps the contact sheet up when the support consent sheet is dismissed', async () => {
+    const view = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () =>
+          Promise.resolve(
+            taxMe({
+              state: 'UNDER_REVIEW',
+              next_action: 'NONE',
+              reason: 'US_ACTIVITY_BLOCKED',
+            }),
+          ),
+      },
+    });
+    ReduxService.store = view.store;
+
+    fireEvent.press(
+      await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+    fireEvent.press(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTACT),
+    );
+    fireEvent.press(
+      await view.findByTestId(SUPPORT_CONSENT_SHEET_TEST_IDS.CLOSE),
+    );
+
+    expect(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('closes the contact sheet after backing out of support opened from the consent sheet', async () => {
+    const view = renderEarningsTab({
+      persona: 'referee',
+      summary: HELD_ONLY,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () =>
+          Promise.resolve(
+            taxMe({
+              state: 'UNDER_REVIEW',
+              next_action: 'NONE',
+              reason: 'US_ACTIVITY_BLOCKED',
+            }),
+          ),
+      },
+    });
+    ReduxService.store = view.store;
+
+    fireEvent.press(
+      await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+    fireEvent.press(
+      await view.findByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTACT),
+    );
+    fireEvent.press(
+      await view.findByTestId(SUPPORT_CONSENT_SHEET_TEST_IDS.CONFIRM),
+    );
+
+    const webview = await view.findByTestId(
+      getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE),
+    );
+    const params = JSON.parse(String(webview.props.children)) as {
+      url: string;
+      isModal: boolean;
+    };
+    expect(params.url.startsWith(METAMASK_SUPPORT_URL)).toBe(true);
+    expect(params.isModal).toBe(false);
+
+    fireEvent.press(view.getByTestId(REWARDS_ROOT_MODAL_BACK_TEST_ID));
+
+    await waitFor(() => {
+      expect(
+        view.queryByTestId(TAX_FORM_CONTACT_US_SHEET_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      view.queryByTestId(getRouteParamsProbeTestId(Routes.WEBVIEW.SIMPLE)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the renewal question without dropping open routes', async () => {
+    const summary = earningsSummaryFixture({
+      claimable: '2000000',
+      cashbackClaimable: '1000000',
+      followTradeClaimable: '1000000',
+    });
     const { findByTestId, findByText, engine } = renderEarningsTab({
       persona: 'referee',
-      summary: CASHBACK_AND_HELD,
+      summary,
       claimReady: true,
-      initiateClaim: 'hang',
       handlers: {
         'RewardsMoneyController:getTaxMe': () =>
           Promise.resolve(
@@ -1090,9 +1260,16 @@ describe('EarningsTab tax documentation', () => {
               cleared: true,
             }),
           ),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
       },
     });
 
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getCommissions').length,
+      ).toBeGreaterThan(0);
+    });
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
@@ -1102,8 +1279,10 @@ describe('EarningsTab tax documentation', () => {
     ).toBeOnTheScreen();
     await waitFor(() => {
       expect(
-        callsFor(engine, 'RewardsMoneyController:initiateClaim'),
-      ).toHaveLength(1);
+        callsFor(engine, 'RewardsMoneyController:initiateClaim').map(
+          (call) => call[1],
+        ),
+      ).toEqual(['referral-trade-fee-cashback', 'social-follow-trade']);
     });
   });
 

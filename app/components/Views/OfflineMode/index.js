@@ -32,9 +32,9 @@ const createStyles = (colors) =>
     },
     content: {
       flex: 1,
-      marginHorizontal: 18,
+      marginHorizontal: 16,
       justifyContent: 'center',
-      marginVertical: 30,
+      marginVertical: 32,
     },
     title: {
       fontSize: 18,
@@ -48,7 +48,7 @@ const createStyles = (colors) =>
       ...fontStyles.normal,
     },
     buttonContainer: {
-      marginHorizontal: 18,
+      marginHorizontal: 16,
     },
   });
 

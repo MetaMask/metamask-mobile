@@ -103,11 +103,16 @@ const OnboardingSheet = ({
 
   const goTo = useCallback(
     (url: string, title: string) => {
-      navigation.navigate(Routes.WEBVIEW.SIMPLE, {
-        url,
-        title,
-        hideShareButton: true,
-        useGlassHeader: true,
+      // Onboarding lives under OnboardingRootNav, which only registers the
+      // parent `Webview` stack (not `SimpleWebview` at this level).
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title,
+          hideShareButton: true,
+          useGlassHeader: true,
+        },
       });
     },
     [navigation],

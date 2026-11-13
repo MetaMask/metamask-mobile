@@ -1,6 +1,7 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { setEarningsHistory } from '../../../../reducers/rewardsMoney';
 import { useEarningsHistory } from './useEarningsHistory';
@@ -96,6 +97,46 @@ describe('useEarningsHistory', () => {
 
   it('does not fetch when disabled', async () => {
     renderHook(() => useEarningsHistory(PROFILE_A, { enabled: false }));
+    await flushPromises();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('asks for a failed later page again only once', async () => {
+    (useFocusEffect as jest.Mock).mockImplementation((effect: () => void) => {
+      effect();
+    });
+    mockEngineCall.mockResolvedValueOnce({
+      results: [earning],
+      has_more: true,
+      cursor: 'cursor-2',
+      window: null,
+    });
+
+    const { result } = renderHook(() => useEarningsHistory(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.items).not.toBeNull();
+    });
+
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not fetch without a profile', async () => {
+    renderHook(() => useEarningsHistory(undefined));
     await flushPromises();
 
     expect(mockEngineCall).not.toHaveBeenCalled();

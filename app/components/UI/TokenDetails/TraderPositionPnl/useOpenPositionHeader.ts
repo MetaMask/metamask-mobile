@@ -48,11 +48,7 @@ export const useOpenPositionHeader = (
     [scope, scopedAccount, selectedAccount],
   );
 
-  const {
-    position,
-    earliestTradeAt,
-    isLoading: isPositionLoading,
-  } = useOpenPositionForAsset(
+  const { position, isLoading: isPositionLoading } = useOpenPositionForAsset(
     walletAddress,
     assetId ?? undefined,
     walletAddress,
@@ -60,18 +56,14 @@ export const useOpenPositionHeader = (
   const { fiatBalance } = useTokenBalance(token);
   const conversion = useUsdToFiatRate();
   const sharePosition = useMemo(
-    () =>
-      position
-        ? toSharePosition(token, assetId, position, earliestTradeAt)
-        : null,
-    [assetId, earliestTradeAt, position, token],
+    () => (position ? toSharePosition(token, assetId, position) : null),
+    [assetId, position, token],
   );
   const header = toOpenPositionHeader({
     position,
     isLoading: isPositionLoading,
     walletFiatBalance: fiatBalance,
     conversion,
-    earliestTradeAt,
   });
 
   return {

@@ -1,3 +1,4 @@
+import { MAX_DISPLAY_NAME_LENGTH } from '../../ProfileOnboarding/profileOnboardingDraft';
 import type { MySocialProfile } from '../../MyProfileView/hooks/useMyProfile';
 import { ManageProfileEditorSelectorsIDs } from '../ManageProfileView.testIds';
 
@@ -29,8 +30,10 @@ interface ManageProfileTextEditorFieldConfig {
     | 'social_leaderboard.manage_profile.socials_helper';
   prefix?: string;
   multiline?: boolean;
-  /** Caps what the user can type. Only the bio sets it. */
+  /** Caps what the user can type. */
   maxLength?: number;
+  /** Opens the keyboard on the input as soon as the editor is shown. */
+  autoFocus?: boolean;
   getInitialValue: (profile: MySocialProfile | null) => string;
   testIDs: {
     container: string;
@@ -47,6 +50,8 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG: Record<
 > = {
   displayName: {
     titleKey: 'social_leaderboard.manage_profile.display_name',
+    maxLength: MAX_DISPLAY_NAME_LENGTH,
+    autoFocus: true,
     getInitialValue: (profile) => profile?.displayName ?? '',
     testIDs: {
       container: ManageProfileEditorSelectorsIDs.DISPLAY_NAME_CONTAINER,
@@ -73,6 +78,7 @@ export const MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG: Record<
     titleKey: 'social_leaderboard.manage_profile.bio',
     multiline: true,
     maxLength: MAX_BIO_LENGTH,
+    autoFocus: true,
     getInitialValue: (profile) => profile?.bio ?? '',
     testIDs: {
       container: ManageProfileEditorSelectorsIDs.BIO_CONTAINER,

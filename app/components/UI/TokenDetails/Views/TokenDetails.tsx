@@ -50,8 +50,6 @@ import Transactions from '../../Transactions';
 import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
 } from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
@@ -304,10 +302,6 @@ const TokenDetails: React.FC<{
     AMBIENT_PRICE_COLOR_VARIANTS,
   );
   const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-  const { variant: moneyFooterCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
 
   const caip19AssetId = useTokenCaipAssetId(token);
 
@@ -548,9 +542,8 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
-    (moneyAssetOverviewCtas.isFooterCtaLoading ||
-      moneyAssetOverviewCtas.isFooterCtaVisible);
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -1007,9 +1000,9 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  const prevTokenKeyRef = useRef<string | null>(null);
-  if (prevTokenKeyRef.current !== tokenKey) {
-    prevTokenKeyRef.current = tokenKey;
+  const [prevTokenKey, setPrevTokenKey] = useState<string | null>(null);
+  if (prevTokenKey !== tokenKey) {
+    setPrevTokenKey(tokenKey);
     if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
       setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
     }

@@ -13,10 +13,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import CrownIcon from '../../../../../images/rewards/crown.svg';
 import { PendingTag } from './OndoCampaignStatsSummary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import {
+  RankMedal,
+  isTopRank,
+} from '../../../../Views/Homepage/Sections/TopTraders/topRank';
+
+/** Matches the Social leaderboard row height so skeletons hold the same space. */
+export const CAMPAIGN_LEADERBOARD_ROW_HEIGHT = 56;
 
 /** Shared testIDs for leaderboard rows, pending tag, separator, and skeleton (Ondo + Perps). */
 export const CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS = {
   ENTRY_ROW: 'campaign-leaderboard-entry-row',
+  CURRENT_USER_BAR: 'campaign-leaderboard-current-user-bar',
   PENDING_TAG: 'campaign-leaderboard-pending-tag',
   NEIGHBOR_SEPARATOR: 'campaign-leaderboard-neighbor-separator',
   LOADING: 'campaign-leaderboard-loading',
@@ -52,53 +61,60 @@ export function CampaignLeaderboardEntryRow<
   isPositivePrimaryMetric,
 }: CampaignLeaderboardEntryRowProps<T>) {
   const isPositive = isPositivePrimaryMetric(entry);
-  const textColor = isCurrentUser
-    ? isPositive
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
-  const isPending = !entry.qualified;
-  const rowBg = isCurrentUser
-    ? isPending
-      ? 'bg-muted'
-      : isPositive
-        ? 'bg-success-muted'
-        : 'bg-error-muted'
-    : '';
-
-  const showPendingTag = isCurrentUser && isPending && !isCampaignComplete;
+  const showPendingTag =
+    isCurrentUser && !entry.qualified && !isCampaignComplete;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName={`py-2 px-4 ${rowBg}`}
+      gap={3}
+      twClassName={isCurrentUser ? 'px-4 bg-muted' : 'px-4'}
+      style={{ height: CAMPAIGN_LEADERBOARD_ROW_HEIGHT }}
       testID={`${CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
     >
+      {isCurrentUser && (
+        <Box
+          twClassName="absolute bottom-0 left-0 top-0 w-0.5 bg-success-default"
+          testID={CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.CURRENT_USER_BAR}
+        />
+      )}
       <Box
-        flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="min-w-8"
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={textColor}
-          twClassName="min-w-8 shrink-0"
-          numberOfLines={1}
-        >
-          {String(entry.rank).padStart(2, '0')}
-        </Text>
-        <Box twClassName="flex-row items-center gap-1">
+        {isTopRank(entry.rank) ? (
+          <RankMedal rank={entry.rank} />
+        ) : (
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={textColor}
+            color={
+              isCurrentUser ? TextColor.TextAlternative : TextColor.TextMuted
+            }
+            numberOfLines={1}
           >
-            {entry.referralCode}
+            {entry.rank}
           </Text>
-          {showCrown && <CrownIcon name="crown" width={14} height={14} />}
-        </Box>
+        )}
+      </Box>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        twClassName="flex-1 min-w-0"
+      >
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          twClassName="shrink"
+        >
+          {entry.referralCode}
+        </Text>
+        {showCrown && <CrownIcon name="crown" width={14} height={14} />}
         {showPendingTag && (
           <PendingTag
             testID={CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS.PENDING_TAG}
@@ -108,7 +124,9 @@ export function CampaignLeaderboardEntryRow<
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
-        color={textColor}
+        color={isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault}
+        numberOfLines={1}
+        twClassName="shrink-0"
       >
         {formatPrimaryMetric(entry)}
       </Text>
@@ -141,7 +159,8 @@ export const CampaignLeaderboardSkeleton: React.FC<
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Between}
               alignItems={BoxAlignItems.Center}
-              twClassName="py-1 px-4"
+              twClassName="px-4"
+              style={{ height: CAMPAIGN_LEADERBOARD_ROW_HEIGHT }}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
