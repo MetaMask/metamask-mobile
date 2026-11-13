@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
 import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import { DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONNAME } from '../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import { Theme } from '../../../util/theme/models';
 import Animated, {
   cancelAnimation,
@@ -286,6 +288,17 @@ export const NetworkConnectionBannerContent = ({
   const theme = useAppTheme();
   const tw = useTailwind();
 
+  // The banner appears on its own, so screen readers need to be told about it.
+  useEffect(() => {
+    if (isSlowNetwork) {
+      AccessibilityInfo.announceForAccessibility(
+        `${strings('network_connection_banner.slow_network_title')}. ${strings(
+          'network_connection_banner.slow_network_description',
+        )}`,
+      );
+    }
+  }, [isSlowNetwork]);
+
   if (isSlowNetwork) {
     return (
       <BannerBase
@@ -317,6 +330,12 @@ export const NetworkConnectionBannerContent = ({
           </Text>
         }
         onClose={dismissSlowNetwork}
+        closeButtonProps={{
+          iconName: DEFAULT_BANNERBASE_CLOSEBUTTON_BUTTONICON_ICONNAME,
+          accessibilityLabel: strings(
+            'network_connection_banner.dismiss_slow_network',
+          ),
+        }}
       />
     );
   }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 
@@ -229,6 +230,68 @@ describe('NetworkConnectionBanner', () => {
       fireEvent.press(getByTestId(TESTID_BANNER_CLOSE_BUTTON_ICON));
 
       expect(mockDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('labels the close button for screen readers', () => {
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isSlowNetwork: true,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+
+      expect(
+        getByLabelText('Dismiss slow connection banner'),
+      ).toBeOnTheScreen();
+    });
+
+    it('announces the banner to screen readers when it appears', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isSlowNetwork: true,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith(
+        'Slow connection. Data may take longer to load.',
+      );
+      announceSpy.mockRestore();
+    });
+
+    it('does not announce when the network is not slow', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      useNetworkConnectionBannerMock.mockReturnValue({
+        status: 'available',
+        network: null,
+        isSlowNetwork: false,
+        dismissSlowNetwork: jest.fn(),
+        updateRpc: mockUpdateRpc,
+        switchToInfura: jest.fn(),
+      });
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).not.toHaveBeenCalled();
+      announceSpy.mockRestore();
     });
   });
 
