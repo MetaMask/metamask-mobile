@@ -84,6 +84,62 @@ jobs:
       # "Apply build config" step cannot overwrite it via GITHUB_ENV.
       METAMASK_BUILD_ATTRIBUTION: ${{ inputs.build_attribution }}
     steps:
+      # Run approval history needs Actions read; the token exchange provides it so callers
+      # of this workflow do not have to grant actions: read.
+      - name: Get token for the release approval check
+        id: release-approval-token
+        if: ${{ inputs.channel == 'production' }}
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            actions: read
+
+      # Runs before checkout so it does not depend on the checked-out commit.
+      - name: Verify release approvals
+        if: ${{ inputs.channel == 'production' }}
+        uses: actions/github-script@v9
+        env:
+          ENVIRONMENT: ${{ inputs.github_environment }}
+          # Break-glass: a repo admin can set RELEASE_APPROVALS_REQUIRED to 1 (never 0).
+          REQUIRED_APPROVALS: ${{ vars.RELEASE_APPROVALS_REQUIRED || '2' }}
+        with:
+          github-token: ${{ steps.release-approval-token.outputs.token }}
+          script: |
+            const environment = process.env.ENVIRONMENT;
+            const required = Math.max(1, Number(process.env.REQUIRED_APPROVALS) || 2);
+            const excluded = new Set(
+              [context.actor, process.env.GITHUB_TRIGGERING_ACTOR]
+                .filter(Boolean)
+                .map((login) => login.toLowerCase()),
+            );
+            const approvals = await github.paginate(
+              'GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals',
+              { ...context.repo, run_id: context.runId },
+            );
+            const approvers = [
+              ...new Set(
+                approvals
+                  .filter(
+                    (approval) =>
+                      approval.state === 'approved' &&
+                      approval.environments.some((env) => env.name === environment),
+                  )
+                  .map((approval) => approval.user.login),
+              ),
+            ].filter((login) => !excluded.has(login.toLowerCase()));
+            if (required < 2) {
+              core.warning(`Break-glass: RELEASE_APPROVALS_REQUIRED is ${required}.`);
+            }
+            if (approvers.length < required) {
+              core.setFailed(
+                `Production release needs ${required} distinct approvers for ${environment}, ` +
+                  `not counting whoever triggered the run; found ${approvers.length} (${approvers.join(', ') || 'none'}).`,
+              );
+            } else {
+              core.notice(`Release approved by ${approvers.join(', ')}.`);
+            }
+
       - name: Checkout repository (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}

@@ -455,11 +455,25 @@ jobs:
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ steps.get-token.outputs.token }}
 
+  # Production OTA needs two distinct release approvers. An environment's required
+  # reviewers approve one job at a time, so this job takes the first approval and the
+  # push jobs (same environment) take the second; eas-update-platform checks they differ.
+  release-approval:
+    name: Release approval
+    needs: [prepare, approval]
+    if: inputs.channel == 'production'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    permissions: {}
+    steps:
+      - run: echo "First release approval recorded."
+
   push-update-ios:
     name: Push EAS Update (iOS)
     needs:
       - fingerprint-comparison
       - approval
+      - release-approval
       - validate-pr
       - verify-release-branch
       - setup-dependencies
@@ -475,6 +489,7 @@ jobs:
       needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      (needs.release-approval.result == 'success' || (needs.release-approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
@@ -497,6 +512,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - approval
+      - release-approval
       - validate-pr
       - verify-release-branch
       - setup-dependencies
@@ -512,6 +528,7 @@ jobs:
       needs.prepare.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
+      (needs.release-approval.result == 'success' || (needs.release-approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
