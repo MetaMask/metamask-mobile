@@ -174,14 +174,15 @@ function installProductionNitroFetch(): void {
     }
     const startMs = Date.now();
     const epochAtStart = getLatencySampleEpoch();
+    let response: Awaited<ReturnType<typeof nitroFetch>>;
     try {
-      const response = await nitroFetch(input, nitroInit);
-      recordFetchOutcome({ response }, startMs, epochAtStart);
-      return response;
+      response = await nitroFetch(input, nitroInit);
     } catch (error) {
       recordFetchOutcome({ error }, startMs, epochAtStart);
       throw error;
     }
+    recordFetchOutcome({ response }, startMs, epochAtStart);
+    return response;
   };
   const _g = globalThis as unknown as {
     Headers: typeof NitroHeaders;

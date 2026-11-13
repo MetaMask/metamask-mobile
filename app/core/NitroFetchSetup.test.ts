@@ -424,6 +424,30 @@ describe('NitroFetchSetup', () => {
         expect(mockRecordFetchSample).toHaveBeenCalledWith(expect.any(Number));
       });
 
+      it('does not record a successful response again when sampling throws', async () => {
+        const hungMs = getLatencyThresholds().hungMs;
+        const originalDateNow = Date.now;
+        let now = 0;
+        Date.now = () => now;
+        mockRecordFetchSample.mockImplementationOnce(() => {
+          throw new Error('listener failed');
+        });
+        mockNitroFetch.mockImplementationOnce(async () => {
+          now = hungMs;
+          return new Response(null, { status: 200 });
+        });
+
+        try {
+          await expect(global.fetch('https://example.com')).rejects.toThrow(
+            'listener failed',
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+      });
+
       it('rethrows a fast connection failure without a sample', async () => {
         const failure = new Error(
           'Cronet failed: net::ERR_CONNECTION_TIMED_OUT',
