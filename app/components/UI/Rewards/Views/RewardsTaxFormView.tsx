@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Appearance, StatusBar } from 'react-native';
+import { Appearance, StatusBar, type ViewStyle } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -192,7 +192,8 @@ const RewardsTaxFormView: React.FC = () => {
           iconProps={{
             color: IconColor.IconDefault,
             size: IconSize.Md,
-            style: { color: lightTheme.colors.icon.default },
+            // RN SVG reads `color` from style; ViewStyle does not declare it.
+            style: { color: lightTheme.colors.icon.default } as ViewStyle,
           }}
           onPress={handleClose}
           accessibilityLabel="Close"
