@@ -6,6 +6,14 @@ import {
   C2_DOMAIN_BLOCKLIST_URL,
   METAMASK_STALELIST_URL,
 } from '@metamask/phishing-controller';
+import {
+  addEventListener as addNetInfoEventListener,
+  type NetInfoState,
+} from '@react-native-community/netinfo';
+
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(),
+}));
 
 jest.mock('react-native-nitro-fetch', () => ({
   fetch: jest.fn().mockResolvedValue({ ok: true, status: 200 }),
@@ -53,6 +61,12 @@ import {
   getLatencySnapshot,
   getLatencyThresholds,
 } from '../util/deviceCapability/latencyStore';
+
+// Captured at module load: the store registers its NetInfo listener when
+// './NitroFetchSetup' installs, and the `clearAllMocks` in the outer
+// beforeEach wipes the mock call history before the latency tests run.
+const netInfoListener = jest.mocked(addNetInfoEventListener).mock
+  .calls[0]?.[0] as unknown as ((state: NetInfoState) => void) | undefined;
 
 const mockNitroFetch = jest.mocked(nitroFetch);
 const mockPrefetchOnAppStart = jest.mocked(prefetchOnAppStart);
@@ -337,6 +351,16 @@ describe('NitroFetchSetup', () => {
     });
 
     describe('latency sampling', () => {
+      beforeAll(() => {
+        // The store drops samples until the first NetInfo event; emit one so
+        // the transport gate opens (it never fires by itself under jest).
+        netInfoListener?.({
+          type: 'wifi',
+          isInternetReachable: true,
+          details: {},
+        } as NetInfoState);
+      });
+
       beforeEach(() => {
         clearLatencySamples();
         mockRecordFetchSample.mockClear();

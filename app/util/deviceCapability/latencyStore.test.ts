@@ -173,6 +173,32 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
+  it('keeps samples through a reachability-only isInternetReachable flip', () => {
+    [8000, 8000].forEach((duration) => record(duration));
+
+    emitNetInfo(netInfoState('wifi', null));
+    emitNetInfo(netInfoState('wifi', true));
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
+  it('drops samples recorded before the first NetInfo event', () => {
+    jest.isolateModules(() => {
+      store = jest.requireActual('./latencyStore');
+    });
+    store.startLatencyMonitoring('HIGH');
+
+    [8000, 8000].forEach((duration) => record(duration));
+
+    expect(store.isLatencyTransportNone()).toBe(true);
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+
+    emitNetInfo(netInfoState('wifi'));
+    [8000, 8000].forEach((duration) => record(duration));
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
   it('adds no samples while the transport is NONE', () => {
     emitNetInfo(netInfoState('none', false));
 

@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
 import { act, renderHook } from '@testing-library/react-native';
-import { useNetInfo } from '@react-native-community/netinfo';
+import {
+  addEventListener as addNetInfoEventListener,
+  useNetInfo,
+  type NetInfoState,
+} from '@react-native-community/netinfo';
 import {
   clearLatencySamples,
   getLatencySampleEpoch,
   recordFetchSample,
+  startLatencyMonitoring,
 } from '../util/deviceCapability/latencyStore';
 import { useNetworkLatency } from './useNetworkLatency';
 import { useNetworkTier } from './useNetworkTier';
 
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
+  addEventListener: jest.fn(),
 }));
 
 const mockUseNetInfo = jest.mocked(useNetInfo);
@@ -38,6 +44,20 @@ const recordSamples = (durations: number[]) =>
   });
 
 describe('useNetworkLatency', () => {
+  beforeAll(() => {
+    // The store drops samples until the first NetInfo event; emit one so the
+    // transport gate opens (it never fires by itself under jest).
+    startLatencyMonitoring(null);
+    const listener = jest.mocked(addNetInfoEventListener).mock.calls[0]?.[0] as
+      | ((state: NetInfoState) => void)
+      | undefined;
+    listener?.({
+      type: 'wifi',
+      isInternetReachable: true,
+      details: {},
+    } as NetInfoState);
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     clearLatencySamples();
