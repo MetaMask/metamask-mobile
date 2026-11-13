@@ -1,3 +1,4 @@
+import type { CreateServicePolicyOptions } from '@metamask/base-data-service';
 import {
   SocialService,
   type SocialServiceMessenger,
@@ -5,6 +6,21 @@ import {
 import type { MessengerClientInitFunction } from '../types';
 import AppConstants from '../../AppConstants';
 import Logger from '../../../util/Logger';
+
+/**
+ * Social reads share one circuit breaker. The package default leaves it open
+ * for 30 minutes, so a burst of slow-network timeouts makes Try again fail
+ * with no new request until the app restarts (TSA-1552).
+ *
+ * One retry, then a 30 second pause. The next Try again is allowed through.
+ */
+export const SOCIAL_SERVICE_POLICY_OPTIONS = {
+  maxRetries: 1,
+  circuitBreakDuration: 30_000,
+} as const satisfies Pick<
+  CreateServicePolicyOptions,
+  'maxRetries' | 'circuitBreakDuration'
+>;
 
 /**
  * Initialize the SocialService.
@@ -21,6 +37,7 @@ export const socialServiceInit: MessengerClientInitFunction<
     const controller = new SocialService({
       messenger: controllerMessenger,
       baseUrl: AppConstants.SOCIAL_API_URL,
+      policyOptions: SOCIAL_SERVICE_POLICY_OPTIONS,
     });
 
     return { controller };
