@@ -87,8 +87,11 @@ function useGroupedTokenActivity({
     caipAssetId ? { assetId: caipAssetId } : undefined,
   );
   const tokenApiItems = useMemo(
-    () => apiEvmTransactions?.pages.flatMap((page) => page.data) ?? [],
-    [apiEvmTransactions],
+    () =>
+      caipAssetId
+        ? (apiEvmTransactions?.pages.flatMap((page) => page.data) ?? [])
+        : [],
+    [apiEvmTransactions, caipAssetId],
   );
 
   return useMemo(() => {

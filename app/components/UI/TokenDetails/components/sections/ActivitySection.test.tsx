@@ -439,4 +439,49 @@ describe('ActivitySection', () => {
 
     mapperSpy.mockRestore();
   });
+
+  it('does not render API rows when caipAssetId is null', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    mockUseTokenCaipAssetId.mockReturnValue(null);
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                chainId: 'eip155:1',
+                timestamp: NOW * 1000,
+                type: 'receive',
+                hash: '0xShouldNotRender',
+                status: 'confirmed',
+                data: {
+                  from: '0xSender',
+                  to: '0x123',
+                  token: {
+                    assetId: 'eip155:1/erc20:0xabc',
+                    decimals: 18,
+                    symbol: 'PEPE',
+                    amount: '100',
+                    direction: 'in',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    const { queryByTestId } = render(<ActivitySection token={token} />);
+
+    expect(
+      queryByTestId('mock-api-activity-item-0xShouldNotRender'),
+    ).not.toBeOnTheScreen();
+  });
 });
