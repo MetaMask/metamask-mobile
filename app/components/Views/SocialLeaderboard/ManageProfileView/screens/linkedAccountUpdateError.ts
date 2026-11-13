@@ -48,17 +48,15 @@ const getCooldownDays = (error: unknown): number | null => {
 };
 
 /**
- * The cooldown copy: the time left, pluralised for a one-day remainder, when
- * the refusal reports it. Otherwise the window the message states, so the user
- * is not told to wait longer than they need to.
+ * The cooldown copy: the time left when the refusal reports it. Otherwise the
+ * window the message states, so the user is not told to wait longer than they
+ * need to.
  */
 const getCooldownCopy = (error: unknown): string => {
   const days = getCooldownDays(error);
 
   if (days !== null) {
-    return days === 1
-      ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft.one)
-      : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft.other, { days });
+    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft, { days });
   }
 
   const serviceError = findProfileServiceError(error);

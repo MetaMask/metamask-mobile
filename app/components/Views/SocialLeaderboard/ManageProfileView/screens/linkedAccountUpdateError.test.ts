@@ -6,12 +6,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
 
 const cooldown = (days = 30) =>
-  days === 1
-    ? strings('social_leaderboard.manage_profile.linked_account_cooldown_one')
-    : strings(
-        'social_leaderboard.manage_profile.linked_account_cooldown_other',
-        { days },
-      );
+  strings(
+    'social_leaderboard.manage_profile.linked_account_cooldown_time_left',
+    {
+      days,
+    },
+  );
 
 const windowCopy = (days = 30) =>
   strings('social_leaderboard.manage_profile.linked_account_cooldown', {
@@ -56,7 +56,7 @@ describe('getLinkedAccountUpdateError', () => {
     );
   });
 
-  it('explains the time left in the singular when under a day remains', () => {
+  it('explains the time left when the refusal reports a remainder', () => {
     const error = profileApiError(
       ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
       'ProfileService: failed to update profile: 403: Too soon',

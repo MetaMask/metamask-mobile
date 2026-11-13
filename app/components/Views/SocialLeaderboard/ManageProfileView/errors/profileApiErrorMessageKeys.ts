@@ -41,16 +41,14 @@ export const PROFILE_FIELD_REJECTION_MESSAGE_KEYS: Partial<
 };
 
 /**
- * Copy for the linked-address cooldown refusal. The two groups state different
- * numbers: `timeLeft` is the time remaining from the `RETRY_AFTER` detail and
- * varies between one and many days, `window` is the cooldown length the
- * refusal states, or the policy window when it states none.
+ * Copy for the linked-address cooldown refusal. The two keys state different
+ * numbers: `timeLeft` is the time remaining from the `RETRY_AFTER` detail,
+ * `window` is the cooldown length the refusal states, or the policy window
+ * when it states none.
  */
 export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS = {
-  timeLeft: {
-    one: 'social_leaderboard.manage_profile.linked_account_cooldown_one',
-    other: 'social_leaderboard.manage_profile.linked_account_cooldown_other',
-  },
+  timeLeft:
+    'social_leaderboard.manage_profile.linked_account_cooldown_time_left',
   window: 'social_leaderboard.manage_profile.linked_account_cooldown',
 } as const;
 
