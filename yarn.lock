@@ -10636,21 +10636,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/json-rpc-engine@npm:^10.0.0, @metamask/json-rpc-engine@npm:^10.0.2, @metamask/json-rpc-engine@npm:^10.1.0, @metamask/json-rpc-engine@npm:^10.1.1, @metamask/json-rpc-engine@npm:^10.2.4, @metamask/json-rpc-engine@npm:^10.5.0":
-  version: 10.5.0
-  resolution: "@metamask/json-rpc-engine@npm:10.5.0"
-  dependencies:
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/rpc-errors": "npm:^7.0.2"
-    "@metamask/safe-event-emitter": "npm:^3.0.0"
-    "@metamask/utils": "npm:^11.9.0"
-    "@types/deep-freeze-strict": "npm:^1.1.0"
-    deep-freeze-strict: "npm:^1.1.1"
-    klona: "npm:^2.0.6"
-  checksum: 10/2fa42bc57e6e268f0dfcdfe22d15f3c1c593acb5c96df1469403c389fc2a4e4ccb7c75efc00a02d987834d7f0dfb52f31328929ebb37d73b6719aa2e53a75466
-  languageName: node
-  linkType: hard
-
 "@metamask/json-rpc-engine@npm:^11.0.0":
   version: 11.0.0
   resolution: "@metamask/json-rpc-engine@npm:11.0.0"
@@ -10666,15 +10651,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/json-rpc-middleware-stream@npm:^8.0.6, @metamask/json-rpc-middleware-stream@npm:^8.0.7, @metamask/json-rpc-middleware-stream@npm:^8.0.8":
-  version: 8.0.8
-  resolution: "@metamask/json-rpc-middleware-stream@npm:8.0.8"
+"@metamask/json-rpc-middleware-stream@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@metamask/json-rpc-middleware-stream@npm:9.0.0"
   dependencies:
-    "@metamask/json-rpc-engine": "npm:^10.1.1"
-    "@metamask/safe-event-emitter": "npm:^3.0.0"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/json-rpc-engine": "npm:^11.0.0"
+    "@metamask/safe-event-emitter": "npm:^3.1.3"
+    "@metamask/utils": "npm:^11.12.0"
     readable-stream: "npm:^3.6.2"
-  checksum: 10/89c283d7ebd9e6df01e491805e39d6bfb0152d66e5a1b435e788510d7e2a6578f4a84d5a8537120d123007cec1a4dbb3b72015e0243b0d5a7687eddbe1d37ffa
+  checksum: 10/ec79108f3f37591fc9238eca91cac9d471b998dfbb912425886765274c8d12bb1aeaeb52ca24e17e47070cc001cfc9301cf15ff0980b8a55a563ef9bf38fbb76
   languageName: node
   linkType: hard
 
@@ -38316,8 +38301,8 @@ __metadata:
     "@metamask/gator-permissions-controller": "npm:^6.1.2"
     "@metamask/geolocation-controller": "npm:^2.0.0"
     "@metamask/hw-wallet-sdk": "npm:^1.0.0"
-    "@metamask/json-rpc-engine": "npm:^10.5.0"
-    "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
+    "@metamask/json-rpc-engine": "npm:^11.0.0"
+    "@metamask/json-rpc-middleware-stream": "npm:^9.0.0"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
     "@metamask/keyring-api": "npm:^24.3.0"
     "@metamask/keyring-controller": "npm:^28.2.0"
