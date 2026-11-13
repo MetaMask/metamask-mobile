@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SocialEvent } from './socialEvents';
 import {
+  useSocialFeedInteractions,
   useSocialScreenAnalytics,
   useSocialAnalytics,
 } from './useSocialV1Analytics';
@@ -210,5 +211,104 @@ describe('useSocialAnalytics', () => {
     mockIsFocused = true;
     rerender(undefined);
     expect(mockTrack).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends screen properties on the view and on bound interactions', () => {
+    const properties = {
+      trade_type: SocialEvent.Trade.PERPS,
+      asset: 'BTC',
+      direction: SocialEvent.Direction.SHORT,
+      position_status: SocialEvent.PositionStatus.OPEN,
+      trader_address: '0xabc',
+      trader_username: 'doji',
+    };
+    const { result } = renderHook(() =>
+      useSocialScreenAnalytics(Screen.POSITION_DETAILS_SHEET, {
+        source: SocialEvent.Source.TRADER_PROFILE,
+        properties,
+      }),
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_SCREEN_VIEWED,
+      {
+        screen_name: Screen.POSITION_DETAILS_SHEET,
+        source: 'trader_profile',
+        ...properties,
+      },
+    );
+
+    result.current(Interaction.BUTTON_CLICKED, {
+      direction: SocialEvent.Direction.LONG,
+    });
+    expect(mockTrack).toHaveBeenLastCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      {
+        interaction_type: Interaction.BUTTON_CLICKED,
+        screen_name: Screen.POSITION_DETAILS_SHEET,
+        source: 'trader_profile',
+        ...properties,
+        direction: 'long',
+      },
+    );
+  });
+});
+
+describe('useSocialFeedInteractions', () => {
+  const position = {
+    trade_type: SocialEvent.Trade.SPOT,
+    asset: 'PUMP',
+    position_status: SocialEvent.PositionStatus.OPEN,
+    trader_address: '0xabc',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsFocused = true;
+    mockIsTreatment = true;
+  });
+
+  it.each([
+    ['onCopyTradeInteraction', Interaction.COPY_TRADE_TAPPED],
+    ['onPositionTap', Interaction.TAP],
+  ] as const)('%s tracks %s with the position', (handler, interaction) => {
+    const { result } = renderHook(() =>
+      useSocialFeedInteractions(Screen.TRENDING, {
+        source: SocialEvent.Source.SOCIAL_TRENDING,
+      }),
+    );
+
+    result.current[handler](position);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      {
+        interaction_type: interaction,
+        screen_name: Screen.TRENDING,
+        source: 'social_trending',
+        ...position,
+      },
+    );
+  });
+
+  it('tracks a blocked copy trade with its reason', () => {
+    const { result } = renderHook(() =>
+      useSocialFeedInteractions(Screen.FOLLOWING),
+    );
+
+    result.current.onCopyTradeBlocked(
+      position,
+      SocialEvent.BlockedReason.PROFILE_ONBOARDING,
+    );
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      {
+        interaction_type: Interaction.COPY_TRADE_BLOCKED,
+        screen_name: Screen.FOLLOWING,
+        ...position,
+        blocked_reason: 'profile_onboarding',
+      },
+    );
   });
 });

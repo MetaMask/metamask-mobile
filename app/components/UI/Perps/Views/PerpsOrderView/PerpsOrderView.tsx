@@ -2160,7 +2160,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             : undefined;
         perpsPostTradePromptRef.current = isPerpsPostTradeShareEligible({
           amountUsd: orderForm.amount,
-          leverage: orderForm.leverage,
         })
           ? resolvedPerpsPostTradePrompt
           : undefined;
@@ -2993,6 +2992,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               showPercentageLabels
               disabled={isAmountDisabled}
               testID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER}
+              ignoreUntilLayout
+              layoutTestID={PerpsOrderViewSelectorsIDs.AMOUNT_SLIDER_LAYOUT}
             />
           </View>
         )}

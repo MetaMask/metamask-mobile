@@ -18,8 +18,13 @@ type StakingKind = 'stake' | 'unstake' | 'claim';
 
 type ApiStakingTransaction = Pick<
   V1TransactionByHashResponse,
-  'chainId' | 'to' | 'methodId' | 'gasUsed' | 'effectiveGasPrice'
->;
+  'chainId' | 'methodId'
+> & {
+  to?: string | null;
+  // Fee fallback for v1 rows. v5 rows already carry the API fee.
+  gasUsed?: number;
+  effectiveGasPrice?: string;
+};
 
 const NATIVE_FEE_DECIMALS = 18;
 
@@ -87,11 +92,14 @@ function getNetworkFees(
   transaction: ApiStakingTransaction,
   environment: ActivityAdapterEnvironment,
 ): ActivityFee[] | undefined {
+  const { gasUsed, effectiveGasPrice } = transaction;
+  if (gasUsed === undefined || effectiveGasPrice === undefined) {
+    return undefined;
+  }
+
   let amount: string;
   try {
-    amount = (
-      BigInt(transaction.gasUsed) * BigInt(transaction.effectiveGasPrice)
-    ).toString();
+    amount = (BigInt(gasUsed) * BigInt(effectiveGasPrice)).toString();
   } catch {
     return undefined;
   }

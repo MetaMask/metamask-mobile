@@ -69,7 +69,9 @@ function destinationForAction(
         ? Routes.CARD.HOME
         : Routes.CARD.ONBOARDING.FUNDING_APPROVAL;
     case 'rejected':
-      return Routes.CARD.ONBOARDING.KYC_FAILED;
+      return action.canRetry
+        ? Routes.CARD.ONBOARDING.KYC_PROCESSING
+        : Routes.CARD.ONBOARDING.KYC_FAILED;
     case 'active':
       return Routes.CARD.HOME;
     default:
@@ -80,12 +82,14 @@ function destinationForAction(
 /**
  * Maps a derived `ImmersveNextAction` to the screen where the user resumes
  * onboarding. Shared by SignUp (post-SIWE entry) and ImmersveKYCProcessing
- * (terminal transitions after polling) so the action→destination mapping lives
- * in one place.
+ * (Finish setup after an approved KYC) so the action→destination mapping
+ * lives in one place.
  *
- * Note: `kyc` and `pending` are handled in-screen by ImmersveKYCProcessing
- * (open the webview / keep polling); it must not pass those here or it would
- * navigate to itself. From SignUp they legitimately route to KYC_PROCESSING.
+ * Note: `kyc`, `pending`, and `rejected` are handled in-screen by
+ * ImmersveKYCProcessing (open the webview, keep polling, or show the
+ * rejection). It must not pass `kyc` or `pending` here or it would navigate
+ * to itself. From SignUp they legitimately route to KYC_PROCESSING, and
+ * `rejected` routes to KYC_FAILED.
  *
  * Returning users with an existing card, and Money account countries, skip
  * the funding approval screen and land on Card Home. USDC on Base still
@@ -197,6 +201,14 @@ export const useImmersveOnboardingRouter = () => {
           });
           break;
         case 'rejected':
+          if (action.canRetry) {
+            Engine.context.CardController.setSignInLinkStage('identity');
+            goToOnboarding(Routes.CARD.ONBOARDING.KYC_PROCESSING, {
+              countryKey,
+              kycUrl: action.retryUrl,
+            });
+            break;
+          }
           if (navigateFromOutsideCard) {
             enterCardOnboarding(Routes.CARD.ONBOARDING.KYC_FAILED);
           } else if (navigateFromRoot) {

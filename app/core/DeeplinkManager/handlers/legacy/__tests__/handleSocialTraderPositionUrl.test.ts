@@ -263,6 +263,117 @@ describe('handleSocialTraderPositionUrl', () => {
         ),
       );
     });
+
+    describe('position ownership', () => {
+      const ownerProfileResponse = {
+        profile: {
+          profileId: 'owner-1',
+          address: '0xowner',
+          name: 'bob',
+          imageUrl: 'https://example.com/bob.png',
+        },
+        stats: { winRate30d: 0.7, pnl30d: 300, tradeCount30d: 8 },
+        followerCount: 3,
+      };
+
+      const mockOwnedPosition = (ownerProfileId: string) => {
+        const ownedPosition = { ...position, profileId: ownerProfileId };
+        mockQuery.mockImplementation(
+          ({ queryKey }: { queryKey: unknown[] }) => {
+            if (queryKey[0] === 'SocialService:fetchPositionById') {
+              return Promise.resolve(ownedPosition);
+            }
+            const { addressOrId } = queryKey[1] as { addressOrId: string };
+            return Promise.resolve(
+              addressOrId === 'owner-1'
+                ? ownerProfileResponse
+                : profileResponse,
+            );
+          },
+        );
+        return ownedPosition;
+      };
+
+      it('fetches the trader profile in parallel with the position', () => {
+        mockQueries();
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=trader-1',
+        });
+
+        expect(mockQuery).toHaveBeenCalledWith({
+          queryKey: [
+            'SocialService:fetchPositionById',
+            { positionId: 'position-1' },
+          ],
+        });
+        expect(mockQuery).toHaveBeenCalledWith({
+          queryKey: [
+            'SocialService:fetchTraderProfile',
+            { addressOrId: 'trader-1' },
+          ],
+        });
+      });
+
+      it('shows the position under the link trader when its resolved profile owns it', async () => {
+        const ownedPosition = mockOwnedPosition('trader-1');
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=0xabc',
+        });
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.SOCIAL.POSITION_SHEET,
+            expect.objectContaining({
+              position: ownedPosition,
+              author: expect.objectContaining({ id: 'trader-1' }),
+            }),
+          ),
+        );
+        expect(mockNavigateToSocialV1Profile).toHaveBeenCalledTimes(1);
+      });
+
+      it('opens the real owner profile and attributes the position to them on a mismatch', async () => {
+        const ownedPosition = mockOwnedPosition('owner-1');
+
+        handleSocialTraderPositionUrl({
+          actionPath: '?positionId=position-1&traderId=trader-1',
+        });
+
+        await waitFor(() =>
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.SOCIAL.POSITION_SHEET,
+            {
+              positionId: 'position-1',
+              position: ownedPosition,
+              author: expect.objectContaining({
+                id: 'owner-1',
+                username: 'bob',
+                address: '0xowner',
+              }),
+              shareSource: 'deep_link',
+            },
+          ),
+        );
+        expect(mockNavigateToSocialV1Profile).toHaveBeenLastCalledWith(
+          NavigationService.navigation,
+          {
+            traderId: 'owner-1',
+            traderName: 'bob',
+            traderAddress: '0xowner',
+            traderAvatarUri: 'https://example.com/bob.png',
+            source: 'deep_link',
+          },
+        );
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.SOCIAL.POSITION_SHEET,
+          expect.objectContaining({
+            author: expect.objectContaining({ id: 'trader-1' }),
+          }),
+        );
+      });
+    });
   });
 
   it('decodes encoded positionId, traderId, and subtype values', () => {

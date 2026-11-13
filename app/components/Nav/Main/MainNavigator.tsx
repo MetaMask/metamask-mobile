@@ -49,6 +49,8 @@ import Wallet from '../../Views/Wallet';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import ContractSecurityScreen from '../../UI/TokenDetails/components/V1/ContractSecurityScreen/ContractSecurityScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
+import HiddenTokensView from '../../Views/AddAsset/Views/HiddenTokensView/HiddenTokensView';
+import AddCustomTokenView from '../../Views/AddAsset/Views/AddCustomTokenView/AddCustomTokenView';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
@@ -92,7 +94,6 @@ import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequ
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
 import RewardsMoneyDashboard from '../../UI/Rewards/Views/RewardsMoneyDashboard';
-import RewardsOnboardingNavigator from '../../UI/Rewards/OnboardingNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
@@ -238,6 +239,7 @@ import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
+import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
@@ -418,7 +420,6 @@ const TransactionsHome = () => {
 const REWARDS_HOME_INITIAL_ROUTE_BY_VARIANT = {
   money_dashboard: Routes.REWARDS_MONEY_DASHBOARD,
   dashboard: Routes.REWARDS_DASHBOARD,
-  onboarding: Routes.REWARDS_ONBOARDING_FLOW,
 } as const;
 
 type RewardsHomeInitialVariant =
@@ -428,11 +429,7 @@ type RewardsHomeInitialVariant =
 function isRewardsHomeInitialVariant(
   variant: RewardsTabContentVariant,
 ): variant is RewardsHomeInitialVariant {
-  return (
-    variant === 'money_dashboard' ||
-    variant === 'dashboard' ||
-    variant === 'onboarding'
-  );
+  return variant === 'money_dashboard' || variant === 'dashboard';
 }
 
 const RewardsHome = () => {
@@ -441,24 +438,21 @@ const RewardsHome = () => {
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   // Fetch client version requirements at the Rewards tab entry point, before the
-  // onboarding/dashboard branch below. Both opted-in and onboarding users mount
-  // RewardsHome, so gating here ensures version-blocked clients always see the
-  // update-required screen (and the requirements are always fetched), regardless
-  // of subscription status.
+  // dashboard branch below. Every Rewards visitor mounts RewardsHome, so gating
+  // here ensures version-blocked clients always see the update-required screen
+  // (and the requirements are always fetched), regardless of subscription status.
   useRewardsVersionGuard();
-  // Resolve the candidate subscription ID here for the same reason: both the
-  // dashboard and onboarding branches depend on it (onboarding's OnboardingMainStep
-  // renders a full-screen skeleton until candidateSubscriptionId leaves its initial
-  // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
-  // this shared entry point prevents the onboarding tab from loading indefinitely.
+  // Resolve the candidate subscription ID here for the same reason: the dashboard
+  // waits while it is pending or retrying. Only RewardsHome mounts for users who
+  // have not joined, so fetching at this shared entry point keeps the tab from
+  // waiting forever.
   useCandidateSubscriptionId();
   // Same altitude, same reason: the Money referral persona decides which of the
-  // three homes this stack opens on, so it is resolved once here rather than by
+  // two homes this stack opens on, so it is resolved once here rather than by
   // whichever screen happened to mount.
   const { moneyEnabled, moneyReferralResolved, moneyPersona, navigatorKey } =
     useRewardsMoneyTabRouting();
-  // Tab time-to-content: tap Rewards → onboarding content, dashboard shell, or
-  // the Money dashboard.
+  // Tab time-to-content: tap Rewards → the points dashboard or the Money dashboard.
   useRewardsTabPerformance({
     isVersionBlocked,
     moneyEnabled,
@@ -510,10 +504,6 @@ const RewardsHome = () => {
       initialRouteName={initialRouteName}
       screenOptions={{ ...defaultScreenOptions, animation: 'none' }}
     >
-      <NativeStack.Screen
-        name={Routes.REWARDS_ONBOARDING_FLOW}
-        component={RewardsOnboardingNavigator}
-      />
       <NativeStack.Screen
         name={Routes.REWARDS_DASHBOARD}
         component={RewardsDashboard}
@@ -1115,7 +1105,7 @@ const MainNavigator = () => {
       />
       {/*
        * Rewards sheets are registered on the root MainNavigator so they are
-       * reachable from both the Rewards tab (dashboard/onboarding) and
+       * reachable from both the Rewards tab (dashboard) and
        * REWARDS_FLOW sub-pages. transparentModalStackOptions carries
        * animation: 'none' so only the BottomSheet's internal slide runs —
        * without it the native stack slides the entire screen (overlay
@@ -1213,6 +1203,16 @@ const MainNavigator = () => {
         />
       </NativeStack.Group>
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
+      <NativeStack.Screen
+        name={Routes.WALLET.ADD_CUSTOM_TOKEN}
+        component={AddCustomTokenView}
+        options={slideFromRightNativeOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.WALLET.HIDDEN_TOKENS}
+        component={HiddenTokensView}
+        options={slideFromRightNativeOptions}
+      />
       <NativeStack.Screen
         name="ConfirmAddAsset"
         component={ConfirmAddAsset}
@@ -1405,6 +1405,10 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
               component={MoneyApiActivityDetailsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.ACCOUNT_STATUS}
+              component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
           <NativeStack.Screen
