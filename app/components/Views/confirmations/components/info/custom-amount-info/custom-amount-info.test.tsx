@@ -626,7 +626,7 @@ describe('CustomAmountInfo', () => {
 
     expect(
       getByText(
-        'We’ll add $123.45 to your Money account to cover this payment.',
+        'We’ll add $123.45 to your MetaMask Money balance to cover this payment.',
       ),
     ).toBeOnTheScreen();
     expect(BalanceProjection).not.toHaveBeenCalled();

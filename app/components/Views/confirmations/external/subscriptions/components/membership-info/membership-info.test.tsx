@@ -20,7 +20,7 @@ describe('MembershipInfo', () => {
 
       expect(
         getByText(
-          `We’ll add ${formattedAmount} to your Money account to cover this payment.`,
+          `We’ll add ${formattedAmount} to your MetaMask Money balance to cover this payment.`,
         ),
       ).toBeOnTheScreen();
       expect(UNSAFE_getByType(BannerAlert).props.severity).toBe(
@@ -38,7 +38,7 @@ describe('MembershipInfo', () => {
 
     expect(
       getByText(
-        'We’ll add $10.00 to your Money account to cover this payment.',
+        'We’ll add $10.00 to your MetaMask Money balance to cover this payment.',
       ),
     ).toBeOnTheScreen();
   });

@@ -101,7 +101,7 @@ describe('getMembershipDetails', () => {
     expect(result.total).toBe('$9.99');
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
-    expect(result.payingWith).toBe('Money account');
+    expect(result.payingWith).toBe('MetaMask Money');
     expect(result.renewsOn).toBe('Aug 20, 2026');
   });
 

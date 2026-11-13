@@ -185,6 +185,6 @@ describe('useFundingAccountName', () => {
 
     const { result } = renderHook(() => useFundingAccountName());
 
-    expect(result.current).toBe('Money account');
+    expect(result.current).toBe('MetaMask Money');
   });
 });

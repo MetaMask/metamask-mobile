@@ -131,7 +131,7 @@
       "title": "Insufficient funds"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "You don't have funds in MetaMask Money to send yet. Add funds first."
     },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
@@ -1188,7 +1188,7 @@
     "choose_currency": {
       "title": "Choose your currency",
       "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
-      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "footnote": "All funds are converted to mUSD when they arrive in MetaMask Money.",
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
@@ -1197,7 +1197,7 @@
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
+      "description": "Add funds directly from your bank. Funds usually land in MetaMask Money within minutes.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
       "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Learn more",
@@ -7294,8 +7294,8 @@
     "tx_details_free": "Free",
     "tx_details_not_available": "Not available",
     "smart_contract_interaction": "Contract interaction",
-    "money_account_deposit": "Deposit to Money account",
-    "money_account_withdraw": "Transfer from Money account",
+    "money_account_deposit": "Deposit to MetaMask Money",
+    "money_account_withdraw": "Transfer from MetaMask Money",
     "swaps_transaction": "Swaps transaction",
     "bridge_transaction": "Bridge",
     "approve": "Approve",
@@ -8988,9 +8988,9 @@
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Adds protection to Money account transactions.",
+      "description": "Adds protection to MetaMask Money transactions.",
       "manage": "Manage",
-      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "notice": "These methods add protection to MetaMask Money transactions. They can’t recover your wallet.",
       "add": "Add",
       "passkeys": "Passkeys",
       "passkey_count": {
@@ -9487,16 +9487,16 @@
       "strategies": {
         "rate_unavailable_subtitle": "Earn on your balance",
         "money": {
-          "title": "Money account",
+          "title": "MetaMask Money",
           "info_rows": {
             "row_1": "Earn up to ~{{percentage}}% APY on your balance",
-            "row_2": "No lockups—trade or withdraw anytime",
+            "row_2": "No lockups—direct access",
             "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
           }
         },
         "stablecoin_lending": {
           "title": "Lend {{asset}}",
-          "subtitle": "Earn rewards daily and withdraw anytime."
+          "subtitle": "Earn rewards daily. No lockups."
         },
         "pooled_staking": {
           "title": "Stake ETH",
@@ -9531,7 +9531,7 @@
     "cancel": "Cancel",
     "transaction_submitted": "Transaction submitted",
     "every_minute": "Every minute",
-    "immediate": "Immediate",
+    "immediate": "Depends on liquidity",
     "apr": "APR",
     "protocol": "Protocol",
     "receive_tooltip": "receive tooltip",
@@ -9581,8 +9581,8 @@
     "market_historic_apr_modal": {
       "earn_rewards_on_your_token": "Earn rewards on your {{tokenSymbol}}",
       "lend_and_earn_daily_rewards": "Lend your {{tokenSymbol}} with {{protocol}} and earn daily rewards. Rewards grow over time and APR varies.",
-      "withdraw_whenever_you_want": "Withdraw whenever you want",
-      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back in your wallet instantly."
+      "withdraw_whenever_you_want": "No lockups",
+      "get_asset_back_in_your_wallet_instantly": "Get {{tokenSymbol}} back when the pool has liquidity."
     },
     "amount_exceeds_safe_withdrawal_limit": "Amount exceeds safe withdrawal limit",
     "view_earnings_history": {
@@ -9680,7 +9680,7 @@
   },
   "earn_module": {
     "new_tag": "New",
-    "money_account": "Money account",
+    "money_account": "MetaMask Money",
     "get_started": "Get started",
     "rate_apy": "{{percentage}}% APY",
     "rate_apr": "{{percentage}}% APR",
@@ -9692,7 +9692,7 @@
     "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
     "retry": "Retry",
     "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
-    "money_fallback_description": "Add assets to your Money account to start earning",
+    "money_fallback_description": "Add assets to MetaMask Money to start earning",
     "more_ways_to_earn": "More ways to earn",
     "empty_state_description": "No earning opportunities are available right now.",
     "view_more": "View more"
@@ -9707,13 +9707,13 @@
     "balance_unavailable_value": "$—",
     "balance_unavailable_banner_description": "We're temporarily unable to display your balance. Your funds are safe—try again shortly.",
     "balance_retry": "Retry",
-    "balance_no_account": "Money account not found",
+    "balance_no_account": "MetaMask Money not found",
     "onboarding": {
       "step_1": {
         "title": "Earn up to {{apy}}% APY",
-        "title_no_apy": "Fund your Money account",
-        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
-        "description_no_apy": "Fund your Money account and watch your balance grow.",
+        "title_no_apy": "Fund MetaMask Money",
+        "description": "Add funds to MetaMask Money. Earn up to {{apy}}% APY (variable).",
+        "description_no_apy": "Add funds to MetaMask Money.",
         "cta": "Add funds"
       },
       "step_2": {
@@ -9743,8 +9743,8 @@
       "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
       "benefit_trade_title": "Trade from the same balance",
       "benefit_trade_body": "Fund swaps, perps, and predictions directly from your Money balance.",
-      "benefit_withdraw_title": "Withdraw anytime",
-      "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
+      "benefit_withdraw_title": "Direct access",
+      "benefit_withdraw_body": "No lockups. No notice periods or penalties.",
       "benefit_send_title": "Send or spend anywhere",
       "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
       "cta": "Start earning",
@@ -9753,7 +9753,7 @@
     "vba_home_card": {
       "get_started": {
         "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "description": "Send BRL, USD, or EUR from your bank and get mUSD in MetaMask Money. No fees.",
         "cta": "Get started"
       },
       "account_is_ready": {
@@ -9785,16 +9785,16 @@
     },
     "first_time_deposit": {
       "title": "First deposit, done",
-      "content": "It’s in your Money account —\n and already earning.",
+      "content": "It’s in your MetaMask Money balance —\n and already earning.",
       "button_text": "Done"
     },
     "rive_onboarding": {
-      "step1_title": "Money accounts are here",
+      "step1_title": "MetaMask Money is here",
       "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
       "step1_footer_text": "APY is variable and not guaranteed.",
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
-      "step2_footer_text": "Money account uses Veda infrastructure.",
+      "step2_footer_text": "MetaMask Money uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
       "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
@@ -9820,7 +9820,7 @@
         "current_apy_disclaimer": "Current APY, variable and not guaranteed."
       },
       "balance_cta": {
-        "description_prefix": "Add your {{symbol}} to your Money account and earn up to ",
+        "description_prefix": "Add your {{symbol}} to MetaMask Money and earn up to ",
         "description_suffix": " in one year.",
         "earn_apy": "Earn {{apy}}% APY",
         "earnings_tooltip_accessibility_label": "Learn about projected earnings"
@@ -9836,21 +9836,21 @@
     "how_it_works": {
       "title": "How it works",
       "description_prefix": "Add mUSD and earn up to",
-      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
-      "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_suffix": " (variable). Your balance is dollar-backed. Direct access.",
+      "description_no_apy": "Add mUSD. Your balance is dollar-backed. Direct access."
     },
     "balance_card": {
       "label": "Money balance",
       "currency_suffix": " • mUSD",
       "add": "Add",
       "info_sheet_title": "Money balance",
-      "info_sheet_body": "Your dollar-backed mUSD balance that's always available to spend, send, or trade anytime. We don't calculate this into your total account balance.\n\nWithdrawals process immediately, subject to standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
+      "info_sheet_body": "Your dollar-backed mUSD balance. Direct access. We don't calculate this into your total account balance.\n\nNo lockups. Withdrawals follow standard network confirmation times on the relevant blockchain. If liquidity is tight, there may be temporary delays."
     },
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Add your",
-      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
+      "description_with_amounts_middle": "in assets to MetaMask Money and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -9890,11 +9890,11 @@
       "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Link card",
-      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_no_funding_source": "Unlink MetaMask Money?",
       "unlink_card_sheet_title_with_funding_source": "Are you sure?",
-      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
-      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
-      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect MetaMask Money anytime.",
+      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect MetaMask Money anytime.",
+      "unlink_card_sheet_another_money_account": "another MetaMask Money balance",
       "unlink_card_sheet_keep_linked": "Keep linked",
       "unlink_card_sheet_unlink_account": "Unlink account",
       "verification_pending": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
@@ -9904,7 +9904,7 @@
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
-      "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
+      "benefit_liquidity": "No lockups, and no notice periods or penalties",
       "benefit_spend": "Spend at 150M+ merchants with MetaMask Card",
       "benefit_transfer": "Send to any of your wallets across MetaMask",
       "benefit_global": "Send and receive funds globally",
@@ -9939,7 +9939,7 @@
     "musd_rescue_send": {
       "title": "Send",
       "your_funds_are_safe_title": "Your funds are safe",
-      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in MetaMask Money but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
       "to_label": "To",
       "receive_label": "Receive",
       "est_time_label": "Est. time",
@@ -9970,8 +9970,8 @@
       "deposit_success_title_convert": "Conversion complete",
       "deposit_success_title_add_musd": "Funds added",
       "deposit_success_title_card": "Deposit complete",
-      "deposit_success_body": "{{amount}} added to Money account.",
-      "deposit_success_body_no_amount": "Added to Money account.",
+      "deposit_success_body": "{{amount}} added to MetaMask Money.",
+      "deposit_success_body_no_amount": "Added to MetaMask Money.",
       "withdraw_in_progress_title": "Transfer in progress",
       "withdraw_success_title": "Transfer complete",
       "withdraw_success_body": "{{amount}} added to {{destination}}.",
@@ -9995,27 +9995,27 @@
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
-      "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
+      "paragraph_1": "Your MetaMask Money balance earns up to {{percentage}}% automatically.",
       "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
-      "paragraph_4": "Money account is powered by Monad.",
+      "paragraph_4": "MetaMask Money is powered by Monad.",
       "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
     },
     "earnings_tooltip": {
       "monthly": {
         "title": "Monthly earnings",
-        "body": "The total you've earned on your Money account balance in the last 30 days."
+        "body": "The total you've earned on your MetaMask Money balance in the last 30 days."
       },
       "lifetime": {
         "title": "Lifetime earnings",
-        "body": "The total you've earned on your Money account balance over time."
+        "body": "The total you've earned on your MetaMask Money balance over time."
       }
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
       "deposit_title": "Projected 1-year balance",
       "body": "Projection assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return.",
-      "go_to_money_account": "Go to Money account"
+      "go_to_money_account": "Go to MetaMask Money"
     },
     "activity": {
       "title": "Activity",
@@ -10094,57 +10094,57 @@
     },
     "earn_banner": {
       "title": "Earn up to {{apy}}% APY",
-      "title_no_apy": "Earn with your Money account",
-      "description": "Add {{symbol}} to your Money account—no lockups or minimums.",
+      "title_no_apy": "Earn with MetaMask Money",
+      "description": "Add {{symbol}} to MetaMask Money—no lockups or minimums.",
       "cta": "Add {{symbol}}"
     },
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Add mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, administered by Veda with risk monitoring by Steakhouse Financial. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols. No staking, no claiming, no lock-ups.",
+      "description_1": "Add mUSD into MetaMask Money and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, administered by Veda with risk monitoring by Steakhouse Financial. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols. No staking, no claiming, no lockups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
-      "description_3": "Money account is powered by Monad.",
+      "description_3": "MetaMask Money is powered by Monad.",
       "faq_title": "FAQs",
-      "faq_q1": "What is a MetaMask Money account?",
-      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
-      "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
-      "faq_q2": "Is MetaMask Money account safe?",
-      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
-      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_q1": "What is MetaMask Money?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. No lockups. No notice periods or penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. No lockups. No notice periods or penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money safe?",
+      "faq_a2": "Like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. MetaMask Money isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money balance?",
       "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
-      "faq_q4": "What are MetaMask Money account fees?",
-      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_q4": "What are the MetaMask Money fees?",
+      "faq_a4": "There's no fee to set up MetaMask Money and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
       "faq_a4_link": "See the full Card fee breakdown here.",
-      "faq_q5": "How much can I earn with a MetaMask Money account?",
-      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
-      "faq_a5_no_apy": "The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
+      "faq_q5": "How much can I earn with MetaMask Money?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible in MetaMask Money.",
+      "faq_a5_no_apy": "The rate is variable and fluctuates with market conditions. The current rate is always visible in MetaMask Money.",
       "faq_q6": "Where does the yield come from?",
       "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
-      "faq_q7": "What tokens can I deposit into the Money account?",
-      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
-      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
-      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
-      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
-      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
-      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_q7": "What tokens can I deposit into MetaMask Money?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into MetaMask Money with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into MetaMask Money, but standard fees may apply. You can also fund MetaMask Money using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I access my MetaMask Money balance?",
+      "faq_a8": "No lockups. No notice periods or penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money?",
+      "faq_a9": "No, setting up MetaMask Money doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money available in?",
       "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
       "disclosures_title": "Risk and Disclosures",
-      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
+      "disclosures_body": "MetaMask Money is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. MetaMask Money involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
     },
     "geo_block": {
-      "title": "Money account unavailable",
-      "description": "Money account isn't available in your location due to local restrictions or sanctions.",
+      "title": "MetaMask Money unavailable",
+      "description": "MetaMask Money isn't available in your location due to local restrictions or sanctions.",
       "button": "Got it"
     },
     "deeplink_modal": {
       "button": "Got it",
       "money_account_disabled": {
-        "title": "Money account is temporarily unavailable",
-        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+        "title": "MetaMask Money is temporarily unavailable",
+        "description": "We're working on it. MetaMask Money will be back up shortly — check back soon."
       },
       "excluded_from_gradual_rollout": {
-        "title": "Money Account is on its way",
-        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+        "title": "MetaMask Money is on its way",
+        "description": "We're rolling out MetaMask Money gradually to ensure everything works smoothly. Check back soon."
       }
     },
     "account_status": {
@@ -10442,7 +10442,7 @@
   "confirm": {
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "membership_top_up_info": "We’ll add {{amount}} to your Money account to cover this payment.",
+    "membership_top_up_info": "We’ll add {{amount}} to your MetaMask Money balance to cover this payment.",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
       "receive_title": "Receive",
@@ -10458,7 +10458,7 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_account": "Money account",
+      "money_account": "MetaMask Money",
       "no_deposit_fee": "No deposit fee"
     },
     "staking_footer": {
@@ -11706,7 +11706,7 @@
       "immersve_funding_approval": {
         "title": "Set up card funding",
         "description": "Approve MetaMask Card to use your USDC on Base for purchases.",
-        "money_account_description": "Approve MetaMask Card to use your Money account for purchases.",
+        "money_account_description": "Approve MetaMask Card to use your MetaMask Money balance for purchases.",
         "helper_text": "This usually takes a few seconds. Do not close the app.",
         "confirm_button": "Approve funding",
         "retry_button": "Try again",
@@ -11954,7 +11954,7 @@
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
-        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account": "Unlink MetaMask Money",
         "unlink_money_account_description": "Change your Card funding source",
         "unlink_funding_account": "Unlink card",
         "unlink_funding_account_description": "Prevent future purchases from {{accountName}}",
@@ -12096,9 +12096,9 @@
       "on_linea": "on Linea",
       "account_label": "Account",
       "token_label": "Token",
-      "money_account_label": "Money account",
+      "money_account_label": "MetaMask Money",
       "money_account_token_symbol": "mUSD",
-      "use_money_account_cta": "Use Money account",
+      "use_money_account_cta": "Use MetaMask Money",
       "spend_and_earn_title": "Spend and earn",
       "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
@@ -12124,9 +12124,9 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money account",
-        "description": "You need a linked Money account before redeeming mUSD back.",
-        "confirm_button_label": "Set up Money account"
+        "title": "Set up MetaMask Money",
+        "description": "You need MetaMask Money linked before redeeming mUSD back.",
+        "confirm_button_label": "Set up MetaMask Money"
       }
     },
     "credit_screen": {
@@ -12136,7 +12136,7 @@
       "expected_to_receive": "Expected to receive",
       "to": "To",
       "withdraw": "Move funds",
-      "withdraw_to_money_account": "Move to Money account",
+      "withdraw_to_money_account": "Move to MetaMask Money",
       "withdraw_unavailable": "Redemption unavailable",
       "withdrawal_success": "Redemption completed successfully",
       "withdrawal_failed": "Redemption failed. Try again.",
@@ -12147,27 +12147,27 @@
         "confirm_button_label": "Set up funding"
       },
       "money_account_required": {
-        "title": "Set up Money account",
-        "description": "You need a linked Money account before redeeming your credit.",
-        "confirm_button_label": "Set up Money account"
+        "title": "Set up MetaMask Money",
+        "description": "You need MetaMask Money linked before redeeming your credit.",
+        "confirm_button_label": "Set up MetaMask Money"
       },
       "refund_info": {
         "title": "Refund balance",
-        "description": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be moved to your Money account anytime.",
-        "description_no_money_account": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be redeemed to your wallet anytime."
+        "description": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be moved to your MetaMask Money balance.",
+        "description_no_money_account": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be redeemed to your wallet."
       }
     },
     "credit_balance_tooltip": {
       "title": "Available balance",
-      "description": "Your balance is made up of your Money account balance and any refunds you've received.",
+      "description": "Your balance is made up of your MetaMask Money balance and any refunds you've received.",
       "description_no_money_account": "Your balance is made up of your wallet balance and any refunds you've received.",
-      "money_account": "Money account",
+      "money_account": "MetaMask Money",
       "wallet": "Wallet",
       "refund_balance": "Refund balance"
     },
     "credit_banner": {
       "title": "Refund balance: {{amount}}",
-      "description": "Spend it or move it to your Money account to keep earning on your balance.",
+      "description": "Spend it or move it to MetaMask Money to keep earning on your balance.",
       "description_no_money_account": "Spend it or redeem it to your wallet.",
       "confirm_button_label": "Move funds"
     },
@@ -12214,9 +12214,9 @@
       "request_email_code_button": "Email me a code",
       "login_button": "Sign in",
       "money_account_required": {
-        "title": "Set up Money account",
-        "description": "A Money account is required to get the card in your country.",
-        "confirm_button_label": "Set up Money account"
+        "title": "Set up MetaMask Money",
+        "description": "MetaMask Money is required to get the card in your country.",
+        "confirm_button_label": "Set up MetaMask Money"
       },
       "continue_button": "Continue",
       "uk_login_button": "Sign in with this account",
@@ -12406,7 +12406,7 @@
     "rebate": {
       "banner": "You’re getting {{percent}}% back on fees",
       "tooltip_title": "Trading Rewards",
-      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your MetaMask Money balance. Network fees aren’t included. See the Rewards tab for details."
     },
     "auth_fail_title": "Unknown error.",
     "auth_fail_description": "An unknown error occurred while authenticating this account with MetaMask Rewards. Try again later.",
@@ -13007,7 +13007,7 @@
       "title": "Earn rewards",
       "musd_money_title": "Earn up to {{percentage}}% APY",
       "musd_disclaimer_accessibility_label": "mUSD APY disclaimer",
-      "musd_subtitle": "Money accounts are here",
+      "musd_subtitle": "MetaMask Money is here",
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
@@ -13079,8 +13079,8 @@
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
-      "money_account_deposit": "Deposit to Money account",
-      "money_account_withdraw": "Transfer from Money account",
+      "money_account_deposit": "Deposit to MetaMask Money",
+      "money_account_withdraw": "Transfer from MetaMask Money",
       "default": "Transaction details"
     },
     "label": {
@@ -13103,7 +13103,7 @@
       "you_sent": "You sent",
       "you_received": "You received",
       "token_received": "Token received",
-      "money_account": "Money account",
+      "money_account": "MetaMask Money",
       "perps_account": "Account 1 Perps",
       "predictions_account": "Account 1 Predictions",
       "steps_completed": "Steps ({{count}} completed)",
@@ -13603,22 +13603,22 @@
     "membership_alert": {
       "low_balance": {
         "title": "Add funds by {{date}}",
-        "description": "Your Money account is low. Add funds to keep your membership.",
+        "description": "Your MetaMask Money balance is low. Add funds to keep your membership.",
         "action": "Try again"
       },
       "renewal_failed": {
         "title": "Renewal failed",
-        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "description": "Your balance is too low. Add funds to MetaMask Money to restore membership.",
         "action": "Add funds"
       },
       "payment_failed": {
         "title": "Payment failed",
-        "description": "Add funds to your Money account to restore your membership.",
+        "description": "Add funds to MetaMask Money to restore your membership.",
         "action": "Add funds"
       },
       "inactive": {
         "title": "Your membership is inactive",
-        "description": "Add funds to your Money account to regain access to your benefits.",
+        "description": "Add funds to MetaMask Money to regain access to your benefits.",
         "action": "Add funds"
       },
       "cancelled": {
@@ -13636,7 +13636,7 @@
       "paid_for_itself_title": "Pro has paid for itself",
       "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
       "grow_title": "Grow your balance",
-      "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
+      "grow_description": "Every $1,000 in MetaMask Money earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
     "membership": {
@@ -13646,7 +13646,7 @@
       "payment_details": "Payment details",
       "total": "Total",
       "paying_with": "Paying with",
-      "money_account": "Money account",
+      "money_account": "MetaMask Money",
       "renews_on": "Renews on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
@@ -13684,7 +13684,7 @@
     "join_orange": "Join Orange",
     "start_free_trial": "Start free trial",
     "free_trial_description": "No commitment, cancel anytime",
-    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
+    "insufficient_balance": "MetaMask Money doesn't have enough balance to start Pro.",
     "enable_stripe_test_clocks": "Enable Stripe Test clocks (for development and testing only)",
     "pro": "Orange",
     "pricing": {
@@ -13696,7 +13696,7 @@
     },
     "benefits": {
       "apy": {
-        "title": "Up to 7% APY on Money account",
+        "title": "Up to 7% APY on MetaMask Money",
         "subtitle": "Paid in mUSD, no lockups"
       },
       "cashback": {
@@ -13739,7 +13739,7 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description": "As a Pro member, your MetaMask Money balance earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
         "description2": "APY is variable and not guaranteed."
       },
       "cashback": {
@@ -13782,7 +13782,7 @@
       "active_title": "Your membership is active",
       "view_membership": "View membership",
       "failed_title": "Payment failed",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "Move funds to MetaMask Money to keep access to your benefits.",
       "try_again": "Try again"
     },
     "success": {
