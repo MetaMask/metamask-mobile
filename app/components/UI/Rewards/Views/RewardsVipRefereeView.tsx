@@ -23,8 +23,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import { exitRewardsFlow, getBetaSupportUrl } from '../utils';
+import { openContactSupportWebview } from '../utils/openContactSupportWebview';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -138,13 +138,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
     }
 
     const openWebview = (url: string) =>
-      navigation.navigate(Routes.WEBVIEW.MAIN, {
-        screen: Routes.WEBVIEW.SIMPLE,
-        params: {
-          url,
-          title: strings('app_settings.contact_support'),
-        },
-      });
+      openContactSupportWebview(navigation, url);
 
     const betaSupportUrl = getBetaSupportUrl();
 

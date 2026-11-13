@@ -11,6 +11,7 @@ import {
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { toWeiHex } from '../../../framework/fixtures/mmpay-token-holdings-registry';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -1148,26 +1149,7 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {

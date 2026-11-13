@@ -1,7 +1,6 @@
 import React, { useRef, useCallback, useMemo } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   ListItemSelect,
   Tag,
@@ -14,6 +13,9 @@ import type {
   ProviderNetworkOption,
 } from './PerpsProviderSelector.types';
 import { PROVIDER_NETWORK_OPTIONS } from './PerpsProviderSelector.constants';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * PerpsProviderSelectorSheet Component
@@ -26,6 +28,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
   onOptionSelect,
   testID,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { availableProviders } = usePerpsProvider();
 
@@ -51,14 +54,15 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={onClose} testID={testID}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: testID ? `${testID}-close-button` : undefined,
         }}
       >
         {strings('perps.provider_selector.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {filteredOptions.map((option) => {
         const isSelected = selectedOptionId === option.id;
 

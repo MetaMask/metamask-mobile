@@ -10,6 +10,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import type {
   PredictEvent,
@@ -25,6 +27,7 @@ import {
 } from '../../game';
 import { TeamLogo as SharedTeamLogo } from '../../shared/ui';
 import { EventCard } from './EventCard';
+import { isEventLive } from './isEventLive';
 import {
   createGameCardProjection,
   type GameCardProjection,
@@ -109,7 +112,7 @@ const TeamLogo = ({
   flipped = false,
 }: {
   selection: GameSelection;
-  size?: 'small' | 'large';
+  size?: 'small' | 'largeWide';
   flipped?: boolean;
 }) => {
   const { event, team, abbreviation } = useTeam(selection);
@@ -130,21 +133,27 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
   const { event, game, projection } = useGameCard();
   const line = projection.status[variant];
   const featured = variant === 'featured';
+  const live = isEventLive(event);
 
   return (
     <Box
-      twClassName={`${featured ? 'items-center' : 'flex-row pb-1'} gap-2`}
+      twClassName={featured ? 'items-center gap-1' : 'flex-row gap-2 pb-1'}
       testID={`predict-next-game-status-${event.id}`}
     >
-      <Box twClassName="flex-row items-center gap-2">
-        {game.status === 'in_progress' ? (
-          <Box twClassName="h-2.5 w-2.5 rounded-full bg-success-default" />
+      <Box
+        twClassName={`flex-row items-center ${featured ? 'gap-1' : 'gap-2'}`}
+      >
+        {live ? (
+          <Box
+            testID={`predict-next-game-live-dot-${event.id}`}
+            twClassName={`${featured ? 'h-2 w-2' : 'h-2.5 w-2.5'} rounded-full bg-success-default`}
+          />
         ) : null}
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Bold}
           color={
-            game.status === 'in_progress'
+            live
               ? TextColor.SuccessDefault
               : featured && game.status === 'scheduled'
                 ? TextColor.TextDefault
@@ -221,15 +230,17 @@ const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
   );
 };
 
+// The design labels a Team "ABBR · record"; the Team has no win-loss record
+// yet, so the label is the abbreviation alone.
 const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
-  const { team, projection } = useTeam(selection);
+  const { event, team, abbreviation, projection } = useTeam(selection);
   const slot = getMatchupSlot(projection.teamOrder, selection);
 
   return (
-    <Box twClassName="w-14 items-center gap-1">
+    <Box twClassName="w-[52px] items-center gap-1">
       <TeamLogo
         selection={selection}
-        size="large"
+        size="largeWide"
         flipped={shouldMirrorTeamLogo(team, slot)}
       />
       <Text
@@ -237,9 +248,11 @@ const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
         fontWeight={FontWeight.Bold}
         color={TextColor.TextAlternative}
         numberOfLines={1}
-        twClassName="w-20 text-center"
+        twClassName="text-center"
+        accessibilityLabel={team.name}
+        testID={`predict-next-game-team-label-${event.id}-${selection}`}
       >
-        {team.name}
+        {abbreviation}
       </Text>
     </Box>
   );
@@ -262,7 +275,7 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
   const { event } = useGameCard();
   return (
     <Box
-      twClassName="h-24 flex-row items-center justify-between pb-4"
+      twClassName="flex-row items-center justify-between px-4 pb-2.5 pt-5"
       testID={`predict-next-game-matchup-${event.id}`}
     >
       {children}
@@ -270,34 +283,49 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+/**
+ * Two rounded segments sized by the Teams' share of the two prices. The
+ * first Team's segment is neutral and the second takes its Team color, like
+ * the featured quote buttons. A side with no share draws no segment, so the
+ * gap is not left at the end of a full bar.
+ */
 const ProbabilityBar = () => {
+  const { colors: themeColors } = useTheme();
   const { event, projection, colors } = useGameCard();
-  const firstWidth = projection.firstTeamProbabilityPercent;
+  const firstShare = projection.firstTeamProbabilityPercent;
   const [first, second] = projection.teamOrder;
 
-  if (firstWidth === undefined) {
+  if (firstShare === undefined) {
     return null;
   }
+
+  const secondShare = 100 - firstShare;
 
   return (
     <Box
       testID={`predict-next-game-bar-${event.id}`}
-      twClassName="h-0.5 flex-row overflow-hidden rounded-full"
+      twClassName="flex-row gap-1 px-4"
     >
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${first}`}
-        style={{
-          width: `${firstWidth}%`,
-          backgroundColor: colors[first],
-        }}
-      />
-      <Box
-        testID={`predict-next-game-bar-${event.id}-${second}`}
-        twClassName="flex-1"
-        style={{
-          backgroundColor: colors[second],
-        }}
-      />
+      {firstShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${first}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: firstShare,
+            backgroundColor: themeColors.text.default,
+          }}
+        />
+      ) : null}
+      {secondShare > 0 ? (
+        <Box
+          testID={`predict-next-game-bar-${event.id}-${second}`}
+          twClassName="h-1 rounded-full"
+          style={{
+            flex: secondShare,
+            backgroundColor: colors[second],
+          }}
+        />
+      ) : null}
     </Box>
   );
 };
@@ -408,6 +436,289 @@ const Actions = () => {
   ) : null;
 };
 
+/**
+ * "Label · price" on one line. A long label truncates so the price always
+ * shows.
+ */
+const QuoteLabel = ({
+  name,
+  price,
+  color = TextColor.TextDefault,
+  textColor,
+}: {
+  name: string;
+  price: string;
+  color?: TextColor;
+  /** A raw color for text on a Team color fill. */
+  textColor?: string;
+}) => {
+  const style = textColor ? { color: textColor } : undefined;
+  return (
+    <Box twClassName="min-w-0 shrink flex-row items-center gap-1">
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={color}
+        numberOfLines={1}
+        twClassName="shrink"
+        style={style}
+      >
+        {name}
+      </Text>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={color}
+        twClassName="shrink-0"
+        style={style}
+      >
+        {strings('predict_next.event.game_quote_price', { price })}
+      </Text>
+    </Box>
+  );
+};
+
+/**
+ * A featured quote: a 48px pill labelled "ABBR · price". The first Team
+ * in the card's order gets the neutral primary pill, the second its Team
+ * color.
+ */
+const FeaturedQuote = ({ selection }: { selection: GameSelection }) => {
+  const { colors: themeColors, brandColors } = useTheme();
+  const {
+    event,
+    team,
+    abbreviation,
+    quote,
+    formattedPrice,
+    canOrder,
+    actions,
+    teamColor,
+    projection,
+  } = useTeam(selection);
+
+  if (!quote) {
+    return null;
+  }
+
+  const testID = `predict-next-game-quote-${event.id}-${selection}`;
+
+  if (!formattedPrice) {
+    return (
+      <Button
+        testID={testID}
+        variant={ButtonVariant.Secondary}
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_unavailable_accessibility_label',
+          { team: team.name },
+        )}
+        size={ButtonSize.Lg}
+        twClassName="w-full px-3"
+        isDisabled
+      >
+        {abbreviation}
+      </Button>
+    );
+  }
+
+  // Without an order handler (the Venue does not support buy) the price is
+  // shown, never offered as a button.
+  if (!canOrder || !actions.order) {
+    return (
+      <Box
+        testID={testID}
+        twClassName="h-12 items-center justify-center px-3"
+        accessible
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_accessibility_label',
+          { team: team.name, price: formattedPrice },
+        )}
+      >
+        <QuoteLabel name={abbreviation} price={formattedPrice} />
+      </Box>
+    );
+  }
+
+  const onPress = () => actions.order?.(event, quote.market, quote.outcome);
+  const accessibilityLabel = strings(
+    'predict_next.event.game_quote_buy_accessibility_label',
+    { team: team.name, price: formattedPrice },
+  );
+
+  if (projection.teamOrder[0] === selection) {
+    return (
+      <Button
+        testID={testID}
+        variant={ButtonVariant.Primary}
+        onPress={onPress}
+        accessibilityLabel={accessibilityLabel}
+        size={ButtonSize.Lg}
+        twClassName="w-full px-3"
+      >
+        <QuoteLabel
+          name={abbreviation}
+          price={formattedPrice}
+          color={TextColor.PrimaryInverse}
+        />
+      </Button>
+    );
+  }
+
+  // The fill is the Team's own color, as on the compact quote. `teamColor` is
+  // the contrast-checked color for text on the card, which swaps a dark Team
+  // color for a theme color in dark mode. The label is white when it reaches
+  // 4.5:1 on the fill, otherwise the fixed dark ink (a pale Team color such as
+  // gold); a mid tone neither reads on is darkened just enough for white.
+  const { fill: fillColor, label: labelColor } = getReadableQuoteColors(
+    team.primaryColor ?? teamColor,
+    { light: themeColors.overlay.inverse, dark: brandColors.grey1000 },
+  );
+
+  return (
+    <Button
+      testID={testID}
+      variant={ButtonVariant.Primary}
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      style={{ backgroundColor: fillColor }}
+      size={ButtonSize.Lg}
+      twClassName="w-full px-3"
+    >
+      <QuoteLabel
+        name={abbreviation}
+        price={formattedPrice}
+        textColor={labelColor}
+      />
+    </Button>
+  );
+};
+
+const FeaturedActions = () => {
+  const { projection } = useGameCard();
+  const selections = projection.teamOrder.filter(
+    (selection) => projection.teams[selection].quote,
+  );
+
+  return selections.length ? (
+    <Box twClassName="flex-row gap-2 px-4 pt-4">
+      {selections.map((selection) => (
+        <EventCard.Action key={selection}>
+          <FeaturedQuote selection={selection} />
+        </EventCard.Action>
+      ))}
+    </Box>
+  ) : null;
+};
+
+const SMALL_QUOTE_CLASS_NAME = 'h-8 w-[54px] px-0';
+
+/**
+ * A small card's 54x32 price pill. A priced, active quote opens the order
+ * flow for its Outcome; without a price it shows "-" and takes no action.
+ */
+const SmallQuote = ({ selection }: { selection: GameSelection }) => {
+  const { event, team, quote, formattedPrice, canOrder, actions } =
+    useTeam(selection);
+  const testID = `predict-next-game-quote-${event.id}-${selection}`;
+
+  if (!quote || !formattedPrice) {
+    return (
+      <Button
+        testID={testID}
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Sm}
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_unavailable_accessibility_label',
+          { team: team.name },
+        )}
+        twClassName={SMALL_QUOTE_CLASS_NAME}
+        isDisabled
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          -
+        </Text>
+      </Button>
+    );
+  }
+
+  // Without an order handler (the Venue does not support buy) the price is
+  // shown, never offered as a button.
+  if (!canOrder || !actions.order) {
+    return (
+      <Box
+        testID={testID}
+        twClassName="h-8 w-[54px] items-center justify-center rounded-full bg-muted"
+        accessible
+        accessibilityLabel={strings(
+          'predict_next.event.game_quote_price_accessibility_label',
+          { team: team.name, price: formattedPrice },
+        )}
+      >
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {formattedPrice}
+        </Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Button
+      testID={testID}
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Sm}
+      onPress={() => actions.order?.(event, quote.market, quote.outcome)}
+      accessibilityLabel={strings(
+        'predict_next.event.game_quote_buy_accessibility_label',
+        { team: team.name, price: formattedPrice },
+      )}
+      twClassName={SMALL_QUOTE_CLASS_NAME}
+    >
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {formattedPrice}
+      </Text>
+    </Button>
+  );
+};
+
+/**
+ * A small card Team row: logo and abbreviation, which open the Event, and the
+ * Team's price pill. The pill sits outside the Event press target, so a pill
+ * without a price does nothing when tapped and screen readers reach each
+ * pill on its own.
+ */
+const SmallTeamRow = ({ selection }: { selection: GameSelection }) => {
+  const tw = useTailwind();
+  const { event, team, abbreviation, actions } = useTeam(selection);
+
+  return (
+    <Box
+      twClassName="flex-row items-center gap-2"
+      testID={`predict-next-game-team-${event.id}-${selection}`}
+    >
+      {/* The header row is the Event's accessible button; this repeats it for touch only. */}
+      <NativePressable
+        onPress={actions.openEvent}
+        accessible={false}
+        style={tw.style('min-w-0 flex-1 flex-row items-center gap-2')}
+        testID={`predict-next-game-team-content-${event.id}-${selection}`}
+      >
+        <TeamLogo selection={selection} />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          twClassName="min-w-0 flex-1"
+          accessibilityLabel={team.name}
+          testID={`predict-next-game-team-label-${event.id}-${selection}`}
+        >
+          {abbreviation}
+        </Text>
+      </NativePressable>
+      <SmallQuote selection={selection} />
+    </Box>
+  );
+};
+
 const Footer = ({ children }: { children: React.ReactNode }) => {
   const { event, projection } = useGameCard();
 
@@ -475,6 +786,8 @@ export const GameCard = {
   Matchup,
   ProbabilityBar,
   Actions,
+  FeaturedActions,
+  SmallTeamRow,
   Footer,
   Competition,
   MoreMarkets,

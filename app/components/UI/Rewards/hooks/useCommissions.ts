@@ -83,5 +83,6 @@ export const useCommissions = (
     onFirstPage,
     errorMessage: 'Failed to fetch commissions',
     feature: 'rewards-money',
+    laterPageRetryLimit: 1,
   });
 };

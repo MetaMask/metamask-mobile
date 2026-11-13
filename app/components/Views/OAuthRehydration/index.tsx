@@ -239,37 +239,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
 
-  const syncMarketingOptInAfterUnlock = useCallback(async () => {
-    try {
-      const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
-      dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
-      analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-          marketingOptInStatus.is_opt_in,
-        ),
-      });
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-        )
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-              marketingOptInStatus.is_opt_in,
-            ),
-            updated_after_onboarding: true,
-            location: 'oauth_rehydration',
-            account_type: getSocialAccountType(authConnection, true),
-          })
-          .build(),
-      );
-    } catch (err) {
-      Logger.error(
-        ensureError(err, 'Marketing opt-in sync failed'),
-        'OAuthRehydration',
-      );
-    }
-  }, [dispatch, authConnection]);
-
   const track = useCallback(
     (
       event: IMetaMetricsEvent,
@@ -744,9 +713,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
-      // run syncMarketingOptInAfterUnlock in the background
-      void syncMarketingOptInAfterUnlock();
-
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
       try {
@@ -787,7 +753,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
-    syncMarketingOptInAfterUnlock,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
