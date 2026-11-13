@@ -85,8 +85,19 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
   });
 
   it('shows Finish verification, not KYC pending, for a pending session with kycStatus new', async () => {
+    const session = kycSession('pending', 'new');
+    const providerFlowStatus = 'abandoned' satisfies KycProviderFlowStatus;
+    mockReadSessionStatus.mockReturnValue(session);
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus,
+      kycStatus: 'pending',
+      autorampStatus: 'not_ready',
+    } satisfies RampsVbaOnboardingSnapshot);
     const view = renderVbaHomeCard({
-      overrides: withKycSession(kycSession('pending', 'new')),
+      overrides: withKycSession(session, providerFlowStatus),
     });
 
     expect(
