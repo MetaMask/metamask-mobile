@@ -261,12 +261,14 @@ describe('Browser utils :: protocolWhitelist', () => {
 
     expect(protocolAllowList.includes(protocol)).toBeTruthy();
   });
-  it('blob:', () => {
+  it('No blob:', () => {
+    // blob: loads only in a sub-frame, which the browser tab decides per
+    // request. It is not allowed unconditionally.
     const { protocol } = new URL(
       'blob:https://www.tradingview.com/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
     );
 
-    expect(protocolAllowList.includes(protocol)).toBeTruthy();
+    expect(protocolAllowList.includes(protocol)).toBeFalsy();
   });
   it('wc:', () => {
     const { protocol } = new URL('wc:f82jdjfjakjskdfj');

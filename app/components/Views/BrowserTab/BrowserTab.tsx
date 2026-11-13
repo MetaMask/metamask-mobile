@@ -960,7 +960,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Return `true` to continue loading the request and `false` to stop loading.
      */
     const onShouldStartLoadWithRequest = useCallback(
-      ({ url: urlToLoad }: { url: string }) => {
+      ({
+        url: urlToLoad,
+        isTopFrame,
+      }: {
+        url: string;
+        isTopFrame?: boolean;
+      }) => {
         if (!isTabActive) return false;
 
         if (isDisallowedExplicitPort(urlToLoad)) {
@@ -1007,7 +1013,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        if (protocolAllowList.includes(protocol)) {
+        // Chart embeds navigate an iframe to a blob: document. Blocking it
+        // shows a false "external application" alert and leaves the chart
+        // blank. A top-level blob: page stays blocked: it is never
+        // phishing-scanned and has no real address for the URL bar.
+        // A request that does not report its frame is treated as top-level.
+        const isAllowedBlob = protocol === 'blob:' && isTopFrame === false;
+
+        if (protocolAllowList.includes(protocol) || isAllowedBlob) {
           // Continue with the URL loading on the Webview
           return true;
         }

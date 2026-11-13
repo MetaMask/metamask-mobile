@@ -168,7 +168,16 @@ describe('buildBlobIframeSrcdocScript', () => {
     runInNewContext(buildBlobIframeSrcdocScript(), sandbox);
   };
 
-  it('renders a blob iframe document through srcdoc', async () => {
+  it('builds a script without a NUL character', () => {
+    const script = buildBlobIframeSrcdocScript();
+
+    // iOS hands the script to WebKit as a C string and stops at the first NUL,
+    // which would drop everything injected at document start.
+    expect(script).not.toContain('\u0000');
+  });
+
+  it('renders a fetched text/html blob through srcdoc unchanged', async () => {
+    const html = '<html><head></head><body>chart</body></html>';
     const fetched: string[] = [];
     const frameProto: object = {};
     Object.defineProperty(frameProto, 'src', {
@@ -204,8 +213,11 @@ describe('buildBlobIframeSrcdocScript', () => {
       fetch: (url: string) => {
         fetched.push(url);
         return Promise.resolve({
-          text: () =>
-            Promise.resolve('<html><head></head><body>chart</body></html>'),
+          blob: () =>
+            Promise.resolve({
+              type: 'text/html;charset=utf-8',
+              text: () => Promise.resolve(html),
+            }),
         });
       },
       URL: {
@@ -221,10 +233,7 @@ describe('buildBlobIframeSrcdocScript', () => {
     await flush();
 
     expect(fetched).toEqual(['blob:https://www.tradingview.com/chart-frame']);
-    expect(iframe.srcdoc).toContain(
-      '<base href="https://www.tradingview.com/widget">',
-    );
-    expect(iframe.srcdoc).toContain('chart');
+    expect(iframe.srcdoc).toBe(html);
   });
 
   it('reads a blob created on a parent src setter without fetch', async () => {
@@ -280,7 +289,7 @@ describe('buildBlobIframeSrcdocScript', () => {
 
     const iframe = runInNewContext(
       `${buildBlobIframeSrcdocScript()}
-        var blob = { text: function () { return Promise.resolve(${JSON.stringify(html)}); } };
+        var blob = { type: 'text/html', text: function () { return Promise.resolve(${JSON.stringify(html)}); } };
         var iframe = Object.create(HTMLIFrameElement.prototype);
         iframe.src = URL.createObjectURL(blob);
         iframe;
@@ -289,10 +298,7 @@ describe('buildBlobIframeSrcdocScript', () => {
     );
     await flush();
 
-    expect(iframe.srcdoc).toContain(
-      '<base href="https://www.tradingview.com/widget">',
-    );
-    expect(iframe.srcdoc).toContain('chart');
+    expect(iframe.srcdoc).toBe(html);
   });
 
   it('leaves https iframe sources on the native setter', () => {
@@ -401,14 +407,14 @@ describe('buildBlobIframeSrcdocScript', () => {
   // The re-entry loop lives in the injected page script. Component-view and
   // integration runners never install that MutationObserver, so this stays a
   // unit test of the script itself.
-  describe('binary blob iframes', () => {
+  describe('with a src observer', () => {
     const drain = async () => {
       for (let step = 0; step < 12; step++) {
         await new Promise((resolve) => setImmediate(resolve));
       }
     };
 
-    const installBinaryFrame = (
+    const installObservedFrame = (
       createObjectURL: (blob: { type?: string }) => string,
     ) => {
       const assigned: string[] = [];
@@ -500,7 +506,7 @@ describe('buildBlobIframeSrcdocScript', () => {
 
     it('keeps a pdf blob on the native src when the src observer fires', async () => {
       const reads: string[] = [];
-      const { assigned, sandbox } = installBinaryFrame(
+      const { assigned, sandbox } = installObservedFrame(
         () => 'blob:https://example.com/file.pdf',
       );
       sandbox.reads = reads;
@@ -522,135 +528,76 @@ describe('buildBlobIframeSrcdocScript', () => {
       expect(reads).toEqual([]);
     });
 
-    it('keeps a gif blob without a mime type on the native src', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/anim.gif',
-      );
+    // A browser shows these blobs as inert text or media. srcdoc would parse
+    // the same bytes as HTML in the embedding page's origin.
+    it.each([
+      ['an image/png', 'image/png'],
+      ['an audio/mpeg', 'audio/mpeg'],
+      ['a text/plain', 'text/plain'],
+      ['an application/json', 'application/json'],
+      ['a text/csv', 'text/csv'],
+      ['an untyped', ''],
+    ])(
+      'keeps %s blob holding markup on the native src',
+      async (_label, type) => {
+        const reads: string[] = [];
+        const { assigned, sandbox } = installObservedFrame(
+          () => 'blob:https://example.com/file',
+        );
+        sandbox.reads = reads;
 
-      const iframe = assignBlobFrame(
+        const iframe = assignBlobFrame(
+          sandbox,
+          `var blob = {
+            type: ${JSON.stringify(type)},
+            text: function () {
+              reads.push('text');
+              return Promise.resolve('<script>parent.ethereum</script>');
+            }
+          };`,
+        );
+        await drain();
+
+        expect(assigned).toEqual(['blob:https://example.com/file']);
+        expect(iframe.srcdoc).toBeUndefined();
+        expect(reads).toEqual([]);
+      },
+    );
+
+    it('keeps a fetched text/plain blob on the native src', async () => {
+      const { assigned, sandbox } = installObservedFrame(() => 'blob:unused');
+      sandbox.fetch = () =>
+        Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/plain',
+              text: () => Promise.resolve('<script>parent.ethereum</script>'),
+            }),
+        });
+      sandbox.window = sandbox;
+
+      const iframe = runInNewContext(
+        `${buildBlobIframeSrcdocScript()}
+          var iframe = Object.create(HTMLIFrameElement.prototype);
+          iframe.tagName = 'IFRAME';
+          iframe.getAttribute = function (name) {
+            return String(name).toLowerCase() === 'src' ? this.src : null;
+          };
+          iframe.src = 'blob:https://example.com/untracked';
+          iframe;
+        `,
         sandbox,
-        `var blob = {
-          type: '',
-          text: function () {
-            return Promise.resolve('GIF89a');
-          }
-        };`,
       );
       await drain();
 
-      expect(assigned).toEqual(['blob:https://example.com/anim.gif']);
-      expect(iframe.srcdoc).toBeUndefined();
-    });
-
-    it('keeps an image/png blob on the native src when its text reads as markup', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/image.png',
-      );
-
-      const iframe = assignBlobFrame(
-        sandbox,
-        `var blob = {
-          type: 'image/png',
-          text: function () {
-            return Promise.resolve('<html><body>png bytes</body></html>');
-          }
-        };`,
-      );
-      await drain();
-
-      expect(assigned).toEqual(['blob:https://example.com/image.png']);
-      expect(iframe.srcdoc).toBeUndefined();
-    });
-
-    it('keeps a png blob without a mime type on the native src', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/raw.png',
-      );
-
-      const iframe = assignBlobFrame(
-        sandbox,
-        `var bytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-        var blob = {
-          type: '',
-          slice: function () { return this; },
-          arrayBuffer: function () { return Promise.resolve(bytes.buffer); },
-          text: function () {
-            return Promise.resolve('<html><body>png bytes</body></html>');
-          }
-        };`,
-      );
-      await drain();
-
-      expect(assigned).toEqual(['blob:https://example.com/raw.png']);
-      expect(iframe.srcdoc).toBeUndefined();
-    });
-
-    it('keeps a jpeg blob without a mime type on the native src', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/image.jpg',
-      );
-
-      const iframe = assignBlobFrame(
-        sandbox,
-        `var bytes = new Uint8Array([0xff, 0xd8, 0xff, 0xe0]);
-        var blob = {
-          type: '',
-          slice: function () { return this; },
-          arrayBuffer: function () { return Promise.resolve(bytes.buffer); },
-          text: function () {
-            return Promise.resolve('<html><body>not a chart</body></html>');
-          }
-        };`,
-      );
-      await drain();
-
-      expect(assigned).toEqual(['blob:https://example.com/image.jpg']);
-      expect(iframe.srcdoc).toBeUndefined();
-    });
-
-    it('keeps an audio blob on the native src', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/sound.mp3',
-      );
-
-      const iframe = assignBlobFrame(
-        sandbox,
-        `var blob = {
-          type: 'audio/mpeg',
-          text: function () { return Promise.resolve('ID3'); }
-        };`,
-      );
-      await drain();
-
-      expect(assigned).toEqual(['blob:https://example.com/sound.mp3']);
-      expect(iframe.srcdoc).toBeUndefined();
-    });
-
-    it('keeps a video blob without a mime type on the native src', async () => {
-      const { assigned, sandbox } = installBinaryFrame(
-        () => 'blob:https://example.com/clip.mp4',
-      );
-
-      const iframe = assignBlobFrame(
-        sandbox,
-        `var bytes = new Uint8Array([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70]);
-        var blob = {
-          type: '',
-          slice: function () { return this; },
-          arrayBuffer: function () { return Promise.resolve(bytes.buffer); },
-          text: function () { return Promise.resolve('ftyp'); }
-        };`,
-      );
-      await drain();
-
-      expect(assigned).toEqual(['blob:https://example.com/clip.mp4']);
+      expect(assigned).toEqual(['blob:https://example.com/untracked']);
       expect(iframe.srcdoc).toBeUndefined();
     });
 
     it('keeps the newer chart when an older blob read finishes later', async () => {
       const resolvers: ((html: string) => void)[] = [];
       let nextId = 0;
-      const { sandbox } = installBinaryFrame(
+      const { sandbox } = installObservedFrame(
         () => `blob:https://example.com/chart-${++nextId}`,
       );
       sandbox.resolvers = resolvers;
@@ -660,6 +607,7 @@ describe('buildBlobIframeSrcdocScript', () => {
         `${buildBlobIframeSrcdocScript()}
           function chartBlob() {
             return {
+              type: 'text/html',
               text: function () {
                 return new Promise(function (resolve) {
                   resolvers.push(resolve);

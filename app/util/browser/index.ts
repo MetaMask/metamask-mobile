@@ -129,9 +129,6 @@ export const protocolAllowList = [
   'http:',
   'https:',
   'file:',
-  // Chart embeds navigate an iframe to a blob: document. Blocking it shows a
-  // false "external application" alert and leaves the chart blank.
-  'blob:',
   'wc:',
   'metamask:',
   'ethereum:',

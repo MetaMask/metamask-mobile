@@ -534,6 +534,13 @@ true;`;
  * chart stays blank. `srcdoc` renders the same HTML without that navigation.
  * The script is installed in every frame because the widget creates the iframe
  * inside its own cross-origin document.
+ *
+ * Only blobs typed `text/html` are rewritten. Every other blob keeps the
+ * native load, because `srcdoc` would run text or data as HTML in the
+ * embedding page.
+ *
+ * The built script must not contain a NUL character. iOS passes it to WebKit
+ * as a C string, which ends at the first NUL.
  */
 export const buildBlobIframeSrcdocScript = (): string =>
   `(function () {
@@ -579,15 +586,13 @@ export const buildBlobIframeSrcdocScript = (): string =>
     }
     blobs.set(url, blob);
   }
-  // PDFs, images, and other binary iframe targets must keep the native blob
-  // load. srcdoc would show their bytes as text.
-  function isBinaryBlob(blob) {
+  // Only a blob the page typed as text/html is rewritten. A browser shows
+  // text/plain, JSON, CSV, and untyped blobs as inert text or media. srcdoc
+  // would parse the same bytes as HTML in the embedding page's origin and run
+  // any script inside them.
+  function isHtmlBlob(blob) {
     var type = blob && blob.type ? String(blob.type).toLowerCase() : '';
-    return type.indexOf('image/') === 0 ||
-      type.indexOf('audio/') === 0 ||
-      type.indexOf('video/') === 0 ||
-      type.indexOf('application/pdf') === 0 ||
-      type.indexOf('application/octet-stream') === 0;
+    return type.split(';')[0].trim() === 'text/html';
   }
   if (typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
     var nativeCreateObjectURL = URL.createObjectURL;
@@ -622,183 +627,51 @@ export const buildBlobIframeSrcdocScript = (): string =>
     } catch (e) {}
   }
 
-  // Sniff the raw header. blob.text() UTF-8-decodes the bytes first, so a
-  // PNG's leading 0x89 (and a JPEG's 0xFF) never survives as a magic string.
-  function looksLikeBinaryBytes(buffer) {
-    if (!buffer) {
-      return false;
-    }
-    var bytes;
-    try {
-      bytes = new Uint8Array(buffer);
-    } catch (e) {
-      return false;
-    }
-    var length = bytes.length;
-    if (length < 3) {
-      return false;
-    }
-    var b0 = bytes[0];
-    var b1 = bytes[1];
-    var b2 = bytes[2];
-    var b3 = length > 3 ? bytes[3] : -1;
-    if (b0 === 0x89 && b1 === 0x50 && b2 === 0x4e && b3 === 0x47) {
-      return true;
-    }
-    if (b0 === 0xff && b1 === 0xd8 && b2 === 0xff) {
-      return true;
-    }
-    if (b0 === 0x47 && b1 === 0x49 && b2 === 0x46 && b3 === 0x38) {
-      return true;
-    }
-    if (b0 === 0x25 && b1 === 0x50 && b2 === 0x44 && b3 === 0x46) {
-      return true;
-    }
-    if (b0 === 0x52 && b1 === 0x49 && b2 === 0x46 && b3 === 0x46) {
-      return true;
-    }
-    if (b0 === 0x4f && b1 === 0x67 && b2 === 0x67 && b3 === 0x53) {
-      return true;
-    }
-    if (b0 === 0x1a && b1 === 0x45 && b2 === 0xdf && b3 === 0xa3) {
-      return true;
-    }
-    if (b0 === 0x49 && b1 === 0x44 && b2 === 0x33) {
-      return true;
-    }
-    if (b0 === 0x66 && b1 === 0x4c && b2 === 0x61 && b3 === 0x43) {
-      return true;
-    }
-    if (b0 === 0x42 && b1 === 0x4d) {
-      return true;
-    }
-    if (length >= 8 && bytes[4] === 0x66 && bytes[5] === 0x74 &&
-        bytes[6] === 0x79 && bytes[7] === 0x70) {
-      return true;
-    }
-    return b0 === 0xff && (b1 & 0xe0) === 0xe0;
-  }
-
-  function readPrefix(blob) {
-    try {
-      if (blob && typeof blob.slice === 'function') {
-        var head = blob.slice(0, 16);
-        if (head && typeof head.arrayBuffer === 'function') {
-          return head.arrayBuffer().catch(function () {
-            return null;
-          });
-        }
-      }
-      if (blob && typeof blob.arrayBuffer === 'function') {
-        return blob.arrayBuffer().catch(function () {
-          return null;
-        });
-      }
-    } catch (e) {}
-    return Promise.resolve(null);
-  }
-
   function loadBlob(blobUrl) {
     var tracked = blobs.get(blobUrl);
     if (tracked) {
       return Promise.resolve(tracked);
     }
+    // The URL was minted outside this frame's createObjectURL, or it was
+    // evicted from the map. The fetched Blob carries its own type.
     return fetch(blobUrl).then(function (response) {
-      if (response && typeof response.blob === 'function') {
-        return response.blob();
-      }
-      if (response && typeof response.text === 'function') {
-        return response.text().then(function (html) {
-          return {
-            type: '',
-            text: function () {
-              return Promise.resolve(html);
-            },
-          };
-        });
-      }
-      return null;
+      return response.blob();
     });
-  }
-
-  // Used only when the bytes themselves could not be read. Chart HTML is not
-  // always a full document, so this stays limited to signatures that cannot
-  // be markup.
-  function textLooksBinary(html) {
-    if (typeof html !== 'string' || html.length === 0) {
-      return false;
-    }
-    var sample = html.slice(0, 16);
-    return sample.indexOf('%PDF') === 0 ||
-      sample.indexOf('GIF8') === 0 ||
-      sample.indexOf('\u0000') !== -1 ||
-      sample.indexOf('\uFFFD') !== -1;
-  }
-
-  function renderDocument(iframe, blobUrl, html) {
-    if (!iframe || iframe.__mmBlobRendered !== blobUrl) {
-      return;
-    }
-    var baseHref = '';
-    try {
-      baseHref = String(location.href || '').split('#')[0];
-    } catch (e) {}
-    if (baseHref && html.indexOf('<base ') === -1 && html.indexOf('<base>') === -1) {
-      html = html.replace(/<head[^>]*>/i, function (head) {
-        return head + '<base href="' + baseHref.replace(/[&"<>]/g, function (ch) {
-          return ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[ch];
-        }) + '">';
-      });
-    }
-    iframe.srcdoc = html;
   }
 
   function renderBlob(iframe, blobUrl) {
     if (!iframe || iframe.__mmBlobRendered === blobUrl) {
       return;
     }
-    // The src observer runs after the native setter. A typed image, media, or
-    // PDF blob must stay on that load; reading it here would replace it with
-    // srcdoc text.
-    if (isBinaryBlob(blobs.get(blobUrl))) {
-      iframe.__mmBlobRendered = blobUrl;
+    iframe.__mmBlobRendered = blobUrl;
+    var tracked = blobs.get(blobUrl);
+    if (tracked && !isHtmlBlob(tracked)) {
+      keepNativeBlob(iframe, blobUrl);
       return;
     }
-    iframe.__mmBlobRendered = blobUrl;
     loadBlob(blobUrl).then(function (blob) {
-      if (!iframe || iframe.__mmBlobRendered !== blobUrl) {
+      // A newer src may have been assigned while this read was in flight.
+      if (iframe.__mmBlobRendered !== blobUrl) {
         return;
       }
-      if (isBinaryBlob(blob)) {
+      if (!isHtmlBlob(blob)) {
         keepNativeBlob(iframe, blobUrl);
         return;
       }
-      return readPrefix(blob).then(function (prefix) {
-        if (!iframe || iframe.__mmBlobRendered !== blobUrl) {
+      return blob.text().then(function (html) {
+        if (iframe.__mmBlobRendered !== blobUrl) {
           return;
         }
-        if (looksLikeBinaryBytes(prefix)) {
+        if (typeof html !== 'string' || html.length === 0) {
           keepNativeBlob(iframe, blobUrl);
           return;
         }
-        var readText = blob && typeof blob.text === 'function'
-          ? blob.text()
-          : Promise.resolve('');
-        return readText.then(function (html) {
-          if (!iframe || iframe.__mmBlobRendered !== blobUrl) {
-            return;
-          }
-          var sniffedBytes = prefix != null;
-          if (typeof html !== 'string' || html.length === 0 ||
-              (!sniffedBytes && textLooksBinary(html))) {
-            keepNativeBlob(iframe, blobUrl);
-            return;
-          }
-          renderDocument(iframe, blobUrl, html);
-        });
+        // The HTML is copied as is. A srcdoc document resolves relative URLs
+        // against the embedding document, so no <base> element is inserted.
+        iframe.srcdoc = html;
       });
     }).catch(function () {
-      if (!iframe || iframe.__mmBlobRendered !== blobUrl) {
+      if (iframe.__mmBlobRendered !== blobUrl) {
         return;
       }
       keepNativeBlob(iframe, blobUrl);
@@ -813,12 +686,6 @@ export const buildBlobIframeSrcdocScript = (): string =>
     },
     set: function (value) {
       if (typeof value === 'string' && value.indexOf('blob:') === 0) {
-        if (isBinaryBlob(blobs.get(value))) {
-          // Mark before the native write so the src observer no-ops.
-          this.__mmBlobRendered = value;
-          srcDescriptor.set.call(this, value);
-          return;
-        }
         renderBlob(this, value);
         return;
       }
@@ -857,14 +724,11 @@ export const buildBlobIframeSrcdocScript = (): string =>
             return;
           }
           var src = node.getAttribute && node.getAttribute('src');
-          if (typeof src !== 'string' || src.indexOf('blob:') !== 0) {
-            return;
+          // renderBlob returns at once for a URL it already handled, so a
+          // native src write made by the shim does not start a second read.
+          if (typeof src === 'string' && src.indexOf('blob:') === 0) {
+            renderBlob(node, src);
           }
-          if (node.__mmBlobRendered === src || isBinaryBlob(blobs.get(src))) {
-            node.__mmBlobRendered = src;
-            return;
-          }
-          renderBlob(node, src);
         });
       });
     });

@@ -415,7 +415,7 @@ describe('BrowserTab', () => {
       ).toBe(false);
     });
 
-    it('loads blob iframe URLs without an external-application alert', async () => {
+    it('loads a sub-frame blob URL without an external-application alert', async () => {
       const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
 
       renderWithProvider(<BrowserTab {...mockProps} />, {
@@ -431,6 +431,7 @@ describe('BrowserTab', () => {
       expect(
         webView.props.onShouldStartLoadWithRequest({
           url: 'blob:https://www.tradingview.com/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+          isTopFrame: false,
         }),
       ).toBe(true);
       expect(alertSpy).not.toHaveBeenCalled();
@@ -440,6 +441,55 @@ describe('BrowserTab', () => {
       expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
         '__mmBlobIframeShim',
       );
+      // iOS stops reading the injected script at the first NUL character.
+      expect(webView.props.injectedJavaScriptBeforeContentLoaded).not.toContain(
+        '\u0000',
+      );
+
+      alertSpy.mockRestore();
+    });
+
+    it('stops a top-level blob URL from loading', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://phishing.example/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+          isTopFrame: true,
+        }),
+      ).toBe(false);
+
+      alertSpy.mockRestore();
+    });
+
+    it('stops a blob URL that does not report its frame', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(
+        webView.props.onShouldStartLoadWithRequest({
+          url: 'blob:https://phishing.example/8f3c0a2e-1b2c-4d5e-9f00-abcdef123456',
+        }),
+      ).toBe(false);
 
       alertSpy.mockRestore();
     });
