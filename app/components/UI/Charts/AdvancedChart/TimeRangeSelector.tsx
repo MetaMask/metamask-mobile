@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Dimensions, Pressable } from 'react-native';
+import React from 'react';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -12,11 +12,9 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
 import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
 export type TimeRange = '1H' | '1D' | '1W' | '1M' | '1Y';
 
@@ -46,14 +44,7 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 const SEGMENT_BUTTON_BASE =
   'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-full px-4 py-1';
 
-/** @see TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT */
-const TIME_RANGE_SKELETON_HEIGHT = TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT;
-/** Root `Box` uses `px-4` (16px each side). */
-const HORIZONTAL_INSET_PX = 32;
-
 interface TimeRangeSelectorProps {
-  /** When true, shows a skeleton in the same outer layout as the real controls. */
-  isChartLoading?: boolean;
   selected: TimeRange;
   onSelect: (range: TimeRange) => void;
   /** Optional subset of ranges to display. Defaults to all. */
@@ -69,7 +60,6 @@ interface TimeRangeSelectorProps {
 }
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
-  isChartLoading = false,
   selected,
   onSelect,
   ranges = TIME_RANGES,
@@ -79,127 +69,101 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   selectedColor,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
-
-  const skeletonBarWidth = useMemo(
-    () => Dimensions.get('window').width - HORIZONTAL_INSET_PX,
-    [],
-  );
-
-  const showChartLoadingSkeleton = isChartLoading;
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="w-full px-4"
-      style={{ minHeight: TIME_RANGE_SKELETON_HEIGHT }}
+      style={{ minHeight: TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT }}
     >
-      {showChartLoadingSkeleton ? (
-        <Box
-          style={{ height: TIME_RANGE_SKELETON_HEIGHT }}
-          twClassName="w-full flex-1 overflow-hidden rounded-full"
-        >
-          <SkeletonPlaceholder
-            backgroundColor={colors.background.section}
-            highlightColor={colors.background.subsection}
-          >
-            <SkeletonPlaceholder.Item
-              width={skeletonBarWidth}
-              height={TIME_RANGE_SKELETON_HEIGHT}
-              borderRadius={8}
-            />
-          </SkeletonPlaceholder>
-        </Box>
-      ) : (
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="w-full flex-1 rounded-full"
-        >
-          {ranges.map((range) => {
-            const isSelected = selected === range;
-            return (
-              <Pressable
-                key={range}
-                style={({ pressed }) =>
-                  tw.style(
-                    SEGMENT_BUTTON_BASE,
-                    isSelected &&
-                      (selectedColor
-                        ? { backgroundColor: selectedColor }
-                        : 'bg-muted'),
-                    pressed && 'opacity-70',
-                  )
-                }
-                onPress={() => onSelect(range)}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  twClassName={
-                    isSelected
-                      ? selectedColor
-                        ? 'text-success-inverse'
-                        : 'text-text-default'
-                      : selectedColor
-                        ? undefined
-                        : 'text-text-alternative'
-                  }
-                  style={
-                    !isSelected && selectedColor
-                      ? { color: selectedColor }
-                      : undefined
-                  }
-                >
-                  {range}
-                </Text>
-              </Pressable>
-            );
-          })}
-          {onChartTypeToggle ? (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full flex-1 rounded-full"
+      >
+        {ranges.map((range) => {
+          const isSelected = selected === range;
+          return (
             <Pressable
+              key={range}
               style={({ pressed }) =>
-                tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+                tw.style(
+                  SEGMENT_BUTTON_BASE,
+                  isSelected &&
+                    (selectedColor
+                      ? { backgroundColor: selectedColor }
+                      : 'bg-muted'),
+                  pressed && 'opacity-70',
+                )
               }
-              onPress={onChartTypeToggle}
-              accessibilityRole="button"
-              accessibilityLabel={
-                chartType === ChartType.Candles
-                  ? 'Switch to line chart'
-                  : 'Switch to candlestick chart'
-              }
+              onPress={() => onSelect(range)}
             >
-              {chartType === ChartType.Candles ? (
-                <Icon
-                  name={IconName.Diagram}
-                  size={IconSize.Lg}
-                  twClassName={
-                    selectedColor
-                      ? `text-[${selectedColor}]`
-                      : 'text-icon-alternative'
-                  }
-                />
-              ) : (
-                <Icon
-                  name={IconName.Candlestick}
-                  size={IconSize.Lg}
-                  twClassName={
-                    selectedColor
-                      ? `text-[${selectedColor}]`
-                      : 'text-icon-alternative'
-                  }
-                />
-              )}
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                twClassName={
+                  isSelected
+                    ? selectedColor
+                      ? 'text-success-inverse'
+                      : 'text-text-default'
+                    : selectedColor
+                      ? undefined
+                      : 'text-text-alternative'
+                }
+                style={
+                  !isSelected && selectedColor
+                    ? { color: selectedColor }
+                    : undefined
+                }
+              >
+                {range}
+              </Text>
             </Pressable>
-          ) : onChartTypeSelect ? (
-            <ChartTypeToggle
-              chartType={chartType}
-              onChartTypeSelect={onChartTypeSelect}
-            />
-          ) : null}
-        </Box>
-      )}
+          );
+        })}
+        {onChartTypeToggle ? (
+          <Pressable
+            style={({ pressed }) =>
+              tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+            }
+            onPress={onChartTypeToggle}
+            accessibilityRole="button"
+            accessibilityLabel={
+              chartType === ChartType.Candles
+                ? 'Switch to line chart'
+                : 'Switch to candlestick chart'
+            }
+          >
+            {chartType === ChartType.Candles ? (
+              <Icon
+                name={IconName.Diagram}
+                size={IconSize.Lg}
+                twClassName={
+                  selectedColor
+                    ? `text-[${selectedColor}]`
+                    : 'text-icon-alternative'
+                }
+              />
+            ) : (
+              <Icon
+                name={IconName.Candlestick}
+                size={IconSize.Lg}
+                twClassName={
+                  selectedColor
+                    ? `text-[${selectedColor}]`
+                    : 'text-icon-alternative'
+                }
+              />
+            )}
+          </Pressable>
+        ) : onChartTypeSelect ? (
+          <ChartTypeToggle
+            chartType={chartType}
+            onChartTypeSelect={onChartTypeSelect}
+          />
+        ) : null}
+      </Box>
     </Box>
   );
 };
