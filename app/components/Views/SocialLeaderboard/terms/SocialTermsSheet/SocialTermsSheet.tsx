@@ -13,7 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
   useWindowDimensions,
@@ -161,15 +161,22 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
-  const themedHtml = html
-    ? themeSocialTermsHtml(html, {
-        background: termsBackground,
-        text: colors.text.default,
-        heading: colors.text.default,
-        link: colors.primary.default,
-        colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
-      })
-    : undefined;
+  const termsText = colors.text.default;
+  const termsLink = colors.primary.default;
+  const colorScheme = themeAppearance === AppThemeKey.dark ? 'dark' : 'light';
+  const themedHtml = useMemo(
+    () =>
+      html
+        ? themeSocialTermsHtml(html, {
+            background: termsBackground,
+            text: termsText,
+            heading: termsText,
+            link: termsLink,
+            colorScheme,
+          })
+        : undefined,
+    [colorScheme, html, termsBackground, termsLink, termsText],
+  );
   const webViewBackgroundStyle = { backgroundColor: termsBackground };
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);

@@ -13,6 +13,8 @@ import {
   PERPS_HEADER_AB_TEST_KEY,
   PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
 } from '../../components/UI/Perps/abTestConfig';
+import { EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY } from '../../components/UI/TokenDetails/components/abTestConfig';
+import { COMPONENT_NAMES } from '../../components/UI/Money/constants/moneyEventLocations';
 
 describe('enrichWithABTests', () => {
   it('injects one active assignment for a matching allowlisted event', () => {
@@ -157,6 +159,45 @@ describe('enrichWithABTests', () => {
     expect(result.properties).toEqual({
       source: 'test',
     });
+  });
+
+  it('attributes stablecoin footer Money Button Clicked events to the stablecoin footer experiment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+    )
+      .addProperties({
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        token_symbol: 'USDC',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+        'treatment',
+      ),
+    ]);
+  });
+
+  it('does not attribute aToken footer Money Button Clicked events to the stablecoin footer experiment', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.MONEY_BUTTON_CLICKED,
+    )
+      .addProperties({
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        token_symbol: 'aUSDC',
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      [EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY]: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
   });
 
   it('ignores missing and invalid flag values', () => {

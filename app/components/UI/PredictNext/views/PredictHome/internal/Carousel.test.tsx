@@ -1,33 +1,14 @@
 const mockFlashListProps = jest.fn();
 
+// Renders every cell at once and records the props of each render.
 jest.mock('@shopify/flash-list', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { createElement, Fragment } = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
+  const { FlashListRenderAll } = jest.requireActual(
+    './testUtils/flashListRenderAll',
+  );
   return {
-    FlashList: (props: {
-      data: unknown[];
-      testID: string;
-      keyExtractor: (item: unknown, index: number) => string;
-      renderItem: (info: {
-        item: unknown;
-        index: number;
-        target: string;
-      }) => unknown;
-    }) => {
+    FlashList: (props: FlashListRenderAllProps) => {
       mockFlashListProps(props);
-      return createElement(
-        View,
-        { testID: props.testID },
-        props.data.map((item, index) =>
-          createElement(
-            Fragment,
-            { key: props.keyExtractor(item, index) },
-            props.renderItem({ item, index, target: 'Cell' }),
-          ),
-        ),
-      );
+      return FlashListRenderAll(props);
     },
   };
 });
@@ -36,6 +17,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { act, render, screen, within } from '@testing-library/react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
+import type { FlashListRenderAllProps } from './testUtils/flashListRenderAll';
 import { Carousel, type CarouselProps } from './Carousel';
 
 interface Card {

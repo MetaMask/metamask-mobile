@@ -224,6 +224,27 @@ describe('EventCard.HeaderRow', () => {
     });
   });
 
+  it('keeps the Title at 60% of the row or more, so a long Meta truncates beside it', () => {
+    render(
+      <EventCard.HeaderRow>
+        <EventCard.HeaderRow.Title testID="header-title">
+          Los Angeles Lakers vs. Boston Celtics
+        </EventCard.HeaderRow.Title>
+        <EventCard.HeaderRow.Meta testID="header-meta">
+          National Basketball Association Regular Season
+        </EventCard.HeaderRow.Meta>
+      </EventCard.HeaderRow>,
+    );
+
+    const title = screen.getByTestId('header-title');
+    expect(title).toHaveStyle({ flexGrow: 1, minWidth: '60%' });
+    expect(title).toHaveProp('numberOfLines', 1);
+    const meta = screen.getByTestId('header-meta');
+    expect(meta).toHaveStyle({ flexShrink: 1 });
+    expect(meta).not.toHaveStyle({ maxWidth: expect.anything() });
+    expect(meta).toHaveProp('numberOfLines', 1);
+  });
+
   it('accepts any element on either side', () => {
     render(
       <EventCard.HeaderRow>

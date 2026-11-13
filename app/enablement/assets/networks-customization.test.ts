@@ -5,6 +5,7 @@ import {
   filterExcludedAssets,
   filterExcludedTokenBalances,
   filterExcludedImportAssets,
+  isExcludedImportAsset,
 } from './networks-customization';
 import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
@@ -12,6 +13,9 @@ import { ImportAsset } from '../../components/Views/AddAsset/utils/utils';
 const ARC = NETWORKS_CHAIN_ID.ARC;
 const STABLE = NETWORKS_CHAIN_ID.STABLE;
 const OTHER_TOKEN = '0x1111111111111111111111111111111111111111';
+
+const importAsset = (address: string, chainId: string) =>
+  ({ address, chainId, symbol: 'T', decimals: 18 }) as ImportAsset;
 
 describe('networks-customization', () => {
   describe('filterExcludedAssets', () => {
@@ -102,6 +106,29 @@ describe('networks-customization', () => {
         ),
       ).toEqual(tokens);
       expect(filterExcludedImportAssets(tokens, undefined)).toEqual(tokens);
+    });
+  });
+
+  describe('isExcludedImportAsset', () => {
+    it('flags the excluded ERC-20 on its own chain only', () => {
+      expect(
+        isExcludedImportAsset(importAsset(ARC_USDC_ERC20_TOKEN_ADDRESS, ARC)),
+      ).toBe(true);
+      expect(
+        isExcludedImportAsset(importAsset(ARC_USDC_ERC20_TOKEN_ADDRESS, '0x1')),
+      ).toBe(false);
+      expect(isExcludedImportAsset(importAsset(OTHER_TOKEN, ARC))).toBe(false);
+    });
+
+    it('never flags non-EVM assets', () => {
+      expect(
+        isExcludedImportAsset(
+          importAsset(
+            ARC_USDC_ERC20_TOKEN_ADDRESS,
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          ),
+        ),
+      ).toBe(false);
     });
   });
 });

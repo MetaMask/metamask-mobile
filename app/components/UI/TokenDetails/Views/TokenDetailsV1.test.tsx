@@ -1587,7 +1587,11 @@ describe('TokenDetailsV1', () => {
         },
         copyTradeOrigin: { commentId: 'comment-1' },
         initialTradeMode: 'buy',
-        analyticsContext: { source: 'trader_feed' },
+        analyticsContext: {
+          source: 'trader_feed',
+          isCopyTrade: true,
+          traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),
@@ -1616,6 +1620,7 @@ describe('TokenDetailsV1', () => {
         target,
         tradeMode: 'sell',
         copyTradeOrigin,
+        traderAddress: '0xretrytrader',
         owner: PostTradeShareOwner.tokenDetails,
         preview: {
           tokenSymbol: 'RETRY',
@@ -1633,6 +1638,10 @@ describe('TokenDetailsV1', () => {
         target,
         copyTradeOrigin,
         initialTradeMode: 'sell',
+        analyticsContext: expect.objectContaining({
+          isCopyTrade: true,
+          traderAddress: '0xretrytrader',
+        }),
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.tokenDetails,
       }),

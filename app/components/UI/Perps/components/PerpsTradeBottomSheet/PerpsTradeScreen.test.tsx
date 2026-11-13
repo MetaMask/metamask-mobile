@@ -648,6 +648,9 @@ describe('PerpsTradeScreen errors', () => {
         disabled: false,
         onValueChange: defaultProps.onSliderValueChange,
         onDragEnd: defaultProps.onSliderDragEnd,
+        ignoreUntilLayout: true,
+        layoutTestID: PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT,
+        testID: PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER,
       }),
     );
     // Both A/B bottom sheets share one slider control, so the Trade sheet

@@ -504,6 +504,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     ],
   );
 
+  // Quick Buy shows its own token warning on Buy, so it skips the security sheet.
+  const handleQuickBuyAction = (action: () => void) => {
+    if (isRwaGeoRestricted) {
+      rwaUnavailableSheetRef.current?.onOpenBottomSheet();
+      return;
+    }
+    action();
+  };
+
   const handleOpenQuickBuy = (mode: QuickBuyTradeMode) => {
     if (!onOpenQuickBuy) return;
     trackStickyFooterTapped({
@@ -514,14 +523,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       indicatorsActive,
       tdp_version: tdpVersion,
     });
-    handleFooterAction(
-      () => onOpenQuickBuy(mode),
-      strings(
-        mode === 'sell'
-          ? 'asset_overview.sell_button'
-          : 'asset_overview.buy_button',
-      ),
-    );
+    handleQuickBuyAction(() => onOpenQuickBuy(mode));
   };
 
   // The trader-position footer renders inside a design-system BottomSheetDialog
@@ -767,10 +769,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 indicatorsActive,
                 tdp_version: tdpVersion,
               });
-              handleFooterAction(
-                onQuickBuyPress,
-                strings('asset_overview.buy_button'),
-              );
+              handleQuickBuyAction(onQuickBuyPress);
             }}
           >
             <Icon

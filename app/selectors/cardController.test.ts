@@ -1182,6 +1182,31 @@ describe('selectCardPrimaryToken', () => {
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
   });
+
+  it('flags a moneyAccount funding source even when the token is not the selected Veda config', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: 'eip155:8453',
+        fundingSourceType: 'moneyAccount',
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
+
+    const token = selectCardPrimaryToken(state);
+
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
+  });
 });
 
 describe('selectCardAvailableTokens', () => {

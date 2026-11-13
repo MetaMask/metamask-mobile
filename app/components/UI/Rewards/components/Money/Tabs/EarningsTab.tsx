@@ -419,7 +419,7 @@ const HistorySection: React.FC<{
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={copyTradingOnly ? IconName.People : IconName.Activity}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}

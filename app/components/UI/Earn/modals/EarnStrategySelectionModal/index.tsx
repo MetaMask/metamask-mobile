@@ -50,7 +50,7 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -186,7 +186,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =

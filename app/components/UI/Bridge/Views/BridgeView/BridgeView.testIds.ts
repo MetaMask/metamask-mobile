@@ -55,6 +55,7 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
     'recurring-fee-tokens-unavailable-banner',
   RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
+  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

@@ -318,6 +318,7 @@ function ActivitySection<T extends { id: string }>({
   bottomPadding,
   emptyDescription,
   emptyActionLabel,
+  emptyIconName = IconName.Activity,
   onEmptyAction,
   onOpenList,
   renderItem,
@@ -332,6 +333,8 @@ function ActivitySection<T extends { id: string }>({
   emptyDescription: string;
   /** The empty state renders a button only with both label and handler. */
   emptyActionLabel?: string;
+  /** Defaults to the trading-activity icon. Copy trading passes People. */
+  emptyIconName?: IconName;
   onEmptyAction?: () => void;
   onOpenList: () => void;
   renderItem: (item: T) => React.ReactElement;
@@ -347,7 +350,7 @@ function ActivitySection<T extends { id: string }>({
         <TabEmptyState
           icon={
             <AvatarIcon
-              iconName={IconName.Activity}
+              iconName={emptyIconName}
               size={AvatarIconSize.Xl}
               severity={AvatarIconSeverity.Neutral}
               iconProps={{ color: IconColor.IconDefault }}
@@ -496,6 +499,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
           bottomPadding={!rebates.show}
           emptyDescription={localizedText.copyTradingEmptyDescription}
           emptyActionLabel={localizedText.copyTradingEmptyAction}
+          emptyIconName={IconName.People}
           onEmptyAction={openSocialTab}
           onOpenList={() =>
             navigateToRewardsRoute(

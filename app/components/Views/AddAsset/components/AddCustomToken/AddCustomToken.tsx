@@ -53,7 +53,6 @@ import CLText from '../../../../../component-library/components/Texts/Text/Text'
 import Logger from '../../../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import {
-  selectNetworkConfigurationByChainId,
   selectDefaultEndpointByChainId,
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
@@ -68,7 +67,6 @@ import type { TokenI } from '../../../../UI/Tokens/types';
 interface AddCustomTokenProps {
   chainId: string;
   isTokenDetectionSupported?: boolean;
-  tabLabel?: string;
 }
 
 // --- Pure validation helpers ---
@@ -199,9 +197,6 @@ const AddCustomToken = ({
   const insets = useSafeAreaInsets();
 
   // Network selectors
-  const networkConfig = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId),
-  );
   const defaultEndpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, chainId as Hex),
   );
@@ -209,7 +204,6 @@ const AddCustomToken = ({
     selectProviderTypeByChainId(state, chainId as Hex),
   );
 
-  const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
   // Provide address + chainId so the hook can determine whether the token is
@@ -384,7 +378,6 @@ const AddCustomToken = ({
     ];
     navigation.push('ConfirmAddAsset', {
       selectedAsset,
-      networkName,
       addTokenList: addToken,
     });
   }, [
@@ -397,7 +390,6 @@ const AddCustomToken = ({
     name,
     decimals,
     chainId,
-    networkName,
     navigation,
     addToken,
   ]);

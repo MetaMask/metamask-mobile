@@ -3,8 +3,14 @@ export const isProfileNotFoundError = (error: unknown): boolean => {
     return false;
   }
 
-  const candidate = error as { status?: number; message?: string };
-  if (candidate.status === 404) {
+  // `HttpError` from @metamask/controller-utils (thrown by ProfileService)
+  // exposes the status as `httpStatus`; `status` covers fetch-style errors.
+  const candidate = error as {
+    status?: number;
+    httpStatus?: number;
+    message?: string;
+  };
+  if (candidate.status === 404 || candidate.httpStatus === 404) {
     return true;
   }
 

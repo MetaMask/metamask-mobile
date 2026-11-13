@@ -18,7 +18,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { useFormatters } from '../../../hooks/useFormatters';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { TouchableOpacity } from 'react-native';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import { useQuickBuyContext } from '../useQuickBuyContext';
@@ -27,7 +27,6 @@ import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 const QuickBuyToolbar: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const formatters = useFormatters();
   const {
     features,
     hasSellableBalance,
@@ -53,7 +52,7 @@ const QuickBuyToolbar: React.FC = () => {
   const headerToken = tradeMode === 'sell' ? sourceToken : destToken;
   const tokenPriceLabel =
     tokenPrice !== undefined
-      ? formatters.formatCurrency(tokenPrice, currentCurrency)
+      ? formatPriceWithSubscriptNotation(tokenPrice, currentCurrency)
       : undefined;
 
   return (

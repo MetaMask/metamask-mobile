@@ -1,5 +1,6 @@
 import {
   CaipAssetId,
+  CaipChainId,
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
@@ -66,6 +67,16 @@ interface TokenDetailsProps {
    */
   marketData?: FungibleAssetPrice | null;
 }
+
+const toCaipChainId = (chainId: string, isNonEvm: boolean): CaipChainId =>
+  isNonEvm
+    ? (chainId as `${string}:${string}`)
+    : formatChainIdToCaip(chainId as Hex);
+
+const getSpotPriceEntry = (
+  response: Record<string, Record<string, unknown>> | null | undefined,
+  assetId: string,
+): Record<string, unknown> | undefined => response?.[assetId];
 
 const TokenDetails: React.FC<TokenDetailsProps> = ({
   asset,
@@ -150,9 +161,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
         const isNonEvm = isNonEvmChainId(asset.chainId as string);
 
         // Convert chainId to CAIP format for both EVM and non-EVM chains
-        const caipChainId = isNonEvm
-          ? (asset.chainId as `${string}:${string}`)
-          : formatChainIdToCaip(asset.chainId as Hex);
+        const caipChainId = toCaipChainId(asset.chainId as string, isNonEvm);
 
         const assetId = toAssetId(plainTokenAddress, caipChainId);
         if (!assetId) return;
@@ -169,7 +178,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
           string,
           Record<string, unknown>
         >;
-        setFetchedMarketData(response?.[assetId]);
+        setFetchedMarketData(getSpotPriceEntry(response, assetId));
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }

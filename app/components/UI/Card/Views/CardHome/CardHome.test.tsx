@@ -79,6 +79,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
+import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -337,6 +338,7 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 
 const mockEnableCard = jest.fn();
 let mockCanEnableCard = false;
+let mockIsEnableCardPending = false;
 let mockProvisioningView:
   | 'reconciling'
   | 'hidden'
@@ -349,11 +351,12 @@ jest.mock('./hooks/useSignedOutKycPending', () => ({
 }));
 
 jest.mock('./hooks/useCardEnableCard', () => ({
-  useCardEnableCard: () => ({
+  useCardEnableCard: jest.fn(() => ({
     canEnableCard: mockCanEnableCard,
     enableCard: mockCanEnableCard ? mockEnableCard : null,
     provisioningView: mockProvisioningView,
-  }),
+    isEnableCardPending: mockIsEnableCardPending,
+  })),
 }));
 
 jest.mock('../../hooks/useCreditBalance', () => ({
@@ -805,7 +808,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.metamask_card.link_title': 'Link card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your balance and earn on purchases.',
+        'Spend your balance while it earns, anywhere Mastercard is accepted.',
     };
     const value = strings[key];
     if (value) {
@@ -824,13 +827,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       return value;
     }
     if (key === 'money.metamask_card.link_subtitle') {
-      return 'Spend your balance and earn on purchases.';
-    }
-    if (key === 'money.metamask_card.link_bullet_cashback') {
-      const percentage = (
-        params as { percentage?: number | string } | undefined
-      )?.percentage;
-      return `Get ${percentage}% mUSD back`;
+      return 'Spend your balance while it earns, anywhere Mastercard is accepted.';
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
@@ -1340,6 +1337,7 @@ describe('CardHome Component', () => {
     authTransitionListeners.clear();
     mockIsFocused = true;
     mockCanEnableCard = false;
+    mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
@@ -1506,6 +1504,15 @@ describe('CardHome Component', () => {
     mockUseMoneyAccountCardLinkage.mockReset();
     mockUseMoneyAccountCardLinkage.mockImplementation(
       createDefaultMoneyAccountCardLinkageMock,
+    );
+  });
+
+  it('rechecks the left-off setup step when Card home regains focus', () => {
+    render();
+
+    expect(jest.mocked(useCardEnableCard)).toHaveBeenCalledWith(
+      expect.anything(),
+      { recheckOnFocus: true },
     );
   });
 
@@ -2616,6 +2623,47 @@ describe('CardHome Component', () => {
     expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
     fireEvent.press(screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON));
     expect(mockEnableCard).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Enable card while the Money account approval is running', () => {
+    mockCanEnableCard = true;
+    mockIsEnableCardPending = true;
+    mockProvisioningView = 'hidden';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shimmers the card image and disables Enable card while setup is being checked', () => {
+    mockCanEnableCard = true;
+    mockProvisioningView = 'reconciling';
+    setupMockSelectors({ isAuthenticated: true, activeProviderId: 'immersve' });
+    setupLoadCardDataMock({
+      isAuthenticated: true,
+      warning: CardStateWarning.NoCard,
+      kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      hasExternalWallets: true,
+    });
+
+    render();
+
+    expect(
+      screen.getByTestId(CardHomeSelectors.CARD_IMAGE_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+    ).toBeDisabled();
+    expect(screen.queryByTestId('card-provisioning-alert-skeleton')).toBeNull();
   });
 
   it('shows the KYC under review banner without Enable card when KYC is pending', () => {
@@ -7616,9 +7664,7 @@ describe('CardHome Component', () => {
 
       render();
 
-      fireEvent.press(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      );
+      fireEvent.press(screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartMoneyAccountLinkFlow).toHaveBeenCalledWith({
@@ -7634,11 +7680,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
 
     it('hides link-mode content when Money Account linking is unavailable', () => {
@@ -7647,7 +7691,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7665,7 +7709,57 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides link-mode content while an Immersve setup step is pending', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'success' });
+      setupLinkageMock();
+      mockCanEnableCard = true;
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each(['kyc_pending', 'card_provisioning', 'allowance_revoked'])(
+      'hides link-mode content while the %s setup alert is showing',
+      (alertType) => {
+        setupMockSelectors({ cardHomeDataStatus: 'success' });
+        setupLinkageMock();
+        setupLoadCardDataMock({
+          alerts: [{ type: alertType, dismissable: false }],
+        });
+
+        render();
+
+        expect(
+          screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    it('hides link-mode content before card home data has loaded', () => {
+      setupMockSelectors({ cardHomeDataStatus: 'loading' });
+      setupLinkageMock();
+      (useCardHomeData as jest.Mock).mockReturnValue({
+        data: null,
+        primaryToken: null,
+        availableTokens: [],
+        fundingTokens: [],
+        balanceMap: new Map(),
+        isLoading: true,
+        isError: false,
+        refetch: mockRefetchAllData,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).not.toBeOnTheScreen();
     });
 
@@ -7676,7 +7770,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
+        screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
     });
 
@@ -7695,58 +7789,6 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('advertises 1% mUSD back for virtual cardholders', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
-
-      render();
-
-      expect(screen.getByText('Get 1% mUSD back')).toBeOnTheScreen();
-      expect(screen.queryByText('Get 3% mUSD back')).not.toBeOnTheScreen();
-    });
-
-    it('advertises 3% mUSD back for metal cardholders', () => {
-      setupMockSelectors({ cardHomeDataStatus: 'success' });
-      setupLinkageMock();
-      setupLoadCardDataMock();
-      (useCardHomeData as jest.Mock).mockReturnValue({
-        data: {
-          primaryFundingAsset: mockPrimaryFundingAsset,
-          fundingAssets: [mockPrimaryFundingAsset],
-          availableFundingAssets: [mockPrimaryFundingAsset],
-          card: {
-            id: 'card-123',
-            status: 'ACTIVE',
-            lastFour: '1234',
-            type: CardType.METAL,
-          },
-          account: null,
-          alerts: [],
-          actions: [{ type: 'add_funds', enabled: true }],
-        },
-        primaryToken: mockPrimaryAssetWithBalance,
-        availableTokens: [mockPrimaryAssetWithBalance],
-        fundingTokens: [mockPrimaryAssetWithBalance],
-        balanceMap: createMockAssetBalancesMap({
-          balanceFiat: '$1,000.00',
-          asset: { symbol: 'USDC', image: 'usdc-image-url' },
-          balanceFormatted: '1000.000000 USDC',
-          rawTokenBalance: 1000,
-          rawFiatNumber: 1000,
-        }),
-        isLoading: false,
-        isError: false,
-        refetch: mockRefetchAllData,
-      });
-      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 4 });
-
-      render();
-
-      expect(screen.getByText('Get 3% mUSD back')).toBeOnTheScreen();
-      expect(screen.queryByText('Get 1% mUSD back')).not.toBeOnTheScreen();
-    });
-
     it('renders the no-APY subtitle and omits the APY bullet when apyPercent is undefined', () => {
       setupMockSelectors({ cardHomeDataStatus: 'success' });
       setupLinkageMock();
@@ -7758,6 +7800,7 @@ describe('CardHome Component', () => {
         screen.getByText(strings('money.metamask_card.link_subtitle_no_apy')),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/Earn up to .* APY/)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
 
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
@@ -7773,6 +7816,7 @@ describe('CardHome Component', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
+      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
   });
 

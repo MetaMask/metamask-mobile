@@ -4,6 +4,7 @@ import type {
 } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { hasRealAvatar } from '../../../UI/SocialFeed/utils/avatarFallback';
+import { parseMoneyReferralCode } from '../../../UI/Rewards/utils/moneyReferralCode';
 import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import {
   isFoxiconAvatarUrl,
@@ -74,6 +75,10 @@ const toOgHandle = (
   }
   return trimmed.startsWith('@') ? trimmed : `@${trimmed}`;
 };
+
+/** A well-formed referral code, or `undefined` so the card draws no chip. */
+const toOgPromoCode = (promoCode: string | undefined): string | undefined =>
+  parseMoneyReferralCode(promoCode) ?? undefined;
 
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
@@ -207,6 +212,8 @@ export interface SocialTradeOgCardInput {
   markPrice?: number | null;
   /** `[timestamp, price]`, oldest first. */
   prices: readonly TokenPrice[];
+  /** The sharer's referral code, drawn as the card's "Code" chip. */
+  promoCode?: string;
 }
 
 /**
@@ -303,6 +310,7 @@ export const buildSocialTradeOgImageRequest = (
           ? nearestIndex(points, Math.max(...exitTimes))
           : undefined,
       showDollar: true,
+      promoCode: toOgPromoCode(input.promoCode),
     },
   };
 };
@@ -315,6 +323,8 @@ export interface SocialProfileOgCardInput {
   profile: TraderProfileResponse | null | undefined;
   closedPositions: readonly Position[];
   nowMs: number;
+  /** The sharer's referral code, drawn as the card's "Code" chip. */
+  promoCode?: string;
 }
 
 /** Realized PnLs from loaded positions closed in the last 30 days. */
@@ -385,6 +395,7 @@ export const buildSocialProfileOgImageRequest = (
       tradeCount: isFiniteNumber(tradeCount) ? tradeCount : 0,
       bestTradeUsd: recentPnls.length ? Math.max(...recentPnls) : 0,
       followers: input.profile.followerCount,
+      promoCode: toOgPromoCode(input.promoCode),
     },
   };
 };

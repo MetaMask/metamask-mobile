@@ -11,6 +11,8 @@ import {
   TextColor,
   FontWeight,
   TextProps,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 
@@ -27,6 +29,14 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 const initialState = {
   engine: {
@@ -112,6 +122,12 @@ describe('QRAccountDisplay', () => {
     expect(ClipboardManager.setString).toHaveBeenCalledWith(ACCOUNT);
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
     expect(ClipboardManager.getString()).toBe(ACCOUNT);
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Address copied to clipboard',
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   });
 
   it('renders Solana account address without 0x prefix', () => {
