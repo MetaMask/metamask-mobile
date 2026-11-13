@@ -201,7 +201,6 @@ export type TransactionsHomeParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsHomeParamList = {
-  RewardsOnboardingFlow: undefined;
   RewardsDashboard: undefined;
   RewardsMoneyDashboard: undefined;
 };

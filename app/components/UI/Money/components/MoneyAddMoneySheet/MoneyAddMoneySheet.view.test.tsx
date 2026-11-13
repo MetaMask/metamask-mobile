@@ -17,6 +17,7 @@ import {
   type VbaMarketsOption,
 } from '../../../../../../tests/component-view/presets/vba';
 import {
+  renderVbaCardHomeEntry,
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
   VbaRendererTestIds,
@@ -622,6 +623,102 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       expect(
         view.queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('from Card home', () => {
+    it('returns to wallet home after backing out of bank details', async () => {
+      const ramps = Engine.context.RampsController as { state?: unknown };
+      const previousState = ramps.state;
+      ramps.state = {
+        autoramps: [
+          {
+            id: 'ar-1',
+            // Must match selectSelectedVbaWalletAddress (Money account), not Account 1.
+            walletAddress: VBA_TEST_MONEY_ADDRESS,
+            status: 'Approved',
+          },
+        ],
+      };
+      mockHydrateVbaOnboarding.mockResolvedValue({
+        sessionExists: true,
+        vendorDisclaimersComplete: true,
+        sessionDisclaimersComplete: true,
+        providerFlowStatus: 'submitted',
+        kycStatus: 'approved',
+        autorampStatus: 'ready',
+      });
+
+      const { findByTestId, queryByTestId } = renderVbaCardHomeEntry();
+
+      fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_CARD_HOME));
+      fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+      fireEvent.press(
+        await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      );
+
+      expect(
+        await findByTestId(VbaDetailsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+      expect(
+        await findByTestId(VbaRendererTestIds.CARD_HOME_BACK),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(VbaRendererTestIds.CARD_HOME_BACK));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(VbaRendererTestIds.CARD_HOME_BACK),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        await findByTestId(VbaRendererTestIds.WALLET_HOME),
+      ).toBeOnTheScreen();
+      ramps.state = previousState;
+    });
+
+    it('returns to wallet home after backing out of a failed bank setup', async () => {
+      mockHydrateVbaOnboarding.mockRejectedValue(new Error('hydrate failed'));
+
+      const { findByTestId, queryByTestId } = renderVbaCardHomeEntry();
+
+      fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_CARD_HOME));
+      fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+      fireEvent.press(
+        await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      );
+
+      expect(
+        await findByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        await findByTestId(VbaOnboardingStubSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(
+        await findByTestId(VbaRendererTestIds.CARD_HOME_BACK),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(`${VbaOnboardingStubSelectorsIDs.CONTAINER}-error`),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(await findByTestId(VbaRendererTestIds.CARD_HOME_BACK));
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(VbaRendererTestIds.CARD_HOME_BACK),
+        ).not.toBeOnTheScreen();
+      });
+      expect(
+        await findByTestId(VbaRendererTestIds.WALLET_HOME),
+      ).toBeOnTheScreen();
     });
   });
 });

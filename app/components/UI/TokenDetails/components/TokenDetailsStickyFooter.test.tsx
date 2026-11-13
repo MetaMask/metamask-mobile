@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
@@ -219,6 +219,98 @@ describe('TokenDetailsStickyFooter', () => {
       expect(
         queryByTestId('token-details-sticky-footer-surface'),
       ).toBeOnTheScreen();
+    });
+
+    it('reports the measured height of the trader position footer', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 132 } },
+        persist: jest.fn(),
+      });
+
+      await waitFor(() => expect(onFooterLayout).toHaveBeenLastCalledWith(132));
+    });
+
+    it('keeps the collapsed height while the trader position sheet is expanded', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31', isExpanded: true }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+
+      await new Promise(process.nextTick);
+      expect(onFooterLayout).not.toHaveBeenCalled();
+    });
+
+    it('reports the collapsed height again once the trader position sheet collapses', async () => {
+      jest.useFakeTimers();
+      const onFooterLayout = jest.fn();
+      const traderPositionPnl = { positionValue: '$103.31', isExpanded: true };
+      const { getByTestId, rerender } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={traderPositionPnl}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      rerender(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ ...traderPositionPnl, isExpanded: false }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(onFooterLayout).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 163 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(163);
+      jest.useRealTimers();
+    });
+
+    it('reports no overlay height when the footer renders in flow', () => {
+      const onFooterLayout = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(0);
     });
 
     it('renders the expanded trader position sheet with footer actions', () => {

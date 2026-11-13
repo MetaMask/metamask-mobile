@@ -49,6 +49,16 @@ import Wallet from './index';
 const PASTED_ADDRESS = '0x1111111111111111111111111111111111111111';
 // Kept local so this Wallet view test does not import the Trending route module.
 const HOMEPAGE_SEARCH_AB_KEY = 'homeTMCU1384AbtestHomepageSearch';
+const RootModalStack = createNativeStackNavigator();
+
+const RootModalFlowStack = () => (
+  <RootModalStack.Navigator>
+    <RootModalStack.Screen
+      name={Routes.SHEET.EXPERIENCE_ENHANCER}
+      component={createRouteParamsProbe(Routes.SHEET.EXPERIENCE_ENHANCER)}
+    />
+  </RootModalStack.Navigator>
+);
 
 const walletHomeOverrides = (variant?: 'control' | 'treatment') => ({
   overrides: {
@@ -199,6 +209,38 @@ describeForPlatforms('Wallet', () => {
 
     expect(
       await findByTestId(`route-${Routes.SETTINGS_VIEW}`),
+    ).toBeOnTheScreen();
+  });
+
+  it('prompts social-login users for marketing consent when no choice is saved', async () => {
+    const { findByTestId } = renderWalletViewWithRoutes({
+      extraRoutes: [
+        {
+          name: Routes.MODAL.ROOT_MODAL_FLOW,
+          Component: RootModalFlowStack,
+        },
+      ],
+      overrides: {
+        security: {
+          dataCollectionForMarketing: null,
+        },
+        engine: {
+          backgroundState: {
+            AnalyticsController: {
+              optedIn: true,
+            },
+            SeedlessOnboardingController: {
+              vault: 'restored-social-login-vault',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      await findByTestId(
+        getRouteParamsProbeTestId(Routes.SHEET.EXPERIENCE_ENHANCER),
+      ),
     ).toBeOnTheScreen();
   });
 

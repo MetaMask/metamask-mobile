@@ -594,6 +594,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
+              testID={PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER}
+              ignoreUntilLayout
+              layoutTestID={PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT}
               accessibilityLabel={strings(
                 'perps.trade_sheet.amount_slider_accessibility_label',
               )}

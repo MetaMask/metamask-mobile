@@ -6,13 +6,15 @@ import {
   useSocialScreenAnalytics,
 } from '../../Views/SocialLeaderboard/analytics';
 import type {
+  SocialBlockedReason,
   SocialEventSource,
+  SocialPositionAnalyticsProperties,
   SocialScreenName,
   SocialTabName,
 } from '../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { SocialSurfaceLocation } from './SocialFeedSurface';
 
-const { Interaction, Screen, Source, Tab, Trade } = SocialEvent;
+const { Interaction, Screen, Source, Tab } = SocialEvent;
 
 interface FeedTarget {
   screen: SocialScreenName;
@@ -28,6 +30,8 @@ const FEED_TRACKING: Partial<Record<SocialSurfaceLocation, FeedTarget>> = {
   social_following: { screen: Screen.FOLLOWING, tab: Tab.FOLLOWING },
   social_live: { screen: Screen.LIVE_TRADES, tab: Tab.LIVE_TRADES, view: true },
   my_profile: { screen: Screen.MY_PROFILE },
+  trader_profile: { screen: Screen.TRADER_PROFILE },
+  token_details: { screen: Screen.TRENDING, source: Source.ASSET_DETAILS },
   perps_home: { screen: Screen.TRENDING, source: Source.PERPS_HOME },
   perps_market_details: {
     screen: Screen.TRENDING,
@@ -40,14 +44,20 @@ export const socialFeedTracksLocation = (
 ): boolean => location != null && FEED_TRACKING[location] != null;
 
 interface SocialFeedTracking {
-  onCopyTradeInteraction?: (tradeType: 'perps' | 'spot') => void;
+  onCopyTradeInteraction?: (
+    position: SocialPositionAnalyticsProperties,
+  ) => void;
+  onCopyTradeBlocked?: (
+    position: SocialPositionAnalyticsProperties,
+    reason: SocialBlockedReason,
+  ) => void;
   onReactionInteraction?: (
     action: 'added' | 'removed',
     emotion: string,
   ) => void;
   onReactionPickerOpened?: () => void;
-  onAuthorTap?: () => void;
-  onPositionTap?: (tradeType: 'perps' | 'spot') => void;
+  onAuthorTap?: (position: SocialPositionAnalyticsProperties) => void;
+  onPositionTap?: (position: SocialPositionAnalyticsProperties) => void;
 }
 
 const EMPTY: SocialFeedTracking = {};
@@ -81,10 +91,10 @@ export const SocialFeedTrackingProvider: React.FC<{
       active
         ? {
             ...interactions,
-            onAuthorTap: () => track(Interaction.TAP),
-            onPositionTap: (tradeType) =>
+            onAuthorTap: ({ trader_address, trader_username }) =>
               track(Interaction.TAP, {
-                trade_type: tradeType === 'perps' ? Trade.PERPS : Trade.SPOT,
+                ...(trader_address ? { trader_address } : {}),
+                ...(trader_username ? { trader_username } : {}),
               }),
           }
         : EMPTY,

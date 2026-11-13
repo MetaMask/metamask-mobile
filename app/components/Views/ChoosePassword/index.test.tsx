@@ -90,6 +90,7 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -1063,10 +1064,6 @@ describe('ChoosePassword', () => {
         'newWalletAndKeychain',
       );
       mockNewWalletAndKeychain.mockResolvedValue(undefined);
-      jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
-
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -1534,17 +1531,20 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1575,9 +1575,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
@@ -1600,8 +1597,14 @@ describe('ChoosePassword', () => {
       fireEvent.press(submitButton);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1626,9 +1629,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
@@ -1639,8 +1639,14 @@ describe('ChoosePassword', () => {
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        true,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(true),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1665,17 +1671,20 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+        expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
+      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
+        false,
+      );
+      expect(store.getActions()).toContainEqual(
+        setDataCollectionForMarketing(false),
+      );
 
       mockNewWalletAndKeychain.mockRestore();
     });
@@ -1716,9 +1725,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'google',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
       await waitForInit();
@@ -1727,7 +1733,6 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });
@@ -1753,9 +1758,6 @@ describe('ChoosePassword', () => {
         oauthLoginSuccess: true,
         provider: 'apple',
       };
-      const spyUpdateMarketingOptInStatus = jest
-        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
-        .mockResolvedValue(undefined);
 
       // Do NOT press the checkbox so isSelected = false → opt-in = false
       const component = renderWithProviders(<ChoosePassword />);
@@ -1764,7 +1766,6 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });

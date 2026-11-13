@@ -14,6 +14,10 @@ import {
   type SocialOgImageRequest,
 } from './socialOgImageService';
 import { logSocialOgShare } from './socialOgShareLog';
+import {
+  resolveSocialSharePromoCode,
+  withSocialSharePromoCode,
+} from './socialSharePromoCode';
 import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 
 const SHORT_LINK_TIMEOUT_MS = 8000;
@@ -38,14 +42,20 @@ export const SOCIAL_SHARE_LINK_MODE = 'branch-short' as SocialShareLinkMode;
 let shareGeneration = 0;
 let activeShareAbort: AbortController | undefined;
 
+/** Share-time values the card body gets from the share flow, not the screen. */
+export interface SocialShareCardContext {
+  /** The sharer's referral code. Absent when they have none. */
+  promoCode?: string;
+}
+
 /**
  * Builds the card body only once the user has tapped share. Resolve to
  * `undefined` when the screen lacks a required field; the generic card is
  * rendered instead.
  */
-export type BuildSocialOgImageRequest = () => Promise<
-  SocialOgImageRequest | undefined
->;
+export type BuildSocialOgImageRequest = (
+  context: SocialShareCardContext,
+) => Promise<SocialOgImageRequest | undefined>;
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
@@ -62,18 +72,19 @@ export const buildSocialTraderDeeplink = (traderId: string): string => {
   return url.toString();
 };
 
+/** The link, in exactly one of `message` or `url`. */
+export type SocialShareContent = { message: string } | { url: string };
+
 /**
- * iOS `Share.share` gives other apps `url`, but the sheet's Copy action
- * copies `message` and ignores `url` when `message` is absent. The link has
- * to be in both fields. Android has no `url` field and shares `message`.
+ * `react-native-share` hands iOS `message` and `url` as separate items, so
+ * passing both shares the link twice. iOS gets `url`, which keeps the link
+ * preview and still works with Copy. Android shares `message` as the text.
  */
 const toShareContent = (
   sharedUrl: string,
   os: typeof Platform.OS,
-): { message: string; url?: string } =>
-  os === 'ios'
-    ? { message: sharedUrl, url: sharedUrl }
-    : { message: sharedUrl };
+): SocialShareContent =>
+  os === 'ios' ? { url: sharedUrl } : { message: sharedUrl };
 
 /**
  * Universal link for a trader position. The same URL opens the shared
@@ -92,24 +103,23 @@ export const buildSocialTraderPositionDeeplink = (
 };
 
 /**
- * Share payload for a trader profile. iOS puts the URL in both `message`
- * and `url`; Android shares it as the message text.
+ * Share payload for a trader profile. iOS shares the URL as `url`; Android
+ * shares it as the message text.
  */
 export const buildSocialTraderShareContent = (
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-): { message: string; url?: string } =>
+): SocialShareContent =>
   toShareContent(buildSocialTraderDeeplink(traderId), os);
 
 /**
- * Share payload for a trader position. Same iOS message/url split as a
- * profile, because both go through `Share.share`.
+ * Share payload for a trader position. Same iOS / Android split as a profile.
  */
 export const buildSocialTraderPositionShareContent = (
   positionId: string,
   traderId: string,
   os: typeof Platform.OS = Platform.OS,
-): { message: string; url?: string } =>
+): SocialShareContent =>
   toShareContent(buildSocialTraderPositionDeeplink(positionId, traderId), os);
 
 /**
@@ -311,13 +321,12 @@ const didCompleteNativeShare = (result: {
 }): boolean => result.success === true && result.dismissedAction !== true;
 
 const openShareSheet = (
-  content: { message: string; url?: string },
+  content: SocialShareContent,
   onShared?: () => void,
 ): void => {
   logSocialOgShare('Opening share sheet', content);
   Share.open({
-    message: content.message,
-    ...(content.url ? { url: content.url } : {}),
+    ...content,
     failOnCancel: false,
   })
     .then((result) => {
@@ -343,6 +352,7 @@ export const resolveSocialShareImageUrl = async (
   buildRequest: BuildSocialOgImageRequest,
   signal?: AbortSignal,
   timeoutMs: number = OG_IMAGE_TIMEOUT_MS,
+  context: SocialShareCardContext = {},
 ): Promise<string> => {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -350,7 +360,7 @@ export const resolveSocialShareImageUrl = async (
   logSocialOgShare('Resolving card image', { timeoutMs });
   try {
     const work = (async () => {
-      const built = await buildRequest();
+      const built = await buildRequest(context);
       const request = built ?? { kind: 'generic' as const };
       logSocialOgShare(
         built
@@ -398,7 +408,7 @@ export const toSocialBranchDeeplinkPath = (canonicalUrl: string): string => {
 };
 
 const shareLink = (
-  canonicalUrl: string,
+  routeUrl: string,
   openGraph: SocialLinkOpenGraph | undefined,
   onShared?: () => void,
   buildOgImageRequest?: BuildSocialOgImageRequest,
@@ -408,22 +418,31 @@ const shareLink = (
   const controller = new AbortController();
   activeShareAbort = controller;
   const isCurrent = () => generation === shareGeneration;
-  const deeplinkPath = toSocialBranchDeeplinkPath(canonicalUrl);
   logSocialOgShare('Share started', {
     generation,
-    canonicalUrl,
-    deeplinkPath,
+    routeUrl,
     linkMode: SOCIAL_SHARE_LINK_MODE,
     openGraph,
     hasCardBuilder: Boolean(buildOgImageRequest),
   });
 
   return (async () => {
+    const promoCode = await resolveSocialSharePromoCode();
+    if (!isCurrent()) {
+      logSocialOgShare('Share superseded after the promo code step', {
+        generation,
+      });
+      return;
+    }
+    const canonicalUrl = withSocialSharePromoCode(routeUrl, promoCode);
+    const deeplinkPath = toSocialBranchDeeplinkPath(canonicalUrl);
     let preview = openGraph;
     if (openGraph && buildOgImageRequest) {
       const imageUrl = await resolveSocialShareImageUrl(
         buildOgImageRequest,
         controller.signal,
+        undefined,
+        { promoCode },
       );
       if (!isCurrent()) {
         logSocialOgShare('Share superseded after the card step', {
@@ -439,6 +458,8 @@ const shareLink = (
     }
     logSocialOgShare('Preview ready for link generation', {
       generation,
+      canonicalUrl,
+      deeplinkPath,
       linkMode: SOCIAL_SHARE_LINK_MODE,
       preview,
     });

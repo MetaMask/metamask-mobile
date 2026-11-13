@@ -1,7 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { TrendingTokensBottomSheetTestIds } from './TrendingTokensBottomSheet.testIds';
 import {
-  HeaderStandard,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -21,6 +20,9 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export enum PriceChangeOption {
   PriceChange = 'price_change',
@@ -75,6 +77,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
   selectedOption: initialSelectedOption,
   sortDirection: initialSortDirection,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { colors } = useTheme();
   // Default to "Price change" if no selection
@@ -178,7 +181,9 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID={TrendingTokensBottomSheetTestIds.PRICE_CHANGE}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('trending.sort_by')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

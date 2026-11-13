@@ -16,6 +16,7 @@ import {
   POLYMARKET_LEGACY_SAFE_ACCOUNT_MOCKS,
 } from '../polymarket/polymarket-mocks.js';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet.js';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock.js';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks.js';
 
 export const POLYGON_USDC =
@@ -587,26 +588,7 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 /**

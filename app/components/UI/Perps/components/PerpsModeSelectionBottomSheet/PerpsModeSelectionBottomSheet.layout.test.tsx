@@ -8,6 +8,11 @@ import PerpsModeSelectionBottomSheet from './PerpsModeSelectionBottomSheet';
 // Deliberately does not mock @metamask/design-system-twrnc-preset, unlike the
 // sibling suite: the resolved style is the only place card height is
 // observable, and mocking the preset flattens every style to {}.
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('PerpsModeSelectionBottomSheet card sizing', () => {
   const renderSheet = () =>
     render(
