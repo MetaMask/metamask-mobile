@@ -597,9 +597,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET_VIEW,
-      });
+      navigation.navigate(Routes.WALLET.HOME);
     }
   }, [navigation]);
 
