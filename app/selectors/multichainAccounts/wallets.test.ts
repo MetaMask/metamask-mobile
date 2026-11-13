@@ -501,27 +501,28 @@ describe('selectProfileWalletSections', () => {
 });
 
 describe('selectVisibleEntropyAccountGroupsByWallet', () => {
+  const groupMetadata = {
+    pinned: false,
+    hidden: false,
+    lastSelected: 0,
+  };
   const visibleGroup = {
     id: 'entropy:wallet1/0' as const,
-    type: AccountGroupType.MultichainAccount,
+    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
     accounts: ['account1' as const],
-    metadata: {
-      name: 'Account 1',
-      pinned: false,
-      hidden: false,
-      lastSelected: 0,
-    },
+    metadata: { ...groupMetadata, name: 'Account 1' },
   };
   const hiddenGroup = {
-    ...visibleGroup,
     id: 'entropy:wallet1/1' as const,
-    metadata: { ...visibleGroup.metadata, name: 'Hidden', hidden: true },
+    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+    accounts: ['account1' as const],
+    metadata: { ...groupMetadata, name: 'Hidden', hidden: true },
   };
   const keyringGroup = {
-    ...visibleGroup,
     id: 'keyring:imported/0' as const,
-    type: AccountGroupType.SingleAccount,
-    metadata: { ...visibleGroup.metadata, name: 'Imported' },
+    type: AccountGroupType.SingleAccount as AccountGroupType.SingleAccount,
+    accounts: ['account1' as const] as ['account1'],
+    metadata: { ...groupMetadata, name: 'Imported' },
   };
 
   it('keeps visible entropy groups and drops every other wallet', () => {
@@ -556,7 +557,7 @@ describe('selectVisibleEntropyAccountGroupsByWallet', () => {
             groups: {
               'entropy:empty/0': {
                 ...hiddenGroup,
-                id: 'entropy:empty/0',
+                id: 'entropy:empty/0' as const,
               },
             },
           },
