@@ -103,6 +103,8 @@ export enum COMPONENT_NAMES {
   MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
   MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
   MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
+  MONEY_ADD_MONEY_SHEET_MOVE_USDC = 'money_add_money_sheet_move_usdc',
+  MONEY_ADD_MONEY_SHEET_MOVE_USDT = 'money_add_money_sheet_move_usdt',
   MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT = 'money_add_money_sheet_bank_account',
 
   // — Transfer Money Sheet —
