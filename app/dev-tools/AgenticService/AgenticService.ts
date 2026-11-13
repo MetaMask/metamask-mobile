@@ -34,7 +34,6 @@ import {
   OPTIN_META_METRICS_UI_SEEN,
   PERPS_GTM_MODAL_SHOWN,
   PUSH_PRE_PROMPT_SHOWN,
-  REWARDS_GTM_MODAL_SHOWN,
 } from '../../constants/storage';
 import { analytics } from '../../util/analytics/analytics';
 import {
@@ -2209,7 +2208,6 @@ const AgenticService = {
           if (settings.skipGtmModals === true) {
             await Promise.all([
               StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true'),
-              StorageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true'),
               StorageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, 'true'),
             ]);
             // Suppress ExperienceEnhancer (marketing consent) modal

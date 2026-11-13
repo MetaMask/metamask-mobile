@@ -1245,8 +1245,8 @@ export const GASLESS_SWAP_QUOTES_ETH_MUSD = [
           quoteBpsFee: 87.5,
           baseBpsFee: 87.5,
         },
-        // txFee is required by calcIncludedTxFees to compute the strikethrough
-        // gas cost shown next to "Included" in the Network fee row.
+        // txFee is required by calcIncludedTxFees to compute the gas cost
+        // shown in the gasless Network fee row.
         // Amount ≈ gasLimit(448721) * 4.67 gwei ≈ 0.00210 ETH.
         // maxFeePerGas and maxPriorityFeePerGas are required by the
         // bridge-controller quote validator (superstruct schema).

@@ -11,6 +11,8 @@ import { swapQuoteFetchTrace } from './swapQuoteFetchTrace';
 import type { BridgeToken } from '../types';
 import ReduxService from '../../../../core/redux';
 
+let mockRemoteFeatureFlags: Record<string, unknown> = {};
+
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(),
@@ -27,7 +29,14 @@ jest.mock('../../../../core/redux', () => ({
     get store() {
       return {
         getState: () => ({
-          engine: { backgroundState: { BridgeController: mockBridgeState } },
+          engine: {
+            backgroundState: {
+              BridgeController: mockBridgeState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: mockRemoteFeatureFlags,
+              },
+            },
+          },
         }),
         subscribe: (listener: () => void) => {
           mockStoreListener = listener;
@@ -58,6 +67,7 @@ describe('swapQuoteFetchTrace', () => {
     jest.clearAllMocks();
     mockUuid.mockReturnValue('quote-trace-id');
     mockBridgeState = { quotes: [], quotesLastFetched: null };
+    mockRemoteFeatureFlags = {};
   });
 
   it('starts a quote trace with request correlation and route data', () => {
@@ -85,6 +95,26 @@ describe('swapQuoteFetchTrace', () => {
       startTime: expect.any(Number),
     });
   });
+
+  it.each([
+    [
+      { swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' } },
+      'treatment',
+    ],
+    [{}, 'control'],
+  ])(
+    'annotates the trace with first_quote_flush_variant for flags %j',
+    (flags, variant) => {
+      mockRemoteFeatureFlags = flags;
+
+      swapQuoteFetchTrace.start({ isRefresh: false });
+
+      expect(annotateTraceByRequest).toHaveBeenCalledWith(
+        { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+        { first_quote_flush_variant: variant },
+      );
+    },
+  );
 
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
@@ -148,6 +178,7 @@ describe('swapQuoteFetchTrace', () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
     mockBridgeState = { quotes: [{}], quotesLastFetched: 500 };
     swapQuoteFetchTrace.start({ isRefresh: false });
+    jest.mocked(annotateTraceByRequest).mockClear();
     const span = { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' };
 
     mockStoreListener();
@@ -179,6 +210,7 @@ describe('swapQuoteFetchTrace', () => {
     swapQuoteFetchTrace.finish('success');
 
     expect(mockTrace).toHaveBeenCalled();
+    expect(annotateTraceByRequest).not.toHaveBeenCalled();
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ data: { result: 'success' } }),
     );
