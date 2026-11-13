@@ -214,4 +214,106 @@ describe('setupPasswordlessRecovery', () => {
       detail: 'bad email',
     });
   });
+
+  it('reuses a previously registered recovery secret when the escrow epoch is set', async () => {
+    const dependencies = createDependencies();
+    const registeredSecret = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9);
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [PASSKEY, SOCIAL],
+      epoch: 1,
+      authIdentifiers: [],
+    });
+    jest
+      .mocked(dependencies.mfaRecovery.authenticateIdentifier)
+      .mockResolvedValue({ session: 'auth' } as never);
+    jest.mocked(dependencies.mfaRecovery.getRecoverySecret).mockResolvedValue({
+      recoverySecret: registeredSecret,
+    } as never);
+
+    const result = await setupPasswordlessRecovery(dependencies);
+
+    expect(result).toBe('enabled');
+    expect(dependencies.mfaRecovery.register).not.toHaveBeenCalled();
+    expect(
+      dependencies.mfaRecovery.authenticateIdentifier,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'passkey',
+        verifier: { rpId: 'metamask.io', credentialId: 'cred-1' },
+      }),
+    );
+    expect(dependencies.seenSecret).toStrictEqual(
+      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
+    );
+  });
+
+  it('rejects a registered secret whose length is wrong', async () => {
+    const dependencies = createDependencies();
+    jest.mocked(dependencies.mfaRecovery.getIdentifiers).mockResolvedValue({
+      identifiers: [PASSKEY, SOCIAL],
+      epoch: 1,
+      authIdentifiers: [],
+    });
+    jest
+      .mocked(dependencies.mfaRecovery.authenticateIdentifier)
+      .mockResolvedValue({ session: 'auth' } as never);
+    jest.mocked(dependencies.mfaRecovery.getRecoverySecret).mockResolvedValue({
+      recoverySecret: new Uint8Array(8).fill(1),
+    } as never);
+
+    const error = await setupPasswordlessRecovery(dependencies).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(PasswordlessRecoverySetupError);
+    expect(error).toMatchObject({ code: 'recovery_secret_invalid' });
+  });
+
+  it('wraps unexpected errors with the failed stage detail', async () => {
+    const dependencies = createDependencies();
+    jest
+      .mocked(dependencies.verifyMfa)
+      .mockRejectedValue(
+        Object.assign(new Error('verify blew up'), { code: 'verify_failed' }),
+      );
+
+    const error = await setupPasswordlessRecovery(dependencies).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(PasswordlessRecoverySetupError);
+    expect(error).toMatchObject({
+      code: 'verify_failed',
+      detail: expect.stringContaining('verifying_mfa'),
+    });
+  });
+
+  it('rethrows PasswordlessRecoverySetupError without wrapping', async () => {
+    const dependencies = createDependencies();
+    const setupError = new PasswordlessRecoverySetupError(
+      'passkey_not_enrolled',
+    );
+    jest.mocked(dependencies.verifyMfa).mockRejectedValue(setupError);
+
+    await expect(setupPasswordlessRecovery(dependencies)).rejects.toBe(
+      setupError,
+    );
+  });
+
+  it('wraps sealing failures with the sealing stage detail', async () => {
+    const dependencies = createDependencies();
+    jest
+      .mocked(dependencies.seedless.migrateToEnvelope)
+      .mockRejectedValue(new Error('seal failed'));
+
+    const error = await setupPasswordlessRecovery(dependencies).catch(
+      (caught: unknown) => caught,
+    );
+
+    expect(error).toBeInstanceOf(PasswordlessRecoverySetupError);
+    expect(error).toMatchObject({
+      code: 'unknown_error',
+      detail: expect.stringContaining('sealing_vault'),
+    });
+  });
 });

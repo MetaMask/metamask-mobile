@@ -16,6 +16,7 @@ import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
 } from '@metamask/seedless-onboarding-controller';
+import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
@@ -197,8 +198,10 @@ jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
 }));
 
+const mockSelectMfaRecoveryEnabled = jest.fn().mockReturnValue(false);
 jest.mock('../../../selectors/featureFlagController/mfaRecovery', () => ({
-  selectMfaRecoveryEnabled: jest.fn().mockReturnValue(false),
+  selectMfaRecoveryEnabled: (state: unknown) =>
+    mockSelectMfaRecoveryEnabled(state),
 }));
 
 const mockSelectMfaUiKitEnabled = jest.fn().mockReturnValue(false);
@@ -223,6 +226,15 @@ jest.mock('../../../util/identity/mfa', () => ({
     enroll: jest.fn(),
     verifyForSocialLogin: (...args: unknown[]) =>
       mockVerifyForSocialLogin(...args),
+  }),
+}));
+
+const mockPasswordlessPrepare = jest.fn().mockResolvedValue(false);
+const mockPasswordlessRecover = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePasswordlessRecovery', () => ({
+  usePasswordlessRecovery: () => ({
+    prepare: (...args: unknown[]) => mockPasswordlessPrepare(...args),
+    recover: (...args: unknown[]) => mockPasswordlessRecover(...args),
   }),
 }));
 
@@ -288,7 +300,12 @@ describe('OAuthRehydration', () => {
     mockIsDeletingInProgress.mockReturnValue(false);
     mockSelectMfaUiKitEnabled.mockReturnValue(false);
     mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+    mockSelectMfaRecoveryEnabled.mockReturnValue(false);
     mockVerifyForSocialLogin.mockReset();
+    mockPasswordlessPrepare.mockReset();
+    mockPasswordlessPrepare.mockResolvedValue(false);
+    mockPasswordlessRecover.mockReset();
+    mockPasswordlessRecover.mockResolvedValue(undefined);
     mockEngine.context.AuthenticationController.holdLockedRecoveryVerification.mockReset();
     (traceMock as jest.Mock).mockImplementation(
       (_config: unknown, fn?: () => Promise<void>) =>
@@ -1760,6 +1777,185 @@ describe('OAuthRehydration', () => {
         getByText(strings('wallet_recovery_mfa.password_description')),
       ).toBeOnTheScreen();
       expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+    });
+
+    it('skips holding a token when kit verify returns none', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({ credentials: [] });
+      mockPasswordlessPrepare.mockResolvedValue(false);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockPasswordlessPrepare).toHaveBeenCalled();
+      expect(
+        mockEngine.context.AuthenticationController
+          .holdLockedRecoveryVerification,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('offers MFA via recovery flag when Money MFA is off and password is outdated', async () => {
+      mockSelectMfaUiKitEnabled.mockReturnValue(true);
+      mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(true);
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
+      mockPasswordlessPrepare.mockResolvedValue(true);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      expect(mockPasswordlessPrepare).toHaveBeenCalled();
+    });
+
+    it('runs passwordless recover after prepare succeeds', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
+      mockPasswordlessPrepare.mockResolvedValue(true);
+      mockPasswordlessRecover.mockImplementation(
+        async (
+          _password: string,
+          restoreVault: (password: string, secrets: unknown[]) => Promise<void>,
+        ) => {
+          await restoreVault('new-password', [{ data: new Uint8Array([1]) }]);
+        },
+      );
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'new-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      await waitFor(() => {
+        expect(mockPasswordlessRecover).toHaveBeenCalledWith(
+          'new-password',
+          expect.any(Function),
+        );
+      });
+      expect(mockUnlockWallet).toHaveBeenCalledWith(
+        expect.objectContaining({
+          password: 'new-password',
+          recoveredSecrets: [{ data: new Uint8Array([1]) }],
+        }),
+      );
+    });
+
+    it('shows the already-set password error when recovery fails while restoring the vault', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
+      mockPasswordlessPrepare.mockResolvedValue(true);
+      mockPasswordlessRecover.mockRejectedValue(
+        new PasswordlessRecoveryError('restoring_vault', {
+          code: 'vault_restore_failed',
+        }),
+      );
+
+      const { getByTestId, findByText } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'new-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      expect(
+        await findByText(
+          strings('wallet_recovery_mfa.recovery_password_already_set'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a recovery failed error for earlier passwordless failures', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
+      mockPasswordlessPrepare.mockResolvedValue(true);
+      mockPasswordlessRecover.mockRejectedValue(
+        new PasswordlessRecoveryError(
+          'recovering_secrets',
+          { code: 'identifier_missing' },
+          'finding_identifier',
+        ),
+      );
+
+      const { getByTestId, findByText } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'new-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      expect(
+        await findByText(strings('wallet_recovery_mfa.recovery_failed'), {
+          exact: false,
+        }),
+      ).toBeOnTheScreen();
     });
   });
 });

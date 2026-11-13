@@ -214,5 +214,59 @@ describe('useMfa', () => {
 
       expect(createSocialLoginControllerAdapter).toHaveBeenCalledTimes(2);
     });
+
+    it('rethrows a non-enrollment MFA error without trying later methods', async () => {
+      const flowError = new MfaError('flow_cancelled', 'user backed out');
+      mockStartMfaFlow.mockRejectedValueOnce(flowError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({ reason }),
+      ).rejects.toBe(flowError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+    });
+
+    it('tries email OTP after passkey and totp are not enrolled', async () => {
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no totp'),
+        )
+        .mockResolvedValueOnce({ credentials: enrolledCredentials });
+
+      expect(
+        await renderUseMfa().verifyForSocialLogin({ reason }),
+      ).toStrictEqual({ credentials: enrolledCredentials });
+
+      expect(mockStartMfaFlow).toHaveBeenNthCalledWith(
+        3,
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['email_otp'],
+            verifyWith: ['email_otp'],
+            verifyOnly: true,
+          },
+        }),
+      );
+    });
+
+    it('throws the last enrollment error when no method is enrolled', async () => {
+      const lastError = new MfaError('credential_not_enrolled', 'no email otp');
+      mockStartMfaFlow
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no passkey'),
+        )
+        .mockRejectedValueOnce(
+          new MfaError('credential_not_enrolled', 'no totp'),
+        )
+        .mockRejectedValueOnce(lastError);
+
+      await expect(
+        renderUseMfa().verifyForSocialLogin({ reason }),
+      ).rejects.toBe(lastError);
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(3);
+    });
   });
 });
