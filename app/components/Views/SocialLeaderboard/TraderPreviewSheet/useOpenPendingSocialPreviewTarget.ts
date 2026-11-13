@@ -118,11 +118,7 @@ export const useOpenPendingSocialPreviewTarget = (): ((
       // Leave onboarding first, so back from the profile returns to Home.
       navigation.goBack();
       if (target.kind === 'position') {
-        openSharedPositionOnProfile(
-          target.positionId,
-          target.traderId,
-          LOG_PREFIX,
-        );
+        openSharedPositionOnProfile(target.positionId, target.traderId);
       } else {
         navigateToSocialV1Profile(navigation, {
           traderId: target.traderId,

@@ -127,7 +127,6 @@ describe('useOpenPendingSocialPreviewTarget', () => {
     expect(openSharedPositionOnProfile).toHaveBeenCalledWith(
       'position-1',
       'trader-1',
-      expect.any(String),
     );
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
   });

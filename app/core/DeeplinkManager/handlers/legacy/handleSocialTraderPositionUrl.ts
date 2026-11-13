@@ -15,8 +15,6 @@ import {
 import { openSharedPositionOnProfile } from './socialPositionSheetDeeplink';
 import { openSocialTraderPreviewIfNotJoined } from '../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
 
-const LOG_PREFIX = '[handleSocialTraderPositionUrl]';
-
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
 }
@@ -135,7 +133,7 @@ export const handleSocialTraderPositionUrl = ({
     const openPosition = () => {
       try {
         if (isV1Treatment && !openedFromNotification) {
-          openSharedPositionOnProfile(positionId, traderId, LOG_PREFIX);
+          openSharedPositionOnProfile(positionId, traderId);
           return;
         }
         NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {

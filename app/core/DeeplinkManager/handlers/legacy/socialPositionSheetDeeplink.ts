@@ -12,6 +12,8 @@ import { toWholePercent } from '../../../../components/UI/SocialFeed/utils/feedC
 import { buildTraderProfileQueryKey } from '../../../../util/social/traderProfileQueries';
 import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 
+const LOG_PREFIX = '[socialPositionSheetDeeplink]';
+
 const fetchSocialTraderProfile = async (
   traderId: string,
   logPrefix: string,
@@ -135,13 +137,12 @@ export const resolveSharedSocialPosition = async (
 export const openSharedPositionOnProfile = (
   positionId: string,
   traderId: string,
-  logPrefix: string,
 ): void => {
   navigateToSocialV1Profile(NavigationService.navigation, {
     traderId,
     source: 'deep_link',
   });
-  resolveSharedSocialPosition(positionId, traderId, logPrefix)
+  resolveSharedSocialPosition(positionId, traderId, LOG_PREFIX)
     .then((shared) => {
       if (!shared) {
         return;
@@ -164,6 +165,6 @@ export const openSharedPositionOnProfile = (
       });
     })
     .catch((error: unknown) => {
-      DevLogger.log(`${logPrefix} Failed to open the position sheet:`, error);
+      DevLogger.log(`${LOG_PREFIX} Failed to open the position sheet:`, error);
     });
 };

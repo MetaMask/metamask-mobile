@@ -337,7 +337,7 @@ describe('handleSocialTraderPositionUrl', () => {
 
       await waitFor(() =>
         expect(DevLogger.log).toHaveBeenCalledWith(
-          '[handleSocialTraderPositionUrl] Failed to fetch the position:',
+          '[socialPositionSheetDeeplink] Failed to fetch the position:',
           expect.any(Error),
         ),
       );
