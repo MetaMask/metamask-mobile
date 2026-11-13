@@ -376,10 +376,9 @@ describe('BrazeBanner', () => {
       ]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc' },
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+      });
       expect(mockParse).toHaveBeenCalledWith('metamask://portfolio', {
         origin: 'braze',
       });
@@ -412,10 +411,9 @@ describe('BrazeBanner', () => {
       fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc' },
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+      });
       expect(mockParse).not.toHaveBeenCalled();
     });
 
@@ -446,10 +444,10 @@ describe('BrazeBanner', () => {
       ]);
       fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
 
-      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(
-        TEST_PLACEMENT_ID,
-        { campaign_name: 'campaign-abc', variant_name: 'variant-1' },
-      );
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
     });
 
     it('does not log a select when deeplink is rejected by the allowlist', () => {
