@@ -17,7 +17,7 @@ jobs:
       contents: write
     steps:
       - name: 'CLA Signature Bot'
-        uses: MetaMask/cla-signature-bot@v3.0.2
+        uses: MetaMask/cla-signature-bot@v4.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -25,6 +25,6 @@ jobs:
           url-to-cladocument: 'https://metamask.io/cla.html'
           # This branch can't have protections, commits are made directly to the specified branch.
           branch: 'cla-signatures'
-          allowlist: 'dependabot[bot],metamaskbot,metamaskbotv2[bot],crowdin-bot,runway-github[bot],cursorbot,cursoragent,Copilot,cursor[bot],metamask-ci[bot]'
+          allowlist: '*[bot],metamaskbot,crowdin-bot,cursorbot,cursoragent,Copilot,claude'
           allow-organization-members: true
           blockchain-storage-flag: false
