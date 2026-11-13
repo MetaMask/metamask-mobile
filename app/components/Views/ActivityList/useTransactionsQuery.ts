@@ -1,7 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
+import {
+  type CaipAssetType,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+  toCaipAccountId,
+} from '@metamask/utils';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -18,7 +23,7 @@ type QueryOptions = Extract<
   { getNextPageParam: unknown }
 >;
 
-export const useTransactionsQuery = () => {
+export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -28,8 +33,17 @@ export const useTransactionsQuery = () => {
   // Fetch history for every configured network — decoupled from
   // NetworkEnablementController so enabling/disabling a single network (e.g.
   // Predict enabling Polygon) never collapses the Activity feed to one network.
-  const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
+  const allNetworks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
+
+  const networks = useMemo(() => {
+    if (filters?.assetId) {
+      const { chainId } = parseCaipAssetType(filters.assetId);
+      return allNetworks.filter((network) => network === chainId);
+    }
+    return allNetworks;
+  }, [filters?.assetId, allNetworks]);
+
   const accountIds = useMemo(
     () =>
       evmAddress
@@ -46,8 +60,13 @@ export const useTransactionsQuery = () => {
     }) as QueryOptions;
 
   const selectFn = useMemo(
-    () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
-    [evmAddress, excludedTxHashes],
+    () =>
+      selectApiEvmTransactions({
+        address: evmAddress,
+        excludedTxHashes,
+        assetId: filters?.assetId,
+      }),
+    [evmAddress, excludedTxHashes, filters?.assetId],
   );
 
   return useInfiniteQuery({

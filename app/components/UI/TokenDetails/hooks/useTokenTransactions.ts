@@ -204,8 +204,11 @@ export const useTokenTransactions = (
   const allTransactions = useMemo(() => {
     // Redesign Activity hides gas_payment siblings and shows the fee on the
     // primary row; keep token-details lists in sync when that flag is on.
+    // Filter to transactions from the selected address (received transfers come from API)
     let transactions = evmTransactions.filter(
-      (tx: Transaction) => tx.type !== TransactionType.gasPayment,
+      (tx: Transaction) =>
+        tx.type !== TransactionType.gasPayment &&
+        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress ?? ''),
     );
 
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
@@ -273,6 +276,7 @@ export const useTokenTransactions = (
     return transactions;
   }, [
     evmTransactions,
+    selectedAddress,
     asset.chainId,
     asset.address,
     asset.symbol,
