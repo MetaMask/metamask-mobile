@@ -95,9 +95,10 @@ export const useAssetActivation = ({
       const balanceDisplay = balanceAmount ?? '0';
 
       setIsDeactivating(true);
+      let actionResult: AssetActivationActionResult;
       try {
         if (hasNonZeroBalance) {
-          return {
+          actionResult = {
             success: false,
             errorMessage: strings(
               'asset_activation.deactivate_error_non_zero_balance_stellar',
@@ -107,27 +108,29 @@ export const useAssetActivation = ({
               },
             ),
           };
+        } else {
+          await requestStellarChangeTrustOptDelete({
+            accountId: resolvedAccountId,
+            assetId,
+            scope: chainId,
+          });
+          actionResult = { success: true, errorMessage: null };
         }
-        await requestStellarChangeTrustOptDelete({
-          accountId: resolvedAccountId,
-          assetId,
-          scope: chainId,
-        });
-        return { success: true, errorMessage: null };
       } catch (error: unknown) {
         const errorCode = (error as { code?: number })?.code;
         const isUserRejection =
           errorCode === errorCodes.provider.userRejectedRequest;
         if (isUserRejection) {
-          return CANCELLED_RESULT;
+          actionResult = CANCELLED_RESULT;
+        } else {
+          actionResult = {
+            success: false,
+            errorMessage: strings('asset_activation.deactivate_error'),
+          };
         }
-        return {
-          success: false,
-          errorMessage: strings('asset_activation.deactivate_error'),
-        };
-      } finally {
-        setIsDeactivating(false);
       }
+      setIsDeactivating(false);
+      return actionResult;
     }, [
       assetId,
       assetSymbol,
@@ -150,6 +153,7 @@ export const useAssetActivation = ({
       }
 
       setIsActivating(true);
+      let actionResult: AssetActivationActionResult;
       try {
         const result = await requestStellarChangeTrustOptAdd({
           accountId: resolvedAccountId,
@@ -159,23 +163,25 @@ export const useAssetActivation = ({
 
         if (result.status === false) {
           // Snap showed the account funding prompt; no trustline tx was submitted.
-          return CANCELLED_RESULT;
+          actionResult = CANCELLED_RESULT;
+        } else {
+          actionResult = { success: true, errorMessage: null };
         }
-        return { success: true, errorMessage: null };
       } catch (error: unknown) {
         const errorCode = (error as { code?: number })?.code;
         const isUserRejection =
           errorCode === errorCodes.provider.userRejectedRequest;
         if (isUserRejection) {
-          return CANCELLED_RESULT;
+          actionResult = CANCELLED_RESULT;
+        } else {
+          actionResult = {
+            success: false,
+            errorMessage: strings('asset_activation.activate_error'),
+          };
         }
-        return {
-          success: false,
-          errorMessage: strings('asset_activation.activate_error'),
-        };
-      } finally {
-        setIsActivating(false);
       }
+      setIsActivating(false);
+      return actionResult;
     }, [assetId, chainId, requiresActivate, resolvedAccountId]);
 
   return {
