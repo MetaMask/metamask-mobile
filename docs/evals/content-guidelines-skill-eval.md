@@ -6,7 +6,7 @@ Question from George Marshall and Michael Ganchas. No comments were posted on Gi
 
 ## Recommendation
 
-The `AGENTS.md` pointer is not what makes these agents follow the skill. GPT 5.5 medium loaded the skill on every copy prompt with and without the pointer (6/6 both ways). Grok 4.7 medium loaded it on 5/6 copy prompts without the pointer and 6/6 with it. The only prompt the pointer changed was a one-word typo fix. Claude Sonnet 5.5 medium never opened the skill file, in 12 copy runs and 2 control runs, including every run whose `AGENTS.md` told it to read `.claude/skills/mms-content-guidelines/SKILL.md` before changing a user-facing string. The copy failures sit in those Claude runs: a confirmation title with a question mark, and balance errors that name the problem and give no next step. A description tweak can cover the typo miss. It will not fix a model that does not open skills even when `AGENTS.md` names the file.
+The `AGENTS.md` pointer is not what makes these agents follow the skill. GPT 5.5 medium loaded the skill on every copy prompt with and without the pointer (6/6 both ways). Grok 4.7 medium loaded it on 5/6 copy prompts without the pointer and 6/6 with it. The only prompt the pointer changed was a one-word typo fix. Claude Sonnet 5.5 medium never opened the skill file, in 12 copy runs and 2 control runs, including every run whose `AGENTS.md` told it to read `.claude/skills/mms-content-guidelines/SKILL.md` before changing a user-facing string. The copy failures sit in those Claude runs: a confirmation title with a question mark, and balance errors that name the problem and give no next step. A description tweak can cover the typo miss. A follow-up found that Claude's injected `AGENTS.md` did not contain the pointer even on the pointer branch, so those 0/6 runs did not test the pointer text. See [Why Claude missed the skill](#why-claude-missed-the-skill).
 
 ## Skill-call rate on copy prompts
 
@@ -184,3 +184,47 @@ Prompts did not mention guidelines, style, tone, or the skill. Each asked for th
 | P7 GPT pointer | `bc-0faf68e5-8b86-5129-b110-86d258ef40aa` |
 | P7 Grok no pointer | `bc-e596087d-7d55-5487-9568-1d8f92649efc` |
 | P7 Grok pointer | `bc-cf2713a0-f4ad-5e3d-be07-e7ddfc013b4b` |
+| Follow-up visibility probe | `bc-ff2c7a63-27e9-57ef-9ec7-67c9250c12f7` |
+| Follow-up copy confirmation | `bc-26a37e8c-0577-5e85-ab56-22c73e8d2df7` |
+
+## Why Claude missed the skill
+
+Follow-up on the same pointer branch, still Claude Sonnet 5.5 medium (`claude-sonnet-5-5-medium`), still a new cloud VM. No new pull request.
+
+### What was verified
+
+The original Claude runs were the same harness as GPT and Grok: a new cloud VM, `base_branch` set to `cursor/eval-with-pointer-d28f` or `cursor/eval-no-pointer-d28f`, working directory `/agent/repos/metamask-mobile`. Start logs for a Claude run and a GPT run are the same setup (`start:exec-daemon`, `start:desktop-init`). There is no separate Claude routing in those logs.
+
+The skill files are in the pointer commit `48c7be8ed91`, even though `.gitignore` ignores `.claude/skills/`, `.agents/skills/`, and `.cursor/rules/*`. They were force-added. A fresh VM on that branch reported:
+
+- branch `cursor/eval-with-pointer-d28f`, HEAD `48c7be8ed91f406c1955816c0250111f6c55cd53`
+- `.claude/skills/mms-content-guidelines/SKILL.md` present
+- `.cursor/rules/mms-content-guidelines/RULE.md` present (`alwaysApply: false`)
+- `.agents/skills/mms-content-guidelines/SKILL.md` present
+- `AGENTS.md` line 117 is `### User-facing copy`
+
+The catalog Claude actually receives points at the Claude path, not the Cursor rule or the Codex skill. The visibility probe quoted this from its instructions, without reading the file:
+
+- path `/agent/repos/metamask-mobile/.claude/skills/mms-content-guidelines/SKILL.md`
+- the installed description, including "Use when writing or reviewing locale files (en.json, messages.json), buttons, toasts, empty states, errors, confirmations"
+- 46 skills listed, including `mms-content-guidelines`
+
+Claude has no Skill tool. The probe said the only way to load a skill is the file Read tool (Grep or Shell could also open it). Across the 14 original Claude runs the tools actually called were `grep`, `read_file`, `search_replace`, and once `glob_file_search`. `read_file` was used on product files such as `useCardHomeActions.ts` and `SwapsInputs.tsx`. It was never used on a `SKILL.md` or `RULE.md`. No original Claude transcript contains `mms-content-guidelines`, `AGENTS.md`, or `User-facing copy`. Transcripts do not include the system prompt, so that absence does not by itself prove the prompt lacked the pointer.
+
+The injected `AGENTS.md` does lack the pointer. Asked to quote the injected instructions after "yarn skills adds the rest.", the probe returned `### Quick Reference` and the TypeScript bullet. That is main's text. On disk, the same sentence is followed by `### User-facing copy`. The checkout and the injected copy differ.
+
+A confirmation copy prompt, the same freeze-toast rewrite, was run after that check. The skill file was on disk and in the catalog. Claude changed the string to "Card frozen" and did not read the skill. The transcript has two greps and two search-replaces, and does not mention the skill.
+
+### What was inferred
+
+GPT and Grok were not re-probed. They share this harness, so their injected `AGENTS.md` was probably also main's copy. Their skill reads still happened: both opened `.claude/skills/mms-content-guidelines/SKILL.md` via `read_file`. GPT's first step read that file in parallel with the unrelated `using-superpowers` skill. That part of the original table stands. The with-pointer column does not, for any model, until a run quotes the pointer from its injected instructions.
+
+Claude skipping the skill is a choice not to Read, not a missing file and not a missing catalog entry. It had the description that names toasts, errors, and `en.json`, and it still did not open the file on the six copy prompts or on the confirmation.
+
+### Smallest fix
+
+Do not add another `AGENTS.md` sentence for these cloud agents until the harness injects `AGENTS.md` from the checked-out commit. The pointer is already on disk and Claude never received it.
+
+Do not expect a description edit to move Claude either. The confirmation showed the current description already in the catalog, and Claude still did not Read the file.
+
+The smallest change that can reach this model is text that is already inside the injected prompt, not a file it must choose to open. That is the "User-facing copy" section, once injection follows the checkout. An always-applied Cursor rule would be a different mechanism and was not tested. The skills installer rejects `alwaysApply: true` on a skill.
