@@ -31,11 +31,9 @@ import { useMfa } from '../../../../util/identity/mfa';
 import { toSumSubLocale } from '../utils/toSumSubLocale';
 import { KALSHI_KYC_VENDOR } from '../vendors/kalshi';
 import { deriveKalshiScreen, type KalshiScreen } from './kalshiScreen';
+import { nextWaitingPollDelayMs } from './waitingPoll';
 
 const VENDOR = KALSHI_KYC_VENDOR.id;
-
-/** How often the step is read while the verification decision is pending. */
-const WAITING_POLL_INTERVAL_MS = 5000;
 
 export const KalshiOnboardingTestIds = {
   CONTAINER: 'kalshi-onboarding',
@@ -163,7 +161,6 @@ const KalshiOnboarding = () => {
   const { verifyOrEnroll } = useMfa();
   const flowState = useSelector(selectKalshiFlow);
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
-  const [relayStep, setRelayStep] = useState<string>();
   const [linkedEmail, setLinkedEmail] = useState<string>();
   const [mfaMethod, setMfaMethod] = useState<KycAccountLinkMfaMethod>();
   const [input, setInput] = useState('');
@@ -171,6 +168,8 @@ const KalshiOnboarding = () => {
   const [error, setError] = useState<string>();
   const [terms, setTerms] = useState<KycDisclaimer[]>();
   const step = flowState?.step;
+  // idOS's own step, from kyc-api's answer, says which code it is waiting for.
+  const relayStep = flowState?.relayStep ?? undefined;
   const screen = deriveKalshiScreen(step, { relayStep, phoneCodeSent });
   const { VendorOnboardingController } = Engine.context;
 
@@ -179,65 +178,40 @@ const KalshiOnboarding = () => {
     setInput('');
   }, [screen]);
 
-  // idOS's own step says whether it wants a code. It only matters while the
-  // step is identity_verification, so it is not read for any other step.
-  const loadRelayStep = useCallback(async (step?: KycStep) => {
-    if (step !== 'identity_verification') {
-      return;
-    }
-    try {
-      const session = await getKycService().getSessionStatusForVendor(VENDOR);
-      setRelayStep(session?.currentStep);
-    } catch (caught) {
-      Logger.error(caught as Error, {
-        tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
-      });
-    }
-  }, []);
-
   // Ask kyc-api for the step. For opening the screen and for polling.
   const refresh = useCallback(async () => {
     try {
-      const next = await VendorOnboardingController.refreshStep({
-        vendor: VENDOR,
-      });
-      await loadRelayStep(next);
+      await VendorOnboardingController.refreshStep({ vendor: VENDOR });
     } catch (caught) {
       Logger.error(caught as Error, {
         tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
       });
     }
-  }, [VendorOnboardingController, loadRelayStep]);
+  }, [VendorOnboardingController]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  const run = useCallback(
-    async (action: () => Promise<unknown>) => {
-      setBusy(true);
-      setError(undefined);
-      try {
-        await action();
-        // Every controller action has already saved the step it ended on, so
-        // there is no need to ask kyc-api again. Only idOS's own step is read.
-        await loadRelayStep(
-          VendorOnboardingController.state.vendors[VENDOR]?.step,
-        );
-      } catch (caught) {
-        if (getMfaErrorCode(caught) === 'flow_cancelled') {
-          return;
-        }
-        Logger.error(caught as Error, {
-          tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
-        });
-        setError(errorMessage(caught));
-      } finally {
-        setBusy(false);
+  // Every controller action saves the step it ended on, so there is nothing
+  // to read after one.
+  const run = useCallback(async (action: () => Promise<unknown>) => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      await action();
+    } catch (caught) {
+      if (getMfaErrorCode(caught) === 'flow_cancelled') {
+        return;
       }
-    },
-    [VendorOnboardingController, loadRelayStep],
-  );
+      Logger.error(caught as Error, {
+        tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+      });
+      setError(errorMessage(caught));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   // Terms catalog.
   useEffect(() => {
@@ -255,13 +229,29 @@ const KalshiOnboarding = () => {
     });
   }, [run, screen, terms]);
 
-  // While the decision is pending, keep asking kyc-api for the step.
+  // While the decision is pending, keep asking kyc-api for the step. The pace
+  // slows down because every read makes kyc-api read the idOS relay.
   useEffect(() => {
     if (screen !== 'waiting') {
       return undefined;
     }
-    const timer = setInterval(refresh, WAITING_POLL_INTERVAL_MS);
-    return () => clearInterval(timer);
+    let reads = 0;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const schedule = () => {
+      timer = setTimeout(async () => {
+        await refresh();
+        reads += 1;
+        if (!stopped) {
+          schedule();
+        }
+      }, nextWaitingPollDelayMs(reads));
+    };
+    schedule();
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+    };
   }, [refresh, screen]);
 
   const acceptTerms = () =>

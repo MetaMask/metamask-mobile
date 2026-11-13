@@ -1,4 +1,7 @@
-import type { KycAccountLinkAdapter } from '@metamask/kyc-controller';
+import {
+  toKycStep,
+  type KycAccountLinkAdapter,
+} from '@metamask/kyc-controller';
 import { v4 as uuidv4 } from 'uuid';
 import packageJSON from '../../../../../package.json';
 // Reuses Predict's Kalshi signing until Kalshi onboarding moves out of Predict.
@@ -64,7 +67,12 @@ export const createKalshiAccountLinkAdapter = (): KycAccountLinkAdapter => {
     },
     async verifyLink({ code }) {
       const result = await getClient().verifyCode(code.trim(), uuidv4());
-      return result.mfa ? { mfaMethod: result.mfa.method } : {};
+      return {
+        ...(result.mfa ? { mfaMethod: result.mfa.method } : {}),
+        // kyc-api sends the step once the link is verified, so the
+        // controller does not have to ask for it.
+        ...(result.nextStep ? { nextStep: toKycStep(result.nextStep) } : {}),
+      };
     },
   };
 };

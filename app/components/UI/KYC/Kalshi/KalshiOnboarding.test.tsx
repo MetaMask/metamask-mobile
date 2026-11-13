@@ -31,7 +31,6 @@ jest.mock('../utils/toSumSubLocale', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     VendorOnboardingController: {
-      state: { vendors: {} },
       refreshStep: jest.fn(),
       acceptTerms: jest.fn(),
       startAccountLink: jest.fn(),
@@ -48,7 +47,6 @@ jest.mock('../../../../core/Engine', () => ({
     KycService: {
       getGeoCountry: jest.fn(),
       fetchVendorDisclaimers: jest.fn(),
-      getSessionStatusForVendor: jest.fn(),
     },
   },
 }));
@@ -57,15 +55,6 @@ const flow = Engine.context.VendorOnboardingController as unknown as Record<
   string,
   jest.Mock
 >;
-// The controller state the screen reads after an action. Tests set the step the
-// action ended on.
-const flowState = Engine.context.VendorOnboardingController as unknown as {
-  state: { vendors: Record<string, { step: string }> };
-};
-const endActionOn = (step?: string): void => {
-  flowState.state = { vendors: step ? { kalshi: { step } } : {} };
-};
-
 const service = Engine.context.KycService as unknown as Record<
   string,
   jest.Mock
@@ -80,13 +69,21 @@ const TERMS = [
   },
 ];
 
-const render = (step?: KycStep) =>
+const render = (step?: KycStep, relayStep?: string) =>
   renderWithProvider(<KalshiOnboarding />, {
     state: {
       engine: {
         backgroundState: {
           VendorOnboardingController: {
-            vendors: step ? { kalshi: { step, sessionId: 'sid-1' } } : {},
+            vendors: step
+              ? {
+                  kalshi: {
+                    step,
+                    relayStep: relayStep ?? null,
+                    sessionId: 'sid-1',
+                  },
+                }
+              : {},
           },
         },
       },
@@ -106,7 +103,6 @@ describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    endActionOn();
     flow.refreshStep.mockResolvedValue('vendor_terms');
     for (const name of [
       'acceptTerms',
@@ -129,7 +125,6 @@ describe('KalshiOnboarding', () => {
     });
     service.getGeoCountry.mockResolvedValue('USA');
     service.fetchVendorDisclaimers.mockResolvedValue(TERMS);
-    service.getSessionStatusForVendor.mockResolvedValue(null);
     mockVerifyOrEnroll.mockResolvedValue({ token: { accessToken: 'aal2' } });
   });
 
@@ -289,17 +284,15 @@ describe('KalshiOnboarding', () => {
   });
 
   describe('identity verification', () => {
-    const owes = (currentStep: string) =>
-      service.getSessionStatusForVendor.mockResolvedValue({ currentStep });
+    const identity = (relayStep?: string) =>
+      render('identity_verification', relayStep);
 
     beforeEach(() => {
       flow.refreshStep.mockResolvedValue('identity_verification');
-      endActionOn('identity_verification');
     });
 
     it('asks for the email code idOS is waiting for', async () => {
-      owes(KYC_CURRENT_STEPS.emailOtpCollection);
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.emailOtpCollection);
       expect(await screen.findByText('Check your email')).toBeOnTheScreen();
       typeInto(screen, ' 123456 ');
 
@@ -314,8 +307,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('sends a new email code on request', async () => {
-      owes(KYC_CURRENT_STEPS.emailOtpCollection);
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.emailOtpCollection);
       await screen.findByText('Check your email');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
@@ -326,8 +318,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('asks for the phone, then its code', async () => {
-      owes(KYC_CURRENT_STEPS.phoneOtpCollection);
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.phoneOtpCollection);
       expect(await screen.findByText('Your phone')).toBeOnTheScreen();
       typeInto(screen, '+18888888888');
 
@@ -349,8 +340,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('goes back to the phone field to use another number', async () => {
-      owes(KYC_CURRENT_STEPS.phoneOtpCollection);
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.phoneOtpCollection);
       await screen.findByText('Your phone');
       typeInto(screen, '+18888888888');
       fireEvent.press(primary(screen));
@@ -362,8 +352,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('records the consents, then launches SumSub', async () => {
-      owes(KYC_CURRENT_STEPS.kyc);
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.kyc);
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -385,14 +374,19 @@ describe('KalshiOnboarding', () => {
       ).toBeLessThan(flow.launchProviderFlow.mock.invocationCallOrder[0]);
     });
 
+    it('opens SumSub when idOS has not said what it wants yet', async () => {
+      const screen = identity();
+
+      expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
+    });
+
     it('does not record consents twice', async () => {
-      owes(KYC_CURRENT_STEPS.kyc);
       flow.fetchSessionDisclaimers.mockResolvedValue({
         idOS: [{ key: 'idos', version: '1', consented: true }],
         kycProvider: [{ key: 'sumsub', version: '2', consented: true }],
         credentialReusabilityConsentGiven: false,
       });
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.kyc);
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -402,9 +396,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('says so when SumSub could not finish', async () => {
-      owes(KYC_CURRENT_STEPS.kyc);
       flow.launchProviderFlow.mockResolvedValue('failed');
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.kyc);
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -415,9 +408,8 @@ describe('KalshiOnboarding', () => {
     });
 
     it('stays quiet when the user closes SumSub early', async () => {
-      owes(KYC_CURRENT_STEPS.kyc);
       flow.launchProviderFlow.mockResolvedValue('abandoned');
-      const screen = render('identity_verification');
+      const screen = identity(KYC_CURRENT_STEPS.kyc);
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -435,7 +427,6 @@ describe('KalshiOnboarding', () => {
 
   describe('after an action', () => {
     it('does not ask kyc-api for the step again', async () => {
-      endActionOn('account_link');
       const screen = render('vendor_terms');
       await screen.findByText('Terms');
       flow.refreshStep.mockClear();
@@ -444,56 +435,6 @@ describe('KalshiOnboarding', () => {
 
       await waitFor(() => expect(flow.acceptTerms).toHaveBeenCalled());
       expect(flow.refreshStep).not.toHaveBeenCalled();
-    });
-
-    it('does not read idOS’s step when the action ended somewhere else', async () => {
-      endActionOn('account_link_code');
-      const screen = render('account_link');
-      typeInto(screen, 'a@b.co');
-      service.getSessionStatusForVendor.mockClear();
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.startAccountLink).toHaveBeenCalled());
-      expect(service.getSessionStatusForVendor).not.toHaveBeenCalled();
-    });
-
-    it('reads idOS’s step when the action ended in identity verification', async () => {
-      flow.refreshStep.mockResolvedValue('identity_verification');
-      service.getSessionStatusForVendor.mockResolvedValue({
-        currentStep: KYC_CURRENT_STEPS.emailOtpCollection,
-      });
-      endActionOn('identity_verification');
-      const screen = render('confirm_identity');
-      await waitFor(() => expect(flow.refreshStep).toHaveBeenCalled());
-      service.getSessionStatusForVendor.mockClear();
-      service.getSessionStatusForVendor.mockResolvedValue({
-        currentStep: KYC_CURRENT_STEPS.phoneOtpCollection,
-      });
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.startSession).toHaveBeenCalled());
-      await waitFor(() =>
-        expect(service.getSessionStatusForVendor).toHaveBeenCalledTimes(1),
-      );
-    });
-
-    it('keeps going when idOS’s step cannot be read', async () => {
-      endActionOn('identity_verification');
-      service.getSessionStatusForVendor.mockRejectedValue(new Error('down'));
-      flow.refreshStep.mockResolvedValue('identity_verification');
-      const screen = render('identity_verification');
-      await waitFor(() =>
-        expect(service.getSessionStatusForVendor).toHaveBeenCalled(),
-      );
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() =>
-        expect(flow.fetchSessionDisclaimers).toHaveBeenCalled(),
-      );
-      expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
     });
   });
 
@@ -517,6 +458,32 @@ describe('KalshiOnboarding', () => {
       });
 
       expect(flow.refreshStep).toHaveBeenCalledTimes(2);
+    });
+
+    it('slows the polling down as the wait goes on', async () => {
+      jest.useFakeTimers();
+      flow.refreshStep.mockResolvedValue('kyc_pending');
+      render('kyc_pending');
+      await act(async () => undefined);
+      flow.refreshStep.mockClear();
+
+      // The first minute: every 5 seconds.
+      for (let i = 0; i < 12; i += 1) {
+        await act(async () => {
+          jest.advanceTimersByTime(5000);
+        });
+      }
+      expect(flow.refreshStep).toHaveBeenCalledTimes(12);
+
+      // Then every 15 seconds, not every 5.
+      await act(async () => {
+        jest.advanceTimersByTime(10000);
+      });
+      expect(flow.refreshStep).toHaveBeenCalledTimes(12);
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+      expect(flow.refreshStep).toHaveBeenCalledTimes(13);
     });
 
     it('stops asking once the screen closes', async () => {

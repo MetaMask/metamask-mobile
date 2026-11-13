@@ -90,6 +90,30 @@ describe('createKalshiAccountLinkAdapter', () => {
       expect(result).toStrictEqual({});
     });
 
+    it('passes on the step kyc-api returns with a verified code', async () => {
+      mockVerifyCode.mockResolvedValue({
+        verified: true,
+        nextStep: 'confirm_identity',
+      });
+      const adapter = createKalshiAccountLinkAdapter();
+
+      const result = await adapter.verifyLink({ code: '888888' });
+
+      expect(result).toStrictEqual({ nextStep: 'confirm_identity' });
+    });
+
+    it('turns a step this app does not know into error', async () => {
+      mockVerifyCode.mockResolvedValue({
+        verified: true,
+        nextStep: 'brand_new_step',
+      });
+      const adapter = createKalshiAccountLinkAdapter();
+
+      const result = await adapter.verifyLink({ code: '888888' });
+
+      expect(result).toStrictEqual({ nextStep: 'error' });
+    });
+
     it('passes on the MFA method Kalshi asks for', async () => {
       mockVerifyCode.mockResolvedValue({
         verified: false,

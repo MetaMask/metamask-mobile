@@ -336,6 +336,31 @@ describe('KalshiOnboardingClient', () => {
     expect(sent(fetchImpl, 0).headers[AUTH_HEADER]).toBeUndefined();
   });
 
+  it('returns the next step kyc-api sends with a verified link', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce(
+        json(200, { verified: true, nextStep: 'confirm_identity' }),
+      );
+    const { client } = clientWith(fetchImpl);
+
+    await expect(client.verifyCode('888888', KEY)).resolves.toEqual({
+      verified: true,
+      nextStep: 'confirm_identity',
+    });
+  });
+
+  it('still accepts a verified link with no next step', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce(json(200, { verified: true }));
+    const { client } = clientWith(fetchImpl);
+
+    await expect(client.verifyCode('888888', KEY)).resolves.toEqual({
+      verified: true,
+    });
+  });
+
   it('throws the body code for a rejected link', async () => {
     const fetchImpl = jest
       .fn()

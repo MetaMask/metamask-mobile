@@ -89,6 +89,7 @@ export interface KalshiMfaChallenge {
 
 const VerifyStruct = type({
   verified: boolean(),
+  nextStep: optional(string()),
   mfa: optional(
     type({
       method: enums(KALSHI_MFA_METHODS),
@@ -100,6 +101,8 @@ const VerifyStruct = type({
 
 export interface KalshiLinkVerify {
   verified: boolean;
+  /** The step kyc-api decided once the link is verified. kyc-api only. */
+  nextStep?: string;
   /** Set when `verified` is false: submit that code to the same route. */
   mfa?: KalshiMfaChallenge;
 }
