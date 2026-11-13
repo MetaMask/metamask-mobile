@@ -24,7 +24,10 @@ const logger = createAppiumLogger('androidDeviceLogs');
  */
 export const captureAndroidDeviceLogs = async (
   { currentDeviceDetails }: { currentDeviceDetails: CurrentDeviceDetails },
-  use: () => Promise<void>,
+  // Playwright hands the test body to this fixture as its second argument.
+  // Named `runTest` rather than the conventional `use`, which ESLint reads as
+  // React's `use()` hook and rejects inside a try/catch (`rules-of-hooks`).
+  runTest: () => Promise<void>,
   testInfo: TestInfo,
 ): Promise<void> => {
   const captureEnabled = isAndroidDeviceLogCaptureEnabled(currentDeviceDetails);
@@ -35,7 +38,7 @@ export const captureAndroidDeviceLogs = async (
   }
 
   try {
-    await use();
+    await runTest();
   } finally {
     if (captureEnabled) {
       try {

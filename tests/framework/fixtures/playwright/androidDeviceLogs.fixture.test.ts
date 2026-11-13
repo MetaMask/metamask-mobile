@@ -76,16 +76,16 @@ describe('androidDeviceLogs fixture', () => {
   });
 
   it('captures nothing on iOS', async () => {
-    const use = jest.fn().mockResolvedValue(undefined);
+    const runTest = jest.fn().mockResolvedValue(undefined);
     const testInfo = createTestInfo();
 
     await captureAndroidDeviceLogs(
       { currentDeviceDetails: iosDevice() },
-      use,
+      runTest,
       testInfo as unknown as TestInfo,
     );
 
-    expect(use).toHaveBeenCalledTimes(1);
+    expect(runTest).toHaveBeenCalledTimes(1);
     expect(execFileMock).not.toHaveBeenCalled();
     expect(testInfo.attach).not.toHaveBeenCalled();
   });
@@ -93,13 +93,13 @@ describe('androidDeviceLogs fixture', () => {
   it('clears the logcat buffer before the test body runs', async () => {
     stubAdb('');
     let adbCallsDuringUse = 0;
-    const use = jest.fn().mockImplementation(async () => {
+    const runTest = jest.fn().mockImplementation(async () => {
       adbCallsDuringUse = execFileMock.mock.calls.length;
     });
 
     await captureAndroidDeviceLogs(
       { currentDeviceDetails: androidDevice() },
-      use,
+      runTest,
       createTestInfo() as unknown as TestInfo,
     );
 
@@ -130,12 +130,12 @@ describe('androidDeviceLogs fixture', () => {
 
   it('does not attach the dump for a passing test', async () => {
     stubAdb('D/ReactNativeJS: app started\n');
-    const use = jest.fn().mockResolvedValue(undefined);
+    const runTest = jest.fn().mockResolvedValue(undefined);
     const testInfo = createTestInfo({ status: 'passed' });
 
     await captureAndroidDeviceLogs(
       { currentDeviceDetails: androidDevice() },
-      use,
+      runTest,
       testInfo as unknown as TestInfo,
     );
 
@@ -156,13 +156,13 @@ describe('androidDeviceLogs fixture', () => {
         );
       },
     );
-    const use = jest.fn().mockResolvedValue(undefined);
+    const runTest = jest.fn().mockResolvedValue(undefined);
     const testInfo = createTestInfo();
 
     await expect(
       captureAndroidDeviceLogs(
         { currentDeviceDetails: androidDevice() },
-        use,
+        runTest,
         testInfo as unknown as TestInfo,
       ),
     ).resolves.toBeUndefined();
@@ -172,13 +172,13 @@ describe('androidDeviceLogs fixture', () => {
 
   it('still dumps the log when the test body throws', async () => {
     stubAdb('E/AndroidRuntime: FATAL EXCEPTION: main\n');
-    const use = jest.fn().mockRejectedValue(new Error('element not found'));
+    const runTest = jest.fn().mockRejectedValue(new Error('element not found'));
     const testInfo = createTestInfo();
 
     await expect(
       captureAndroidDeviceLogs(
         { currentDeviceDetails: androidDevice() },
-        use,
+        runTest,
         testInfo as unknown as TestInfo,
       ),
     ).rejects.toThrow('element not found');
