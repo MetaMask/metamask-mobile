@@ -1443,7 +1443,9 @@ describe('Engine', () => {
 
       await engine.resetState();
 
-      expect(abandonSpy).toHaveBeenCalledTimes(1);
+      // reset() abandons commits before the journal clear and again after it.
+      // The first one still precedes the account-data purge.
+      expect(abandonSpy).toHaveBeenCalledTimes(2);
       expect(clearSpy).toHaveBeenCalledTimes(1);
       // Abandoning first is what stops a receipt from refilling the cache the
       // purge is about to drop.

@@ -1385,9 +1385,11 @@ export class Engine {
     // within one process, so the previous person's account reads and their
     // Order observation must not outlive it. Commits are abandoned before the
     // reads are dropped, so no receipt can refill the cache afterwards. The
+    // reset then clears the durable dispatch journal, so the previous person's
+    // unresolved references cannot be rediscovered by a later session. The
     // Venue-scoped market-data and live-data caches carry public data and stay.
     try {
-      PredictOrderService.abandonCommits();
+      await PredictOrderService.reset();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.
