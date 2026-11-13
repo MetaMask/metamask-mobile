@@ -62,7 +62,8 @@ export interface VbaOnboardingRootParams {
 
 /**
  * Main stack state that opens onboarding on its loading screen above Money
- * home, the same two-route shape `openAsOnlyOnboardingRoute` keeps.
+ * home. `openAsOnlyOnboardingRoute` keeps this shape when Money home is the
+ * caller, and also keeps the screens under a deeper caller, such as Card home.
  */
 export const getVbaOnboardingResumeState = (
   source: string,

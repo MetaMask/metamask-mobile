@@ -266,6 +266,7 @@ jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
     loadMore: jest.fn(),
     isLoadingMore: false,
     isLoading: false,
+    isValuationSettling: false,
     error: false,
   }),
 }));
@@ -326,6 +327,36 @@ describe('MoneyApiActivityDetailsView', () => {
     it('renders the spent amount with a minus sign formatted to 2 decimals', () => {
       const { getByText } = render(<MoneyApiActivityDetailsView />);
       expect(getByText(/-5\.38 mUSD/)).toBeTruthy();
+    });
+
+    it('renders the live historical amount instead of the route snapshot', () => {
+      mockRouteParams = {
+        activity: {
+          ...card,
+          displayAmount: {
+            type: 'approximate',
+            value: '5381986',
+            decimals: 6,
+          },
+        },
+      };
+      mockApiActivity = [
+        {
+          ...card,
+          displayAmount: {
+            type: 'historical',
+            value: '1000000',
+            decimals: 6,
+          },
+        },
+      ];
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText(/-1\.00 mUSD/)).toBeTruthy();
+      expect(queryByText(/≈-5\.38 mUSD/)).toBeNull();
     });
 
     it('renders the "You spent" label', () => {

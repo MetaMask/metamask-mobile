@@ -1,10 +1,11 @@
-// The viewer's own just-written posts. Only the Posts tab shows the local
-// card, until that feed returns the same comment or a pull-to-refresh after
-// five minutes drops it. Following shows the post only when its API response
-// includes it. The social-api remains the source of truth.
+// The viewer's own just-written posts. Trending and the Posts tab pin the
+// local card on top, greyed out, until the feed returns the same comment and
+// the server's copy takes its place (Trending waits for its own feed). A pull-to-refresh drops it once it is
+// confirmed or five minutes old. Following shows the post only when its API
+// response includes it. The social-api remains the source of truth.
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 
-export type PendingPostSurface = 'following' | 'posts';
+export type PendingPostSurface = 'trending' | 'following' | 'posts';
 
 /**
  * How long a local Posts card may stay unconfirmed before a pull-to-refresh
@@ -13,9 +14,6 @@ export type PendingPostSurface = 'following' | 'posts';
  * but does not throw the local copy away.
  */
 export const PENDING_POST_CONFIRM_WINDOW_MS = 5 * 60 * 1000;
-
-/** How long after posting the profile may still jump to its Posts tab. */
-const POSTS_TAB_FOCUS_WINDOW_MS = 10_000;
 
 export interface PendingPostEntry {
   commentId: string;
@@ -35,7 +33,6 @@ type Listener = () => void;
 
 interface StoreState {
   entries: readonly PendingPostEntry[];
-  postsTabFocusRequestedAtMs: number | null;
   listeners: Set<Listener>;
 }
 
@@ -48,7 +45,6 @@ const STORE_GLOBAL_KEY = '__mmSocialPendingPostsStore__';
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? {
   entries: [],
-  postsTabFocusRequestedAtMs: null,
   listeners: new Set(),
 };
 globalScope[STORE_GLOBAL_KEY] = state;
@@ -86,7 +82,7 @@ export const addPendingPost = ({
     post: { ...post, isPending: true },
     createdAtMs: nowMs,
     confirmedPost: null,
-    dismissedOn: { following: false, posts: false },
+    dismissedOn: { trending: false, following: false, posts: false },
   };
   setEntries([
     entry,
@@ -124,17 +120,22 @@ export const confirmPendingPosts = (serverPosts: SocialV1FeedPost[]): void => {
 
 /**
  * Called on a user refresh of `surface`: drops what that surface no longer
- * needs to hold — confirmed entries, which the feed now serves in place, and
- * ones past the confirmation window, which it is not going to.
+ * needs to hold, and ones past the confirmation window, which it is not going
+ * to get. Without `servedCommentIds` an entry is settled once any feed has
+ * confirmed it; with it, only once that surface serves the comment itself.
  */
 export const dismissSettledPendingPosts = (
   surface: PendingPostSurface,
   nowMs = Date.now(),
+  servedCommentIds?: ReadonlySet<string>,
 ): void => {
   let changed = false;
   const entries = state.entries.map((entry) => {
+    const isConfirmed = servedCommentIds
+      ? servedCommentIds.has(entry.commentId)
+      : entry.confirmedPost !== null;
     const settled =
-      entry.confirmedPost !== null ||
+      isConfirmed ||
       nowMs - entry.createdAtMs >= PENDING_POST_CONFIRM_WINDOW_MS;
     if (!settled || entry.dismissedOn[surface]) {
       return entry;
@@ -151,22 +152,7 @@ export const dismissSettledPendingPosts = (
 };
 
 export const resetPendingPosts = (): void => {
-  state.postsTabFocusRequestedAtMs = null;
   if (state.entries.length > 0) {
     setEntries([]);
   }
-};
-
-/** Asks the viewer's profile to open its Posts tab next time it gains focus. */
-export const requestPostsTabFocus = (nowMs = Date.now()): void => {
-  state.postsTabFocusRequestedAtMs = nowMs;
-};
-
-/** Reads and clears a recent {@link requestPostsTabFocus}. */
-export const consumePostsTabFocus = (nowMs = Date.now()): boolean => {
-  const requestedAtMs = state.postsTabFocusRequestedAtMs;
-  state.postsTabFocusRequestedAtMs = null;
-  return (
-    requestedAtMs !== null && nowMs - requestedAtMs <= POSTS_TAB_FOCUS_WINDOW_MS
-  );
 };

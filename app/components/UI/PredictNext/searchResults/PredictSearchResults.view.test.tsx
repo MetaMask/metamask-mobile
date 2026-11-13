@@ -47,6 +47,11 @@ import {
   PredictSearchResultRowTestIds,
 } from './PredictSearchResultRow.testIds';
 
+/** The mocked token search answers with the trending fixture's BTC row. */
+const bitcoinSearchResults = mockTrendingTokensData.filter(
+  ({ symbol }) => symbol === 'BTC',
+);
+
 const LEGACY_LANE: PredictConfig = {
   enabled: false,
   venues: { polymarket: { enabled: false }, kalshi: { enabled: false } },
@@ -117,7 +122,12 @@ const renderAutocomplete = (
 
 describeForPlatforms('Browser URL autocomplete predictions', () => {
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     searchMarkets.mockReset();
     searchMarkets.mockResolvedValue({
       markets: [IMAGED_MARKET, MOCK_PREDICT_CLOSED_MARKET],
@@ -334,7 +344,12 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   let kalshiSearch: () => Promise<unknown>;
 
   beforeEach(() => {
-    setupTrendingApiFetchMock(mockTrendingTokensData);
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      undefined,
+      bitcoinSearchResults,
+    );
     // Online, so nothing gated on the network tier is silently off.
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     searchMarkets.mockReset();

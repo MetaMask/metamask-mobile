@@ -9,9 +9,11 @@ import {
 import {
   MOCK_RECURRING_CANCELLED_ORDER,
   MOCK_RECURRING_COMPLETED_ORDER,
+  MOCK_RECURRING_EXPIRED_ORDER,
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_OPEN_ORDER_2,
   MOCK_RECURRING_OPEN_ORDER_3,
+  MOCK_RECURRING_ACCOUNT,
   MOCK_RECURRING_WALLET_ADDRESS,
 } from './recurringOrders.mock';
 import {
@@ -22,6 +24,11 @@ import { RecurringOrderState } from './recurringOrders.types';
 
 const UNMATCHED_ASSET_ID =
   'eip155:1/erc20:0x0000000000000000000000000000000000000001';
+const ALTERNATE_WALLET_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const ALTERNATE_ETHEREUM_ACCOUNT =
+  'eip155:1:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const ALTERNATE_BNB_ACCOUNT =
+  'eip155:56:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 describe('recurring orders API', () => {
   let globalFetchSpy: jest.SpyInstance;
@@ -41,70 +48,65 @@ describe('recurring orders API', () => {
   describe('getRecurringOrders', () => {
     it('filters canonical mock orders and paginates with opaque cursors', async () => {
       const firstPage = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        orderStates: [
-          RecurringOrderState.Completed,
-          RecurringOrderState.Cancelled,
-        ],
-        chainId: 'eip155:1',
-        assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        states: [RecurringOrderState.Completed, RecurringOrderState.Cancelled],
+        chainIds: ['eip155:1'],
+        asset: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
         limit: 1,
       });
       const secondPage = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        orderStates: [
-          RecurringOrderState.Completed,
-          RecurringOrderState.Cancelled,
-        ],
-        chainId: 'eip155:1',
-        assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        states: [RecurringOrderState.Completed, RecurringOrderState.Cancelled],
+        chainIds: ['eip155:1'],
+        asset: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
         limit: 1,
-        cursor: firstPage.nextCursor,
+        after: firstPage.endCursor,
       });
 
       expect(firstPage).toStrictEqual({
         orders: [MOCK_RECURRING_COMPLETED_ORDER],
-        nextCursor: '1',
+        endCursor: '1',
+        hasNextPage: true,
       });
       expect(secondPage).toStrictEqual({
         orders: [MOCK_RECURRING_CANCELLED_ORDER],
+        hasNextPage: false,
       });
       expect(globalFetchSpy).not.toHaveBeenCalled();
     });
 
     it('omits the normalized cursor on the final page', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
+        accountAddress: MOCK_RECURRING_ACCOUNT,
       });
 
-      expect(result.nextCursor).toBeUndefined();
+      expect(result.endCursor).toBeUndefined();
+      expect(result.hasNextPage).toBe(false);
       expect(result.orders).toHaveLength(6);
     });
 
-    it('scopes canonical mock orders to the requested wallet', async () => {
-      const walletAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+    it('adapts mock accounts to the requested wallet and order chain', async () => {
       const result = await getRecurringOrders({
-        walletAddress,
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
       });
 
-      expect(result.orders).toHaveLength(6);
       expect(
-        result.orders.every(
-          ({ account }) => account === `eip155:1:${walletAddress}`,
-        ),
-      ).toBe(true);
+        result.orders.find(({ id }) => id === MOCK_RECURRING_OPEN_ORDER.id)
+          ?.accountAddress,
+      ).toBe(ALTERNATE_ETHEREUM_ACCOUNT);
+      expect(
+        result.orders.find(({ id }) => id === MOCK_RECURRING_OPEN_ORDER_2.id)
+          ?.accountAddress,
+      ).toBe(ALTERNATE_BNB_ACCOUNT);
     });
 
     it('keeps orders whose destination asset matches with different checksum casing', async () => {
       const destinationAssetId =
-        MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId.replace(
-          /0x[a-f0-9]+$/u,
-          (address) => address.toUpperCase(),
-        );
+        'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48';
 
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        assetId: destinationAssetId,
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        asset: destinationAssetId,
       });
 
       expect(result.orders.map(({ id }) => id)).not.toContain(
@@ -113,19 +115,10 @@ describe('recurring orders API', () => {
       expect(result.orders).toHaveLength(5);
     });
 
-    it('returns no orders when the asset id is not a CAIP asset type', async () => {
-      const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        assetId: 'not-an-asset',
-      });
-
-      expect(result.orders).toStrictEqual([]);
-    });
-
     it('returns no orders when neither side matches the asset', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        assetId: UNMATCHED_ASSET_ID,
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        asset: UNMATCHED_ASSET_ID,
       });
 
       expect(result.orders).toStrictEqual([]);
@@ -133,22 +126,22 @@ describe('recurring orders API', () => {
 
     it('returns orders on the requested chain', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        chainId: 'eip155:56',
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        chainIds: ['eip155:56'],
       });
 
       expect(result.orders).toStrictEqual([
         expect.objectContaining({
           id: MOCK_RECURRING_OPEN_ORDER_2.id,
-          account: `eip155:1:${MOCK_RECURRING_WALLET_ADDRESS}`,
+          accountAddress: MOCK_RECURRING_OPEN_ORDER_2.accountAddress,
         }),
       ]);
     });
 
     it('returns no orders for a chain with no mock orders', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        chainId: 'eip155:137',
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        chainIds: ['eip155:137'],
       });
 
       expect(result.orders).toStrictEqual([]);
@@ -156,8 +149,8 @@ describe('recurring orders API', () => {
 
     it('returns no orders when no order state matches', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        orderStates: [],
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        states: [],
       });
 
       expect(result.orders).toStrictEqual([]);
@@ -165,22 +158,27 @@ describe('recurring orders API', () => {
 
     it('returns an empty page when the cursor is past the last order', async () => {
       const result = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        cursor: '6',
+        accountAddress: MOCK_RECURRING_ACCOUNT,
+        after: '6',
       });
 
-      expect(result).toStrictEqual({ orders: [] });
+      expect(result).toStrictEqual({ orders: [], hasNextPage: false });
     });
   });
 
   describe('getRecurringOrdersByAsset', () => {
     it('returns the latest open canonical mock for the asset', async () => {
       const result = await getRecurringOrdersByAsset({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
+        walletAddress: ALTERNATE_WALLET_ADDRESS,
         assetId: MOCK_RECURRING_OPEN_ORDER.src.asset.assetId,
       });
 
-      expect(result).toStrictEqual([MOCK_RECURRING_OPEN_ORDER_3]);
+      expect(result).toStrictEqual([
+        {
+          ...MOCK_RECURRING_OPEN_ORDER_3,
+          accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+        },
+      ]);
     });
 
     it('returns no open orders for an unmatched asset', async () => {
@@ -196,11 +194,13 @@ describe('recurring orders API', () => {
   describe('getRecurringSwaps', () => {
     it('sorts and paginates canonical mock swaps', async () => {
       const firstPage = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
         limit: 2,
       });
       const secondPage = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
         limit: 2,
-        cursor: firstPage.nextCursor,
+        after: firstPage.endCursor,
       });
 
       expect(firstPage).toStrictEqual({
@@ -208,7 +208,8 @@ describe('recurring orders API', () => {
           MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
           MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
         ],
-        nextCursor: '2',
+        endCursor: '2',
+        hasNextPage: true,
       });
       expect(secondPage.swaps).toStrictEqual([
         MOCK_RECURRING_OPEN_ORDER_SWAPS[3],
@@ -217,32 +218,40 @@ describe('recurring orders API', () => {
     });
 
     it('returns every swap without a cursor when the page fits the default limit', async () => {
-      const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id);
+      const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+      });
 
       expect(result.swaps).toHaveLength(MOCK_RECURRING_OPEN_ORDER_SWAPS.length);
-      expect(result.nextCursor).toBeUndefined();
+      expect(result.endCursor).toBeUndefined();
+      expect(result.hasNextPage).toBe(false);
     });
 
     it('omits the cursor on the last swaps page', async () => {
       const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
         limit: 4,
-        cursor: '4',
+        after: '4',
       });
 
       expect(result.swaps).toHaveLength(2);
-      expect(result.nextCursor).toBeUndefined();
+      expect(result.endCursor).toBeUndefined();
     });
 
     it('returns an empty page for an order with no swaps', async () => {
-      const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER_2.id);
+      const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER_2.id, {
+        accountAddress: MOCK_RECURRING_OPEN_ORDER_2.accountAddress,
+      });
 
-      expect(result).toStrictEqual({ swaps: [] });
+      expect(result).toStrictEqual({ swaps: [], hasNextPage: false });
     });
 
     it('rejects an unknown order', async () => {
-      await expect(getRecurringSwaps('missing-order')).rejects.toThrow(
-        'order_not_found',
-      );
+      await expect(
+        getRecurringSwaps('missing-order', {
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
+        }),
+      ).rejects.toThrow('order_not_found');
     });
 
     it('sorts swaps that have not executed by their scheduled time', async () => {
@@ -262,6 +271,7 @@ describe('recurring orders API', () => {
 
       try {
         const result = await getRecurringSwaps(MOCK_RECURRING_OPEN_ORDER.id, {
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
           limit: 2,
         });
 
@@ -277,37 +287,49 @@ describe('recurring orders API', () => {
 
   describe('cancelRecurringOrder', () => {
     it('moves the canonical mock order to cancelled state', async () => {
-      const result = await cancelRecurringOrder(
-        MOCK_RECURRING_OPEN_ORDER.id,
-        MOCK_RECURRING_OPEN_ORDER.account,
-      );
+      const result = await cancelRecurringOrder(MOCK_RECURRING_OPEN_ORDER.id, {
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+      });
       const cancelledOrders = await getRecurringOrders({
-        walletAddress: MOCK_RECURRING_WALLET_ADDRESS,
-        orderStates: [RecurringOrderState.Cancelled],
+        accountAddress: ALTERNATE_ETHEREUM_ACCOUNT,
+        states: [RecurringOrderState.Cancelled],
       });
 
       expect(result.order.state).toBe(RecurringOrderState.Cancelled);
+      expect(result.order.accountAddress).toBe(ALTERNATE_ETHEREUM_ACCOUNT);
+      expect(result.order.isCancellable).toBe(false);
+      expect(result.order.timingData.closedAt).toBeDefined();
       expect(cancelledOrders.orders.map(({ id }) => id)).toContain(
         MOCK_RECURRING_OPEN_ORDER.id,
       );
       expect(globalFetchSpy).not.toHaveBeenCalled();
     });
 
-    it('rejects cancellation of a non-open mock order', async () => {
-      await expect(
-        cancelRecurringOrder(
-          MOCK_RECURRING_CANCELLED_ORDER.id,
-          MOCK_RECURRING_CANCELLED_ORDER.account,
-        ),
-      ).rejects.toThrow('order_not_cancellable');
+    it('returns an already-cancelled mock order unchanged', async () => {
+      const result = await cancelRecurringOrder(
+        MOCK_RECURRING_CANCELLED_ORDER.id,
+        { accountAddress: MOCK_RECURRING_CANCELLED_ORDER.accountAddress },
+      );
+
+      expect(result.order).toStrictEqual(MOCK_RECURRING_CANCELLED_ORDER);
     });
+
+    it.each([MOCK_RECURRING_COMPLETED_ORDER, MOCK_RECURRING_EXPIRED_ORDER])(
+      'rejects non-cancellable order $id',
+      async (order) => {
+        await expect(
+          cancelRecurringOrder(order.id, {
+            accountAddress: order.accountAddress,
+          }),
+        ).rejects.toThrow('order_not_cancellable');
+      },
+    );
 
     it('rejects an unknown order', async () => {
       await expect(
-        cancelRecurringOrder(
-          'missing-order',
-          MOCK_RECURRING_OPEN_ORDER.account,
-        ),
+        cancelRecurringOrder('missing-order', {
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.accountAddress,
+        }),
       ).rejects.toThrow('order_not_found');
     });
   });

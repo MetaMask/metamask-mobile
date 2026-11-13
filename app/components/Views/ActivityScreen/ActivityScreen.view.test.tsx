@@ -1853,18 +1853,20 @@ describeForPlatforms('ActivityScreen — limit orders', () => {
       view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
     );
     fireEvent.press(await view.findByTestId(networkOptionTestId('eip155:1')));
+    // The closing sheet's "All networks" row shares the chip's label, so
+    // assert on the chip.
     await waitFor(() => {
       expect(
-        view.queryByText(strings('activity_view.filter_all_networks')),
-      ).toBeNull();
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).not.toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
 
     await selectLimitOrdersFilter(view);
 
     await waitFor(() => {
       expect(
-        view.getAllByText(strings('activity_view.filter_all_networks')).length,
-      ).toBeGreaterThan(0);
+        view.getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+      ).toHaveTextContent(strings('activity_view.filter_all_networks'));
     });
     await waitFor(() => {
       expect(requests.length).toBeGreaterThan(0);

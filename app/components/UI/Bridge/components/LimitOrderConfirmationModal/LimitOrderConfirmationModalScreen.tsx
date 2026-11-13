@@ -40,6 +40,7 @@ import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
+import { getAdvancedOrderTokenProperties } from '../../utils/advancedOrders';
 
 /**
  * What went wrong on the last confirm attempt. Each one reads differently in
@@ -205,11 +206,14 @@ export const LimitOrderConfirmationModalScreen = () => {
 
   const sharedAdvancedOrderProperties = useMemo(
     () => ({
+      ...getAdvancedOrderTokenProperties({
+        sourceToken: params.sourceToken,
+        destToken: params.destToken,
+      }),
       feature_id: FeatureId.LIMIT_ORDER,
-      // TODO use location from navigation context
-      location: 'Main View',
+      location: params.location,
     }),
-    [],
+    [params.sourceToken, params.destToken, params.location],
   );
 
   const publishDelegationFailureEvent = useCallback(() => {

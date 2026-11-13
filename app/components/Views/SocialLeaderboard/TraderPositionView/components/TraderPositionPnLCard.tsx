@@ -8,7 +8,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { memo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
 import {
@@ -93,4 +93,4 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
   </Box>
 );
 
-export default TraderPositionPnLCard;
+export default memo(TraderPositionPnLCard);
