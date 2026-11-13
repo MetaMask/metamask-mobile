@@ -100,11 +100,8 @@ describe('PerpsTradingCampaignLeaderboard', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'BrowserHome',
       expect.objectContaining({
-        screen: 'BrowserView',
-        params: expect.objectContaining({
-          newTabUrl:
-            'https://hypertracker.io?utm_source=metamask&utm_medium=leaderboard&utm_campaign=partner-attribution',
-        }),
+        newTabUrl:
+          'https://hypertracker.io?utm_source=metamask&utm_medium=leaderboard&utm_campaign=partner-attribution',
       }),
     );
   });

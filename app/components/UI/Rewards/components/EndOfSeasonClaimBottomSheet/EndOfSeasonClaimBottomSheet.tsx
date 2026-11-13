@@ -200,11 +200,8 @@ const EndOfSeasonClaimBottomSheet = ({
         case SeasonRewardType.OTHERSIDE:
           if (!url) return;
           navigation.navigate(Routes.BROWSER.HOME, {
-            screen: Routes.BROWSER.VIEW,
-            params: {
-              newTabUrl: url,
-              timestamp: Date.now(),
-            },
+            newTabUrl: url,
+            timestamp: Date.now(),
           });
           break;
         case SeasonRewardType.LINEA_TOKENS: {

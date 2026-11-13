@@ -168,11 +168,8 @@ const EarnRewardsPreview: React.FC = () => {
     (event: GestureResponderEvent) => {
       event.stopPropagation();
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: MONEY_DISCLAIMER_URL,
-          timestamp: Date.now(),
-        },
+        newTabUrl: MONEY_DISCLAIMER_URL,
+        timestamp: Date.now(),
       });
     },
     [navigation],

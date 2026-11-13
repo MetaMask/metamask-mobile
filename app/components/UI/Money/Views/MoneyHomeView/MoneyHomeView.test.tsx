@@ -2774,12 +2774,9 @@ describe('MoneyHomeView', () => {
     });
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: AppConstants.URLS.MONEY_LANDING,
-        timestamp: expect.any(Number),
-        fromMoney: true,
-      },
+      newTabUrl: AppConstants.URLS.MONEY_LANDING,
+      timestamp: expect.any(Number),
+      fromMoney: true,
     });
     mockOpenURL.mockRestore();
   });
@@ -3083,12 +3080,9 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockTrackSurfaceClicked).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: AppConstants.URLS.MUSD_PRICE,
-          timestamp: expect.any(Number),
-          fromMoney: true,
-        },
+        newTabUrl: AppConstants.URLS.MUSD_PRICE,
+        timestamp: expect.any(Number),
+        fromMoney: true,
       });
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
@@ -3118,12 +3112,9 @@ describe('MoneyHomeView', () => {
         redirect_target: MONEY_URLS.MONEY_LANDING,
       });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: AppConstants.URLS.MONEY_LANDING,
-          timestamp: expect.any(Number),
-          fromMoney: true,
-        },
+        newTabUrl: AppConstants.URLS.MONEY_LANDING,
+        timestamp: expect.any(Number),
+        fromMoney: true,
       });
       mockOpenURL.mockRestore();
     });
@@ -3393,12 +3384,9 @@ describe('MoneyHomeView', () => {
       expect(mockOpenURL).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: AppConstants.URLS.MONEY_LANDING,
-          timestamp: expect.any(Number),
-          fromMoney: true,
-        },
+        newTabUrl: AppConstants.URLS.MONEY_LANDING,
+        timestamp: expect.any(Number),
+        fromMoney: true,
       });
       mockOpenURL.mockRestore();
     });
