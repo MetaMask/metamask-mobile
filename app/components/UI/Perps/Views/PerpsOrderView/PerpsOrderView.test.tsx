@@ -3482,6 +3482,63 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  describe('Keypad Done clamp', () => {
+    it('clamps against the current max, not the max captured at mount', () => {
+      // The view is wrapped in React.memo; the clamp must read the latest
+      // maxPossibleAmount instead of a mount-time closure (max = 0 before the
+      // account loads), which used to reset the typed amount to 0 on Done.
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 0,
+        }),
+      );
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 1000,
+        }),
+      );
+      rerender(<PerpsOrderView />);
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).not.toHaveBeenCalledWith('0');
+    });
+
+    it('still clamps a typed amount above the current max on Done', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          orderForm: {
+            ...buildOrderContextMock().orderForm,
+            amount: '5000',
+          },
+          maxPossibleAmount: 1000,
+        }),
+      );
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).toHaveBeenLastCalledWith('1000');
+    });
+  });
+
   describe('Leverage confirm resolves against the live drag amount', () => {
     it('flushes the live drag amount forward when no clamping is required', async () => {
       const mockSetAmount = jest.fn();
