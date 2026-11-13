@@ -20,6 +20,11 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:isInitialized',
   'ClientController:getState',
   'KeyringController:isUnlocked',
+  // Custom-token mirroring to Authenticated User Storage (core#10336)
+  'AuthenticatedUserStorageService:getUserAssets',
+  'AuthenticatedUserStorageService:setUserAssets',
+  'AuthenticatedUserStorageService:importTokens',
+  'AuthenticatedUserStorageService:hideTokens',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [

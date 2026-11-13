@@ -80,6 +80,11 @@ export function getAssetsControllerMessenger(
       'AccountTreeController:isInitialized',
       'ClientController:getState',
       'KeyringController:isUnlocked',
+      // Custom-token mirroring to Authenticated User Storage (core#10336)
+      'AuthenticatedUserStorageService:getUserAssets',
+      'AuthenticatedUserStorageService:setUserAssets',
+      'AuthenticatedUserStorageService:importTokens',
+      'AuthenticatedUserStorageService:hideTokens',
     ],
     events: [...ASSETS_CONTROLLER_DELEGATED_EVENTS],
     messenger,
