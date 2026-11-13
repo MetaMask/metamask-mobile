@@ -151,20 +151,20 @@ export const X_CONNECT_ERROR_MESSAGE_KEYS = {
     'social_leaderboard.manage_profile.x_account_link_conflict',
 };
 
+/** The length copy states the allowed range, so it needs the same numbers the on-device rules use. */
+const USERNAME_LENGTH_PARAMS = {
+  [ProfileApiErrorCode.UsernameTooShort]: { min: MIN_USERNAME_LENGTH },
+  [ProfileApiErrorCode.UsernameTooLong]: { max: MAX_USERNAME_LENGTH },
+};
+
 /** The save copy for a Profile API error, when its code is mapped. */
 export const getProfileSaveErrorCopy = createProfileApiErrorCopy({
   copy: PROFILE_SAVE_ERROR_MESSAGE_KEYS,
-  paramsByCode: {
-    [ProfileApiErrorCode.UsernameTooShort]: { min: MIN_USERNAME_LENGTH },
-    [ProfileApiErrorCode.UsernameTooLong]: { max: MAX_USERNAME_LENGTH },
-  },
+  paramsByCode: USERNAME_LENGTH_PARAMS,
 });
 
 /** The create-profile copy for a Profile API error, when its code is mapped. */
 export const getProfileCreateErrorCopy = createProfileApiErrorCopy({
   copy: PROFILE_CREATE_ERROR_MESSAGE_KEYS,
-  paramsByCode: {
-    [ProfileApiErrorCode.UsernameTooShort]: { min: MIN_USERNAME_LENGTH },
-    [ProfileApiErrorCode.UsernameTooLong]: { max: MAX_USERNAME_LENGTH },
-  },
+  paramsByCode: USERNAME_LENGTH_PARAMS,
 });
