@@ -57,8 +57,9 @@ const useNetworkConnectionBanner = (): {
   /** True when either the RPC banner or the slow network banner shows. */
   isVisible: boolean;
   /**
-   * True when requests are slow across the board. Takes priority over the RPC
-   * banner. Hidden for a week after the user dismisses it.
+   * True when requests are slow across the board. Shows ahead of "Still
+   * connecting" but behind "Unable to connect". Hidden for a week after the
+   * user dismisses it.
    */
   isSlowNetwork: boolean;
   dismissSlowNetwork: () => void;
@@ -94,8 +95,10 @@ const useNetworkConnectionBanner = (): {
     }
   }, [latency]);
 
-  // A slow network makes RPC calls fail too, so its banner names the real cause.
-  const isSlowNetwork = isLatencySlow && !isSlowNetworkSnoozed;
+  // Priority: "Unable to connect", then "Slow connection", then "Still connecting".
+  const isRpcUnavailable = status === 'unavailable' && Boolean(network);
+  const isSlowNetwork =
+    !isRpcUnavailable && isLatencySlow && !isSlowNetworkSnoozed;
   const isRpcBannerVisible =
     !isSlowNetwork &&
     (status === 'degraded' || status === 'unavailable') &&

@@ -252,7 +252,7 @@ describe('useNetworkConnectionBanner', () => {
       expect(result.current.isSlowNetwork).toBe(false);
     });
 
-    it('takes priority over a failing RPC', () => {
+    it('takes priority over the "Still connecting" RPC banner', () => {
       latencyMock.mockReturnValue('SLOW');
       statusMock.mockReturnValue('degraded');
       mockFailedNetwork();
@@ -263,9 +263,23 @@ describe('useNetworkConnectionBanner', () => {
       expect(result.current.isVisible).toBe(true);
     });
 
-    it('does not send the RPC banner shown event while the slow banner shows', () => {
+    it('gives way to the "Unable to connect" RPC banner', () => {
       latencyMock.mockReturnValue('SLOW');
       statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(result.current.isVisible).toBe(true);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ banner_type: 'unavailable' }),
+      );
+    });
+
+    it('does not send the RPC banner shown event while the slow banner shows', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('degraded');
       mockFailedNetwork();
 
       renderHookWithProviders();
@@ -275,7 +289,7 @@ describe('useNetworkConnectionBanner', () => {
 
     it('shows the RPC banner once the slow banner is dismissed', () => {
       latencyMock.mockReturnValue('SLOW');
-      statusMock.mockReturnValue('unavailable');
+      statusMock.mockReturnValue('degraded');
       mockFailedNetwork();
       const { result } = renderHookWithProviders();
 
