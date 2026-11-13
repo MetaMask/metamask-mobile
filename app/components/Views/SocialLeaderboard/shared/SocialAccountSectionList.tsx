@@ -36,7 +36,7 @@ interface SocialAccountSection {
 }
 
 /**
- * Groups rows by consecutive wallet title, preserving the hook's order.
+ * Groups rows by consecutive wallet ID, preserving the hook's order.
  * Rows from the same wallet stay together because the hook walks wallets in tree order.
  */
 const groupLinkableAccountsByWallet = (
@@ -45,8 +45,11 @@ const groupLinkableAccountsByWallet = (
   const sections: SocialAccountSection[] = [];
 
   accounts.forEach((account) => {
-    const previous = sections.at(-1);
-    if (previous?.title === account.walletTitle) {
+    const previous = sections[sections.length - 1];
+    const previousWalletId =
+      previous?.accounts[0].accountGroup?.id.split('/')[0];
+    const walletId = account.accountGroup?.id.split('/')[0];
+    if (previous && previousWalletId === walletId) {
       previous.accounts.push(account);
       return;
     }
@@ -94,7 +97,7 @@ const SocialAccountRow = memo(
             alignItems={BoxAlignItems.Center}
             flexDirection={BoxFlexDirection.Row}
             gap={3}
-            twClassName="px-4 py-3"
+            twClassName={`px-4 py-3 ${isSelected ? 'bg-section' : ''}`}
           >
             <AvatarAccount
               address={account.address}
@@ -129,7 +132,13 @@ const SocialAccountRow = memo(
         testID={testID}
       >
         <AccountListCell
-          accountGroup={account.accountGroup}
+          accountGroup={{
+            ...account.accountGroup,
+            metadata: {
+              ...account.accountGroup.metadata,
+              name: account.name,
+            },
+          }}
           avatarAccountType={avatarAccountType}
           hideMenu
           isSelected={isSelected}
