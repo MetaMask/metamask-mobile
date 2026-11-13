@@ -607,19 +607,8 @@ describe('typed order price validation', () => {
     expect(result).toBeUndefined();
   });
 
-  it('explains the 95% constraint and the live acceptable range', () => {
-    const message = getLimitPriceTooFarMessage(2500);
-
-    expect(message).toContain(
-      'perps.order.limit_price_modal.limit_price_too_far',
-    );
-    expect(message).toContain(
-      'perps.order.limit_price_modal.limit_price_too_far_range',
-    );
-  });
-
-  it('returns only the constraint when the reference cannot form a band', () => {
-    expect(getLimitPriceTooFarMessage(0)).toBe(
+  it('returns only the 95% constraint without the acceptable range', () => {
+    expect(getLimitPriceTooFarMessage()).toBe(
       'perps.order.limit_price_modal.limit_price_too_far',
     );
   });

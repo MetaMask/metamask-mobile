@@ -224,7 +224,7 @@ export function usePerpsClosePositionValidation(
             LIMIT_PRICE_CONFIG.MaxDeviationFromMarket,
           )
         ) {
-          errors.push(getLimitPriceTooFarMessage(bandReferencePrice));
+          errors.push(getLimitPriceTooFarMessage());
         }
 
         // Add warning if the limit price is far from the live mark price
