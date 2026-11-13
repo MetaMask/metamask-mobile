@@ -208,7 +208,7 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
       }
     };
 
-    resolveEligibility();
+    void resolveEligibility();
     return () => {
       cancelled = true;
     };
