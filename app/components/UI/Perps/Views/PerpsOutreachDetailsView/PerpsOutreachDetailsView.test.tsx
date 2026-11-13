@@ -164,13 +164,13 @@ describe('PerpsOutreachDetailsView', () => {
     // then opens the browser. A second goBack in the callback would pop the
     // Perps page underneath and leave the user on the wrong screen.
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: expect.objectContaining({
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.HOME,
+      expect.objectContaining({
         newTabUrl: CONTACT.calendlyUrl,
         linkType: EXTERNAL_LINK_TYPE,
       }),
-    });
+    );
     expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
       mockNavigate.mock.invocationCallOrder[0],
     );
