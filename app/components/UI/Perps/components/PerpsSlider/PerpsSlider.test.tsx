@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
 import type { ReactTestRendererJSON } from 'react-test-renderer';
 import { Slider } from '@metamask/design-system-react-native';
@@ -486,6 +486,44 @@ describe('PerpsSlider', () => {
         }
       },
     );
+  });
+
+  describe('layout gate', () => {
+    it('drops commits until the track reports a non-zero width', () => {
+      const onValueChange = jest.fn();
+      const onDragEnd = jest.fn();
+      const { getByTestId } = render(
+        <PerpsSlider
+          {...defaultProps}
+          onValueChange={onValueChange}
+          onDragEnd={onDragEnd}
+          ignoreUntilLayout
+          layoutTestID="slider-layout"
+          maximumValue={100}
+        />,
+      );
+
+      getSliderProps().onValueChange?.(25);
+      getSliderProps().onDragEnd?.(25);
+
+      expect(onValueChange).not.toHaveBeenCalled();
+      expect(onDragEnd).not.toHaveBeenCalled();
+
+      fireEvent(getByTestId('slider-layout'), 'layout', {
+        nativeEvent: { layout: { width: 0, height: 40, x: 0, y: 0 } },
+      });
+      getSliderProps().onDragEnd?.(25);
+      expect(onDragEnd).not.toHaveBeenCalled();
+
+      fireEvent(getByTestId('slider-layout'), 'layout', {
+        nativeEvent: { layout: { width: 320, height: 40, x: 0, y: 0 } },
+      });
+      getSliderProps().onValueChange?.(25);
+      getSliderProps().onDragEnd?.(25);
+
+      expect(onValueChange).toHaveBeenCalledWith(25);
+      expect(onDragEnd).toHaveBeenCalledWith(25);
+    });
   });
 
   describe('domain conversion', () => {

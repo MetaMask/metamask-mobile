@@ -4,7 +4,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -13,8 +12,12 @@ import { strings } from '../../../../locales/i18n';
 import { SelectSRPBottomSheetTestIds } from './SelectSRPBottomSheet.testIds';
 import { goBackIfFocused } from './SelectSRPBottomSheet.utils';
 import Routes from '../../../constants/navigation/Routes';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export const SelectSRPBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const goBack = useCallback(() => {
@@ -38,14 +41,15 @@ export const SelectSRPBottomSheet = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={goBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={goBack}
         backButtonProps={{
           testID: SelectSRPBottomSheetTestIds.HEADER_BACK_BUTTON,
         }}
       >
         {strings('secure_your_wallet.srp_list_selection')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="-mt-4">
         <SelectSRP onKeyringSelect={handleKeyringSelect} />
       </Box>

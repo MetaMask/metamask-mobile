@@ -12,6 +12,7 @@ import ShareTokenBottomSheet, {
 } from './ShareTokenBottomSheet';
 import type { ShareTokenCardProps } from './ShareTokenCard';
 import type { TokenI } from '../../Tokens/types';
+import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   isAssetFromSearch,
@@ -212,6 +213,8 @@ jest.mock('./ShareTokenCard', () => ({
 const mockSelectTokenMarketData = selectTokenMarketData as jest.MockedFunction<
   typeof selectTokenMarketData
 >;
+const mockSelectConversionRateBySymbol =
+  selectConversionRateBySymbol as unknown as jest.Mock;
 const mockSelectTokenDisplayData =
   selectTokenDisplayData as jest.MockedFunction<typeof selectTokenDisplayData>;
 
@@ -304,6 +307,7 @@ describe('ShareTokenBottomSheet', () => {
       totalVolume: '$75.57M',
     });
     (NetworkBadgeSource as jest.Mock).mockReturnValue({ uri: 'network-badge' });
+    mockSelectConversionRateBySymbol.mockReturnValue(1);
   });
 
   afterEach(() => {
@@ -585,6 +589,28 @@ describe('ShareTokenBottomSheet', () => {
   });
 
   describe('market data sources', () => {
+    it('falls back to a conversion rate of 1 when the currency rate is missing', () => {
+      mockSelectConversionRateBySymbol.mockReturnValue(undefined);
+      mockSelectTokenMarketData.mockReturnValue({
+        [CHAIN_ID_HEX]: {
+          [CHECKSUMMED_ADDRESS]: createMarketDataEntry({
+            price: 1,
+            marketCap: 5_000_000,
+          }),
+        },
+      });
+
+      renderSheet();
+
+      expect(formatMarketDetails).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          conversionRate: 1,
+          needsConversion: true,
+        }),
+      );
+    });
+
     it('passes marketCap from redux token market data when available', () => {
       mockSelectTokenMarketData.mockReturnValue({
         [CHAIN_ID_HEX]: {

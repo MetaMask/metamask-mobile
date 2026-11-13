@@ -28,10 +28,12 @@ const openLeveragedPerp = mockPerpFeedItem({
   positionAmountWithLeverage: 0.4,
   perpPositionType: 'short',
   perpLeverage: 40,
-  boughtUsd: 43_000,
-  costBasis: 43_000,
+  // As the API sends a 40x short of 0.4 BTC entered at 45,105 and marked at
+  // 45,000: margin-sized cost basis, equity = margin + unrealized P&L.
+  boughtUsd: 451.05,
+  costBasis: 451.05,
   realizedPnl: 0,
-  currentValueUSD: 450,
+  currentValueUSD: 493.05,
   pnlValueUsd: 42,
   pnlPercent: 9.4,
   trades: [
@@ -40,7 +42,7 @@ const openLeveragedPerp = mockPerpFeedItem({
       intent: 'enter',
       action: 'opened',
       tokenAmount: 0.01,
-      usdCost: 43_000,
+      usdCost: 451.05,
       timestamp: 1_700_000_000,
       transactionHash: '0x1',
       classification: 'perp',

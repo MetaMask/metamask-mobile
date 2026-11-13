@@ -24,7 +24,11 @@ export const navigateToSocialV1Profile = (
   navigation: Pick<AppNavigationProp, 'navigate'>,
   params?: NavigateToSocialV1ProfileParams,
 ): void => {
-  if (!ensureSocialTermsAccepted(navigation.navigate)) {
+  if (
+    !ensureSocialTermsAccepted(navigation.navigate, () =>
+      navigateToSocialV1Profile(navigation, params),
+    )
+  ) {
     return;
   }
   const isSelf =

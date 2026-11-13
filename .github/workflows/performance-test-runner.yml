@@ -13,7 +13,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding)'
+        description: 'Build type (imported-wallet/onboarding/dev-onboarding)'
       device_matrix:
         required: true
         type: string
@@ -53,7 +53,7 @@ on:
         required: false
         type: string
         default: rc
-        description: 'client-config API environment (rc, exp, test). Independent of build_variant.'
+        description: 'client-config API environment (rc, exp, test, dev, prod). Independent of build_variant.'
       grep_tags:
         required: false
         type: string
@@ -204,7 +204,7 @@ jobs:
             echo "TESTMU_DEVICE=$DEVICE_NAME"
             echo "TESTMU_OS_VERSION=$DEVICE_OS_VERSION"
             echo "TESTMU_ANDROID_APP_URL=$TESTMU_APP_URL"
-            if [ "$BUILD_TYPE" = "onboarding" ]; then
+            if [ "$BUILD_TYPE" = "onboarding" ] || [ "$BUILD_TYPE" = "dev-onboarding" ]; then
               echo "TESTMU_ANDROID_CLEAN_APP_URL=$TESTMU_APP_URL"
               echo "TESTMU_ANDROID_ONBOARDING_PERF_APP_URL=$TESTMU_APP_URL"
               echo "TESTMU_ANDROID_SEEDLESS_PERF_APP_URL=$TESTMU_APP_URL"
@@ -264,7 +264,11 @@ jobs:
           DEVICE_NAME: ${{ matrix.device.name }}
           OS_VERSION: ${{ matrix.device.os_version }}
         run: |
-          SUITE="${BUILD_TYPE/onboarding/onboarding-flow}"
+          if [ "$BUILD_TYPE" = "onboarding" ]; then
+            SUITE="onboarding-flow"
+          else
+            SUITE="$BUILD_TYPE"
+          fi
           echo "name=testmu-he-${PLATFORM}-${SUITE}-test-results-${DEVICE_NAME}-${OS_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Upload Test Results

@@ -9,6 +9,7 @@ import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
+import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
 /**
@@ -112,11 +113,21 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   inlineRows?: readonly SocialFeedInlineRow[];
   /** Called when the user pulls to refresh, for host analytics. */
   onRefresh?: () => void;
+  /** Lets the host hide chrome that only belongs above posts. */
+  onListStateChange?: (state: SocialFeedListState) => void;
   /** Social V1 tab traces: the initial fetch and the first content. */
   performance?: Readonly<{
     tab: SocialDataFetchTab;
     context: SocialPerformanceContext;
   }>;
+  /**
+   * Turns the feed off without unmounting it: no fetching, no rows. A host
+   * that embeds the list as its screen scroller sets this while the feed's
+   * own tab is not showing. Defaults to on.
+   */
+  enabled?: boolean;
+  /** Where the pull-to-refresh spinner starts, for hosts with a fixed header. */
+  refreshProgressViewOffset?: number;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;

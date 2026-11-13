@@ -179,6 +179,19 @@ const portfolioSummarySchema = refine(
       .isEqualTo(summary.totalValue),
 );
 
+/** The holdings half of the Summary the backend serves: every total except
+ * the available balance, which is the Balance route's own value. */
+const portfolioHoldingsSummarySchema = object({
+  venueId,
+  currency: literal('USD'),
+  positionsValue: amount,
+  claimableValue: amount,
+  unrealizedPnl: signedAmount,
+  unrealizedPnlPercent: optional(signedPercent),
+  asOf: timestamp,
+  complete: boolean(),
+});
+
 const positionsPageSchema = object({
   venueId,
   positions: array(positionSchema),
@@ -190,6 +203,7 @@ const activityPageSchema = object({
   activity: array(unknown()),
   nextCursor: optional(string()),
   settlementsCompleteFrom: optional(timestamp),
+  settlementsDegradedReason: optional(literal('venue_permission_denied')),
 });
 
 const parseActivityEntry = (value: unknown): PredictActivityEntry => {
@@ -244,6 +258,31 @@ export const parsePredictPortfolioSummary = (
   } catch {
     throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
   }
+};
+
+/**
+ * The Portfolio Summary from its two backend reads: the holdings totals and
+ * the Balance. Each route reads one venue page, so the client adds the
+ * balance; the composed Summary is checked like a served one.
+ */
+export const composePredictPortfolioSummary = (
+  holdings: unknown,
+  balance: PredictBalance,
+): PredictPortfolioSummary => {
+  let parsed: { positionsValue: string; claimableValue: string };
+  try {
+    parsed = mask(holdings, portfolioHoldingsSummarySchema);
+  } catch {
+    throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+  }
+  const total = new BigNumber(balance.available)
+    .plus(parsed.positionsValue)
+    .plus(parsed.claimableValue);
+  return parsePredictPortfolioSummary({
+    ...parsed,
+    availableBalance: balance.available,
+    totalValue: total.toFixed(Math.max(2, total.decimalPlaces() ?? 0)),
+  });
 };
 
 export const parsePredictPositionsPage = (
