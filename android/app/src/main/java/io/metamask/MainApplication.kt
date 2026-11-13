@@ -77,7 +77,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             this,
             BrazeConfig.Builder()
                 .setIsHtmlInAppMessageApplyWindowInsetsEnabled(false)
-                .setTriggerActionMinimumTimeIntervalSeconds(3)
+                .setTriggerActionMinimumTimeIntervalSeconds(2)
                 .build()
         )
 
