@@ -12,6 +12,7 @@ import {
   blockProfile,
   invalidateBlockLists,
 } from '../moderationApi';
+import { SocialEntryReportReason } from '../reportReasons';
 import { isViewerSocialAuthor } from '../utils/isViewerSocialAuthor';
 
 /** The post an action is about. */
@@ -151,6 +152,7 @@ export const useSocialModerationActions = (): SocialModerationActions => {
       const { commentId } = target;
       if (
         !commentId ||
+        reason === SocialEntryReportReason.Impersonation ||
         isViewerProfileLoading ||
         isViewerSocialAuthor(target.authorId, profileId)
       ) {

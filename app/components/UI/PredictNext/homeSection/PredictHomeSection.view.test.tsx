@@ -14,7 +14,9 @@ import { initialStatePredict } from '../../../../../tests/component-view/presets
 import {
   composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
+  makePredictNextPlayerPropsEvent,
   makePredictNextPosition,
+  makePredictNextThresholdEntry,
   makePredictNextSellPreview,
   makePredictNextSellReceipt,
   makePredictNextSummary,
@@ -336,6 +338,47 @@ describe('PredictHomeSection', () => {
         expect(totalOf(view)).toEqual({ status: 'ready', valueUsd: 440 }),
       );
       expect(sliceOf(view)).toEqual({ status: 'ready', valueFiat: 220 });
+    });
+
+    it('names threshold Positions by their Market labels, so two Players in one Game read differently', async () => {
+      const event = makePredictNextPlayerPropsEvent();
+      configurePredictNextFeeds({
+        positions: [
+          makePredictNextPosition(
+            makePredictNextThresholdEntry(
+              event,
+              'Rhamondre Stevenson',
+              60,
+              'yes',
+            ),
+          ),
+          makePredictNextPosition({
+            ...makePredictNextThresholdEntry(
+              event,
+              'Kenneth Walker',
+              50,
+              'yes',
+            ),
+            costBasis: undefined,
+            unrealizedPnl: undefined,
+            unrealizedPnlPercent: undefined,
+          }),
+        ],
+      });
+
+      const view = renderSection({ predictConfig: KALSHI_ONLY });
+
+      expect(
+        await view.findByText(
+          '$41.25 on Yes · Rhamondre Stevenson · 60+ to win $75.00',
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByText('Yes · Kenneth Walker · 50+ · 75 shares'),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByLabelText(`${event.title} - Yes · Rhamondre Stevenson · 60+`),
+      ).toBeOnTheScreen();
     });
 
     it('subscribes to the Summary once and the top open Positions by value, and nothing else', async () => {
@@ -665,7 +708,7 @@ describe('PredictHomeSection', () => {
               }),
           } as Response;
         }
-        if (path.endsWith('/orders/commit')) {
+        if (/\/orders\/[^/]+\/commit$/u.test(path)) {
           return {
             ok: true,
             status: 200,
@@ -680,6 +723,19 @@ describe('PredictHomeSection', () => {
             ok: true,
             status: 200,
             json: async () => positionsBody,
+          } as Response;
+        }
+        // The Summary's available balance is the Balance route's value.
+        if (path.includes('/venues/kalshi/balance')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              venueId: 'kalshi',
+              currency: 'USD',
+              available: (summaryBody as { availableBalance: string })
+                .availableBalance,
+            }),
           } as Response;
         }
         if (path.includes('/venues/kalshi/portfolio/summary')) {
@@ -745,11 +801,17 @@ describe('PredictHomeSection', () => {
             marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
             side: 'yes',
             contracts: '70' as never,
+            idempotencyKey: 'c4d5e6f0-1111-4222-8333-444455556666',
           },
+        );
+        await trading.orderService.reviewPreview(
+          'kalshi' as PredictVenueId,
+          preview.previewId,
         );
         await trading.orderService.commitPreview(
           'kalshi' as PredictVenueId,
           preview.previewId,
+          { kind: 'user-approved' },
         );
       });
 

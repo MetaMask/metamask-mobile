@@ -2,7 +2,6 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
 import KycVerifyIdentity from './VerifyIdentity';
 import { KycVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
@@ -28,17 +27,7 @@ jest.mock('../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 const mockRetry = jest.fn();
 const mockOnContinue = jest.fn();
-
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-}));
+const mockOnExit = jest.fn();
 
 const catalogDisclaimers = [
   {
@@ -58,7 +47,9 @@ const catalogDisclaimers = [
 ];
 
 const renderScreen = () =>
-  renderWithProvider(<KycVerifyIdentity onContinue={mockOnContinue} />);
+  renderWithProvider(
+    <KycVerifyIdentity onContinue={mockOnContinue} onExit={mockOnExit} />,
+  );
 
 describe('KycVerifyIdentity', () => {
   beforeEach(() => {
@@ -168,16 +159,12 @@ describe('KycVerifyIdentity', () => {
     );
   });
 
-  it('returns to Money home when the header back button is pressed', () => {
+  it('hands the header back button to the caller', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(KycVerifyIdentitySelectorsIDs.BACK_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockOnExit).toHaveBeenCalledTimes(1);
   });
 
   it('hands the loaded catalog to the partners page on continue', () => {

@@ -42,6 +42,8 @@ interface HookProps {
   nearTop?: boolean;
   holdNewPosts?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  matchesItem?: (item: CoreFeedItem) => boolean;
+  streamKey?: string;
 }
 
 const NO_ROWS: TraderFeedRow[] = [];
@@ -100,10 +102,21 @@ describe('useSocialFeedRealtime', () => {
         nearTop = true,
         holdNewPosts = false,
         filterPost,
+        matchesItem,
+        streamKey,
       }: HookProps) =>
         useSocialFeedRealtime(
           { rows, dataUpdatedAt, refresh },
-          { realtimeScope, active, paused, nearTop, holdNewPosts, filterPost },
+          {
+            realtimeScope,
+            active,
+            paused,
+            nearTop,
+            holdNewPosts,
+            filterPost,
+            matchesItem,
+            streamKey,
+          },
         ),
       { initialProps },
     );
@@ -190,6 +203,87 @@ describe('useSocialFeedRealtime', () => {
 
     expect(after).toBe(before);
     expect(afterChanged).not.toBe(beforeChanged);
+  });
+
+  it('keeps the post when a new page rebuilds the row around the same position', () => {
+    const row = buildRow({ positionId: 'pos-a' });
+    const { result, rerender } = renderRealtime({
+      rows: [row],
+      dataUpdatedAt: 1_000,
+    });
+    const before = result.current?.posts[0];
+
+    rerender({
+      rows: [{ ...row, item: { ...row.item } }],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(result.current?.posts[0]).toBe(before);
+  });
+
+  it('keeps shown posts in place when a refresh returns one moved forward', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-a',
+    ]);
+  });
+
+  it('adds a late post at the top instead of between shown posts', () => {
+    const { result } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-c', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    emit(buildEvent('pos-b', { occurredAt: '2026-01-01T00:00:02Z' }));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-c',
+      'pos-a',
+    ]);
+  });
+
+  it('places rows by their own time again for another request', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+      streamKey: 'other',
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-a',
+      'pos-b',
+    ]);
   });
 
   it('adds a new post at the top with an entrance while live', () => {
@@ -327,6 +421,93 @@ describe('useSocialFeedRealtime', () => {
     emit(buildEvent('pos-kept'));
 
     expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("drops new posts outside the request's slice before holding or counting them", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId !== 'pos-out';
+    const { result } = renderRealtime({ paused: true, matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(result.current?.realtime.pendingNewCount).toBe(1);
+  });
+
+  it("adds a new post in the request's slice at the top", () => {
+    const matchesItem = (item: CoreFeedItem) => item.positionId === 'pos-in';
+    const { result } = renderRealtime({ matchesItem });
+
+    emit(buildEvent('pos-out'));
+    emit(buildEvent('pos-in'));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-in']);
+  });
+
+  it("applies revisions to loaded posts without checking the request's slice", () => {
+    const rows = [buildRow({ positionId: 'pos-a', revision: 1, copyCount: 8 })];
+    const { result } = renderRealtime({ rows, matchesItem: () => false });
+
+    emit(buildEvent('pos-a', { revision: 2, data: { copyCount: 9 } }));
+
+    expect(result.current?.posts[0]?.copyCount).toBe(9);
+  });
+
+  it('drops socket posts and catches up when the streamed request changes', async () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const { result, rerender } = renderRealtime({
+      rows,
+      dataUpdatedAt: 1,
+      streamKey: 'token-a',
+    });
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+    emit(buildEvent('pos-b'));
+    const postsBefore = positionIds(result.current?.posts ?? []);
+
+    rerender({ rows, dataUpdatedAt: 1, streamKey: 'token-b' });
+
+    expect(postsBefore).toEqual(['pos-b', 'pos-a']);
+    expect(positionIds(result.current?.posts ?? [])).toEqual(['pos-a']);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(2));
+  });
+
+  it('never renders socket posts of the previous request', () => {
+    const rows = [buildRow({ positionId: 'pos-a' })];
+    const renderedPosts: (string | undefined)[][] = [];
+    const { rerender } = renderHook(
+      ({ streamKey }: { streamKey: string }) => {
+        const realtime = useSocialFeedRealtime(
+          { rows, dataUpdatedAt: 1, refresh },
+          {
+            realtimeScope: 'all',
+            active: true,
+            paused: false,
+            nearTop: true,
+            holdNewPosts: false,
+            streamKey,
+          },
+        );
+        renderedPosts.push(positionIds(realtime?.posts ?? []));
+        return realtime;
+      },
+      { initialProps: { streamKey: 'token-a' } },
+    );
+    emit(buildEvent('pos-b'));
+    const rendersBeforeChange = renderedPosts.length;
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(renderedPosts[rendersBeforeChange - 1]).toEqual(['pos-b', 'pos-a']);
+    renderedPosts
+      .slice(rendersBeforeChange)
+      .forEach((posts) => expect(posts).toEqual(['pos-a']));
+  });
+
+  it('does not catch up on a request change before its first page loads', () => {
+    const { rerender } = renderRealtime({ streamKey: 'token-a' });
+
+    rerender({ streamKey: 'token-b' });
+
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('filters the merged posts', () => {

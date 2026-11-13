@@ -180,6 +180,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@metamask/eip1193-permission-middleware',
 ];
 
 const config = {

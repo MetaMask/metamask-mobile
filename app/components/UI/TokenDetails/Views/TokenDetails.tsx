@@ -1000,9 +1000,9 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  const prevTokenKeyRef = useRef<string | null>(null);
-  if (prevTokenKeyRef.current !== tokenKey) {
-    prevTokenKeyRef.current = tokenKey;
+  const [prevTokenKey, setPrevTokenKey] = useState<string | null>(null);
+  if (prevTokenKey !== tokenKey) {
+    setPrevTokenKey(tokenKey);
     if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
       setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
     }

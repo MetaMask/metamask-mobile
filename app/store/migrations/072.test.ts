@@ -100,7 +100,6 @@ const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
       networkClientId: 'megaeth-testnet',
       url: 'https://carrot.megaeth.com/rpc',
       type: RpcEndpointType.Custom,
-      failoverUrls: [],
     },
   ],
   defaultRpcEndpointIndex: 0,

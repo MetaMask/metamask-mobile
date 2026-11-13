@@ -35,9 +35,8 @@ import { MoneyNextBestActionParallaxTestIds } from './MoneyNextBestActionParalla
 
 const log = createProjectLogger('money-parallax');
 
-// Artboard names inside next_best_action_module_v1.riv, one per onboarding step.
+// Artboard name inside next_best_action_module_v1.riv for the fund step.
 export const PARALLAX_ARTBOARD_FUND = 'Parallax Block 1';
-export const PARALLAX_ARTBOARD_CARD = 'Parallax Block 2';
 
 // The Rive artboard is transparent — the card's gradient background (sampled
 // from the design) is rendered behind it.

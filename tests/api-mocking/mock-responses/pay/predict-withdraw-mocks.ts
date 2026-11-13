@@ -22,6 +22,7 @@ import {
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../polymarket/polymarket-mocks';
 import { createTransactionSentinelResponse } from '../polymarket/polymarket-transaction-sentinel-response.ts';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PREDICT_PUSD_ADDRESS = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 const PREDICT_WITHDRAW_AMOUNT_BASE_UNITS = '5000000'; // $5 pUSD at 6 decimals
@@ -418,26 +419,7 @@ async function mockAccountsApiTransactions(
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(

@@ -26,7 +26,6 @@ import {
   ButtonSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonsAlignment,
   type BottomSheetFooterButtonProps,
   type BottomSheetRef,
@@ -82,12 +81,15 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFla
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../util/address';
 import NetworkSelectorList from './NetworkSelectorList';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 interface NetworkSelectorProps {
   route: RouteProp<RootStackParamList, 'NetworkSelector'>;
 }
 
 const NetworkSelector = ({ route }: NetworkSelectorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   trace({
     name: TraceName.NetworkSwitch,
     op: TraceOperation.NetworkSwitch,
@@ -525,11 +527,11 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
         {showConfirmDeleteModal.isVisible ? (
           <BottomSheet ref={deleteModalSheetRef} onClose={closeDeleteModal}>
-            <BottomSheetHeader>
+            <BottomSheetHeaderGlass isGlass={isGlassHeader}>
               {strings('app_settings.delete')}{' '}
               {showConfirmDeleteModal.networkName}{' '}
               {strings('asset_details.network')}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <View style={styles.containerDeleteText}>
               <Text variant={TextVariant.BodyMd} style={styles.textCentred}>
                 {strings('app_settings.network_delete')}

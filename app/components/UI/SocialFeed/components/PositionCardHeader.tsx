@@ -106,6 +106,25 @@ const isBullish = ({
 }: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
   direction ? direction === 'long' : side !== 'sell';
 
+export const POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID =
+  'position-card-header-placeholder';
+
+/**
+ * Holds a line's height while its figure is not priced yet, so the card is as
+ * tall before prices load as after.
+ */
+const LinePlaceholder: React.FC<{ variant: TextVariant }> = ({ variant }) => (
+  <Text
+    variant={variant}
+    fontWeight={FontWeight.Medium}
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    testID={POSITION_CARD_HEADER_PLACEHOLDER_TEST_ID}
+  >
+    {' '}
+  </Text>
+);
+
 const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   const {
     avatar,
@@ -176,6 +195,9 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {subtitleLabel}
           </Text>
         ) : null}
+        {subtitleLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodyXs} />
+        )}
       </Box>
       {/* Capped rather than free-growing: a six-figure P&L would otherwise take
         the row and squeeze the symbol it belongs to down to an ellipsis. */}
@@ -209,6 +231,9 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlValueLabel}
           </Text>
         ) : null}
+        {pnlValueLabel ? null : (
+          <LinePlaceholder variant={TextVariant.BodySm} />
+        )}
         {pnlLabel && live ? (
           <AnimatedNumericText
             animated={!live.reduceMotion}
@@ -230,6 +255,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlLabel}
           </Text>
         ) : null}
+        {pnlLabel ? null : <LinePlaceholder variant={TextVariant.BodyXs} />}
       </Box>
     </Box>
   );
