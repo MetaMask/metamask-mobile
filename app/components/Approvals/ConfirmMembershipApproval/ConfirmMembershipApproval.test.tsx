@@ -1,11 +1,8 @@
 import React from 'react';
 import { Modal, Platform } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
-import {
-  act,
-  fireEvent,
-  type ReactTestInstance,
-} from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import useApprovalRequest, {
   ApprovalRequestType,
 } from '../../Views/confirmations/hooks/useApprovalRequest';

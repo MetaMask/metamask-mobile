@@ -1,13 +1,8 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
 import { Provider } from 'react-redux';
-import {
-  act,
-  render,
-  fireEvent,
-  waitFor,
-  type ReactTestInstance,
-} from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
   CANCELLATION_REASONS,
   CANCEL_TYPES,
