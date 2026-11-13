@@ -304,8 +304,8 @@ const extractRewardsProperties = (
   _urlParams: UrlParamValues,
   _sensitiveProps: Record<string, string>,
 ): void => {
-  // REWARDS route may have referral or other non-sensitive parameters
-  // Currently no specific properties to extract
+  // REWARDS route has no sensitive query parameters to extract.
+  // Money referral codes use `ref` → `referral_code` on the main event.
 };
 
 /**
@@ -793,7 +793,6 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_campaign: context.urlParams.utm_campaign,
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
-      referral: context.urlParams.referral,
       referral_code: parseMoneyReferralCode(context.urlParams.ref) ?? undefined,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
     })

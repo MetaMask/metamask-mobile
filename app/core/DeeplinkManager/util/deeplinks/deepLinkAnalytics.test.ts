@@ -719,13 +719,14 @@ describe('deepLinkAnalytics', () => {
       });
     });
 
-    it('includes referral code for rewards route', async () => {
+    it('omits a legacy referral query from Deep Link Used', async () => {
       mockDetectAppInstallation.mockResolvedValue(true);
-
       const context: DeepLinkAnalyticsContext = {
         url: 'https://link.metamask.io/rewards?referral=ABC123',
         route: DeepLinkRoute.REWARDS,
-        urlParams: { referral: 'ABC123' },
+        urlParams: {
+          referral: 'ABC123',
+        } as Partial<DeeplinkUrlParams>,
         signatureStatus: SignatureStatus.MISSING,
         interstitialShown: false,
         interstitialDisabled: false,
@@ -733,9 +734,9 @@ describe('deepLinkAnalytics', () => {
 
       const result = (await createDeepLinkUsedEventBuilder(context)).build();
 
-      expect(result.properties.referral).toBe('ABC123');
+      expect(result.properties).not.toHaveProperty('referral');
       expect(result.properties).not.toHaveProperty('referral_code');
-      expect(result.sensitiveProperties).toEqual({});
+      expect(result.sensitiveProperties).not.toHaveProperty('referral');
     });
 
     it('reports the normalized money referral code from ref', async () => {
