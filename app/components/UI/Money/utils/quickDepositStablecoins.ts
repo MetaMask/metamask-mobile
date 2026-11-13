@@ -307,7 +307,7 @@ export const buildQuickDepositStablecoinOptions = ({
   return QUICK_DEPOSIT_STABLECOIN_SYMBOLS.flatMap((symbol) => {
     const preferred = best.get(symbol);
     const total = totals.get(symbol);
-    if (!preferred || !total || !total.isGreaterThan(0)) {
+    if (!preferred || !total?.isGreaterThan(0)) {
       return [];
     }
     return [
