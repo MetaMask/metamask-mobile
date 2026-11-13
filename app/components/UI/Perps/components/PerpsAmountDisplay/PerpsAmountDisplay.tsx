@@ -155,11 +155,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
-    // Callers pass a label for the number. The unit is a separate text node,
-    // so append it or the button replaces both nodes and drops the symbol.
-    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
-      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
-    }`;
+    // Caller labels are the USD amount or a generic action. The unit is a
+    // separate text node, so announce the token size on screen instead of
+    // appending the symbol to that label.
+    const displayedPrimaryLabel = primaryDisplayUnit
+      ? `${primaryDisplayValue} ${primaryDisplayUnit}`
+      : primaryDisplayValue;
+    const primaryAccessibilityLabel = primaryDisplayUnit
+      ? displayedPrimaryLabel
+      : (accessibilityLabel ?? displayedPrimaryLabel);
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
