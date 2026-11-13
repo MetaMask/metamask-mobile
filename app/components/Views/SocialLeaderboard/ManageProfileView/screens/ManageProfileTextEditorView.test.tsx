@@ -168,7 +168,7 @@ describe('ManageProfileTextEditorView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows the length rule for a stored display name over 32 characters', async () => {
+  it('shows the length rule for a stored display name over 50 characters', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkDisplayNameValidity = jest.fn();
     mockUseMyProfile.mockReturnValue({
