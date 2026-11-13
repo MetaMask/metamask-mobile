@@ -109,37 +109,12 @@ export const selectMfaMoneyKeyringAddresses = createDeepEqualSelector(
 );
 
 /**
- * Dev-only override that treats every Money keyring as MFA.
- *
- * An MFA Money Account cannot be the primary account at runtime yet
- * (`selectPrimaryMoneyAccount` filters to mnemonic-backed accounts), so the
- * MFA deposit path is otherwise unreachable on device. This lets an ordinary
- * SFA Money Account exercise it end to end.
- *
- * Fenced behind `__DEV__` so a stray env var can never force the non-atomic
- * path in a release build, matching `isMoneyAccountEnabled`'s agentic flag.
- *
- * TODO(CONF-2157): remove this override, its `.js.env.example` entry, and the
- * branch in `selectIsMfaMoneyKeyringAddress` once MFA Money Accounts can be
- * selected at runtime. At that point an MFA account reaches the path on its
- * own and this scaffolding is dead weight in a production selector.
- *
- * @returns Whether the override is active.
- */
-export function isForceNonAtomicMoneyDepositEnabled(): boolean {
-  return __DEV__ && process.env.MM_MONEY_FORCE_NON_ATOMIC_DEPOSIT === 'true';
-}
-
-/**
  * Whether the given address belongs to a Money keyring that requires MFA to
  * sign.
  *
  * Each signature from such a keyring costs the user an MFA confirmation, so
  * deposits from these accounts take the non-atomic path to avoid signing a
  * fresh delegation for every quote.
- *
- * Under the dev-only `MM_MONEY_FORCE_NON_ATOMIC_DEPOSIT` override, any Money
- * keyring address qualifies, so a local SFA account can exercise the path.
  *
  * @param state - The Redux state.
  * @param address - The account address to check.
@@ -148,17 +123,9 @@ export function isForceNonAtomicMoneyDepositEnabled(): boolean {
 export const selectIsMfaMoneyKeyringAddress = (
   state: RootState,
   address: string | undefined,
-): boolean => {
-  if (address === undefined) {
-    return false;
-  }
-
-  if (isForceNonAtomicMoneyDepositEnabled()) {
-    return selectIsMoneyKeyringAddress(state, address);
-  }
-
-  return selectMfaMoneyKeyringAddresses(state).includes(address.toLowerCase());
-};
+): boolean =>
+  address !== undefined &&
+  selectMfaMoneyKeyringAddresses(state).includes(address.toLowerCase());
 
 /**
  * A memoized selector that returns the list of accounts from all keyrings in the form of a flattened array of strings.
