@@ -102,6 +102,7 @@ function useGroupedTokenActivity({
   useEffect(() => {
     if (
       caipAssetId &&
+      apiEvmTransactions?.pages.length === 1 &&
       tokenApiItems.length < DEFAULT_INITIAL_VISIBLE_ROWS &&
       hasNextPage &&
       !isFetchingNextPage &&
@@ -111,6 +112,7 @@ function useGroupedTokenActivity({
     }
   }, [
     caipAssetId,
+    apiEvmTransactions?.pages.length,
     tokenApiItems.length,
     hasNextPage,
     isFetchingNextPage,
