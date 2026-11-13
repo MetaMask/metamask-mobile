@@ -14,3 +14,6 @@ export const MOONPAY_PRIVACY_POLICY_URL =
 // Avenia, MoonPay's regulated partner for virtual asset services in Brazil.
 // Linked from the legal line on the Pix account details screen (TRAM-4397).
 export const AVENIA_URL = 'https://avenia.io/';
+
+// MoonPay risk page linked from the USD account details footer (TRAM-4455).
+export const MOONPAY_RISK_URL = 'https://www.moonpay.com/legal/risk';

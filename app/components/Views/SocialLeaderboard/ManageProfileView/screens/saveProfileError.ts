@@ -21,7 +21,7 @@ const REJECTED_CONTENT_STATUS = 400;
 const REJECTED_CONTENT_MESSAGE_KEYS: Partial<
   Record<ManageProfileTextEditorField, string>
 > = {
-  displayName: 'social_leaderboard.manage_profile.display_name_unavailable',
+  displayName: 'social_leaderboard.errors.display_name_invalid',
   bio: 'social_leaderboard.manage_profile.bio_prohibited',
 };
 

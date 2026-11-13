@@ -61,7 +61,11 @@ describe('useSpotCopyTradeQuickBuy', () => {
       copyTradeOrigin: { commentId: 'comment-1' },
       features: TOP_TRADERS_QUICK_BUY_FEATURES,
       initialTradeMode: 'buy',
-      analyticsContext: { source: 'trader_feed' },
+      analyticsContext: {
+        source: 'trader_feed',
+        isCopyTrade: true,
+        traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      },
       postTradeShare: true,
       postTradeShareOwner: PostTradeShareOwner.socialV1Profile,
     });
@@ -73,7 +77,13 @@ describe('useSpotCopyTradeQuickBuy', () => {
     result.current.onCopyTrade(mockOpenSpotFeedItem());
 
     expect(mockShowQuickBuy).toHaveBeenCalledWith(
-      expect.objectContaining({ copyTradeOrigin: undefined }),
+      expect.objectContaining({
+        copyTradeOrigin: undefined,
+        analyticsContext: expect.objectContaining({
+          isCopyTrade: true,
+          traderAddress: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        }),
+      }),
     );
   });
 
@@ -127,13 +137,17 @@ describe('useSpotCopyTradeQuickBuy', () => {
     renderUseSpotCopyTradeQuickBuy();
     const [onReopen] = mockUsePostTradeShareReopen.mock.calls[0];
 
-    onReopen(PUMP_TARGET, { commentId: 'comment-1' }, 'sell');
+    onReopen(PUMP_TARGET, { commentId: 'comment-1' }, 'sell', '0xtrader');
 
     expect(mockShowQuickBuy).toHaveBeenCalledWith(
       expect.objectContaining({
         target: PUMP_TARGET,
         copyTradeOrigin: { commentId: 'comment-1' },
         initialTradeMode: 'sell',
+        analyticsContext: expect.objectContaining({
+          isCopyTrade: true,
+          traderAddress: '0xtrader',
+        }),
       }),
     );
   });

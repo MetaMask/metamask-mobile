@@ -15,7 +15,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { TokenI } from '../../../Tokens/types';
 
 jest.mock('react-redux', () => ({
@@ -48,7 +48,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
 
 const MOCK_USDC = {
   name: 'USD Coin',
