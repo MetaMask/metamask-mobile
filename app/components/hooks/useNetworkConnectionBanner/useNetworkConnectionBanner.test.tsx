@@ -252,14 +252,42 @@ describe('useNetworkConnectionBanner', () => {
       expect(result.current.isSlowNetwork).toBe(false);
     });
 
-    it('is false while the RPC banner is showing', () => {
+    it('takes priority over a failing RPC', () => {
       latencyMock.mockReturnValue('SLOW');
       statusMock.mockReturnValue('degraded');
       mockFailedNetwork();
 
       const { result } = renderHookWithProviders();
 
+      expect(result.current.isSlowNetwork).toBe(true);
+      expect(result.current.isVisible).toBe(true);
+    });
+
+    it('does not send the RPC banner shown event while the slow banner shows', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+
+      renderHookWithProviders();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('shows the RPC banner once the slow banner is dismissed', () => {
+      latencyMock.mockReturnValue('SLOW');
+      statusMock.mockReturnValue('unavailable');
+      mockFailedNetwork();
+      const { result } = renderHookWithProviders();
+
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+
       expect(result.current.isSlowNetwork).toBe(false);
+      expect(result.current.isVisible).toBe(true);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN,
+      );
     });
 
     it('is false within a week of being dismissed', () => {

@@ -57,8 +57,8 @@ const useNetworkConnectionBanner = (): {
   /** True when either the RPC banner or the slow network banner shows. */
   isVisible: boolean;
   /**
-   * True when requests are slow across the board and the RPC banner isn't
-   * already showing. Hidden for a week after the user dismisses it.
+   * True when requests are slow across the board. Takes priority over the RPC
+   * banner. Hidden for a week after the user dismisses it.
    */
   isSlowNetwork: boolean;
   dismissSlowNetwork: () => void;
@@ -94,10 +94,12 @@ const useNetworkConnectionBanner = (): {
     }
   }, [latency]);
 
+  // A slow network makes RPC calls fail too, so its banner names the real cause.
+  const isSlowNetwork = isLatencySlow && !isSlowNetworkSnoozed;
   const isRpcBannerVisible =
-    (status === 'degraded' || status === 'unavailable') && Boolean(network);
-  const isSlowNetwork =
-    !isRpcBannerVisible && isLatencySlow && !isSlowNetworkSnoozed;
+    !isSlowNetwork &&
+    (status === 'degraded' || status === 'unavailable') &&
+    Boolean(network);
 
   const dismissSlowNetwork = useCallback(() => {
     setIsSlowNetworkSnoozed(true);
@@ -115,7 +117,7 @@ const useNetworkConnectionBanner = (): {
   // dedupe on a stable key to avoid double counting.
   const lastShownKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    if ((status === 'degraded' || status === 'unavailable') && network) {
+    if (isRpcBannerVisible && network) {
       const shownKey = `${status}:${network.networkClientId}`;
       if (lastShownKeyRef.current === shownKey) {
         return;
@@ -136,7 +138,7 @@ const useNetworkConnectionBanner = (): {
     } else {
       lastShownKeyRef.current = null;
     }
-  }, [status, network, trackEvent, createEventBuilder]);
+  }, [isRpcBannerVisible, status, network, trackEvent, createEventBuilder]);
 
   const updateRpc = useCallback(() => {
     if ((status !== 'degraded' && status !== 'unavailable') || !network) {
