@@ -74,22 +74,42 @@ export const exitVbaOnboardingToMoneyHome = (
   });
 };
 
-const getCallerRoute = (state: NavigationState) => {
+type ResetRoute = PartialState<NavigationState>['routes'][number];
+
+const isVbaRootRoute = (name: string | undefined): boolean =>
+  name === Routes.RAMP.VBA_ONBOARDING || name === Routes.RAMP.VBA_DETAILS;
+
+/**
+ * Screens that stay under the VBA destination: everything from the bottom of
+ * the stack up to and including the screen that opened it.
+ *
+ * Keeping only that one screen drops whatever it was opened from. Card home
+ * sits on wallet home, so bank details would then be the only screen left
+ * after one back, and Card home's back button and swipe would do nothing.
+ * Falls back to Money home when the stack holds only VBA routes.
+ */
+const getRoutesUnderDestination = (state: NavigationState): ResetRoute[] => {
+  let callerIndex = -1;
   for (let index = state.index; index >= 0; index -= 1) {
     const route = state.routes[index];
-    if (
-      route?.name !== Routes.RAMP.VBA_ONBOARDING &&
-      route?.name !== Routes.RAMP.VBA_DETAILS
-    ) {
-      return route;
+    if (route && !isVbaRootRoute(route.name)) {
+      callerIndex = index;
+      break;
     }
   }
-  return VBA_DEFAULT_CALLER_ROUTE;
+
+  if (callerIndex < 0) {
+    return [VBA_DEFAULT_CALLER_ROUTE];
+  }
+
+  // A live route has `stale: false`, which PartialState will not accept.
+  return state.routes.slice(0, callerIndex + 1) as ResetRoute[];
 };
 
 /**
- * Keeps exactly two root routes: the screen that opened onboarding and the
- * current onboarding destination. Back then always returns to the caller.
+ * Keeps every screen up to and including the one that opened onboarding, then
+ * the current onboarding destination. Back returns to the caller, and the
+ * caller's own back still has its previous screen.
  *
  * A step change that is already inside onboarding resets that stack in place.
  * Resetting the root route without its existing key destroys the native screen,
@@ -121,14 +141,12 @@ export const openAsOnlyOnboardingRoute = (
       const existingOnboardingRoute = state.routes.find(
         (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
       );
+      const routesUnderDestination = getRoutesUnderDestination(state);
       current.dispatch(
         CommonActions.reset({
-          index: 1,
+          index: routesUnderDestination.length,
           routes: [
-            // A live route has `stale: false`, which PartialState will not accept.
-            getCallerRoute(
-              state,
-            ) as PartialState<NavigationState>['routes'][number],
+            ...routesUnderDestination,
             {
               ...(existingOnboardingRoute?.key
                 ? { key: existingOnboardingRoute.key }
@@ -151,9 +169,10 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Keeps the original caller under the completed account and removes onboarding
- * from the root stack. Header and native-gesture back actions then return
- * directly to the caller instead of revealing the onboarding loader.
+ * Keeps every screen up to the caller under the completed account and removes
+ * onboarding from the root stack. Header and native-gesture back actions then
+ * return directly to the caller instead of revealing the onboarding loader,
+ * and the caller can still go back to the screen it came from.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
  */
@@ -166,13 +185,12 @@ export const openCompletedVbaAccount = (
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const routesUnderDestination = getRoutesUnderDestination(state);
       current.dispatch(
         CommonActions.reset({
-          index: 1,
+          index: routesUnderDestination.length,
           routes: [
-            getCallerRoute(
-              state,
-            ) as PartialState<NavigationState>['routes'][number],
+            ...routesUnderDestination,
             { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),

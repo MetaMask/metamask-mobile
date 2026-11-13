@@ -32,6 +32,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -78,6 +79,7 @@ import {
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
+  MAX_DISPLAY_NAME_LENGTH,
   displayNameFromUsername,
   getUsernameStatus,
   isUneditedXUsername,
@@ -87,6 +89,7 @@ import {
   type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getDisplayNameError } from './utils/getDisplayNameError';
 import { getUsernameLocalError } from './utils/getUsernameLocalError';
 import { getUsernameFeedback } from './utils/getUsernameFeedback';
 import UsernameStatusLine from './UsernameStatusLine';
@@ -110,6 +113,7 @@ import SocialTermsSheet from '../terms/SocialTermsSheet';
 import {
   acceptSocialTerms,
   hasAcceptedSocialTerms,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
@@ -504,6 +508,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   const {
     profile: controllerProfile,
     checkUsernameAvailability,
+    checkDisplayNameValidity,
     createProfile,
     updateProfile,
     fetchAndUpdateProfile,
@@ -542,6 +547,22 @@ const SocialProfileOnboardingView: React.FC = () => {
   const [usernameClaimError, setUsernameClaimError] = useState<string | null>(
     null,
   );
+  const [displayNameError, setDisplayNameError] = useState<string | null>(null);
+  const displayNameCheckId = useRef(0);
+
+  useEffect(() => {
+    displayNameCheckId.current += 1;
+    setDisplayNameError(null);
+  }, [draft.displayName]);
+
+  // VoiceOver keeps focus on Continue and ignores accessibilityLiveRegion, so
+  // announce the error explicitly. TalkBack reads the alert live region.
+  useEffect(() => {
+    if (!displayNameError) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(displayNameError);
+  }, [displayNameError]);
   const [finishError, setFinishError] = useState<string | null>(null);
   // Path the user picked while the terms sheet is open; null when it is closed.
   const [pendingTermsPath, setPendingTermsPath] =
@@ -645,6 +666,14 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   useEffect(() => cancelConnectX, [cancelConnectX]);
+
+  // A declined entry must not run after a later, unrelated onboarding.
+  useEffect(
+    () => () => {
+      takePendingSocialEntry();
+    },
+    [],
+  );
 
   const handleClose = useCallback(() => {
     cancelConnectX();
@@ -785,6 +814,22 @@ const SocialProfileOnboardingView: React.FC = () => {
     trackInteraction,
   ]);
 
+  const checkDisplayName = useCallback(
+    async (displayName: string): Promise<boolean> => {
+      const requestId = ++displayNameCheckId.current;
+      const error = await getDisplayNameError(
+        displayName,
+        checkDisplayNameValidity,
+      );
+      if (requestId !== displayNameCheckId.current) {
+        return false;
+      }
+      setDisplayNameError(error);
+      return error === null;
+    },
+    [checkDisplayNameValidity],
+  );
+
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
       ...current,
@@ -899,7 +944,9 @@ const SocialProfileOnboardingView: React.FC = () => {
       // return to its caller. An existing profile found on open has no caller
       // to return to, so it opens the Social tab instead.
       if (isTermsOnlyRoute) {
+        const openPendingEntry = takePendingSocialEntry();
         navigation.goBack();
+        openPendingEntry?.();
       } else {
         finishProfileOnboardingToSocialTab(navigation);
       }
@@ -1009,11 +1056,21 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (outcome !== 'available') {
         return;
       }
+      if (step === 'username' && !(await checkDisplayName(draft.displayName))) {
+        return;
+      }
       setStep(step === 'x-identity' ? 'account' : 'avatar');
     } finally {
       setIsSubmitting(false);
     }
-  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
+  }, [
+    checkDisplayName,
+    checkHandle,
+    clearUsernameCheckTimer,
+    draft,
+    playSelection,
+    step,
+  ]);
 
   const fingerprintForDraft = (
     current: ProfileOnboardingDraft,
@@ -1232,6 +1289,12 @@ const SocialProfileOnboardingView: React.FC = () => {
       navigation.dispatch(StackActions.replace(Routes.SOCIAL.MY_PROFILE));
       return;
     }
+    const openPendingEntry = takePendingSocialEntry();
+    if (openPendingEntry) {
+      navigation.goBack();
+      openPendingEntry();
+      return;
+    }
     finishProfileOnboardingToSocialTab(navigation);
   }, [draft.path, navigation]);
 
@@ -1431,8 +1494,9 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.displayName}
                       onChangeText={handleDisplayNameChange}
+                      isError={Boolean(displayNameError)}
                       endAccessory={
-                        draft.displayName.trim() ? (
+                        draft.displayName.trim() && !displayNameError ? (
                           <Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
@@ -1442,10 +1506,21 @@ const SocialProfileOnboardingView: React.FC = () => {
                       }
                       inputProps={{
                         autoCapitalize: 'words',
+                        maxLength: MAX_DISPLAY_NAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
                       }}
                     />
+                    {displayNameError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        accessibilityRole="alert"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {displayNameError}
+                      </Text>
+                    ) : null}
                   </Box>
                 </Box>
               ) : null}

@@ -20,7 +20,7 @@ import {
   within,
 } from '@testing-library/react-native';
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
@@ -36,14 +36,19 @@ import {
   getLocalSocialProfileSnapshot,
   clearLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
-import { displayNameFromUsername } from './profileOnboardingDraft';
+import {
+  displayNameFromUsername,
+  MAX_DISPLAY_NAME_LENGTH,
+} from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { strings } from '../../../../../locales/i18n';
 import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
 import {
   acceptSocialTerms,
+  ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
 
@@ -287,6 +292,30 @@ const renderOnboarding = async (
   return result;
 };
 
+const openManualUsernameStep = async () => {
+  await renderOnboarding();
+  fireEvent.press(
+    screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+    ),
+  );
+  expect(
+    await screen.findByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
+    ),
+  ).toBeOnTheScreen();
+};
+
+const submitDisplayName = (name: string) => {
+  fireEvent.changeText(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT),
+    name,
+  );
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+  );
+};
+
 const restoreProfileControllerMocks = () => {
   jest.mocked(Engine.context.ProfileController.createProfile).mockReset();
   jest
@@ -304,6 +333,12 @@ const restoreProfileControllerMocks = () => {
       normalized: 'wen_cat',
       errors: [],
     });
+  jest
+    .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+    .mockReset();
+  jest
+    .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+    .mockResolvedValue({ valid: true });
   jest
     .mocked(Engine.context.AuthenticationController.getSessionProfile)
     .mockReset();
@@ -347,6 +382,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   afterEach(async () => {
+    takePendingSocialEntry();
     engineWithState.state = originalEngineState;
     await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
@@ -602,6 +638,92 @@ describe('SocialProfileOnboardingView', () => {
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
       ).toBeOnTheScreen();
       expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('continues to the blocked Social entry once the terms-only sheet is accepted', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      agreeToTerms();
+
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the blocked Social entry when the terms-only sheet is closed', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+      expect(openBlockedEntry).not.toHaveBeenCalled();
+    });
+
+    it('forgets the blocked Social entry when onboarding closes', () => {
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      const { unmount } = renderSocialProfileOnboarding([], {
+        initialParams: { termsOnly: true },
+      });
+
+      unmount();
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('opens the blocked Social entry instead of the feed after a new profile', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      await renderOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      await reachReadyStep();
+      await leaveReadyStep();
+
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens My Profile after the X path even with a blocked Social entry', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      signIn();
+      await renderOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      await leaveReadyStep();
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE),
+        ),
+      ).toBeOnTheScreen();
+      expect(openBlockedEntry).not.toHaveBeenCalled();
     });
 
     it('skips the sheet when the current terms were already accepted', async () => {
@@ -1003,6 +1125,199 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('checks the display name only when continue is pressed', async () => {
+    await openManualUsernameStep();
+    fireEvent.changeText(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
+      ),
+      'Bad Name',
+    );
+
+    await act(async () => {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 0);
+      });
+    });
+
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).not.toHaveBeenCalled();
+
+    jest
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+      .mockResolvedValueOnce({ valid: false });
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    try {
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      const invalidDisplayName = strings(
+        'social_leaderboard.errors.display_name_invalid',
+      );
+      const displayNameError = await screen.findByText(invalidDisplayName);
+      expect(displayNameError).toBeOnTheScreen();
+      expect(displayNameError).toHaveProp('accessibilityRole', 'alert');
+      expect(displayNameError).toHaveProp('accessibilityLiveRegion', 'polite');
+      expect(announceSpy).toHaveBeenCalledWith(invalidDisplayName);
+    } finally {
+      announceSpy.mockRestore();
+    }
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).toHaveBeenCalledWith('Bad Name');
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('stays on the username step when the display name is longer than 50 characters', async () => {
+    await openManualUsernameStep();
+    submitDisplayName('A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1));
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.errors.display_name_too_long', {
+          max: MAX_DISPLAY_NAME_LENGTH,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('stays on the username step when the display name check cannot reach the API', async () => {
+    jest
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+      .mockRejectedValueOnce(new Error('offline'));
+    await openManualUsernameStep();
+    submitDisplayName('Laser Gains');
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.errors.display_name_check_error'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.errors.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).toHaveBeenCalledWith('Laser Gains');
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('sends the trimmed display name when continue is pressed', async () => {
+    await openManualUsernameStep();
+    submitDisplayName('  Laser Gains  ');
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.customize_avatar'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).toHaveBeenCalledWith('Laser Gains');
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('clears the display name error when the name changes', async () => {
+    jest
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+      .mockResolvedValueOnce({ valid: false });
+    await openManualUsernameStep();
+    submitDisplayName('Bad Name');
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.errors.display_name_invalid'),
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.changeText(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
+      ),
+      'Better Name',
+    );
+
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.errors.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+  });
+
+  it('ignores a display name result that arrives after the name changes', async () => {
+    let resolveCheck: (value: { valid: boolean }) => void = () => undefined;
+    jest
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCheck = resolve;
+          }),
+      );
+    await openManualUsernameStep();
+    submitDisplayName('Bad Name');
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileService.checkDisplayNameValidity,
+      ).toHaveBeenCalledWith('Bad Name');
+    });
+
+    fireEvent.changeText(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
+      ),
+      'Better Name',
+    );
+    await act(async () => {
+      resolveCheck({ valid: false });
+    });
+
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.errors.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.customize_avatar'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).toHaveBeenLastCalledWith('Better Name');
+  });
+
   it('checks availability for a handle with a trailing underscore', async () => {
     await renderOnboarding();
     fireEvent.press(
@@ -1321,6 +1636,52 @@ describe('SocialProfileOnboardingView', () => {
           'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
       }),
     );
+  });
+
+  it('continues from X identity when the imported display name would fail the name check', async () => {
+    jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
+      xUserId: 'x-user-1',
+      xProfileUrl: 'https://x.com/degangirl',
+      username: 'degangirl',
+      displayName: 'A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1),
+      avatarUrl: '',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    jest
+      .mocked(Engine.context.ProfileService.checkDisplayNameValidity)
+      .mockResolvedValue({ valid: false });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileService.checkDisplayNameValidity,
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.errors.display_name_too_long', {
+          max: MAX_DISPLAY_NAME_LENGTH,
+        }),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.errors.display_name_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('does not announce a kept X handle as available before the server answers', async () => {
