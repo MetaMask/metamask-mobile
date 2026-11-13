@@ -111,6 +111,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // 6.x ships ESM-only under dist/*.js.
   '@metamask/gator-permissions-controller',
   '@metamask/keyring-controller',
+  '@metamask/key-tree',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
