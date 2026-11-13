@@ -8,6 +8,7 @@ import type {
   KycCatalogDocument,
   KycConsentDocument,
   KycDisclaimer,
+  KycStep,
   OnboardingVendorState,
 } from '@metamask/kyc-controller';
 import {
@@ -178,22 +179,35 @@ const KalshiOnboarding = () => {
     setInput('');
   }, [screen]);
 
-  // Ask kyc-api for the step, and idOS's own step when it owes a code.
-  const refresh = useCallback(async () => {
+  // idOS's own step says whether it wants a code. It only matters while the
+  // step is identity_verification, so it is not read for any other step.
+  const loadRelayStep = useCallback(async (step?: KycStep) => {
+    if (step !== 'identity_verification') {
+      return;
+    }
     try {
-      const next = await VendorOnboardingController.refreshStep({
-        vendor: VENDOR,
-      });
-      if (next === 'identity_verification') {
-        const session = await getKycService().getSessionStatusForVendor(VENDOR);
-        setRelayStep(session?.currentStep);
-      }
+      const session = await getKycService().getSessionStatusForVendor(VENDOR);
+      setRelayStep(session?.currentStep);
     } catch (caught) {
       Logger.error(caught as Error, {
         tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
       });
     }
-  }, [VendorOnboardingController]);
+  }, []);
+
+  // Ask kyc-api for the step. For opening the screen and for polling.
+  const refresh = useCallback(async () => {
+    try {
+      const next = await VendorOnboardingController.refreshStep({
+        vendor: VENDOR,
+      });
+      await loadRelayStep(next);
+    } catch (caught) {
+      Logger.error(caught as Error, {
+        tags: { feature: KALSHI_KYC_VENDOR.loggerFeature },
+      });
+    }
+  }, [VendorOnboardingController, loadRelayStep]);
 
   useEffect(() => {
     refresh();
@@ -205,7 +219,11 @@ const KalshiOnboarding = () => {
       setError(undefined);
       try {
         await action();
-        await refresh();
+        // Every controller action has already saved the step it ended on, so
+        // there is no need to ask kyc-api again. Only idOS's own step is read.
+        await loadRelayStep(
+          VendorOnboardingController.state.vendors[VENDOR]?.step,
+        );
       } catch (caught) {
         if (getMfaErrorCode(caught) === 'flow_cancelled') {
           return;
@@ -218,7 +236,7 @@ const KalshiOnboarding = () => {
         setBusy(false);
       }
     },
-    [refresh],
+    [VendorOnboardingController, loadRelayStep],
   );
 
   // Terms catalog.
@@ -350,7 +368,8 @@ const KalshiOnboarding = () => {
       }
     });
 
-  const checkAgain = () => run(async () => undefined);
+  const checkAgain = () =>
+    run(() => VendorOnboardingController.refreshStep({ vendor: VENDOR }));
 
   const field = FIELDS[screen];
 

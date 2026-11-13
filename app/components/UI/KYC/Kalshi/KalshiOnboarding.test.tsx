@@ -31,6 +31,7 @@ jest.mock('../utils/toSumSubLocale', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     VendorOnboardingController: {
+      state: { vendors: {} },
       refreshStep: jest.fn(),
       acceptTerms: jest.fn(),
       startAccountLink: jest.fn(),
@@ -56,6 +57,15 @@ const flow = Engine.context.VendorOnboardingController as unknown as Record<
   string,
   jest.Mock
 >;
+// The controller state the screen reads after an action. Tests set the step the
+// action ended on.
+const flowState = Engine.context.VendorOnboardingController as unknown as {
+  state: { vendors: Record<string, { step: string }> };
+};
+const endActionOn = (step?: string): void => {
+  flowState.state = { vendors: step ? { kalshi: { step } } : {} };
+};
+
 const service = Engine.context.KycService as unknown as Record<
   string,
   jest.Mock
@@ -96,6 +106,7 @@ describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    endActionOn();
     flow.refreshStep.mockResolvedValue('vendor_terms');
     for (const name of [
       'acceptTerms',
@@ -283,6 +294,7 @@ describe('KalshiOnboarding', () => {
 
     beforeEach(() => {
       flow.refreshStep.mockResolvedValue('identity_verification');
+      endActionOn('identity_verification');
     });
 
     it('asks for the email code idOS is waiting for', async () => {
@@ -418,6 +430,70 @@ describe('KalshiOnboarding', () => {
       const screen = render('kyc_retry');
 
       expect(screen.getByText('Verify your identity')).toBeOnTheScreen();
+    });
+  });
+
+  describe('after an action', () => {
+    it('does not ask kyc-api for the step again', async () => {
+      endActionOn('account_link');
+      const screen = render('vendor_terms');
+      await screen.findByText('Terms');
+      flow.refreshStep.mockClear();
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.acceptTerms).toHaveBeenCalled());
+      expect(flow.refreshStep).not.toHaveBeenCalled();
+    });
+
+    it('does not read idOS’s step when the action ended somewhere else', async () => {
+      endActionOn('account_link_code');
+      const screen = render('account_link');
+      typeInto(screen, 'a@b.co');
+      service.getSessionStatusForVendor.mockClear();
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.startAccountLink).toHaveBeenCalled());
+      expect(service.getSessionStatusForVendor).not.toHaveBeenCalled();
+    });
+
+    it('reads idOS’s step when the action ended in identity verification', async () => {
+      flow.refreshStep.mockResolvedValue('identity_verification');
+      service.getSessionStatusForVendor.mockResolvedValue({
+        currentStep: KYC_CURRENT_STEPS.emailOtpCollection,
+      });
+      endActionOn('identity_verification');
+      const screen = render('confirm_identity');
+      await waitFor(() => expect(flow.refreshStep).toHaveBeenCalled());
+      service.getSessionStatusForVendor.mockClear();
+      service.getSessionStatusForVendor.mockResolvedValue({
+        currentStep: KYC_CURRENT_STEPS.phoneOtpCollection,
+      });
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.startSession).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(service.getSessionStatusForVendor).toHaveBeenCalledTimes(1),
+      );
+    });
+
+    it('keeps going when idOS’s step cannot be read', async () => {
+      endActionOn('identity_verification');
+      service.getSessionStatusForVendor.mockRejectedValue(new Error('down'));
+      flow.refreshStep.mockResolvedValue('identity_verification');
+      const screen = render('identity_verification');
+      await waitFor(() =>
+        expect(service.getSessionStatusForVendor).toHaveBeenCalled(),
+      );
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() =>
+        expect(flow.fetchSessionDisclaimers).toHaveBeenCalled(),
+      );
+      expect(screen.queryByTestId(KalshiOnboardingTestIds.ERROR)).toBeNull();
     });
   });
 
