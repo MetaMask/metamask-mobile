@@ -909,17 +909,21 @@ class AccountListBottomSheet {
 
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
-    /** Safely check if a text element is visible — returns false if not found. */
-    const isTextVisible = async (text: string): Promise<boolean> => {
-      try {
-        const el = (await Matchers.getElementByNativeXPath(
+    /**
+     * Short existence probe for Syncing/Discovering chrome.
+     * Default `isVisible()` waits ~3–4s when the node is absent, so Step 1's
+     * 5s window only got one Syncing+Discovering pair and burned ~14s per
+     * Add-account attempt even when sync never appeared (Account 3 suite
+     * timeout). Match TabBarComponent / Utilities short-probe callers.
+     */
+    const SYNC_CHROME_PROBE_MS = 500;
+    const isTextVisible = async (text: string): Promise<boolean> =>
+      Utilities.isElementVisible(
+        Matchers.getElementByNativeXPath(
           this.getCatchAllXPath(text),
-        )) as AppiumElement;
-        return await el.isVisible();
-      } catch {
-        return false;
-      }
-    };
+        ) as Promise<AppiumElement>,
+        SYNC_CHROME_PROBE_MS,
+      );
 
     // Step 1: Wait up to initialWaitTimeout for "Syncing" or "Discovering" to appear
     logger.debug(
