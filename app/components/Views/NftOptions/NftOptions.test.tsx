@@ -218,14 +218,6 @@ describe('NftOptions', () => {
     const { getByText } = render(<NftOptions />);
     fireEvent.press(getByText('Remove NFT'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({
-        screen: expect.any(String),
-        params: expect.objectContaining({
-          screen: 'WalletView',
-        }),
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome');
   });
 });

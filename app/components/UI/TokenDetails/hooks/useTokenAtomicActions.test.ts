@@ -495,12 +495,7 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
     });
     expect(mockNavigateToSendPage).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mockSetActiveNetwork).not.toHaveBeenCalled();
   });
 
@@ -532,12 +527,7 @@ describe('useTokenAtomicActions - useHandleOnSend', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     expect(mockGetNetworkConfigurationByChainId).toHaveBeenCalledWith('0x89');
     expect(mockSetActiveNetwork).toHaveBeenCalledTimes(1);
     expect(mockSetActiveNetwork).toHaveBeenCalledWith('polygon-mainnet');
