@@ -9,6 +9,7 @@ import type {
   PerpsOrderKind,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
+import type { SolanaPayOutcome } from '@metamask/transaction-pay-controller';
 import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -150,7 +151,10 @@ type SplitByKind<T> = {
 }[ActivityKind];
 
 type WithMobileFields<T> = T extends unknown
-  ? T & { isEarliestNonce?: boolean }
+  ? T & {
+      isEarliestNonce?: boolean;
+      payOutcome?: SolanaPayOutcome;
+    }
   : never;
 
 export type ActivityListItem = WithMobileFields<

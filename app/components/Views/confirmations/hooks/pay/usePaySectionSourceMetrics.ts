@@ -3,9 +3,12 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import {
+  selectPaymentOverrideByTransactionId,
+  selectTransactionPaymentTokenByTransactionId,
+} from '../../../../../selectors/transactionPayController';
+import { isMoneyAccountFunding } from '../../utils/transaction-pay';
 import { useIsPerpsBalanceSelected } from '../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/selectors/predictController';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
@@ -38,6 +41,9 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const payToken = useSelector((state: RootState) =>
+    selectTransactionPaymentTokenByTransactionId(state, transactionId),
   );
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
   const predictSelectedPaymentToken = useSelector(
@@ -73,7 +79,7 @@ export function usePaySectionSourceMetrics(hasPayToken: boolean) {
     !isMoneyAccountDeposit || Boolean(accountOverride);
 
   const isMoneyAccountActive =
-    paymentOverride === PaymentOverride.MoneyAccount ||
+    isMoneyAccountFunding({ paymentOverride, payToken, transactionMeta }) ||
     (isDefaultMoneyAccount && !hasPayToken && !hasFiatPaymentSelected);
 
   const currentSection = getActiveSectionId({
