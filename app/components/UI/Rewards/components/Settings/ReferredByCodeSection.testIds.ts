@@ -3,4 +3,5 @@ export const REFERRED_BY_CODE_SECTION_TEST_IDS = {
   INPUT: 'referred-by-code-input',
   ERROR: 'referred-by-code-error',
   APPLY: 'referred-by-code-apply',
+  TERMS_LINK: 'referred-by-code-terms-link',
 } as const;
