@@ -19,7 +19,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import onboardingRiveFile from '../../../animations/fox_loading.riv';
-import { colors } from '../../../styles/common';
 import { getScreenDimensions } from '../../../util/onboarding';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { useTheme } from '../../../util/theme';
@@ -32,9 +31,7 @@ export interface OnboardingFoxLoaderRef {
 export const getOnboardingFoxLoaderBackgroundColor = (
   themeAppearance: AppThemeKey.light | AppThemeKey.dark,
 ) =>
-  themeAppearance === AppThemeKey.dark
-    ? brandColor.black
-    : colors.gettingStartedPageBackgroundColorLightMode;
+  themeAppearance === AppThemeKey.dark ? brandColor.black : brandColor.white;
 
 const OnboardingFoxLoader = forwardRef<OnboardingFoxLoaderRef>(
   (_props, ref) => {

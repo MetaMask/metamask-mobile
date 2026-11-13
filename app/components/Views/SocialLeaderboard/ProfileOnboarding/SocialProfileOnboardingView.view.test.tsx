@@ -1187,7 +1187,7 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('stays on the username step when the display name is longer than 32 characters', async () => {
+  it('stays on the username step when the display name is longer than 50 characters', async () => {
     await openManualUsernameStep();
     submitDisplayName('A'.repeat(MAX_DISPLAY_NAME_LENGTH + 1));
 

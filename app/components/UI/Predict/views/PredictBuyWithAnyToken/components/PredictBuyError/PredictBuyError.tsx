@@ -17,9 +17,9 @@ const PredictBuyError = ({ errorMessage }: PredictBuyErrorProps) => {
   if (!errorMessage) return null;
 
   return (
-    <Box twClassName="px-12 pb-4">
+    <Box twClassName="px-12">
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
         color={TextColor.ErrorDefault}
         style={tw.style('text-center')}
       >
