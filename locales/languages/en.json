@@ -13640,6 +13640,8 @@
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
       "invoices": "Invoices",
+      "invoices_in_progress": "Opening invoices",
+      "invoices_failed": "We couldn't open your invoices. Try again.",
       "contact_support": "Contact support",
       "cancel_membership": "Cancel membership",
       "resume_membership": "Resume membership",
