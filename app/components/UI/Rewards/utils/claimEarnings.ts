@@ -299,8 +299,8 @@ export function incomeHeldOnOpenRoute(
 
 /**
  * True when the Earnings tab shows Claim: an open route meets the minimum,
- * or an open income route is held only for tax documentation. A blocked
- * balance stays off, because that card shows Paused.
+ * or an open income route is held for tax documentation. A blocked balance
+ * beside it does not turn this off.
  */
 export function showEarningsIndicator(
   summary: EarningsSummaryDto | null | undefined,
@@ -311,8 +311,7 @@ export function showEarningsIndicator(
   }
   return (
     incomeHeldOnOpenRoute(summary, options) &&
-    isPositiveBaseUnits(summary?.held) &&
-    !isPositiveBaseUnits(summary?.blocked)
+    isPositiveBaseUnits(summary?.held)
   );
 }
 

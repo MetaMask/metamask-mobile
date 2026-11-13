@@ -327,6 +327,53 @@ describe('EarningsTab tax documentation', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('opens the tax sheet when follow-trade is held for tax and revenue share is blocked', async () => {
+    const summary: EarningsSummaryDto = {
+      ...HELD_ONLY,
+      blocked: '130000',
+      earned_by_others: {
+        ...HELD_ONLY.earned_by_others,
+        by_claim_family: {
+          ...HELD_ONLY.earned_by_others.by_claim_family,
+          REFERRAL_REV_SHARE: {
+            lifetime: '130000',
+            claimable: '0',
+            held: '0',
+            blocked: '130000',
+            voided: '0',
+            pending: '0',
+            claimed: '0',
+            blocking_reason: 'MECHANISM_NOT_CLAIMABLE',
+          },
+        },
+      },
+    };
+    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getTaxMe': () => Promise.resolve(ATTESTATION),
+        'RewardsMoneyController:getCommissions': () =>
+          Promise.resolve(OPEN_FOLLOW_TRADE_COMMISSIONS),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(COPY.taxAttestationTitle);
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
   it('opens the tax sheet from a fresh read when a tax hold is cached as cleared', async () => {
     const { findByTestId, engine } = renderEarningsTab({
       persona: 'referrer',
