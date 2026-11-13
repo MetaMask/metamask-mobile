@@ -33,8 +33,25 @@ describe('getXAccountDisconnectError', () => {
     );
   });
 
+  it('returns the server-error copy for every upstream failure', () => {
+    for (const code of [
+      ProfileApiErrorCode.NotImplemented,
+      ProfileApiErrorCode.BadGateway,
+      ProfileApiErrorCode.GatewayTimeout,
+      ProfileApiErrorCode.RequestTimeout,
+      ProfileApiErrorCode.InternalError,
+    ]) {
+      expect(getXAccountDisconnectError(profileApiError(code, 503))).toBe(
+        strings('social_leaderboard.manage_profile.server_error'),
+      );
+    }
+  });
+
   it('returns null for a code without disconnect copy', () => {
-    const error = profileApiError(ProfileApiErrorCode.ServiceUnavailable, 503);
+    const error = profileApiError(
+      ProfileApiErrorCode.XAccountAlreadyLinked,
+      409,
+    );
 
     const result = getXAccountDisconnectError(error);
 

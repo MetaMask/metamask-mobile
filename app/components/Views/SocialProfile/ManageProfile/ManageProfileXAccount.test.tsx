@@ -297,7 +297,9 @@ describe('ManageProfileXAccount', () => {
       ).toBeOnTheScreen();
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
-      ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
+      ).toHaveTextContent(
+        strings('social_leaderboard.manage_profile.server_error'),
+      );
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockTrackProfileEdited).not.toHaveBeenCalled();

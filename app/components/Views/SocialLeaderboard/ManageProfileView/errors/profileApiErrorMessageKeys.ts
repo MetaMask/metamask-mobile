@@ -4,6 +4,8 @@ import {
   type ProfileApiErrorCodeId,
 } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { MIN_USERNAME_LENGTH } from '../../ProfileOnboarding/profileOnboardingDraft';
+import { MAX_USERNAME_LENGTH } from '../../ProfileOnboarding/generateUsername';
 
 /**
  * UI copy for the Profile API error codes.
@@ -35,14 +37,21 @@ export const PROFILE_FIELD_REJECTION_MESSAGE_KEYS: Partial<
   bio: 'social_leaderboard.manage_profile.bio_prohibited',
 };
 
-/** Copy for the linked-address cooldown refusal. */
-export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEY =
-  'social_leaderboard.manage_profile.linked_account_cooldown';
-
 /**
- * Copy for profile save/update failures that are not field-specific. Codes
- * left out keep the generic save error.
+ * Copy for the linked-address cooldown refusal. The day count picks the `one`
+ * or `other` form; a refusal with no count falls back to the policy window,
+ * which is the window the screen's footnote states.
  */
+export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS = {
+  one: 'social_leaderboard.manage_profile.linked_account_cooldown_one',
+  other: 'social_leaderboard.manage_profile.linked_account_cooldown_other',
+  noDayCount: 'social_leaderboard.manage_profile.linked_account_cooldown',
+} as const;
+
+/** The window the API enforces, used when a refusal carries no day count. */
+export const LINKED_ADDRESS_COOLDOWN_POLICY_DAYS = 30;
+
+/** Copy for profile save/update failures that are not field-specific. */
 export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
   {
     [ProfileApiErrorCode.AuthTokenMissing]:
@@ -54,9 +63,9 @@ export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
     [ProfileApiErrorCode.AuthTokenSubjectMissing]:
       'social_leaderboard.manage_profile.session_expired',
     [ProfileApiErrorCode.AuthEarlyAccessRequired]:
-      'social_leaderboard.manage_profile.access_denied',
+      'social_leaderboard.manage_profile.social_profiles_unavailable',
     [ProfileApiErrorCode.AuthProfileAccessDenied]:
-      'social_leaderboard.manage_profile.access_denied',
+      'social_leaderboard.manage_profile.save_retry',
     [ProfileApiErrorCode.RateLimitExceeded]:
       'social_leaderboard.manage_profile.rate_limited',
     [ProfileApiErrorCode.ProfileNotFound]:
@@ -77,6 +86,10 @@ export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
       'social_leaderboard.manage_profile.username_invalid',
     [ProfileApiErrorCode.UsernameInvalidFormat]:
       'social_leaderboard.manage_profile.username_invalid',
+    [ProfileApiErrorCode.UsernameTooShort]:
+      'social_leaderboard.manage_profile.username_too_short',
+    [ProfileApiErrorCode.UsernameTooLong]:
+      'social_leaderboard.manage_profile.username_too_long',
     [ProfileApiErrorCode.UsernameUnavailable]:
       'social_leaderboard.manage_profile.username_unavailable',
     [ProfileApiErrorCode.UsernameReserved]:
@@ -95,13 +108,39 @@ export const PROFILE_SAVE_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> =
       'social_leaderboard.manage_profile.server_error',
     [ProfileApiErrorCode.GatewayTimeout]:
       'social_leaderboard.manage_profile.server_error',
+    [ProfileApiErrorCode.RequestTimeout]:
+      'social_leaderboard.manage_profile.server_error',
     [ProfileApiErrorCode.InternalError]:
       'social_leaderboard.manage_profile.server_error',
   };
 
 /**
+ * Copy for a failed profile create on onboarding's last screen. The create
+ * step has its own retry wording, so it is the save map plus the codes that
+ * read differently there. `PROFILE_NOT_FOUND` and `PROFILE_USERNAME_IMMUTABLE`
+ * come along in the spread but cannot be returned while creating.
+ */
+export const PROFILE_CREATE_ERROR_MESSAGE_KEYS: Partial<
+  Record<string, string>
+> = {
+  ...PROFILE_SAVE_ERROR_MESSAGE_KEYS,
+  [ProfileApiErrorCode.AuthProfileAccessDenied]:
+    'social_leaderboard.manage_profile.create_retry',
+  [ProfileApiErrorCode.ProfileConflict]:
+    'social_leaderboard.manage_profile.create_retry',
+  [ProfileApiErrorCode.ProfileUpdateConflict]:
+    'social_leaderboard.manage_profile.create_retry',
+  [ProfileApiErrorCode.Conflict]:
+    'social_leaderboard.manage_profile.create_retry',
+  [ProfileApiErrorCode.ProfileDisplayNameProhibited]:
+    'social_leaderboard.manage_profile.display_name_unavailable',
+  [ProfileApiErrorCode.ProfileDisplayNameNotAllowed]:
+    'social_leaderboard.manage_profile.display_name_unavailable',
+};
+
+/**
  * Copy for the X auth codes that give the user something specific to do.
- * Every other X failure keeps the generic connect error.
+ * Every other X failure keeps the generic connect copy.
  */
 export const X_CONNECT_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
   [ProfileApiErrorCode.AuthTokenMissing]:
@@ -113,13 +152,13 @@ export const X_CONNECT_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
   [ProfileApiErrorCode.AuthTokenSubjectMissing]:
     'social_leaderboard.manage_profile.session_expired',
   [ProfileApiErrorCode.AuthEarlyAccessRequired]:
-    'social_leaderboard.manage_profile.access_denied',
+    'social_leaderboard.manage_profile.social_profiles_unavailable',
   [ProfileApiErrorCode.AuthProfileAccessDenied]:
-    'social_leaderboard.manage_profile.access_denied',
+    'social_leaderboard.manage_profile.connect_x_retry',
   [ProfileApiErrorCode.RateLimitExceeded]:
     'social_leaderboard.manage_profile.rate_limited',
   [ProfileApiErrorCode.XOAuthAccessDenied]:
-    'social_leaderboard.manage_profile.x_access_denied',
+    'social_leaderboard.manage_profile.connect_x_retry',
   [ProfileApiErrorCode.XOAuthStateInvalid]:
     'social_leaderboard.manage_profile.x_connection_expired',
   [ProfileApiErrorCode.XAccountAlreadyLinked]:
@@ -128,13 +167,51 @@ export const X_CONNECT_ERROR_MESSAGE_KEYS: Partial<Record<string, string>> = {
     'social_leaderboard.manage_profile.x_profile_already_linked',
   [ProfileApiErrorCode.XAccountLinkConflict]:
     'social_leaderboard.manage_profile.x_account_link_conflict',
+  // A bare CONFLICT is the same refusal as X_ACCOUNT_LINK_CONFLICT.
   [ProfileApiErrorCode.Conflict]:
     'social_leaderboard.manage_profile.x_account_link_conflict',
+  [ProfileApiErrorCode.NotImplemented]:
+    'social_leaderboard.manage_profile.server_error',
+  [ProfileApiErrorCode.BadGateway]:
+    'social_leaderboard.manage_profile.server_error',
+  [ProfileApiErrorCode.ServiceUnavailable]:
+    'social_leaderboard.manage_profile.server_error',
+  [ProfileApiErrorCode.GatewayTimeout]:
+    'social_leaderboard.manage_profile.server_error',
+  [ProfileApiErrorCode.RequestTimeout]:
+    'social_leaderboard.manage_profile.server_error',
+  [ProfileApiErrorCode.InternalError]:
+    'social_leaderboard.manage_profile.server_error',
 };
 
-/** The generic save copy for a Profile API code, when one is mapped. */
+/** The length copy states the allowed range, so it needs the same numbers the on-device rules use. */
+const paramsForCode = (code: string): Record<string, number> | undefined => {
+  if (code === ProfileApiErrorCode.UsernameTooShort) {
+    return { min: MIN_USERNAME_LENGTH };
+  }
+  if (code === ProfileApiErrorCode.UsernameTooLong) {
+    return { max: MAX_USERNAME_LENGTH };
+  }
+  return undefined;
+};
+
+/** The copy for a mapped code, with its placeholders filled in. */
+const copyForCode = (
+  code: string,
+  messageKeys: Partial<Record<string, string>>,
+): string | null => {
+  const messageKey = messageKeys[code];
+  return messageKey ? strings(messageKey, paramsForCode(code)) : null;
+};
+
+/** The save copy for a Profile API error, when its code is mapped. */
 export const getProfileSaveErrorCopy = (error: unknown): string | null => {
   const code = findProfileServiceError(error)?.code;
-  const messageKey = code ? PROFILE_SAVE_ERROR_MESSAGE_KEYS[code] : undefined;
-  return messageKey ? strings(messageKey) : null;
+  return code ? copyForCode(code, PROFILE_SAVE_ERROR_MESSAGE_KEYS) : null;
+};
+
+/** The create-profile copy for a Profile API error, when its code is mapped. */
+export const getProfileCreateErrorCopy = (error: unknown): string | null => {
+  const code = findProfileServiceError(error)?.code;
+  return code ? copyForCode(code, PROFILE_CREATE_ERROR_MESSAGE_KEYS) : null;
 };

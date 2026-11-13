@@ -201,7 +201,7 @@ describe('ManageProfileLinkedAccountView', () => {
     });
 
     const cooldownMessage = strings(
-      'social_leaderboard.manage_profile.linked_account_cooldown',
+      'social_leaderboard.manage_profile.linked_account_cooldown_other',
       {
         days: 30,
       },
@@ -243,9 +243,12 @@ describe('ManageProfileLinkedAccountView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByText(
-        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
-          days: 30,
-        }),
+        strings(
+          'social_leaderboard.manage_profile.linked_account_cooldown_other',
+          {
+            days: 30,
+          },
+        ),
       ),
     ).not.toBeOnTheScreen();
   });
@@ -277,9 +280,12 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(announceSpy).toHaveBeenCalledWith(saveErrorMessage);
     expect(
       screen.queryByText(
-        strings('social_leaderboard.manage_profile.linked_account_cooldown', {
-          days: 30,
-        }),
+        strings(
+          'social_leaderboard.manage_profile.linked_account_cooldown_other',
+          {
+            days: 30,
+          },
+        ),
       ),
     ).not.toBeOnTheScreen();
     announceSpy.mockRestore();

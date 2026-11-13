@@ -6,9 +6,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
 
 const cooldown = (days = 30) =>
-  strings('social_leaderboard.manage_profile.linked_account_cooldown', {
-    days,
-  });
+  days === 1
+    ? strings('social_leaderboard.manage_profile.linked_account_cooldown_one')
+    : strings(
+        'social_leaderboard.manage_profile.linked_account_cooldown_other',
+        { days },
+      );
 
 /**
  * The shape `HttpError` from @metamask/controller-utils carries. The preview
@@ -48,6 +51,12 @@ describe('getLinkedAccountUpdateError', () => {
     );
   });
 
+  it('explains the cooldown in the singular for a one-day window', () => {
+    expect(getLinkedAccountUpdateError(cooldownError(403, 1))).toBe(
+      cooldown(1),
+    );
+  });
+
   it('matches the message case-insensitively', () => {
     expect(
       getLinkedAccountUpdateError(
@@ -84,19 +93,23 @@ describe('getLinkedAccountUpdateError', () => {
     expect(getLinkedAccountUpdateError(error)).toBe(cooldown(7));
   });
 
+  it('explains the cooldown with the policy window when the code has no day count', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
+      'ProfileService: failed to update profile: 403: Too soon',
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBe(
+      strings('social_leaderboard.manage_profile.linked_account_cooldown', {
+        days: 30,
+      }),
+    );
+  });
+
   it('stays quiet for a different code even when the message matches', () => {
     const error = profileApiError(
       'PROFILE_NOT_FOUND',
       'Linked addresses can only be updated once every 30 days',
-    );
-
-    expect(getLinkedAccountUpdateError(error)).toBeNull();
-  });
-
-  it('stays quiet when the cooldown code has no day count or retry detail', () => {
-    const error = profileApiError(
-      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
-      'ProfileService: failed to update profile: 403: Too soon',
     );
 
     expect(getLinkedAccountUpdateError(error)).toBeNull();

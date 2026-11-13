@@ -89,6 +89,10 @@ export const getHandleLocalRuleError = (value: string): string | null => {
  * The copy for a rejected handle, chosen from the server's error code. A
  * response that carries no code keeps the older behaviour: an invalid handle
  * reports the character rule, anything else reports unavailable.
+ *
+ * A reserved handle keeps its own branch and key. It reads the same as a
+ * taken one: from the user's side both just mean the handle is not
+ * available, and "reserved" invites a fruitless retry.
  */
 export const getHandleAvailabilityError = (
   availability: UsernameAvailabilityResponse,

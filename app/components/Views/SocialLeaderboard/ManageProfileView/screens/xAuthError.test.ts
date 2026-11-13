@@ -80,7 +80,7 @@ describe('getXConnectError', () => {
     const result = getXConnectError(error);
 
     expect(result).toBe(
-      strings('social_leaderboard.manage_profile.x_access_denied'),
+      strings('social_leaderboard.manage_profile.connect_x_retry'),
     );
   });
 
@@ -93,6 +93,54 @@ describe('getXConnectError', () => {
 
     expect(result).toBe(
       strings('social_leaderboard.manage_profile.x_connection_expired'),
+    );
+  });
+
+  it('names the reason when the backend faults', () => {
+    const error = new XAuthError(XAuthErrorType.BackendError, 'boom', {
+      cause: profileApiError(ProfileApiErrorCode.InternalError),
+    });
+
+    const result = getXConnectError(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.server_error'),
+    );
+  });
+
+  it('names the reason when the session expired', () => {
+    const error = new XAuthError(XAuthErrorType.BackendError, 'boom', {
+      cause: profileApiError(ProfileApiErrorCode.AuthTokenExpired),
+    });
+
+    const result = getXConnectError(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.session_expired'),
+    );
+  });
+
+  it('names the reason when early access is required', () => {
+    const error = new XAuthError(XAuthErrorType.BackendError, 'boom', {
+      cause: profileApiError(ProfileApiErrorCode.AuthEarlyAccessRequired),
+    });
+
+    const result = getXConnectError(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.social_profiles_unavailable'),
+    );
+  });
+
+  it('names the reason when the profile access is denied', () => {
+    const error = new XAuthError(XAuthErrorType.BackendError, 'boom', {
+      cause: profileApiError(ProfileApiErrorCode.AuthProfileAccessDenied),
+    });
+
+    const result = getXConnectError(error);
+
+    expect(result).toBe(
+      strings('social_leaderboard.manage_profile.connect_x_retry'),
     );
   });
 });

@@ -62,11 +62,31 @@ describe('getProfileSaveError', () => {
     );
   });
 
-  it('names a reserved handle as reserved', () => {
+  it('names a reserved handle as unavailable', () => {
     const error = profileApiError(ProfileApiErrorCode.UsernameReserved);
 
     expect(getProfileSaveError(error, 'handle')).toBe(
-      strings('social_leaderboard.manage_profile.username_reserved'),
+      strings('social_leaderboard.manage_profile.username_unavailable'),
+    );
+  });
+
+  it('names a too-short handle with the minimum length', () => {
+    const error = profileApiError(ProfileApiErrorCode.UsernameTooShort);
+
+    expect(getProfileSaveError(error, 'handle')).toBe(
+      strings('social_leaderboard.manage_profile.username_too_short', {
+        min: 3,
+      }),
+    );
+  });
+
+  it('names a too-long handle with the maximum length', () => {
+    const error = profileApiError(ProfileApiErrorCode.UsernameTooLong);
+
+    expect(getProfileSaveError(error, 'handle')).toBe(
+      strings('social_leaderboard.manage_profile.username_too_long', {
+        max: 16,
+      }),
     );
   });
 

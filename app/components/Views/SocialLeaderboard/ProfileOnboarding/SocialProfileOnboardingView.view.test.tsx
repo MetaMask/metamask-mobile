@@ -1003,7 +1003,7 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('names a reserved handle as reserved', async () => {
+  it('shows the reserved copy, which reads as unavailable', async () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
       .mockResolvedValueOnce({
@@ -1029,11 +1029,6 @@ describe('SocialProfileOnboardingView', () => {
         strings('social_leaderboard.profile_onboarding.username_reserved'),
       ),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(
-        strings('social_leaderboard.profile_onboarding.username_unavailable'),
-      ),
-    ).not.toBeOnTheScreen();
   });
 
   it('shows the character rule when the server refuses the format with valid true', async () => {
@@ -1218,7 +1213,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
@@ -1908,7 +1903,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(

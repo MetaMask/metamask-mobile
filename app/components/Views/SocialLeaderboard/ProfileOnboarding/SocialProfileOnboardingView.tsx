@@ -67,7 +67,7 @@ import { finishProfileOnboardingToSocialTab } from '../Onboarding/socialLeaderbo
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
-import { getProfileSaveErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
+import { getProfileCreateErrorCopy } from '../ManageProfileView/errors/profileApiErrorMessageKeys';
 import { getHandleAvailabilityRejection } from '../ManageProfileView/screens/handleAvailabilityError';
 import { getXConnectError } from '../ManageProfileView/screens/xAuthError';
 import ProfileVerifiedBadge from '../shared/ProfileVerifiedBadge';
@@ -1119,7 +1119,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       } catch (error) {
         if (stepRef.current === 'ready') {
           setFinishError(
-            getProfileSaveErrorCopy(error) ??
+            getProfileCreateErrorCopy(error) ??
               strings('social_leaderboard.profile_onboarding.save_error'),
           );
         }

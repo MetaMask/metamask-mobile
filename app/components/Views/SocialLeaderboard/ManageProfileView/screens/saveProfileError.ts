@@ -8,7 +8,7 @@ import { extractHttpStatus } from '../../../../../util/social/socialServiceTelem
 import {
   PROFILE_FIELD_REJECTION_CODES,
   PROFILE_FIELD_REJECTION_MESSAGE_KEYS,
-  PROFILE_SAVE_ERROR_MESSAGE_KEYS,
+  getProfileSaveErrorCopy,
 } from '../errors/profileApiErrorMessageKeys';
 import type { ManageProfileTextEditorField } from './manageProfileTextEditorFields';
 
@@ -43,15 +43,15 @@ export const getProfileSaveError = (
       return fieldMessageKey ? strings(fieldMessageKey) : null;
     }
 
-    const messageKey = PROFILE_SAVE_ERROR_MESSAGE_KEYS[code];
-    if (messageKey) {
+    const messageCopy = getProfileSaveErrorCopy(error);
+    if (messageCopy) {
       // A 400 that refuses the value in this field keeps the field copy, even
       // when the envelope only says VALIDATION_FAILED.
       return code === ProfileApiErrorCode.ValidationFailed &&
         extractHttpStatus(error) === REJECTED_CONTENT_STATUS &&
         fieldMessageKey
         ? strings(fieldMessageKey)
-        : strings(messageKey);
+        : messageCopy;
     }
 
     // The code refused a different field, so this editor is not the one to

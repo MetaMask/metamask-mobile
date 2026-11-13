@@ -171,7 +171,7 @@ const ManageProfileXAccount = () => {
   const disconnectErrorMessage =
     disconnectPhase === 'pending' && disconnectError && !isDisconnecting
       ? (getXAccountDisconnectError(disconnectError) ??
-        strings('manage_profile.x_account_disconnect_error'))
+        strings('social_leaderboard.manage_profile.server_error'))
       : null;
 
   const username = xProfile?.username;

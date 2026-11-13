@@ -4,7 +4,10 @@ import {
 } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { extractHttpStatus } from '../../../../../util/social/socialServiceTelemetry';
-import { LINKED_ADDRESS_COOLDOWN_MESSAGE_KEY } from '../errors/profileApiErrorMessageKeys';
+import {
+  LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS,
+  LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
+} from '../errors/profileApiErrorMessageKeys';
 
 /**
  * The Profile API refuses a change inside the cooldown window with
@@ -20,19 +23,19 @@ const LINKED_ADDRESS_COOLDOWN_PATTERN =
 const SECONDS_PER_DAY = 86_400;
 
 /**
- * The cooldown window in days. The message carries the full window; the
- * `RETRY_AFTER` detail carries the remaining time, which is the whole window
- * on the race path where the message has no day count. Both are read
- * defensively: an error without either keeps the generic save copy.
+ * The cooldown window in days as the API reported it. The message carries the
+ * full window; the `RETRY_AFTER` detail carries the remaining time, which is
+ * the whole window on the race path where the message has no day count. A
+ * refusal with neither returns null, and the caller states the policy window.
  */
-const getCooldownDays = (error: unknown): string | undefined => {
+const getCooldownDays = (error: unknown): number | null => {
   const serviceError = findProfileServiceError(error);
   const message =
     serviceError?.message ?? (error instanceof Error ? error.message : '');
   const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
 
   if (fromMessage) {
-    return fromMessage;
+    return Number(fromMessage);
   }
 
   const retryAfterSeconds = serviceError?.details?.find(
@@ -40,10 +43,22 @@ const getCooldownDays = (error: unknown): string | undefined => {
   )?.meta?.retry_after_seconds;
 
   if (typeof retryAfterSeconds === 'number' && retryAfterSeconds > 0) {
-    return String(Math.ceil(retryAfterSeconds / SECONDS_PER_DAY));
+    return Math.ceil(retryAfterSeconds / SECONDS_PER_DAY);
   }
 
-  return undefined;
+  return null;
+};
+
+/** The cooldown copy, pluralised for a one-day window. */
+const getCooldownCopy = (days: number | null): string => {
+  if (days === null) {
+    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.noDayCount, {
+      days: LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
+    });
+  }
+  return days === 1
+    ? strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.one)
+    : strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, { days });
 };
 
 /**
@@ -68,12 +83,5 @@ export const getLinkedAccountUpdateError = (error: unknown): string | null => {
     }
   }
 
-  const cooldownDays = getCooldownDays(error);
-  if (!cooldownDays) {
-    return null;
-  }
-
-  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEY, {
-    days: cooldownDays,
-  });
+  return getCooldownCopy(getCooldownDays(error));
 };
