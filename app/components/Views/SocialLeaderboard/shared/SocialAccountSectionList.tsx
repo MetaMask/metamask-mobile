@@ -1,3 +1,5 @@
+import { AccountGroupType } from '@metamask/account-api';
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -57,6 +59,29 @@ const groupLinkableAccountsByWallet = (
   });
 
   return sections;
+};
+
+const accountGroupWithDisplayName = (
+  accountGroup: AccountGroupObject,
+  name: string,
+): AccountGroupObject => {
+  if (accountGroup.type === AccountGroupType.MultichainAccount) {
+    return {
+      ...accountGroup,
+      metadata: {
+        ...accountGroup.metadata,
+        name,
+      },
+    };
+  }
+
+  return {
+    ...accountGroup,
+    metadata: {
+      ...accountGroup.metadata,
+      name,
+    },
+  };
 };
 
 interface SocialAccountRowProps {
@@ -132,13 +157,10 @@ const SocialAccountRow = memo(
         testID={testID}
       >
         <AccountListCell
-          accountGroup={{
-            ...account.accountGroup,
-            metadata: {
-              ...account.accountGroup.metadata,
-              name: account.name,
-            },
-          }}
+          accountGroup={accountGroupWithDisplayName(
+            account.accountGroup,
+            account.name,
+          )}
           avatarAccountType={avatarAccountType}
           hideMenu
           isSelected={isSelected}
