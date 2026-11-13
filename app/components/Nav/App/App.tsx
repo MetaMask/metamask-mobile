@@ -25,6 +25,7 @@ import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
 import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
+import OnboardingNotificationPermission from '../../Views/OnboardingNotificationPermission';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
@@ -376,6 +377,11 @@ const OnboardingNav = () => {
         name="OptinMetrics"
         component={OptinMetrics}
         options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.NOTIFICATION_PERMISSION}
+        component={OnboardingNotificationPermission}
+        options={{ headerShown: false, gestureEnabled: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
