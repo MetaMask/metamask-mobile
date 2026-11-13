@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
+import { NavigationContext } from '@react-navigation/native';
 import {
   HeaderStandard,
   type HeaderStandardProps,
@@ -10,6 +11,9 @@ import {
   resolveEndAccessoryGlass,
   resolveStartAccessoryGlass,
 } from '../HeaderGlass/headerGlassAccessories';
+import { useIsNativeHeader } from '../../../components/hooks/useNativeHeader';
+import HeaderStandardNative from './HeaderStandardNative';
+import { getNativeHeaderConfig } from './headerStandardNativeItems';
 
 export type HeaderStandardGlassProps = HeaderStandardProps &
   HeaderGlassOptions & {
@@ -22,6 +26,10 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
  * with `scrollY`. Back, close and icon props render in glass capsules; custom
  * accessories pass through, so wrap them in `CapsuleGlass`.
  * Pair `onLayout` with `useHeaderGlassInset` to inset the content.
+ *
+ * On iOS 26 a screen's top header (`includesTopInset`, not floating) with a
+ * text title and mappable icons moves into the native bar instead, so its
+ * buttons morph between screens. Sheets never pass `includesTopInset`.
  */
 const HeaderStandardGlass = ({
   isGlass = true,
@@ -32,6 +40,21 @@ const HeaderStandardGlass = ({
   onLayout,
   ...props
 }: HeaderStandardGlassProps) => {
+  const navigation = useContext(NavigationContext);
+  const isNativeSupported = useIsNativeHeader();
+  const nativeConfig =
+    isGlass &&
+    isNativeSupported &&
+    isFloating === false &&
+    props.includesTopInset &&
+    navigation?.getState()?.type === 'stack'
+      ? getNativeHeaderConfig(props)
+      : undefined;
+
+  if (nativeConfig) {
+    return <HeaderStandardNative config={nativeConfig} />;
+  }
+
   if (!isGlass) {
     return <HeaderStandard {...props} onLayout={onLayout} />;
   }

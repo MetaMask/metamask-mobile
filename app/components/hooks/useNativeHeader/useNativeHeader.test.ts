@@ -62,6 +62,32 @@ describe('useNativeHeader', () => {
     );
   });
 
+  it('shows a solid bar with a title and no system back button', () => {
+    renderHook(() =>
+      useNativeHeader({
+        leftItems,
+        title: 'Settings',
+        titleStyle: { fontFamily: 'Geist-Bold', fontSize: 16 },
+        isTransparent: false,
+        hidesBackButton: true,
+      }),
+    );
+
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        headerTransparent: false,
+        headerStyle: { backgroundColor: expect.any(String) },
+        headerBackVisible: false,
+        title: 'Settings',
+        headerTitleStyle: {
+          fontFamily: 'Geist-Bold',
+          fontSize: 16,
+          color: expect.any(String),
+        },
+      }),
+    );
+  });
+
   it('keeps the UIKit scroll edge effect by default', () => {
     renderHook(() => useNativeHeader({ leftItems, rightItems }));
 
