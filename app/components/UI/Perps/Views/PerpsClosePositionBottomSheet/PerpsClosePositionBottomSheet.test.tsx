@@ -939,6 +939,21 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('confirm button', () => {
+    it('shows why Close is disabled when the position is below the minimum', () => {
+      const mustCloseFullError = strings(
+        'perps.close_position.must_close_full_below_minimum',
+      );
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        ...defaultPerpsClosePositionValidationMock,
+        errors: [mustCloseFullError],
+        isValid: false,
+      });
+
+      const { getByText } = renderSheet();
+
+      expect(getByText(mustCloseFullError)).toBeOnTheScreen();
+    });
+
     it('is enabled for a valid market close', () => {
       const { getByTestId } = renderSheet();
 

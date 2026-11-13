@@ -1296,6 +1296,26 @@ describe('PerpsClosePositionView', () => {
       expect(queryByText(otherError)).toBeNull();
     });
 
+    it('shows the must-close-100% minimum error so Close explains why it is disabled', () => {
+      const mustCloseFullError = strings(
+        'perps.close_position.must_close_full_below_minimum',
+      );
+
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        isValid: false,
+        errors: [mustCloseFullError],
+        warnings: [],
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+
+      expect(getByText(mustCloseFullError)).toBeOnTheScreen();
+    });
+
     it('displays the limit price too far error so Close explains why it is disabled', () => {
       // A blocking band error (e.g. after the market moves) must be surfaced,
       // otherwise Close is disabled without any explanation.
