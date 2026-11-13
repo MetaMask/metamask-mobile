@@ -42,7 +42,10 @@ export const mapPerpsOrderInFlightToFeedItem = (
         chain: HYPERLIQUID_CHAIN_NAME,
         tokenAddress: preview.tokenAddress,
         tokenImageUrl: null,
-        tokenSymbol: preview.tokenSymbol,
+        // The market id (`xyz:SPCX` for HIP-3), not the display symbol. The
+        // icon CDN keys HIP-3 markets on the prefixed id, so the display
+        // symbol (`SPCX`) resolves to a 404 and the avatar falls back to a letter.
+        tokenSymbol: preview.tradeSymbol,
       },
     },
     costLabel: preview.costLabel,
