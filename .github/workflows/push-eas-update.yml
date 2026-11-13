@@ -478,7 +478,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: ios
@@ -515,7 +516,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
-      id-token: write # AWS OIDC role assumption in eas-update-platform.yml
+      id-token: write # AWS OIDC role assumption and Sigstore signing in eas-update-platform.yml
+      attestations: write # OTA bundle attestation in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
       platform: android
