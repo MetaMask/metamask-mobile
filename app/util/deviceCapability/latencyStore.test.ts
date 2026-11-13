@@ -145,6 +145,18 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
+  it('drops in-flight samples that span inactive', () => {
+    [300, 300, 300].forEach((duration) => record(duration));
+    const epochAtStart = store.getLatencySampleEpoch();
+
+    emitAppState('inactive');
+    emitAppState('active');
+    store.recordFetchSample({ atMs: NOW_MS, durationMs: 30000 }, epochAtStart);
+    store.recordFetchSample({ atMs: NOW_MS, durationMs: 30000 }, epochAtStart);
+
+    expect(store.getLatencySnapshot()).toBe('OK');
+  });
+
   it('resets slow to unknown on a NetInfo value change', () => {
     [8000, 8000].forEach((duration) => record(duration));
 

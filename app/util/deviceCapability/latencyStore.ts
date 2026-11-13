@@ -93,7 +93,8 @@ export function isLatencyTransportNone(): boolean {
 
 /**
  * Selects the thresholds row and starts the reset listeners: AppState
- * `background` to `active`, and NetInfo `type` / `cellularGeneration` /
+ * `background` to `active` (in-flight samples are also dropped on
+ * `inactive`), and NetInfo `type` / `cellularGeneration` /
  * `isInternetReachable` changes. Idempotent.
  */
 export function startLatencyMonitoring(
@@ -125,6 +126,9 @@ export function startLatencyMonitoring(
   let previousAppState: AppStateStatus = AppState.currentState;
   AppState.addEventListener('change', (next: AppStateStatus) => {
     if (next === 'inactive') {
+      // Drop in-flight samples that will include JS pause time, but keep
+      // already-recorded samples so a Control Center visit does not reset the bucket.
+      sampleEpoch += 1;
       return;
     }
     if (previousAppState === 'background' && next === 'active') {
