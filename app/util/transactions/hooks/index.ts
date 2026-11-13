@@ -14,6 +14,7 @@ import {
 import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
+  isPayTransactionResumable,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
@@ -70,6 +71,7 @@ export function getTransactionControllerHooks(
   return {
     beforePublish: beforePublishHook(request),
     beforeSign: beforeSignHook(request),
+    isResumable: isResumableHook(request),
     // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
     publish: publishHook(request),
     publishBatch: publishBatchHook(request),
@@ -101,6 +103,18 @@ function beforePublishHook({
 function beforeSignHook({ initMessenger }: TransactionControllerHookRequest) {
   return (hookRequest: { transactionMeta: TransactionMeta }) =>
     initMessenger.call('PredictController:beforeSign', hookRequest);
+}
+
+function isResumableHook({
+  initMessenger,
+}: TransactionControllerHookRequest): (
+  transactionMeta: TransactionMeta,
+) => boolean {
+  return (transactionMeta) =>
+    isPayTransactionResumable(
+      initMessenger as TransactionPayControllerMessenger,
+      transactionMeta,
+    );
 }
 
 function publishHook({
