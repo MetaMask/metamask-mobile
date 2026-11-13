@@ -79,7 +79,7 @@ describe('MoneyUnlinkCardSheet', () => {
     expect(getByText('Unlink Money account?')).toBeOnTheScreen();
     expect(
       getByText(
-        "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+        'Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.',
       ),
     ).toBeOnTheScreen();
     expect(getByText('Keep linked')).toBeOnTheScreen();
@@ -94,7 +94,7 @@ describe('MoneyUnlinkCardSheet', () => {
     expect(getByText('Are you sure?')).toBeOnTheScreen();
     expect(
       getByText(
-        "You'll stop earning on purchases. Future card spend will be funded by USDT. Reconnect your Money account anytime.",
+        'Your card will no longer spend from your Money balance. Future card spend will be funded by USDT. Reconnect your Money account anytime.',
       ),
     ).toBeOnTheScreen();
   });

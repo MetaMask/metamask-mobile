@@ -46,7 +46,7 @@ jobs:
   detect-changes:
     name: Filter files changed and decide which jobs to run
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
     outputs:
       skip_everything: ${{ steps.skip-merge-queue.outputs.up-to-date == 'true' && 'true' || 'false' }}
       skip_e2e: ${{ steps.set-e2e-outputs.outputs.e2e_needed != 'true' && 'true' || 'false' }}

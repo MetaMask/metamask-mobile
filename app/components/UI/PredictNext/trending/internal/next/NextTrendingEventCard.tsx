@@ -65,7 +65,7 @@ export const NextTrendingEventCard = ({
     <Box testID={testID} twClassName={isCarousel ? 'h-full' : undefined}>
       <PredictEventCard
         event={event}
-        variant="featured"
+        variant="trending"
         onPress={handlePress}
         onOrder={handleOrder}
       />

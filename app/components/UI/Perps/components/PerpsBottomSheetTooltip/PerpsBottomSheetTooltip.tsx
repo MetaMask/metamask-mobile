@@ -3,7 +3,6 @@ import React, { useRef, useCallback, useMemo } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonSize,
@@ -22,6 +21,9 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
@@ -50,6 +52,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     data,
     buttonLocation,
   }) => {
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const bottomSheetRef = useRef<BottomSheetRef>(null);
 
     const title = useMemo(
@@ -124,12 +127,13 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     return (
       <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
         {!hasCustomHeader && (
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={handleClose}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
           >
             {title}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
         )}
         <Box paddingHorizontal={4}>{renderContent()}</Box>
         <BottomSheetFooter

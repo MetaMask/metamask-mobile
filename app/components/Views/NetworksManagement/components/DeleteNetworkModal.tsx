@@ -3,7 +3,6 @@ import React, { forwardRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   ButtonSize,
@@ -14,6 +13,9 @@ import {
 import { strings } from '../../../../../locales/i18n';
 
 import { NetworksManagementViewSelectorsIDs } from '../NetworksManagementView.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface DeleteNetworkModalProps {
   networkName: string;
@@ -23,6 +25,7 @@ interface DeleteNetworkModalProps {
 
 const DeleteNetworkModal = forwardRef<BottomSheetRef, DeleteNetworkModalProps>(
   ({ networkName, onClose, onConfirm }, ref) => {
+    const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const cancelButtonProps = {
       children: strings('accountApproval.cancel'),
       onPress: onClose,
@@ -44,9 +47,9 @@ const DeleteNetworkModal = forwardRef<BottomSheetRef, DeleteNetworkModalProps>(
         goBack={onClose}
         testID={NetworksManagementViewSelectorsIDs.DELETE_MODAL}
       >
-        <BottomSheetHeader onClose={onClose}>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={onClose}>
           {`${strings('app_settings.delete')} ${networkName} ${strings('app_settings.network')}`}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
           <Text variant={TextVariant.BodyMd} twClassName="text-center mb-4">
             {strings('app_settings.network_delete')}
