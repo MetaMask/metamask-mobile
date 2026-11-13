@@ -662,28 +662,8 @@ const Onboarding = () => {
       // Each destination below ends it via useNavigationPerformance.
       startOnboardingCtaNavigation(getSocialCtaId(provider));
 
-      if (createWallet) {
-        if (result.existingUser) {
-          navigation.navigate('AccountAlreadyExists', {
-            accountName: result.accountName,
-            oauthLoginSuccess: true,
-            provider,
-          });
-        } else {
-          trace({
-            name: TraceName.OnboardingNewSocialCreateWallet,
-            op: TraceOperation.OnboardingUserJourney,
-            tags: getTraceTags(store.getState()),
-            parentContext: onboardingTraceCtx.current,
-          });
-
-          navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-            [PREVIOUS_SCREEN]: ONBOARDING,
-            oauthLoginSuccess: true,
-            provider,
-          });
-        }
-      } else if (result.existingUser) {
+      // Skip AccountAlreadyExists so passkey opens right after social login.
+      if (result.existingUser) {
         trace({
           name: TraceName.OnboardingExistingSocialLogin,
           op: TraceOperation.OnboardingUserJourney,
@@ -693,6 +673,19 @@ const Onboarding = () => {
         navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
+        });
+      } else if (createWallet) {
+        trace({
+          name: TraceName.OnboardingNewSocialCreateWallet,
+          op: TraceOperation.OnboardingUserJourney,
+          tags: getTraceTags(store.getState()),
+          parentContext: onboardingTraceCtx.current,
+        });
+
+        navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+          provider,
         });
       } else {
         navigation.navigate('AccountNotFound', {

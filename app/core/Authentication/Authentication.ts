@@ -67,6 +67,7 @@ import {
   EncAccountDataType,
   SeedlessOnboardingMigrationVersion,
   InvalidPrimarySecretDataTypeError,
+  type SecretMetadata,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../selectors/analyticsController';
@@ -961,12 +962,19 @@ class AuthenticationService {
       // OnboardingFetchSrps span nests under the onboarding journey. Omitted by non-onboarding
       // callers (login/biometric unlock), which leaves tracing behaviour unchanged for them.
       parentContext,
+      recoveredSecrets,
     }: {
       password?: string;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
       navigationBehavior?: 'default' | 'preserve';
       parentContext?: TraceContext;
+      /**
+       * Seedless flow only: secrets already recovered without the old
+       * password. The vault is created from them instead of fetching with
+       * `password`.
+       */
+      recoveredSecrets?: SecretMetadata[];
     } = {
       password: undefined,
       authPreference: undefined,
@@ -992,7 +1000,10 @@ class AuthenticationService {
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
-          if (authPreference?.oauth2Login) {
+          if (authPreference?.oauth2Login && recoveredSecrets) {
+            await this.restoreRecoveredSecrets(passwordToUse, recoveredSecrets);
+            fallbackToPassword = true;
+          } else if (authPreference?.oauth2Login) {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
@@ -1176,6 +1187,9 @@ class AuthenticationService {
     reset = true,
     locked = false,
     navigateToLogin = true,
+    // Passwordless recovery still needs the seedless session tokens. Dropping
+    // them makes the new password get used to decrypt the old vault.
+    lockSeedless = true,
   } = {}): Promise<void> => {
     const { KeyringController, SeedlessOnboardingController } = Engine.context;
     if (allowRememberMe === false) {
@@ -1188,7 +1202,10 @@ class AuthenticationService {
       await KeyringController.setLocked();
     }
 
-    if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+    if (
+      lockSeedless &&
+      selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())
+    ) {
       // SeedlessOnboardingController.setLocked() will not throw, it swallow the error in the function
       await SeedlessOnboardingController.setLocked();
     }
@@ -1576,59 +1593,81 @@ class AuthenticationService {
         });
       }
 
-      if (allSRPs.length > 0) {
-        const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
-        if (!firstSeedPhrase?.data) {
-          throw new Error('No seed phrase found');
-        }
-
-        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
-
-        await this.newWalletVaultAndRestore(password, seedPhrase, false);
-        // add in more srps
-        if (restOfSeedPhrases.length > 0) {
-          for (const item of restOfSeedPhrases) {
-            try {
-              // add new private key
-              if (item.type === SecretType.PrivateKey) {
-                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
-                  shouldCreateSocialBackup: false,
-                  shouldSelectAccount: false,
-                });
-              } else if (item.type === SecretType.Mnemonic) {
-                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                await this.importSeedlessMnemonicToVault(mnemonic);
-              } else {
-                Logger.error(
-                  new Error(
-                    'SeedlessOnboardingController : Unknown secret type',
-                  ),
-                  item.type,
-                );
-              }
-            } catch (error) {
-              // catch error to prevent unable to login
-              Logger.error(
-                error as Error,
-                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
-              );
-            }
-          }
-        }
-        await this.syncKeyringEncryptionKey();
-
-        this.dispatchOauthReset();
-        ReduxService.store.dispatch(setExistingUser(true));
-
-        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      } else {
-        throw new Error('No account data found');
-      }
+      await this.restoreSeedlessSecretsToVault(password, allSRPs);
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
       throw ensureError(error, 'Rehydrate seed phrase failed');
     }
+  };
+
+  /**
+   * Creates the keyring vault under `password` from secrets the seedless
+   * controller recovered without the old password. The seedless local vault
+   * must already be encrypted under `password`.
+   *
+   * @param password - The new wallet password.
+   * @param secrets - The recovered secret data, primary SRP first.
+   */
+  restoreRecoveredSecrets = async (
+    password: string,
+    secrets: SecretMetadata[],
+  ): Promise<void> => {
+    try {
+      await this.restoreSeedlessSecretsToVault(password, secrets);
+    } catch (error) {
+      this.lockApp({ reset: false, navigateToLogin: false });
+      throw ensureError(error, 'Restore recovered secrets failed');
+    }
+  };
+
+  private restoreSeedlessSecretsToVault = async (
+    password: string,
+    secrets: SecretMetadata[],
+  ): Promise<void> => {
+    if (secrets.length === 0) {
+      throw new Error('No account data found');
+    }
+    const [firstSeedPhrase, ...restOfSeedPhrases] = secrets;
+    if (!firstSeedPhrase?.data) {
+      throw new Error('No seed phrase found');
+    }
+
+    const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
+
+    await this.newWalletVaultAndRestore(password, seedPhrase, false);
+    // add in more srps
+    for (const item of restOfSeedPhrases) {
+      try {
+        // add new private key
+        if (item.type === SecretType.PrivateKey) {
+          await this.importAccountFromPrivateKey(bytesToHex(item.data), {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+          });
+        } else if (item.type === SecretType.Mnemonic) {
+          const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+          await this.importSeedlessMnemonicToVault(mnemonic);
+        } else {
+          Logger.error(
+            new Error('SeedlessOnboardingController : Unknown secret type'),
+            item.type,
+          );
+        }
+      } catch (error) {
+        // catch error to prevent unable to login
+        Logger.error(
+          error as Error,
+          'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
+        );
+      }
+    }
+    await this.syncKeyringEncryptionKey();
+
+    this.dispatchOauthReset();
+    ReduxService.store.dispatch(setExistingUser(true));
+
+    await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
   };
 
   /**

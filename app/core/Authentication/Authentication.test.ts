@@ -2161,6 +2161,56 @@ describe('Authentication', () => {
 
       expect(Engine.context.KeyringController.setLocked).not.toHaveBeenCalled();
     });
+
+    it('locks the seedless controller when the social vault exists', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: lockAppMockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'seedless-vault',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      await Authentication.lockApp({ reset: false, navigateToLogin: false });
+
+      expect(
+        Engine.context.SeedlessOnboardingController.setLocked,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips locking the seedless controller when lockSeedless is false', async () => {
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: lockAppMockDispatch,
+        getState: () => ({
+          security: { allowLoginWithRememberMe: true },
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'seedless-vault',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
+
+      await Authentication.lockApp({
+        reset: false,
+        navigateToLogin: false,
+        lockSeedless: false,
+      });
+
+      expect(
+        Engine.context.SeedlessOnboardingController.setLocked,
+      ).not.toHaveBeenCalled();
+    });
   });
 
   describe('rehydrateSeedPhrase', () => {
@@ -2301,6 +2351,75 @@ describe('Authentication', () => {
       );
 
       rehydrateSpy.mockRestore();
+    });
+
+    it('restores recovered secrets instead of fetching when unlockWallet receives them', async () => {
+      const recoveredSecrets = [
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+      ];
+      const restoreSpy = jest
+        .spyOn(Authentication, 'restoreRecoveredSecrets')
+        .mockResolvedValueOnce(undefined);
+      const rehydrateSpy = jest.spyOn(Authentication, 'rehydrateSeedPhrase');
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+        recoveredSecrets: recoveredSecrets as never,
+      });
+
+      expect(restoreSpy).toHaveBeenCalledWith(mockPassword, recoveredSecrets);
+      expect(rehydrateSpy).not.toHaveBeenCalled();
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+
+      restoreSpy.mockRestore();
+      rehydrateSpy.mockRestore();
+    });
+
+    it('builds the vault from recovered secrets via restoreRecoveredSecrets', async () => {
+      const recoveredSecrets = [
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+        },
+      ];
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.restoreRecoveredSecrets(
+        mockPassword,
+        recoveredSecrets as never,
+      );
+
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
+        mockPassword,
+        uint8ArrayToMnemonic(mockSeedPhrase1, []),
+        false,
+      );
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('locks the app and rethrows when restoreRecoveredSecrets fails', async () => {
+      const lockSpy = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+
+      await expect(
+        Authentication.restoreRecoveredSecrets(mockPassword, [] as never),
+      ).rejects.toThrow('No account data found');
+      expect(lockSpy).toHaveBeenCalledWith({
+        reset: false,
+        navigateToLogin: false,
+      });
+
+      lockSpy.mockRestore();
     });
 
     it('passes an undefined parent context for ordinary unlockWallet callers', async () => {

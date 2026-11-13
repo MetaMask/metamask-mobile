@@ -5960,6 +5960,17 @@
         "reset_apple_pay_splash_description": "Show the Apple Pay availability splash again the next time you open Card Home while signed in.",
         "reset_apple_pay_splash_button": "Reset Apple Pay splash"
       },
+      "passwordless_recovery": {
+        "title": "Passwordless recovery",
+        "description": "While this wallet is unlocked, store a recovery secret for the enrolled passkey and social login, then seal the seed phrases so that secret can open them. Recover with a new password locks this wallet and opens recovery. It does not reset the wallet. Developer only.",
+        "verifier_id_placeholder": "Mapped verifier ID",
+        "button": "Set up recovery",
+        "try_button": "Recover with a new password",
+        "enabled": "Recovery is set up. Tap Recover with a new password. That does not reset the wallet.",
+        "already_enabled": "Recovery is already set up. Tap Recover with a new password. That does not reset the wallet.",
+        "failed": "Setup failed ({{code}}). The wallet password is unchanged.",
+        "open_failed": "Could not open recovery ({{code}}). The wallet was not reset."
+      },
       "identity": {
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_API_ENV: {{env}}.",
@@ -11223,6 +11234,15 @@
     "ios_google_login_unsupported_blocking_rehydration_description_2": "Update your iPhone to iOS 17.4 or later to continue using Google Sign-In.",
     "ios_google_login_unsupported_blocking_rehydration_description_3": "Can't update? You can still access your wallet by signing in on another device with the same Google login and password or importing with your Secret Recovery Phrase.",
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
+  },
+  "wallet_recovery_mfa": {
+    "verify_title": "Verify it's you",
+    "verify_description": "Choose a security method to recover your wallet.",
+    "password_description": "Enter your password to continue",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "recovery_failed": "We couldn't recover your wallet. Try again or use your old password.",
+    "recovery_password_already_set": "Your new password is set. Unlock your wallet with it."
   },
   "password_hint": {
     "title": "Password hint",

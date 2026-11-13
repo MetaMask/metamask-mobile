@@ -2322,7 +2322,7 @@ describe('Onboarding', () => {
       );
     });
 
-    it('navigates to AccountAlreadyExists for existing user in create wallet flow', async () => {
+    it('navigates to OAuth rehydrate for existing user in create wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -2351,12 +2351,17 @@ describe('Onboarding', () => {
         );
       });
 
+      // Skip AccountAlreadyExists — passkey opens on rehydration.
       expect(mockNavigate).toHaveBeenCalledWith(
-        'AccountAlreadyExists',
+        Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE,
         expect.objectContaining({
-          accountName: 'existing@example.com',
+          [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
         }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.anything(),
       );
     });
 

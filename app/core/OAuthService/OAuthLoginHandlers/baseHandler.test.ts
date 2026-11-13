@@ -107,6 +107,23 @@ describe('BaseLoginHandler', () => {
       expect(handler1.nonce.length).toBeGreaterThan(0);
       expect(handler1.nonce).not.toBe(handler2.nonce); // Each instance should have unique nonce
     });
+
+    it('uses a caller-supplied nonce when provided', () => {
+      const handler = new MockLoginHandler({
+        ...mockBaseHandlerParams,
+        nonce: 'caller-nonce',
+      });
+
+      expect(handler.nonce).toBe('caller-nonce');
+    });
+  });
+
+  describe('getProviderIdToken', () => {
+    it('rejects as unsupported on the base handler', async () => {
+      await expect(mockHandler.getProviderIdToken()).rejects.toMatchObject({
+        code: OAuthErrorType.UnsupportedPlatform,
+      });
+    });
   });
 
   describe('abstract properties', () => {

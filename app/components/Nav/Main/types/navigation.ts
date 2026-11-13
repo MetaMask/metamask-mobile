@@ -105,6 +105,7 @@ export type SettingsStackParamList = {
   ExperimentalSettings: undefined;
   CompanySettings: undefined;
   DeveloperOptions: undefined;
+  PasswordlessRecoveryDeveloperOptions: undefined;
   ContactsSettings: undefined;
   ContactForm: ContactFormParams | undefined;
   RevealPrivateCredentialView: RevealPrivateCredentialParams | undefined;

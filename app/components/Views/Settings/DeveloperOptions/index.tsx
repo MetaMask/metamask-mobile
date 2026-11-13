@@ -14,6 +14,7 @@ import { DeveloperOptionsSelectorsIDs } from './DeveloperOptions.testIds';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+import PasswordlessRecoveryDeveloperOptionsSection from './PasswordlessRecoveryDeveloperOptionsSection';
 import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -106,6 +107,7 @@ const DeveloperOptions = () => {
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
+        <PasswordlessRecoveryDeveloperOptionsSection />
         <NotificationsDeveloperOptionsSection />
         {isSocialLeaderboardEnabled && (
           <SocialLeaderboardDeveloperOptionsSection />

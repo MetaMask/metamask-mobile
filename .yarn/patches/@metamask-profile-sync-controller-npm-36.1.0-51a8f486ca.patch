@@ -1,0 +1,163 @@
+diff --git a/dist/controllers/authentication/AuthenticationController.d.ts b/dist/controllers/authentication/AuthenticationController.d.ts
+index 1405e8bf636ab581ce9a15406ba42147e002ec76..3924b619d7c2d8b50b11cdd9efae06c39bf06523 100644
+--- a/dist/controllers/authentication/AuthenticationController.d.ts
++++ b/dist/controllers/authentication/AuthenticationController.d.ts
+@@ -223,6 +223,16 @@ export declare class AuthenticationController extends BaseController<typeof cont
+      * @returns The verification token.
+      */
+     completeSocialLoginVerification(request: CompleteVerificationRequest): Promise<VerificationToken>;
++    /**
++     * Holds the AAL2 token from a locked social recovery verification so
++     * {@link requestMfaApproval} can prove it. The wallet must be locked.
++     * The token is dropped on lock and on unlock, and is never persisted.
++     *
++     * @param token - Token returned by {@link completeSocialLoginVerification}.
++     */
++    holdLockedRecoveryVerification(token: VerificationToken): void;
++    /** Drops the token held by {@link holdLockedRecoveryVerification}. */
++    clearLockedRecoveryVerification(): void;
+     /**
+      * Returns the active verification token when it meets the requested
+      * freshness.
+diff --git a/dist/controllers/authentication/AuthenticationController.js b/dist/controllers/authentication/AuthenticationController.js
+index f555433c9447484e70e4e956c63662ecdc4ac67f..58f3fac3797b3ee156984e13916165d9040657b2 100644
+--- a/dist/controllers/authentication/AuthenticationController.js
++++ b/dist/controllers/authentication/AuthenticationController.js
+@@ -133,6 +133,11 @@ export class AuthenticationController extends BaseController {
+      * exist.
+      */
+     #verificationSessions = new Map();
++    /**
++     * AAL2 token from a locked social recovery verification. Not a session:
++     * it is dropped on lock and on unlock, and never written to state.
++     */
++    #lockedRecoveryVerification = null;
+     /**
+      * Verification tokens that authorized an enrollment's begin, by flow ID.
+      * The server asks for the same AAL2 proof when it is completed, which can
+@@ -162,6 +167,8 @@ export class AuthenticationController extends BaseController {
+             this.#isUnlocked = isUnlocked;
+             this.messenger.subscribe('KeyringController:unlock', () => {
+                 this.#isUnlocked = true;
++                // A locked recovery proof must not survive into the unlocked wallet.
++                this.#lockedRecoveryVerification = null;
+             });
+             this.messenger.subscribe('KeyringController:lock', () => {
+                 this.#authSessionEpoch += 1;
+@@ -344,12 +351,9 @@ export class AuthenticationController extends BaseController {
+      * @returns The social provider identifier type, or `SRP`.
+      */
+     #identifierTypeFromSeedlessState(state) {
+-        if (state.vault === null || state.vault === undefined) {
+-            return 'SRP';
+-        }
+-        // Match provider strings from SeedlessOnboarding state rather than
+-        // importing AuthConnection — a value import would load that package
+-        // (and its heavy deps) whenever this controller is imported.
++        // Locked social MFA (exchangeSocialAccessToken) must work after OAuth
++        // even when the seedless vault is not written yet (new-device recovery /
++        // pre-password). authConnection alone identifies the social wallet.
+         switch (state.authConnection) {
+             case 'google':
+                 return 'GOOGLE';
+@@ -1041,15 +1045,51 @@ export class AuthenticationController extends BaseController {
+      * is required, whether to return identifiers, and the trace reason.
+      * @returns The approval, its lifetime and the recovery identifiers.
+      */
++    /**
++     * Holds the AAL2 token from a locked social recovery verification so
++     * `requestMfaApproval` can prove it without an SRP session. Dropped on
++     * lock and on unlock. The token is not logged or persisted.
++     *
++     * @param token - Verification token from `completeSocialLoginVerification`.
++     */
++    holdLockedRecoveryVerification(token) {
++        this.#assertIsLocked('holdLockedRecoveryVerification');
++        this.#lockedRecoveryVerification = token;
++    }
++    /** Drops the locked recovery verification token. */
++    clearLockedRecoveryVerification() {
++        this.#lockedRecoveryVerification = null;
++    }
+     async requestMfaApproval(request) {
+-        this.#assertIsUnlocked('requestMfaApproval');
++        const lockedRecovery = !this.#isUnlocked;
++        if (!lockedRecovery) {
++            this.#assertIsUnlocked('requestMfaApproval');
++        }
+         const sessionEpoch = this.#authSessionEpoch;
+         assertValidMfaRequest(request, RequestMfaApprovalRequestStruct);
+-        const verification = request.requireVerification
+-            ? this.getVerificationToken()
+-            : null;
+-        if (request.requireVerification && !verification) {
+-            throw new StepUpRequiredError('requestMfaApproval requires a verification session');
++        let verification = null;
++        let accessToken;
++        if (lockedRecovery) {
++            if (request.requireVerification) {
++                verification = this.#lockedRecoveryVerification;
++                if (!verification) {
++                    throw new StepUpRequiredError('requestMfaApproval requires a locked recovery verification');
++                }
++                accessToken = verification.accessToken;
++            }
++            else {
++                const socialLogin = await this.exchangeSocialAccessToken();
++                accessToken = socialLogin.token.accessToken;
++            }
++        }
++        else {
++            verification = request.requireVerification
++                ? this.getVerificationToken()
++                : null;
++            if (request.requireVerification && !verification) {
++                throw new StepUpRequiredError('requestMfaApproval requires a verification session');
++            }
++            accessToken = verification?.accessToken;
+         }
+         const approval = await this.#runMfaRequest('MFA Approval', request.reason.operation, verification ? verification.claims.amr.join(',') : 'none', async () => await this.#auth.requestMfaApproval({
+             request_hash: request.requestHash,
+@@ -1057,20 +1097,28 @@ export class AuthenticationController extends BaseController {
+             ...(request.includeIdentifiers === undefined
+                 ? {}
+                 : { include_identifiers: request.includeIdentifiers }),
+-        }, {
+-            entropySourceId: this.#getPrimaryEntropySourceId(),
+-            accessToken: verification?.accessToken,
+-        })).catch((error) => {
++        }, lockedRecovery
++            ? { accessToken }
++            : {
++                entropySourceId: this.#getPrimaryEntropySourceId(),
++                accessToken,
++            })).catch((error) => {
+             // The server found the verification too old: drop it, so the caller's
+             // next verification runs a new ceremony instead of reusing it. A
+             // session opened meanwhile is kept.
+-            if (getMfaErrorCode(error) === 'aal2_required' &&
++            if (!lockedRecovery &&
++                getMfaErrorCode(error) === 'aal2_required' &&
+                 this.#verificationSessions.get(DEFAULT_AUDIENCE)?.token === verification) {
+                 this.#dropVerificationSession(DEFAULT_AUDIENCE);
+             }
++            if (lockedRecovery && getMfaErrorCode(error) === 'aal2_required') {
++                this.#lockedRecoveryVerification = null;
++            }
+             throw error;
+         });
+-        this.#assertAuthSessionEpoch(sessionEpoch, 'requestMfaApproval');
++        if (!lockedRecovery) {
++            this.#assertAuthSessionEpoch(sessionEpoch, 'requestMfaApproval');
++        }
+         return approval;
+     }
+     /**
+@@ -1111,6 +1159,7 @@ export class AuthenticationController extends BaseController {
+         }
+         this.#verificationSessions.clear();
+         this.#enrollmentAccessTokens.clear();
++        this.#lockedRecoveryVerification = null;
+     }
+     /**
+      * Drops the cached credential list. Callers that wipe profile state must go

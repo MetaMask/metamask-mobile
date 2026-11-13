@@ -62,6 +62,12 @@ jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
+const mockModuleCreateLoginHandler = jest.fn();
+jest.mock('./OAuthLoginHandlers', () => ({
+  createLoginHandler: (...args: unknown[]) =>
+    mockModuleCreateLoginHandler(...args),
+}));
+
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 
@@ -1513,5 +1519,96 @@ describe('getMarketingOptInStatus', () => {
     expect(result1).toEqual(mockResponse1);
     expect(result2).toEqual(mockResponse2);
     expect(result3).toEqual(mockResponse3);
+  });
+});
+
+describe('getSocialIdTokenForNonce', () => {
+  const requestedNonce = 'recovery-nonce';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Engine.context.SeedlessOnboardingController.state.authConnection =
+      AuthConnection.Google;
+    mockModuleCreateLoginHandler.mockReset();
+  });
+
+  it('returns the provider ID token when the nonce matches', async () => {
+    const idToken = 'provider-id-token';
+    mockModuleCreateLoginHandler.mockReturnValue({
+      getProviderIdToken: jest.fn().mockResolvedValue(idToken),
+      decodeIdToken: jest
+        .fn()
+        .mockReturnValue(
+          JSON.stringify({ nonce: requestedNonce, sub: 'user' }),
+        ),
+    });
+
+    await expect(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+    ).resolves.toBe(idToken);
+    expect(mockModuleCreateLoginHandler).toHaveBeenCalledWith(
+      Platform.OS,
+      AuthConnection.Google,
+      false,
+      { nonce: requestedNonce },
+    );
+  });
+
+  it('supports Apple as the social provider', async () => {
+    Engine.context.SeedlessOnboardingController.state.authConnection =
+      AuthConnection.Apple;
+    mockModuleCreateLoginHandler.mockReturnValue({
+      getProviderIdToken: jest.fn().mockResolvedValue('apple-token'),
+      decodeIdToken: jest
+        .fn()
+        .mockReturnValue(JSON.stringify({ nonce: requestedNonce })),
+    });
+
+    await expect(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+    ).resolves.toBe('apple-token');
+    expect(mockModuleCreateLoginHandler).toHaveBeenCalledWith(
+      Platform.OS,
+      AuthConnection.Apple,
+      false,
+      { nonce: requestedNonce },
+    );
+  });
+
+  it('rejects Telegram and other providers', async () => {
+    Engine.context.SeedlessOnboardingController.state.authConnection =
+      AuthConnection.Telegram;
+
+    await expectOAuthError(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+      OAuthErrorType.InvalidProvider,
+    );
+    expect(mockModuleCreateLoginHandler).not.toHaveBeenCalled();
+  });
+
+  it('rejects when the decoded nonce does not match', async () => {
+    mockModuleCreateLoginHandler.mockReturnValue({
+      getProviderIdToken: jest.fn().mockResolvedValue('token'),
+      decodeIdToken: jest
+        .fn()
+        .mockReturnValue(JSON.stringify({ nonce: 'other-nonce' })),
+    });
+
+    await expectOAuthError(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+      OAuthErrorType.InvalidOauthStateError,
+    );
+  });
+
+  it('rejects when the decoded payload is not an object', async () => {
+    mockModuleCreateLoginHandler.mockReturnValue({
+      getProviderIdToken: jest.fn().mockResolvedValue('token'),
+      decodeIdToken: jest.fn().mockReturnValue(JSON.stringify(null)),
+    });
+
+    await expectOAuthError(
+      OAuthLoginService.getSocialIdTokenForNonce(requestedNonce),
+      OAuthErrorType.InvalidOauthStateError,
+    );
   });
 });
