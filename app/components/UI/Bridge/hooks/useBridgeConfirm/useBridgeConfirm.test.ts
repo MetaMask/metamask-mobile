@@ -10,8 +10,12 @@ import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
 } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
-import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import {
+  type PostTradeBottomSheetParams,
+  PostTradeStatus,
+} from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
+import type { BridgeToken } from '../../types';
 import type { RootState } from '../../../../../reducers';
 import { KnownCaipNamespace } from '@metamask/utils';
 
@@ -67,6 +71,14 @@ jest.mock(
 
 jest.mock('../../../../../selectors/confirmTransaction');
 
+const mockResolvePostTradePrompt = jest.fn();
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({
+    usePostTradePromptResolver: () => mockResolvePostTradePrompt,
+  }),
+);
+
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
   state = {},
@@ -79,6 +91,7 @@ describe('useBridgeConfirm', () => {
     jest.clearAllMocks();
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     jest.mocked(isHardwareAccount).mockReturnValue(false);
+    mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
       hash: '0xabc',
@@ -481,6 +494,207 @@ describe('useBridgeConfirm', () => {
         mockBridgeReducerState.sourceToken,
       );
       expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
+    });
+  });
+
+  describe('social Create post context', () => {
+    const PEPE_ADDRESS = '0x6982508145454ce325ddbe47a25d4ec3d2311933';
+    const WALLET_COUNT_KEY = {
+      address: WALLET_ADDRESS,
+      product: 'swaps',
+    };
+    const SHARE_SHEET_PROMPT = {
+      kind: 'share_sheet',
+      countKey: WALLET_COUNT_KEY,
+    };
+    const ETH_ON_ETHEREUM: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      decimals: 18,
+      image: 'https://example.com/image.png',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      balance: '1.0',
+      balanceFiat: '$2000',
+      chainId: '0x1',
+    };
+    const PEPE_ON_ETHEREUM: BridgeToken = {
+      address: PEPE_ADDRESS,
+      decimals: 18,
+      image: 'https://example.com/pepe.png',
+      name: 'Pepe',
+      symbol: 'PEPE',
+      balance: '0',
+      balanceFiat: '$0',
+      chainId: '0x1',
+    };
+    const PEPE_ON_BASE: BridgeToken = {
+      ...PEPE_ON_ETHEREUM,
+      chainId: '0x2105',
+    };
+
+    const quoteWithSourceUsd = (
+      usd: string | undefined,
+    ): typeof mockQuoteWithMetadata =>
+      ({
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          src: { ...mockQuoteWithMetadata.quote.src, usd },
+        },
+      }) as typeof mockQuoteWithMetadata;
+
+    const stateWithTokens = (
+      sourceToken: BridgeToken,
+      destToken: BridgeToken,
+    ): { bridge: typeof mockBridgeReducerState } => ({
+      bridge: { ...mockBridgeReducerState, sourceToken, destToken },
+    });
+
+    const getPostTradeModalParams = ():
+      | PostTradeBottomSheetParams
+      | undefined => {
+      const call = mockNavigate.mock.calls.find(
+        ([route, options]) =>
+          route === Routes.BRIDGE.MODALS.ROOT &&
+          options?.screen === Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+      );
+      return call?.[1]?.params;
+    };
+
+    it('passes the swap context to the sheet for an eligible buy on the same chain', async () => {
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swaps');
+      expect(getPostTradeModalParams()).toMatchObject({
+        status: PostTradeStatus.InProgress,
+        transactionHash: '0xabc',
+        socialPostTrade: {
+          countKey: WALLET_COUNT_KEY,
+          tradeInFlightChain: 'ethereum',
+          txHash: 'submitted',
+          preview: {
+            tokenSymbol: 'PEPE',
+            tokenAddress: PEPE_ADDRESS,
+            chain: 'ethereum',
+            side: 'buy',
+            costLabel: '$25.00',
+          },
+        },
+      });
+    });
+
+    it('uses the destination hash for a bridged buy', async () => {
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_BASE),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getPostTradeModalParams()?.socialPostTrade).toMatchObject({
+        tradeInFlightChain: 'base',
+        txHash: 'destination',
+      });
+    });
+
+    it.each([
+      ['none', { kind: 'none' }],
+      ['claim_sheet', { kind: 'claim_sheet' }],
+      ['post_to_feed_toast', { kind: 'post_to_feed_toast' }],
+    ])(
+      'omits the swap context when the prompt is %s',
+      async (_label, prompt) => {
+        mockResolvePostTradePrompt.mockReturnValue(prompt);
+        const { result } = renderHook(
+          { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+          stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+        );
+
+        await act(async () => {
+          await result.current();
+        });
+
+        expect(getPostTradeModalParams()?.status).toBe(
+          PostTradeStatus.InProgress,
+        );
+        expect(getPostTradeModalParams()?.socialPostTrade).toBeUndefined();
+      },
+    );
+
+    it.each([
+      ['below the $10 minimum', '9.99'],
+      ['missing', undefined],
+    ])(
+      'omits the swap context when the sold USD value is %s',
+      async (_label, usd) => {
+        mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+        const { result } = renderHook(
+          { ...defaultParams, activeQuote: quoteWithSourceUsd(usd) },
+          stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+        );
+
+        await act(async () => {
+          await result.current();
+        });
+
+        expect(getPostTradeModalParams()?.socialPostTrade).toBeUndefined();
+      },
+    );
+
+    it('omits the swap context when the submission fails', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getPostTradeModalParams()).toMatchObject({
+        status: PostTradeStatus.Failed,
+      });
+      expect(getPostTradeModalParams()?.socialPostTrade).toBeUndefined();
+    });
+
+    it('does not pass the swap context on the hardware wallet path yet', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.ROOT,
+        expect.objectContaining({
+          screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+        }),
+      );
+      const navigation = mockNavigate.mock.calls.find(
+        ([route]) => route === Routes.BRIDGE.ROOT,
+      );
+      expect(
+        navigation?.[1]?.params?.submissionParams?.postTradeModalParams,
+      ).not.toHaveProperty('socialPostTrade');
     });
   });
 });

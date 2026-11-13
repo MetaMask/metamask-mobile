@@ -28,6 +28,8 @@ import {
 } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
+import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { resolveSwapSocialPostTrade } from '../../components/PostTradeBottomSheet/resolveSwapPostTradeShare';
 
 interface Params {
   activeQuote?: QuoteResponse | null;
@@ -50,6 +52,7 @@ export const useBridgeConfirm = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const resolvePostTradePrompt = usePostTradePromptResolver();
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {
@@ -99,6 +102,13 @@ export const useBridgeConfirm = ({
       ...modalTokenParams,
       status: PostTradeStatus.InProgress,
     };
+    // Decided at submit, like Quick Buy, so the count is read before the swap.
+    const socialPostTrade = resolveSwapSocialPostTrade({
+      prompt: resolvePostTradePrompt('swaps'),
+      sourceToken,
+      destToken,
+      sourceUsd: activeQuote.quote.src.usd,
+    });
 
     try {
       dispatch(setIsSubmittingTx(true));
@@ -123,6 +133,7 @@ export const useBridgeConfirm = ({
         status: PostTradeStatus.InProgress,
         transactionMetaId: submittedTransaction?.id,
         transactionHash,
+        socialPostTrade,
       };
 
       dispatch(resetBridgeTokenInputs());
