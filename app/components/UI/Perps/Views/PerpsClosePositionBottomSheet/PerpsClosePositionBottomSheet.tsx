@@ -193,11 +193,25 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
 
   const displayedErrors = useMemo(() => {
-    const withoutRowDuplicate = showLimitPriceErrorOnRow
-      ? filteredErrors.filter((error) => error !== limitPriceError)
+    // The amount display colors itself from this list, and the footer that
+    // renders it is hidden while the keypad is open. Keep limit-price errors
+    // out until typing stops, or the close amount flashes red on each digit.
+    // Direction warnings are not blocking, so they never join the list.
+    const withoutLimitPriceWhileEditing = isEditingLimitPrice
+      ? filteredErrors.filter(
+          (error) =>
+            error !== limitPriceError &&
+            !error.startsWith(limitPriceTooFarError),
+        )
       : filteredErrors;
+    const withoutRowDuplicate = showLimitPriceErrorOnRow
+      ? withoutLimitPriceWhileEditing.filter(
+          (error) => error !== limitPriceError,
+        )
+      : withoutLimitPriceWhileEditing;
 
     const withLimitPriceError =
+      !isEditingLimitPrice &&
       !showLimitPriceErrorOnRow &&
       limitPriceError &&
       !withoutRowDuplicate.includes(limitPriceError)
@@ -214,7 +228,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   }, [
     effectiveOrderType,
     filteredErrors,
+    isEditingLimitPrice,
     limitPriceError,
+    limitPriceTooFarError,
     mustCloseFullBelowMinimumError,
     showLimitPriceErrorOnRow,
   ]);

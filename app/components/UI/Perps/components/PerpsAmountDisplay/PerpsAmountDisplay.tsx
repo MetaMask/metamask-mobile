@@ -155,6 +155,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
+    // An explicit label replaces the visible amount and unit for assistive
+    // tech, so the asset (for example ETH) has to stay in the button name.
+    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
+      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
+    }`;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
@@ -172,7 +177,10 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         {isLoading ? (
           <Skeleton width={80} height={40} />
         ) : (
+          // Hidden from assistive tech while this row is a button, so the
+          // button name, including the asset unit, is the only announcement.
           <Text
+            accessible={!onPress}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -187,6 +195,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         ) : null}
         {!isLoading && primaryDisplayUnit ? (
           <Text
+            accessible={!onPress}
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
             variant={TextVariant.AmountDisplayLg}
             fontFamily={FontFamily.Hero}
@@ -210,7 +219,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <TouchableOpacity
             testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
             accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={primaryAccessibilityLabel}
             onPress={onPress}
             activeOpacity={0.7}
           >

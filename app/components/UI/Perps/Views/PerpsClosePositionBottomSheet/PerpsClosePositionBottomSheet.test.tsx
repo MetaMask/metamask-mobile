@@ -842,6 +842,16 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('limit price validation', () => {
+    const closeAmountColor = (
+      utils: ReturnType<typeof renderSheet>,
+    ): string | undefined =>
+      utils
+        .UNSAFE_getAllByType(Text)
+        .find(
+          (node) =>
+            node.props.testID === PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+        )?.props.color;
+
     const selectLimitAndEnterPrice = (value: string) => {
       mockKeypadValue = value;
       const utils = renderSheet();
@@ -860,9 +870,10 @@ describe('PerpsClosePositionBottomSheet', () => {
         isValid: false,
       });
 
-      const { queryByText } = selectLimitAndEnterPrice('6');
+      const utils = selectLimitAndEnterPrice('6');
 
-      expect(queryByText(tooFarError)).toBeNull();
+      expect(utils.queryByText(tooFarError)).toBeNull();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
     });
 
     it('shows the limit-price band error above Close once the keypad closes', () => {
@@ -882,6 +893,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         ),
       ).toBeOnTheScreen();
       expect(utils.getAllByText(tooFarError)).toHaveLength(1);
+      expect(closeAmountColor(utils)).toBe(TextColor.ErrorDefault);
       expect(
         utils.queryByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
@@ -905,6 +917,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           strings('perps.order.limit_price_modal.limit_price_below'),
         ),
       ).toBeNull();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
 
       fireEvent.press(utils.getByText(strings('perps.deposit.done_button')));
 
@@ -913,6 +926,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           strings('perps.order.limit_price_modal.limit_price_below'),
         ),
       ).toBeOnTheScreen();
+      expect(closeAmountColor(utils)).toBe(TextColor.TextDefault);
     });
   });
 
