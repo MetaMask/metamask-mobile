@@ -144,9 +144,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       };
 
       try {
-        // Writes <artifactsDir>/<sessionId>/session.json.
+        // Writes <artifactsDir>/<sessionId>/session.json. Core passes
+        // `artifactsDir` from MM_ARTIFACTS_DIR or the workflow context config.
         await writeSessionMetadata(
-          this.workflowContext?.config?.artifactsDir ?? DEFAULT_ARTIFACTS_DIR,
+          input.artifactsDir ??
+            this.workflowContext?.config?.artifactsDir ??
+            DEFAULT_ARTIFACTS_DIR,
           this.sessionMetadata,
         );
       } catch {
