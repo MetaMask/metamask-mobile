@@ -45,8 +45,10 @@ import { strings } from '../../../../../locales/i18n';
 import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
 import {
   acceptSocialTerms,
+  ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
 
@@ -380,6 +382,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   afterEach(async () => {
+    takePendingSocialEntry();
     engineWithState.state = originalEngineState;
     await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
@@ -635,6 +638,92 @@ describe('SocialProfileOnboardingView', () => {
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
       ).toBeOnTheScreen();
       expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('continues to the blocked Social entry once the terms-only sheet is accepted', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      agreeToTerms();
+
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the blocked Social entry when the terms-only sheet is closed', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+      expect(openBlockedEntry).not.toHaveBeenCalled();
+    });
+
+    it('forgets the blocked Social entry when onboarding closes', () => {
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      const { unmount } = renderSocialProfileOnboarding([], {
+        initialParams: { termsOnly: true },
+      });
+
+      unmount();
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('opens the blocked Social entry instead of the feed after a new profile', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      await renderOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      await reachReadyStep();
+      await leaveReadyStep();
+
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens My Profile after the X path even with a blocked Social entry', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      signIn();
+      await renderOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      await leaveReadyStep();
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE),
+        ),
+      ).toBeOnTheScreen();
+      expect(openBlockedEntry).not.toHaveBeenCalled();
     });
 
     it('skips the sheet when the current terms were already accepted', async () => {
