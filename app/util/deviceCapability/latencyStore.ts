@@ -21,7 +21,9 @@ import type {
 let samples: LatencySample[] = [];
 let bucket: LatencyBucket = 'UNKNOWN';
 let thresholds: LatencyThresholds = latencyThresholdsFor(null);
-let isTransportNone = false;
+// Starts true: until the first NetInfo event the transport is unknown, so
+// cold-start samples (recorded before any NetInfo callback) are dropped.
+let isTransportNone = true;
 let isMonitoring = false;
 // Bumped on every clear. A fetch keeps the value from before its await.
 let sampleEpoch = 0;
@@ -94,8 +96,8 @@ export function isLatencyTransportNone(): boolean {
 /**
  * Selects the thresholds row and starts the reset listeners: AppState
  * `background` to `active` (in-flight samples are also dropped on
- * `inactive`), and NetInfo `type` / `cellularGeneration` /
- * `isInternetReachable` changes. Idempotent.
+ * `inactive`), and NetInfo transport changes (`type` /
+ * `cellularGeneration`; reachability-only flips do not reset). Idempotent.
  */
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
@@ -113,7 +115,14 @@ export function startLatencyMonitoring(
       cellularGeneration: readCellularGeneration(state.details),
       isInternetReachable: state.isInternetReachable,
     };
-    const key = JSON.stringify(input);
+    // The reset key is transport identity only. Raw `isInternetReachable`
+    // stays out: a `null` ↔ `true` reachability flip on the same transport
+    // must not wipe samples. A flip to `false` still clears via
+    // `isTransportNone`, because the tier becomes `NONE`.
+    const key = JSON.stringify({
+      type: input.type,
+      cellularGeneration: input.cellularGeneration,
+    });
     const changed =
       previousNetInfoKey !== undefined && key !== previousNetInfoKey;
     previousNetInfoKey = key;
