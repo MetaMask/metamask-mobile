@@ -37,7 +37,7 @@ describe('socialServiceInit', () => {
     expect(controller).toBeInstanceOf(SocialService);
   });
 
-  it('reopens the shared circuit after 30 seconds instead of 30 minutes', () => {
+  it('keeps the shared circuit closed and retries a failed read once', () => {
     socialServiceInit(getInitRequestMock());
 
     expect(jest.mocked(SocialService)).toHaveBeenCalledWith({
@@ -47,7 +47,7 @@ describe('socialServiceInit', () => {
     });
     expect(SOCIAL_SERVICE_POLICY_OPTIONS).toEqual({
       maxRetries: 1,
-      circuitBreakDuration: 30_000,
+      maxConsecutiveFailures: Number.MAX_SAFE_INTEGER,
     });
   });
 });

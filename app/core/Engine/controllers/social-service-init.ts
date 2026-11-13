@@ -12,14 +12,15 @@ import Logger from '../../../util/Logger';
  * for 30 minutes, so a burst of slow-network timeouts makes Try again fail
  * with no new request until the app restarts (TSA-1552).
  *
- * One retry, then a 30 second pause. The next Try again is allowed through.
+ * These reads are user-triggered, so the breaker stays closed and each read
+ * retries once. Try again always sends a new request.
  */
 export const SOCIAL_SERVICE_POLICY_OPTIONS = {
   maxRetries: 1,
-  circuitBreakDuration: 30_000,
+  maxConsecutiveFailures: Number.MAX_SAFE_INTEGER,
 } as const satisfies Pick<
   CreateServicePolicyOptions,
-  'maxRetries' | 'circuitBreakDuration'
+  'maxRetries' | 'maxConsecutiveFailures'
 >;
 
 /**
