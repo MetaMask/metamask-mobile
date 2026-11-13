@@ -175,11 +175,12 @@ const BenefitFullView = () => {
                   >
                     <Icon
                       name={IconName.Clock}
-                      size={IconSize.Md}
+                      size={IconSize.Sm}
                       color={IconColor.IconAlternative}
                     />
                     <Text
-                      variant={TextVariant.BodyMd}
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
                       color={TextColor.TextAlternative}
                       numberOfLines={1}
                     >
@@ -192,6 +193,7 @@ const BenefitFullView = () => {
                 {companyName ? (
                   <Text
                     variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                     color={TextColor.TextAlternative}
                     twClassName="max-w-[55%]"
                     numberOfLines={1}

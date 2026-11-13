@@ -13,7 +13,6 @@ import {
 } from '../../../util/trace';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
-  getRawBooleanProp,
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
@@ -25,7 +24,6 @@ export interface UseBrazeBannerResult {
   banner: Banner | null;
   bannerName: string | null;
   eventProperties: { [key: string]: unknown } | null;
-  flushImmediately: boolean;
   title: string | null;
   body: string | null;
   imageUrl: string | null;
@@ -44,7 +42,6 @@ export interface UseBrazeBannerResult {
  * - `body`         Main message text (required; banner is ignored without it).
  * - `image_url`    URL for the image displayed on the left of the card.
  * - `cta_label`    Call-to-action text shown below the body (only when no title).
- * - `flush_immediately` Boolean; flushes the click event immediately when true.
  */
 const PROP_BANNER_NAME = 'campaign_name';
 const PROP_DEEPLINK = 'deeplink';
@@ -53,7 +50,6 @@ const PROP_BODY = 'body';
 const PROP_IMAGE_URL = 'image_url';
 const PROP_CTA_LABEL = 'cta_label';
 const PROP_VARIANT_NAME = 'variant_name';
-const PROP_FLUSH_IMMEDIATELY = 'flush_immediately';
 
 function logBrazeBannerDebug(
   message: string,
@@ -319,9 +315,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   const variantName = banner
     ? getRawStringProp(banner, PROP_VARIANT_NAME)
     : null;
-  const flushImmediately = banner
-    ? getRawBooleanProp(banner, PROP_FLUSH_IMMEDIATELY) === true
-    : false;
 
   const eventProperties = useMemo(
     () =>
@@ -350,7 +343,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     banner,
     bannerName,
     eventProperties,
-    flushImmediately,
     title,
     body,
     imageUrl,
