@@ -275,8 +275,7 @@ const OptinMetrics = () => {
 
     navigation.navigate(Routes.ONBOARDING.NOTIFICATION_PERMISSION, {
       onComplete: continueNavigation,
-      shouldShowQuestionnaire:
-        isBasicUsageChecked && shouldShowQuestionnaire,
+      shouldShowQuestionnaire: isBasicUsageChecked && shouldShowQuestionnaire,
       ...(accountType && { accountType }),
     });
   }, [

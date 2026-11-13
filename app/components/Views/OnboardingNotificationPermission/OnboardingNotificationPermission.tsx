@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image, ImageBackground } from 'react-native';
-import {
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -152,8 +148,7 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
 
     const resolveEligibility = async (): Promise<void> => {
       const isEligible =
-        isNotificationsFeatureEnabled() &&
-        isBasicFunctionalityEnabled;
+        isNotificationsFeatureEnabled() && isBasicFunctionalityEnabled;
 
       if (!isEligible) {
         if (!cancelled) {
@@ -195,11 +190,7 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
     return () => {
       cancelled = true;
     };
-  }, [
-    isBasicFunctionalityEnabled,
-    navigateForward,
-    trackPrePromptViewed,
-  ]);
+  }, [isBasicFunctionalityEnabled, navigateForward, trackPrePromptViewed]);
 
   const handleEnableNotifications = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
@@ -285,8 +276,7 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
     return <SafeAreaView style={tw.style('flex-1 bg-default')} />;
   }
 
-  const shouldBlurBackground =
-    hardwareTier !== 'LOW' && networkTier !== 'NONE';
+  const shouldBlurBackground = hardwareTier !== 'LOW' && networkTier !== 'NONE';
 
   return (
     <SafeAreaView
@@ -305,9 +295,7 @@ const OnboardingNotificationPermission = (): React.ReactElement => {
       <Box twClassName="flex-1 px-4">
         <TitleStandard
           title={strings('notifications.push_onboarding.onboarding.title')}
-          bottomLabel={strings(
-            'notifications.push_onboarding.onboarding.body',
-          )}
+          bottomLabel={strings('notifications.push_onboarding.onboarding.body')}
           twClassName="pt-3"
         />
 

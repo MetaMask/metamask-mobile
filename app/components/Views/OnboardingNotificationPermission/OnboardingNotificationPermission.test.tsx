@@ -43,15 +43,12 @@ jest.mock('../../../util/notifications/constants', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
 
-jest.mock(
-  '../../../util/notifications/utils/push-notification-status',
-  () => ({
-    resolveNativePushPermissionStatus: jest.fn().mockResolvedValue({
-      nativeOsPermissionEnabled: false,
-      nativeOsPermissionPromptable: true,
-    }),
+jest.mock('../../../util/notifications/utils/push-notification-status', () => ({
+  resolveNativePushPermissionStatus: jest.fn().mockResolvedValue({
+    nativeOsPermissionEnabled: false,
+    nativeOsPermissionPromptable: true,
   }),
-);
+}));
 
 jest.mock(
   '../../../util/notifications/constants/notification-storage-keys',
@@ -64,8 +61,7 @@ jest.mock(
   '../../../util/notifications/hooks/usePushPermissionNotificationSetup',
   () => ({
     usePushPermissionNotificationSetup: () => ({
-      enableNotificationsInBackground:
-        mockEnableNotificationsInBackground,
+      enableNotificationsInBackground: mockEnableNotificationsInBackground,
       requestPushPermission: mockRequestPushPermission,
     }),
   }),
@@ -84,9 +80,7 @@ jest.mock(
   '../../../util/notifications/hooks/usePushPrePromptAnalytics',
   () => ({
     usePushPrePromptAnalytics: () => ({
-      identifyPushNotificationsEnabled: jest
-        .fn()
-        .mockResolvedValue(undefined),
+      identifyPushNotificationsEnabled: jest.fn().mockResolvedValue(undefined),
       trackOsPromptResponse: jest.fn(),
       trackOsPromptShown: jest.fn(),
       trackPrePromptButtonClicked: jest.fn(),
@@ -104,9 +98,7 @@ describe('OnboardingNotificationPermission', () => {
     const { findByTestId, getByTestId } = render(
       <OnboardingNotificationPermission />,
     );
-    await findByTestId(
-      OnboardingNotificationPermissionTestIds.ENABLE_BUTTON,
-    );
+    await findByTestId(OnboardingNotificationPermissionTestIds.ENABLE_BUTTON);
 
     fireEvent.press(
       getByTestId(OnboardingNotificationPermissionTestIds.ENABLE_BUTTON),
