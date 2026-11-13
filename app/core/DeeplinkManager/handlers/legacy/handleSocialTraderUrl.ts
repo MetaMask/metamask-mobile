@@ -8,6 +8,7 @@ import {
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
 
 interface HandleSocialTraderUrlParams {
   actionPath: string;
@@ -73,9 +74,10 @@ export const handleSocialTraderUrl = ({
     const isV1Treatment = isSocialV1Treatment();
     if (
       isV1Treatment &&
-      !ensureSocialTermsAccepted(NavigationService.navigation.navigate, () =>
-        handleSocialTraderUrl({ actionPath }),
-      )
+      openSocialTraderPreviewIfNotJoined(NavigationService.navigation, {
+        kind: 'trader',
+        traderId,
+      })
     ) {
       return;
     }

@@ -51,6 +51,10 @@ import {
   takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
+import {
+  getPendingSocialPreviewTarget,
+  setPendingSocialPreviewTarget,
+} from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const engineWithState = Engine as unknown as { state: typeof Engine.state };
@@ -396,6 +400,42 @@ describe('SocialProfileOnboardingView', () => {
       .mockClear();
     jest.mocked(Engine.context.ProfileController.connectX).mockClear();
     restoreProfileControllerMocks();
+  });
+
+  it('opens the trader from a preview link instead of the Social tab on Lets go', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    await renderOnboarding([
+      { name: Routes.HOME_TABS },
+      { name: Routes.SOCIAL.V1_PROFILE },
+    ]);
+
+    await reachReadyStep();
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1_PROFILE)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).not.toBeOnTheScreen();
+    expect(getPendingSocialPreviewTarget()).toBeNull();
+  });
+
+  it('drops a preview link when onboarding closes without finishing', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    const { unmount } = await renderOnboarding();
+
+    unmount();
+
+    expect(getPendingSocialPreviewTarget()).toBeNull();
   });
 
   it.each([true, false])(
