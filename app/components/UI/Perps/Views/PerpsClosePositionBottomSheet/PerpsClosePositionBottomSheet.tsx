@@ -171,13 +171,29 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     feeResults.originalMetamaskFeeRate,
   );
 
-  const displayedErrors = useMemo(
-    () =>
-      limitPriceInput.error
-        ? filteredErrors.filter((error) => error !== limitPriceInput.error)
-        : filteredErrors,
-    [filteredErrors, limitPriceInput.error],
+  // A position under the minimum must be closed in full for a market order.
+  // Limit closes don't show that message.
+  const mustCloseFullBelowMinimumError = strings(
+    'perps.close_position.must_close_full_below_minimum',
   );
+  const displayedErrors = useMemo(() => {
+    const withoutLimitPriceDuplicate = limitPriceInput.error
+      ? filteredErrors.filter((error) => error !== limitPriceInput.error)
+      : filteredErrors;
+
+    if (effectiveOrderType !== 'limit') {
+      return withoutLimitPriceDuplicate;
+    }
+
+    return withoutLimitPriceDuplicate.filter(
+      (error) => !error.startsWith(mustCloseFullBelowMinimumError),
+    );
+  }, [
+    effectiveOrderType,
+    filteredErrors,
+    limitPriceInput.error,
+    mustCloseFullBelowMinimumError,
+  ]);
 
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
