@@ -1354,7 +1354,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
+        options={{
+          ...slideFromRightNativeOptions,
+          fullScreenGestureEnabled: true,
+        }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}

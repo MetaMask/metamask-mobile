@@ -164,6 +164,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box,
     Label,
     Text,

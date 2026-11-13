@@ -6,6 +6,11 @@ import PredictPreviewSheet, {
   PredictPreviewSheetRef,
 } from './PredictPreviewSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
