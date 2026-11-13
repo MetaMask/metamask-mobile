@@ -461,7 +461,7 @@ describeForPlatforms('Send', () => {
         renderScreenWithRoutes(
           Send as unknown as React.ComponentType,
           { name: Routes.SEND.DEFAULT },
-          [{ name: Routes.WALLET_VIEW }],
+          [{ name: Routes.WALLET.HOME }],
           { state },
           { screen: Routes.SEND.AMOUNT, params: { asset: EVM_ETH_ASSET } },
         );
@@ -500,7 +500,7 @@ describeForPlatforms('Send', () => {
 
       expect(
         await findByTestId(
-          getRouteProbeTestId(Routes.WALLET_VIEW),
+          getRouteProbeTestId(Routes.WALLET.HOME),
           {},
           { timeout: 5000 },
         ),

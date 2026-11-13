@@ -41,14 +41,14 @@ export function useSendNavbar() {
     );
 
     if (sendRouteIndex <= 0) {
-      navigationForStack.navigate(Routes.WALLET_VIEW);
+      navigationForStack.navigate(Routes.WALLET.HOME);
       return;
     }
 
     const previousMainRoute = sendStackState.routes[sendRouteIndex - 1];
 
     if (previousMainRoute.name === 'Home') {
-      navigationForStack.navigate(Routes.WALLET_VIEW);
+      navigationForStack.navigate(Routes.WALLET.HOME);
       return;
     }
 
