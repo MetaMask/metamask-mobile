@@ -300,23 +300,15 @@ export const NetworkConnectionBannerContent = ({
         startAccessory={
           <Icon
             name={IconName.Wifi}
-            size={IconSize.Sm}
+            size={IconSize.Md}
             color={IconColor.IconDefault}
           />
         }
         title={strings('network_connection_banner.slow_network_title')}
-        titleProps={{
-          variant: TextVariant.BodyXs,
-          fontWeight: FontWeight.Medium,
-        }}
         description={strings(
           'network_connection_banner.slow_network_description',
         )}
-        descriptionProps={{
-          variant: TextVariant.BodyXs,
-          fontWeight: FontWeight.Medium,
-          color: TextColor.TextAlternative,
-        }}
+        descriptionProps={{ color: TextColor.TextAlternative }}
         onClose={dismissSlowNetwork}
         closeButtonProps={{
           accessibilityLabel: strings(
