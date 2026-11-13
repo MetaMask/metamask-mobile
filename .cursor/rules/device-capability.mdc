@@ -24,6 +24,10 @@ const network = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' 
 
 Keep the two values **separate**. Do not fold them into one “worst of RAM and network” flag.
 
+The network tier is the NetInfo transport tier only (2g / 3g are `SLOW_CELLULAR`). Measured fetch latency is a separate signal: `useNetworkLatency()` returns `'UNKNOWN' | 'OK' | 'SLOW'` and never changes the tier or re-renders `useNetworkTier()` consumers. `latency === 'SLOW'` is the slow-connection trigger on any transport (including `WIFI`) and any hardware tier; it is `'UNKNOWN'` while the transport is `NONE`. The bucket already includes hysteresis. Do not reimplement the cutoffs. Hardware tier only selects the `LATENCY_THRESHOLDS` row in `thresholds.ts`; it is never folded into the network tier.
+
+`WIFI` and `FAST_CELLULAR` are not speed. They differ by LAN (`wifi` and `ethernet`) versus cellular radio (`4g` and `5g`). Do not derive bandwidth or a data cap from either tier.
+
 `null` means unknown — never treat it as LOW, offline, or `'NONE'`. `'NONE'` is known no usable internet.
 
 ## Required
