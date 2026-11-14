@@ -1,3 +1,6 @@
+// The chart shim is a page script. vm runs it in the test without shipping a Node builtin in the app.
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { runInNewContext } from 'vm';
 import {
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
@@ -6,6 +9,7 @@ import {
   buildWebClipboardPolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
   buildWebDownloadInterceptorScript,
+  buildBlobIframeSrcdocScript,
 } from './browserScripts';
 
 describe('buildWebSharePolyfillScript', () => {
@@ -150,5 +154,665 @@ describe('buildWebDownloadInterceptorScript', () => {
     // Pre-setting this flag stops BlobFileDownloader.kt from assigning
     // window.downloadBlob and clobbering page globals with that name.
     expect(script).toContain('window.blobDownloadInjected = true');
+  });
+});
+
+describe('buildBlobIframeSrcdocScript', () => {
+  const flush = async () => {
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+  };
+
+  const install = (sandbox: Record<string, unknown>) => {
+    sandbox.window = sandbox;
+    runInNewContext(buildBlobIframeSrcdocScript(), sandbox);
+  };
+
+  it('builds a script without a NUL character', () => {
+    const script = buildBlobIframeSrcdocScript();
+
+    // iOS hands the script to WebKit as a C string and stops at the first NUL,
+    // which would drop everything injected at document start.
+    expect(script).not.toContain('\u0000');
+  });
+
+  it('renders a fetched text/html blob through srcdoc unchanged', async () => {
+    const html = '<html><head></head><body>chart</body></html>';
+    const fetched: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      get() {
+        return '';
+      },
+      set() {
+        return undefined;
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const iframe = Object.create(iframeProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://www.tradingview.com/widget' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      fetch: (url: string) => {
+        fetched.push(url);
+        return Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/html;charset=utf-8',
+              text: () => Promise.resolve(html),
+            }),
+        });
+      },
+      URL: {
+        createObjectURL: () => 'blob:unused',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+
+    install(sandbox);
+    iframe.src = 'blob:https://www.tradingview.com/chart-frame';
+    await flush();
+
+    expect(fetched).toEqual(['blob:https://www.tradingview.com/chart-frame']);
+    expect(iframe.srcdoc).toBe(html);
+  });
+
+  it('reads a blob created on a parent src setter without fetch', async () => {
+    const html = '<html><head></head><body>chart</body></html>';
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      get() {
+        return '';
+      },
+      set() {
+        return undefined;
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    iframeProto.setAttribute = function setAttribute(
+      this: { src: string },
+      name: string,
+      value: string,
+    ) {
+      if (name === 'src') {
+        this.src = value;
+      }
+    };
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://www.tradingview.com/widget#chart' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      fetch: () => Promise.reject(new Error('fetch should not run')),
+      URL: {
+        createObjectURL: () => 'blob:https://www.tradingview.com/created',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var blob = { type: 'text/html', text: function () { return Promise.resolve(${JSON.stringify(html)}); } };
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = URL.createObjectURL(blob);
+        iframe;
+      `,
+      sandbox,
+    );
+    await flush();
+
+    expect(iframe.srcdoc).toBe(html);
+  });
+
+  it('leaves https iframe sources on the native setter', () => {
+    const assigned: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      set(value: string) {
+        assigned.push(value);
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://example.com' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      URL: {
+        createObjectURL: () => 'blob:unused',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = 'https://example.com/embed';
+        iframe;
+      `,
+      sandbox,
+    );
+
+    expect(assigned).toEqual(['https://example.com/embed']);
+    expect(iframe.srcdoc).toBeUndefined();
+  });
+
+  it('leaves pdf blob iframes on the native setter', () => {
+    const assigned: string[] = [];
+    const frameProto: object = {};
+    Object.defineProperty(frameProto, 'src', {
+      configurable: true,
+      set(value: string) {
+        assigned.push(value);
+      },
+    });
+    const iframeProto = Object.create(frameProto);
+    const sandbox: Record<string, unknown> = {
+      HTMLIFrameElement: function HTMLIFrameElement() {
+        return undefined;
+      },
+      Map,
+      setTimeout,
+      location: { href: 'https://example.com' },
+      document: {
+        readyState: 'complete',
+        documentElement: {},
+        addEventListener() {
+          return undefined;
+        },
+      },
+      MutationObserver: class {
+        observe() {
+          return undefined;
+        }
+      },
+      URL: {
+        createObjectURL: () => 'blob:https://example.com/file.pdf',
+        revokeObjectURL: () => undefined,
+      },
+    };
+    (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+      iframeProto;
+    sandbox.window = sandbox;
+
+    const iframe = runInNewContext(
+      `${buildBlobIframeSrcdocScript()}
+        var blob = { type: 'application/pdf', text: function () { return Promise.resolve('%PDF-1.7'); } };
+        var iframe = Object.create(HTMLIFrameElement.prototype);
+        iframe.src = URL.createObjectURL(blob);
+        iframe;
+      `,
+      sandbox,
+    );
+
+    expect(assigned).toEqual(['blob:https://example.com/file.pdf']);
+    expect(iframe.srcdoc).toBeUndefined();
+  });
+
+  // srcdoc precedence lives in the injected page script. Component-view and
+  // integration runners never install that setter, so this stays a unit test.
+  describe('after a blob was rewritten to srcdoc', () => {
+    interface BlobParts {
+      type?: string;
+      text?: () => Promise<string>;
+    }
+
+    const installSrcFrame = (
+      fetchImpl: (url: string) => Promise<{
+        blob: () => Promise<BlobParts>;
+      }> = () => Promise.reject(new Error('fetch should not run')),
+    ) => {
+      // One ordered log, because the order of the two writes decides how many
+      // loads the browser starts.
+      const writes: string[] = [];
+      const frameProto: object = {};
+      Object.defineProperty(frameProto, 'src', {
+        configurable: true,
+        get(this: { _src?: string }) {
+          return this._src || '';
+        },
+        set(this: { _src?: string }, value: string) {
+          writes.push(`src=${value}`);
+          this._src = value;
+        },
+      });
+      const iframeProto = Object.create(frameProto);
+      const iframe = Object.create(iframeProto);
+      iframe.removeAttribute = function (
+        this: { srcdoc?: string },
+        name: string,
+      ) {
+        writes.push(`removeAttribute(${name})`);
+        if (String(name).toLowerCase() === 'srcdoc') {
+          delete this.srcdoc;
+        }
+      };
+      let blobCount = 0;
+      const sandbox: Record<string, unknown> = {
+        HTMLIFrameElement: function HTMLIFrameElement() {
+          return undefined;
+        },
+        Map,
+        setTimeout,
+        location: { href: 'https://www.tradingview.com/widget' },
+        document: {
+          readyState: 'complete',
+          documentElement: {},
+          addEventListener() {
+            return undefined;
+          },
+        },
+        MutationObserver: class {
+          observe() {
+            return undefined;
+          }
+        },
+        fetch: fetchImpl,
+        URL: {
+          createObjectURL: () => `blob:https://example.com/${blobCount++}`,
+          revokeObjectURL() {
+            return undefined;
+          },
+        },
+      };
+      (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+        iframeProto;
+      install(sandbox);
+
+      return {
+        writes,
+        iframe,
+        createObjectURL: (
+          sandbox.URL as { createObjectURL: (blob: BlobParts) => string }
+        ).createObjectURL,
+      };
+    };
+
+    // A src write does nothing while srcdoc exists. Removing srcdoc afterwards
+    // starts one load, of the new URL. The reverse order would first start a
+    // load of whatever src held before.
+    it('writes a later non-blob src and then removes the rewritten srcdoc', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(writes).toEqual([
+        'src=https://example.com/embed',
+        'removeAttribute(srcdoc)',
+      ]);
+      expect(iframe.srcdoc).toBeUndefined();
+    });
+
+    it('writes a later pdf blob src and then removes the rewritten srcdoc', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+      const pdfUrl = createObjectURL({
+        type: 'application/pdf',
+        text: () => Promise.resolve('%PDF-1.7'),
+      });
+
+      iframe.src = pdfUrl;
+
+      expect(writes).toEqual([`src=${pdfUrl}`, 'removeAttribute(srcdoc)']);
+      expect(iframe.srcdoc).toBeUndefined();
+    });
+
+    it('leaves a page-authored srcdoc in place when src changes', () => {
+      const { writes, iframe } = installSrcFrame();
+      iframe.srcdoc = '<p>turnstile</p>';
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(iframe.srcdoc).toBe('<p>turnstile</p>');
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+
+    it('leaves a srcdoc the page wrote over the rewritten one', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+      iframe.srcdoc = '<p>turnstile</p>';
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(iframe.srcdoc).toBe('<p>turnstile</p>');
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+
+    it('ignores a blob read that finishes after src leaves the blob URL', async () => {
+      let resolveHtml: (html: string) => void = () => undefined;
+      const htmlReady = new Promise<string>((resolve) => {
+        resolveHtml = resolve;
+      });
+      const { writes, iframe } = installSrcFrame(() =>
+        Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/html',
+              text: () => htmlReady,
+            }),
+        }),
+      );
+      iframe.src = 'blob:https://example.com/chart';
+      await flush();
+
+      iframe.src = 'https://example.com/embed';
+      resolveHtml('<html><head></head><body>chart</body></html>');
+      await flush();
+
+      expect(iframe.srcdoc).toBeUndefined();
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+  });
+
+  // The re-entry loop lives in the injected page script. Component-view and
+  // integration runners never install that MutationObserver, so this stays a
+  // unit test of the script itself.
+  describe('with a src observer', () => {
+    const drain = async () => {
+      for (let step = 0; step < 12; step++) {
+        await new Promise((resolve) => setImmediate(resolve));
+      }
+    };
+
+    const installObservedFrame = (
+      createObjectURL: (blob: { type?: string }) => string,
+    ) => {
+      const assigned: string[] = [];
+      const observers: ((
+        records: { type: string; target: object }[],
+      ) => void)[] = [];
+      const notifySrcObservers = (node: object): void => {
+        queueMicrotask(() => {
+          observers.forEach((notify) =>
+            notify([{ type: 'attributes', target: node }]),
+          );
+        });
+      };
+      const frameProto: object = {};
+      Object.defineProperty(frameProto, 'src', {
+        configurable: true,
+        get(this: { _src?: string }) {
+          return this._src || '';
+        },
+        set(this: { _src?: string }, value: string) {
+          assigned.push(value);
+          this._src = value;
+          // A regression that re-enters on every src write used to grow this
+          // queue until the worker ran out of memory. Stop notifying past a
+          // few writes so the assertion can fail instead.
+          if (assigned.length <= 4) {
+            notifySrcObservers(this);
+          }
+        },
+      });
+      const iframeProto = Object.create(frameProto);
+      const sandbox: Record<string, unknown> = {
+        HTMLIFrameElement: function HTMLIFrameElement() {
+          return undefined;
+        },
+        Map,
+        setTimeout,
+        Uint8Array,
+        location: { href: 'https://example.com/page' },
+        document: {
+          readyState: 'complete',
+          documentElement: {},
+          addEventListener() {
+            return undefined;
+          },
+        },
+        MutationObserver: class {
+          constructor(
+            callback: (records: { type: string; target: object }[]) => void,
+          ) {
+            observers.push(callback);
+          }
+
+          observe() {
+            return undefined;
+          }
+        },
+        fetch: () => Promise.reject(new Error('fetch should not run')),
+        URL: {
+          createObjectURL,
+          revokeObjectURL: () => undefined,
+        },
+      };
+      (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+        iframeProto;
+
+      return { assigned, sandbox };
+    };
+
+    const assignBlobFrame = (
+      sandbox: Record<string, unknown>,
+      blobSource: string,
+    ) => {
+      sandbox.window = sandbox;
+      return runInNewContext(
+        `${buildBlobIframeSrcdocScript()}
+          ${blobSource}
+          var iframe = Object.create(HTMLIFrameElement.prototype);
+          iframe.tagName = 'IFRAME';
+          iframe.getAttribute = function (name) {
+            return String(name).toLowerCase() === 'src' ? this.src : null;
+          };
+          iframe.src = URL.createObjectURL(blob);
+          iframe;
+        `,
+        sandbox,
+      );
+    };
+
+    it('keeps a pdf blob on the native src when the src observer fires', async () => {
+      const reads: string[] = [];
+      const { assigned, sandbox } = installObservedFrame(
+        () => 'blob:https://example.com/file.pdf',
+      );
+      sandbox.reads = reads;
+
+      const iframe = assignBlobFrame(
+        sandbox,
+        `var blob = {
+          type: 'application/pdf',
+          text: function () {
+            reads.push('text');
+            return Promise.resolve('%PDF-1.7');
+          }
+        };`,
+      );
+      await drain();
+
+      expect(assigned).toEqual(['blob:https://example.com/file.pdf']);
+      expect(iframe.srcdoc).toBeUndefined();
+      expect(reads).toEqual([]);
+    });
+
+    // A browser shows these blobs as inert text or media. srcdoc would parse
+    // the same bytes as HTML in the embedding page's origin.
+    it.each([
+      ['an image/png', 'image/png'],
+      ['an audio/mpeg', 'audio/mpeg'],
+      ['a text/plain', 'text/plain'],
+      ['an application/json', 'application/json'],
+      ['a text/csv', 'text/csv'],
+      ['an untyped', ''],
+    ])(
+      'keeps %s blob holding markup on the native src',
+      async (_label, type) => {
+        const reads: string[] = [];
+        const { assigned, sandbox } = installObservedFrame(
+          () => 'blob:https://example.com/file',
+        );
+        sandbox.reads = reads;
+
+        const iframe = assignBlobFrame(
+          sandbox,
+          `var blob = {
+            type: ${JSON.stringify(type)},
+            text: function () {
+              reads.push('text');
+              return Promise.resolve('<script>parent.ethereum</script>');
+            }
+          };`,
+        );
+        await drain();
+
+        expect(assigned).toEqual(['blob:https://example.com/file']);
+        expect(iframe.srcdoc).toBeUndefined();
+        expect(reads).toEqual([]);
+      },
+    );
+
+    it('keeps a fetched text/plain blob on the native src', async () => {
+      const { assigned, sandbox } = installObservedFrame(() => 'blob:unused');
+      sandbox.fetch = () =>
+        Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/plain',
+              text: () => Promise.resolve('<script>parent.ethereum</script>'),
+            }),
+        });
+      sandbox.window = sandbox;
+
+      const iframe = runInNewContext(
+        `${buildBlobIframeSrcdocScript()}
+          var iframe = Object.create(HTMLIFrameElement.prototype);
+          iframe.tagName = 'IFRAME';
+          iframe.getAttribute = function (name) {
+            return String(name).toLowerCase() === 'src' ? this.src : null;
+          };
+          iframe.src = 'blob:https://example.com/untracked';
+          iframe;
+        `,
+        sandbox,
+      );
+      await drain();
+
+      expect(assigned).toEqual(['blob:https://example.com/untracked']);
+      expect(iframe.srcdoc).toBeUndefined();
+    });
+
+    it('keeps the newer chart when an older blob read finishes later', async () => {
+      const resolvers: ((html: string) => void)[] = [];
+      let nextId = 0;
+      const { sandbox } = installObservedFrame(
+        () => `blob:https://example.com/chart-${++nextId}`,
+      );
+      sandbox.resolvers = resolvers;
+      sandbox.window = sandbox;
+
+      const iframe = runInNewContext(
+        `${buildBlobIframeSrcdocScript()}
+          function chartBlob() {
+            return {
+              type: 'text/html',
+              text: function () {
+                return new Promise(function (resolve) {
+                  resolvers.push(resolve);
+                });
+              }
+            };
+          }
+          var iframe = Object.create(HTMLIFrameElement.prototype);
+          iframe.tagName = 'IFRAME';
+          iframe.getAttribute = function (name) {
+            return String(name).toLowerCase() === 'src' ? this.src : null;
+          };
+          iframe.src = URL.createObjectURL(chartBlob());
+          iframe._loadNext = function () {
+            this.src = URL.createObjectURL(chartBlob());
+          };
+          iframe;
+        `,
+        sandbox,
+      );
+      await drain();
+
+      iframe._loadNext();
+      await drain();
+      const resolveFirst = resolvers[0];
+      const resolveSecond = resolvers[1];
+
+      resolveSecond('<html><head></head><body>second-chart</body></html>');
+      await drain();
+      resolveFirst('<html><head></head><body>first-chart</body></html>');
+      await drain();
+
+      expect(iframe.srcdoc).toContain('second-chart');
+      expect(iframe.srcdoc).not.toContain('first-chart');
+    });
   });
 });
