@@ -1,10 +1,11 @@
 import { createSelector } from 'reselect';
 import type { AccountGroupId } from '@metamask/account-api';
-import type { AccountGroupObject } from '@metamask/account-tree-controller';
-import type { RootState } from '../../reducers';
+import type {
+  AccountGroupObject,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
 import {
   selectAccountGroupsByWallet,
-  selectAccountGroupById,
   selectAccountGroups,
   selectWalletsMap,
 } from './accountTreeController';
@@ -24,19 +25,6 @@ export const selectVisibleAccountGroupsByWallet = createSelector(
       ),
     })),
 );
-
-/**
- * Selector factory that returns whether a given account group is hidden.
- *
- * @param groupId - The ID of the account group to inspect
- * @returns A selector that returns true if the group is hidden, false otherwise
- */
-export const selectAccountGroupHidden = (groupId: AccountGroupId) =>
-  createSelector(
-    (state: RootState) => selectAccountGroupById(state, groupId),
-    (group: AccountGroupObject | undefined): boolean =>
-      Boolean(group?.metadata?.hidden),
-  );
 
 /**
  * Get the IDs of all hidden account groups across all wallets.
@@ -70,6 +58,33 @@ export interface AccountListStats {
 }
 
 /**
+ * Count accounts, wallets and hidden accounts across a whole account tree.
+ *
+ * @param wallets - Wallets map from the AccountTreeController state.
+ * @returns The account, wallet and hidden-account totals.
+ */
+export const getAccountListStats = (
+  wallets: Record<string, AccountWalletObject> | null | undefined,
+): AccountListStats => {
+  let totalAccounts = 0;
+  let totalWallets = 0;
+  let hiddenCount = 0;
+
+  for (const wallet of Object.values(wallets ?? {})) {
+    totalWallets += 1;
+
+    for (const group of Object.values(wallet.groups ?? {})) {
+      totalAccounts += 1;
+      if (group.metadata?.hidden) {
+        hiddenCount += 1;
+      }
+    }
+  }
+
+  return { totalAccounts, totalWallets, hiddenCount };
+};
+
+/**
  * Get account list statistics (total accounts, total wallets, hidden count).
  *
  * Counts come from the whole account tree, including hidden groups, so they
@@ -80,22 +95,5 @@ export interface AccountListStats {
  */
 export const selectAccountListStats = createSelector(
   [selectWalletsMap],
-  (wallets): AccountListStats => {
-    let totalAccounts = 0;
-    let totalWallets = 0;
-    let hiddenCount = 0;
-
-    for (const wallet of Object.values(wallets ?? {})) {
-      totalWallets += 1;
-
-      for (const group of Object.values(wallet.groups ?? {})) {
-        totalAccounts += 1;
-        if (group.metadata?.hidden) {
-          hiddenCount += 1;
-        }
-      }
-    }
-
-    return { totalAccounts, totalWallets, hiddenCount };
-  },
+  getAccountListStats,
 );

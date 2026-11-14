@@ -51,6 +51,7 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     AccountTreeController: {
       setAccountGroupHidden: jest.fn(),
+      state: { accountTree: { wallets: {} } },
     },
   },
 }));
@@ -146,8 +147,15 @@ const buildMixedState = () => {
   };
 };
 
-const renderManageAccounts = (state: RootState) =>
-  renderWithProvider(<ManageAccounts />, { state });
+const renderManageAccounts = (state: RootState) => {
+  // The hide toggle reads the account tree from the controller.
+  jest.replaceProperty(
+    Engine.context.AccountTreeController,
+    'state',
+    state.engine.backgroundState.AccountTreeController,
+  );
+  return renderWithProvider(<ManageAccounts />, { state });
+};
 
 describe('ManageAccounts', () => {
   beforeEach(() => {

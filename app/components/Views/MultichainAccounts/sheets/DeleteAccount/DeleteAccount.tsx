@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import { useSelector } from 'react-redux';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,6 +39,13 @@ import AccountInfo from '../../AccountDetails/components/AccountInfo';
 import { MultichainDeleteAccountSelectors } from './DeleteAccount.testIds';
 import { removeAccountsFromPermissions } from '../../../../../core/Permissions';
 import { toHex } from '@metamask/controller-utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  AccountRemovedLocation,
+  getAccountWalletMetricProps,
+} from '../../../../../core/Analytics/events/accounts';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { selectWalletByAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 interface RootNavigationParamList extends ParamListBase {
   DeleteAccount: {
@@ -56,6 +64,8 @@ export const DeleteAccount = () => {
   const { account } = route.params;
   const navigation = useNavigation<AppNavigationProp>();
   const [error, setError] = useState<string | null>(null);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const wallet = useSelector(selectWalletByAccount)(account.id);
 
   const canRemoveAccount = account.metadata.keyring.type !== KeyringTypes.hd;
 
@@ -64,14 +74,34 @@ export const DeleteAccount = () => {
 
     if (!canRemoveAccount) return;
 
+    // Resolved before removal, which takes the wallet out of the tree.
+    const metricProps = getAccountWalletMetricProps(wallet);
+
     try {
       await removeAccountsFromPermissions([toHex(account.address)]);
       await KeyringController.removeAccount(account.address);
-      navigation.navigate(Routes.WALLET_VIEW);
     } catch {
       setError(strings('multichain_accounts.delete_account.error'));
+      return;
     }
-  }, [account.address, canRemoveAccount, navigation]);
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
+        .addProperties({
+          ...metricProps,
+          location: AccountRemovedLocation.AccountDetails,
+        })
+        .build(),
+    );
+    navigation.navigate(Routes.WALLET_VIEW);
+  }, [
+    account.address,
+    canRemoveAccount,
+    createEventBuilder,
+    navigation,
+    trackEvent,
+    wallet,
+  ]);
 
   const handleOnBack = useCallback(() => {
     navigation.goBack();

@@ -2,7 +2,11 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-import { createMockAccountGroup } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import {
+  createMockAccountGroup,
+  createMockState,
+  createMockWallet,
+} from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
@@ -11,8 +15,17 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { removeAccount } from '../../../../../util/accounts/removeAccount';
 import RemoveAccount from './RemoveAccount';
 import { RemoveAccountSelectors } from './RemoveAccount.testIds';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { AccountRemovedLocation } from '../../../../../core/Analytics/events/accounts';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 jest.mock('../../../../../util/accounts/removeAccount');
+jest.mock('../../../../../util/Logger');
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+const mockTrackEvent = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
@@ -55,6 +68,12 @@ const render = () =>
 describe('RemoveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     mockUseRoute.mockReturnValue({
       params: { account: mockAccount, accountGroup: mockAccountGroup },
     } as never);
@@ -171,5 +190,68 @@ describe('RemoveAccount', () => {
     fireEvent.press(getByTestId(RemoveAccountSelectors.CANCEL_BUTTON));
 
     expect(mockToast).not.toHaveBeenCalled();
+  });
+
+  describe('Account Removed', () => {
+    const importedAccount = createMockInternalAccount(
+      '0xdef',
+      'Imported 1',
+      KeyringTypes.simple,
+      EthAccountType.Eoa,
+    );
+    const importedGroup = createMockAccountGroup(
+      'keyring:imported/0',
+      'Imported Account Group',
+      [importedAccount.id],
+    );
+    const importedState = createMockState(
+      [createMockWallet('keyring:imported', 'Imported', [importedGroup])],
+      { [importedAccount.id]: importedAccount },
+    );
+
+    beforeEach(() => {
+      mockUseRoute.mockReturnValue({
+        params: { account: importedAccount, accountGroup: importedGroup },
+      } as never);
+    });
+
+    it('tracks the removal from Manage Accounts once it succeeds', async () => {
+      mockRemoveAccount.mockResolvedValue({ didReselectAccount: false });
+
+      const { getByTestId } = renderWithProvider(<RemoveAccount />, {
+        state: importedState,
+      });
+      fireEvent.press(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.ACCOUNT_REMOVED,
+            properties: {
+              account_type: 'imported',
+              location: AccountRemovedLocation.ManageAccounts,
+            },
+          }),
+        );
+      });
+    });
+
+    it('shows an error toast and does not track when the removal fails', async () => {
+      mockRemoveAccount.mockRejectedValue(new Error('removal failed'));
+
+      const { getByTestId } = renderWithProvider(<RemoveAccount />, {
+        state: importedState,
+      });
+      fireEvent.press(getByTestId(RemoveAccountSelectors.REMOVE_BUTTON));
+
+      await waitFor(() => {
+        expect(mockToast).toHaveBeenCalledWith({
+          title: strings('multichain_accounts.delete_account.error'),
+          severity: ToastSeverity.Danger,
+        });
+      });
+      expect(mockToast).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });

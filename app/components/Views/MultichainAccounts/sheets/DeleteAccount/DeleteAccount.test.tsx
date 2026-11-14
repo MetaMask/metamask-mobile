@@ -10,6 +10,21 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { AccountWalletType } from '@metamask/account-api';
+import type { AccountWalletObject } from '@metamask/account-tree-controller';
+import {
+  createMockAccountGroup,
+  createMockState,
+} from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { AccountRemovedLocation } from '../../../../../core/Analytics/events/accounts';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+const mockTrackEvent = jest.fn();
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -65,6 +80,12 @@ describe('DeleteAccount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     mockUseRoute.mockReturnValue(mockRoute);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly with account information', () => {
@@ -280,6 +301,76 @@ describe('DeleteAccount', () => {
       expect(
         getByText(strings('multichain_accounts.delete_account.error')),
       ).toBeTruthy();
+    });
+  });
+
+  describe('Account Removed', () => {
+    const ledgerAccount = createMockInternalAccount(
+      '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+      'Ledger 1',
+      KeyringTypes.ledger,
+      EthAccountType.Eoa,
+    );
+    const ledgerWallet = {
+      id: 'keyring:Ledger Hardware',
+      type: AccountWalletType.Keyring,
+      metadata: { name: 'Ledger', keyring: { type: KeyringTypes.ledger } },
+      groups: {
+        'keyring:Ledger Hardware/0': createMockAccountGroup(
+          'keyring:Ledger Hardware/0',
+          'Ledger 1',
+          [ledgerAccount.id],
+        ),
+      },
+    } as unknown as AccountWalletObject;
+
+    const renderWithLedgerWallet = () =>
+      renderWithProvider(<DeleteAccount />, {
+        state: createMockState([ledgerWallet], {
+          [ledgerAccount.id]: ledgerAccount,
+        }),
+      });
+
+    beforeEach(() => {
+      mockUseRoute.mockReturnValue({ params: { account: ledgerAccount } });
+    });
+
+    it('tracks the removal from account details with the hardware type', async () => {
+      mockRemoveAccount.mockResolvedValue(undefined);
+
+      const { getByText } = renderWithLedgerWallet();
+      fireEvent.press(
+        getByText(strings('multichain_accounts.delete_account.remove_button')),
+      );
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: EVENT_NAME.ACCOUNT_REMOVED,
+            properties: {
+              account_type: 'Ledger',
+              account_hardware_type: 'Ledger',
+              location: AccountRemovedLocation.AccountDetails,
+            },
+          }),
+        );
+      });
+    });
+
+    it('does not track when the removal fails', async () => {
+      mockRemoveAccount.mockRejectedValue(new Error('Delete failed'));
+
+      const { getByText } = renderWithLedgerWallet();
+      fireEvent.press(
+        getByText(strings('multichain_accounts.delete_account.remove_button')),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('multichain_accounts.delete_account.error')),
+        ).toBeTruthy();
+      });
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 });
