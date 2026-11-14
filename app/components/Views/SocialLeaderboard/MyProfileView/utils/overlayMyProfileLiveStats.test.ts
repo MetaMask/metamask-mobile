@@ -2,6 +2,7 @@ import type {
   Position,
   TraderProfileResponse,
 } from '@metamask/social-controllers';
+import { EM_DASH } from '../../../../UI/SocialFeed/utils/formatters';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import {
   FAKE_STATS_PREFIX,
@@ -93,6 +94,7 @@ describe('overlayMyProfileLiveStats', () => {
     expect(result.followerCount).toBe(88);
     expect(result.performanceCells.map((cell) => cell.id)).toEqual([
       'pnl',
+      'unrealizedPnl',
       'winRate',
       'holdTime',
       'volume',
@@ -115,7 +117,28 @@ describe('overlayMyProfileLiveStats', () => {
 
     expect(result.winRateLabel.startsWith(FAKE_STATS_PREFIX)).toBe(true);
     expect(result.pnlLabel.startsWith(FAKE_STATS_PREFIX)).toBe(false);
-    expect(result.performanceCells.map((cell) => cell.id)).toEqual(['pnl']);
+    expect(result.performanceCells.map((cell) => cell.id)).toEqual([
+      'pnl',
+      'unrealizedPnl',
+      'winRate',
+      'holdTime',
+      'volume',
+    ]);
+    expect(result.performanceCells[2]).toEqual({
+      id: 'winRate',
+      value: EM_DASH,
+      tone: 'default',
+    });
+    expect(result.performanceCells[3]).toEqual({
+      id: 'holdTime',
+      value: EM_DASH,
+      tone: 'default',
+    });
+    expect(result.performanceCells[4]).toEqual({
+      id: 'volume',
+      value: EM_DASH,
+      tone: 'default',
+    });
   });
 
   it('keeps two decimal places on the compact header P&L', () => {
@@ -150,9 +173,10 @@ describe('buildPerformanceCells', () => {
     expect(buildPerformanceCells(null)).toEqual([]);
   });
 
-  it('returns the live cells in grid order and omits unpriced unrealized', () => {
+  it('returns every stat in grid order and shows $0.00 unrealized when nothing is priced', () => {
     expect(buildPerformanceCells(liveProfile())).toEqual([
       { id: 'pnl', value: '+$1,200.00', tone: 'success' },
+      { id: 'unrealizedPnl', value: '$0.00', tone: 'default' },
       { id: 'winRate', value: '42%', tone: 'default' },
       { id: 'holdTime', value: '3h', tone: 'default' },
       { id: 'volume', value: '$50,000.00', tone: 'default' },
@@ -234,38 +258,53 @@ describe('buildPerformanceCells', () => {
 
     expect(cells).toEqual([
       { id: 'pnl', value: '-$6.38', tone: 'error' },
+      { id: 'unrealizedPnl', value: '$0.00', tone: 'default' },
+      { id: 'winRate', value: EM_DASH, tone: 'default' },
+      { id: 'holdTime', value: EM_DASH, tone: 'default' },
       { id: 'volume', value: '$319.20', tone: 'default' },
     ]);
   });
 
-  it('returns no cells when live stats and priced opens are both missing', () => {
+  it('shows a dash for unknown stats and zero for a real zero', () => {
     const cells = buildPerformanceCells(
       liveProfile({
         stats: {
-          pnl30d: null,
+          pnl30d: 0,
           winRate30d: null,
-          medianHoldMinutes: null,
+          medianHoldMinutes: 0,
           volumeUsd30d: null,
         },
       }),
       [openPosition('unpriced')],
     );
 
-    expect(cells).toEqual([]);
+    expect(cells).toEqual([
+      { id: 'pnl', value: '$0.00', tone: 'success' },
+      { id: 'unrealizedPnl', value: EM_DASH, tone: 'default' },
+      { id: 'winRate', value: EM_DASH, tone: 'default' },
+      { id: 'holdTime', value: '0m', tone: 'default' },
+      { id: 'volume', value: EM_DASH, tone: 'default' },
+    ]);
   });
 
-  it('omits cells whose live value is missing', () => {
+  it('keeps a known stat and uses a dash for the missing ones', () => {
     const cells = buildPerformanceCells(
       liveProfile({
         stats: {
           pnl30d: null,
-          winRate30d: 0.5,
+          winRate30d: 0,
           medianHoldMinutes: null,
           volumeUsd30d: 1000,
         },
       }),
     );
 
-    expect(cells.map((cell) => cell.id)).toEqual(['winRate', 'volume']);
+    expect(cells).toEqual([
+      { id: 'pnl', value: EM_DASH, tone: 'default' },
+      { id: 'unrealizedPnl', value: '$0.00', tone: 'default' },
+      { id: 'winRate', value: '0%', tone: 'default' },
+      { id: 'holdTime', value: EM_DASH, tone: 'default' },
+      { id: 'volume', value: '$1,000.00', tone: 'default' },
+    ]);
   });
 });
