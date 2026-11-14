@@ -83,6 +83,13 @@ jest.mock('../../app/core/Engine', () => {
         revokePermission: jest.fn(),
         updateCaveat: jest.fn(),
       },
+      // Snap dialogs delete their interface on close; Snap inputs persist their
+      // state on change. Shared with the Engine/Engine mock below so both import
+      // paths observe the same spies.
+      SnapInterfaceController: {
+        deleteInterface: jest.fn().mockResolvedValue(undefined),
+        updateInterfaceState: jest.fn(),
+      },
       GasFeeController: {
         startPolling() {
           return undefined;
@@ -725,9 +732,33 @@ jest.mock('../../app/core/Engine', () => {
 
 // Minimal Engine/Engine singleton where needed
 jest.mock('../../app/core/Engine/Engine.ts', () => {
+  // Snap UI (SnapInterfaceContext) imports Engine/Engine directly. Delegate the
+  // Snap interface controller to the main Engine mock so tests can assert on a
+  // single set of spies regardless of the import path.
+  const getMainEngineMock = () =>
+    jest.requireMock<{
+      default: {
+        context: { SnapInterfaceController: unknown };
+      };
+    }>('../../app/core/Engine').default;
+  // Stable instance so tests can assert on calls (e.g. Snap user input events
+  // sent through `SnapController:handleRequest`).
+  const messenger = {
+    subscribe() {
+      return undefined;
+    },
+    unsubscribe() {
+      return undefined;
+    },
+    call: jest.fn((_action: string, ..._args: unknown[]) =>
+      Promise.resolve(undefined),
+    ),
+  };
   const singleton = {
     get context() {
       return {
+        SnapInterfaceController:
+          getMainEngineMock().context.SnapInterfaceController,
         MultichainNetworkController: {
           async setActiveNetwork() {
             return undefined;
@@ -739,17 +770,7 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
       };
     },
     get controllerMessenger() {
-      return {
-        subscribe() {
-          return undefined;
-        },
-        unsubscribe() {
-          return undefined;
-        },
-        call(_action: string, ..._args: unknown[]) {
-          return Promise.resolve(undefined);
-        },
-      };
+      return messenger;
     },
   };
   return { __esModule: true, default: singleton };
