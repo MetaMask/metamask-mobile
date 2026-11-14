@@ -106,3 +106,10 @@ export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;
 
 /** Persisted while an OAuth round trip is in flight (Android process-death detection). */
 export const OAUTH_IN_PROGRESS = `${prefix}oauthInProgress`;
+
+/**
+ * Last resolved geolocation (country, region, timezone).
+ * GeolocationController does not persist its state, and the next cold start
+ * needs the country before any Infura request.
+ */
+export const LAST_GEOLOCATION = `${prefix}lastGeolocation`;
