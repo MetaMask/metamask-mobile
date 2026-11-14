@@ -6208,7 +6208,6 @@
     "edit_title": "{{ticker}}-Preisbenachrichtigung bearbeiten",
     "price_target": "Kursziel",
     "price_change": "Preisänderung",
-    "enter_target_price": "Zielkurs eingeben",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "über aktuellem {{ticker}}-Kurs",
     "approx_percent_below": "unter aktuellem {{ticker}}-Kurs",

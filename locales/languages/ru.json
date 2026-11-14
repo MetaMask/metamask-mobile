@@ -6208,7 +6208,6 @@
     "edit_title": "Изменить уведомление о цене {{ticker}}",
     "price_target": "Целевая цена",
     "price_change": "По изменению цены",
-    "enter_target_price": "Введите целевую цену",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "выше текущей цены {{ticker}}",
     "approx_percent_below": "ниже текущей цены {{ticker}}",

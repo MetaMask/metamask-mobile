@@ -6208,7 +6208,6 @@
     "edit_title": "{{ticker}}価格アラートを編集",
     "price_target": "価格ターゲット",
     "price_change": "価格変動",
-    "enter_target_price": "目標価格を入力してください",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "現在の{{ticker}}価格を上回る",
     "approx_percent_below": "現在の{{ticker}}価格を下回る",

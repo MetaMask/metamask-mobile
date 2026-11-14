@@ -6208,7 +6208,6 @@
     "edit_title": "编辑 {{ticker}} 价格提醒",
     "price_target": "目标价格",
     "price_change": "价格变化",
-    "enter_target_price": "输入目标价格",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "高出当前 {{ticker}} 价格",
     "approx_percent_below": "低于当前 {{ticker}} 价格",

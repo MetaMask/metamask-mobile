@@ -6208,7 +6208,6 @@
     "edit_title": "Editar alerta de precio de {{ticker}}",
     "price_target": "Precio objetivo",
     "price_change": "Cambio de precio",
-    "enter_target_price": "Ingresar precio objetivo",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "por encima del precio actual de {{ticker}}",
     "approx_percent_below": "por debajo del precio actual de {{ticker}}",

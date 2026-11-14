@@ -6208,7 +6208,6 @@
     "edit_title": "Modifier l’alerte de prix {{ticker}}",
     "price_target": "Objectif de prix",
     "price_change": "Variation du prix",
-    "enter_target_price": "Saisissez le prix cible",
     "approx_percent": "≈ {{percent}} %",
     "approx_percent_above": "supérieur au prix actuel du {{ticker}}",
     "approx_percent_below": "inférieur au prix actuel du {{ticker}}",

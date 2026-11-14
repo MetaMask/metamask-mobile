@@ -6208,7 +6208,6 @@
     "edit_title": "I-edit ang alerto ng {{ticker}} presyo",
     "price_target": "Target na presyo",
     "price_change": "Pagbabago ng presyo",
-    "enter_target_price": "Ilagay ang target na presyo",
     "approx_percent": "≈ {{percent}}%",
     "approx_percent_above": "mas mataas sa kasalukuyang presyo ng {{ticker}}",
     "approx_percent_below": "mas mababa sa kasalukuyang presyo ng {{ticker}}",
