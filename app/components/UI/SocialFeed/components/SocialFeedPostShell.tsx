@@ -21,6 +21,7 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
@@ -419,6 +420,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         celebrateReaction(emotion);
       }
       notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
+      playSelection().catch(() => undefined);
       pickEmotion(emotion).catch(() => undefined);
     },
     [
