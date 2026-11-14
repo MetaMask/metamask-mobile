@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import {
   NativeSyntheticEvent,
   TextLayoutEventData,
@@ -99,7 +99,8 @@ const NftDetails = () => {
     });
   }, [collectible, navigation]);
 
-  useEffect(() => {
+  // Listing the analytics helpers re-fires this event when their identity changes.
+  const trackNftDetailsOpened = useEffectEvent(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NFT_DETAILS_OPENED)
         .addProperties({
@@ -108,9 +109,10 @@ const NftDetails = () => {
         })
         .build(),
     );
-    // The linter wants `trackEvent` to be added as a dependency,
-    // But the event fires twice if I do that.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  });
+
+  useEffect(() => {
+    trackNftDetailsOpened();
   }, [chainId, source]);
 
   const viewHighestFloorPriceSource = () => {
