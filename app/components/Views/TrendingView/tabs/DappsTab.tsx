@@ -122,6 +122,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           <>
             <SectionHeader
               title={strings('autocomplete.favorites')}
+              contentTopInset={2}
               onViewAll={() =>
                 navigation.navigate(Routes.SITES_FULL_VIEW, {
                   mode: 'favorites',
@@ -186,6 +187,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           <>
             <SectionHeader
               title={strings('trending.popular')}
+              contentTopInset={2}
               onViewAll={() => navigation.navigate(Routes.SITES_FULL_VIEW)}
               testID="section-header-view-all-sites"
               tabName="Sites"

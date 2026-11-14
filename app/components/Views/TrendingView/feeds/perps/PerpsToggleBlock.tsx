@@ -104,6 +104,7 @@ const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
     <Box>
       <SectionHeader
         title={title}
+        contentTopInset={3}
         onViewAll={() => onViewAll(activePillKey, sortOptionId)}
         testID={headerTestID}
         tabName={tabName}
