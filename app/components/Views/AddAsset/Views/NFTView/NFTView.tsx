@@ -3,14 +3,6 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import AddCustomCollectible from '../../components/AddCustomCollectible/AddCustomCollectible';
 import { selectDisplayNftMedia } from '../../../../../selectors/preferencesController';
-import Banner from '../../../../../component-library/components/Banners/Banner/Banner';
-import {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import Text from '../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -21,7 +13,14 @@ import {
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import NetworkSelector from '../../components/NetworkSelector/NetworkSelector';
 import { AddAssetParams } from '../../AddAsset';
 
@@ -50,43 +49,34 @@ const NFTView = ({
   return (
     <>
       <Box twClassName="items-center pt-4 px-4" testID="add-asset-nft-banner">
-        <Banner
-          variant={BannerVariant.Alert}
-          description={
-            !displayNftMedia ? (
-              <>
-                <Text variant={TextVariant.BodyMD}>
-                  {strings('wallet.display_nft_media_cta_new_1')}
-                  <Text variant={TextVariant.BodyMDBold}>
-                    {' '}
-                    {strings('wallet.display_nft_media_cta_new_2')}
-                  </Text>
+        {!displayNftMedia ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Info}
+            description={
+              <Text variant={TextVariant.BodyMd}>
+                {strings('wallet.display_nft_media_cta_new_1')}
+                <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+                  {' '}
+                  {strings('wallet.display_nft_media_cta_new_2')}
                 </Text>
-              </>
-            ) : (
+              </Text>
+            }
+            actionButtonLabel={strings('wallet.display_nft_media_cta')}
+            actionButtonOnPress={goToSecuritySettings}
+          />
+        ) : (
+          <BannerAlert
+            severity={BannerAlertSeverity.Warning}
+            description={
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
                 testID={'warning-display-media-enabled-text'}
               >
                 {strings('wallet.display_media_nft_warning')}
               </Text>
-            )
-          }
-          severity={
-            !displayNftMedia
-              ? BannerAlertSeverity.Info
-              : BannerAlertSeverity.Warning
-          }
-          actionButtonProps={
-            !displayNftMedia
-              ? {
-                  variant: ButtonVariants.Link,
-                  onPress: goToSecuritySettings,
-                  label: strings('wallet.display_nft_media_cta'),
-                }
-              : undefined
-          }
-        />
+            }
+          />
+        )}
       </Box>
 
       <NetworkSelector
