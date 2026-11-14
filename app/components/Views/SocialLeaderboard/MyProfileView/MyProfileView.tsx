@@ -147,7 +147,7 @@ const HEADER_ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const { Filter, Interaction, Screen, ShareDestination, Trade } = SocialEvent;
-const PROFILE_CONTENT_TABS = ['posts', 'open', 'closed'] as const;
+const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
 type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const SCROLL_OFFSET_EPSILON_PX = 2;
@@ -335,15 +335,9 @@ const MyProfileView: React.FC = () => {
     },
   );
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('open');
   const profileTabs = useMemo<TabItem[]>(
     () => [
-      {
-        key: 'posts',
-        label: strings('social_leaderboard.my_profile.posts'),
-        content: null,
-        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
-      },
       {
         key: 'open',
         label: strings('social_leaderboard.trader_profile.open'),
@@ -355,6 +349,12 @@ const MyProfileView: React.FC = () => {
         label: strings('social_leaderboard.trader_profile.closed'),
         content: null,
         testID: MyProfileViewSelectorsIDs.CLOSED_TAB,
+      },
+      {
+        key: 'posts',
+        label: strings('social_leaderboard.my_profile.posts'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
       },
     ],
     [],

@@ -1314,6 +1314,7 @@ describe('MyProfileView', () => {
 
     try {
       renderWithProvider(<MyProfileView />);
+      fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
       const scroll = screen.getByTestId(MyProfileViewSelectorsIDs.SCROLL);
 
       await act(async () => {
@@ -2011,6 +2012,8 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB),
     ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB));
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
@@ -2020,8 +2023,7 @@ describe('MyProfileView', () => {
         realtime: true,
       }),
     );
-    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
-    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -2142,7 +2144,7 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('defaults to Posts and shows Open and Closed tabs for the owner', () => {
+  it('defaults to Open and shows Closed and Posts for the owner', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
@@ -2154,12 +2156,9 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB),
     ).toBeOnTheScreen();
+    expect(screen.getByText('No open positions')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
   });
 
