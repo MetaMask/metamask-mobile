@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { BannerAlertSeverity } from '@metamask/design-system-react-native';
 
 describe('PaymentSelectionAlert', () => {
   it('renders error message with default severity', () => {
