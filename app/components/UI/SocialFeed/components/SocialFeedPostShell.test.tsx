@@ -433,6 +433,11 @@ describe('SocialFeedPostShell', () => {
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
 
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
