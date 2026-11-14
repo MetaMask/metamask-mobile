@@ -23,12 +23,14 @@ import {
   TextVariant,
   BottomSheet,
   BottomSheetRef,
-  BottomSheetHeader,
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import { SDKConnectV2OtpModalParams } from './SDKConnectV2OtpModal.types';
 import { SDKConnectV2OtpModalSelectors } from './SDKConnectV2OtpModal.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Formats the OTP for display, inserting an en-dash in the middle of 8-char codes
@@ -62,6 +64,7 @@ const computeSecondsLeft = (effectiveDeadline: number): number =>
   Math.max(0, Math.ceil((effectiveDeadline - Date.now()) / 1000));
 
 const SDKConnectV2OtpModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -111,7 +114,8 @@ const SDKConnectV2OtpModal: React.FC = () => {
       goBack={goBack}
       testID={SDKConnectV2OtpModalSelectors.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
         closeButtonProps={{
           testID: SDKConnectV2OtpModalSelectors.CLOSE_BUTTON,
@@ -120,7 +124,7 @@ const SDKConnectV2OtpModal: React.FC = () => {
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('sdk_connect_v2.show_otp.modal_title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-4 gap-4">
         <Text
