@@ -230,6 +230,10 @@ jest.mock('../Engine', () => ({
       clearState: jest.fn(),
     },
 
+    VendorOnboardingController: {
+      reset: jest.fn(),
+    },
+
     RampsController: {
       state: { autoramps: [] },
       removeAutoramp: jest.fn(),
@@ -5270,6 +5274,18 @@ describe('Authentication', () => {
 
       // Assert
       expect(Engine.context.KycController.clearState).toHaveBeenCalledTimes(1);
+    });
+
+    it('forgets the step kyc-api decided for each vendor', async () => {
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert
+      expect(
+        Engine.context.VendorOnboardingController.reset,
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('removes VBA autoramp cursors so Money Activity cannot show a prior wallet deposit', async () => {
