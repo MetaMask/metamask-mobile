@@ -14,6 +14,10 @@ import {
 } from '../utils/perpsCufTrace';
 import { usePerpsTerminateTwap } from './usePerpsTerminateTwap';
 
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: () => false }),
+}));
+
 let mockSelectedAddress = '0xabc';
 let mockProvider = 'hyperliquid';
 let mockNetwork = 'testnet';

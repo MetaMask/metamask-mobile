@@ -474,6 +474,8 @@
     "@metamask/tron-wallet-snap": "^4.4.0",
     "@metamask/utils": "^12.0.1",
     "@metamask/wallet": "^21.0.3",
+    "@metamask/watch-only-account-service": "^0.1.0",
+    "@metamask/watch-only-keyring": "^0.1.1",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.33.3",
     "@noble/curves": "1.9.7",

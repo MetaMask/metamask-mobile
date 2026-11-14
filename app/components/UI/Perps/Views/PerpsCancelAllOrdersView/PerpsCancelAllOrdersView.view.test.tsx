@@ -14,6 +14,7 @@ import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import {
   defaultOrderForViews,
   renderPerpsCancelAllOrdersView,
@@ -533,5 +534,28 @@ describe('PerpsCancelAllOrdersView', () => {
     expect(
       screen.getByText(strings('perps.cancel_all_modal.confirm')),
     ).toBeOnTheScreen();
+  });
+  describe('watch-only account', () => {
+    withWatchOnlyKeyring();
+
+    it('refuses cancel all with the watch-only message and sends no request', async () => {
+      renderPerpsCancelAllOrdersView({
+        streamOverrides: { orders },
+        includeToasts: true,
+      });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByText(strings('watch_only.blocked_message')),
+      ).toBeOnTheScreen();
+      expect(
+        Engine.context.PerpsController.cancelOrders,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

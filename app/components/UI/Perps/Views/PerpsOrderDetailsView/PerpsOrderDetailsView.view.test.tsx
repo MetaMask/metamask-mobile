@@ -8,6 +8,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Engine from '../../../../../core/Engine';
+import { withWatchOnlyKeyring } from '../../../../../util/test/watchOnlyKeyring';
 import { strings } from '../../../../../../locales/i18n';
 import {
   defaultOrderDetailsOrder,
@@ -186,5 +187,23 @@ describe('PerpsOrderDetailsView', () => {
     expect(
       await screen.findByText(strings('perps.errors.order_not_found')),
     ).toBeOnTheScreen();
+  });
+  describe('watch-only account', () => {
+    withWatchOnlyKeyring();
+
+    it('refuses cancel with the watch-only message and sends no request', async () => {
+      renderPerpsOrderDetailsView({ includeToasts: true });
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+      );
+
+      expect(
+        await screen.findByText(strings('watch_only.blocked_message')),
+      ).toBeOnTheScreen();
+      expect(Engine.context.PerpsController.cancelOrder).not.toHaveBeenCalled();
+    });
   });
 });

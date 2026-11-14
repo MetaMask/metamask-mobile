@@ -112,6 +112,11 @@ jest.mock('./usePerpsToasts', () => ({
   }),
 }));
 
+const mockGuardWatchOnly = jest.fn(() => false);
+jest.mock('../../../hooks/useWatchOnlyGuard', () => ({
+  useWatchOnlyGuard: () => ({ guard: mockGuardWatchOnly }),
+}));
+
 describe('usePerpsClosePosition', () => {
   const mockClosePosition = jest.fn();
   const mockPosition: Position = {

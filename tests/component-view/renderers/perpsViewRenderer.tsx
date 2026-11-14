@@ -1281,6 +1281,7 @@ export function renderPerpsOrderDetailsView(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    includeToasts?: boolean;
   } = {},
 ) {
   const initialParams = {

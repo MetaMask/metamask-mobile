@@ -22,6 +22,17 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
 }
 
 /**
+ * Build-time gate for development-only watch-only accounts. Always false
+ * outside dev builds. Inlined from `.js.env`; restart Metro after changing.
+ */
+export function isWatchOnlyAccountsBuildEnabled(): boolean {
+  return (
+    process.env.METAMASK_ENVIRONMENT === 'dev' &&
+    process.env.MM_WATCH_ONLY_ACCOUNTS_ENABLED === 'true'
+  );
+}
+
+/**
  * Feature flag names that can be overridden in development tools.
  * These correspond to remote feature flags that have selector implementations
  * in app/selectors/featureFlagController/

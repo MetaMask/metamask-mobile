@@ -7,6 +7,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectAreAnyWalletsBlocked } from '../../../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
 import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
+import { useWatchOnlyGuard } from '../../../hooks/useWatchOnlyGuard';
 
 type AddressInput = string | string[];
 
@@ -60,6 +61,8 @@ const complianceQueryKey = (addressKey: string) =>
  * 4. Shows `AccessRestrictedModal` and returns `undefined` if any address is
  * blocked; otherwise runs the action and returns its result.
  *
+ * First refuses the action for a dev-only watch-only account, which cannot sign.
+ *
  * @param address - A single wallet address or array of addresses to check.
  *
  * @example
@@ -92,6 +95,7 @@ export function useComplianceGate(address?: AddressInput) {
   const rawIsBlocked = useSelector(selectAreAnyWalletsBlocked(addresses));
   const { showAccessRestrictedModal } = useAccessRestrictedModal();
   const queryClient = useQueryClient();
+  const { guard: guardWatchOnly } = useWatchOnlyGuard();
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
 
@@ -125,6 +129,10 @@ export function useComplianceGate(address?: AddressInput) {
 
   const gate = useCallback(
     async <T>(action: () => Promise<T>): Promise<T | void> => {
+      if (guardWatchOnly()) {
+        return;
+      }
+
       if (!isComplianceEnabled) {
         DevLogger.log(
           '[useComplianceGate] Compliance disabled, skipping check',
@@ -178,6 +186,7 @@ export function useComplianceGate(address?: AddressInput) {
       showAccessRestrictedModal,
       queryClient,
       checkCompliance,
+      guardWatchOnly,
     ],
   );
 
