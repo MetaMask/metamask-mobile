@@ -108,7 +108,12 @@ function injectHideLegendButtonsCSS(): void {
   const style = targetDoc.createElement('style');
   style.id = styleId;
   style.textContent =
-    '.chart-controls-bar .apply-common-tooltip,' +
+    // The price scale's auto-fit and logarithmic buttons. Matched by
+    // substring because the class is a CSS module whose hash suffix changes
+    // on every library build; the same substring catches
+    // `priceScaleModeButtons__buttonWrapper`, so the row gives up its layout
+    // space rather than leaving a gap.
+    '[class*="priceScaleModeButton"],' +
     '.legendElement .showHide,' +
     '.legendElement button[data-name="legend-show-hide-action"],' +
     '.legendElement button[data-name="legend-settings-action"],' +
