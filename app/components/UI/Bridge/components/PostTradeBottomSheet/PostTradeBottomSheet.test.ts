@@ -6,7 +6,10 @@ import {
   getPostTradeSuggestionPillTestId,
   PostTradeBottomSheetTestIds,
 } from './PostTradeBottomSheet.testIds';
-import { PostTradeStatus } from './PostTradeBottomSheet.types';
+import {
+  PostTradeStatus,
+  type SwapSocialPostTrade,
+} from './PostTradeBottomSheet.types';
 import { getDefaultDestToken } from '../../utils/tokenUtils';
 import {
   ImpactMoment,
@@ -14,6 +17,12 @@ import {
   playImpact,
   playSuccessNotification,
 } from '../../../../../util/haptics';
+import { incrementShareSheetCount } from '../../../../../util/social/postTradePromptStorage';
+import {
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -27,6 +36,9 @@ const mockCreateEventBuilder = jest.fn((event) => ({
 }));
 let mockNow = 1000;
 let mockPostTradeStatus = PostTradeStatus.Failed;
+let mockDestinationTxHash: string | undefined;
+let mockSocialPostTrade: SwapSocialPostTrade | undefined;
+let mockTransactionHash: string | undefined;
 let mockPostTradeTrendingTokens = {
   tokens: [] as unknown[],
   isLoading: false,
@@ -81,11 +93,28 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockParams,
+  useParams: () => ({
+    ...mockParams,
+    socialPostTrade: mockSocialPostTrade,
+    transactionHash: mockTransactionHash,
+  }),
 }));
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
+jest.mock('./usePostTradeDestinationTxHash', () => ({
+  usePostTradeDestinationTxHash: () => mockDestinationTxHash,
+}));
+jest.mock('../../../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+}));
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+  () => ({
+    buildSpotPostTradeComposerParams: jest.fn((args) => ({ composer: args })),
+    openPostTradeComposer: jest.fn(),
+  }),
+);
 jest.mock('../../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
   playImpact: jest.fn(() => Promise.resolve()),
@@ -115,6 +144,9 @@ beforeEach(() => {
   mockNow = 1000;
   jest.spyOn(Date, 'now').mockImplementation(() => mockNow);
   mockPostTradeStatus = PostTradeStatus.Failed;
+  mockSocialPostTrade = undefined;
+  mockTransactionHash = undefined;
+  mockDestinationTxHash = undefined;
   mockPostTradeTrendingTokens = {
     tokens: [],
     isLoading: false,
@@ -436,5 +468,183 @@ describe('PostTradeBottomSheet', () => {
     pressSuggestion(ETH_SUGGESTION, ETH, USDC);
     expectDispatchedToken('bridge/setSourceToken', USDC);
     expectDispatchedToken('bridge/setDestToken', ETH);
+  });
+});
+
+describe('PostTradeBottomSheet social Create post CTA', () => {
+  const COUNT_KEY = {
+    address: '0x1111111111111111111111111111111111111111',
+    product: 'swaps' as const,
+  };
+  const SOCIAL_POST_TRADE: SwapSocialPostTrade = {
+    countKey: COUNT_KEY,
+    tradeInFlightChain: 'ethereum',
+    txHash: 'submitted',
+    preview: {
+      tokenSymbol: 'PEPE',
+      tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+      chain: 'ethereum',
+      side: 'buy',
+      costLabel: '$25.00',
+    },
+  };
+  const SUBMITTED_HASH = '0xsubmitted';
+  const DESTINATION_HASH = '0xdestination';
+
+  /** `socialPostTrade: null` renders the sheet without a share context. */
+  const renderSheet = ({
+    status,
+    socialPostTrade = SOCIAL_POST_TRADE,
+    transactionHash = SUBMITTED_HASH,
+    destinationTxHash,
+  }: {
+    status: PostTradeStatus;
+    socialPostTrade?: SwapSocialPostTrade | null;
+    transactionHash?: string;
+    destinationTxHash?: string;
+  }): ReturnType<typeof render> => {
+    mockPostTradeStatus = status;
+    mockParams = { ...mockParams, status };
+    mockSocialPostTrade = socialPostTrade ?? undefined;
+    mockTransactionHash = transactionHash;
+    mockDestinationTxHash = destinationTxHash;
+    return render(React.createElement(PostTradeBottomSheet));
+  };
+
+  it('does not show Create post without a social share context', () => {
+    const { getByTestId, queryByTestId } = renderSheet({
+      status: PostTradeStatus.Success,
+      socialPostTrade: null,
+    });
+
+    expect(
+      queryByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON),
+    ).toBeTruthy();
+    expect(incrementShareSheetCount).not.toHaveBeenCalled();
+  });
+
+  it('shows Create post while in progress, but does not open or count it', () => {
+    const { getByTestId } = renderSheet({
+      status: PostTradeStatus.InProgress,
+    });
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    );
+
+    expect(openPostTradeComposer).not.toHaveBeenCalled();
+    expect(incrementShareSheetCount).not.toHaveBeenCalled();
+  });
+
+  it('enables Create post and counts the trade once when the swap succeeds', () => {
+    const { getByTestId, rerender } = renderSheet({
+      status: PostTradeStatus.Success,
+    });
+
+    expect(
+      getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    ).toBeTruthy();
+    expect(incrementShareSheetCount).toHaveBeenCalledTimes(1);
+    expect(incrementShareSheetCount).toHaveBeenCalledWith(
+      COUNT_KEY.address,
+      COUNT_KEY.product,
+    );
+
+    rerender(React.createElement(PostTradeBottomSheet));
+
+    expect(incrementShareSheetCount).toHaveBeenCalledTimes(1);
+  });
+
+  it('counts a trade that completes while the sheet is open, not before', () => {
+    const { rerender } = renderSheet({ status: PostTradeStatus.InProgress });
+    expect(incrementShareSheetCount).not.toHaveBeenCalled();
+
+    mockPostTradeStatus = PostTradeStatus.Success;
+    rerender(React.createElement(PostTradeBottomSheet));
+
+    expect(incrementShareSheetCount).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the composer with the submitted hash and tracks the tap', () => {
+    const { getByTestId } = renderSheet({ status: PostTradeStatus.Success });
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    );
+
+    expect(
+      getTrackedEvent(MetaMetricsEvents.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED),
+    ).toMatchObject({
+      properties: { status_at_click: 'complete', cta_clicked: 'create_post' },
+    });
+    expect(buildSpotPostTradeComposerParams).toHaveBeenCalledWith({
+      transactionHash: SUBMITTED_HASH,
+      chain: 'ethereum',
+      preview: SOCIAL_POST_TRADE.preview,
+    });
+    expect(openPostTradeComposer).toHaveBeenCalledWith({
+      composer: {
+        transactionHash: SUBMITTED_HASH,
+        chain: 'ethereum',
+        preview: SOCIAL_POST_TRADE.preview,
+      },
+    });
+  });
+
+  it('keeps View activity working while Create post is shown', () => {
+    const { getByTestId } = renderSheet({ status: PostTradeStatus.Success });
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(openPostTradeComposer).not.toHaveBeenCalled();
+  });
+
+  it('hides Create post and does not count when the swap fails', () => {
+    const { getByTestId, queryByTestId } = renderSheet({
+      status: PostTradeStatus.Failed,
+    });
+
+    expect(
+      queryByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON),
+    ).toBeTruthy();
+    expect(incrementShareSheetCount).not.toHaveBeenCalled();
+  });
+
+  it('hides Create post for a bridged buy until the destination hash exists', () => {
+    const { queryByTestId } = renderSheet({
+      status: PostTradeStatus.Success,
+      socialPostTrade: { ...SOCIAL_POST_TRADE, txHash: 'destination' },
+    });
+
+    expect(
+      queryByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    ).toBeNull();
+    expect(incrementShareSheetCount).not.toHaveBeenCalled();
+  });
+
+  it('shares the destination hash for a bridged buy once it is known', () => {
+    const { getByTestId } = renderSheet({
+      status: PostTradeStatus.Success,
+      socialPostTrade: { ...SOCIAL_POST_TRADE, txHash: 'destination' },
+      destinationTxHash: DESTINATION_HASH,
+    });
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    );
+
+    expect(buildSpotPostTradeComposerParams).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionHash: DESTINATION_HASH }),
+    );
+    expect(incrementShareSheetCount).toHaveBeenCalledTimes(1);
   });
 });

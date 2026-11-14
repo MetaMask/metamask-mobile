@@ -15,7 +15,9 @@ import {
   BoxAlignItems,
   BoxBackgroundColor,
   BoxJustifyContent,
+  Button,
   ButtonSize,
+  ButtonVariant,
   ButtonsAlignment,
   IconColor,
   IconName,
@@ -75,6 +77,12 @@ import {
   getPostTradeSharedAnalyticsProperties,
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
+import { usePostTradeDestinationTxHash } from './usePostTradeDestinationTxHash';
+import { incrementShareSheetCount } from '../../../../../util/social/postTradePromptStorage';
+import {
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -166,7 +174,45 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
+  const destinationTxHash = usePostTradeDestinationTxHash({
+    transactionMetaId: params.transactionMetaId,
+    transactionHash: params.transactionHash,
+  });
+  const socialPostTrade = params.socialPostTrade;
+  // Bridged buys share the destination hash. Everything else shares the
+  // submitted hash.
+  const socialShareTxHash =
+    socialPostTrade?.txHash === 'destination'
+      ? destinationTxHash
+      : params.transactionHash;
+  // The CTA is disabled until the swap completes. Success without a hash to
+  // share hides it, so the sheet never offers a post it cannot make.
+  const isCreatePostVisible =
+    Boolean(socialPostTrade) &&
+    status !== PostTradeStatus.Failed &&
+    (status !== PostTradeStatus.Success || Boolean(socialShareTxHash));
+  const isCreatePostEnabled =
+    status === PostTradeStatus.Success && Boolean(socialShareTxHash);
+  const hasCountedSocialShareRef = useRef(false);
   const lastHapticStatusRef = useRef<PostTradeStatus | null>(null);
+
+  // A sheet counts once it shows Create post enabled after the swap succeeds.
+  // A user who closes the sheet early never reaches this state, so the trade
+  // is not counted.
+  useEffect(() => {
+    if (
+      !socialPostTrade ||
+      !isCreatePostEnabled ||
+      hasCountedSocialShareRef.current
+    ) {
+      return;
+    }
+    hasCountedSocialShareRef.current = true;
+    incrementShareSheetCount(
+      socialPostTrade.countKey.address,
+      socialPostTrade.countKey.product,
+    );
+  }, [isCreatePostEnabled, socialPostTrade]);
 
   const getTimeModalOpenMs = useCallback(
     () => Date.now() - modalOpenedAtRef.current,
@@ -395,6 +441,23 @@ export const PostTradeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
+  const handleCreatePost = () => {
+    if (!socialPostTrade || !isCreatePostEnabled || !socialShareTxHash) {
+      return;
+    }
+    trackButtonClicked('create_post');
+    shouldSkipDismissedTrackingRef.current = true;
+    sheetRef.current?.onCloseBottomSheet(() => {
+      openPostTradeComposer(
+        buildSpotPostTradeComposerParams({
+          transactionHash: socialShareTxHash,
+          chain: socialPostTrade.tradeInFlightChain,
+          preview: socialPostTrade.preview,
+        }),
+      );
+    });
+  };
+
   const footerButtonProps =
     status === PostTradeStatus.Failed
       ? {
@@ -453,12 +516,37 @@ export const PostTradeBottomSheet = () => {
         destToken={params.destToken}
         onTokenPress={handleSuggestionPress}
       />
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        secondaryButtonProps={footerButtonProps.secondaryButtonProps}
-        primaryButtonProps={footerButtonProps.primaryButtonProps}
-        style={styles.footer}
-      />
+      {isCreatePostVisible ? (
+        // Stacked by hand, so Create post always sits beneath View activity.
+        <Box style={styles.footer} twClassName="gap-2 px-4 pb-6">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleViewActivity}
+            testID={PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON}
+          >
+            {strings('bridge.post_trade_modal.view_activity')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={!isCreatePostEnabled}
+            onPress={handleCreatePost}
+            testID={PostTradeBottomSheetTestIds.CREATE_POST_BUTTON}
+          >
+            {strings('social_leaderboard.post_trade_share.create_post')}
+          </Button>
+        </Box>
+      ) : (
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Vertical}
+          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+          primaryButtonProps={footerButtonProps.primaryButtonProps}
+          style={styles.footer}
+        />
+      )}
     </BottomSheet>
   );
 };

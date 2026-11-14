@@ -1,7 +1,11 @@
 import { SOCIAL_POST_TRADE_PROMPTS } from '../../constants/storage';
 import StorageWrapper from '../../store/storage-wrapper';
 
-export type PostTradePromptProduct = 'swap' | 'perps';
+/**
+ * Features with their own share-sheet count. `swap` is Quick Buy, `swaps` is
+ * the normal Swap/Bridge post-trade sheet, and `perps` is Perps.
+ */
+export type PostTradePromptProduct = 'swap' | 'perps' | 'swaps';
 
 interface PostTradePromptState {
   /** Share sheets completed per product, keyed by lowercased linked EVM address. */
