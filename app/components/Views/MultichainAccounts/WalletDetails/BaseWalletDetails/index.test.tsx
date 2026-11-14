@@ -579,8 +579,8 @@ describe('BaseWalletDetails', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
           {
-            popToTopOnDone: true,
             keyringId: 'keyring:1',
+            returnToWalletHomeOnDone: true,
           },
         );
       });
@@ -627,7 +627,7 @@ describe('BaseWalletDetails', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
           expect.objectContaining({
-            popToTopOnDone: true,
+            returnToWalletHomeOnDone: true,
           }),
         );
       });
@@ -674,7 +674,7 @@ describe('BaseWalletDetails', () => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
           expect.objectContaining({
-            popToTopOnDone: true,
+            returnToWalletHomeOnDone: true,
           }),
         );
       });

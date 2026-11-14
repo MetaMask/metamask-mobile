@@ -155,8 +155,8 @@ const RevealPrivateCredential = ({
       cancel?.();
       return;
     }
-    if (route?.params?.popToTopOnDone) {
-      navigation.dispatch(StackActions.popToTop());
+    if (route?.params?.returnToWalletHomeOnDone) {
+      navigation.dispatch(StackActions.popTo(Routes.ONBOARDING.HOME_NAV));
       return;
     }
     if (shouldUpdateNav) {
@@ -169,7 +169,7 @@ const RevealPrivateCredential = ({
     shouldUpdateNav,
     navigation,
     cancel,
-    route?.params?.popToTopOnDone,
+    route?.params?.returnToWalletHomeOnDone,
   ]);
 
   const cancelReveal = useCallback(() => {

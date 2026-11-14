@@ -592,7 +592,7 @@ describe('AccountActions', () => {
       options: { entropySource: 'hd-keyring-entropy-id' },
     };
 
-    it('navigates to full-screen reveal SRP', () => {
+    it('opens full-screen reveal SRP without dismissing account actions', () => {
       mockedUseRoute.mockImplementation(() => ({
         key: 'mock-key',
         name: 'mock-route',
@@ -615,9 +615,9 @@ describe('AccountActions', () => {
         Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         {
           keyringId: 'hd-keyring-entropy-id',
-          popToTopOnDone: true,
         },
       );
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it.each([
