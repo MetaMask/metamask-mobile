@@ -1565,7 +1565,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                   twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
-                  <OnboardingTitle twClassName="m-0.5 pt-3 px-3 pb-3">
+                  <OnboardingTitle twClassName="mx-0.5 mt-0.5 pt-3 px-3 pb-3">
                     {strings(
                       'social_leaderboard.profile_onboarding.link_account',
                     )}
