@@ -25,9 +25,10 @@ import { useTheme } from '../../../../util/theme';
 import { useFormatters } from '../../../hooks/useFormatters';
 import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
-import type { QuickBuyAmountDisplayMode } from '../types';
+import type { QuickBuyAmountDisplayMode, QuickBuyTradeMode } from '../types';
 import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
 import { strings } from '../../../../../locales/i18n';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -58,6 +59,10 @@ interface QuickBuyAmountSectionProps {
   sourceBalanceDisplay?: string;
   /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
+  /** Selects the Buy/Sell copy of the empty-state post minimum helper. */
+  tradeMode?: QuickBuyTradeMode;
+  /** True while no amount is entered; shows the post minimum helper. */
+  isEmptyAmount?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -96,6 +101,8 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceSymbol,
   sourceBalanceDisplay,
   showCursor = false,
+  tradeMode,
+  isEmptyAmount = false,
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
@@ -143,6 +150,15 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   // Sell passes its balance line and keeps it when over balance; only Buy can add funds.
   if (hasInsufficientBalance && !sourceBalanceDisplay) {
     secondaryLabel = strings('social_leaderboard.quick_buy.add_funds');
+  }
+  const postDisclaimer =
+    tradeMode && isEmptyAmount
+      ? strings(`social_leaderboard.quick_buy.min_post_${tradeMode}`, {
+          amount: MIN_POST_TRADE_SHARE_USD,
+        })
+      : undefined;
+  if (postDisclaimer && !sourceBalanceDisplay && !hasInsufficientBalance) {
+    secondaryLabel = postDisclaimer;
   }
   const amountColor = hasInsufficientBalance
     ? TextColor.ErrorDefault
@@ -282,6 +298,17 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             {secondaryLabel}
           </Text>
         )}
+        {postDisclaimer && sourceBalanceDisplay ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID="quick-buy-post-disclaimer"
+          >
+            {postDisclaimer}
+          </Text>
+        ) : null}
       </Box>
     </Box>
   );

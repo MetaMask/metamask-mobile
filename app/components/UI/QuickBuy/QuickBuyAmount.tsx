@@ -29,6 +29,7 @@ const QuickBuyAmount: React.FC = () => {
     setIsKeypadOpen,
     isKeypadOpen,
     hasNoPayWithFunds,
+    hasValidAmount,
   } = useQuickBuyContext();
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
@@ -70,6 +71,8 @@ const QuickBuyAmount: React.FC = () => {
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
+      tradeMode={tradeMode}
+      isEmptyAmount={!hasValidAmount}
       // The keypad now stays expanded without funds, so the caret has to be
       // suppressed explicitly — a blinking caret on a dead field would imply
       // typing does something.

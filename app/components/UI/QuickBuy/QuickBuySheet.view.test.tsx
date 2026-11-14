@@ -776,7 +776,7 @@ describeForPlatforms('QuickBuySheet', () => {
     const amountArea = screen.getByTestId(
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
-    expect(await within(amountArea).findByText(/Available/)).toBeOnTheScreen();
+    expect(await within(amountArea).findByText(/available/)).toBeOnTheScreen();
     expect(within(amountArea).queryByText('Add funds')).not.toBeOnTheScreen();
     await waitFor(() => {
       // Animated amounts render one glyph per digit, and the animated wrapper
@@ -822,7 +822,7 @@ describeForPlatforms('QuickBuySheet', () => {
       QuickBuySheetSelectorsIDs.AMOUNT_AREA,
     );
     expect(
-      await within(amountArea).findByText(/^\$100\.00 Available$/),
+      await within(amountArea).findByText(/^\$100\.00 available$/),
     ).toBeOnTheScreen();
   });
 
