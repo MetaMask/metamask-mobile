@@ -327,6 +327,9 @@ export const selectStakedAssets = createDeepEqualSelector(
     selectEvmNetworkConfigurationsByChainId,
     selectCurrencyRates,
     selectCurrentCurrency,
+    selectAssetsBySelectedAccountGroup,
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define -- tron staking selectors are defined below, resolved at call time
+    (state: RootState) => selectTronStakedAssetsBySelectedAccountGroup(state),
   ],
   (
     internalAccounts,
@@ -334,6 +337,8 @@ export const selectStakedAssets = createDeepEqualSelector(
     networkConfigurationsByChainId,
     currencyRates,
     currentCurrency,
+    bip44Assets,
+    tronStakedAssets,
   ) => {
     const stakedAssets = Object.entries(accountsByChainId)
       // Only include mainnet and hoodi
@@ -407,6 +412,47 @@ export const selectStakedAssets = createDeepEqualSelector(
           .filter((item): item is NonNullable<typeof item> => Boolean(item)),
       );
 
+    for (const { accountId, chainId, balance, fiat } of tronStakedAssets) {
+      const nativeAsset =
+        (bip44Assets[chainId] ?? []).find(
+          (asset) =>
+            asset.isNative &&
+            asset.assetId === `${chainId}/slip44:195` &&
+            asset.accountId === accountId,
+        ) ??
+        (bip44Assets[chainId] ?? []).find(
+          (asset) =>
+            asset.isNative && asset.assetId === `${chainId}/slip44:195`,
+        );
+
+      if (!nativeAsset) {
+        continue;
+      }
+
+      stakedAssets.push({
+        chainId,
+        accountId,
+        stakedAsset: {
+          accountType: nativeAsset.accountType,
+          assetId: nativeAsset.assetId,
+          isNative: true,
+          isStaked: true,
+          address: nativeAsset.assetId,
+          image: nativeAsset.image ?? '',
+          name: 'Staked TRX',
+          symbol: 'TRX',
+          accountId,
+          decimals: nativeAsset.decimals,
+          rawBalance: new BigNumber(balance)
+            .shiftedBy(nativeAsset.decimals)
+            .toFixed(0),
+          balance,
+          fiat,
+          chainId,
+        } as Asset,
+      });
+    }
+
     return stakedAssets;
   },
 );
@@ -463,6 +509,9 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         filteredAssets,
         stakedAssets,
         tokenSortConfig,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          enabledNetworks.includes(chainId),
+        ),
       );
     },
   );
@@ -491,21 +540,16 @@ function mergeStakedSortAndDedupeAssets(
   filteredChainAssets: Asset[],
   stakedAssets: StakedAssetEntry[],
   tokenSortConfig: ReturnType<typeof selectTokenSortConfig>,
+  allowedAccountChainKeys: ReadonlySet<string>,
 ): SortedAssetItem[] {
-  const assets = [...filteredChainAssets];
-  const stakedAssetsArray: Asset[] = [];
-  for (const asset of assets) {
-    if (asset.isNative) {
-      const stakedAsset = stakedAssets.find(
-        (item) =>
-          item.chainId === asset.chainId && item.accountId === asset.accountId,
-      );
-      if (stakedAsset) {
-        stakedAssetsArray.push({ ...stakedAsset.stakedAsset } as Asset);
-      }
-    }
-  }
-  assets.push(...stakedAssetsArray);
+  const assets = [
+    ...filteredChainAssets,
+    ...stakedAssets
+      .filter((item) =>
+        allowedAccountChainKeys.has(`${item.chainId}:${item.accountId}`),
+      )
+      .map((item) => ({ ...item.stakedAsset }) as Asset),
+  ];
 
   const tokensSorted = sortAssetsWithPriority(
     assets.map((asset) => ({
@@ -546,6 +590,30 @@ function buildAllowedNetworkIdSet(chainIds: string[]): Set<string> {
   return set;
 }
 
+/**
+ * Builds the `${chainId}:${accountId}` keys of the selected group's assets, so
+ * staked rows stay paired with the account that holds them even when the
+ * liquid native row is filtered out (zero balance).
+ */
+function buildAllowedAccountChainKeys(
+  bip44Assets: AccountGroupAssets,
+  isAllowedChain: (chainId: string) => boolean,
+): Set<string> {
+  const keys = new Set<string>();
+
+  for (const [chainId, chainAssets] of Object.entries(bip44Assets)) {
+    if (!isAllowedChain(chainId)) {
+      continue;
+    }
+
+    for (const asset of chainAssets) {
+      keys.add(`${chainId}:${asset.accountId}`);
+    }
+  }
+
+  return keys;
+}
+
 /** Sort config for "by balance" (fiat value descending). Used for homepage so it always shows balance order; View all uses user preference. */
 const BALANCE_SORT_CONFIG = {
   key: 'tokenFiatAmount',
@@ -579,6 +647,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
         filteredAssets,
         stakedAssets,
         tokenSortConfig,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          allowedIds.has(chainId),
+        ),
       );
     },
   );
@@ -612,6 +683,9 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         filteredAssets,
         stakedAssets,
         BALANCE_SORT_CONFIG,
+        buildAllowedAccountChainKeys(bip44Assets, (chainId) =>
+          allowedIds.has(chainId),
+        ),
       );
     },
   );
@@ -906,6 +980,140 @@ const applyTronBalanceMetadata = (
   );
 };
 
+const TRON_SPECIAL_ASSET_MAP_KEYS = [
+  ...new Set(Object.values(TRON_SPECIAL_ASSET_KEYS)),
+] as TronSpecialAssetKey[];
+
+const createEmptyTronSpecialAssetsMap = (): TronSpecialAssetsMap => ({
+  status: TronSpecialAssetsStatus.Ready,
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
+});
+
+const getTronSpecialAssetsByChain = (
+  accountBalances: Record<string, { amount?: string; metadata?: unknown }>,
+  enabledTronNetworks: ReadonlySet<string>,
+  assetsPrice: Record<string, { price?: number } | undefined>,
+  selectedCurrency: string,
+): Map<string, TronSpecialAssetsMap> => {
+  const specialAssetsByChain = new Map<string, TronSpecialAssetsMap>();
+
+  for (const chainId of enabledTronNetworks) {
+    specialAssetsByChain.set(chainId, createEmptyTronSpecialAssetsMap());
+  }
+
+  for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
+    const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
+    const specialAssetsMap = specialAssetsByChain.get(chainId);
+    if (!specialAssetsMap) {
+      continue;
+    }
+
+    const read = readTronValue(
+      accountBalances[assetId as CaipAssetType]?.amount,
+    );
+    if (read.kind !== 'value') {
+      continue;
+    }
+
+    const price = assetsPrice[assetId as CaipAssetType]?.price;
+    specialAssetsMap[key] = {
+      assetId,
+      balance: read.amount,
+      fiat:
+        price === undefined
+          ? undefined
+          : {
+              balance: new BigNumber(read.amount)
+                .multipliedBy(price)
+                .toNumber(),
+              currency: selectedCurrency,
+            },
+    };
+  }
+
+  for (const [chainId, specialAssetsMap] of specialAssetsByChain) {
+    applyTronBalanceMetadata(
+      specialAssetsMap,
+      accountBalances,
+      chainId,
+      assetsPrice,
+      selectedCurrency,
+    );
+  }
+
+  return specialAssetsByChain;
+};
+
+const TRON_STAKED_SPECIAL_ASSET_KEYS = [
+  'stakedTrxForEnergy',
+  'stakedTrxForBandwidth',
+] as const;
+
+const isTronStakedSpecialAssetKey = (
+  key: TronSpecialAssetKey,
+): key is (typeof TRON_STAKED_SPECIAL_ASSET_KEYS)[number] =>
+  TRON_STAKED_SPECIAL_ASSET_KEYS.some((stakedKey) => stakedKey === key);
+
+/**
+ * Merges a source Tron special-assets map into a target. By default a readable
+ * source field replaces the target (last wins). With `sumStaked`, staked TRX
+ * balances/fiat from the same chain are added together instead, so a selected
+ * account group with multiple Tron accounts reports its combined stake.
+ */
+const mergeTronSpecialAssets = (
+  target: TronSpecialAssetsMap,
+  source: TronSpecialAssetsMap,
+  sumStaked = false,
+) => {
+  for (const key of TRON_SPECIAL_ASSET_MAP_KEYS) {
+    const entry = source[key];
+    if (!entry) {
+      continue;
+    }
+
+    if (entry.unknown) {
+      if (!target[key]) {
+        target[key] = entry;
+      }
+      continue;
+    }
+
+    const current = target[key];
+    if (sumStaked && isTronStakedSpecialAssetKey(key) && current) {
+      if (current.unknown) {
+        target[key] = entry;
+        continue;
+      }
+
+      target[key] = {
+        assetId: entry.assetId,
+        balance: new BigNumber(current.balance).plus(entry.balance).toString(),
+        fiat:
+          current.fiat && entry.fiat
+            ? {
+                balance: new BigNumber(current.fiat.balance)
+                  .plus(entry.fiat.balance)
+                  .toNumber(),
+                currency: entry.fiat.currency,
+              }
+            : undefined,
+      };
+      continue;
+    }
+
+    target[key] = entry;
+  }
+};
+
 /**
  * Selects Tron special assets for the currently selected account group.
  *
@@ -973,50 +1181,25 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
         trxInLockPeriod: undefined,
       };
 
+      const specialAssetsByChainAggregate = new Map<
+        string,
+        TronSpecialAssetsMap
+      >();
+
       for (const accountId of selectedGroup.accounts) {
         const accountBalances = assetsBalance[accountId];
         if (!accountBalances) {
           continue;
         }
 
-        // Legacy source: each special asset is its own entry in assetsBalance.
-        // Look up each known Tron special asset id directly rather than
-        // scanning every balance the account holds.
-        for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
-          const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
-          if (!enabledTronNetworksSet.has(chainId)) {
-            continue;
-          }
+        const specialAssetsByChain = getTronSpecialAssetsByChain(
+          accountBalances,
+          enabledTronNetworksSet,
+          assetsPrice,
+          selectedCurrency,
+        );
 
-          const balanceData = accountBalances[assetId as CaipAssetType];
-          const read = readTronValue(balanceData?.amount);
-          if (read.kind !== 'value') {
-            // No legacy entry, or one without a readable amount: the metadata
-            // source (or an `unknown` entry) decides the field.
-            continue;
-          }
-
-          const price = assetsPrice[assetId as CaipAssetType]?.price;
-          const fiat =
-            price !== undefined
-              ? {
-                  balance: new BigNumber(read.amount)
-                    .multipliedBy(price)
-                    .toNumber(),
-                  currency: selectedCurrency,
-                }
-              : undefined;
-
-          specialAssetsMap[key] = {
-            assetId,
-            balance: read.amount,
-            fiat,
-          };
-        }
-
-        // Migration source: metadata nested in the TRX native asset balance,
-        // merged on top of the legacy entries per field (metadata wins).
-        for (const chainId of enabledTronNetworksSet) {
+        for (const [chainId, chainSpecialAssets] of specialAssetsByChain) {
           // A fetched Tron account always has a TRX native balance entry, so
           // its presence marks the balance request as complete. Without it the
           // map stays in the `loading` state.
@@ -1024,14 +1207,16 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
             specialAssetsMap.status = TronSpecialAssetsStatus.Ready;
           }
 
-          applyTronBalanceMetadata(
-            specialAssetsMap,
-            accountBalances,
-            chainId,
-            assetsPrice,
-            selectedCurrency,
-          );
+          const chainAggregate =
+            specialAssetsByChainAggregate.get(chainId) ??
+            createEmptyTronSpecialAssetsMap();
+          mergeTronSpecialAssets(chainAggregate, chainSpecialAssets, true);
+          specialAssetsByChainAggregate.set(chainId, chainAggregate);
         }
+      }
+
+      for (const chainSpecialAssets of specialAssetsByChainAggregate.values()) {
+        mergeTronSpecialAssets(specialAssetsMap, chainSpecialAssets);
       }
 
       /**
@@ -1052,5 +1237,163 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
 
       return specialAssetsMap;
+    },
+  );
+
+export interface TronStakedAsset {
+  accountId: string;
+  chainId: string;
+  balance: string;
+  fiat: { balance: number; currency: string } | undefined;
+}
+
+const EMPTY_TRON_STAKED_ASSETS: TronStakedAsset[] = [];
+
+/**
+ * Staked TRX per Tron account and chain, keeping the account/chain pairing the
+ * group-level {@link selectTronSpecialAssetsBySelectedAccountGroup} flattens.
+ */
+export const selectTronStakedAssetsBySelectedAccountGroup =
+  createDeepEqualSelector(
+    [
+      selectSelectedAccountGroup,
+      selectEnabledNetworks,
+      getAssetsBalance,
+      getAssetsPrice,
+      getSelectedCurrency,
+      selectSelectedInternalAccountByScope,
+    ],
+    (
+      selectedGroup,
+      enabledNetworks,
+      assetsBalance,
+      assetsPrice,
+      selectedCurrency,
+      getAccountByScope,
+    ): TronStakedAsset[] => {
+      const enabledTronNetworks = enabledNetworks.filter((networkId) =>
+        networkId.startsWith('tron:'),
+      );
+
+      if (!selectedGroup || enabledTronNetworks.length === 0) {
+        return EMPTY_TRON_STAKED_ASSETS;
+      }
+
+      const enabledTronNetworksSet = new Set(enabledTronNetworks);
+
+      // Aggregate the selected group's Tron accounts per chain so the list
+      // shows one Staked TRX row whose value includes every account's stake.
+      const stakeByChain = new Map<
+        string,
+        {
+          balance: BigNumber;
+          fiatBalance: BigNumber | undefined;
+          fiatCurrency: string | undefined;
+          hasUnpricedComponent: boolean;
+          accountId: string;
+        }
+      >();
+
+      for (const accountId of selectedGroup.accounts) {
+        const accountBalances = assetsBalance[accountId];
+        if (!accountBalances) {
+          continue;
+        }
+
+        const specialAssetsByChain = getTronSpecialAssetsByChain(
+          accountBalances,
+          enabledTronNetworksSet,
+          assetsPrice,
+          selectedCurrency,
+        );
+
+        for (const [chainId, specialAssetsMap] of specialAssetsByChain) {
+          let balance = new BigNumber(0);
+          let fiatBalance = new BigNumber(0);
+          let fiatCurrency: string | undefined;
+          let hasUnpricedComponent = false;
+
+          for (const entry of [
+            specialAssetsMap.stakedTrxForEnergy,
+            specialAssetsMap.stakedTrxForBandwidth,
+          ]) {
+            if (!entry || entry.unknown) {
+              continue;
+            }
+
+            const entryBalance = new BigNumber(entry.balance);
+            if (!entryBalance.isGreaterThan(0)) {
+              continue;
+            }
+
+            balance = balance.plus(entryBalance);
+            if (entry.fiat) {
+              fiatBalance = fiatBalance.plus(entry.fiat.balance);
+              fiatCurrency = entry.fiat.currency;
+            } else {
+              hasUnpricedComponent = true;
+            }
+          }
+
+          if (!balance.isGreaterThan(0)) {
+            continue;
+          }
+
+          const current = stakeByChain.get(chainId);
+          if (current) {
+            current.balance = current.balance.plus(balance);
+            current.fiatBalance = current.fiatBalance?.plus(fiatBalance);
+            current.fiatCurrency = current.fiatCurrency ?? fiatCurrency;
+            current.hasUnpricedComponent =
+              current.hasUnpricedComponent || hasUnpricedComponent;
+          } else {
+            stakeByChain.set(chainId, {
+              balance,
+              fiatBalance,
+              fiatCurrency,
+              hasUnpricedComponent,
+              accountId,
+            });
+          }
+        }
+      }
+
+      const stakedAssets: TronStakedAsset[] = [];
+
+      for (const [chainId, stake] of stakeByChain) {
+        let fiat: { balance: number; currency: string } | undefined;
+        if (
+          !stake.hasUnpricedComponent &&
+          stake.fiatBalance !== undefined &&
+          stake.fiatCurrency
+        ) {
+          fiat = {
+            balance: stake.fiatBalance.toNumber(),
+            currency: stake.fiatCurrency,
+          };
+        } else {
+          const trxPrice =
+            assetsPrice[`${chainId}/slip44:195` as CaipAssetType]?.price;
+          fiat =
+            trxPrice === undefined
+              ? undefined
+              : {
+                  balance: stake.balance.multipliedBy(trxPrice).toNumber(),
+                  currency: selectedCurrency,
+                };
+        }
+
+        // selectAsset resolves staked rows against the group's scoped account
+        // for the chain, so the aggregate must carry that same account id.
+        stakedAssets.push({
+          accountId:
+            getAccountByScope(chainId as CaipChainId)?.id ?? stake.accountId,
+          chainId,
+          balance: stake.balance.toString(),
+          fiat,
+        });
+      }
+
+      return stakedAssets;
     },
   );

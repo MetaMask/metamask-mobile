@@ -483,6 +483,25 @@ describe('TokensSection', () => {
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
   });
 
+  it('renders the staked row for a zero-balance account instead of popular tokens', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(true);
+    mockSortedTokenKeys.mockReturnValue([
+      {
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        isStaked: true,
+      },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('token-item-tron:728126428/slip44:195'),
+    ).toBeOnTheScreen();
+  });
+
   it('forwards Money CTA to account token rows', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
