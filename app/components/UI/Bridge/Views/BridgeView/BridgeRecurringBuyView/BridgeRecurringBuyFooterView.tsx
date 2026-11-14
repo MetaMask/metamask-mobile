@@ -26,11 +26,13 @@ import { parsePositiveInteger } from '../../../utils/recurringSchedule';
 
 interface BridgeRecurringBuyFooterViewProps {
   onPreviewOrder: () => void;
+  label: string;
   isPreviewDisabled?: boolean;
 }
 
 export const BridgeRecurringBuyFooterView = ({
   onPreviewOrder,
+  label,
   isPreviewDisabled,
 }: BridgeRecurringBuyFooterViewProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -88,7 +90,7 @@ export const BridgeRecurringBuyFooterView = ({
     >
       <SwapsRecurringBuyConfirmButton
         onPress={onPreviewOrder}
-        label={strings('bridge.recurring.preview_order')}
+        label={label}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
         disabled={isPreviewDisabled}
         loading={isLoading}

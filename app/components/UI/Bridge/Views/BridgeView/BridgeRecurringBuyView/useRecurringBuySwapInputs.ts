@@ -21,6 +21,7 @@ import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
+import { useLiveTokenFiatRate } from '../../../hooks/useLiveTokenFiatRate';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
@@ -50,10 +51,14 @@ export const useRecurringBuySwapInputs = () => {
     [dispatch],
   );
 
+  // The API checks the order minimum at the live rate, so a fiat amount is
+  // converted at that same rate for the amount entered to be the one checked.
+  const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
     sourceAmount,
     sourceToken,
+    tokenFiatRate: sourceTokenFiatRate,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;

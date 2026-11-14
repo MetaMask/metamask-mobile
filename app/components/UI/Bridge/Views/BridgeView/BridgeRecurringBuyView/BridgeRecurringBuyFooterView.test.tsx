@@ -73,15 +73,18 @@ function renderFooter(
   state: DeepPartial<RootState>,
   {
     onPreviewOrder = jest.fn(),
+    label = strings('bridge.recurring.preview_order'),
     isPreviewDisabled,
   }: {
     onPreviewOrder?: () => void;
+    label?: string;
     isPreviewDisabled?: boolean;
   } = {},
 ) {
   return renderWithProvider(
     <BridgeRecurringBuyFooterView
       onPreviewOrder={onPreviewOrder}
+      label={label}
       isPreviewDisabled={isPreviewDisabled}
     />,
     { state },
@@ -158,6 +161,18 @@ describe('BridgeRecurringBuyFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+  });
+
+  it('renders the supplied confirm button label', () => {
+    const label = strings('bridge.recurring.min_order_amount', {
+      amount: '100',
+    });
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState(), { label });
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
+    ).toHaveTextContent(label);
   });
 
   it('shows the confirm button as loading when the quote is refreshing', () => {

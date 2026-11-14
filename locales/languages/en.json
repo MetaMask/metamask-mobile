@@ -10831,6 +10831,7 @@
       "times": "times",
       "confirm": "Confirm",
       "preview_order": "Preview Order",
+      "min_order_amount": "Min. order amount is ${{amount}}",
       "confirm_title": "Confirm recurring order",
       "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
       "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",

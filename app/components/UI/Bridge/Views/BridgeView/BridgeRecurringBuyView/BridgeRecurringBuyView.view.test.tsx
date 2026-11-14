@@ -1155,6 +1155,38 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
     });
 
+    it('shows the recurring minimum until the source amount reaches it', async () => {
+      const renderResult = renderBridgeView({ deterministicFiat: true });
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.01'));
+      });
+
+      await waitFor(() => {
+        const confirmButton = renderResult.getByTestId(
+          BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+        );
+        expect(confirmButton).toHaveTextContent(
+          strings('bridge.recurring.min_order_amount', { amount: '100' }),
+        );
+        expect(confirmButton.props.accessibilityState.disabled).toBe(true);
+      });
+
+      act(() => {
+        renderResult.store.dispatch(setSourceAmount('0.05'));
+      });
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
+          ),
+        ).toHaveTextContent(strings('bridge.recurring.preview_order'));
+      });
+    });
+
     it('hides amount quick picks when the every field uses the shared keypad', async () => {
       const renderResult = renderBridgeView();
 
