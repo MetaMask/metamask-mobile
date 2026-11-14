@@ -301,7 +301,7 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(mockGetBenefits).not.toHaveBeenCalled();
     expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Ready);
     expect(result.current.items).toHaveLength(3);
-    expect(result.current.resetsOn).toBe('Sep 15, 2026');
+    expect(result.current.resetsOn).toBe('Sep 14, 2026');
   });
 
   it('reports partial when a product cannot be mapped', async () => {

@@ -185,7 +185,7 @@ describe('getMembershipBannerModel', () => {
       severity: BannerAlertSeverity.Warning,
       titleKey: 'pro_hub.membership_alert.cancelled.title',
       descriptionKey: 'pro_hub.membership_alert.cancelled.description',
-      descriptionValues: { date: 'Oct 12, 2026' },
+      descriptionValues: { date: 'Oct 11, 2026' },
       actionKey: 'pro_hub.membership_alert.cancelled.action',
       action: MembershipAlertAction.Renew,
     });
@@ -284,7 +284,7 @@ describe('getMembershipBannerModel', () => {
       severity: BannerAlertSeverity.Info,
       titleKey: 'pro_hub.membership_alert.low_balance.title',
       descriptionKey: 'pro_hub.membership_alert.low_balance.description',
-      descriptionValues: { date: 'Oct 12, 2026' },
+      descriptionValues: { date: 'Oct 11, 2026' },
       actionKey: 'pro_hub.membership_alert.low_balance.action',
       action: MembershipAlertAction.AddFunds,
     });

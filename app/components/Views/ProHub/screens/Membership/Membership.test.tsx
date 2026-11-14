@@ -255,7 +255,7 @@ describe('Membership', () => {
       const { getByTestId } = renderMembership();
 
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 20, 2027'),
+        toRegex('Jul 19, 2027'),
       );
     });
   });

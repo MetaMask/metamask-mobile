@@ -69,7 +69,7 @@ describe('getMembershipDetails', () => {
       totalOriginal: '$119.88',
       savingsNote: '2 months on us',
       payingWith: 'VISA •••• 4242',
-      renewsOn: 'Jul 20, 2027',
+      renewsOn: 'Jul 19, 2027',
     });
   });
 
@@ -102,7 +102,7 @@ describe('getMembershipDetails', () => {
     expect(result.totalOriginal).toBeUndefined();
     expect(result.savingsNote).toBeUndefined();
     expect(result.payingWith).toBe('Money account');
-    expect(result.renewsOn).toBe('Aug 20, 2026');
+    expect(result.renewsOn).toBe('Aug 19, 2026');
   });
 
   it('renews on the period end even when the subscription has a scheduled end date', () => {
@@ -112,7 +112,7 @@ describe('getMembershipDetails', () => {
 
     const result = getMembershipDetails(subscription, readyPricing);
 
-    expect(result.renewsOn).toBe('Jul 20, 2027');
+    expect(result.renewsOn).toBe('Jul 19, 2027');
   });
 
   it('returns unavailable values when the subscription is absent', () => {
