@@ -22,7 +22,10 @@ interface TradeAllowanceRowProps {
 
 const formatCurrencyAmount = (amount: number): string =>
   strings('pro_hub.member_pricing.allowance_currency', {
-    amount: amount.toLocaleString('en-US'),
+    amount: amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }),
   });
 
 const formatAllowanceValue = (item: TradeAllowanceItem): string => {
@@ -46,23 +49,26 @@ const formatUsedValue = (item: TradeAllowanceItem): string => {
   return String(item.used);
 };
 
-const calculateProgress = (item: TradeAllowanceItem): number => {
+/**
+ * Fill percent for the allowance bar. Exhausted meters are full. Any other
+ * meter stays at 99% or below, so cents just under the cap cannot round up
+ * to a full bar.
+ */
+const calculateProgressPercent = (item: TradeAllowanceItem): number => {
   if (item.exhausted) {
-    return 1;
+    return 100;
   }
 
   if (item.allowance <= 0) {
     return 0;
   }
 
-  return Math.min(item.used / item.allowance, 1);
+  const ratio = Math.min(item.used / item.allowance, 1);
+  return Math.min(99, Math.floor(ratio * 100));
 };
 
 const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
-  const progressPercent = useMemo(
-    () => Math.round(calculateProgress(item) * 100),
-    [item],
-  );
+  const progressPercent = useMemo(() => calculateProgressPercent(item), [item]);
   const labelKey = `pro_hub.member_pricing.${item.id}.label`;
   const footnoteKey = `pro_hub.member_pricing.${item.id}.footnote`;
   const label = strings(labelKey);

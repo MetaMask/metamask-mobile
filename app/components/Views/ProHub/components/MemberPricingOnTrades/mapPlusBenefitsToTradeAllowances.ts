@@ -13,12 +13,19 @@ import {
 
 export const MICRO_USD_PER_USD = 1_000_000;
 
+/** One cent, in micro-USD. Currency rows keep this precision. */
+const MICRO_USD_PER_CENT = 10_000;
+
 /** Swap, perps, and predict — the products Member pricing can show. */
 export const PLUS_BENEFIT_PRODUCT_COUNT =
   Object.keys(TRADE_ALLOWANCE_IDS).length;
 
+/**
+ * Converts micro-USD to USD rounded to the nearest cent.
+ * `999_600_000` becomes `999.6`, which the row formats as `$999.60`.
+ */
 const toUsd = (microUsd: number): number =>
-  Math.round(microUsd / MICRO_USD_PER_USD);
+  Math.round(microUsd / MICRO_USD_PER_CENT) / 100;
 
 const mapMeteredRow = ({
   id,
@@ -55,10 +62,10 @@ const mapMeteredRow = ({
   const allowance = kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(cap) : cap;
   let displayUsed =
     kind === TRADE_ALLOWANCE_KINDS.CURRENCY ? toUsd(used) : used;
-  displayUsed = Math.max(0, displayUsed);
+  displayUsed = Math.min(Math.max(0, displayUsed), allowance);
 
   if (exhausted) {
-    displayUsed = Math.max(displayUsed, allowance);
+    displayUsed = allowance;
   }
 
   return {
