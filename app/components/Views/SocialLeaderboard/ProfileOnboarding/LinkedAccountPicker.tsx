@@ -2,7 +2,6 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -28,6 +27,8 @@ import { useTheme } from '../../../../util/theme';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import TradingActivityBenefits from '../shared/TradingActivityBenefits';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -58,6 +59,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   onSelect,
   onShareTradingActivityChange,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
@@ -204,7 +206,8 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                   onClose={closeSheet}
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SHEET}
                 >
-                  <BottomSheetHeader
+                  <BottomSheetHeaderGlass
+                    isGlass={isGlassHeader}
                     onClose={closeSheet}
                     closeButtonProps={{
                       testID:
@@ -214,7 +217,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
                     {strings(
                       'social_leaderboard.profile_onboarding.select_account',
                     )}
-                  </BottomSheetHeader>
+                  </BottomSheetHeaderGlass>
                   <ScrollView style={styles.accountList}>
                     {accounts.map((account) => (
                       <ListItemSelect

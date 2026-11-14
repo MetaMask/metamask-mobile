@@ -5,6 +5,11 @@ import SocialFiltersBottomSheet from './SocialFiltersBottomSheet';
 import { DEFAULT_FILTERS } from './filterDefaults';
 import type { SocialShellFilters } from './types';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -65,6 +70,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     Pressable,
   } = jest.requireActual('react-native');
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     BottomSheet: ({
       children,
       testID,

@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSemantic,
@@ -20,6 +19,9 @@ import SocialReportReasonPicker from '../../../../UI/SocialFeed/components/Socia
 import { SocialEntryOptionsBottomSheetSelectorsIDs } from '../../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet.testIds';
 import { SocialEntryReportReason } from '../../../../UI/SocialFeed/reportReasons';
 import { ProfileOptionsSheetSelectorsIDs } from './ProfileOptionsSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ProfileOptionsSheetProps {
   /** Trader display name, shown as `@name` on the Block and Report buttons. */
@@ -39,6 +41,7 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
   onReport,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const [step, setStep] = useState<ProfileOptionsStep>('actions');
   const [selectedReason, setSelectedReason] =
@@ -85,14 +88,15 @@ const ProfileOptionsSheet: React.FC<ProfileOptionsSheetProps> = ({
             : ProfileOptionsSheetSelectorsIDs.SHEET
       }
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={dismiss}
         closeButtonProps={{
           testID: ProfileOptionsSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings(titleKey)}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {step === 'support' ? (
         <SocialImpersonationSupport onDismiss={dismiss} />
       ) : step === 'reasons' ? (
