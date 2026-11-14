@@ -3,6 +3,7 @@ import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   KeyValueRow,
   KeyValueRowVariant,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
@@ -49,20 +50,24 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   <>
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
+      twClassName="h-8"
       keyLabel={strings('perps.close_position.total_receive')}
+      keyTextProps={{ variant: TextVariant.BodySm }}
       value={formatCloseSummaryFiat(receiveAmount)}
       valueTextProps={{
+        variant: TextVariant.BodySm,
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
       }}
     />
 
     <KeyValueRow
       variant={KeyValueRowVariant.Summary}
-      twClassName="mt-0.5"
+      twClassName="h-8"
       // One native element carries the label with its value for automation.
       accessible
       testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
       keyLabel={strings('perps.close_position.included_pnl')}
+      keyTextProps={{ variant: TextVariant.BodySm }}
       value={
         pnl === undefined
           ? PERPS_CONSTANTS.FallbackDataDisplay
@@ -73,6 +78,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
             }`
       }
       valueTextProps={{
+        variant: TextVariant.BodySm,
         color: getCloseSummaryPnlColor(pnl),
         testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
       }}

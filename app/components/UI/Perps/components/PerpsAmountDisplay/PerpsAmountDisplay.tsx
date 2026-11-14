@@ -1,7 +1,17 @@
 import React from 'react';
-import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Platform,
+  Pressable,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { useReducedMotion as useNativeReducedMotion } from 'react-native-reanimated';
+
+// Some existing Jest suites provide partial Reanimated mocks.
+const useReducedMotion = useNativeReducedMotion ?? (() => false);
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { useBlinkingCursor } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import { useTheme } from '../../../../../util/theme';
@@ -24,6 +34,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  FontFamily,
   FontWeight,
   IconName,
   Text,
@@ -102,6 +113,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   const { colors } = useTheme();
   const tw = useTailwind();
   const styles = createStyles(colors);
+  const reduceMotion = useReducedMotion();
+  const cursorOpacity = useBlinkingCursor(isActive && !reduceMotion);
+
   // Calculate display value - extracted from nested ternary for clarity
   const displayValue = (() => {
     if (showTokenAmount && tokenAmount && tokenSymbol) {
@@ -122,6 +136,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         )}`
       : undefined;
 
+  const cursorStyle = [
+    styles.cursor,
+    reduceMotion ? null : { opacity: cursorOpacity },
+  ];
+
   if (variant === 'tradeSheet') {
     const isTokenPrimary = Boolean(
       showTokenAmount && tokenAmount && tokenSymbol,
@@ -136,46 +155,74 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
-    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
-      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
-    }`;
+    // Caller labels are the USD amount or a generic action. The unit is a
+    // separate text node, so announce the token size on screen instead of
+    // appending the symbol to that label.
+    const displayedPrimaryLabel = primaryDisplayUnit
+      ? `${primaryDisplayValue} ${primaryDisplayUnit}`
+      : primaryDisplayValue;
+    const primaryAccessibilityLabel = primaryDisplayUnit
+      ? displayedPrimaryLabel
+      : (accessibilityLabel ?? displayedPrimaryLabel);
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
+    // The amount sits inside the toggle, which hides its text from the
+    // accessibility tree. Keep the value in the button name.
+    const secondaryToggleAccessibilityLabel = secondaryDisplayValue
+      ? [secondaryDisplayValue, displayToggleAccessibilityLabel]
+          .filter(Boolean)
+          .join(', ')
+      : undefined;
     const primaryColor = hasError
       ? TextColor.ErrorDefault
       : TextColor.TextDefault;
 
     const primaryAmount = (
-      <AnimatedAmountDisplay
+      <Box
         accessible={!onPress}
-        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-        accessibilityLabel={primaryAccessibilityLabel}
-        color={primaryColor}
-        cursor={isActive ? { testID: 'cursor', style: styles.cursor } : false}
-        loading={isLoading}
-        loadingContent={<Skeleton width={80} height={40} />}
-        suffix={
-          primaryDisplayUnit ? (
-            <Text
-              testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
-              variant={TextVariant.DisplayLg}
-              color={primaryColor}
-            >
-              {` ${primaryDisplayUnit}`}
-            </Text>
-          ) : undefined
-        }
+        accessibilityLabel={onPress ? undefined : primaryAccessibilityLabel}
+        accessibilityRole={onPress ? undefined : 'text'}
         testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
-        value={primaryDisplayValue}
-        variant={TextVariant.DisplayLg}
-      />
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+      >
+        {isLoading ? (
+          <Skeleton width={80} height={40} />
+        ) : (
+          <Text
+            accessible={false}
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
+            color={primaryColor}
+            style={styles.tradeSheetAmount}
+          >
+            {primaryDisplayValue}
+          </Text>
+        )}
+        {isActive ? (
+          <Animated.View testID="cursor" style={cursorStyle} />
+        ) : null}
+        {!isLoading && primaryDisplayUnit ? (
+          <Text
+            accessible={false}
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
+            color={primaryColor}
+            style={styles.tradeSheetAmount}
+          >
+            {` ${primaryDisplayUnit}`}
+          </Text>
+        ) : null}
+      </Box>
     );
 
     return (
       <Box
         alignItems={BoxAlignItems.Center}
-        gap={2}
+        gap={3}
         testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
         twClassName={twClassName}
       >
@@ -200,45 +247,61 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
             justifyContent={BoxJustifyContent.Center}
             gap={2}
           >
-            {/* Mirrors the toggle's width so the value stays optically centered. */}
-            {onDisplayToggle ? (
-              <Box accessible={false} twClassName="h-6 w-6" />
-            ) : null}
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {secondaryDisplayValue}
-            </Text>
             {onDisplayToggle && displayToggleIcon ? (
               // Mirrors MMDS `ButtonIcon` (Sm, Filled) around a caller-supplied
-              // glyph that MMDS does not publish under IconName.
+              // glyph that MMDS does not publish under IconName. The secondary
+              // amount sits in the same control so the value and toggle read
+              // as one button.
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={displayToggleAccessibilityLabel}
+                accessibilityLabel={secondaryToggleAccessibilityLabel}
                 testID={displayToggleTestID}
                 onPress={onDisplayToggle}
                 hitSlop={8}
                 style={({ pressed }) =>
                   tw.style(
-                    'h-6 w-6 items-center justify-center rounded-full',
+                    'flex-row items-center gap-0.5 rounded-full py-0.5 pl-2 pr-1.5',
                     pressed ? 'bg-muted-pressed' : 'bg-muted',
                   )
                 }
               >
+                <Text
+                  accessible={false}
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {secondaryDisplayValue}
+                </Text>
                 {displayToggleIcon}
               </Pressable>
-            ) : null}
-            {onDisplayToggle && !displayToggleIcon ? (
-              <ButtonIcon
-                iconName={IconName.SwapVertical}
-                size={ButtonIconSize.Sm}
-                variant={ButtonIconVariant.Filled}
-                accessibilityLabel={displayToggleAccessibilityLabel}
-                testID={displayToggleTestID}
-                onPress={onDisplayToggle}
-              />
-            ) : null}
+            ) : (
+              <>
+                {/* Mirrors the toggle's width so the value stays optically centered. */}
+                {onDisplayToggle ? (
+                  <Box accessible={false} twClassName="h-6 w-6" />
+                ) : null}
+                <Text
+                  testID={PerpsAmountDisplaySelectorsIDs.SECONDARY_LABEL}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {secondaryDisplayValue}
+                </Text>
+                {onDisplayToggle ? (
+                  <ButtonIcon
+                    iconName={IconName.SwapVertical}
+                    size={ButtonIconSize.Sm}
+                    variant={ButtonIconVariant.Filled}
+                    accessibilityLabel={displayToggleAccessibilityLabel}
+                    testID={displayToggleTestID}
+                    onPress={onDisplayToggle}
+                  />
+                ) : null}
+              </>
+            )}
           </Box>
         ) : null}
         {showWarning ? (
@@ -268,29 +331,27 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {label}
         </Text>
       )}
-      <AnimatedAmountDisplay
-        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-        color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
-        containerStyle={styles.amountRow}
-        cursor={
-          isActive
-            ? {
-                testID: 'cursor',
-                style: styles.cursor,
-              }
-            : false
-        }
-        fontWeight={FontWeight.Bold}
-        loading={isLoading}
-        loadingContent={<Skeleton width={80} height={20} />}
-        style={
-          Platform.OS === 'android'
-            ? styles.amountValueTokenAndroid
-            : styles.amountValueToken
-        }
-        value={displayValue}
-        variant={TextVariant.BodyMd}
-      />
+      <View style={styles.amountRow}>
+        {/* Text only takes 1 arg */}
+        {isLoading ? (
+          <Skeleton width={80} height={20} />
+        ) : (
+          <Text
+            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            style={
+              Platform.OS === 'android'
+                ? styles.amountValueTokenAndroid
+                : styles.amountValueToken
+            }
+          >
+            {displayValue}
+          </Text>
+        )}
+        {isActive && <Animated.View testID="cursor" style={cursorStyle} />}
+      </View>
       {/* Display token amount equivalent for current input */}
       {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text

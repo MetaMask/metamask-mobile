@@ -48,6 +48,8 @@ interface PerpsFeeCaptionProps {
   feeDiscountKind?: PerpsFeeDiscountKind;
   testID: string;
   twClassName?: string;
+  /** Text size of the caption. Defaults to `BodyXs`. */
+  textVariant?: TextVariant;
 }
 
 const promoSentenceKey = (
@@ -73,7 +75,8 @@ const promoSentenceKey = (
 const promoSentenceNodes = (
   template: string,
   feePercentage: string,
-  originalFeePercentage?: string,
+  originalFeePercentage: string | undefined,
+  textVariant: TextVariant,
 ): React.ReactNode[] => {
   const copyOccurrence = new Map<string, number>();
   const templateWithStyledDiscountedPercent = template
@@ -94,7 +97,7 @@ const promoSentenceNodes = (
         return (
           <Text
             key={ORIGINAL_RATE_KEY}
-            variant={TextVariant.BodyXs}
+            variant={textVariant}
             color={TextColor.TextAlternative}
             twClassName="line-through"
           >
@@ -116,7 +119,7 @@ const promoSentenceNodes = (
         return (
           <Text
             key={DISCOUNTED_RATE_KEY}
-            variant={TextVariant.BodyXs}
+            variant={textVariant}
             color={TextColor.SuccessDefault}
           >
             {displayedRate}
@@ -128,7 +131,7 @@ const promoSentenceNodes = (
       return (
         <Text
           key={promoCopyKey(segment, occurrence)}
-          variant={TextVariant.BodyXs}
+          variant={textVariant}
           color={TextColor.TextAlternative}
         >
           {segment}
@@ -145,6 +148,7 @@ const PerpsFeeCaption = ({
   feeDiscountKind,
   testID,
   twClassName,
+  textVariant = TextVariant.BodyXs,
 }: PerpsFeeCaptionProps) => {
   const isPromotionalDiscount =
     feeDiscountKind === 'promotional' &&
@@ -201,20 +205,23 @@ const PerpsFeeCaption = ({
       />
       {isPromotionalDiscount ? (
         <Text
-          variant={TextVariant.BodyXs}
+          variant={textVariant}
           color={TextColor.TextAlternative}
           accessibilityLabel={promoAccessibilityLabel}
           testID={testID}
-          twClassName="tabular-nums"
         >
-          {promoSentenceNodes(promoCopy, feePercentage, originalFeePercentage)}
+          {promoSentenceNodes(
+            promoCopy,
+            feePercentage,
+            originalFeePercentage,
+            textVariant,
+          )}
         </Text>
       ) : (
         <Text
-          variant={TextVariant.BodyXs}
+          variant={textVariant}
           color={TextColor.TextAlternative}
           testID={testID}
-          twClassName="tabular-nums"
         >
           {standardCopy}
         </Text>
