@@ -157,6 +157,17 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../ActivityListItemRow/ActivityListItemRow', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    ActivityListItemRow: () => <View testID="mock-activity-list-item-row" />,
+  };
+});
+
+jest.mock('../../../../Views/ActivityList/useTransactionsQuery', () => ({
+  useTransactionsQuery: jest.fn(() => ({ data: { pages: [] } })),
+}));
+
 const resetSectionMocks = () => {
   mockMarketInsightsProps.length = 0;
   mockBalanceProps.length = 0;

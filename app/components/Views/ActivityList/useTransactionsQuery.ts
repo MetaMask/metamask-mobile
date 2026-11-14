@@ -1,7 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
+import {
+  type CaipAssetType,
+  KnownCaipNamespace,
+  parseCaipAssetType,
+  toCaipAccountId,
+} from '@metamask/utils';
 import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -18,7 +23,9 @@ type QueryOptions = Extract<
   { getNextPageParam: unknown }
 >;
 
-export const useTransactionsQuery = () => {
+const MAX_EMPTY_FILTERED_PAGES_TO_SKIP = 5;
+
+export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -28,8 +35,17 @@ export const useTransactionsQuery = () => {
   // Fetch history for every configured network — decoupled from
   // NetworkEnablementController so enabling/disabling a single network (e.g.
   // Predict enabling Polygon) never collapses the Activity feed to one network.
-  const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
+  const allNetworks = useSelector(selectAllConfiguredEvmCaipNetworks);
   const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
+
+  const networks = useMemo(() => {
+    if (filters?.assetId) {
+      const { chainId } = parseCaipAssetType(filters.assetId);
+      return allNetworks.filter((network) => network === chainId);
+    }
+    return allNetworks;
+  }, [filters?.assetId, allNetworks]);
+
   const accountIds = useMemo(
     () =>
       evmAddress
@@ -46,15 +62,60 @@ export const useTransactionsQuery = () => {
     }) as QueryOptions;
 
   const selectFn = useMemo(
-    () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
-    [evmAddress, excludedTxHashes],
+    () =>
+      selectApiEvmTransactions({
+        address: evmAddress,
+        excludedTxHashes,
+        assetId: filters?.assetId,
+      }),
+    [evmAddress, excludedTxHashes, filters?.assetId],
   );
 
-  return useInfiniteQuery({
+  const query = useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
     enabled: accountIds.length > 0 && networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
+
+  const fetchNextVisiblePage = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+    async function fetchPages() {
+      let visibleItemCount =
+        data?.pages.flatMap((page) => page.data).length ?? 0;
+      let pageCount = data?.pages.length ?? 0;
+      let emptyFilteredPagesSkipped = 0;
+      let result = await fetchNextPage();
+
+      while (
+        result.hasNextPage &&
+        emptyFilteredPagesSkipped < MAX_EMPTY_FILTERED_PAGES_TO_SKIP
+      ) {
+        const pages = result.data?.pages ?? [];
+        const nextPageCount = pages.length;
+        const nextVisibleItemCount = pages.flatMap((page) => page.data).length;
+
+        if (
+          nextVisibleItemCount > visibleItemCount ||
+          nextPageCount <= pageCount
+        ) {
+          break;
+        }
+
+        emptyFilteredPagesSkipped += 1;
+        visibleItemCount = nextVisibleItemCount;
+        pageCount = nextPageCount;
+        result = await fetchNextPage();
+      }
+    }
+
+    fetchPages().catch(() => undefined);
+  }, [data?.pages, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  return { ...query, fetchNextVisiblePage };
 };
