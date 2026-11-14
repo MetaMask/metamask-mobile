@@ -229,6 +229,59 @@ describe('getLocalActivityFees', () => {
       expect.objectContaining({ type: 'base', symbol: 'ETH' }),
     ]);
   });
+
+  it('adds layer1GasFee (L1 + operator) onto the L2 network fee', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1388',
+        layer1GasFee: '0x5f5e100', // 100_000_000
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    // 21_000_000_000_000 + 100_000_000
+    expect(getLocalActivityFees(group, nativeAsset, 'MNT')).toEqual([
+      expect.objectContaining({ type: 'base', amount: '21000100000000' }),
+    ]);
+  });
+
+  it('falls back to receipt l1Fee when layer1GasFee is absent', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0xa',
+        txReceipt: {
+          gasUsed: '0x5208',
+          effectiveGasPrice: '0x3b9aca00',
+          l1Fee: '0x5f5e100',
+        },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    expect(getLocalActivityFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({ type: 'base', amount: '21000100000000' }),
+    ]);
+  });
+
+  it('prefers layer1GasFee over receipt l1Fee to avoid double-counting', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1388',
+        layer1GasFee: '0x5f5e100',
+        txReceipt: {
+          gasUsed: '0x5208',
+          effectiveGasPrice: '0x3b9aca00',
+          l1Fee: '0xffffffff',
+        },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalActivityFees>[0];
+
+    expect(getLocalActivityFees(group, nativeAsset, 'MNT')).toEqual([
+      expect.objectContaining({ type: 'base', amount: '21000100000000' }),
+    ]);
+  });
 });
 
 describe('isSpendingCapUnlimited', () => {

@@ -134,6 +134,7 @@ export function calculateGasEstimate({
   priorityFeePerGas,
   estimatedBaseFee,
   layer1GasFee,
+  receiptL1Fee,
   getFeesFromHexFn,
   receiptGasPrice,
 }: {
@@ -144,6 +145,7 @@ export function calculateGasEstimate({
   shouldUseEIP1559FeeLogic: boolean;
   estimatedBaseFee: string | undefined;
   layer1GasFee?: string;
+  receiptL1Fee?: string;
   receiptGasPrice?: string;
   getFeesFromHexFn: (hexFee: string) => {
     currentCurrencyFee: string | null;
@@ -154,7 +156,13 @@ export function calculateGasEstimate({
   };
 }) {
   if (receiptGasPrice) {
-    return getFeesFromHexFn(multiplyHexes(receiptGasPrice as Hex, gas as Hex));
+    const receiptL2Fee = multiplyHexes(receiptGasPrice as Hex, gas as Hex);
+    const effectiveL1Fee =
+      layer1GasFee ?? (receiptL1Fee ? (add0x(receiptL1Fee) as Hex) : undefined);
+    if (effectiveL1Fee) {
+      return getFeesFromHexFn(addHexes(receiptL2Fee, effectiveL1Fee) as Hex);
+    }
+    return getFeesFromHexFn(receiptL2Fee);
   }
 
   let minimumFeePerGas = addHexes(
