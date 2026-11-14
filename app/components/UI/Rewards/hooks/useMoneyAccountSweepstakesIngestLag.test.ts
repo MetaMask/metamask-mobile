@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { PersistedLocalMoneyFlow } from '../../../../core/redux/slices/moneyBalance';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectDefaultMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   INGEST_LAG_MAX_AGE_MS,
   useMoneyAccountSweepstakesIngestLag,
@@ -11,7 +11,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../../../selectors/moneyAccountController', () => ({
-  selectPrimaryMoneyAccount: jest.fn(),
+  selectDefaultMoneyAccount: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -31,7 +31,7 @@ const mockStoredFlow = (
   activeAddress: string | undefined,
 ) => {
   mockUseSelector.mockImplementation((selector) =>
-    selector === selectPrimaryMoneyAccount
+    selector === selectDefaultMoneyAccount
       ? activeAddress && { address: activeAddress }
       : marker,
   );
