@@ -15306,7 +15306,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redux-devtools/utils@npm:^3.0.0":
+"@redux-devtools/utils@npm:^3.1.1":
   version: 3.1.1
   resolution: "@redux-devtools/utils@npm:3.1.1"
   dependencies:
@@ -38712,7 +38712,7 @@ __metadata:
     readable-stream: "npm:2.3.7"
     reassure: "npm:^1.4.0"
     redux: "npm:^4.2.1"
-    redux-devtools-expo-dev-plugin: "npm:^1.0.0"
+    redux-devtools-expo-dev-plugin: "npm:^2.0.0"
     redux-mock-store: "npm:1.5.4"
     redux-persist: "npm:6.0.0"
     redux-persist-filesystem-storage: "patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch"
@@ -45967,17 +45967,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-devtools-expo-dev-plugin@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "redux-devtools-expo-dev-plugin@npm:1.0.0"
+"redux-devtools-expo-dev-plugin@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "redux-devtools-expo-dev-plugin@npm:2.0.0"
   dependencies:
     "@redux-devtools/instrument": "npm:^2.2.0"
-    "@redux-devtools/utils": "npm:^3.0.0"
+    "@redux-devtools/utils": "npm:^3.1.1"
     jsan: "npm:^3.1.14"
   peerDependencies:
-    expo: ">=52"
+    expo: ">=53"
     redux: "*"
-  checksum: 10/d77032f131703e68c8bc14e45b5981b5d817ad34d17abc6af3bc55b01b4c0e34050445a028de2b776d3f44a23a03314563d6e4e760634cb76ec473dcac4acfa1
+  checksum: 10/00fe947bef2fbe1a54680ff67fd67f183dc54af59986544a3906c80215468429bd9d06e5791a9585d76c7ad6032cce2d2c3ca78421f400abf9c1f0af869cb0c1
   languageName: node
   linkType: hard
 
