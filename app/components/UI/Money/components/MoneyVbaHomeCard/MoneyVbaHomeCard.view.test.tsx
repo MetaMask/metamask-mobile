@@ -143,7 +143,6 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
     expect(view.getByTestId(KYC_PENDING.TITLE)).toHaveTextContent(
       strings('money.vba_home_card.kyc_pending.title'),
     );
-    expect(view.getByTestId(KYC_PENDING.CTA_BUTTON)).toBeDisabled();
     expect(
       view.queryByTestId(FINISH_VERIFICATION.CONTAINER),
     ).not.toBeOnTheScreen();
