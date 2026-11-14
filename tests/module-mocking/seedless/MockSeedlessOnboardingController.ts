@@ -1,6 +1,9 @@
 import { BaseController } from '@metamask/base-controller';
 import {
   getDefaultSeedlessOnboardingControllerState,
+  PasswordSyncInstruction,
+  SeedlessOnboardingCheckpoint,
+  SeedlessOnboardingOperation,
   type SeedlessOnboardingControllerState,
   type SeedlessOnboardingControllerMessenger,
 } from '@metamask/seedless-onboarding-controller';
@@ -198,6 +201,46 @@ export class MockSeedlessOnboardingController extends BaseController<
   ): Promise<void> {
     console.log('[E2E Mock] changePassword called');
     mockState.password = newPassword;
+    this.update((state) => {
+      state.seedlessOperationLifecycle = {
+        operation: SeedlessOnboardingOperation.PasswordChange,
+        checkpoint: SeedlessOnboardingCheckpoint.LocalPasswordPending,
+      };
+    });
+  }
+
+  async markPasswordChangeKeySyncPending(): Promise<void> {
+    console.log('[E2E Mock] markPasswordChangeKeySyncPending called');
+    this.update((state) => {
+      state.seedlessOperationLifecycle = {
+        operation: SeedlessOnboardingOperation.PasswordChange,
+        checkpoint: SeedlessOnboardingCheckpoint.KeySyncPending,
+      };
+    });
+  }
+
+  async completePasswordChange(): Promise<void> {
+    console.log('[E2E Mock] completePasswordChange called');
+    this.update((state) => {
+      state.seedlessOperationLifecycle = undefined;
+    });
+  }
+
+  async resolvePasswordSyncState(_options?: {
+    skipCache?: boolean;
+  }): Promise<PasswordSyncInstruction> {
+    const checkpoint = this.state.seedlessOperationLifecycle?.checkpoint;
+    console.log('[E2E Mock] resolvePasswordSyncState', checkpoint);
+    if (checkpoint === SeedlessOnboardingCheckpoint.KeySyncPending) {
+      return PasswordSyncInstruction.SyncKey;
+    }
+    if (checkpoint === SeedlessOnboardingCheckpoint.LocalPasswordPending) {
+      return PasswordSyncInstruction.ReconcileKeyring;
+    }
+    if (checkpoint === SeedlessOnboardingCheckpoint.LocalStatePending) {
+      return PasswordSyncInstruction.PasswordOutdated;
+    }
+    return PasswordSyncInstruction.InSync;
   }
 
   /**
