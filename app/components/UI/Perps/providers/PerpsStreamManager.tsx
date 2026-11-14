@@ -2335,6 +2335,8 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
   public subscribeToSymbol(params: {
     symbol: string;
     callback: (update: PriceUpdate | undefined) => void;
+    /** Minimum interval between delivered updates in ms (default: no throttle). */
+    throttleMs?: number;
   }): () => void {
     if (this.currentSymbol && this.currentSymbol !== params.symbol) {
       DevLogger.log('FocusedPriceStreamChannel: Symbol changed, reconnecting', {
@@ -2354,6 +2356,7 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       // mounted and registered on this same channel.
       symbols: [params.symbol],
       callback: params.callback,
+      throttleMs: params.throttleMs,
     });
 
     return () => {
