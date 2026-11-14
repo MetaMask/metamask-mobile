@@ -17,10 +17,10 @@ import { PredictHomeTestIds } from '../PredictHome.testIds';
 import { Carousel, type CarouselPagination } from './Carousel';
 import { CarouselPaginationDots } from './CarouselPaginationDots';
 
-// The design's card row: 340x220pt cards, 8pt apart.
+// The design's card row: 340x220pt cards, 12pt apart.
 const CARD_WIDTH = 340;
 const CARD_HEIGHT = 220;
-const CARD_GAP = 8;
+const CARD_GAP = 12;
 
 interface HomeTrendingSectionProps {
   events: readonly PredictEvent[];
