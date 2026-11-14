@@ -1859,6 +1859,36 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('keeps Trade sheet handler identities stable while they use the latest price', () => {
+    const setLimitPrice = jest.fn();
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      setLimitPrice,
+    });
+    useTradeSheetRoute();
+    const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    const first = getMockTradeScreenProps();
+
+    (usePerpsLivePrices as jest.Mock).mockReturnValue({
+      ETH: { price: '3100', percentChange24h: '2.5', markPrice: '3100' },
+      BTC: { price: '3100', percentChange24h: '2.5', markPrice: '3100' },
+    });
+    rerender(<PerpsOrderView />);
+    const second = getMockTradeScreenProps();
+
+    expect(second.onLimitPricePresetPress).toBe(first.onLimitPricePresetPress);
+    expect(second.onPayWithPress).toBe(first.onPayWithPress);
+    expect(second.onSubmit).toBe(first.onSubmit);
+
+    act(() => first.onLimitPricePresetPress('mid'));
+
+    expect(setLimitPrice).toHaveBeenLastCalledWith('3100');
+  });
+
   it('falls back to the market price when the order book is unavailable', () => {
     const setLimitPrice = jest.fn();
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
