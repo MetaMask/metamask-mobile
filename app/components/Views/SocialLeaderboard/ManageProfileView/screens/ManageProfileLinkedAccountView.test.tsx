@@ -1,6 +1,6 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -9,6 +9,7 @@ import {
   internalAccount2,
 } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { createMockAccountGroup } from '../../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { renderShortAddress } from '../../../../../util/address';
 import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccounts';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
@@ -42,13 +43,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
-    Checkbox: ({ isSelected }: { isSelected: boolean }) => {
-      const { View } = jest.requireActual('react-native');
-      const { createElement } = jest.requireActual('react');
-      return createElement(View, {
-        testID: isSelected ? 'radio-checked' : 'radio-unchecked',
-      });
-    },
   };
 });
 
@@ -61,6 +55,13 @@ const state = {
   },
 };
 
+const mainGroup = createMockAccountGroup('entropy:wallet1/0', 'Main Wallet', [
+  internalAccount1.id,
+]);
+const tradingGroup = createMockAccountGroup('entropy:wallet1/1', 'Trading', [
+  internalAccount2.id,
+]);
+
 const linkableAccounts: LinkableSocialAccount[] = [
   {
     id: internalAccount1.id,
@@ -71,6 +72,8 @@ const linkableAccounts: LinkableSocialAccount[] = [
       `eip155:1:${internalAccount1.address}`,
       `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
     ],
+    accountGroup: mainGroup,
+    walletTitle: 'Wallet 1',
   },
   {
     id: internalAccount2.id,
@@ -78,6 +81,8 @@ const linkableAccounts: LinkableSocialAccount[] = [
     address: internalAccount2.address,
     balanceLabel: '',
     linkedAddresses: [`eip155:1:${internalAccount2.address}`],
+    accountGroup: tradingGroup,
+    walletTitle: 'Wallet 1',
   },
 ];
 
@@ -110,17 +115,18 @@ describe('ManageProfileLinkedAccountView', () => {
     mockUseLinkableSocialAccounts.mockReturnValue(linkableAccounts);
   });
 
-  it('shows account names and balances instead of addresses', () => {
+  it('shows account names instead of addresses', () => {
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
     const firstRow = getRow(internalAccount1.id);
     const secondRow = getRow(internalAccount2.id);
 
-    expect(firstRow).toHaveTextContent('Main Wallet$1,234.56');
+    expect(firstRow).toHaveTextContent('Main Wallet');
     expect(secondRow).toHaveTextContent('Trading');
     expect(firstRow).not.toHaveTextContent(
       renderShortAddress(internalAccount1.address),
     );
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
   });
 
   it('selects the linked account even when its Solana address is stored first', () => {
@@ -136,12 +142,14 @@ describe('ManageProfileLinkedAccountView', () => {
 
     renderWithProvider(<ManageProfileLinkedAccountView />, { state });
 
-    expect(
-      within(getRow(internalAccount2.id)).getByTestId('radio-checked'),
-    ).toBeOnTheScreen();
-    expect(
-      within(getRow(internalAccount1.id)).getByTestId('radio-unchecked'),
-    ).toBeOnTheScreen();
+    expect(getRow(internalAccount2.id)).toHaveProp('accessibilityState', {
+      disabled: false,
+      selected: true,
+    });
+    expect(getRow(internalAccount1.id)).toHaveProp('accessibilityState', {
+      disabled: false,
+      selected: false,
+    });
   });
 
   it('does not update the profile when not controller backed', () => {

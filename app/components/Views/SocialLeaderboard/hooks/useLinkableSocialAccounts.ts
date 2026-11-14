@@ -1,3 +1,4 @@
+import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { CaipAccountId, CaipChainId } from '@metamask/utils';
@@ -14,7 +15,10 @@ import {
   selectSelectedAccountGroupId,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
-import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
+import {
+  selectVisibleEntropyAccountGroupsByWallet,
+  selectWallets,
+} from '../../../../selectors/multichainAccounts/wallets';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
@@ -36,6 +40,13 @@ export interface LinkableSocialAccount {
    * the profile links the whole account rather than only its EVM address.
    */
   linkedAddresses: CaipAccountId[];
+  /**
+   * The account group this row was built from. Null only on the no-tree
+   * fallback, which has no group for the homepage account cell to render.
+   */
+  accountGroup: AccountGroupObject | null;
+  /** Wallet name from the account-tree section. Empty on the no-tree fallback. */
+  walletTitle: string;
 }
 
 const accountLabel = (name: string | undefined, address: string): string =>
@@ -61,12 +72,15 @@ export const toLinkedCaipAccountId = (
  *
  * Each row resolves to its EVM account for display and selection, and carries
  * every address in the group for `linked_addresses`. Groups with no EVM
- * account are left out.
+ * account are left out. Only entropy wallets are included.
  */
 export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
   const evmAccounts = useSelector(selectInternalEvmAccounts);
   const accountsById = useSelector(selectInternalAccountsById);
-  const accountSections = useSelector(selectVisibleAccountGroupsByWallet);
+  const accountSections = useSelector(
+    selectVisibleEntropyAccountGroupsByWallet,
+  );
+  const wallets = useSelector(selectWallets);
   const seedAddressByGroupId = useSelector(
     selectAllAccountGroupIconSeedAddresses,
   );
@@ -168,6 +182,8 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
               evmCaipId,
               ...groupAddresses.filter((id) => id !== evmCaipId),
             ],
+            accountGroup: group,
+            walletTitle: section.title,
           },
         ];
       }),
@@ -177,12 +193,20 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
       return groupRows;
     }
 
+    // A tree that only has keyring, hardware, or snap wallets must stay empty.
+    // The flat account list is only a stand-in before any wallet exists.
+    if (wallets.length > 0) {
+      return [];
+    }
+
     return evmAccounts.map((account) => ({
       id: account.id,
       name: accountLabel(account.metadata.name, account.address),
       address: account.address,
       balanceLabel: balanceLabelFor(accountsToGroupMap[account.id]?.id ?? ''),
       linkedAddresses: [`eip155:1:${account.address}` as CaipAccountId],
+      accountGroup: null,
+      walletTitle: '',
     }));
   }, [
     accountSections,
@@ -194,5 +218,6 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
     seedAddressByGroupId,
     selectedGroupId,
     unifiedBalances,
+    wallets.length,
   ]);
 };

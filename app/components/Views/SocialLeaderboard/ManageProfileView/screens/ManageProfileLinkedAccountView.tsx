@@ -1,11 +1,7 @@
 import {
-  AvatarAccount,
-  AvatarAccountSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  Checkbox,
   Icon,
   IconColor,
   IconName,
@@ -16,13 +12,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
 import React, { useCallback, useEffect, useState } from 'react';
-import { AccessibilityInfo, Pressable, ScrollView } from 'react-native';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getAvatarAccountVariant } from '../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts';
+import SocialAccountSectionList from '../../shared/SocialAccountSectionList';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
@@ -43,8 +38,6 @@ const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
 const ManageProfileLinkedAccountView: React.FC = () => {
   const accounts = useLinkableSocialAccounts();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const avatarAccountType = useSelector(selectAvatarAccountType);
-  const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { isControllerBacked, linkedAddresses, updateProfile } =
     useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
@@ -102,63 +95,16 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       backTestID={ManageProfileLinkedAccountSelectorsIDs.BACK_BUTTON}
     >
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Box twClassName="mx-4 mt-2 bg-muted rounded-2xl overflow-hidden">
-          {accounts.map((account, index) => {
-            const isSelected = selectedAccountId === account.id;
-
-            return (
-              <Pressable
-                key={account.id}
-                accessibilityRole="button"
-                disabled={!isControllerBacked || isUpdating}
-                onPress={() => handleAccountPress(account.linkedAddresses)}
-                testID={`${ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}-${account.id}`}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName={`px-4 py-3 ${
-                    index > 0 ? 'border-t border-muted' : ''
-                  }`}
-                >
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="flex-1 min-w-0 mr-3"
-                    gap={3}
-                  >
-                    <AvatarAccount
-                      address={account.address}
-                      size={AvatarAccountSize.Md}
-                      variant={avatarVariant}
-                    />
-                    <Box twClassName="flex-1 min-w-0">
-                      <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-                        {account.name}
-                      </Text>
-                      {account.balanceLabel ? (
-                        <Text
-                          variant={TextVariant.BodySm}
-                          color={TextColor.TextAlternative}
-                          numberOfLines={1}
-                        >
-                          {account.balanceLabel}
-                        </Text>
-                      ) : null}
-                    </Box>
-                  </Box>
-                  <Checkbox
-                    isSelected={isSelected}
-                    pointerEvents="none"
-                    onChange={() => {
-                      void handleAccountPress(account.linkedAddresses);
-                    }}
-                  />
-                </Box>
-              </Pressable>
-            );
-          })}
+        <Box twClassName="mt-2">
+          <SocialAccountSectionList
+            accounts={accounts}
+            disabled={!isControllerBacked || isUpdating}
+            onSelect={(account) => {
+              void handleAccountPress(account.linkedAddresses);
+            }}
+            rowTestIdPrefix={ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}
+            selectedAccountId={selectedAccountId}
+          />
         </Box>
         {errorMessage ? (
           <Text
