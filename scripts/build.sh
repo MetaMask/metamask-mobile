@@ -616,7 +616,8 @@ buildExpoUpdate() {
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
-			--non-interactive
+			--non-interactive \
+			--emit-metadata
 		ios_exit_code=$?
 		
 		if [ $ios_exit_code -ne 0 ]; then
@@ -631,7 +632,8 @@ buildExpoUpdate() {
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
-			--non-interactive
+			--non-interactive \
+			--emit-metadata
 		android_exit_code=$?
 		
 		if [ $android_exit_code -ne 0 ]; then

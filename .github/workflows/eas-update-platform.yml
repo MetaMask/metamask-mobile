@@ -275,6 +275,39 @@ jobs:
               ;;
           esac
 
+      # build.sh passes --emit-metadata, so dist/ holds both the exported bundle and the
+      # published update. TARGET_COMMIT_HASH is the commit that was bundled; it can differ
+      # from github.sha, which is what the attestation certificate records.
+      - name: Resolve published OTA update
+        id: ota-update
+        run: |
+          set -euo pipefail
+          update=$(jq -ce --arg p "$OTA_PUSH_PLATFORM" '.updates[] | select(.platform == $p)' dist/eas-update-metadata.json)
+          bundle=$(jq -er --arg p "$OTA_PUSH_PLATFORM" '.fileMetadata[$p].bundle' dist/metadata.json)
+          predicate=$(jq -cn \
+            --argjson update "$update" \
+            --arg channel "$TARGET_CHANNEL" \
+            --arg commit "$TARGET_COMMIT_HASH" \
+            '{channel: $channel, branch: $update.branch, platform: $update.platform, updateId: $update.id, updateGroupId: $update.group, runtimeVersion: $update.runtimeVersion, commit: $commit}')
+          {
+            echo "bundle-path=dist/${bundle}"
+            echo "predicate=${predicate}"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "**Update ID:** \`$(jq -r .updateId <<< "$predicate")\`"
+            echo "**Update group:** \`$(jq -r .updateGroupId <<< "$predicate")\`"
+            echo "**Commit:** \`${TARGET_COMMIT_HASH}\`"
+            echo "**Bundle sha256:** \`$(sha256sum "dist/${bundle}" | cut -d' ' -f1)\`"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest OTA bundle
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: ${{ steps.ota-update.outputs.bundle-path }}
+          predicate-type: https://github.com/MetaMask/metamask-mobile/attestations/eas-update/v1
+          predicate: ${{ steps.ota-update.outputs.predicate }}
+
       - name: Update summary
         if: success()
         run: |
