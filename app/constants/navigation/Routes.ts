@@ -228,6 +228,7 @@ const Routes = {
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
     ADD_DEVICE_TO_WALLET: 'AddDeviceToWallet',
+    NOTIFICATION_PERMISSION: 'OnboardingNotificationPermission',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
     CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },

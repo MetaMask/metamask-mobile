@@ -273,14 +273,11 @@ const OptinMetrics = () => {
 
     dispatch(clearOnboardingEvents());
 
-    if (isBasicUsageChecked && shouldShowQuestionnaire) {
-      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-        onComplete: continueNavigation,
-        ...(accountType && { accountType }),
-      });
-    } else {
-      await continueNavigation();
-    }
+    navigation.navigate(Routes.ONBOARDING.NOTIFICATION_PERMISSION, {
+      onComplete: continueNavigation,
+      shouldShowQuestionnaire: isBasicUsageChecked && shouldShowQuestionnaire,
+      ...(accountType && { accountType }),
+    });
   }, [
     metrics,
     isBasicUsageChecked,

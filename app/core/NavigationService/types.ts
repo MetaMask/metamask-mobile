@@ -77,6 +77,7 @@ import type { DeepLinkModalParams } from '../../components/UI/DeepLinkModal/type
 import type { DeleteWalletModalParams } from '../../components/UI/DeleteWalletModal/DeleteWalletModal.types';
 import type { OptinMetricsRouteParams } from '../../components/UI/OptinMetrics/OptinMetrics.types';
 import type { OnboardingInterestQuestionnaireRouteParams } from '../../components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.types.ts';
+import type { OnboardingNotificationPermissionRouteParams } from '../../components/Views/OnboardingNotificationPermission/OnboardingNotificationPermission.types.ts';
 import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types.ts';
 import type { QRTabSwitcherParams } from '../../components/Views/QRTabSwitcher/QRTabSwitcher';
 import type {
@@ -765,6 +766,7 @@ export type RootStackParamList = {
     | undefined;
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
+  OnboardingNotificationPermission: OnboardingNotificationPermissionRouteParams;
   OnboardingInterestQuestionnaire: OnboardingInterestQuestionnaireRouteParams;
   OnboardingCryptoExperienceQuestionnaire: OnboardingCryptoExperienceQuestionnaireRouteParams;
   AccountAlreadyExists: AccountStatusParams | undefined;

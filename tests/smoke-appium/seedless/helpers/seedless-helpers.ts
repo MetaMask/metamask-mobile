@@ -17,6 +17,7 @@ import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import {
   dismissExperienceEnhancerModal,
+  dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
@@ -27,7 +28,6 @@ import OnboardingSheet from '../../../page-objects/Onboarding/OnboardingSheet.js
 import CreatePasswordView from '../../../page-objects/Onboarding/CreatePasswordView.js';
 import MetaMetricsOptInView from '../../../page-objects/Onboarding/MetaMetricsOptInView.js';
 import ExperienceEnhancerBottomSheet from '../../../page-objects/Onboarding/ExperienceEnhancerBottomSheet.js';
-import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
 import TermsOfUseModal from '../../../page-objects/Onboarding/TermsOfUseModal.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import LoginView from '../../../page-objects/wallet/LoginView.js';
@@ -266,18 +266,7 @@ export const completeSocialLoginOnboarding = async (
     // May not appear in all flows
   }
 
-  try {
-    await Assertions.expectElementToBeVisible(
-      OnboardingInterestQuestionnaireView.container,
-      {
-        description: 'Interest questionnaire may appear based on rollout',
-        timeout: 5000,
-      },
-    );
-    await OnboardingInterestQuestionnaireView.tapSkipButton();
-  } catch {
-    // Only appears for ~25% of users based on deterministic rollout
-  }
+  await dismissOnboardingInterestQuestionnaire();
 
   // iOS may have wallet-screen in the tree with displayed === false while child
   // indicators (wallet-header-root, etc.) are visible — same check as login flows.

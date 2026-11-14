@@ -605,14 +605,11 @@ const ChoosePassword = () => {
       }
 
       const accountType = reduxAccountType;
-      if (shouldShowQuestionnaire) {
-        navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-          onComplete: onContinueNavigation,
-          ...(accountType && { accountType }),
-        });
-      } else {
-        onContinueNavigation();
-      }
+      navigation.navigate(Routes.ONBOARDING.NOTIFICATION_PERMISSION, {
+        onComplete: onContinueNavigation,
+        shouldShowQuestionnaire,
+        ...(accountType && { accountType }),
+      });
     },
     [
       dispatch,

@@ -215,8 +215,30 @@ if (typeof global.CloseEvent === 'undefined') {
 // MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
 if (typeof global.MessageEvent === 'undefined') {
   // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export MessageEvent at the top level
-  global.MessageEvent =
+  const ReactNativeMessageEvent =
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
+
+  // React Native's MessageEvent omits `source` and `ports`, but
+  // @metamask/post-message-stream reads both through prototype getters.
+  global.MessageEvent = class MessageEvent extends ReactNativeMessageEvent {
+    constructor(type, params) {
+      super(type, params);
+      this._source = params?.source ?? null;
+      this._ports = params?.ports ?? [];
+    }
+
+    get source() {
+      return this._source;
+    }
+
+    get origin() {
+      return super.origin;
+    }
+
+    get ports() {
+      return this._ports;
+    }
+  };
 }
 
 class AbortError extends Error {
