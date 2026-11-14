@@ -2296,6 +2296,32 @@ describe('handleUniversalLink', () => {
         });
       });
 
+      it('returns INVALID link type for a Branch short link that Branch never resolved', async () => {
+        // DeeplinkManager.start holds a raw short link back while Branch
+        // resolves it, and only hands it here if Branch never does.
+        url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE}/1WkF6GmE40b?share=1`;
+        urlObj = {
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+          pathname: '/1WkF6GmE40b',
+          href: url,
+        } as ReturnType<typeof extractURLParams>['urlObj'];
+
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj,
+          browserCallBack: mockBrowserCallBack,
+          url,
+          source: 'test-source',
+        });
+
+        expect(mockHandleDeepLinkModalDisplay).toHaveBeenCalledWith({
+          linkType: DeepLinkModalLinkType.INVALID,
+          onContinue: expect.any(Function),
+          onBack: expect.any(Function),
+        });
+      });
+
       it('should return INVALID link type for unsupported action with invalid signature', async () => {
         mockSubtle.verify.mockResolvedValue(false);
         const invalidSignature = 'invalid-signature';

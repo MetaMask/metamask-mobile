@@ -9,7 +9,9 @@ import FCMService, {
 } from '../../util/notifications/services/FCMService';
 import NotificationsService from '../../util/notifications/services/NotificationService';
 import NavigationService from '../NavigationService';
+import { Linking } from 'react-native';
 import SharedDeeplinkManager, {
+  BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS,
   DeeplinkManager,
   rewriteBranchUri,
 } from './DeeplinkManager';
@@ -990,5 +992,226 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
         uri: 'https://link.metamask.io/swap/token',
       });
     });
+  });
+});
+
+describe('DeeplinkManager.start Branch short link resolution', () => {
+  const SHORT_LINK = 'https://metamask-alternate.app.link/1WkF6GmE40b?share=1';
+  const RESOLVED_PARAMS = {
+    '+clicked_branch_link': true,
+    $deeplink_path:
+      'social/profile/position?positionId=pos-1&traderId=trader-1',
+    '~referring_link': SHORT_LINK,
+  };
+  const RESOLVED_URI =
+    'https://link.metamask.io/social/profile/position?share=1&positionId=pos-1&traderId=trader-1';
+
+  let getInitialURLSpy: jest.SpyInstance;
+  let addEventListenerSpy: jest.SpyInstance;
+
+  const startWithInitialUrl = (initialUrl: string | null = null) => {
+    getInitialURLSpy.mockResolvedValue(initialUrl);
+    DeeplinkManager.start();
+  };
+
+  const getBranchCallback = () =>
+    (branch.subscribe as jest.Mock).mock.calls[0][0] as (opts: {
+      uri?: string;
+      params?: BranchParams;
+    }) => void;
+
+  const getLinkingUrlListener = () =>
+    addEventListenerSpy.mock.calls[0][1] as (event: { url: string }) => void;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+    getInitialURLSpy = jest.spyOn(Linking, 'getInitialURL');
+    addEventListenerSpy = jest
+      .spyOn(Linking, 'addEventListener')
+      .mockImplementation(
+        () =>
+          ({ remove: jest.fn() }) as unknown as ReturnType<
+            typeof Linking.addEventListener
+          >,
+      );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    getInitialURLSpy.mockRestore();
+    addEventListenerSpy.mockRestore();
+  });
+
+  it('ignores the raw initial URL when cold start params already resolved the same short link', async () => {
+    // Arrange
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue(
+      RESOLVED_PARAMS,
+    );
+
+    // Act
+    startWithInitialUrl(SHORT_LINK);
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: RESOLVED_URI });
+  });
+
+  it('waits for Branch instead of handling a raw short link from Linking', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+
+    // Act
+    getLinkingUrlListener()({ url: SHORT_LINK });
+    await jest.advanceTimersByTimeAsync(100);
+    getBranchCallback()({ uri: SHORT_LINK, params: RESOLVED_PARAMS });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: RESOLVED_URI });
+  });
+
+  it('ignores a raw short link that arrives after Branch resolved it', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+    getBranchCallback()({ uri: SHORT_LINK, params: RESOLVED_PARAMS });
+
+    // Act
+    getLinkingUrlListener()({ url: SHORT_LINK });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: RESOLVED_URI });
+  });
+
+  it('matches the short link by its id when Branch reports another Branch host', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+    getBranchCallback()({
+      uri: 'https://metamask.app.link/1WkF6GmE40b?share=1',
+      params: RESOLVED_PARAMS,
+    });
+
+    // Act
+    getLinkingUrlListener()({ url: SHORT_LINK });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+  });
+
+  it('reads Branch params again when the wait ends without a Branch delivery', async () => {
+    // Arrange
+    startWithInitialUrl(SHORT_LINK);
+    await jest.advanceTimersByTimeAsync(0);
+    expect(handleDeeplink).not.toHaveBeenCalled();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue(
+      RESOLVED_PARAMS,
+    );
+
+    // Act
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: RESOLVED_URI });
+  });
+
+  it('handles the raw short link when Branch never resolves it', async () => {
+    // Arrange
+    startWithInitialUrl(SHORT_LINK);
+    await jest.advanceTimersByTimeAsync(0);
+
+    // Act
+    await jest.advanceTimersByTimeAsync(
+      BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS - 1,
+    );
+    const callsBeforeWindowEnds = (handleDeeplink as jest.Mock).mock.calls
+      .length;
+    await jest.advanceTimersByTimeAsync(1);
+
+    // Assert
+    expect(callsBeforeWindowEnds).toBe(0);
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: SHORT_LINK });
+  });
+
+  it('handles the raw short link right away when Branch resolves it without a $deeplink_path', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+    getLinkingUrlListener()({ url: SHORT_LINK });
+
+    // Act
+    getBranchCallback()({
+      uri: SHORT_LINK,
+      params: { '+clicked_branch_link': true },
+    });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: SHORT_LINK });
+  });
+
+  it('drops a waiting short link when a newer deeplink arrives', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+    getLinkingUrlListener()({ url: SHORT_LINK });
+
+    // Act
+    getLinkingUrlListener()({ url: 'https://link.metamask.io/home' });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/home',
+    });
+  });
+
+  it.each([
+    ['a Branch host link that names a route', 'https://metamask.app.link/swap'],
+    ['a non Branch host link', 'https://link.metamask.io/1WkF6GmE40b'],
+    [
+      'a Branch host link with more than one path segment',
+      'https://metamask-alternate.app.link/1WkF6GmE40b/extra',
+    ],
+  ])('handles %s from Linking right away', async (_label, url) => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+
+    // Act
+    getLinkingUrlListener()({ url });
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(1);
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: url });
+  });
+
+  it('handles a raw short link again once the resolved window has passed', async () => {
+    // Arrange
+    startWithInitialUrl();
+    await jest.advanceTimersByTimeAsync(0);
+    getBranchCallback()({ uri: SHORT_LINK, params: RESOLVED_PARAMS });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Act
+    getLinkingUrlListener()({ url: SHORT_LINK });
+    getBranchCallback()({ uri: SHORT_LINK, params: RESOLVED_PARAMS });
+    await jest.advanceTimersByTimeAsync(BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS);
+
+    // Assert
+    expect(handleDeeplink).toHaveBeenCalledTimes(2);
+    expect(handleDeeplink).toHaveBeenNthCalledWith(2, { uri: RESOLVED_URI });
   });
 });

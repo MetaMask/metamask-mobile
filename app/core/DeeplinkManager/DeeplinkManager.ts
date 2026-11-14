@@ -28,6 +28,7 @@ import {
   type DeeplinkPerfAppStartType,
 } from '../Performance/DeeplinkPerformance';
 import { getUnlockAppStartType } from '../Performance/unlockTraces';
+import { getBranchShortLinkId } from './util/deeplinks';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -75,6 +76,13 @@ export function rewriteBranchUri(
     return uri;
   }
 }
+
+/**
+ * How long a raw Branch short link waits for Branch to deliver the route it
+ * resolves to before it is handled as is. Also how long after Branch resolves
+ * a short link a raw copy of that link is ignored.
+ */
+export const BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS = 5000;
 
 export class DeeplinkManager {
   // singleton instance
@@ -181,28 +189,131 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    const getBranchDeeplink = async (uri?: string) => {
-      if (uri) {
+    // A Branch short link (e.g. metamask-alternate.app.link/1WkF6GmE40b) can
+    // reach JS twice: raw, from Linking or from Branch before it has the
+    // link's params, and resolved to its $deeplink_path, from Branch. The raw
+    // copy names no route, so handling it opens the "This page doesn't exist"
+    // interstitial before (or after) the real destination. On iOS cold start
+    // the raw copy arrives just after the resolved one; elsewhere it can
+    // arrive first. A raw short link therefore waits for Branch, and is
+    // ignored once Branch has resolved the same link.
+    let pendingShortLink: {
+      id: string;
+      timer: ReturnType<typeof setTimeout>;
+    } | null = null;
+    let resolvedShortLink: { id: string; at: number } | null = null;
+
+    const clearPendingShortLink = (): void => {
+      if (pendingShortLink) {
+        clearTimeout(pendingShortLink.timer);
+        pendingShortLink = null;
+      }
+    };
+
+    /**
+     * Handles a link Branch reported as a clicked Branch link, rewritten to
+     * its $deeplink_path. Without a $deeplink_path the link has no route and
+     * is handled as is, so a genuinely invalid link still reaches the
+     * interstitial.
+     */
+    const handleResolvedBranchLink = (
+      uri: string,
+      params: BranchParams,
+    ): void => {
+      clearPendingShortLink();
+      const id = getBranchShortLinkId(uri);
+      if (id) {
+        resolvedShortLink = { id, at: Date.now() };
+      }
+      handleDeeplink({ uri: rewriteBranchUri(uri, params) ?? uri });
+    };
+
+    /**
+     * Handles a raw Branch short link once it has waited for Branch. Branch
+     * params are read once more, since iOS cold start does not call
+     * branch.subscribe and the first read can be too early.
+     */
+    const flushUnresolvedShortLink = async (
+      uri: string,
+      id: string,
+    ): Promise<void> => {
+      try {
+        const latestParams = (await branch.getLatestReferringParams()) as
+          | BranchParams
+          | undefined;
+        const referringLink = latestParams?.['~referring_link'];
+        if (
+          latestParams?.['+clicked_branch_link'] &&
+          typeof referringLink === 'string' &&
+          getBranchShortLinkId(referringLink) === id
+        ) {
+          handleResolvedBranchLink(referringLink, latestParams);
+          return;
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error getting Branch deeplink');
+      }
+      handleDeeplink({ uri });
+    };
+
+    /**
+     * Handles a link Branch has not resolved. A raw Branch short link waits
+     * up to BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS for the resolved delivery,
+     * and is dropped if Branch already resolved it.
+     */
+    const handleIncomingDeeplink = (uri: string): void => {
+      const id = getBranchShortLinkId(uri);
+      if (!id) {
+        clearPendingShortLink();
         handleDeeplink({ uri });
         return;
       }
 
+      if (
+        resolvedShortLink?.id === id &&
+        Date.now() - resolvedShortLink.at < BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS
+      ) {
+        Logger.log(
+          `Deeplink: Ignoring Branch short link already resolved: ${uri}`,
+        );
+        return;
+      }
+
+      clearPendingShortLink();
+      Logger.log(`Deeplink: Waiting for Branch to resolve short link: ${uri}`);
+      pendingShortLink = {
+        id,
+        timer: setTimeout(() => {
+          pendingShortLink = null;
+          flushUnresolvedShortLink(uri, id);
+        }, BRANCH_SHORT_LINK_RESOLVE_WINDOW_MS),
+      };
+    };
+
+    const getBranchDeeplink = async (): Promise<void> => {
       try {
-        const latestParams = await branch.getLatestReferringParams();
+        const latestParams = (await branch.getLatestReferringParams()) as
+          | BranchParams
+          | undefined;
 
         // Cold start: params may contain a resolved Branch link with $deeplink_path.
-        const rewritten = rewriteBranchUri(
-          latestParams?.['~referring_link'] as string | undefined,
-          latestParams as Record<string, unknown> | undefined,
-        );
-        if (rewritten) {
-          handleDeeplink({ uri: rewritten });
+        const referringLink = latestParams?.['~referring_link'];
+        if (
+          latestParams &&
+          typeof referringLink === 'string' &&
+          referringLink
+        ) {
+          if (latestParams['+clicked_branch_link']) {
+            handleResolvedBranchLink(referringLink, latestParams);
+          } else {
+            handleIncomingDeeplink(referringLink);
+          }
           return;
         }
 
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
+        const deeplink = latestParams?.['+non_branch_link'];
+        if (typeof deeplink === 'string' && deeplink) {
+          handleIncomingDeeplink(deeplink);
         }
       } catch (error) {
         Logger.error(error as Error, 'Error getting Branch deeplink');
@@ -289,12 +400,12 @@ export class DeeplinkManager {
         return;
       }
       Logger.log(`handleDeeplink:: got initial URL ${url}`);
-      handleDeeplink({ uri: url });
+      handleIncomingDeeplink(url);
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
-      handleDeeplink({ uri: url });
+      handleIncomingDeeplink(url);
     });
 
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
@@ -308,11 +419,17 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
-      const rewritten = rewriteBranchUri(
-        opts.uri,
-        opts.params as Record<string, unknown> | undefined,
-      );
-      getBranchDeeplink(rewritten ?? opts.uri);
+      const { uri } = opts;
+      const params = opts.params as BranchParams | undefined;
+      if (!uri) {
+        getBranchDeeplink();
+        return;
+      }
+      if (params?.['+clicked_branch_link']) {
+        handleResolvedBranchLink(uri, params);
+      } else {
+        handleIncomingDeeplink(uri);
+      }
     });
   }
 }

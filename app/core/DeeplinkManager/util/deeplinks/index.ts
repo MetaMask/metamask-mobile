@@ -27,6 +27,61 @@ export const METAMASK_DEEPLINK_HOSTS: readonly string[] = [
   ),
 ];
 
+/**
+ * Hosts Branch serves short links from (e.g. `metamask-alternate.app.link/1WkF6GmE40b`).
+ * The path on these hosts may be a Branch link id instead of an in-app route.
+ */
+export const BRANCH_LINK_HOSTS: readonly string[] = [
+  ...new Set(
+    [
+      MM_UNIVERSAL_LINK_HOST,
+      MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
+    ].filter(Boolean),
+  ),
+];
+
+const KNOWN_DEEPLINK_ACTIONS: ReadonlySet<string> = new Set(
+  Object.values(ACTIONS),
+);
+
+/**
+ * Returns the Branch link id of a Branch short link the app cannot route by
+ * itself: a Branch host URL whose only path segment is not a known action,
+ * such as `https://metamask-alternate.app.link/1WkF6GmE40b?share=1` →
+ * `1WkF6GmE40b`. Branch resolves such a link to its `$deeplink_path`
+ * separately. Returns `null` for every other URL, including Branch host
+ * URLs that already name a route (`https://metamask.app.link/swap`).
+ *
+ * @param url - The URL to check
+ * @returns The Branch link id, or `null`
+ */
+export const getBranchShortLinkId = (
+  url: string | null | undefined,
+): string | null => {
+  if (!url) return null;
+
+  try {
+    const urlObj = new URL(url);
+    const protocol = urlObj.protocol.replace(':', '');
+    if (
+      (protocol !== PROTOCOLS.HTTP && protocol !== PROTOCOLS.HTTPS) ||
+      !BRANCH_LINK_HOSTS.includes(urlObj.hostname)
+    ) {
+      return null;
+    }
+
+    const segments = urlObj.pathname.split('/').filter(Boolean);
+    if (segments.length !== 1 || KNOWN_DEEPLINK_ACTIONS.has(segments[0])) {
+      return null;
+    }
+    return segments[0];
+  } catch {
+    return null;
+  }
+};
+
 export const METAMASK_SDK_DEEPLINK_ACTIONS = [
   ACTIONS.ANDROID_SDK,
   ACTIONS.CONNECT,
