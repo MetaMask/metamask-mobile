@@ -294,7 +294,9 @@ export class WalletHomeSections {
   async scrollAndTapPredictionsPosition(
     positionName: string,
     positionId?: string,
+    options: { revealFirstPosition?: boolean } = {},
   ): Promise<void> {
+    const { revealFirstPosition = false } = options;
     const target = positionId
       ? Matchers.getElementByID(`predict-position-row-${positionId}`)
       : Matchers.getElementByText(positionName);
@@ -332,6 +334,10 @@ export class WalletHomeSections {
             maxAttempts: intoViewMaxAttempts,
           }),
         );
+
+        if (revealFirstPosition) {
+          await WalletHomeScroll.scrollWalletHome('down', 0.2);
+        }
 
         if (
           await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
