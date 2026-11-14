@@ -390,14 +390,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [],
   );
 
+  // Notify the host after the pages settle so it can leave a held empty
+  // state once the refreshed feed is the one on screen.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      onRefresh?.();
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
         waitForMinimumRefresh(),
       ]);
+      onRefresh?.();
     } finally {
       setRefreshing(false);
     }

@@ -14,7 +14,6 @@ import {
   type TraderFollowInteractionSource,
 } from '../Views/SocialLeaderboard/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { invalidateFollowingFeed } from '../UI/SocialFeed/data/socialFeedQueries';
 import { hasRealAvatar } from '../UI/SocialFeed/utils/avatarFallback';
 import {
   clearOptimisticFollowerCounts,
@@ -287,21 +286,9 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             { breadcrumb: false },
           );
         });
-        // Not awaited: a full feed refetch must not delay the follower-count
-        // commit below.
-        invalidateFollowingFeed().catch((err: unknown) => {
-          reportSocialServiceFailure(
-            err,
-            {
-              surface: 'follow',
-              operation: 'invalidate_following_feed',
-              extraMessage: 'Following feed invalidation failed',
-              source: 'useFollowToggle',
-              endpoint: 'feed',
-            },
-            { breadcrumb: false },
-          );
-        });
+        // The Following feed stays cached so a viewer can follow several
+        // traders before it reloads. FollowingView refreshes it on return
+        // and on pull.
         await invalidateFollowingQuery();
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
