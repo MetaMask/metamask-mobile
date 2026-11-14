@@ -3,12 +3,15 @@
 # Builds the same-SHA fail-then-pass history that
 # flaky-unit-test-detection.yml reads on every PR. That workflow used to
 # derive this itself on each push, which meant re-walking thousands of ci.yml
-# runs to answer a question about a handful of files, against a GraphQL budget
-# shared with every other workflow in the repository.
+# runs to answer a question about a handful of files, against the request
+# budget shared with every other workflow in the repository.
 #
-# Here it is walked once a night over a single day: roughly 330 runs and 33
-# candidate commits, comfortably clear of both the 1000-result listWorkflowRuns
-# ceiling and the 1000 GraphQL points GITHUB_TOKEN allows per hour. Job logs
+# Here it is walked once a night. A weekday is about 500–800 completed ci.yml
+# runs (a weekend is a few dozen), under the 1000-result listWorkflowRuns
+# ceiling. Re-runs and second runs of the same commit are read with the REST
+# jobs API, which stays inside the ~1000 requests GITHUB_TOKEN allows per hour.
+# One heavy day is given enough of that budget to finish; further days wait
+# for the next night rather than all of them being left half-walked. Job logs
 # are also read hours after the fact rather than weeks, when they still exist.
 #
 # The index is published as an artifact and the next build merges into it, so

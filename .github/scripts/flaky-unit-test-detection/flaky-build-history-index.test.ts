@@ -93,6 +93,7 @@ describe('renderBuildSummary', () => {
 
     expect(summary).toContain('| Days walked | 2026-09-20 |');
     expect(summary).toContain('| Days left as gaps | none |');
+    expect(summary).toContain('| Days deferred | none |');
     expect(summary).toContain('| ci.yml runs scanned | 300 |');
     expect(summary).toContain('| Fail-then-pass hits found | 1 |');
     expect(summary).toContain('| Tests tracked | 1 |');

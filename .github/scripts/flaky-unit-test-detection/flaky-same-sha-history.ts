@@ -159,25 +159,49 @@ export function groupRunsByHeadSha(
 }
 
 /**
- * A fail-then-pass needs both a failed Unit tests job and a second execution
- * on the identical commit. The failed job always fails its run, so a SHA with
- * no failed run cannot hold the signal — that drops re-runs of already-green
- * commits before they cost a GraphQL point each.
- *
- * A re-run that stayed red is deliberately kept: GitHub concludes the whole
- * run on every job, so "Unit tests passed, lint still failed" looks identical
- * to "nothing passed", and pruning on a missing success conclusion would drop
- * exactly the flakes this walk exists to find.
+ * `listWorkflowRuns` returns one row per run: the latest attempt. A green
+ * re-run is therefore `runAttempt > 1` with conclusion `success`, and the
+ * failed attempt is not in the list. Keep it. Skip a re-run only when every
+ * attempt is present and succeeded.
  */
+function listedAttemptsCover(
+  attempts: ListedWorkflowRun[],
+  latestAttempt: number,
+): boolean {
+  const seen = new Set(attempts.map((run) => run.runAttempt));
+  for (let attempt = 1; attempt <= latestAttempt; attempt += 1) {
+    if (!seen.has(attempt)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function isCandidateShaGroup(runsForSha: ListedWorkflowRun[]): boolean {
+  const byId = new Map<number, ListedWorkflowRun[]>();
+  for (const run of runsForSha) {
+    const list = byId.get(run.id) ?? [];
+    list.push(run);
+    byId.set(run.id, list);
+  }
+
+  for (const attempts of byId.values()) {
+    const latestAttempt = Math.max(...attempts.map((run) => run.runAttempt));
+    if (latestAttempt <= 1) {
+      continue;
+    }
+    const everyAttemptSucceeded =
+      listedAttemptsCover(attempts, latestAttempt) &&
+      attempts.every((run) => run.conclusion === 'success');
+    if (!everyAttemptSucceeded) {
+      return true;
+    }
+  }
+
   if (!runsForSha.some((run) => run.conclusion === 'failure')) {
     return false;
   }
-  if (runsForSha.some((run) => run.runAttempt > 1)) {
-    return true;
-  }
-  const uniqueRunIds = new Set(runsForSha.map((run) => run.id));
-  if (uniqueRunIds.size < 2) {
+  if (byId.size < 2) {
     return false;
   }
   return runsForSha.some((run) => run.conclusion === 'success');
@@ -439,6 +463,87 @@ export function confirmedFailThenPassJobs(
       confirmed.push({
         name: failed.name,
         jobId: failed.jobId,
+        runId: failed.runId,
+      });
+    }
+  }
+  return confirmed;
+}
+
+/** One job from `GET /actions/runs/{id}/jobs?filter=all`. */
+export type AttemptJob = {
+  id: number;
+  runId: number;
+  runAttempt: number;
+  name: string;
+  conclusion: string | null;
+};
+
+export function attemptJobFromApi(job: {
+  id: number;
+  run_id?: number;
+  run_attempt?: number;
+  name?: string | null;
+  conclusion?: string | null;
+}): AttemptJob {
+  return {
+    id: job.id,
+    runId: job.run_id ?? 0,
+    runAttempt: job.run_attempt ?? 1,
+    name: job.name ?? '',
+    conclusion: job.conclusion ?? null,
+  };
+}
+
+/** True when fetched jobs are fewer than the endpoint's total_count. */
+export function jobListTruncated(
+  fetched: number,
+  totalCount: number | null,
+): boolean {
+  if (totalCount === null) {
+    return false;
+  }
+  return fetched < totalCount;
+}
+
+/**
+ * Failed Unit tests jobs whose same name later succeeded, on one SHA.
+ * Order is run id, then attempt, then job id.
+ */
+export function confirmedFailThenPassFromAttemptJobs(
+  jobs: AttemptJob[],
+): ConfirmedFailThenPassJob[] {
+  const byName = new Map<string, AttemptJob[]>();
+  for (const job of jobs) {
+    if (!job.name.startsWith(UNIT_TEST_JOB_PREFIX)) {
+      continue;
+    }
+    const named = byName.get(job.name) ?? [];
+    named.push(job);
+    byName.set(job.name, named);
+  }
+
+  const confirmed: ConfirmedFailThenPassJob[] = [];
+  const seenJobs = new Set<number>();
+  for (const named of byName.values()) {
+    const ordered = [...named].sort(
+      (a, b) => a.runId - b.runId || a.runAttempt - b.runAttempt || a.id - b.id,
+    );
+    for (let index = 0; index < ordered.length; index += 1) {
+      const failed = ordered[index];
+      if (failed.conclusion !== 'failure') {
+        continue;
+      }
+      const laterPass = ordered
+        .slice(index + 1)
+        .some((later) => later.conclusion === 'success');
+      if (!laterPass || seenJobs.has(failed.id)) {
+        continue;
+      }
+      seenJobs.add(failed.id);
+      confirmed.push({
+        name: failed.name,
+        jobId: failed.id,
         runId: failed.runId,
       });
     }

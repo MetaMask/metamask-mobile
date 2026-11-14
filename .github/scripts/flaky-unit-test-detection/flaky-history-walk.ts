@@ -1,11 +1,13 @@
 /**
  * Walking one day of ci.yml history for confirmed same-SHA fail-then-pass.
  *
- * This is the expensive half of the detector, and it now runs once a night on
- * main rather than on every push. A day is small enough to stay clear of every
- * ceiling the per-PR walk kept hitting: roughly 330 runs against the
- * 1000-result listWorkflowRuns cap, and about 33 candidate commits against the
- * 1000 GraphQL points GITHUB_TOKEN allows per hour.
+ * This is the expensive half of the detector, and it runs once a night on
+ * main rather than on every push. A weekday is about 500–800 completed
+ * ci.yml runs (a weekend is a few dozen), under the 1000-result
+ * listWorkflowRuns ceiling. Candidate runs are re-runs and second runs of
+ * the same commit; their jobs are read with the REST jobs API. Measured on
+ * 2026-11-12 (579 runs, 74 re-runs) that costs a few hundred requests, inside
+ * the ~1000 REST requests GITHUB_TOKEN allows per hour.
  *
  * Nothing here is scoped to a pull request. The caller gets every unit test
  * the confirmed jobs reported failing, and decides what to do with it.
@@ -20,16 +22,16 @@ import {
 } from './flaky-github-request';
 import {
   allHitsFromConfirmedLogs,
-  buildShaBatchQuery,
+  attemptJobFromApi,
   candidateShaGroupsNewestFirst,
-  chunkArray,
   classifyBatchFailure,
   classifyLoglessJob,
-  collectListedRunsFromPages,
-  confirmedFailThenPassJobs,
+  confirmedFailThenPassFromAttemptJobs,
   groupRunsByHeadSha,
+  jobListTruncated,
+  listedWorkflowRunFromApi,
   parseJestFailPaths,
-  parseShaBatchResponse,
+  type AttemptJob,
   type ConfirmedFailThenPassJob,
   type ListedWorkflowRun,
   type UnattributedRerun,
@@ -43,29 +45,80 @@ export const WORKFLOW = 'ci.yml';
 /** listWorkflowRuns serves at most 1000 results per query, day bucket or not. */
 const MAX_RUNS_PER_DAY = 1000;
 
-const GRAPHQL_BATCH_SIZE = 20;
+const RUNS_PAGE_SIZE = 100;
+const JOBS_PAGE_SIZE = 100;
 const DOWNLOAD_CONCURRENCY = 8;
 
-/**
- * A 20-SHA batch costs 20 GraphQL points, so points scale with commits
- * inspected rather than with queries. GITHUB_TOKEN allows 1000 points per hour
- * per repository; a nightly single day needs about 33, and a 14-day cold start
- * about 460, which is why the backfill window is 14 days and not the full
- * retention window.
- */
-export const MAX_GRAPHQL_QUERIES_PER_BUILD = 40;
+/** Measured heavy-weekday cost. The per-day cap sits above this. */
+export const HEAVY_DAY_REST_REQUESTS = 350;
 
-/** REST allows 1000 requests per hour; confirmed fail-then-pass jobs are rare. */
+/** Two of these fit in the build budget. A third day waits. */
+export const MAX_REST_REQUESTS_PER_DAY = 400;
+
+export const MAX_REST_REQUESTS_PER_BUILD = 800;
+
+/** REST allows ~1000 requests per hour; confirmed fail-then-pass jobs are rare. */
 export const MAX_LOG_FETCHES_PER_BUILD = 300;
 
 /** Shared across every day in one build, not reset per day. */
 export type WalkBudget = {
-  graphqlQueries: number;
+  restRequests: number;
   logFetches: number;
 };
 
 export function newWalkBudget(): WalkBudget {
-  return { graphqlQueries: 0, logFetches: 0 };
+  return { restRequests: 0, logFetches: 0 };
+}
+
+/**
+ * Next day's request share. A full heavy day, not budget divided by queued days.
+ * A leftover below `minToStart` is 0 so the caller defers the day instead of
+ * opening it and recording a new gap.
+ */
+export function requestShareForDay({
+  spent,
+  buildBudget = MAX_REST_REQUESTS_PER_BUILD,
+  perDay = MAX_REST_REQUESTS_PER_DAY,
+  minToStart = HEAVY_DAY_REST_REQUESTS,
+}: {
+  spent: number;
+  buildBudget?: number;
+  perDay?: number;
+  minToStart?: number;
+}): number {
+  const remaining = Math.max(0, buildBudget - Math.max(0, spent));
+  const share = Math.min(Math.max(0, perDay), remaining);
+  if (share < minToStart) {
+    return 0;
+  }
+  return share;
+}
+
+/**
+ * Fresh days first, then gaps, each group oldest to newest.
+ *
+ * The window only moves forward when a day after `newestDay` is merged.
+ * Walking the backlog first let an unfinished gap consume the night and
+ * left yesterday unwalked. Within a group, oldest-first fills the range
+ * in order so a finished day is not left as a hole behind a newer one.
+ */
+export function orderDaysForWalk(
+  days: readonly string[],
+  gapDays: readonly string[],
+): string[] {
+  const gaps = new Set(gapDays);
+  const fresh: string[] = [];
+  const repair: string[] = [];
+  for (const day of days) {
+    if (gaps.has(day)) {
+      repair.push(day);
+    } else {
+      fresh.push(day);
+    }
+  }
+  fresh.sort();
+  repair.sort();
+  return [...fresh, ...repair];
 }
 
 export type WalkDayResult = {
@@ -98,33 +151,141 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-export async function listRunsForDay(
+type ListedDay = {
+  runs: ListedWorkflowRun[];
+  capped: boolean;
+  budgetExhausted: boolean;
+};
+
+async function listRunsForDay(
   octokit: Octokit,
   owner: string,
   repo: string,
   day: string,
-): Promise<{ runs: ListedWorkflowRun[]; capped: boolean }> {
-  const iterator = octokit.paginate.iterator(
-    octokit.rest.actions.listWorkflowRuns,
-    {
-      owner,
-      repo,
-      workflow_id: WORKFLOW,
-      status: 'completed',
-      created: day,
-      per_page: 100,
-    },
-  );
-  const { runs, pageErrorMessage } = await collectListedRunsFromPages(
-    iterator,
-    MAX_RUNS_PER_DAY,
-  );
-  if (pageErrorMessage) {
+  spend: () => boolean,
+): Promise<ListedDay> {
+  const runs: ListedWorkflowRun[] = [];
+  let page = 1;
+  let fetched = 0;
+  try {
+    while (runs.length < MAX_RUNS_PER_DAY) {
+      if (!spend()) {
+        return { runs, capped: false, budgetExhausted: true };
+      }
+      const response = await withRetryOnce(() =>
+        octokit.rest.actions.listWorkflowRuns({
+          owner,
+          repo,
+          workflow_id: WORKFLOW,
+          status: 'completed',
+          created: day,
+          per_page: RUNS_PAGE_SIZE,
+          page,
+        }),
+      );
+      const pageRuns = response.data.workflow_runs ?? [];
+      for (const run of pageRuns) {
+        runs.push(listedWorkflowRunFromApi(run));
+        if (runs.length >= MAX_RUNS_PER_DAY) {
+          break;
+        }
+      }
+      fetched += pageRuns.length;
+      const total = response.data.total_count;
+      const shortPage = pageRuns.length < RUNS_PAGE_SIZE;
+      const covered =
+        typeof total === 'number' ? fetched >= total : shortPage;
+      if (shortPage || covered || runs.length >= MAX_RUNS_PER_DAY) {
+        break;
+      }
+      page += 1;
+    }
+  } catch (error) {
+    if (runs.length === 0) {
+      throw error;
+    }
     core.warning(
-      `listWorkflowRuns ${day} stopped after ${runs.length} run(s): ${pageErrorMessage}`,
+      `listWorkflowRuns ${day} stopped after ${runs.length} run(s): ${(error as Error).message}`,
     );
+    return { runs, capped: true, budgetExhausted: false };
   }
-  return { runs, capped: runs.length >= MAX_RUNS_PER_DAY };
+  return {
+    runs,
+    capped: runs.length >= MAX_RUNS_PER_DAY,
+    budgetExhausted: false,
+  };
+}
+
+type JobListResult = {
+  jobs: AttemptJob[];
+  complete: boolean;
+  stopWalk: boolean;
+};
+
+async function listAttemptJobs(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  runId: number,
+  day: string,
+  spend: () => boolean,
+  failedLists: { count: number },
+): Promise<JobListResult> {
+  const jobs: AttemptJob[] = [];
+  let page = 1;
+  while (page <= 20) {
+    if (!spend()) {
+      return { jobs, complete: false, stopWalk: false };
+    }
+    let totalCount: number | null = null;
+    let pageJobs: Parameters<typeof attemptJobFromApi>[0][] = [];
+    try {
+      const response = await withRetryOnce(() =>
+        octokit.rest.actions.listJobsForWorkflowRun({
+          owner,
+          repo,
+          run_id: runId,
+          filter: 'all',
+          per_page: JOBS_PAGE_SIZE,
+          page,
+        }),
+      );
+      totalCount =
+        typeof response.data.total_count === 'number'
+          ? response.data.total_count
+          : null;
+      pageJobs = response.data.jobs ?? [];
+    } catch (error) {
+      failedLists.count += 1;
+      const action = classifyBatchFailure({
+        status: githubErrorStatus(error),
+        failedBatches: failedLists.count,
+      });
+      core.warning(
+        `listJobsForWorkflowRun ${runId} on ${day} ${action === 'stop' ? 'stopping the walk' : 'skipping this run'}: ${(error as Error).message}`,
+      );
+      return { jobs, complete: false, stopWalk: action === 'stop' };
+    }
+
+    for (const job of pageJobs) {
+      jobs.push(attemptJobFromApi(job));
+    }
+    const shortPage = pageJobs.length < JOBS_PAGE_SIZE;
+    const pageCoversRun =
+      !jobListTruncated(jobs.length, totalCount) &&
+      (shortPage || pageJobs.length === 0);
+    if (pageCoversRun) {
+      return { jobs, complete: true, stopWalk: false };
+    }
+    if (totalCount !== null && jobs.length >= totalCount) {
+      return { jobs, complete: true, stopWalk: false };
+    }
+    if (pageJobs.length === 0) {
+      return { jobs, complete: false, stopWalk: false };
+    }
+    page += 1;
+  }
+  return { jobs, complete: false, stopWalk: false };
 }
 
 /**
@@ -136,7 +297,11 @@ async function classifyMissingLog(
   owner: string,
   repo: string,
   jobId: number,
+  spend: () => boolean,
 ): Promise<'infrastructure' | 'missing_blob'> {
+  if (!spend()) {
+    return 'missing_blob';
+  }
   try {
     const { data } = await withRetryOnce(() =>
       octokit.rest.actions.getJobForWorkflowRun({ owner, repo, job_id: jobId }),
@@ -159,6 +324,7 @@ type FailedLogFetch = {
   missingBlobCount: number;
   infrastructureCount: number;
   unattributed: UnattributedRerun[];
+  budgetExhausted: boolean;
 };
 
 async function downloadFailedUnitLogs(
@@ -166,7 +332,9 @@ async function downloadFailedUnitLogs(
   owner: string,
   repo: string,
   failedUnitJobs: ConfirmedFailThenPassJob[],
+  spend: () => boolean,
 ): Promise<FailedLogFetch> {
+  let budgetExhausted = false;
   const logParts = await mapWithConcurrency(
     failedUnitJobs,
     DOWNLOAD_CONCURRENCY,
@@ -176,6 +344,10 @@ async function downloadFailedUnitLogs(
       | { job: ConfirmedFailThenPassJob; ok: true; text: string }
       | { job: ConfirmedFailThenPassJob; ok: false; failure: LogFetchFailure }
     > => {
+      if (!spend()) {
+        budgetExhausted = true;
+        return { job, ok: false, failure: 'unread' };
+      }
       try {
         const res = await withRetryOnce(() =>
           octokit.rest.actions.downloadJobLogsForWorkflowRun({
@@ -192,6 +364,7 @@ async function downloadFailedUnitLogs(
             owner,
             repo,
             job.jobId,
+            spend,
           );
           core.info(
             `downloadJobLogsForWorkflowRun ${job.jobId} failed: ${
@@ -245,18 +418,8 @@ async function downloadFailedUnitLogs(
     missingBlobCount,
     infrastructureCount,
     unattributed,
+    budgetExhausted,
   };
-}
-
-async function fetchShaBatch(
-  octokit: Octokit,
-  owner: string,
-  repo: string,
-  shas: string[],
-): Promise<ReturnType<typeof parseShaBatchResponse>> {
-  const { query, variables } = buildShaBatchQuery(shas, owner, repo);
-  const response = await withRetryOnce(() => octokit.graphql(query, variables));
-  return parseShaBatchResponse(response, shas);
 }
 
 export type WalkDayInput = {
@@ -266,11 +429,11 @@ export type WalkDayInput = {
   day: string;
   budget: WalkBudget;
   /**
-   * Share of the build's GraphQL budget this day may spend. A single busy day
-   * can produce enough candidate commits to exhaust the whole budget, which
-   * would leave every later day unwalked and looking like a gap.
+   * Share of the build's REST budget this day may spend. One busy day is
+   * allowed to use a full heavy-day share; it must not be handed
+   * `budget / daysQueued`, which is what left every day unfinished.
    */
-  maxQueriesForDay?: number;
+  maxRequestsForDay?: number;
 };
 
 /**
@@ -279,7 +442,8 @@ export type WalkDayInput = {
  *
  * `complete: false` is what makes the day a gap the next build re-walks, so it
  * is set for anything that left commits uninspected — a listing cap, an
- * exhausted budget, a truncated GraphQL page, or a batch that would not load.
+ * exhausted budget, a job list that stopped before `total_count`, or a
+ * request that would not load.
  */
 export async function walkDay({
   octokit,
@@ -287,7 +451,7 @@ export async function walkDay({
   repo,
   day,
   budget,
-  maxQueriesForDay = MAX_GRAPHQL_QUERIES_PER_BUILD,
+  maxRequestsForDay = MAX_REST_REQUESTS_PER_BUILD,
 }: WalkDayInput): Promise<WalkDayResult> {
   const empty: WalkDayResult = {
     hits: [],
@@ -298,11 +462,22 @@ export async function walkDay({
     complete: false,
   };
 
-  let listed: { runs: ListedWorkflowRun[]; capped: boolean };
+  let requestsForDay = 0;
+  const spend = (): boolean => {
+    if (
+      budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
+      requestsForDay >= maxRequestsForDay
+    ) {
+      return false;
+    }
+    budget.restRequests += 1;
+    requestsForDay += 1;
+    return true;
+  };
+
+  let listed: ListedDay;
   try {
-    listed = await withRetryOnce(() =>
-      listRunsForDay(octokit, owner, repo, day),
-    );
+    listed = await listRunsForDay(octokit, owner, repo, day, spend);
   } catch (error) {
     core.warning(`listWorkflowRuns ${day} failed: ${(error as Error).message}`);
     return empty;
@@ -312,98 +487,110 @@ export async function walkDay({
       `listWorkflowRuns ${day} hit the ${MAX_RUNS_PER_DAY}-result ceiling; part of the day was not listed`,
     );
   }
+  if (listed.budgetExhausted) {
+    core.warning(`REST budget exhausted while listing ${day}`);
+  }
 
   const candidates = candidateShaGroupsNewestFirst(
     groupRunsByHeadSha(listed.runs),
   );
-  const batches = chunkArray(
-    candidates.map((candidate) => candidate.headSha),
-    GRAPHQL_BATCH_SIZE,
-  );
+  const jobsBySha = new Map<string, AttemptJob[]>();
+  const seenRunIds = new Set<number>();
+  const failedLists = { count: 0 };
+  let complete = !listed.capped && !listed.budgetExhausted;
+  let stop = false;
+
+  for (const candidate of candidates) {
+    if (stop) {
+      break;
+    }
+    for (const run of candidate.runs) {
+      if (seenRunIds.has(run.id)) {
+        continue;
+      }
+      seenRunIds.add(run.id);
+      const listedJobs = await listAttemptJobs(
+        octokit,
+        owner,
+        repo,
+        run.id,
+        day,
+        spend,
+        failedLists,
+      );
+      const forSha = jobsBySha.get(candidate.headSha) ?? [];
+      forSha.push(...listedJobs.jobs);
+      jobsBySha.set(candidate.headSha, forSha);
+      if (!listedJobs.complete) {
+        complete = false;
+      }
+      if (listedJobs.stopWalk) {
+        stop = true;
+        break;
+      }
+      if (
+        budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
+        requestsForDay >= maxRequestsForDay
+      ) {
+        // A later candidate was not inspected. The day stays queued.
+        const moreRuns = candidates.some((other) =>
+          other.runs.some((otherRun) => !seenRunIds.has(otherRun.id)),
+        );
+        if (moreRuns) {
+          core.warning(`REST budget exhausted before finishing ${day}`);
+          complete = false;
+          stop = true;
+          break;
+        }
+      }
+    }
+  }
 
   const hits: DayHit[] = [];
   const unattributedReruns: UnattributedRerun[] = [];
   let missingLogBlobs = 0;
   let infrastructureFailures = 0;
-  let failedBatches = 0;
-  let queriesForDay = 0;
-  let complete = !listed.capped;
-  let stop = false;
 
-  for (const batch of batches) {
-    if (
-      budget.graphqlQueries >= MAX_GRAPHQL_QUERIES_PER_BUILD ||
-      queriesForDay >= maxQueriesForDay
-    ) {
-      core.warning(`GraphQL budget exhausted before finishing ${day}`);
-      complete = false;
-      break;
-    }
-
-    budget.graphqlQueries += 1;
-    queriesForDay += 1;
-    let shaResults: ReturnType<typeof parseShaBatchResponse>;
-    try {
-      shaResults = await fetchShaBatch(octokit, owner, repo, batch);
-    } catch (error) {
-      failedBatches += 1;
-      const status = githubErrorStatus(error);
-      const action = classifyBatchFailure({ status, failedBatches });
-      core.warning(
-        `GraphQL SHA batch for ${day} ${action === 'stop' ? 'stopping the walk' : 'skipping these SHAs'}: ${(error as Error).message}`,
-      );
-      complete = false;
-      if (action === 'stop') {
-        break;
-      }
+  for (const jobs of jobsBySha.values()) {
+    const confirmed = confirmedFailThenPassFromAttemptJobs(jobs);
+    if (confirmed.length === 0) {
       continue;
     }
 
-    for (const shaResult of shaResults) {
-      if (shaResult.truncated) {
-        core.warning(
-          `Check runs for ${shaResult.headSha} were truncated; ${day} is incomplete`,
-        );
-        complete = false;
-      }
-      const confirmed = confirmedFailThenPassJobs(shaResult);
-      if (confirmed.length === 0) {
-        continue;
-      }
-
-      const remaining = MAX_LOG_FETCHES_PER_BUILD - budget.logFetches;
-      if (remaining <= 0) {
-        core.warning(`Log fetch budget exhausted before finishing ${day}`);
-        complete = false;
-        // No later batch can read a log either, so stop spending GraphQL on
-        // commits this day can no longer judge.
-        stop = true;
-        break;
-      }
-      const toFetch = confirmed.slice(0, remaining);
-      if (toFetch.length < confirmed.length) {
-        complete = false;
-      }
-      budget.logFetches += toFetch.length;
-
-      const logs = await downloadFailedUnitLogs(octokit, owner, repo, toFetch);
-      missingLogBlobs += logs.missingBlobCount;
-      infrastructureFailures += logs.infrastructureCount;
-      unattributedReruns.push(...logs.unattributed);
-      // An unread log is a commit we could not judge, so the day is not done.
-      if (logs.unreadCount > 0) {
-        complete = false;
-      }
-      for (const hit of allHitsFromConfirmedLogs(toFetch, logs.filesByJobId)) {
-        hits.push({
-          path: hit.path,
-          runId: hit.failRunId,
-          jobId: hit.jobId,
-        });
-      }
+    const remainingLogs = MAX_LOG_FETCHES_PER_BUILD - budget.logFetches;
+    if (remainingLogs <= 0) {
+      core.warning(`Log fetch budget exhausted before finishing ${day}`);
+      complete = false;
+      break;
     }
+    const toFetch = confirmed.slice(0, remainingLogs);
+    if (toFetch.length < confirmed.length) {
+      complete = false;
+    }
+    budget.logFetches += toFetch.length;
 
-    if (stop) {
+    const logs = await downloadFailedUnitLogs(
+      octokit,
+      owner,
+      repo,
+      toFetch,
+      spend,
+    );
+    missingLogBlobs += logs.missingBlobCount;
+    infrastructureFailures += logs.infrastructureCount;
+    unattributedReruns.push(...logs.unattributed);
+    if (logs.unreadCount > 0 || logs.budgetExhausted) {
+      complete = false;
+    }
+    for (const hit of allHitsFromConfirmedLogs(toFetch, logs.filesByJobId)) {
+      hits.push({
+        path: hit.path,
+        runId: hit.failRunId,
+        jobId: hit.jobId,
+      });
+    }
+    if (logs.budgetExhausted) {
+      core.warning(`REST budget exhausted before finishing ${day}`);
       break;
     }
   }

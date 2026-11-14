@@ -5,9 +5,11 @@ import {
   classifyBatchFailure,
   classifyLoglessJob,
   MAX_FAILED_GRAPHQL_BATCHES,
+  confirmedFailThenPassFromAttemptJobs,
   confirmedFailThenPassJobs,
   groupRunsByHeadSha,
   isCandidateShaGroup,
+  jobListTruncated,
   jobIdFromDetailsUrl,
   jobLogUrl,
   listedWorkflowRunFromApi,
@@ -89,6 +91,23 @@ describe('isCandidateShaGroup', () => {
         run({ id: 1, runAttempt: 2, conclusion: 'success' }),
       ]),
     ).toBe(false);
+  });
+
+  it('keeps a green latest attempt when earlier attempts are not listed', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, runAttempt: 2, conclusion: 'success' }),
+      ]),
+    ).toBe(true);
+  });
+
+  it('keeps a re-run when an earlier attempt number is missing', () => {
+    expect(
+      isCandidateShaGroup([
+        run({ id: 1, runAttempt: 2, conclusion: 'success' }),
+        run({ id: 1, runAttempt: 3, conclusion: 'success' }),
+      ]),
+    ).toBe(true);
   });
 
   it('treats two run ids with a failure and a success as a candidate', () => {
@@ -808,5 +827,54 @@ describe('renderCoverageWindowLine', () => {
         hasFindings: false,
       }),
     ).toContain('Nothing was found in the covered range');
+  });
+});
+
+describe('jobListTruncated', () => {
+  it('flags a short page and accepts a complete list', () => {
+    expect(jobListTruncated(100, 142)).toBe(true);
+    expect(jobListTruncated(142, 142)).toBe(false);
+    expect(jobListTruncated(100, null)).toBe(false);
+  });
+});
+
+describe('confirmedFailThenPassFromAttemptJobs', () => {
+  const unitJob = (
+    id: number,
+    overrides: Partial<{
+      runId: number;
+      runAttempt: number;
+      name: string;
+      conclusion: string;
+    }> = {},
+  ) => ({
+    id,
+    runId: 10,
+    runAttempt: 1,
+    name: 'Unit tests (8)',
+    conclusion: 'failure' as string | null,
+    ...overrides,
+  });
+
+  it('confirms a later attempt of the same job name', () => {
+    expect(
+      confirmedFailThenPassFromAttemptJobs([
+        unitJob(1),
+        unitJob(2, { runAttempt: 2, conclusion: 'success' }),
+      ]),
+    ).toEqual([{ name: 'Unit tests (8)', jobId: 1, runId: 10 }]);
+  });
+
+  it('does not confirm when a different shard passed', () => {
+    expect(
+      confirmedFailThenPassFromAttemptJobs([
+        unitJob(1),
+        unitJob(2, {
+          name: 'Unit tests (3)',
+          runAttempt: 2,
+          conclusion: 'success',
+        }),
+      ]),
+    ).toEqual([]);
   });
 });
