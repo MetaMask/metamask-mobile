@@ -11719,9 +11719,13 @@
         "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
+        "permission_title": "Allow camera and microphone",
         "permission_error": "Camera and microphone access is required for identity verification. Allow access and try again.",
+        "permission_settings_description": "Identity verification uses your camera and microphone. Turn them on for MetaMask in Settings, then come back to continue.",
+        "load_error_title": "Couldn't load verification",
         "load_error": "Something went wrong loading identity verification. Try again.",
-        "try_again": "Try again"
+        "try_again": "Try again",
+        "open_settings": "Open settings"
       },
       "immersve_funding_approval": {
         "title": "Set up card funding",
