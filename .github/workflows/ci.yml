@@ -597,7 +597,7 @@ jobs:
           token: ${{ steps.get-ai-analyzer-token.outputs.token }}
       - name: Install AI Analyzer dependencies
         working-directory: .ai-analyzer-action
-        run: npm ci
+        run: npm ci --omit=optional # promptfoo (eval-only) is optional
       - run: yarn test:smart-e2e
 
   # Advisory only: never fails, never gates merges. Surfaces findings via a

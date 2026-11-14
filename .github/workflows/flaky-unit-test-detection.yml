@@ -241,7 +241,7 @@ jobs:
           steps.ai-cache.outputs.cache-hit != 'true'
         continue-on-error: true
         working-directory: .ai-analyzer-action
-        run: npm ci
+        run: npm ci --omit=optional # promptfoo (eval-only) is optional
 
       # Stage 2: one AI analyzer process per unit test file, invoked by
       # flaky-ai-analysis.ts (instead of `uses: ./.ai-analyzer-action`) so

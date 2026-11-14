@@ -1,0 +1,54 @@
+# Captured by `ai-pr-analyzer eval capture --mode smart-e2e --pr 37016`.
+id: pr-37016
+description: 'fix(settings): use MMDS BannerAlert in Protect your wallet section'
+pr:
+  repo: MetaMask/metamask-mobile
+  number: 37016
+  base: ba32bf5344fcce1b172cae38e1182ac7ff43b96f
+  head: 7757f4bd44cffe1f953f2332770ff68e588bec1e
+comments:
+  - author: georgewrmarshall
+    body:
+      "You have added the image for this banner `Secret Recovery Phrase backed up`\r
+
+      \r
+
+      <img width=\"345\" height=\"108\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/7cfee549-4f48-4375-9e43-615fd2ccb6fd\" />"
+    path: app/components/Views/Settings/SecuritySettings/Sections/ProtectYourWallet/ProtectYourWallet.tsx
+    line: 138
+    created_at: 2026-09-30T20:27:12Z
+    is_resolved: false
+    is_outdated: false
+  - author: georgewrmarshall
+    body: 'non-blocking: This one could use an image it should be using the danger severity banner and say `Important! Secret Recovery Phrase not backed up`'
+    path: app/components/Views/Settings/SecuritySettings/Sections/ProtectYourWallet/ProtectYourWallet.tsx
+    line: 144
+    created_at: 2026-09-30T20:28:31Z
+    is_resolved: false
+    is_outdated: false
+  - author: georgewrmarshall
+    body: 'non-blocking: This one could use an image it should be using the danger severity banner and say something like `Log in with ...`'
+    path: app/components/Views/Settings/SecuritySettings/Sections/ProtectYourWallet/ProtectYourWallet.tsx
+    line: 176
+    created_at: 2026-09-30T20:29:21Z
+    is_resolved: false
+    is_outdated: false
+expected:
+  selected_tags:
+    must_include: [SmokeAccounts]
+    must_exclude:
+      [
+        SmokeSwap,
+        SmokePerps,
+        SmokePredictions,
+        SmokeMoney,
+        SmokeStake,
+        SmokeBrowser,
+        SmokeSnaps,
+      ]
+behaviour:
+  no_fallback: true
+  max_iterations: 20
+labels:
+  source: manual
+  note: 'Protect your wallet (SRP backup) in Security settings belongs to SmokeAccounts (SRP protection flows in Settings).'
