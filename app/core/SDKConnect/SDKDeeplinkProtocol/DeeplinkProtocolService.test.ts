@@ -12,6 +12,7 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { getPermittedAccounts } from '../../Permissions';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
@@ -590,6 +591,120 @@ describe('DeeplinkProtocolService', () => {
     afterEach(() => {
       jest.clearAllTimers();
       jest.useRealTimers();
+      (getPermittedAccounts as jest.Mock).mockReturnValue([]);
+    });
+
+    const encodeRpc = (rpc: object) =>
+      Buffer.from(JSON.stringify(rpc)).toString('base64');
+
+    const sendTransactionMessage = encodeRpc({
+      id: '1',
+      method: 'eth_sendTransaction',
+      params: [],
+    });
+
+    const handleMessageAndSettle = async (
+      overrides: Partial<
+        Parameters<DeeplinkProtocolService['handleMessage']>[0]
+      >,
+    ) => {
+      service.handleMessage({
+        dappPublicKey: 'key',
+        url: 'url',
+        message: sendTransactionMessage,
+        channelId: 'channel1',
+        scheme: 'scheme',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+        ...overrides,
+      });
+      await jest.advanceTimersByTimeAsync(500);
+    };
+
+    beforeEach(async () => {
+      await service.ready;
+      (
+        Engine.context as unknown as {
+          KeyringController: { isUnlocked: () => boolean };
+        }
+      ).KeyringController.isUnlocked = () => true;
+      service.connections.channel1 = {
+        clientId: 'channel1',
+        connected: true,
+        originatorInfo: { url: 'dapp.com', title: 'Dapp' },
+        validUntil: Date.now() + 1000,
+        scheme: 'dappscheme',
+      } as DappClient;
+      jest.spyOn(service, 'openDeeplink').mockResolvedValue(undefined);
+    });
+
+    it.each([
+      ['has no chain separator', '0xabc'],
+      ['is empty', ''],
+    ])(
+      'rejects to the requester when the account %s',
+      async (_case, account) => {
+        await handleMessageAndSettle({ account });
+
+        expect(service.openDeeplink).toHaveBeenCalledWith({
+          message: {
+            data: expect.objectContaining({
+              id: '1',
+              error: {
+                code: -32602,
+                message: 'The selected account has changed. Please try again.',
+              },
+            }),
+            name: 'metamask-provider',
+          },
+          clientId: 'channel1',
+          scheme: 'scheme',
+        });
+        expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+      },
+    );
+
+    it('drops a malformed account with an undecodable message', async () => {
+      await handleMessageAndSettle({ account: '0xabc', message: '%%%' });
+
+      expect(service.openDeeplink).not.toHaveBeenCalled();
+      expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+    });
+
+    it('attaches the requester context instead of the current client context', async () => {
+      const requesterAccount = toChecksumHexAddress(MOCK_ADDRESS);
+      (getPermittedAccounts as jest.Mock).mockImplementation((origin) =>
+        origin === 'channel1' ? [requesterAccount] : ['0xother'],
+      );
+      service.currentClientId = 'otherClient';
+
+      await handleMessageAndSettle({ account: '0xstale@0x1' });
+
+      expect(getPermittedAccounts).toHaveBeenCalledWith('channel1');
+      expect(service.openDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.objectContaining({
+            data: expect.objectContaining({
+              chainId: '0x1',
+              accounts: [requesterAccount],
+            }),
+          }),
+          clientId: 'channel1',
+        }),
+      );
+      expect(handleCustomRpcCalls).not.toHaveBeenCalled();
+    });
+
+    it('does not share wallet context with an unknown channel', async () => {
+      await handleMessageAndSettle({
+        account: '0xabc',
+        channelId: 'unknownChannel',
+      });
+
+      const { data } = (service.openDeeplink as jest.Mock).mock.calls[0][0]
+        .message;
+      expect(data).not.toHaveProperty('chainId');
+      expect(data).not.toHaveProperty('accounts');
+      expect(handleCustomRpcCalls).not.toHaveBeenCalled();
     });
 
     it('logs an incoming deeplink message', () => {
