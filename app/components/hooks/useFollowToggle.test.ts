@@ -201,17 +201,20 @@ describe('useFollowToggle', () => {
       });
     });
 
-    it('leaves the following feed cached after a follow', async () => {
+    it('refreshes the older following feed and leaves the v1 feed cached', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
         await result.current.toggleFollow();
       });
 
-      const feedInvalidated = mockInvalidateQueries.mock.calls.some(
-        ([query]) => query?.queryKey?.[0] === 'SocialService:fetchFeed',
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+      });
+      const v1FeedInvalidated = mockInvalidateQueries.mock.calls.some(
+        ([query]) => query?.queryKey?.[1]?.scope === 'following_v1',
       );
-      expect(feedInvalidated).toBe(false);
+      expect(v1FeedInvalidated).toBe(false);
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {

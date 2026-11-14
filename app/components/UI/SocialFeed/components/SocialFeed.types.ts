@@ -111,6 +111,11 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
    * posts they follow the empty state. Memoize the array.
    */
   inlineRows?: readonly SocialFeedInlineRow[];
+  /**
+   * Runs before the feed refetches a pull-to-refresh, so the host can drop a
+   * stale service cache before the new pages are requested.
+   */
+  prepareRefresh?: () => void | Promise<void>;
   /** Called when the user pulls to refresh, for host analytics. */
   onRefresh?: () => void;
   /** Lets the host hide chrome that only belongs above posts. */
