@@ -1,3 +1,4 @@
+import { Icon, IconSize } from '@metamask/design-system-react-native';
 import { captureException } from '@sentry/react-native';
 import React from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
@@ -902,6 +903,50 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('draws the attachment close ring outside a smaller icon', () => {
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
+    );
+    fireEvent.press(screen.getByTestId('position-row-ETH'));
+    fireEvent(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
+      'onImageChange',
+      { nativeEvent: { uri: 'https://media.test/party.gif' } },
+    );
+
+    [
+      SocialPostComposerViewSelectorsIDs.REMOVE_POSITION,
+      SocialPostComposerViewSelectorsIDs.REMOVE_GIF,
+    ].forEach((testID) => {
+      const button = screen.getByTestId(testID);
+      const disc = StyleSheet.flatten(button.props.style);
+      let ringNode = button.parent;
+      while (
+        ringNode &&
+        StyleSheet.flatten(ringNode.props.style)?.borderWidth !== 2
+      ) {
+        ringNode = ringNode.parent;
+      }
+      const ring = StyleSheet.flatten(ringNode?.props.style);
+
+      expect(within(button).UNSAFE_getByType(Icon).props.size).toBe(
+        IconSize.Md,
+      );
+      expect(button).toHaveProp('hitSlop', 6);
+      expect(disc).toEqual(expect.objectContaining({ width: 32, height: 32 }));
+      expect(ring).toEqual(
+        expect.objectContaining({
+          width: 36,
+          height: 36,
+          borderWidth: 2,
+          top: -14,
+          right: -14,
+        }),
+      );
+    });
   });
 
   it('shows a gif preview when the keyboard inserts an image', () => {
