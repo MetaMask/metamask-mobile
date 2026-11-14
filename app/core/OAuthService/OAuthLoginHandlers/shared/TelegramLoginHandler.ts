@@ -104,7 +104,17 @@ interface TelegramVerifyResponse {
     identifier_type: string;
     profile_id: string;
   };
+  /**
+   * Auth-server JWT used as the Hydra jwt-bearer assertion
+   * (`iss` = authentication.*.cx.metamask.io). Not Telegram's ID token.
+   */
   token: string;
+  /**
+   * Raw Telegram OIDC ID token (`iss` = oauth.telegram.org), including the
+   * initiate `nonce` when one was sent. Used by MFA recovery as
+   * `provider_id_token`.
+   */
+  id_token?: string;
 }
 
 interface TelegramVerifyTokenPayload {
@@ -170,6 +180,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * 4. Backend 302s to app_redirect_uri?code_challenge=<challenge>
    * 5. App intercepts deep link — promptAsync resolves with success
    *
+   * When a caller nonce is set (MFA recovery), it is also sent as `nonce` so the
+   * Telegram ID token is bound to the recovery proof key.
+   *
    * @returns LoginHandlerCodeResult with codeVerifier for the verify step
    */
   async login(): Promise<LoginHandlerCodeResult> {
@@ -181,6 +194,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('state', this.nonce);
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
+    // Recovery binds the PoP key into the ID token; normal login keeps state only.
+    if (this.hasCallerNonce) {
+      initiateUrl.searchParams.set('nonce', this.nonce);
+    }
 
     await this.loginWithAuthSession(initiateUrl.toString());
 
@@ -271,6 +288,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * Exchanges the PKCE code_verifier for the Telegram OIDC token via the verify endpoint,
    * exchanges that token through Hydra's JWT bearer grant,
    * then mints the standard auth-service token set used by seedless onboarding.
+   *
+   * Verify also returns Telegram's raw `id_token` (separate from auth-server
+   * `token`). That value is exposed as `provider_id_token` for MFA recovery
+   * without changing the Hydra mint path for normal login.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
    * the stored one-time login record, and returns the full auth response.
@@ -393,6 +414,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';
+    // Auth-server `token` is the Hydra assertion — not Telegram's ID token.
+    // MFA recovery needs verify's separate Telegram `id_token`.
+    if (verifyData.id_token?.trim()) {
+      mintResponse.provider_id_token = verifyData.id_token;
+    }
 
     return mintResponse;
   }
