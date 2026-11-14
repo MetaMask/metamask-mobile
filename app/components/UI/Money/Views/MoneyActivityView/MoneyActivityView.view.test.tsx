@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
@@ -137,14 +137,18 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
         ),
     });
 
-    const { findByTestId, findByText } = renderMoneyActivityView({
+    const { findByTestId, findByText, getByTestId } = renderMoneyActivityView({
       historicalValuationsEnabled: true,
     });
 
-    const cardRow = await findByTestId(
-      `${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`,
-    );
-    expect(within(cardRow).getByText('-968.40 mUSD')).toBeOnTheScreen();
+    // The row mounts with a pending amount before the valuation query settles.
+    await waitFor(() => {
+      expect(
+        within(
+          getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`),
+        ).getByText('-968.40 mUSD'),
+      ).toBeOnTheScreen();
+    });
 
     const cashbackRow = await findByTestId(
       `${MoneyActivityItemTestIds.ROW}-${CASHBACK_HASH}`,
@@ -160,7 +164,9 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
       },
     );
 
-    fireEvent.press(cardRow);
+    fireEvent.press(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`),
+    );
 
     expect(
       await findByText(strings('card.transactions.details_title')),
@@ -202,18 +208,22 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     });
     installMoneyApi({ valuationReply: () => pendingValuation });
 
-    const { findByTestId, findByText } = renderMoneyActivityView({
+    const { findByText, getByTestId } = renderMoneyActivityView({
       historicalValuationsEnabled: true,
     });
 
-    const cardRow = await findByTestId(
-      `${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`,
-    );
-    expect(
-      within(cardRow).getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
-    ).toHaveTextContent('≈-$968.40');
+    // The approximate amount waits on the vault rate query, after the row mounts.
+    await waitFor(() => {
+      expect(
+        within(
+          getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`),
+        ).getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+      ).toHaveTextContent('≈-$968.40');
+    });
 
-    fireEvent.press(cardRow);
+    fireEvent.press(
+      getByTestId(`${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`),
+    );
     expect(
       await findByText(strings('card.transactions.details_title')),
     ).toBeOnTheScreen();
