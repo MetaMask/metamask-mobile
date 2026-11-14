@@ -285,6 +285,21 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('queries the chains passed via the chains prop instead of the spot default', () => {
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} chains={['hyperliquid']} />,
+    );
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        sort: 'pnl',
+        timeframe: '7d',
+        limit: 50,
+      }),
+    );
+  });
+
   it('defers the leaderboard query while the section is offscreen', () => {
     mockUseSectionViewportVisible.mockReturnValue({
       isVisible: false,
