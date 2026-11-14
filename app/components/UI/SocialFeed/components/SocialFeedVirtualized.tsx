@@ -24,6 +24,7 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, type View, type ViewStyle } from 'react-native';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating/FloatingTabBarInsetContext';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -226,6 +227,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   scrollTestID,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const isFocused = useIsFocused();
   const networkTier = useNetworkTier();
@@ -554,7 +556,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               CellRendererComponent={FeedFlashListCell}
               getItemType={getSocialFeedListItemType}
               style={tw.style('flex-1')}
-              contentContainerStyle={tw.style('flex-grow pb-8')}
+              contentContainerStyle={tw.style('flex-grow', {
+                paddingBottom: 24 + floatingTabBarInset,
+              })}
               showsVerticalScrollIndicator={false}
               drawDistance={drawDistance}
               maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
