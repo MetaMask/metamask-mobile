@@ -175,6 +175,7 @@ const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'kyc_pending',
   'finish_verification',
   'kyc_decision',
+  'kyc_retry',
 ];
 
 /** Variants with a pressable CTA. KYC_PENDING's CTA is disabled. */
@@ -230,6 +231,12 @@ const VARIANT_EXPECTATIONS: Record<
     source: 'vba-home-card-kyc-decision',
     i18nPrefix: 'money.vba_home_card.kyc_decision',
     buttonIntent: MONEY_BUTTON_INTENTS.LEARN_MORE,
+  },
+  kyc_retry: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    source: 'vba-home-card-kyc-retry',
+    i18nPrefix: 'money.vba_home_card.kyc_retry',
+    buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
 };
 
@@ -559,6 +566,69 @@ describe('MoneyVbaHomeCard', () => {
     });
 
     expect(mockNavigateToDestination).not.toHaveBeenCalled();
+  });
+
+  it('renders the kyc_retry placeholder copy with no Dismiss button', () => {
+    const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry;
+
+    const { getByTestId, queryByText } = render(
+      <MoneyVbaHomeCard variant="kyc_retry" />,
+    );
+
+    expect(getByTestId(testIds.TITLE)).toHaveTextContent(
+      'We need more information from you',
+    );
+    expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
+      'Your verification needs another look. Update your documents to continue.',
+    );
+    expect(getByTestId(testIds.CTA_BUTTON)).toHaveTextContent(
+      'Continue verification',
+    );
+    expect(
+      queryByText(strings('money.vba_home_card.kyc_decision.dismiss')),
+    ).toBeNull();
+    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_retry.heroArt).toBe(
+      MONEY_VBA_HOME_CARD_CONFIG.finish_verification.heroArt,
+    );
+    expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_retry.isDismissible).toBeUndefined();
+  });
+
+  it('opens the resolved retry screen when Continue verification is pressed', async () => {
+    const snapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      kycStatus: 'retry' as const,
+    };
+    mockResolve.mockResolvedValue({
+      status: 'ready',
+      destinationId: 'kycRejected',
+      snapshot,
+    });
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_retry" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CTA_BUTTON),
+    );
+
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: 'money.vba_home_card.kyc_retry.cta',
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+      }),
+    );
+    expect(mockResolve).toHaveBeenCalledWith('vba-home-card-kyc-retry');
+    await waitFor(() => {
+      expect(mockNavigateToDestination).toHaveBeenCalledWith(
+        mockNavigation,
+        'kycRejected',
+        snapshot,
+      );
+    });
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+    expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+      VBA_CUF_ENTRY_SURFACE.HOME_CARD,
+    );
   });
 
   it('opens the MetaMask support article when Learn more is pressed on kyc_decision', () => {
