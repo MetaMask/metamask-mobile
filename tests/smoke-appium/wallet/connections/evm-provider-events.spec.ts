@@ -16,7 +16,6 @@ import {
   navigateToBrowserView,
   waitForTestDappToLoad,
 } from '../../../flows/browser.flow.js';
-import { sleep } from '../../../framework/Utilities.js';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -53,10 +52,10 @@ async function assertConnectedAccountFromNativeUi(
 }
 
 appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
-  // Increased from 150 s: the account-switch test navigates the browser twice
-  // and the cumulative flow regularly approaches the old limit on slower CI
-  // runners, causing spurious timeouts at ~150–158 s.
-  appiumTest.describe.configure({ timeout: 240000 });
+  // Dual browser navigation + account switch regularly burns ~190s on Android
+  // CI; 240s left no headroom when Explore settle after account-list dismiss
+  // was slow. Match other multi-step wallet-platform / permission smokes.
+  appiumTest.describe.configure({ timeout: 320000 });
 
   appiumTest(
     'notifies the connected account and chain on load of a permitted dapp',
@@ -149,10 +148,12 @@ appiumTest.describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           await TabBarComponent.tapWallet();
           await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAccountByNameV2('Account 2');
-          // Give the wallet time to propagate the account-switch event to
-          // connected dApps before re-entering the browser. Without this, the
-          // connected-accounts modal can still show Account 1 when it opens.
-          await sleep(4_000);
+          // Android tapAccountByNameV2 returns after the cell tap without waiting
+          // for the sheet to dismiss. A fixed sleep still left Explore blocked by
+          // the overlay and burned the suite timeout. Wait until wallet chrome
+          // shows Account 2 (list gone + switch applied) before re-entering the
+          // browser — also the readiness signal that accountsChanged can fire.
+          await WalletView.checkActiveAccount('Account 2');
           await navigateToBrowserView();
           await waitForTestDappToLoad();
 
