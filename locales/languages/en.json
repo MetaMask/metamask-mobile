@@ -3462,6 +3462,9 @@
       "losers": "Losers",
       "recently_added": "Recently added",
       "social_feed": "Social",
+      "live_trades": "Live trades",
+      "live_trades_subtitle": "Top traders latest moves",
+      "win_rate": "Win rate",
       "trending": "Trending",
       "top_traders": "Top traders"
     },
