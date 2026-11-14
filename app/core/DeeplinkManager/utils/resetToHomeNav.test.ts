@@ -41,7 +41,7 @@ describe('buildHomeNavResetState', () => {
       index: 1,
       routes: [
         { name: Routes.HOME_TABS },
-        { name: Routes.BROWSER.VIEW, params: { newTabUrl: 'https://a.test' } },
+        { name: Routes.BROWSER.HOME, params: { newTabUrl: 'https://a.test' } },
       ],
     });
 
@@ -49,7 +49,7 @@ describe('buildHomeNavResetState', () => {
       index: 1,
       routes: [
         { name: Routes.HOME_TABS },
-        { name: Routes.BROWSER.VIEW, params: { newTabUrl: 'https://a.test' } },
+        { name: Routes.BROWSER.HOME, params: { newTabUrl: 'https://a.test' } },
       ],
     });
   });

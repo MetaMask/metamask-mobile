@@ -91,6 +91,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import type { WalletTabHomeParams } from '../../Nav/Main/types/navigation';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import {
   ToastContext,
@@ -280,12 +281,6 @@ interface WalletProps {
   storePrivacyPolicyClickedOrClosed: () => void;
 }
 
-interface WalletRouteParams {
-  openNetworkSelector?: boolean | null;
-  shouldSelectPerpsTab?: boolean | null;
-  initialTab?: string | null;
-}
-
 export const useHomeDeepLinkEffects = (opts: {
   isPerpsEnabled: boolean;
   onPerpsTabSelected: () => void;
@@ -299,7 +294,8 @@ export const useHomeDeepLinkEffects = (opts: {
     navigation,
   } = opts;
 
-  const route = useRoute<RouteProp<{ params: WalletRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: WalletTabHomeParams }, 'params'>>();
 
   // Handle tab selection from navigation params (e.g., from deeplinks)
   // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus

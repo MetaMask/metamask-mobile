@@ -206,21 +206,37 @@ export type RewardsHomeParamList = {
 };
 
 /**
+ * Route params for the wallet tab. Deeplinks write them onto `WalletTabHome`.
+ * The wallet screen reads them on focus, then sets each key to null to clear it.
+ */
+export interface WalletTabHomeParams {
+  openNetworkSelector?: boolean | null;
+  shouldSelectPerpsTab?: boolean | null;
+  initialTab?: string | null;
+}
+
+/**
  * Param list for tabs inside `HomeTabs` (`Home`).
  *
- * Trade tab reuses `WalletTabStackFlow` as a placeholder component under
- * `TradeWalletActions`; Money vs Activity tabs are mutually exclusive at runtime.
+ * The wallet and browser tabs are the screens themselves. The trade slot
+ * reuses the wallet screen under `TradeWalletActions`. Money and Activity
+ * tabs are mutually exclusive at runtime. `WalletTabHome` and `BrowserTabHome`
+ * still accept the nested `{ screen, params }` form while call sites pass it.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type HomeTabsParamList = {
-  WalletTabHome: NavigatorScreenParams<WalletTabHomeParamList> | undefined;
-  TrendingView: ExploreFeedRouteParams | undefined;
-  BrowserTabHome: NavigatorScreenParams<BrowserTabHomeParamList> | undefined;
-  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
-  TradeWalletActions:
-    | NavigatorScreenParams<WalletTabStackParamList>
+  WalletTabHome:
+    | WalletTabHomeParams
+    | NavigatorScreenParams<WalletTabHomeParamList>
     | undefined;
+  TrendingView: ExploreFeedRouteParams | undefined;
+  BrowserTabHome:
+    | BrowserParams
+    | NavigatorScreenParams<BrowserTabHomeParamList>
+    | undefined;
+  SocialLeaderboardTab: SocialLeaderboardTabParams | undefined;
+  TradeWalletActions: undefined;
   MoneyScreens: NavigatorScreenParams<MoneyTabStackParamList> | undefined;
   TransactionsView:
     | NavigatorScreenParams<TransactionsHomeParamList>

@@ -58,7 +58,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       expect(removeAccountSpy).toHaveBeenCalledWith(account.address);
     });
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+      await findByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
     ).toBeOnTheScreen();
   });
 
@@ -117,7 +117,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
       ).toBeOnTheScreen();
     });
     expect(
-      queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+      queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
     ).not.toBeOnTheScreen();
     expect(
       getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),
@@ -144,7 +144,7 @@ describeForPlatforms('DeleteAccount multichain account details', () => {
     await waitFor(() => {
       expect(removeAccountSpy).not.toHaveBeenCalled();
       expect(
-        queryByTestId(getRouteProbeTestId(Routes.WALLET_VIEW)),
+        queryByTestId(getRouteProbeTestId(Routes.WALLET.HOME)),
       ).not.toBeOnTheScreen();
       expect(
         getByTestId(MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER),

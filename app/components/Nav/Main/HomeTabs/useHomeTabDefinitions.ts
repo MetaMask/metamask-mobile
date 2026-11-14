@@ -219,9 +219,7 @@ export const useHomeTabDefinitions = ({
           // opts out, so this listener is what selects that tab after the gate.
           switch (tab.rootScreenName) {
             case Routes.WALLET_VIEW:
-              navigation.navigate(Routes.WALLET.HOME, {
-                screen: Routes.WALLET_VIEW,
-              });
+              navigation.navigate(Routes.WALLET.HOME);
               break;
             case Routes.TRANSACTIONS_VIEW:
               navigation.navigate(Routes.TRANSACTIONS_VIEW, {
