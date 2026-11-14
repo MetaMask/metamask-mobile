@@ -3,10 +3,38 @@ import {
   isMetaMaskSDKDeeplinkAction,
   isMetaMaskUniversalLink,
   isSDKServiceDeeplink,
+  isTransactionDeepLink,
 } from './index';
 import { ACTIONS } from '../../../../constants/deeplinks';
 
 describe('deeplinks utils', () => {
+  describe('isTransactionDeepLink', () => {
+    it.each([
+      'ethereum:0x0000000000000000000000000000000000000000',
+      'ETHEREUM:0x0000000000000000000000000000000000000000@1?value=1',
+      'ethereum:0x0000000000000000000000000000000000000000/approve?address=0x1&uint256=1',
+      'https://link.metamask.io/send/0x0000000000000000000000000000000000000000@1?value=1',
+      'https://metamask.app.link/send/0x0000000000000000000000000000000000000000',
+      'metamask://send/0x0000000000000000000000000000000000000000@1?value=1',
+    ])('returns true for %s', (url) => {
+      expect(isTransactionDeepLink(url)).toBe(true);
+    });
+
+    it.each([
+      'https://link.metamask.io/swap',
+      'https://link.metamask.io/buy',
+      'metamask://connect?channelId=1',
+      'https://example.com/send/0x0000000000000000000000000000000000000000',
+      'dapp://app.uniswap.org',
+      'solana:7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU',
+      '',
+      null,
+      undefined,
+    ])('returns false for %s', (url) => {
+      expect(isTransactionDeepLink(url)).toBe(false);
+    });
+  });
+
   describe('isMetaMaskUniversalLink', () => {
     it('identifies MetaMask universal links by host', () => {
       expect(isMetaMaskUniversalLink('https://link.metamask.io/swap')).toBe(

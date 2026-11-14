@@ -136,6 +136,39 @@ export const isInternalDeepLink = (url: string | null | undefined): boolean => {
 };
 
 /**
+ * Checks if an internal deeplink resolves to a transaction request handled by
+ * `handleEthereumUrl`: an `ethereum:` URL, or a `send` action on the
+ * `metamask:` scheme or a MetaMask universal link (both are rewritten to
+ * `ethereum:` before handling).
+ *
+ * @param url - The URL to check
+ * @returns true if the URL creates a transaction request
+ */
+export const isTransactionDeepLink = (
+  url: string | null | undefined,
+): boolean => {
+  if (!url) return false;
+
+  if (url.toLowerCase().startsWith(`${PROTOCOLS.ETHEREUM}:`)) {
+    return true;
+  }
+
+  const universalLinkUrl = url.replace(
+    new RegExp(`^${PROTOCOLS.METAMASK}://`, 'i'),
+    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
+  );
+
+  if (!isMetaMaskUniversalLink(universalLinkUrl)) return false;
+
+  try {
+    const [, action] = new URL(universalLinkUrl).pathname.split('/');
+    return action === ACTIONS.SEND;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Determines if a URL should be opened externally (Linking.openURL())
  * This is the inverse of isInternalDeepLink but kept separate for clarity.
  *
