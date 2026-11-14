@@ -18,6 +18,7 @@ import NetworkList, {
   TESTNET_CHAIN_IDS,
   WHILELIST_NETWORK_NAME,
   isValidNetworkName,
+  getNetworkImageSource,
   isWhitelistedSymbol,
   isWhitelistedRpcUrl,
   isWhitelistedNetworkName,
@@ -1152,5 +1153,23 @@ describe('network-utils', () => {
 
       expect(result).toBe(false);
     });
+  });
+});
+
+describe('getNetworkImageSource', () => {
+  it('prefers the registry image map over static lists and the cache', () => {
+    const registryImage = { uri: 'https://example.com/elysium.svg' };
+    // Prime the static cache for the same chain to prove the registry wins.
+    getNetworkImageSource({ chainId: '0x1863d' });
+    expect(
+      getNetworkImageSource(
+        { chainId: '0x1863d' },
+        { '0x1863d': registryImage },
+      ),
+    ).toBe(registryImage);
+  });
+
+  it('falls back to the static lists when the map has no entry', () => {
+    expect(getNetworkImageSource({ chainId: '0x1863d' }, {})).toBeUndefined();
   });
 });
