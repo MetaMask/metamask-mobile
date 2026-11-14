@@ -4,7 +4,6 @@ import type {
 } from '../../../../UI/SocialFeed/types';
 import {
   matchesShellAssetType,
-  matchesShellMarketCap,
   matchesShellTraderCohort,
   type ShellFilterAssetClass,
 } from './matchShellFilters';
@@ -19,7 +18,7 @@ export const feedItemAssetClass = (
  * Open and closed are the feed variants. `spotShare` is a composer preview
  * and matches neither, so a position filter drops it.
  */
-const matchesPositionStatus = (
+export const matchesPositionStatus = (
   variant: SocialV1FeedItem['variant'],
   filters: SocialShellFilters,
 ): boolean => {
@@ -34,9 +33,8 @@ const matchesPositionStatus = (
 
 /**
  * Client-side feed filter on posts already loaded. Type, 30-day cohort,
- * market cap (USD billions), and position status honor payload fields.
- * Verification and 24h volume are not applied — those chips are hidden
- * until the API can support them.
+ * and position status honor payload fields. Market cap, verification, and
+ * 24h volume are not applied — those controls are hidden.
  */
 export const filterSocialV1FeedPosts = (
   posts: readonly SocialV1FeedPost[],
@@ -49,6 +47,5 @@ export const filterSocialV1FeedPosts = (
       matchesShellTraderCohort({
         traderCohort: filters.traderCohort,
         pnl30d: post.item.author.pnl30d,
-      }) &&
-      matchesShellMarketCap(post.marketCapUsd, filters),
+      }),
   );

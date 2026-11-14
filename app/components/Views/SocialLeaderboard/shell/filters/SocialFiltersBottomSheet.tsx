@@ -111,9 +111,10 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const { colors } = useTheme();
 
   const showType = tab !== 'leaderboard';
-  const showPositions = tab === 'trending';
+  const showPositions = tab !== 'leaderboard';
   const showTimeframe = tab === 'leaderboard';
-  const showMarketCap = tab !== 'leaderboard';
+  // Market cap is no longer offered on these sheets.
+  const showMarketCap = false;
   // TODO: show 24h volume once the feed / live payload (or API) carries token
   // 24h volume so the slider can filter rather than sit as chrome.
   const showVolume24h = false;
@@ -122,9 +123,9 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
   const cohortOptions = cohortOptionsForTab(tab);
-  // A lone All chip does not filter anything. Following is in that state
-  // once shrimp, dolphin, and whale are gone.
-  const showTraderCohort = cohortOptions.length > 1;
+  // Traders stays on Leaderboard. Following has only All, and Live no longer
+  // offers the section.
+  const showTraderCohort = tab === 'leaderboard';
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),

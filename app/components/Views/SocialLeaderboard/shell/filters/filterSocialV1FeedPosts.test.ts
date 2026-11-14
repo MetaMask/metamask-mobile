@@ -103,13 +103,17 @@ describe('filterSocialV1FeedPosts', () => {
     expect(result.map((item) => item.id)).toStrictEqual(['shrimp']);
   });
 
-  it('drops spot posts whose market cap is outside the slider', () => {
+  it('keeps posts when a leftover market cap range is set', () => {
     const result = filterSocialV1FeedPosts(
       all,
       filters({ marketCap: { min: 0, max: 1 } }),
     );
 
-    expect(result.map((item) => item.id)).toStrictEqual(['perp']);
+    expect(result.map((item) => item.id)).toStrictEqual([
+      'spot',
+      'perp',
+      'shrimp',
+    ]);
   });
 
   it('keeps only open posts for the open position chip', () => {

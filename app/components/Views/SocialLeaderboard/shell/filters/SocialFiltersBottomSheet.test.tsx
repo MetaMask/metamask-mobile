@@ -301,7 +301,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
-  it('shows the Following cohort chip on Live and Leaderboard but not Following', () => {
+  it('shows the Following cohort chip on Leaderboard but not Following or Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -328,9 +328,8 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
-    expect(
-      screen.getByTestId('social-filters-cohort-following'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-all')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
     expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
     expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
     expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
@@ -431,7 +430,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
   });
 
-  it('renders market cap and hides 24h volume on Following and Live', () => {
+  it('hides Market cap and 24h volume on Following and Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -443,9 +442,7 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
 
-    expect(
-      screen.getByTestId('social-filters-market_cap-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
 
     rerender(
@@ -459,9 +456,7 @@ describe('SocialFiltersBottomSheet', () => {
       />,
     );
 
-    expect(
-      screen.getByTestId('social-filters-market_cap-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
@@ -498,7 +493,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
   });
 
-  it('shows Positions on Trending and hides them on Following', () => {
+  it('shows Positions on Trending, Following, and Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="trending"
@@ -523,10 +518,42 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.queryByTestId('social-filters-verification-verified'),
     ).toBeNull();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
         tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-open'),
+    ).toBeOnTheScreen();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="live"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-closed'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="leaderboard"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
