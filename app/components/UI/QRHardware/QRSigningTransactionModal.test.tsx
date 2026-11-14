@@ -11,7 +11,7 @@ import QRSigningTransactionModal, {
 import Engine from '../../../core/Engine';
 import { useParams } from '../../../util/navigation/navUtils';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
-import ToastService from '../../../core/ToastService/ToastService';
+import { toast } from '@metamask/design-system-react-native';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import {
   type QrScanRequest,
@@ -26,9 +26,13 @@ jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
 }));
 
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  showToast: jest.fn(),
-}));
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../../../util/confirmation/transactions', () => ({
   getTransactionUpdateErrorToastOptions: jest.fn(),
@@ -74,7 +78,7 @@ jest.mock('react-native', () => {
 
 const mockUseParams = useParams as jest.Mock;
 const mockSpeedUpTx = speedUpTx as jest.Mock;
-const mockShowToast = ToastService.showToast as jest.Mock;
+const mockToast = toast as unknown as jest.Mock;
 const mockGetTransactionUpdateErrorToastOptions =
   getTransactionUpdateErrorToastOptions as jest.Mock;
 
@@ -337,7 +341,7 @@ describe('QRSigningTransactionModal', () => {
       expect(mockGetTransactionUpdateErrorToastOptions).toHaveBeenCalledWith(
         speedUpError,
       );
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(mockToast).toHaveBeenCalledWith({
         descriptionOptions: { description: 'Error: speed up failed' },
       });
       expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
@@ -366,7 +370,7 @@ describe('QRSigningTransactionModal', () => {
       expect(mockGetTransactionUpdateErrorToastOptions).toHaveBeenCalledWith(
         cancelError,
       );
-      expect(mockShowToast).toHaveBeenCalledWith({
+      expect(mockToast).toHaveBeenCalledWith({
         descriptionOptions: { description: 'Error: cancel failed' },
       });
       expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
@@ -389,6 +393,6 @@ describe('QRSigningTransactionModal', () => {
       expect(mockOnConfirmationComplete).toHaveBeenCalledWith(false);
     });
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(mockToast).not.toHaveBeenCalled();
   });
 });

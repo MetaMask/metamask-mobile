@@ -25,6 +25,7 @@ import { showAlert } from '../../../actions/alert';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import Engine from '../../../core/Engine';
+import { toast } from '@metamask/design-system-react-native';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -90,8 +91,7 @@ import {
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
-import { resolveTransactionUpdateErrorMessage } from '../../../util/confirmation/transactions';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
@@ -475,13 +475,7 @@ const Transactions = (props) => {
   );
 
   const showTransactionUpdateErrorToast = (error) => {
-    toast({
-      title: strings('transaction_update_toast.title'),
-      description: resolveTransactionUpdateErrorMessage(error),
-      severity: ToastSeverity.Danger,
-      hasNoTimeout: false,
-      showCloseButton: false,
-    });
+    toast(getTransactionUpdateErrorToastOptions(error));
   };
 
   const handleSpeedUpTransactionFailure = (error) => {
