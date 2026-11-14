@@ -92,11 +92,11 @@ transport retries or application process lifetime.
   Relaunch/foreground/reconnect resume bounded, fair **observe-only** work while
   unlocked and authenticated. Budget exhaustion pauses, not forgets.
   Lock/signout cancel work without deleting unresolved financial history; wallet
-  reset abandons work without clearing that wallet's journal. Another identity
-  cannot see or observe it.
+  reset deletes that wallet's journal. Another identity cannot see or observe it.
   Pending/manual-review references remain visible with observe-only refresh;
   terminal cleanup prevents replaying old completion notifications.
-  Identity changes and late discovery cannot resurrect a terminal result
+  Reset fences work throughout journal clearing, not only before the first
+  await. Identity changes and late discovery cannot resurrect a terminal result
   or replace a preserved manual-review marker with an unresolved entry.
 - The worker conditionally flags stale unresolved operations
   `needs_manual_review`. It has no account credential, makes no venue call for
