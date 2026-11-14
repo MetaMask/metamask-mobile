@@ -2,6 +2,7 @@ import type { AnyAction } from 'redux';
 import type { ThunkAction } from 'redux-thunk';
 import { type Hex, isStrictHexString } from '@metamask/utils';
 import { isMoneyAccountUpgradeStepError } from '@metamask/money-account-upgrade-controller';
+import type { MoneyAccountLifecycle } from '@metamask/money-account-lifecycle-controller';
 import type { RootState } from '../../reducers';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import Engine from '../../core/Engine';
@@ -51,6 +52,32 @@ function reportUpgradeError(
       data: { phase: 'upgrade', ...(step ? { step } : {}), ...data },
     },
   });
+}
+
+/**
+ * Reads what the upgrade recorded for `address`. `upgradeMoneyAccount()`
+ * resolves without upgrading when the account is not ready or its lifecycle
+ * does not call for an upgrade (e.g. it was migrated), and `upgraded` is the
+ * recorded state rather than a delta, so a call only upgraded the account when
+ * `upgraded` went from false at the start to true once settled.
+ *
+ * @param address - The Money Account address.
+ * @returns The account's lifecycle type and whether its upgrade is recorded.
+ */
+function readUpgradeOutcome(address: Hex): {
+  lifecycle: MoneyAccountLifecycle['type'] | undefined;
+  upgraded: boolean;
+} {
+  const { MoneyAccountLifecycleController, MoneyAccountUpgradeController } =
+    Engine.context;
+  const accountKey = address.toLowerCase() as Hex;
+  return {
+    lifecycle:
+      MoneyAccountLifecycleController.state.moneyAccounts[accountKey]?.type,
+    upgraded: Boolean(
+      MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+    ),
+  };
 }
 
 interface InFlightUpgrade {
@@ -111,20 +138,14 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   Promise.resolve()
     .then(async () => {
       try {
-        const { MoneyAccountUpgradeController } = Engine.context;
-        const accountKey = address.toLowerCase() as Hex;
-        const recordedBefore = Boolean(
-          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        );
+        const { MoneyAccountLifecycleController } = Engine.context;
         Logger.log(LOG_PREFIX, 'starting upgrade', {
           address,
-          recordedBefore,
+          ...readUpgradeOutcome(address),
         });
 
         await upgradeAccountWithRetry(
-          (upgradeAddress) =>
-            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
-          address,
+          () => MoneyAccountLifecycleController.upgradeMoneyAccount(),
           {
             signal,
             // Failures that end the run are reported by the catch below.
@@ -150,12 +171,10 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
           },
         );
 
-        Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+        Logger.log(LOG_PREFIX, 'upgrade settled', {
           address,
-          recordedBefore,
           durationMs: Date.now() - startedAt,
-          recorded:
-            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+          ...readUpgradeOutcome(address),
         });
       } catch (error: unknown) {
         // Reached only for errors thrown by upgradeAccountWithRetry itself.

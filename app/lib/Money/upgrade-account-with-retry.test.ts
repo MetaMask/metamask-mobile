@@ -2,13 +2,13 @@ import {
   MoneyAccountUpgradeStepError,
   TerminalUpgradeError,
 } from '@metamask/money-account-upgrade-controller';
+import { ChompApiError } from '@metamask/chomp-api-service';
+import { BrokenCircuitError } from 'cockatiel';
 import {
   MoneyAccountUpgradeAbortedError,
   isMoneyAccountUpgradeAbortedError,
   upgradeAccountWithRetry,
 } from './upgrade-account-with-retry';
-
-const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 
 const retryableError = () =>
   new MoneyAccountUpgradeStepError('associate-address', new Error('http 500'));
@@ -31,10 +31,9 @@ describe('upgradeAccountWithRetry', () => {
   it('resolves after a single successful attempt', async () => {
     const upgradeAccount = jest.fn().mockResolvedValue(undefined);
 
-    await upgradeAccountWithRetry(upgradeAccount, ADDRESS);
+    await upgradeAccountWithRetry(upgradeAccount);
 
     expect(upgradeAccount).toHaveBeenCalledTimes(1);
-    expect(upgradeAccount).toHaveBeenCalledWith(ADDRESS);
   });
 
   it('retries a non-terminal step error and resolves when a later attempt succeeds', async () => {
@@ -43,7 +42,7 @@ describe('upgradeAccountWithRetry', () => {
       .mockRejectedValueOnce(retryableError())
       .mockResolvedValueOnce(undefined);
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS);
+    const run = upgradeAccountWithRetry(upgradeAccount);
     await jest.advanceTimersByTimeAsync(10_000);
     await run;
 
@@ -54,7 +53,7 @@ describe('upgradeAccountWithRetry', () => {
     const upgradeAccount = jest.fn().mockRejectedValue(retryableError());
     const abortController = new AbortController();
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+    const run = upgradeAccountWithRetry(upgradeAccount, {
       signal: abortController.signal,
     });
     const settled = run.catch((error: unknown) => error);
@@ -84,7 +83,7 @@ describe('upgradeAccountWithRetry', () => {
     const upgradeAccount = jest.fn().mockRejectedValue(retryableError());
     const abortController = new AbortController();
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+    const run = upgradeAccountWithRetry(upgradeAccount, {
       signal: abortController.signal,
     });
     const settled = run.catch((error: unknown) => error);
@@ -104,20 +103,70 @@ describe('upgradeAccountWithRetry', () => {
     const error = terminalError();
     const upgradeAccount = jest.fn().mockRejectedValue(error);
 
-    await expect(upgradeAccountWithRetry(upgradeAccount, ADDRESS)).rejects.toBe(
-      error,
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['a CHOMP 500', () => new ChompApiError(500, 'GET /identities failed')],
+    ['a CHOMP 502', () => new ChompApiError(502, 'GET /identities failed')],
+    ['a CHOMP 429', () => new ChompApiError(429, 'GET /identities failed')],
+    ['an open circuit breaker', () => new BrokenCircuitError()],
+    ['a network failure', () => new TypeError('Network request failed')],
+    ['a network timeout', () => new TypeError('Network request timed out')],
+  ])(
+    'retries %s and resolves when a later attempt succeeds',
+    async (_label, createError) => {
+      const upgradeAccount = jest
+        .fn()
+        .mockRejectedValueOnce(createError())
+        .mockResolvedValueOnce(undefined);
+
+      const run = upgradeAccountWithRetry(upgradeAccount);
+      await jest.advanceTimersByTimeAsync(10_000);
+      await run;
+
+      expect(upgradeAccount).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('rethrows a CHOMP 4xx without retrying', async () => {
+    const error = new ChompApiError(401, 'GET /identities failed');
+    const upgradeAccount = jest.fn().mockRejectedValue(error);
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows a TypeError that is not a network failure without retrying', async () => {
+    const error = new TypeError(
+      "Cannot read properties of undefined (reading 'address')",
     );
+    const upgradeAccount = jest.fn().mockRejectedValue(error);
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows a 5xx from an error that is not a ChompApiError without retrying', async () => {
+    const error = Object.assign(new Error('upstream failed'), {
+      httpStatus: 502,
+    });
+    const upgradeAccount = jest.fn().mockRejectedValue(error);
+
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
 
     expect(upgradeAccount).toHaveBeenCalledTimes(1);
   });
 
   it('rethrows a non-step error without retrying', async () => {
-    const error = new Error('controller not initialized');
+    const error = new Error('No Money Account to upgrade');
     const upgradeAccount = jest.fn().mockRejectedValue(error);
 
-    await expect(upgradeAccountWithRetry(upgradeAccount, ADDRESS)).rejects.toBe(
-      error,
-    );
+    await expect(upgradeAccountWithRetry(upgradeAccount)).rejects.toBe(error);
 
     expect(upgradeAccount).toHaveBeenCalledTimes(1);
   });
@@ -132,7 +181,7 @@ describe('upgradeAccountWithRetry', () => {
       .mockResolvedValueOnce(undefined);
     const onRetry = jest.fn();
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, { onRetry });
+    const run = upgradeAccountWithRetry(upgradeAccount, { onRetry });
     await jest.advanceTimersByTimeAsync(30_000);
     await run;
 
@@ -146,16 +195,13 @@ describe('upgradeAccountWithRetry', () => {
     const onRetry = jest.fn();
 
     await expect(
-      upgradeAccountWithRetry(
-        jest.fn().mockRejectedValue(terminalError()),
-        ADDRESS,
-        { onRetry },
-      ),
+      upgradeAccountWithRetry(jest.fn().mockRejectedValue(terminalError()), {
+        onRetry,
+      }),
     ).rejects.toBeInstanceOf(MoneyAccountUpgradeStepError);
     await expect(
       upgradeAccountWithRetry(
         jest.fn().mockRejectedValue(new Error('not a step error')),
-        ADDRESS,
         { onRetry },
       ),
     ).rejects.toThrow('not a step error');
@@ -173,7 +219,7 @@ describe('upgradeAccountWithRetry', () => {
     const onRetry = jest.fn();
 
     await expect(
-      upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+      upgradeAccountWithRetry(upgradeAccount, {
         signal: abortController.signal,
         onRetry,
       }),
@@ -188,7 +234,7 @@ describe('upgradeAccountWithRetry', () => {
     abortController.abort();
 
     await expect(
-      upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+      upgradeAccountWithRetry(upgradeAccount, {
         signal: abortController.signal,
       }),
     ).rejects.toBeInstanceOf(MoneyAccountUpgradeAbortedError);
@@ -200,7 +246,7 @@ describe('upgradeAccountWithRetry', () => {
     const upgradeAccount = jest.fn().mockRejectedValue(retryableError());
     const abortController = new AbortController();
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+    const run = upgradeAccountWithRetry(upgradeAccount, {
       signal: abortController.signal,
     });
     const settled = run.catch((error: unknown) => error);
@@ -221,7 +267,7 @@ describe('upgradeAccountWithRetry', () => {
         }),
     );
 
-    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+    const run = upgradeAccountWithRetry(upgradeAccount, {
       signal: abortController.signal,
     });
     abortController.abort();
@@ -239,7 +285,7 @@ describe('upgradeAccountWithRetry', () => {
     });
 
     await expect(
-      upgradeAccountWithRetry(upgradeAccount, ADDRESS, {
+      upgradeAccountWithRetry(upgradeAccount, {
         signal: abortController.signal,
       }),
     ).rejects.toBeInstanceOf(MoneyAccountUpgradeAbortedError);
