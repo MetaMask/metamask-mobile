@@ -5,7 +5,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   renderMoneyHomeVbaCard,
-  restoreMoneyHomeReduxServiceStore,
+  restoreMoneyHomeTestState,
 } from '../../../../../../tests/component-view/renderers/moneyHome';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
@@ -19,6 +19,8 @@ const ONBOARDING_TIMEOUT_MS = 5000;
 
 const hydrateVbaOnboarding = Engine.context.RampsController
   .hydrateVbaOnboarding as jest.Mock;
+const defaultHydrateVbaOnboarding =
+  hydrateVbaOnboarding.getMockImplementation();
 
 const hydratedSnapshot = (
   kycStatus: VbaOnboardingSnapshot['kycStatus'],
@@ -39,7 +41,9 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
   });
 
   afterEach(() => {
-    restoreMoneyHomeReduxServiceStore();
+    restoreMoneyHomeTestState();
+    hydrateVbaOnboarding.mockReset();
+    hydrateVbaOnboarding.mockImplementation(defaultHydrateVbaOnboarding);
   });
 
   it('opens the retry screen from Continue verification when KYC finalStatus is retry', async () => {

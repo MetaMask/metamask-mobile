@@ -22,18 +22,21 @@ interface KycSessionFixture {
 }
 
 let restoreMoneyHomeStore: (() => void) | undefined;
+let restoreMoneyHomeKycState: (() => void) | undefined;
 
 /**
- * Puts back the `ReduxService.store` that was current before the last Money
- * home render. Call from `afterEach` so later suites on the same worker do
- * not read this test's store.
+ * Puts back the `ReduxService.store` and the Engine `KycController.state` that
+ * were in place before the last Money home render. Call from `afterEach` so
+ * later suites on the same worker do not read this test's state.
  */
-export function restoreMoneyHomeReduxServiceStore(): void {
+export function restoreMoneyHomeTestState(): void {
   restoreMoneyHomeStore?.();
+  restoreMoneyHomeKycState?.();
+  restoreMoneyHomeKycState = undefined;
 }
 
 const bindMoneyHomeStore = (store: ReduxStore): void => {
-  restoreMoneyHomeReduxServiceStore();
+  restoreMoneyHomeStore?.();
   let previousStore: ReduxStore | undefined;
   try {
     previousStore = ReduxService.store;
@@ -106,11 +109,15 @@ export function renderMoneyHomeVbaCard(
     } as unknown as DeepPartial<RootState>)
     .build();
 
-  (
-    Engine.context.KycController as unknown as {
-      state: { sessionStatus: KycSessionFixture };
-    }
-  ).state = { sessionStatus };
+  const kycController = Engine.context.KycController as unknown as {
+    state: { sessionStatus: KycSessionFixture };
+  };
+  const previousKycState = kycController.state;
+  restoreMoneyHomeKycState?.();
+  kycController.state = { sessionStatus };
+  restoreMoneyHomeKycState = (): void => {
+    kycController.state = previousKycState;
+  };
 
   const view = renderScreenWithRoutes(
     MoneyHomeView,
