@@ -4,8 +4,10 @@ const styleSheet = () =>
   StyleSheet.create({
     container: {
       marginBottom: 36,
-      paddingLeft: 24,
-      paddingRight: 24,
+      paddingHorizontal: 16,
+    },
+    footer: {
+      paddingHorizontal: 16,
     },
   });
 
