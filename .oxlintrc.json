@@ -1,0 +1,64 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript"],
+  "categories": {
+    "correctness": "off",
+    "suspicious": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "ignorePatterns": [
+    "scripts/inpage-bridge/**",
+    "app/core/InpageBridgeWeb3.js",
+    "app/components/UI/Charts/AdvancedChart/webview/chartLogic.js",
+    "app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts",
+    "app/components/UI/Charts/AdvancedChart/webview/syncChartLogic.js",
+    "app/util/blockies.js",
+    "**/__snapshots__/**",
+    "**/android/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/ios/**",
+    "jest.preprocessor.js",
+    "**/node_modules/**",
+    ".*",
+    "!.eslintrc.*",
+    "*.mjs",
+    "*.cjs",
+    "app/util/test/testSetup.js",
+    "tests/scripts/ai-e2e-tags-selector.ts",
+    "app/**/*-method-action-types.ts",
+    "app/util/termsOfUse/termsOfUseContent.ts",
+    "app/declarations/**"
+  ],
+  "rules": {
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-enum-initializers": "error",
+    "no-loss-of-precision": "error",
+    "react/rules-of-hooks": "error",
+    "typescript/explicit-function-return-type": "warn",
+    "typescript/no-empty-object-type": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "args": "all",
+        "argsIgnorePattern": "[_]+",
+        "caughtErrors": "all",
+        "ignoreRestSiblings": true,
+        "reportVarsOnlyUsedAsTypes": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["*.js", "*.jsx"],
+      "rules": {
+        "no-unused-vars": "off"
+      }
+    }
+  ]
+}
