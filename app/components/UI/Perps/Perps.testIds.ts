@@ -82,6 +82,7 @@ export const PerpsPositionCardSelectorsIDs = {
   FLIP_ICON: 'position-card-flip-icon',
   MARGIN_CONTAINER: 'position-card-margin',
   MARGIN_VALUE: 'position-card-margin-value',
+  ISOLATED_MARGIN_TAG: 'position-card-isolated-margin-tag',
   MARGIN_CHEVRON: 'position-card-margin-chevron',
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
   AUTO_CLOSE_VALUE: 'position-card-auto-close-value',
@@ -285,6 +286,8 @@ export const PerpsAmountDisplaySelectorsIDs = {
 // ========================================
 
 export const PerpsHomeViewSelectorsIDs = {
+  AVAILABLE_BALANCE_BUTTON: 'perps-home-available-balance-button',
+  CROSS_MARGIN_RATIO_BANNER: 'perps-home-cross-margin-ratio-banner',
   SUPPORT_BUTTON: 'perps-home-support-button',
   LEARN_MORE_BUTTON: 'perps-home-learn-more-button',
   FEEDBACK_BUTTON: 'perps-home-feedback-button',
@@ -799,6 +802,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   DIRECTION_SHORT: 'perps-pro-order-form-direction-short',
   LEVERAGE_BUTTON: 'perps-pro-order-form-leverage',
   MARGIN_MODE_BUTTON: 'perps-pro-order-form-margin-mode',
+  MARGIN_MODE_TAG: 'perps-pro-order-form-margin-mode-tag',
   ORDER_TYPE_CARD: 'perps-pro-order-form-order-type-card',
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
@@ -998,7 +1002,19 @@ export const PerpsBalanceBottomSheetSelectorsIDs = {
   ADD_FUNDS_BUTTON: 'perps-balance-bottom-sheet-add-funds-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:
     'perps-balance-bottom-sheet-geo-block-tooltip',
+  CROSS_MARGIN_SUMMARY: 'perps-balance-bottom-sheet-cross-margin-summary',
+  ACCOUNT_RATIO_VALUE: 'perps-balance-bottom-sheet-account-ratio-value',
+  MAINTENANCE_MARGIN_VALUE:
+    'perps-balance-bottom-sheet-maintenance-margin-value',
+  ACCOUNT_LEVERAGE_VALUE: 'perps-balance-bottom-sheet-account-leverage-value',
+  CROSS_MARGIN_USAGE_VALUE:
+    'perps-balance-bottom-sheet-cross-margin-usage-value',
+  CROSS_MARGIN_TOOLTIP: 'perps-balance-bottom-sheet-cross-margin-tooltip',
 };
+
+/** Tappable label of a cross margin summary row, keyed by its tooltip key. */
+export const getPerpsCrossMarginSummaryLabelSelector = (tooltipKey: string) =>
+  `perps-balance-bottom-sheet-${tooltipKey}-label`;
 
 export const PerpsChartAuxiliaryLinesSelectorsIDs = {
   // Auxiliary lines container (TP/SL lines)
@@ -1018,6 +1034,7 @@ export const PerpsChartAdditionalSelectorsIDs = {
 export const PerpsBottomSheetTooltipSelectorsIDs = {
   TOOLTIP: 'perps-bottom-sheet-tooltip',
   TITLE: 'perps-bottom-sheet-tooltip-title',
+  TITLE_TAG: 'perps-bottom-sheet-tooltip-title-tag',
   CONTENT: 'perps-bottom-sheet-tooltip-content',
   GOT_IT_BUTTON: 'perps-bottom-sheet-tooltip-got-it-button',
 };
@@ -1242,6 +1259,9 @@ export const PerpsClosePositionBottomSheetSelectorsIDs = {
   HEADER_PRICE: 'close-position-bottom-sheet-header-price',
   HEADER_CHANGE: 'close-position-bottom-sheet-header-change',
   ORDER_TYPE_BUTTON: 'close-position-bottom-sheet-order-type-button',
+  MARGIN_VALUE: 'close-position-bottom-sheet-margin-value',
+  MARGIN_MODE_TAG: 'close-position-bottom-sheet-margin-mode-tag',
+  MARGIN_INFO_BUTTON: 'close-position-bottom-sheet-margin-info-button',
   TOTAL_VALUE: 'close-position-bottom-sheet-total-value',
   TOTAL_PNL: 'close-position-bottom-sheet-total-pnl',
   TOTAL_PNL_ROW: 'close-position-bottom-sheet-total-pnl-row',
@@ -1277,6 +1297,8 @@ export const PerpsMarginModeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-margin-mode-bottom-sheet-close',
   ISOLATED_OPTION: 'perps-margin-mode-isolated',
   CROSS_OPTION: 'perps-margin-mode-cross',
+  LOCK_NOTICE: 'perps-margin-mode-lock-notice',
+  RATIO_BANNER: 'perps-margin-mode-ratio-banner',
 } as const;
 
 export const PerpsCrossMarginConfirmBottomSheetSelectorsIDs = {
@@ -1332,6 +1354,7 @@ export const PerpsAdjustMarginBottomSheetSelectorsIDs = {
   SLIDER: 'perps-adjust-margin-bottom-sheet-slider',
   ERROR: 'perps-adjust-margin-bottom-sheet-error',
   MARGIN_VALUE: 'perps-adjust-margin-bottom-sheet-margin-value',
+  MARGIN_MODE_TAG: 'perps-adjust-margin-bottom-sheet-margin-mode-tag',
   AVAILABLE_VALUE: 'perps-adjust-margin-bottom-sheet-available-value',
   ADD_FUNDS_BUTTON: 'perps-adjust-margin-bottom-sheet-add-funds-button',
   GEO_BLOCK_BOTTOM_SHEET_TOOLTIP:

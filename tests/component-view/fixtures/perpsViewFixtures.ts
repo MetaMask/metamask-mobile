@@ -18,6 +18,29 @@ export const createFundedAccountForViews = (balance: string): AccountState => ({
   returnOnEquity: '0',
 });
 
+/** Funded account whose cross summary the view tests can set per journey. */
+export const createCrossMarginAccountForViews = ({
+  balance = '1000',
+  accountValue = balance,
+  maintenanceMargin,
+  marginUsed,
+  notional,
+}: {
+  balance?: string;
+  accountValue?: string;
+  maintenanceMargin: string;
+  marginUsed: string;
+  notional: string;
+}): AccountState => ({
+  ...createFundedAccountForViews(balance),
+  crossMarginSummary: {
+    accountValue,
+    maintenanceMargin,
+    marginUsed,
+    notional,
+  },
+});
+
 const defaultEthMarketForViews: PerpsMarketData = {
   symbol: 'ETH',
   name: 'Ethereum',

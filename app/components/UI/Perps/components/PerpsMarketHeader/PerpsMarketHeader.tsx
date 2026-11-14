@@ -1,7 +1,11 @@
 import {
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
@@ -33,12 +37,28 @@ import CapsuleGlass from '../../../../../component-library/components-temp/Capsu
 import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
   type PerpsMarketHeaderProps,
 } from './PerpsMarketHeader.types';
 
 export { PERPS_MARKET_HEADER_HEIGHT };
+
+/**
+ * Cross margin risk badge on the wallet button. The "!" is the non-colour cue
+ * and the spoken label carries the level for screen readers.
+ */
+const WALLET_RISK_BADGE = {
+  warning: {
+    backgroundClassName: 'bg-warning-default',
+    labelKey: 'perps.crossMarginSummary.tone_warning',
+  },
+  danger: {
+    backgroundClassName: 'bg-error-default',
+    labelKey: 'perps.crossMarginSummary.tone_danger',
+  },
+} as const;
 
 const COMPACT_PRICE_ENTER_OFFSET_PX = 8;
 const SUBTITLE_CROSSFADE_HEIGHT = 20;
@@ -118,6 +138,7 @@ const PerpsMarketHeader = ({
   showMarketIdentity = true,
   endAccessory,
   onWalletPress,
+  walletRiskTone,
   onFavoritePress,
   isFavorite = false,
   mode,
@@ -250,16 +271,56 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  const walletRiskAlert = getCrossMarginRatioAlert(walletRiskTone);
+  const walletRiskBadge = walletRiskAlert
+    ? WALLET_RISK_BADGE[walletRiskAlert]
+    : undefined;
+
   const iconButtons = [
     onWalletPress ? (
-      <ButtonIcon
+      <BadgeWrapper
         key="wallet"
-        iconName={IconName.Wallet}
-        size={ButtonIconSize.Md}
-        onPress={handleWalletPress}
-        accessibilityLabel={strings('perps.market_details.wallet')}
-        testID={testIDs.walletButton}
-      />
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        badge={
+          walletRiskBadge ? (
+            <Box
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName={`h-4 w-4 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              testID={
+                testIDs.walletButton
+                  ? `${testIDs.walletButton}-risk-badge`
+                  : undefined
+              }
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.PrimaryInverse}
+              >
+                !
+              </Text>
+            </Box>
+          ) : null
+        }
+      >
+        <ButtonIcon
+          iconName={IconName.Wallet}
+          size={ButtonIconSize.Md}
+          onPress={handleWalletPress}
+          accessibilityLabel={
+            walletRiskBadge
+              ? `${strings('perps.market_details.wallet')}, ${strings(
+                  walletRiskBadge.labelKey,
+                )}`
+              : strings('perps.market_details.wallet')
+          }
+          testID={testIDs.walletButton}
+        />
+      </BadgeWrapper>
     ) : null,
     onFavoritePress ? (
       <ButtonIcon

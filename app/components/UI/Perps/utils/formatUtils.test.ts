@@ -12,6 +12,7 @@ import {
   formatCoinVolume,
   formatPositionSize,
   formatLeverage,
+  formatCrossMarginRatio,
   formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
@@ -1625,6 +1626,22 @@ describe('formatUtils', () => {
       expect(formatLiquidationDistance(0, 70)).toBeUndefined();
       expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
       expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
+  describe('formatCrossMarginRatio', () => {
+    it.each([
+      [0.174, '17.4%'],
+      [0.634, '63.4%'],
+      [0.63, '63%'],
+      [0.30004, '30%'],
+      [0, '0%'],
+    ])('formats %s as an unsigned percentage (%s)', (ratio, expected) => {
+      expect(formatCrossMarginRatio(ratio, 'en-US')).toBe(expected);
+    });
+
+    it('follows the locale decimal separator', () => {
+      expect(formatCrossMarginRatio(0.174, 'de-DE')).toMatch(/^17,4\s?%$/u);
     });
   });
 

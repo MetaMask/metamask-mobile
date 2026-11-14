@@ -14,6 +14,18 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 }));
 
 describe('PerpsCrossMarginInfoButton', () => {
+  it('expands the small info icon to a 44pt tap target', () => {
+    render(
+      <PerpsCrossMarginInfoButton
+        hasLiquidationPrice={false}
+        testID="cross-info"
+      />,
+    );
+
+    // 20pt icon plus 12pt of slop on every side.
+    expect(screen.getByTestId('cross-info')).toHaveProp('hitSlop', 12);
+  });
+
   it('closes the explanation on the native modal dismissal request', () => {
     render(
       <PerpsCrossMarginInfoButton
@@ -33,12 +45,9 @@ describe('PerpsCrossMarginInfoButton', () => {
   it.each([
     [
       false,
-      'At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance.',
+      'This position has no liquidation price at your current account value. It can change with the P&L of your other positions.',
     ],
-    [
-      true,
-      'This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance.',
-    ],
+    [true, 'This price moves with the P&L of your other positions.'],
   ] as const)(
     'opens the explanation with hasLiquidationPrice=%s',
     (hasLiquidationPrice, explanation) => {
@@ -54,6 +63,9 @@ describe('PerpsCrossMarginInfoButton', () => {
       expect(
         screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
       ).toHaveTextContent(explanation);
+      expect(
+        screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.TITLE_TAG),
+      ).toHaveTextContent('Cross');
     },
   );
 });

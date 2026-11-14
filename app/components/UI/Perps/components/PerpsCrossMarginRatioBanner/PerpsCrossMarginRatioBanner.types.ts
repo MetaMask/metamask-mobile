@@ -20,6 +20,10 @@ export interface PerpsCrossMarginRatioBannerProps {
    */
   severity: PerpsCrossMarginRatioSeverity;
   /**
+   * Describes the risk level without the ratio, for privacy mode.
+   */
+  isRatioHidden?: boolean;
+  /**
    * Optional test ID for the banner root.
    */
   testID?: string;

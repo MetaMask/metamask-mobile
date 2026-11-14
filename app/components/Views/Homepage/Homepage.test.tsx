@@ -4,6 +4,7 @@ import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
+import { createPerpsCrossMarginSummaryMock } from '../../UI/Perps/__mocks__/perpsHooksMocks';
 import { SectionRefreshHandle } from './types';
 import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
@@ -125,6 +126,14 @@ jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({
     candles: { subscribe: jest.fn(() => jest.fn()) },
   })),
+}));
+
+const mockUsePerpsCrossMarginSummary = jest.fn(() =>
+  createPerpsCrossMarginSummaryMock(),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: () => mockUsePerpsCrossMarginSummary(),
 }));
 
 jest.mock('../../UI/Perps/hooks', () => ({

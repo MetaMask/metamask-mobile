@@ -69,10 +69,7 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default: Cross margin flag on, privacy mode off
-    (useSelector as jest.Mock).mockImplementation(
-      (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
-    );
+    (useSelector as jest.Mock).mockReturnValue(false);
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
@@ -94,30 +91,62 @@ describe('PerpsCard', () => {
     });
   });
 
-  it('labels Cross in compact position rows', () => {
-    const position = {
+  describe('margin mode tag', () => {
+    const crossPosition = {
       ...mockPosition,
       leverage: { type: 'cross' as const, value: 3 },
     };
 
-    const { getByTestId } = render(
-      <PerpsCard position={position} testID="compact" />,
-    );
+    beforeEach(() => {
+      (useSelector as jest.Mock).mockImplementation(
+        (selector: unknown) => selector === selectPerpsCrossMarginEnabledFlag,
+      );
+    });
 
-    expect(getByTestId('compact-margin-tag')).toBeOnTheScreen();
-  });
+    it('labels Cross in compact position rows', () => {
+      const { getByTestId } = render(
+        <PerpsCard position={crossPosition} testID="compact" />,
+      );
 
-  it('keeps isolated compact rows free of the Cross label', () => {
-    const position = {
-      ...mockPosition,
-      leverage: { type: 'isolated' as const, value: 3 },
-    };
+      expect(getByTestId('compact-margin-tag')).toBeOnTheScreen();
+    });
 
-    const { queryByTestId } = render(
-      <PerpsCard position={position} testID="compact" />,
-    );
+    it('keeps isolated compact rows free of the Cross label', () => {
+      const { queryByTestId } = render(
+        <PerpsCard
+          position={{
+            ...mockPosition,
+            leverage: { type: 'isolated', value: 3 },
+          }}
+          testID="compact"
+        />,
+      );
 
-    expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
+      expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
+    });
+
+    it('omits the Cross label when the consumer turns it off', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PerpsCard
+          position={crossPosition}
+          testID="compact"
+          showMarginModeTag={false}
+        />,
+      );
+
+      expect(getByTestId('compact-direction-tag')).toBeOnTheScreen();
+      expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
+    });
+
+    it('omits the Cross label while the flag is off', () => {
+      (useSelector as jest.Mock).mockReturnValue(false);
+
+      const { queryByTestId } = render(
+        <PerpsCard position={crossPosition} testID="compact" />,
+      );
+
+      expect(queryByTestId('compact-margin-tag')).not.toBeOnTheScreen();
+    });
   });
 
   describe('Navigation', () => {

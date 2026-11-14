@@ -23,6 +23,7 @@ export const tooltipContentRegistry: ContentRegistry = {
   liquidation_price: undefined,
   cross_liquidation_price: undefined,
   cross_no_liquidation_price: undefined,
+  cross_liquidation_estimate_unavailable: undefined,
   liquidation_distance: undefined,
   margin: undefined,
   open_interest: undefined,
@@ -43,4 +44,8 @@ export const tooltipContentRegistry: ContentRegistry = {
   slippage: undefined,
   size_skew: undefined,
   twap_runtime: undefined,
+  account_ratio: undefined,
+  maintenance_margin: undefined,
+  account_leverage: undefined,
+  cross_margin_usage: undefined,
 };

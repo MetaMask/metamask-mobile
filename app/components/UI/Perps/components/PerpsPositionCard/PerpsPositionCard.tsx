@@ -26,13 +26,13 @@ import {
   SectionHeader,
   SensitiveText,
   SensitiveTextLength,
-  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import {
   getPerpsDisplaySymbol,
   type Order,
@@ -122,7 +122,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
-  const marginPress = isCross ? undefined : onMarginPress;
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
+  const marginPress =
+    position.leverage.type === 'isolated' ? onMarginPress : undefined;
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -214,7 +216,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const sectionTitle =
-    onSharePress || postToFeedButton || isCross ? (
+    onSharePress || postToFeedButton ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -222,23 +224,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         twClassName="w-full"
         accessible={false}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={2}
-          accessible={false}
-        >
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {strings('perps.position.card.position_title')}
-          </Text>
-          {isCross && (
-            <Tag
-              testID={getPerpsCrossMarginTagSelector('lite', position.symbol)}
-            >
-              {strings('perps.cross_position.badge')}
-            </Tag>
-          )}
-        </Box>
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {strings('perps.position.card.position_title')}
+        </Text>
         {postToFeedButton || onSharePress ? (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -316,7 +304,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <SectionHeader
           title={sectionTitle}
           titleWrapperProps={
-            onSharePress || isCross ? { twClassName: 'w-full' } : undefined
+            onSharePress ? { twClassName: 'w-full' } : undefined
           }
           testID={PerpsPositionCardSelectorsIDs.HEADER}
         />
@@ -433,16 +421,32 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               testID={PerpsPositionCardSelectorsIDs.MARGIN_CONTAINER}
             >
               <Box twClassName="flex-1 gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                  accessible={false}
                 >
-                  {strings(
-                    isCross
-                      ? 'perps.cross_position.margin_used'
-                      : 'perps.position.card.margin_label',
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('perps.position.card.margin_label')}
+                  </Text>
+                  {isCrossMarginEnabled && (
+                    <PerpsMarginModeTag
+                      marginMode={isCross ? 'cross' : 'isolated'}
+                      testID={
+                        isCross
+                          ? getPerpsCrossMarginTagSelector(
+                              'lite',
+                              position.symbol,
+                            )
+                          : PerpsPositionCardSelectorsIDs.ISOLATED_MARGIN_TAG
+                      }
+                    />
                   )}
-                </Text>
+                </Box>
                 <SensitiveText
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextDefault}

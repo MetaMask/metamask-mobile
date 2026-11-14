@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import type { TagSeverity } from '@metamask/design-system-react-native';
 
 /**
  * A single selectable option rendered as a card in the selection sheet.
@@ -17,6 +18,10 @@ export interface PerpsSelectionOption {
    */
   tag?: string;
   /**
+   * Severity of the tag. Defaults to neutral.
+   */
+  tagSeverity?: TagSeverity;
+  /**
    * Optional supporting text rendered below the title. May contain line breaks.
    */
   description?: string;
@@ -34,6 +39,11 @@ export interface PerpsSelectionOption {
    * Whether the option can't be selected. Rendered at reduced opacity.
    */
   isDisabled?: boolean;
+  /**
+   * Called when a disabled option is pressed, e.g. to explain why it can't be
+   * selected. The card stays pressable only when this is set.
+   */
+  onDisabledPress?: () => void;
 }
 
 export interface PerpsSelectionBottomSheetProps {

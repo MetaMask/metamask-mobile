@@ -1,5 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { act, fireEvent, within } from '@testing-library/react-native';
+import { onlineManager } from '@tanstack/react-query';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
@@ -104,6 +105,9 @@ function valuationCallCount(): number {
 describeForPlatforms('MoneyActivityView historical card amounts', () => {
   beforeEach(() => {
     engineCall.mockReset();
+    // A previous file in the Jest worker can leave React Query offline. The
+    // valuation queries then stay paused and the rows keep the em dash.
+    onlineManager.setOnline(true);
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     setupMoneyActivityApiMock(MONEY_ACTIVITY_ACCOUNT, [
       cardTransaction(),
@@ -144,12 +148,15 @@ describeForPlatforms('MoneyActivityView historical card amounts', () => {
     const cardRow = await findByTestId(
       `${MoneyActivityItemTestIds.ROW}-${CARD_HASH}`,
     );
-    expect(within(cardRow).getByText('-968.40 mUSD')).toBeOnTheScreen();
+    // The row mounts with an em dash before the valuation query resolves.
+    expect(await within(cardRow).findByText('-968.40 mUSD')).toBeOnTheScreen();
 
     const cashbackRow = await findByTestId(
       `${MoneyActivityItemTestIds.ROW}-${CASHBACK_HASH}`,
     );
-    expect(within(cashbackRow).getByText('+533.86 mUSD')).toBeOnTheScreen();
+    expect(
+      await within(cashbackRow).findByText('+533.86 mUSD'),
+    ).toBeOnTheScreen();
     expect(valuationCallCount()).toBe(1);
     expect(engineCall).toHaveBeenCalledWith(
       'MoneyAccountApiDataService:fetchVaultShareValuations',

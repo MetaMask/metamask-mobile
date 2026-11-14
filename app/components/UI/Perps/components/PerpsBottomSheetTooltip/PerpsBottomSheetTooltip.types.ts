@@ -33,6 +33,11 @@ export interface PerpsBottomSheetTooltipProps {
   buttonConfig?: BottomSheetFooterButtonProps[];
 
   /**
+   * Optional tag rendered beside the title, e.g. the margin mode.
+   */
+  titleTag?: string;
+
+  /**
    * Analytics: screen context for button_location tracking.
    * When provided, overrides the default 'tooltip' button_location
    * to indicate which screen the tooltip was opened from.
@@ -45,6 +50,7 @@ export type PerpsTooltipContentKey =
   | 'liquidation_price'
   | 'cross_liquidation_price'
   | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable'
   | 'liquidation_distance'
   | 'margin'
   | 'fees'
@@ -68,4 +74,8 @@ export type PerpsTooltipContentKey =
   | 'pay_with'
   | 'slippage'
   | 'size_skew'
-  | 'twap_runtime';
+  | 'twap_runtime'
+  | 'account_ratio'
+  | 'maintenance_margin'
+  | 'account_leverage'
+  | 'cross_margin_usage';

@@ -9,11 +9,16 @@ const PerpsCrossMarginRatioBanner: React.FC<
 > = ({
   ratio,
   severity,
+  isRatioHidden = false,
   testID = PerpsCrossMarginRatioBannerSelectorsIDs.CONTAINER,
 }) => (
   <BannerAlert
     severity={severity}
-    description={strings('perps.crossMarginRatio.description', { ratio })}
+    description={
+      isRatioHidden
+        ? strings(`perps.crossMarginRatio.description_hidden_${severity}`)
+        : strings('perps.crossMarginRatio.description', { ratio })
+    }
     testID={testID}
   />
 );

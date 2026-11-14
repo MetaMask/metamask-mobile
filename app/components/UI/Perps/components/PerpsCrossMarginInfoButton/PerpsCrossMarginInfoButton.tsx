@@ -2,11 +2,13 @@ import React, { useCallback, useState } from 'react';
 import {
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import PerpsProModalPortal from '../../Views/PerpsProMarketView/components/PerpsProModalPortal';
+import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../constants/perpsConfig';
 
 interface PerpsCrossMarginInfoButtonProps {
   /** Whether the venue currently supplies a liquidation price. */
@@ -28,8 +30,10 @@ const PerpsCrossMarginInfoButton = ({
     <>
       <ButtonIcon
         iconName={IconName.Info}
-        size={ButtonIconSize.Sm}
+        size={ButtonIconSize.Xs}
+        iconProps={{ color: IconColor.IconAlternative }}
         accessibilityLabel={strings('perps.cross_position.liquidation_info')}
+        hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
         testID={testID}
         onPress={handleOpen}
       />
@@ -38,6 +42,7 @@ const PerpsCrossMarginInfoButton = ({
           <PerpsBottomSheetTooltip
             isVisible
             onClose={handleClose}
+            titleTag={strings('perps.cross_position.badge')}
             contentKey={
               hasLiquidationPrice
                 ? 'cross_liquidation_price'

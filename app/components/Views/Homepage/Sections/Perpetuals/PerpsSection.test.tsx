@@ -12,6 +12,7 @@ import {
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { HomepagePerpsSelectorsIDs } from '../../Homepage.testIds';
+import { createPerpsCrossMarginSummaryMock } from '../../../../UI/Perps/__mocks__/perpsHooksMocks';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import type {
   PerpsLoadingLifecycle,
@@ -156,6 +157,14 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
     isRefreshing: false,
   })),
 }));
+
+const mockUsePerpsCrossMarginSummary = jest.fn();
+jest.mock('../../../../UI/Perps/hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: (...args: unknown[]) =>
+    mockUsePerpsCrossMarginSummary(...args),
+}));
+
+const noCrossMarginSummary = createPerpsCrossMarginSummaryMock();
 
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
@@ -376,6 +385,7 @@ const spyOnUsePerpsFeed = () =>
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsCrossMarginSummary.mockReturnValue(noCrossMarginSummary);
     mockGetActivePerpsLoadingSessionContext.mockReturnValue({
       id: 'session-id-1',
       marketSource: 'provider',
@@ -650,6 +660,55 @@ describe('PerpsSection', () => {
 
     expect(screen.getByText('BTC 10X position')).toBeOnTheScreen();
     expect(screen.getByText('ETH 40X position')).toBeOnTheScreen();
+  });
+
+  describe('cross margin ratio banner', () => {
+    it('shows the banner when the cross margin ratio is above 50%', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.63,
+        tone: 'warning',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.getByTestId(HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Cross margin ratio is 63%.')).toBeOnTheScreen();
+    });
+
+    it('hides the banner when the cross margin ratio is safe', () => {
+      mockUsePerpsCrossMarginSummary.mockReturnValue({
+        ...noCrossMarginSummary,
+        isCrossMarginEnabled: true,
+        hasCrossExposure: true,
+        accountRatio: 0.2,
+        tone: 'safe',
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(
+        screen.queryByTestId(
+          HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('shows aggregate unrealized P&L row when user has filled positions', () => {

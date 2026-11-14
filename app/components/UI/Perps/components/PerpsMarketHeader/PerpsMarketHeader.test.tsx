@@ -20,6 +20,9 @@ import {
   playSelection,
 } from '../../../../../util/haptics';
 
+const walletButtonTestID = createProMarketHeaderTestIDs()
+  .walletButton as string;
+
 jest.mock('../../providers/PerpsStreamManager');
 
 jest.mock('../../hooks/stream', () => ({
@@ -377,6 +380,49 @@ describe('PerpsMarketHeader', () => {
       getByLabelText(strings('perps.market_details.wallet')),
     ).toBeOnTheScreen();
   });
+
+  it.each([
+    ['warning', 'perps.crossMarginSummary.tone_warning'],
+    ['danger', 'perps.crossMarginSummary.tone_danger'],
+  ] as const)(
+    'badges the wallet button and names the %s risk level',
+    (walletRiskTone, labelKey) => {
+      const { getByTestId, getByLabelText } = renderHeader({
+        onWalletPress: jest.fn(),
+        walletRiskTone,
+      });
+
+      expect(
+        getByTestId(`${walletButtonTestID}-risk-badge`, {
+          includeHiddenElements: true,
+        }),
+      ).toBeOnTheScreen();
+      expect(
+        getByLabelText(
+          `${strings('perps.market_details.wallet')}, ${strings(labelKey)}`,
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it.each([['safe' as const], [undefined]])(
+    'leaves the wallet button plain for the %s risk level',
+    (walletRiskTone) => {
+      const { queryByTestId, getByLabelText } = renderHeader({
+        onWalletPress: jest.fn(),
+        walletRiskTone,
+      });
+
+      expect(
+        queryByTestId(`${walletButtonTestID}-risk-badge`, {
+          includeHiddenElements: true,
+        }),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByLabelText(strings('perps.market_details.wallet')),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('omits end actions when their handlers are not provided', () => {
     const { queryByTestId } = renderHeader();

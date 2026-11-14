@@ -5,8 +5,13 @@ import {
   BottomSheetFooter,
   BottomSheetRef,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   ButtonSize,
   ButtonsAlignment,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -51,6 +56,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     buttonConfig: buttonConfigProps,
     data,
     buttonLocation,
+    titleTag,
   }) => {
     const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
     const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -132,7 +138,25 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
             onClose={handleClose}
             testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
           >
-            {title}
+            {titleTag ? (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                gap={2}
+                accessible={false}
+              >
+                <Text variant={TextVariant.HeadingSm}>{title}</Text>
+                <Tag
+                  severity={TagSeverity.Neutral}
+                  testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE_TAG}
+                >
+                  {titleTag}
+                </Tag>
+              </Box>
+            ) : (
+              title
+            )}
           </BottomSheetHeaderGlass>
         )}
         <Box paddingHorizontal={4}>{renderContent()}</Box>

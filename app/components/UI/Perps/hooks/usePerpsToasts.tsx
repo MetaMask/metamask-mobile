@@ -43,6 +43,7 @@ import {
   PERPS_EVENT_VALUE,
   OrderDirection,
   getPerpsDisplaySymbol,
+  type MarginModeLockReason,
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
@@ -247,6 +248,7 @@ export interface PerpsToastOptionsConfig {
     orderForm: {
       validationError: (error: string) => PerpsToastOptions;
       limitPriceRequired: PerpsToastOptions;
+      marginModeLocked: (reason: MarginModeLockReason) => PerpsToastOptions;
     };
   };
   dataFetching: {
@@ -1231,6 +1233,16 @@ const usePerpsToasts = (): {
             labelOptions: getPerpsToastLabels(
               strings('perps.order.validation.failed'),
               error, // Pass through directly - validation errors are already localized
+            ),
+          }),
+          marginModeLocked: (reason: MarginModeLockReason) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings(
+                reason === 'open_order'
+                  ? 'perps.margin_mode.locked_by_open_order'
+                  : 'perps.margin_mode.locked_by_position',
+              ),
             ),
           }),
           limitPriceRequired: {

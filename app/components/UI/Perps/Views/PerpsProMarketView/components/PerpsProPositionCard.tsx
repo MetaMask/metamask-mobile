@@ -32,6 +32,7 @@ import {
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
@@ -194,10 +195,7 @@ const PerpsProPositionCard = ({
     pnlColor,
   } = getPerpsPositionHeaderDisplay(position);
 
-  const marginTypeLabel =
-    position.leverage.type === 'isolated'
-      ? strings('perps.pro_positions_panel.card.isolated')
-      : strings('perps.pro_positions_panel.card.cross');
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
@@ -391,24 +389,23 @@ const PerpsProPositionCard = ({
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings(
-                  isCross
-                    ? 'perps.cross_position.margin_used'
-                    : 'perps.pro_positions_panel.card.margin',
-                )}
+                label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag
-                    severity={TagSeverity.Neutral}
-                    testID={
-                      isCross
-                        ? getPerpsCrossMarginTagSelector('pro', position.symbol)
-                        : undefined
-                    }
-                  >
-                    {marginTypeLabel}
-                  </Tag>
+                  isCrossMarginEnabled ? (
+                    <PerpsMarginModeTag
+                      marginMode={isCross ? 'cross' : 'isolated'}
+                      testID={
+                        isCross
+                          ? getPerpsCrossMarginTagSelector(
+                              'pro',
+                              position.symbol,
+                            )
+                          : undefined
+                      }
+                    />
+                  ) : undefined
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined

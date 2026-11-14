@@ -14,6 +14,7 @@ import {
   calculateSignedRoEForPrice,
   estimateCloseReceive,
   type InputMethod,
+  type MarginMode,
   type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
@@ -46,7 +47,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
-import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsClosePositionLimitOrderEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
+} from '../selectors/featureFlags';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import {
   convertAssetAmountToUsd,
@@ -201,8 +205,13 @@ export interface UsePerpsClosePositionFormResult {
 
   feeResults: ReturnType<typeof usePerpsOrderFees>;
   rewardsState: ReturnType<typeof usePerpsRewards>;
-  /** Margin returned including its PnL; undefined while an input is missing. */
+  /**
+   * Margin returned; isolated margin includes its PnL, cross margin does not.
+   * Undefined while an input is missing.
+   */
   summaryMargin: number | undefined;
+  /** Margin mode of the position being closed, when the venue reports it. */
+  summaryMarginMode: MarginMode | undefined;
   /** PnL realized at the close price; undefined while an input is missing. */
   summaryPnl: number | undefined;
   /**
@@ -275,6 +284,7 @@ export function usePerpsClosePositionForm(
   const isClosePositionLimitOrderEnabled = useSelector(
     selectPerpsClosePositionLimitOrderEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const [orderType, setOrderType] = useState<OrdinaryOrderType>(() =>
     isClosePositionLimitOrderEnabled ? lastCloseOrderType : 'market',
@@ -1006,10 +1016,22 @@ export function usePerpsClosePositionForm(
   }, [validationResult.errors]);
 
   const summaryPnl = closeEstimate.realizedPnl;
-  const summaryMargin =
-    closeEstimate.marginReturned === undefined || summaryPnl === undefined
-      ? undefined
-      : closeEstimate.marginReturned + summaryPnl;
+  // While the flag is off, a cross position keeps the isolated presentation,
+  // including P&L inside the reported margin.
+  const summaryMarginMode = isCrossMarginEnabled
+    ? livePosition.leverage?.type
+    : undefined;
+  // Cross margin is shared collateral and never holds the position's PnL, so
+  // only isolated margin is shown with the realized PnL folded in.
+  let summaryMargin: number | undefined;
+  if (summaryMarginMode === 'cross') {
+    summaryMargin = closeEstimate.marginReturned;
+  } else if (
+    closeEstimate.marginReturned !== undefined &&
+    summaryPnl !== undefined
+  ) {
+    summaryMargin = closeEstimate.marginReturned + summaryPnl;
+  }
   // %RoE beside the summary $PnL. Market closes show the position's actual
   // %RoE (`returnOnEquity × 100`) — the same value the position card renders.
   // Limit closes recompute the RoE at the effective (limit) price via
@@ -1114,6 +1136,7 @@ export function usePerpsClosePositionForm(
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryRoePercentage,
     summaryFees,

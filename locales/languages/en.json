@@ -3255,12 +3255,16 @@
         "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
       },
       "cross_liquidation_price": {
-        "title": "Cross liquidation price",
-        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+        "title": "Liquidation price",
+        "content": "This price moves with the P&L of your other positions."
       },
       "cross_no_liquidation_price": {
-        "title": "No liquidation price",
-        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
+        "title": "Liquidation price",
+        "content": "This position has no liquidation price at your current account value. It can change with the P&L of your other positions."
+      },
+      "cross_liquidation_estimate_unavailable": {
+        "title": "Liquidation price",
+        "content": "We can't estimate a liquidation price for this order. Your cross position's liquidation price depends on the P&L of your other positions."
       },
       "liquidation_distance": {
         "title": "Liquidation distance",
@@ -3292,6 +3296,22 @@
       "twap_runtime": {
         "title": "Runtime",
         "content": "Runtime is how long the TWAP order keeps working. The total size is split into suborders that are submitted at regular intervals until the runtime ends."
+      },
+      "account_ratio": {
+        "title": "Account ratio",
+        "content": "Represents the risk of your portfolio liquidation. When the value is greater than 95%, your portfolio may be liquidated."
+      },
+      "maintenance_margin": {
+        "title": "Maintenance margin",
+        "content": "The minimum account value to keep your cross positions open. If the account value falls below the maintenance margin requirement, the portfolio will be liquidated."
+      },
+      "account_leverage": {
+        "title": "Account leverage",
+        "content": "Account leverage = Total cross position value / Total collateral balance. High account leverage increases the risk of liquidation."
+      },
+      "cross_margin_usage": {
+        "title": "Cross margin usage",
+        "content": "The portion of the positions’ equity used to maintain open positions. You won’t be able to open new positions if this reaches 100%."
       },
       "closing_fees": {
         "title": "Closing fees",
@@ -3544,7 +3564,9 @@
       "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
       "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
-      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs.",
+      "locked_by_position": "Cannot switch margin mode with open position.",
+      "locked_by_open_order": "Cannot switch margin mode with open orders."
     },
     "cross_margin_confirm": {
       "title": "Confirm cross margin",
@@ -3560,8 +3582,7 @@
     },
     "cross_position": {
       "badge": "Cross",
-      "margin_used": "Position margin used",
-      "no_liquidation_price": "No liquidation price",
+      "no_liquidation_price": "N/A",
       "liquidation_info": "About cross liquidation price"
     },
     "crossMargin": {
@@ -3570,7 +3591,18 @@
       "dismiss": "Got it"
     },
     "crossMarginRatio": {
-      "description": "Cross margin ratio is {{ratio}}."
+      "description": "Cross margin ratio is {{ratio}}.",
+      "description_hidden_warning": "Cross margin ratio is elevated.",
+      "description_hidden_danger": "Cross margin ratio is high."
+    },
+    "crossMarginSummary": {
+      "account_ratio": "Account ratio",
+      "maintenance_margin": "Maintenance margin",
+      "account_leverage": "Account leverage",
+      "cross_margin_usage": "Cross margin usage",
+      "tone_safe": "Low risk",
+      "tone_warning": "Elevated risk",
+      "tone_danger": "High risk"
     },
     "sort": {
       "volume": "Volume (24h)",

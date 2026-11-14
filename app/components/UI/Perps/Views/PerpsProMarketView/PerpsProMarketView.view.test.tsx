@@ -32,6 +32,7 @@ import {
 } from '../../../../../../tests/component-view/platform';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createFundedAccountForViews,
   createEthMarketForViews,
   createLongPositionForViews,
@@ -4692,6 +4693,42 @@ describe('PerpsProMarketView header actions', () => {
     fireEvent.press(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
     );
+
+    expect(
+      await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('badges the wallet button from a critical cross margin ratio and opens the balance sheet', async () => {
+    renderPerpsProMarketView({
+      crossMarginEnabled: true,
+      streamOverrides: {
+        account: createCrossMarginAccountForViews({
+          maintenanceMargin: '800',
+          marginUsed: '800',
+          notional: '2000',
+        }),
+      },
+    });
+
+    const walletButton = await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON,
+    );
+
+    expect(walletButton).toHaveProp(
+      'accessibilityLabel',
+      `${strings('perps.market_details.wallet')}, ${strings(
+        'perps.crossMarginSummary.tone_danger',
+      )}`,
+    );
+    expect(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON}-risk-badge`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(walletButton);
 
     expect(
       await screen.findByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),

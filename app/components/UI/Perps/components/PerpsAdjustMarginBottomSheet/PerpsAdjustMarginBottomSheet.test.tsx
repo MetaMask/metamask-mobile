@@ -13,6 +13,12 @@ import {
 } from '../../Perps.testIds';
 import PerpsAdjustMarginBottomSheet from './PerpsAdjustMarginBottomSheet';
 
+let mockCrossMarginEnabled = false;
+
+jest.mock('react-redux', () => ({
+  useSelector: () => mockCrossMarginEnabled,
+}));
+
 const mockGoBack = jest.fn();
 const mockHandleAddMargin = jest.fn();
 const mockHandleRemoveMargin = jest.fn();
@@ -235,6 +241,7 @@ const createMarginData = (mode: 'add' | 'remove', inputAmount = 0) => ({
 
 describe('PerpsAdjustMarginBottomSheet', () => {
   beforeEach(() => {
+    mockCrossMarginEnabled = false;
     jest.clearAllMocks();
     mockMarginAdjustmentOptions = undefined;
     mockLivePriceHeaderProps = undefined;
@@ -973,4 +980,48 @@ describe('PerpsAdjustMarginBottomSheet', () => {
       'perps.adjust_margin.amount_accessibility_label, 200.00',
     );
   });
+
+  it('hides the margin mode label while cross margin is disabled', () => {
+    render(
+      <PerpsAdjustMarginBottomSheet position={position} initialMode="add" />,
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).toBeNull();
+  });
+
+  it.each(['isolated', 'cross'] as const)(
+    'labels margin in position as %s when cross margin is enabled',
+    (marginMode) => {
+      mockCrossMarginEnabled = true;
+      const modePosition = {
+        ...position,
+        leverage: { value: 10, type: marginMode },
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        ...createMarginData('add'),
+        position: modePosition,
+      });
+
+      render(
+        <PerpsAdjustMarginBottomSheet
+          position={modePosition}
+          initialMode="add"
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+        ),
+      ).toHaveTextContent(
+        marginMode === 'cross'
+          ? 'perps.margin_mode.cross_title'
+          : 'perps.margin_mode.isolated_title',
+      );
+    },
+  );
 });
