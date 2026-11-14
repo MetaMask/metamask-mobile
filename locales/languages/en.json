@@ -1535,7 +1535,7 @@
       "empty_title": "No positions to post yet",
       "empty_help": "Why aren't all positions visible?",
       "hidden_position_title": "About visible positions",
-      "hidden_position_body": "Positions only appear here if they include a trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "hidden_position_body": "Positions only appear here if they include a trade of $10 or more on our current supported chains Ethereum Mainnet, Robinhood, Solana, Binance Chain, Base. Smaller trades, like recurring buys, aren't tracked yet.",
       "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
