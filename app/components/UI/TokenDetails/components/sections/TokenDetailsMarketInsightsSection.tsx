@@ -53,7 +53,6 @@ export interface TokenDetailsMarketInsightsSectionProps {
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  useAmbientColor?: boolean;
   pricePercentChange?: number;
   containerStyle?: StyleProp<ViewStyle>;
   showSectionRule?: boolean;
@@ -67,7 +66,6 @@ const TokenDetailsMarketInsightsSection = ({
   securityData,
   minTokenAgeDays,
   onDisplayResolved,
-  useAmbientColor,
   pricePercentChange = 0,
   containerStyle,
   showSectionRule = false,
@@ -170,7 +168,6 @@ const TokenDetailsMarketInsightsSection = ({
       pricePercentChange,
       token,
       source: 'token_details',
-      useAmbientColor,
     });
   }, [
     createEventBuilder,
@@ -180,7 +177,6 @@ const TokenDetailsMarketInsightsSection = ({
     report,
     token,
     trackEvent,
-    useAmbientColor,
   ]);
 
   const shouldShowCard =

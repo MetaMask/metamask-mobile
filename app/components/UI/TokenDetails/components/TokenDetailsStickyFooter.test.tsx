@@ -938,7 +938,7 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('geo-based button colors', () => {
+  describe('button colors', () => {
     const geoProps = {
       ...defaultProps,
       swapTestID: 'swap-btn',
@@ -947,7 +947,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
 
-    it('uses success (green) styles for non-Asia users', () => {
+    it('uses success (green) styles globally regardless of region', () => {
       setupSelectorMock('US');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,
@@ -957,54 +957,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
     });
 
-    it('uses error-default (red) styles for Asian users when useAmbientColor is true (JP)', () => {
-      setupSelectorMock('JP');
-      const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...geoProps}
-          balanceFiatUsd={50}
-          useAmbientColor
-        />,
-      );
-
-      const buyBtn = getByTestId('buy-btn');
-      expect(buyBtn.props.twClassName).toBe('bg-error-default');
-    });
-
-    it('uses error-default border on secondary button for Asian users when useAmbientColor is true (KR)', () => {
-      setupSelectorMock('KR');
-      const { getByTestId } = render(
-        <TokenDetailsStickyFooter
-          {...geoProps}
-          balanceFiatUsd={50}
-          useAmbientColor
-        />,
-      );
-
-      const swapBtn = getByTestId('swap-btn');
-      expect(swapBtn.props.twClassName).toBe(
-        'bg-transparent border-error-default',
-      );
-    });
-
-    it.each(['TW', 'CN', 'HK'])(
-      'uses error-default for %s country code when useAmbientColor is true',
-      (code) => {
-        setupSelectorMock(code);
-        const { getByTestId } = render(
-          <TokenDetailsStickyFooter
-            {...geoProps}
-            balanceFiatUsd={50}
-            useAmbientColor
-          />,
-        );
-
-        const buyBtn = getByTestId('buy-btn');
-        expect(buyBtn.props.twClassName).toBe('bg-error-default');
-      },
-    );
-
-    it('uses success (green) for Asian users when useAmbientColor is false (control)', () => {
+    it('uses success (green) styles for Asian region users', () => {
       setupSelectorMock('JP');
       const { getByTestId } = render(
         <TokenDetailsStickyFooter {...geoProps} balanceFiatUsd={50} />,

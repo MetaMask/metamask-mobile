@@ -124,7 +124,7 @@ describe('trackEvent', () => {
     it('enriches allowlisted events before calling the analytics controller', () => {
       jest.mocked(store.getState).mockReturnValue(
         createStateWithFeatureFlags({
-          assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+          swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment_1',
         }),
       );
 
@@ -146,10 +146,10 @@ describe('trackEvent', () => {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'assetsASSETS3205AbtestAmbientPriceColor',
-                value: 'treatment',
+                key: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+                value: 'treatment_1',
                 key_value_pair:
-                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
+                  'swapsSWAPS5094AbtestQuickBuyEntrypoints=treatment_1',
               },
             ],
           },
@@ -244,7 +244,7 @@ describe('trackEvent', () => {
       it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
         jest.mocked(store.getState).mockReturnValue(
           createStateWithFeatureFlags({
-            assetsASSETS3205AbtestAmbientPriceColor: 'control',
+            swapsSWAPS5094AbtestQuickBuyEntrypoints: 'control',
           }),
         );
 
@@ -278,10 +278,10 @@ describe('trackEvent', () => {
               source: 'wallet',
               active_ab_tests: [
                 {
-                  key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                  key: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
                   value: 'control',
                   key_value_pair:
-                    'assetsASSETS3205AbtestAmbientPriceColor=control',
+                    'swapsSWAPS5094AbtestQuickBuyEntrypoints=control',
                 },
               ],
             },

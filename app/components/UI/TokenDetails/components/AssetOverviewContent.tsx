@@ -161,9 +161,7 @@ export interface AssetOverviewContentProps {
   /** Whether the security data fetch failed. Hides the card when true. */
   hasSecurityDataError?: boolean;
 
-  // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
 
   // Exit action tracking
   onExitAction?: () => void;
@@ -217,7 +215,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
   onPriceDirectionChange,
-  useAmbientColor,
   onExitAction,
   isPricePositive,
   onPerpsMarketResolved,
@@ -419,7 +416,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isLoading={isLoading}
             hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
-            useAmbientColor={useAmbientColor}
             isGlass={isGlass}
           />
           {!isTokenTradable(token as BridgeToken) && (
@@ -454,7 +450,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             token={token}
             securityData={securityData ?? null}
             onDisplayResolved={onMarketInsightsDisplayResolved}
-            useAmbientColor={useAmbientColor}
             pricePercentChange={
               comparePrice > 0 ? (priceDiff / comparePrice) * 100 : 0
             }
@@ -535,7 +530,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
-                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}
