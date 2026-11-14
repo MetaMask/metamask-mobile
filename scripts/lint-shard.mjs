@@ -50,7 +50,7 @@ function loadEslintApis() {
   return eslintApis;
 }
 
-const LINT_PATTERNS = ['**/*.{js,ts,tsx}'];
+const LINT_PATTERNS = ['**/*.{js,ts,tsx}', '.yarn/plugins/**/*.test.ts'];
 
 /**
  * @param {string} cwd
