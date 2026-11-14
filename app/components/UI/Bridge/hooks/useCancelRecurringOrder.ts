@@ -9,6 +9,7 @@ import {
 } from '@metamask/utils';
 import type { InfiniteData } from '@tanstack/query-core';
 import Engine from '../../../../core/Engine';
+import { cancelRecurringOrder as cancelRecurringOrderRequest } from '../api/recurringOrders';
 import {
   RecurringOrderState,
   type CancelRecurringOrderResponse,
@@ -178,11 +179,9 @@ export function useCancelRecurringOrder() {
     RecurringOrder
   >({
     mutationFn: (order) =>
-      Engine.controllerMessenger.call(
-        'RecurringOrdersDataService:cancelRecurringOrder',
-        order.id,
-        order.accountAddress,
-      ),
+      cancelRecurringOrderRequest(order.id, {
+        accountAddress: order.accountAddress,
+      }),
     onSuccess: async ({ order }) => {
       updateRecurringOrdersCaches(queryClient, order);
 
