@@ -1,8 +1,10 @@
 import '../mocks';
+import type { KycSessionStatus } from '@metamask/kyc-controller';
 import Engine from '../../../app/core/Engine';
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
+import { VBA_KYC_VENDOR } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/constants';
 import MoneyHomeView from '../../../app/components/UI/Money/Views/MoneyHomeView';
 import Routes from '../../../app/constants/navigation/Routes';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
@@ -12,14 +14,13 @@ import { initialStateVba } from '../presets/vba';
 /** KYC `finalStatus` values the Money home card splits. */
 export type MoneyHomeVbaKycFinalStatus = 'retry' | 'rejected';
 
-interface KycSessionFixture {
-  id: string;
-  externalUserId: string;
-  vendor: string;
-  vendorStatus: string;
-  finalStatus: MoneyHomeVbaKycFinalStatus;
-  kycStatus: MoneyHomeVbaKycFinalStatus;
-}
+/**
+ * Stored UKYC session. `retryReasons` is not on {@link KycSessionStatus} yet;
+ * a proof-of-address retry still arrives with `poa_resubmit`.
+ */
+type MoneyHomeKycSession = KycSessionStatus & {
+  retryReasons?: readonly ['poa_resubmit'];
+};
 
 let restoreMoneyHomeStore: (() => void) | undefined;
 let restoreMoneyHomeKycState: (() => void) | undefined;
@@ -54,13 +55,16 @@ const bindMoneyHomeStore = (store: ReduxStore): void => {
 
 const buildSession = (
   finalStatus: MoneyHomeVbaKycFinalStatus,
-): KycSessionFixture => ({
+): MoneyHomeKycSession => ({
   id: 'session-1',
   externalUserId: 'user-1',
-  vendor: 'sumsub',
+  vendor: VBA_KYC_VENDOR,
   vendorStatus: finalStatus,
   finalStatus,
   kycStatus: finalStatus,
+  ...(finalStatus === 'retry'
+    ? { retryReasons: ['poa_resubmit'] as const }
+    : {}),
 });
 
 /**
@@ -68,7 +72,8 @@ const buildSession = (
  * `finalStatus`. The VBA onboarding navigator is registered so the card CTA
  * can reset onto it.
  *
- * @param finalStatus - Persisted KYC session outcome.
+ * @param finalStatus - Persisted KYC session outcome. `retry` also stores
+ * `retryReasons: ['poa_resubmit']`.
  * @returns The rendered Money home screen and its store.
  */
 export function renderMoneyHomeVbaCard(
@@ -110,7 +115,7 @@ export function renderMoneyHomeVbaCard(
     .build();
 
   const kycController = Engine.context.KycController as unknown as {
-    state: { sessionStatus: KycSessionFixture };
+    state: { sessionStatus: MoneyHomeKycSession };
   };
   restoreMoneyHomeKycState?.();
   const previousKycState = kycController.state;
