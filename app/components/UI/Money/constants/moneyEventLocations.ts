@@ -69,8 +69,13 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
   /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */
   MONEY_VBA_FINISH_VERIFICATION_CARD = 'money_vba_finish_verification_card',
-  /** KYC_DECISION (rejected / retry) VBA card on Money Home (Figma node 3841-39885, main file). */
+  /** KYC_DECISION VBA card on Money Home: terminal KYC rejection (Figma node 3841-39885, main file). */
   MONEY_VBA_KYC_DECISION_CARD = 'money_vba_kyc_decision_card',
+  /**
+   * KYC_RETRY VBA card on Money Home: non-terminal retry, the user can still
+   * resubmit. Placeholder copy pending design (TRAM-4099).
+   */
+  MONEY_VBA_KYC_RETRY_CARD = 'money_vba_kyc_retry_card',
 
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',

@@ -9801,6 +9801,11 @@
         "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
         "cta": "Learn more",
         "dismiss": "Dismiss"
+      },
+      "kyc_retry": {
+        "title": "We need more information from you",
+        "description": "Your verification needs another look. Update your documents to continue.",
+        "cta": "Continue verification"
       }
     },
     "first_time_deposit": {

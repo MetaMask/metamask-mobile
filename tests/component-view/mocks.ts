@@ -309,6 +309,8 @@ jest.mock('../../app/core/Engine', () => {
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
+        // Presents SumSub. Continue on the KYC retry home card must not call it.
+        launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
       },
       SeedlessOnboardingController: {
         state: {

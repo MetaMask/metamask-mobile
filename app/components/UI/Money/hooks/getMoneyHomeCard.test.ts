@@ -46,6 +46,28 @@ describe('getMoneyHomeCard', () => {
     expect(cryptoLoading).toEqual({ type: 'none' });
   });
 
+  it('returns the KYC retry card while crypto and Money balances are still loading', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      isMoneyBalanceLoading: true,
+      isCryptoBalanceLoading: true,
+      hasCrypto: true,
+      vbaCard: card('kyc_retry'),
+    });
+
+    expect(result).toEqual({ type: 'vba', variant: 'kyc_retry' });
+  });
+
+  it('returns the KYC retry card after the terminal rejection card was dismissed', () => {
+    const result = getMoneyHomeCard({
+      ...baseInputs,
+      isKycDecisionDismissed: true,
+      vbaCard: card('kyc_retry'),
+    });
+
+    expect(result).toEqual({ type: 'vba', variant: 'kyc_retry' });
+  });
+
   it('returns the KYC pending card while crypto and Money balances are still loading', () => {
     const result = getMoneyHomeCard({
       ...baseInputs,
