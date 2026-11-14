@@ -11,6 +11,7 @@ import { TransactionPayControllerInit } from './transaction-pay-controller-init'
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
+import { waitForEngineReady } from '../../utils/engine-ready';
 
 jest.mock('@metamask/transaction-pay-controller');
 jest.mock('./polymarket-callbacks');
@@ -142,5 +143,11 @@ describe('Transaction Pay Controller Init', () => {
     const result = testConstructorOption('fiatOptions');
 
     expect(result).toBe(fiatOptions);
+  });
+
+  it('waits for the engine to be ready before resuming transactions', () => {
+    const waitForClientReady = testConstructorOption('waitForClientReady');
+
+    expect(waitForClientReady).toBe(waitForEngineReady);
   });
 });

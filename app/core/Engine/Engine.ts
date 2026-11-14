@@ -100,6 +100,7 @@ import {
 } from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { resetEngineReady, resolveEngineReady } from './utils/engine-ready';
 import { registerLegacyAssetControllerStateCompat } from './legacy-asset-state-compat';
 import { initMessengerClients } from './utils';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
@@ -951,6 +952,7 @@ export class Engine {
     });
 
     Engine.instance = this;
+    resolveEngineReady();
   }
 
   handleVaultBackup() {
@@ -1425,6 +1427,7 @@ export class Engine {
     await this.resetState();
 
     Engine.instance = null;
+    resetEngineReady();
   }
 
   rejectPendingApproval(

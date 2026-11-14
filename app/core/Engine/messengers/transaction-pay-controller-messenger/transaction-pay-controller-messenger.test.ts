@@ -86,6 +86,26 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the actions and events needed to resume interrupted transactions', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'KeyringController:getState',
+          'RemoteFeatureFlagController:getState',
+          'TransactionController:addTransactionBatch',
+          'TransactionController:failTransaction',
+          'TransactionController:finalizeResumedTransaction',
+        ]),
+        events: expect.arrayContaining(['KeyringController:unlock']),
+      }),
+    );
+  });
+
   it('does not delegate the native Transak lookup that RampsController now owns', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
