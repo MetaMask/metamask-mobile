@@ -299,6 +299,40 @@ describe('Membership', () => {
         getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW),
       ).toHaveTextContent(strings('pro_hub.membership.cancel_membership'));
     });
+
+    it.each([
+      CANCEL_TYPES.NOT_ALLOWED,
+      CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
+    ])(
+      'renders the cancel row disabled with a not allowed message when cancelType is %s',
+      (cancelType) => {
+        const { getByTestId, queryByTestId } = renderMembership({
+          ...subscription,
+          cancelType,
+        });
+
+        const cancelRow = getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW);
+        expect(cancelRow).toHaveTextContent(
+          strings('pro_hub.membership.cancel_membership'),
+          { exact: false },
+        );
+        expect(cancelRow.props.accessibilityState).toEqual(
+          expect.objectContaining({ disabled: true }),
+        );
+        expect(
+          getByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED),
+        ).toHaveTextContent(strings('pro_hub.membership.cancel_not_allowed'));
+        expect(
+          queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW),
+        ).toBeNull();
+      },
+    );
+
+    it('does not show a not allowed message when cancellation is allowed', () => {
+      const { queryByTestId } = renderMembership();
+
+      expect(queryByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED)).toBeNull();
+    });
   });
 
   // ── Navigation ─────────────────────────────────────────────────────────────
@@ -312,6 +346,17 @@ describe('Membership', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PRO_HUB.CANCEL_MEMBERSHIP,
       );
+    });
+
+    it('does not navigate when the disabled cancel row is pressed', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        cancelType: CANCEL_TYPES.NOT_ALLOWED,
+      });
+
+      fireEvent.press(getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate before any row is pressed', () => {

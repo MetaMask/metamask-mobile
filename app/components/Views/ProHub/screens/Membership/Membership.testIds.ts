@@ -17,6 +17,7 @@ export const MembershipTestIds = {
   INVOICES_ROW: 'membership-invoices-row',
   CONTACT_SUPPORT_ROW: 'membership-contact-support-row',
   CANCEL_MEMBERSHIP_ROW: 'membership-cancel-membership-row',
+  CANCEL_NOT_ALLOWED: 'membership-cancel-not-allowed',
   RESUME_MEMBERSHIP_ROW: 'membership-resume-membership-row',
   RESUME_ERROR: 'membership-resume-error',
   // Stat info bottom sheet
