@@ -124,11 +124,7 @@ import TabBarFloating, {
 import { TAB_BAR_FLOATING_HEIGHT } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
 import { useHomeNavBarConfig } from '../../Views/Homepage/hooks/useHomeNavBarConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-} from '../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
-import { useABTest } from '../../../hooks';
+import { selectHasSocialV1Access } from '../../../selectors/featureFlagController/socialV1';
 import { useHomeTabDefinitions } from './HomeTabs/useHomeTabDefinitions';
 import { useNativeSystemSlotTab } from './HomeTabs/useNativeSystemSlotTab';
 import { useIsNativeTabBar } from './HomeTabs/useIsNativeTabBar';
@@ -274,8 +270,6 @@ import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDe
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
 const NativeTab = createNativeBottomTabNavigator();
-const SOCIAL_V1_ASSIGNMENT_OPTIONS = { trackExposure: false };
-
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
@@ -1070,12 +1064,7 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
-  const { variant: socialV1Variant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    SOCIAL_V1_ASSIGNMENT_OPTIONS,
-  );
-  const isSocialV1Enabled = socialV1Variant.useSocialV1;
+  const isSocialV1Enabled = useSelector(selectHasSocialV1Access);
   const isSocialExperienceEnabled =
     isSocialV1Enabled || isSocialLeaderboardEnabled;
   return (

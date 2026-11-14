@@ -281,6 +281,7 @@ jest.mock('../../../../hooks/useNetworkTier', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: () => true,
+  selectHasSocialV1Access: () => true,
 }));
 
 jest.mock('../TopTradersView', () => {

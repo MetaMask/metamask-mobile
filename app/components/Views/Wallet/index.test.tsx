@@ -317,6 +317,9 @@ jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
 let mockSocialV1Enabled = false;
 jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+  selectHasSocialV1Access: jest.fn(
+    () => mockSocialV1VariantName === 'treatment',
+  ),
 }));
 
 const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';

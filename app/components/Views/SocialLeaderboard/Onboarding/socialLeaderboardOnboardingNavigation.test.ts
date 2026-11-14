@@ -42,6 +42,7 @@ jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectAiSocialLeaderboardOnboardingEnabled: jest.fn(),
+    selectSocialLeaderboardEnabled: jest.fn(),
   }),
 );
 

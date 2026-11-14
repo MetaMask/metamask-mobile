@@ -2,10 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useABTest } from '../../../../hooks';
 import { selectInterimHeaderNavBarEnabled } from '../../../../selectors/featureFlagController/interimHeaderNavBar';
-import {
-  SOCIAL_V1_VARIANTS,
-  SocialV1Variant,
-} from '../../../../constants/socialV1';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import { HEADER_NAV_BAR_VARIANTS, HeaderNavBarVariant } from '../abTestConfig';
 import { useHomeNavBarConfig } from './useHomeNavBarConfig';
 
@@ -18,14 +15,14 @@ jest.mock('../../../../hooks', () => ({
 }));
 
 let mockHeaderVariant = HeaderNavBarVariant.Control;
-let mockSocialVariant = SocialV1Variant.Control;
+let mockHasSocialV1Access = false;
 let mockInterimEnabled = false;
 
 describe('useHomeNavBarConfig', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHeaderVariant = HeaderNavBarVariant.Control;
-    mockSocialVariant = SocialV1Variant.Control;
+    mockHasSocialV1Access = false;
     mockInterimEnabled = false;
     jest
       .mocked(useSelector)
@@ -33,22 +30,16 @@ describe('useHomeNavBarConfig', () => {
         if (selector === selectInterimHeaderNavBarEnabled) {
           return mockInterimEnabled;
         }
+        if (selector === selectHasSocialV1Access) {
+          return mockHasSocialV1Access;
+        }
         throw new Error('Unexpected selector');
       });
-    jest.mocked(useABTest).mockImplementation((flagKey: string) => {
-      if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
-        return {
-          variant: SOCIAL_V1_VARIANTS[mockSocialVariant],
-          variantName: mockSocialVariant,
-          isActive: true,
-        };
-      }
-      return {
-        variant: HEADER_NAV_BAR_VARIANTS[mockHeaderVariant],
-        variantName: mockHeaderVariant,
-        isActive: true,
-      };
-    });
+    jest.mocked(useABTest).mockImplementation(() => ({
+      variant: HEADER_NAV_BAR_VARIANTS[mockHeaderVariant],
+      variantName: mockHeaderVariant,
+      isActive: true,
+    }));
   });
 
   it('keeps the current header and tab bar for the control arm', () => {
@@ -130,8 +121,8 @@ describe('useHomeNavBarConfig', () => {
     );
   });
 
-  it('uses the Social layout when the Social V1 treatment is enabled', () => {
-    mockSocialVariant = SocialV1Variant.Treatment;
+  it('uses the Social layout when the user has Social V1 access', () => {
+    mockHasSocialV1Access = true;
 
     const { result } = renderHook(() => useHomeNavBarConfig());
 
@@ -147,7 +138,7 @@ describe('useHomeNavBarConfig', () => {
   });
 
   it('keeps the Social layout on the interim header path', () => {
-    mockSocialVariant = SocialV1Variant.Treatment;
+    mockHasSocialV1Access = true;
     mockInterimEnabled = true;
 
     const { result } = renderHook(() => useHomeNavBarConfig());
@@ -157,7 +148,7 @@ describe('useHomeNavBarConfig', () => {
   });
 
   it('suppresses header experiment exposure for the Social layout', () => {
-    mockSocialVariant = SocialV1Variant.Treatment;
+    mockHasSocialV1Access = true;
 
     renderHook(() => useHomeNavBarConfig({ trackExposure: true }));
 

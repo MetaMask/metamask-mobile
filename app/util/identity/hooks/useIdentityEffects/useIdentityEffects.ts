@@ -5,6 +5,7 @@ import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useBrazeIdentity } from '../../../../core/Braze/hooks';
 import { useCanonicalProfileIdTrait } from '../useCanonicalProfileIdTrait';
 import { useSocialProfileHydration } from '../useSocialProfileHydration';
+import { useSocialEarlyAccess } from '../useSocialEarlyAccess';
 
 /**
  * Takes care of various identity effects.
@@ -12,6 +13,7 @@ import { useSocialProfileHydration } from '../useSocialProfileHydration';
  * - Syncs profile ID to Braze on sign-in/sign-out.
  * - Pushes the canonical_profile_id MetaMetrics trait on sign-in.
  * - Loads an existing Social profile into ProfileController on sign-in.
+ * - Loads the profile's Social early-access status on sign-in.
  */
 export const useIdentityEffects = () => {
   const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
@@ -24,6 +26,7 @@ export const useIdentityEffects = () => {
   useBrazeIdentity();
   useCanonicalProfileIdTrait();
   useSocialProfileHydration();
+  useSocialEarlyAccess();
 
   /**
    * Back up & sync effects

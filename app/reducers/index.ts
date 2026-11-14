@@ -37,6 +37,7 @@ import performanceReducer, {
 import type { SampleCounterState } from '../features/SampleFeature/reducers/sample-counter';
 import cardReducer from '../core/redux/slices/card';
 import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
+import socialEarlyAccessReducer from '../core/redux/slices/socialEarlyAccess';
 import rewardsReducer, { RewardsState } from './rewards';
 import rewardsMoneyReducer, { RewardsMoneyState } from './rewardsMoney';
 import { isTestEnvironment } from '../util/test/utils';
@@ -125,6 +126,7 @@ export interface RootState {
   banners: BannersState;
   card: StateFromReducer<typeof cardReducer>;
   moneyBalance: StateFromReducer<typeof moneyBalanceReducer>;
+  socialEarlyAccess: StateFromReducer<typeof socialEarlyAccessReducer>;
   performance?: PerformanceState;
   // Only registered when INCLUDE_SAMPLE_FEATURE=true.
   sampleCounter?: SampleCounterState;
@@ -182,6 +184,7 @@ const baseReducers = {
   banners: bannersReducer,
   card: cardReducer,
   moneyBalance: moneyBalanceReducer,
+  socialEarlyAccess: socialEarlyAccessReducer,
   confirmationMetrics: confirmationMetricsReducer,
   ...(sampleCounterReducer && { sampleCounter: sampleCounterReducer }),
   qrKeyringScanner: qrKeyringScannerReducer,

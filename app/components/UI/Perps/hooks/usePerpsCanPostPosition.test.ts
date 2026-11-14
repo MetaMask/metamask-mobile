@@ -113,10 +113,12 @@ const renderCanPost = ({
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             [PERPS_SOCIAL_ENABLED_FLAG_KEY]: {
-              enabled: perpsSocialEnabled,
+              enabled: true,
               minimumVersion: '0.0.0',
             },
-            [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
+            [SOCIAL_V1_AB_KEY]: perpsSocialEnabled
+              ? SocialV1Variant.Treatment
+              : SocialV1Variant.Control,
             aiSocialLeaderboardEnabled: {
               enabled: socialLeaderboardEnabled,
               minimumVersion: '0.0.0',
