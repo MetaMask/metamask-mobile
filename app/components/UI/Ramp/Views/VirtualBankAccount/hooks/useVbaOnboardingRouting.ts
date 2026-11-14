@@ -47,6 +47,7 @@ import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSour
 import { TraceName } from '../../../../../../util/trace';
 import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
+import { prefetchVbaVendorDisclaimers } from '../vbaVendorDisclaimersQuery';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -430,6 +431,10 @@ export type ResolvedVbaOnboarding =
  * missing wallet, a failed session resume, or a thrown hydrate returns
  * `{ status: 'error' }`.
  *
+ * Also starts the vendor-terms disclaimer query without waiting. A slow or
+ * failed catalog does not change the destination or reject this call. The
+ * vendor terms screen reads that same query and loads it if the cache is cold.
+ *
  * @param source - Caller/entry point for error telemetry.
  */
 export const resolveVbaOnboarding = async (
@@ -444,6 +449,10 @@ export const resolveVbaOnboarding = async (
       endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
       return { status: 'error' };
     }
+
+    // Same query the vendor terms screen mounts. Do not await: a hanging or
+    // failed catalog must not block navigation or change the destination.
+    prefetchVbaVendorDisclaimers().catch(() => undefined);
 
     await resumePersistedKycSession();
 

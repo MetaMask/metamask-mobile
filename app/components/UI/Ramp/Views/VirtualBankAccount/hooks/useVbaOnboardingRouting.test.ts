@@ -147,6 +147,13 @@ jest.mock('../vbaDevOverrides.env', () => ({
   readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
+const mockPrefetchVbaVendorDisclaimers = jest.fn();
+
+jest.mock('../vbaVendorDisclaimersQuery', () => ({
+  prefetchVbaVendorDisclaimers: (...args: unknown[]) =>
+    mockPrefetchVbaVendorDisclaimers(...args),
+}));
+
 jest.mock('../vbaVendorTermsStorage', () => ({
   hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
     mockHasAcceptedVbaVendorTerms(...args),
@@ -157,6 +164,7 @@ jest.mock('../vbaVendorTermsStorage', () => ({
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
@@ -992,6 +1000,7 @@ describe('resolveVbaOnboarding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
@@ -1092,6 +1101,75 @@ describe('resolveVbaOnboarding', () => {
       kyc_status: 'pending',
       autoramp_status: 'in_progress',
     });
+  });
+
+  it('loads vendor disclaimers alongside hydrate', async () => {
+    const calls: string[] = [];
+    mockPrefetchVbaVendorDisclaimers.mockImplementation(async () => {
+      calls.push('prefetch');
+    });
+    mockHydrate.mockImplementation(async () => {
+      calls.push('hydrate');
+      return { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
+    });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockPrefetchVbaVendorDisclaimers).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual(['prefetch', 'hydrate']);
+  });
+
+  it('does not wait for vendor disclaimers before resolving to vendor terms', async () => {
+    mockPrefetchVbaVendorDisclaimers.mockReturnValue(
+      new Promise<void>(() => undefined),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(mockPrefetchVbaVendorDisclaimers).toHaveBeenCalledTimes(1);
+  });
+
+  it('still resolves when the vendor disclaimer prefetch fails', async () => {
+    mockPrefetchVbaVendorDisclaimers.mockRejectedValue(
+      new Error('catalog failed'),
+    );
+
+    await expect(
+      resolveVbaOnboarding('money-add-money-bank-account'),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        status: 'ready',
+        destinationId: 'vendorTerms',
+      }),
+    );
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('does not wait for vendor disclaimers when terms are already accepted', async () => {
+    mockPrefetchVbaVendorDisclaimers.mockReturnValue(
+      new Promise<void>(() => undefined),
+    );
+    mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+
+    const resolved = await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(resolved).toEqual(
+      expect.objectContaining({ status: 'ready', destinationId: 'email' }),
+    );
+  });
+
+  it('does not load vendor disclaimers when no wallet address is selected', async () => {
+    mockGetState.mockReturnValue({ address: null });
+
+    await resolveVbaOnboarding('money-add-money-bank-account');
+
+    expect(mockPrefetchVbaVendorDisclaimers).not.toHaveBeenCalled();
   });
 
   it('returns an error when no wallet address is selected', async () => {
@@ -1364,6 +1442,7 @@ describe('resolveVbaOnboarding', () => {
 describe('navigateToVbaOnboardingDestination account create error', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
   });
 
   it('opens the bank-details error screen', () => {
@@ -1505,6 +1584,7 @@ describe('openVbaEntry', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrefetchVbaVendorDisclaimers.mockResolvedValue(undefined);
     devGlobal.__DEV__ = true;
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHydrate.mockResolvedValue(EMPTY_VBA_ONBOARDING_SNAPSHOT);
