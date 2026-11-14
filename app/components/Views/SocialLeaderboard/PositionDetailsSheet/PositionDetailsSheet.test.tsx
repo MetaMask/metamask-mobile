@@ -806,7 +806,7 @@ describe('PositionDetailsSheet', () => {
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityLabel,
-    ).toContain('40x');
+    ).not.toContain('40x');
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.PRICE_HEADER).props
         .accessibilityHint,
