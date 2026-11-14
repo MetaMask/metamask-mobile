@@ -2,6 +2,13 @@
 # https://docs.zizmor.sh/configuration/
 
 rules:
+  overprovisioned-secrets:
+    ignore:
+      - build.yml
+      - build-rc-repack.yml
+      - build-android-upload-to-testmu.yml
+      - eas-update-platform.yml
+
   dependabot-cooldown:
     config:
       # Change the minimum allowed cooldown period for Dependabot to 3 days.
