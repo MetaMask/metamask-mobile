@@ -590,6 +590,21 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   describe('Marketing section', () => {
+    it('renders the marketing data collection description', () => {
+      const { getByText } = renderScreen(
+        MetaMetricsAndDataCollectionSection,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingTrue },
+      );
+
+      expect(
+        getByText(strings('app_settings.data_collection_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.data_collection_description')),
+      ).toBeOnTheScreen();
+    });
+
     describe('switch', () => {
       it('is on when Marketing is initially enabled', async () => {
         const { findByTestId } = renderScreen(
