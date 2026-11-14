@@ -213,7 +213,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
               variant={confirmAction.variant || ButtonVariant.Primary}
               size={ButtonSize.Lg}
               onPress={handleConfirmAction}
-              disabled={confirmAction.disabled || isLoading}
+              isDisabled={confirmAction.disabled || isLoading}
               isLoading={confirmAction.isLoading || isLoading}
               isDanger={type === ModalType.Danger}
               twClassName="w-full"
@@ -243,7 +243,7 @@ const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
           variant={confirmAction.variant || ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleConfirmAction}
-          disabled={confirmAction.disabled || isLoading}
+          isDisabled={confirmAction.disabled || isLoading}
           isLoading={confirmAction.isLoading || isLoading}
           isDanger={type === ModalType.Danger}
           twClassName="w-full"

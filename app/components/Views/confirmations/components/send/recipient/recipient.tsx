@@ -285,7 +285,7 @@ export const Recipient = () => {
                 onPress={handleSubmitPressLocal}
                 twClassName="w-full"
                 isDanger={!loading && hasBlockingError}
-                disabled={
+                isDisabled={
                   hasBlockingError ||
                   isSubmittingTransaction ||
                   loading ||
