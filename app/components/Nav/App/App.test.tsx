@@ -313,6 +313,12 @@ jest.mock('../../../util/trace', () => ({
   endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
+const mockMarkStartup = jest.fn();
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  ...jest.requireActual('../../../core/Performance/startupStageSpans'),
+  markStartup: (...args: unknown[]) => mockMarkStartup(...args),
+}));
+
 const mockCheckIsSeedlessPasswordOutdated = jest
   .fn()
   .mockResolvedValue(undefined);
@@ -1447,6 +1453,16 @@ describe('App', () => {
         expect(mockEndTrace).toHaveBeenCalledWith({
           name: TraceName.UIStartup,
         });
+      });
+    });
+
+    it('marks the first commit for the startup recorder after mount', async () => {
+      mockMarkStartup.mockClear();
+
+      renderApp();
+
+      await waitFor(() => {
+        expect(mockMarkStartup).toHaveBeenCalledWith('appFirstCommit');
       });
     });
 

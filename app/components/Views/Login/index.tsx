@@ -12,6 +12,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import performance from 'react-native-performance';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -378,6 +379,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const handBackAt = performance.now();
     const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
       appStartType: loginPerformanceTags.current.app_start_type,
     });
@@ -402,8 +404,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             });
           await unlockWallet(
             resumeOverlay
-              ? { password, navigationBehavior: 'preserve' }
-              : { password },
+              ? { password, handBackAt, navigationBehavior: 'preserve' }
+              : { password, handBackAt },
           );
           if (resumeOverlay) {
             dismissResumeOverlay();

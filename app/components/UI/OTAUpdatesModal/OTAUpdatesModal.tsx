@@ -16,6 +16,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
 import { useAssetFromTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { flagNextStartupAsJsReload } from '../../../core/Performance/startupStageSpans';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import BottomSheet, {
@@ -71,6 +72,7 @@ const OTAUpdatesModal = () => {
 
       if (Platform.OS === 'ios') {
         try {
+          flagNextStartupAsJsReload();
           await reloadAsync();
         } catch (error) {
           Logger.error(

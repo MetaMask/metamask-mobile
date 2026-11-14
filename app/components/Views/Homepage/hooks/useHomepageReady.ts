@@ -7,6 +7,11 @@ import {
   startHomepageReadyTrace,
   type HomepageReadyContentState,
 } from '../../../../core/Performance/HomepageReady';
+import {
+  dropUnlockToHomepageReady,
+  finishUnlockToHomepageReady,
+  markUnlockHomeFocused,
+} from '../../../../core/Performance/unlockToHomepageReady';
 import type { HomepageDeviceCapability } from '../types';
 
 interface UseHomepageReadyOptions extends Partial<HomepageDeviceCapability> {
@@ -39,6 +44,16 @@ export const useHomepageReady = ({
     resolveColdHomepageReadyTrace({ isHomepageFocused: isFocused });
   }, [isFocused]);
 
+  // Before the effect below, so a homepage that is ready on mount is marked
+  // focused before the unlock is sent.
+  useEffect(() => {
+    if (!isFocused) {
+      return undefined;
+    }
+    const unlockToken = markUnlockHomeFocused();
+    return () => dropUnlockToHomepageReady('navigated_away', unlockToken);
+  }, [isFocused]);
+
   useEffect(() => {
     if (isFocused && contentReady && networkTierResolved !== false) {
       endHomepageReadyTrace({
@@ -46,6 +61,8 @@ export const useHomepageReady = ({
         ...(hardwareTier === undefined ? {} : { hardwareTier }),
         ...(networkTier === undefined ? {} : { networkTier }),
       });
+      // After Homepage Ready ends, so sending the unlock is not part of it.
+      finishUnlockToHomepageReady({ contentState });
     }
   }, [
     contentReady,

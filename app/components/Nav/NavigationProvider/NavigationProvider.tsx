@@ -18,6 +18,10 @@ import {
   TraceName,
 } from '../../../util/trace';
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
+import {
+  markStartup,
+  noteStartupRouteChange,
+} from '../../../core/Performance/startupStageSpans';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NAVIGATION_CHILDREN_ROUTE } from './constants';
 import { NavigationProviderProps } from './types';
@@ -69,6 +73,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   // during render—is compatible with the React Compiler, while preserving the
   // original "start during the first render" timing.
   useState(() => {
+    markStartup('navInitStart');
     trace({
       name: TraceName.NavInit,
       parentContext: getUIStartupSpan(),
@@ -81,6 +86,7 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
    * Triggers when the navigation is ready
    */
   const onReady = () => {
+    markStartup('navReady');
     // End trace when navigation is ready
     endTrace({ name: TraceName.NavInit });
     // Trim standalone App Start to this point via the Navigation
@@ -109,9 +115,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     if (focusedRoute) {
       recordFocusedRoute(focusedRoute);
     }
-    handleDeeplinkNavigationStateChange({
-      focusedRouteNames: collectFocusedRouteNames(state),
-    });
+    const focusedRouteNames = collectFocusedRouteNames(state);
+    handleDeeplinkNavigationStateChange({ focusedRouteNames });
+    noteStartupRouteChange(focusedRouteNames);
   };
 
   /**

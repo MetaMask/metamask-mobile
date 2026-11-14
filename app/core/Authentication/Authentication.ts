@@ -1,4 +1,5 @@
-import SecureKeychain from '../SecureKeychain';
+import performance from 'react-native-performance';
+import SecureKeychain, { type CredentialReadTimings } from '../SecureKeychain';
 import Engine from '../Engine';
 import { Engine as EngineClass } from '../Engine/Engine';
 import {
@@ -125,6 +126,20 @@ import {
   getUnlockAppStartType,
   resumeUnlockDeeplinkNavigatedAfterOptIn,
 } from '../Performance/unlockTraces';
+import {
+  dropUnlockToHomepageReady,
+  markUnlockCompleted,
+  markUnlockNavigate,
+  recordUnlockStage,
+  startUnlockStage,
+  startUnlockToHomepageReady,
+  type UnlockHandBack,
+  type UnlockToHomepageReadyToken,
+} from '../Performance/unlockToHomepageReady';
+import {
+  noteStartupCredentialRequest,
+  noteStartupSeedlessPrecheck,
+} from '../Performance/startupStageSpans';
 
 type Incident1745IdentifySource =
   | 'rehydrateSeedPhrase'
@@ -275,11 +290,19 @@ export interface AuthData {
   oauth2Login?: boolean;
 }
 
+/** `performance.now()` around the controller check; unset when the user is not seedless. */
+export interface SeedlessPasswordCheckTimings {
+  startedAt?: number;
+  endedAt?: number;
+}
+
 export interface CheckIsSeedlessPasswordOutdatedOptions {
   /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
   skipCache?: boolean;
   /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
   captureSentryError?: boolean;
+  /** Filled in as the check runs. */
+  timings?: SeedlessPasswordCheckTimings;
 }
 
 class AuthenticationService {
@@ -947,6 +970,7 @@ class AuthenticationService {
    *
    * @param options - Options for unlocking the wallet.
    * @param options.password - The password to use to unlock the wallet.
+   * @param options.handBackAt - `performance.now()` when the user submitted `password`. `Unlock To Homepage Ready` starts here; defaults to when `unlockWallet` was called.
    * @param options.onBeforeNavigate - When set, awaited after unlock succeeds and before navigation to home/opt-in.
    * @param options.navigationBehavior - `preserve` leaves the current route in place. Resume uses it because the privacy cover is hiding that route. The default navigates to Home, a pending deeplink, or the metrics opt-in screen.
    * @returns - void
@@ -954,6 +978,7 @@ class AuthenticationService {
   unlockWallet = async (
     {
       password,
+      handBackAt,
       authPreference,
       onBeforeNavigate,
       navigationBehavior = 'default',
@@ -963,6 +988,7 @@ class AuthenticationService {
       parentContext,
     }: {
       password?: string;
+      handBackAt?: number;
       authPreference?: AuthData;
       onBeforeNavigate?: () => Promise<void>;
       navigationBehavior?: 'default' | 'preserve';
@@ -972,7 +998,9 @@ class AuthenticationService {
       authPreference: undefined,
     },
   ) => {
+    const unlockEnteredAt = performance.now();
     let passwordToUse: string | undefined;
+    let unlockToHomepageReadyToken: UnlockToHomepageReadyToken | null = null;
     try {
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
@@ -981,28 +1009,51 @@ class AuthenticationService {
         // existing user is always false when user try to rehydrate
 
         let fallbackToPassword = false;
+        let handBack: UnlockHandBack;
         if (password !== undefined) {
           // Explicitly provided password.
           passwordToUse = password;
+          handBack = { source: 'typed', submittedAt: handBackAt };
         } else {
           // Derive password from biometric credentials. Ex. FaceID, TouchID, Pincode
-          const credentials = await SecureKeychain.getGenericPassword();
+          const credentialReadTimings: CredentialReadTimings = {};
+          const credentialRead = SecureKeychain.getGenericPassword(
+            credentialReadTimings,
+          );
+          noteStartupCredentialRequest(credentialReadTimings);
+          const credentials = await credentialRead;
           passwordToUse = credentials?.password;
+          handBack = { source: 'keychain', credentialReadTimings };
         }
 
         if (passwordToUse) {
           // Password available. Use password to unlock wallet.
+          unlockToHomepageReadyToken = startUnlockToHomepageReady({
+            handBack,
+            unlockEnteredAt,
+            existingUser,
+            beforeNavigate: onBeforeNavigate !== undefined,
+          });
+
+          const seedlessCheckTimings: SeedlessPasswordCheckTimings = {};
           if (authPreference?.oauth2Login) {
             // If seedless flow, rehydrate and nest OnboardingFetchSrps under
             // the onboarding journey when a parent context is supplied.
+            const stopSeedlessRehydrate =
+              startUnlockStage('seedless_rehydrate');
             await this.rehydrateSeedPhrase(passwordToUse, parentContext);
+            stopSeedlessRehydrate();
             fallbackToPassword = true;
           } else if (
             await this.checkIsSeedlessPasswordOutdated({
               skipCache: false,
               captureSentryError: true,
+              timings: seedlessCheckTimings,
             })
           ) {
+            const stopSeedlessPasswordSync = startUnlockStage(
+              'seedless_password_sync',
+            );
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
@@ -1010,12 +1061,21 @@ class AuthenticationService {
               true,
               false,
             );
+            stopSeedlessPasswordSync();
             fallbackToPassword = true;
           }
+          recordUnlockStage(
+            'seedless_password_check',
+            seedlessCheckTimings.startedAt,
+            seedlessCheckTimings.endedAt,
+          );
 
           // Unlock keyrings.
+          const stopVaultUnlock = startUnlockStage('vault_unlock');
           await this.loginVaultCreation(passwordToUse);
+          stopVaultUnlock();
 
+          const stopUnlockFinalize = startUnlockStage('unlock_finalize');
           // Update authentication preference.
           if (authPreference) {
             await this.updateAuthPreference({
@@ -1045,10 +1105,14 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
+          stopUnlockFinalize();
 
           if (onBeforeNavigate) {
+            const stopBeforeNavigate = startUnlockStage('before_navigate');
             await onBeforeNavigate();
+            stopBeforeNavigate();
           }
+          markUnlockNavigate();
 
           // Resume already has a route under the privacy cover. Leave it.
           if (navigationBehavior === 'preserve') {
@@ -1063,6 +1127,10 @@ class AuthenticationService {
           );
           if (!isOptinMetaMetricsUISeen && !isMetricsEnabled) {
             const deeplinkAppStartType = getUnlockAppStartType();
+            dropUnlockToHomepageReady(
+              'metrics_opt_in',
+              unlockToHomepageReadyToken,
+            );
             cancelDeeplinkNavigatedTrace({ reason: 'metrics_opt_in' });
             clearUnlockAppStartType();
 
@@ -1090,6 +1158,7 @@ class AuthenticationService {
           } else {
             await navigateToPostUnlockHome();
           }
+          markUnlockCompleted();
         } else {
           // No password provided or derived. Navigate to login.
           NavigationService.navigation?.reset({
@@ -1109,6 +1178,8 @@ class AuthenticationService {
       // eslint-disable-next-line no-useless-catch
     } catch (error) {
       // Error while submitting password.
+      // Drop before the alert below, which waits on the user.
+      dropUnlockToHomepageReady('unlock_failed', unlockToHomepageReadyToken);
 
       let shouldResetOnLock = false;
       // Only check for specific error messages when the thrown value is an actual
@@ -1749,9 +1820,13 @@ class AuthenticationService {
   ): Promise<boolean> => {
     const skipCache = options.skipCache ?? true;
     const captureSentryError = options.captureSentryError ?? false;
+    const { timings } = options;
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
+    }
+    if (timings) {
+      timings.startedAt = performance.now();
     }
     try {
       const isSeedlessPasswordOutdated =
@@ -1769,6 +1844,10 @@ class AuthenticationService {
         Logger.log('checkIsSeedlessPasswordOutdated', error);
       }
       return false;
+    } finally {
+      if (timings) {
+        timings.endedAt = performance.now();
+      }
     }
   };
 
@@ -1780,12 +1859,15 @@ class AuthenticationService {
   tryBiometricUnlock = async (options?: {
     navigationBehavior?: 'default' | 'preserve';
   }): Promise<void> => {
-    if (
+    const seedlessCheckTimings: SeedlessPasswordCheckTimings = {};
+    const isSeedlessPasswordOutdated =
       await this.checkIsSeedlessPasswordOutdated({
         skipCache: true,
         captureSentryError: false,
-      })
-    ) {
+        timings: seedlessCheckTimings,
+      });
+    noteStartupSeedlessPrecheck(seedlessCheckTimings);
+    if (isSeedlessPasswordOutdated) {
       NavigationService.navigation?.reset({
         routes: [
           {

@@ -4,6 +4,10 @@ import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
 import { selectAppServicesReady } from '../../../reducers/user/selectors';
 import FoxLoader from '../../UI/FoxLoader';
+import {
+  markStartup,
+  timeStartupStep,
+} from '../../../core/Performance/startupStageSpans';
 /**
  * A higher order component that gate keeps the children until the app services are finished loaded
  * and the splash loader has dismissed.
@@ -21,11 +25,19 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
   const loaderOpacity = useAnimatedValue(1);
 
   const fadeOutLoader = useCallback(() => {
+    const stopFade = timeStartupStep(
+      'splash_reveal_tax',
+      'startup.splash.fade_ms',
+    );
     Animated.timing(loaderOpacity, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => setLoaderDone(true));
+    }).start(() => {
+      stopFade();
+      markStartup('splashGone');
+      setLoaderDone(true);
+    });
   }, [loaderOpacity]);
 
   // Fade out once the loader has dismissed and app services are ready.
