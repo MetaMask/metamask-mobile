@@ -70,4 +70,19 @@ Two rules:
 - `runs-on:` must inline the full resolution chain. The `env` context is not available in `runs-on`, so it cannot be factored out.
 - Every step condition must test the job's `RESOLVED_RUNNER_PROVIDER` env var, never `inputs.runner_provider` directly. Testing the raw input means a provider set through the variables is silently ignored, and the job would take the wrong `checkout` / `cache` branch on a Namespace runner.
 
+### Production release approvals
+
+Production builds (`build-production` and `build-flask-prod` environments in `builds.yml`) and production OTA updates need approval from two different release approvers. Neither can be the person who triggered the run.
+
+GitHub environments let one reviewer approve each job, so these runs pause twice on the same environment:
+
+1. **Release approval** — `release-approval` in `build.yml`, or in `push-eas-update.yml` for OTA.
+2. **The signing job** — `build` in `build.yml`, or `push-update` in `eas-update-platform.yml`.
+
+The signing job's first step, "Verify release approvals", reads the run's approval history and fails unless two different people approved, not counting whoever triggered the run. If one person approves both, re-run the failed job and have a second approver approve it.
+
+Environment setup (repo admins): give `build-production` and `build-flask-prod` required reviewers from the release approvers team, and enable "Prevent self-review". Without required reviewers no approval is recorded, so the check fails closed.
+
+Break-glass: a repo admin sets the `RELEASE_APPROVALS_REQUIRED` repository variable to `1`. The organization audit log records the variable change, and each affected run logs a "Break-glass" warning. It cannot go below one, because the environment's own reviewer rule still applies. Delete the variable afterwards.
+
 And that's it! Thanks for helping out.
