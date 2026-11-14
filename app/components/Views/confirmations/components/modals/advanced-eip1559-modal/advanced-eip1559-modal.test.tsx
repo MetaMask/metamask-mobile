@@ -9,6 +9,11 @@ import { AdvancedEIP1559Modal } from './advanced-eip1559-modal';
 
 const mockPersistGasFeePreference = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
   usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),

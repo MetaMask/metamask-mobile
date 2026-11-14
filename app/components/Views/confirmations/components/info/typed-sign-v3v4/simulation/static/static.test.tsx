@@ -10,6 +10,11 @@ const mockProps = {
   simulationElements: <></>,
 };
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('StaticSimulation', () => {
   it('renders correctly with basic props', () => {
     const { getByText } = render(<StaticSimulation {...mockProps} />);

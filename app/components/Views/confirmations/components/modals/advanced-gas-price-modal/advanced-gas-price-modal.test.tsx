@@ -9,6 +9,11 @@ import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 const mockPersistGasFeePreference = jest.fn();
 const mockUseTransactionMetadataRequest = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
   usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),

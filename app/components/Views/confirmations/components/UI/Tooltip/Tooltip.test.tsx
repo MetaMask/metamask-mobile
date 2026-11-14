@@ -4,6 +4,11 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import Tooltip from './Tooltip';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('Tooltip', () => {
   it('renders the open button', () => {
     const { getByTestId } = render(

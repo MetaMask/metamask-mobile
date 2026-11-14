@@ -5,7 +5,6 @@ import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useStyles } from '../../../../../../component-library/hooks';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Text,
@@ -19,6 +18,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ApproveMethod } from '../../../types/approve';
 import { SpendingCapInput } from '../../spending-cap-input';
 import styleSheet from './edit-spending-cap-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface EditSpendingCapProps {
   approveMethod: ApproveMethod;
@@ -42,6 +44,7 @@ export const EditSpendingCapModal = ({
   onClose,
   tokenSymbol,
 }: EditSpendingCapProps & ModalProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [newSpendingCap, setNewSpendingCap] = useState(spendingCap);
@@ -71,9 +74,12 @@ export const EditSpendingCapModal = ({
         keyboardAvoidingViewEnabled
         onClose={handleSheetClosed}
       >
-        <BottomSheetHeader onClose={handleRequestClose}>
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          onClose={handleRequestClose}
+        >
           {strings('confirm.edit_spending_cap_modal.title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box twClassName="flex flex-col p-4 pt-0">
           <Text
             variant={TextVariant.BodyMd}

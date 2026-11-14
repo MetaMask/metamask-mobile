@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
@@ -40,6 +39,9 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PayWithModalParams {
   /**
@@ -55,6 +57,7 @@ export interface PayWithModalParams {
 }
 
 export function PayWithModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
@@ -274,7 +277,9 @@ export function PayWithModal() {
         }
       }}
     >
-      <BottomSheetHeader onClose={handleClose}>{modalTitle}</BottomSheetHeader>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
+        {modalTitle}
+      </BottomSheetHeaderGlass>
       <Asset
         includeNoBalance
         hideNfts

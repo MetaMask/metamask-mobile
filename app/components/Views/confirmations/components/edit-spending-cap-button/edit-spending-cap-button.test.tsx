@@ -4,6 +4,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { ApproveMethod } from '../../types/approve';
 import { EditSpendingCapButton } from './edit-spending-cap-button';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('EditSpendingCapButton', () => {
   const defaultProps = {
     spendingCapProps: {

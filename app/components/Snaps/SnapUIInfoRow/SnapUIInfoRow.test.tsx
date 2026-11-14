@@ -4,6 +4,11 @@ import SnapUIInfoRow, { RowVariant } from './SnapUIInfoRow';
 import Text from '../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 describe('SnapUIInfoRow', () => {
   it('renders correctly with default props', () => {
     const { getByTestId, getByText } = render(
