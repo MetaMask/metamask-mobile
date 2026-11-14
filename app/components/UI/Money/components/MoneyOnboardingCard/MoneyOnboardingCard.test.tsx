@@ -266,12 +266,15 @@ describe('MoneyOnboardingCard', () => {
       expect(getByTestId('money-onboarding-card-container')).toBeOnTheScreen();
     });
 
-    it('draws the card on glass when isGlass is set', () => {
+    it('draws the card as a section instead of the sheen when isGlass is set', () => {
       setupDefaultMocks({ currentStep: 0 });
 
-      const { getByTestId } = render(<MoneyOnboardingCard isGlass />);
+      const { getByTestId, queryByTestId } = render(
+        <MoneyOnboardingCard isGlass />,
+      );
 
-      expect(getByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toBeOnTheScreen();
+      expect(getByTestId('money-onboarding-card-container')).toBeOnTheScreen();
+      expect(queryByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 

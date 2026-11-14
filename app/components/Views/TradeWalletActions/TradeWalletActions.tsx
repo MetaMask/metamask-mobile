@@ -30,6 +30,8 @@ import { useParams } from '../../../util/navigation/navUtils';
 
 import {
   ActionListItem,
+  Box,
+  BoxBackgroundColor,
   FontWeight,
   IconName,
   Tag,
@@ -39,7 +41,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BlurView } from 'expo-blur';
-import { GlassView } from 'expo-glass-effect';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -54,10 +55,11 @@ import {
   useBlurMaterial,
 } from '../../../component-library/hooks/useBlurMaterial';
 import { useLiquidGlass } from '../../../component-library/hooks/useLiquidGlass';
+import ElevationSurface from '../../../component-library/components-temp/ElevationSurface';
+import { ElevationRole } from '../../../component-library/components-temp/ElevationSurface/elevation';
 import {
   TAB_BAR_FLOATING_HEIGHT,
   TRADE_TRAY_GLASS_BORDER_OPACITY,
-  TRADE_TRAY_GLASS_FILL_OPACITY,
   TRADE_TRAY_GLASS_RADIUS,
 } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import { getTabBarFloatingBottomPadding } from '../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
@@ -180,12 +182,12 @@ function TradeWalletActions() {
   // The refreshed bar's menu pops from its button; the control tray slides.
   const isSpringboardMenu = isTradeFocusedArm && isNativeTabBarEnabled;
   const { isBlurAvailable, tint } = useBlurMaterial();
-  const { isGlassEnabled, glassColorScheme } = useLiquidGlass();
-  // Glass needs one rounded surface; the notched edge is an SVG shape that
-  // cannot be glass, so only the plain sheet gets the material.
-  const isGlassSheet = isGlassEnabled && !hasBottomNotch;
+  const { isGlassEnabled } = useLiquidGlass();
+  // A sheet is an opaque elevated surface, not glass. The notched edge stays
+  // on the existing solid path because its bottom is an SVG.
+  const isElevatedSheet = isGlassEnabled && !hasBottomNotch;
   const isTranslucentSheet =
-    !isGlassSheet && isTradeFocusedArm && isBlurAvailable;
+    !isElevatedSheet && isTradeFocusedArm && isBlurAvailable;
 
   const glassBorderStyle = useMemo(
     () => ({
@@ -198,19 +200,10 @@ function TradeWalletActions() {
     }),
     [colors.border.muted],
   );
-  const glassFillStyle = useMemo(
-    () => ({
-      ...continuousCorners,
-      borderRadius: TRADE_TRAY_GLASS_RADIUS,
-      opacity: TRADE_TRAY_GLASS_FILL_OPACITY,
-    }),
-    [],
-  );
-
-  // Glass grows its own frame out of the button rather than scaling, which
-  // needs the button it came from and a measured tray height.
+  // The menu grows out of the button rather than scaling, which needs the
+  // button it came from and a measured tray height.
   const isMorphMenu =
-    isSpringboardMenu && isGlassSheet && Boolean(buttonLayout);
+    isSpringboardMenu && isElevatedSheet && Boolean(buttonLayout);
   const [trayHeight, setTrayHeight] = useState<number>();
   const morphRects = useMemo(() => {
     if (!buttonLayout || trayHeight === undefined) {
@@ -234,7 +227,7 @@ function TradeWalletActions() {
 
   const sheetProgress = useSharedValue(0);
   const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: isGlassSheet ? 1 : sheetProgress.value,
+    opacity: isElevatedSheet ? 1 : sheetProgress.value,
     transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
   }));
 
@@ -513,19 +506,11 @@ function TradeWalletActions() {
         morphAnimatedStyle,
       ]}
     >
-      <GlassView
-        glassEffectStyle="regular"
-        colorScheme={glassColorScheme}
-        testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-        style={StyleSheet.absoluteFill}
-      />
-      <View
+      <Box
         pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          tw.style(surfaceClass),
-          { opacity: TRADE_TRAY_GLASS_FILL_OPACITY },
-        ]}
+        testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+        backgroundColor={BoxBackgroundColor.BackgroundElevated1}
+        style={StyleSheet.absoluteFill}
       />
       <Animated.View
         onLayout={(event) => setTrayHeight(event.nativeEvent.layout.height)}
@@ -543,32 +528,15 @@ function TradeWalletActions() {
   const sheetContent = (
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
-        {isGlassSheet ? (
-          <View
-            style={[tw.style('mb-4'), glassBorderStyle]}
-            testID={WalletActionsBottomSheetSelectorsIDs.MENU_GLASS_BORDER}
+        {isElevatedSheet ? (
+          <ElevationSurface
+            role={ElevationRole.Sheet}
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
+            twClassName="mb-4 overflow-hidden px-0 py-4"
+            style={[trayCorners, { borderRadius: TRADE_TRAY_GLASS_RADIUS }]}
           >
-            <GlassView
-              glassEffectStyle="regular"
-              colorScheme={glassColorScheme}
-              testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-              style={[
-                tw.style('p-4 px-0 overflow-hidden'),
-                continuousCorners,
-                { borderRadius: TRADE_TRAY_GLASS_RADIUS },
-              ]}
-            >
-              <View
-                pointerEvents="none"
-                style={[
-                  StyleSheet.absoluteFill,
-                  tw.style(surfaceClass),
-                  glassFillStyle,
-                ]}
-              />
-              {actionList}
-            </GlassView>
-          </View>
+            {actionList}
+          </ElevationSurface>
         ) : isTranslucentSheet && !hasBottomNotch ? (
           <BlurView
             testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
