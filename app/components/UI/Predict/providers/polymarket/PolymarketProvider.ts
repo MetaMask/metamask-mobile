@@ -357,6 +357,8 @@ export class PolymarketProvider implements PredictProvider {
    */
   #apiKeysByProtocolAddress: Map<string, Promise<ApiKeyCreds>> = new Map();
   #accountStateByAddress: Map<string, CachedAccountState> = new Map();
+  #accountStateInFlight: Map<string, Promise<AccountState>> = new Map();
+  #accountStateGeneration: Map<string, number> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   /**
    * The Gamma market version of every outcome token this session has seen —
@@ -423,8 +425,12 @@ export class PolymarketProvider implements PredictProvider {
 
   public invalidateAccountState(ownerAddress: string): void {
     try {
-      this.#accountStateByAddress.delete(
-        this.#getAccountStateCacheKey(ownerAddress),
+      const cacheKey = this.#getAccountStateCacheKey(ownerAddress);
+      this.#accountStateByAddress.delete(cacheKey);
+      this.#accountStateInFlight.delete(cacheKey);
+      this.#accountStateGeneration.set(
+        cacheKey,
+        (this.#accountStateGeneration.get(cacheKey) ?? 0) + 1,
       );
     } catch (error) {
       DevLogger.log('PolymarketProvider: Failed to invalidate account state', {
@@ -3322,24 +3328,58 @@ export class PolymarketProvider implements PredictProvider {
   public async getAccountState(
     params: GetAccountStateParams,
   ): Promise<AccountState> {
-    try {
-      const { ownerAddress, forceRefresh } = params;
+    const { ownerAddress, forceRefresh } = params;
 
-      if (!ownerAddress) {
-        throw new Error('Owner address is required');
+    if (!ownerAddress) {
+      throw new Error('Owner address is required');
+    }
+
+    const normalizedOwnerAddress = getAddress(ownerAddress);
+    const cacheKey = this.#getAccountStateCacheKey(normalizedOwnerAddress);
+
+    if (!forceRefresh) {
+      const cachedAccountState = this.#getCachedAccountState(
+        normalizedOwnerAddress,
+      );
+      if (cachedAccountState) {
+        return cachedAccountState;
       }
 
-      const normalizedOwnerAddress = getAddress(ownerAddress);
+      const inFlight = this.#accountStateInFlight.get(cacheKey);
+      if (inFlight) {
+        return inFlight;
+      }
+    } else {
+      this.#accountStateGeneration.set(
+        cacheKey,
+        (this.#accountStateGeneration.get(cacheKey) ?? 0) + 1,
+      );
+    }
 
-      if (!forceRefresh) {
-        const cachedAccountState = this.#getCachedAccountState(
-          normalizedOwnerAddress,
-        );
-        if (cachedAccountState) {
-          return cachedAccountState;
+    const generation = this.#accountStateGeneration.get(cacheKey) ?? 0;
+    const request = this.#loadAccountState(normalizedOwnerAddress)
+      .then((accountState) => {
+        // Skip the write when invalidateAccountState bumped the generation
+        // after this read started, so a stale resolution cannot refill the cache.
+        if ((this.#accountStateGeneration.get(cacheKey) ?? 0) === generation) {
+          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
         }
-      }
+        return accountState;
+      })
+      .finally(() => {
+        if (this.#accountStateInFlight.get(cacheKey) === request) {
+          this.#accountStateInFlight.delete(cacheKey);
+        }
+      });
 
+    this.#accountStateInFlight.set(cacheKey, request);
+    return request;
+  }
+
+  async #loadAccountState(
+    normalizedOwnerAddress: string,
+  ): Promise<AccountState> {
+    try {
       let legacySafeAddress: Hex;
       try {
         legacySafeAddress = computeProxyAddress(normalizedOwnerAddress);
@@ -3362,13 +3402,11 @@ export class PolymarketProvider implements PredictProvider {
         });
 
         if (hasActivity) {
-          const accountState: AccountState = {
+          return {
             address: legacySafeAddress,
             isDeployed: true,
             walletType: 'safe',
           };
-          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
-          return accountState;
         }
       }
 
@@ -3399,20 +3437,15 @@ export class PolymarketProvider implements PredictProvider {
             isDeployed: true,
             walletType: 'safe',
           };
-          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
           return accountState;
         }
       }
 
-      const accountState: AccountState = {
+      return {
         address: depositWalletAddress,
         isDeployed: depositWalletIsDeployed,
         walletType: 'deposit-wallet',
       };
-
-      this.#setCachedAccountState(normalizedOwnerAddress, accountState);
-
-      return accountState;
     } catch (error) {
       DevLogger.log('PolymarketProvider: getAccountState failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
