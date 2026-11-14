@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import NetInfo from '@react-native-community/netinfo';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import type { PaymentMethod } from '@metamask/ramps-controller';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,7 +12,10 @@ import {
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
+import {
+  VBA_TEST_MONEY_ADDRESS,
+  type VbaMarketsOption,
+} from '../../../../../../tests/component-view/presets/vba';
 import {
   renderVbaCardHomeEntry,
   renderVbaMoneyEntry,
@@ -39,6 +43,9 @@ const mockHydrateVbaOnboarding = jest.mocked(
 );
 const mockFetchVendorDisclaimers = jest.mocked(
   Engine.context.KycController.fetchVendorDisclaimers,
+);
+const mockGetPaymentMethodsForContext = jest.mocked(
+  Engine.context.RampsController.getPaymentMethodsForContext,
 );
 
 const rampsController = Engine.context.RampsController as unknown as {
@@ -89,6 +96,114 @@ const existingAccountWithNoCurrencyFlags = (): DeepPartial<RootState> =>
       },
     },
   }) as unknown as DeepPartial<RootState>;
+
+const manualBankTransfer: PaymentMethod = {
+  id: '/payments/bank-transfer',
+  paymentType: 'bank-transfer',
+  name: 'Bank transfer',
+  score: 1,
+  icon: 'bank',
+  isManualBankTransfer: true,
+  delay: [2880, 4320],
+};
+
+type BankAccountRowState = 'enabled' | 'coming-soon' | 'hidden';
+type ArrivalCopy = 'pix' | 'business-days';
+
+const ARRIVAL_TITLE: Record<ArrivalCopy, () => string> = {
+  pix: () =>
+    strings(
+      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+    ),
+  'business-days': () =>
+    strings(
+      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+      { timeframe: '2 - 3 business days' },
+    ),
+};
+
+interface GateRow {
+  name: string;
+  markets: VbaMarketsOption;
+  location: 'BR' | 'US' | 'PT';
+  expected: BankAccountRowState;
+  arrival?: ArrivalCopy;
+  legacyFlagEnabled?: boolean;
+}
+
+const BRL_ONLY: VbaMarketsOption = { brl: true, usd: false };
+const USD_ONLY: VbaMarketsOption = { brl: false, usd: true };
+const BOTH: VbaMarketsOption = { brl: true, usd: true };
+const BOTH_OFF: VbaMarketsOption = { brl: false, usd: false };
+
+const NEW_USER_GATE_ROWS: GateRow[] = [
+  {
+    name: 'BRL only',
+    markets: BRL_ONLY,
+    location: 'BR',
+    expected: 'enabled',
+    arrival: 'pix',
+  },
+  { name: 'BRL only', markets: BRL_ONLY, location: 'US', expected: 'hidden' },
+  { name: 'BRL only', markets: BRL_ONLY, location: 'PT', expected: 'hidden' },
+  { name: 'USD only', markets: USD_ONLY, location: 'BR', expected: 'hidden' },
+  {
+    name: 'USD only',
+    markets: USD_ONLY,
+    location: 'US',
+    expected: 'enabled',
+    arrival: 'business-days',
+  },
+  { name: 'USD only', markets: USD_ONLY, location: 'PT', expected: 'hidden' },
+  {
+    name: 'both',
+    markets: BOTH,
+    location: 'BR',
+    expected: 'enabled',
+    arrival: 'pix',
+  },
+  {
+    name: 'both',
+    markets: BOTH,
+    location: 'US',
+    expected: 'enabled',
+    arrival: 'business-days',
+  },
+  { name: 'both', markets: BOTH, location: 'PT', expected: 'hidden' },
+  {
+    name: 'both off',
+    markets: BOTH_OFF,
+    location: 'BR',
+    expected: 'coming-soon',
+  },
+  {
+    name: 'both off',
+    markets: BOTH_OFF,
+    location: 'US',
+    expected: 'coming-soon',
+  },
+  {
+    name: 'both off',
+    markets: BOTH_OFF,
+    location: 'PT',
+    expected: 'coming-soon',
+  },
+  {
+    name: 'legacy flag off, BRL open',
+    markets: BRL_ONLY,
+    location: 'BR',
+    expected: 'enabled',
+    arrival: 'pix',
+    legacyFlagEnabled: false,
+  },
+  {
+    name: 'legacy flag on only',
+    markets: BOTH_OFF,
+    location: 'BR',
+    expected: 'coming-soon',
+    legacyFlagEnabled: true,
+  },
+];
 
 const emptyOnboardingSnapshot = {
   sessionExists: false,
@@ -416,6 +531,99 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).toBeOnTheScreen();
     expect(getByText(pixInstructions.pixKey)).toBeOnTheScreen();
     expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+  });
+
+  describe('Bank account row gate matrix', () => {
+    beforeEach(() => {
+      mockGetPaymentMethodsForContext.mockReset();
+      mockGetPaymentMethodsForContext.mockResolvedValue({
+        methods: [manualBankTransfer],
+        selected: null,
+        providerIds: [],
+      });
+    });
+
+    const openSheet = async (
+      view: ReturnType<typeof renderVbaMoneyEntry>,
+    ): Promise<void> => {
+      fireEvent.press(
+        await view.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
+      );
+      // Always rendered, so an absent Bank account row means hidden, not still opening.
+      await view.findByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION);
+    };
+
+    it.each(NEW_USER_GATE_ROWS)(
+      '$name, $location: Bank account row is $expected',
+      async ({ markets, location, expected, arrival, legacyFlagEnabled }) => {
+        const view = renderVbaMoneyEntry({
+          markets,
+          location,
+          legacyFlagEnabled,
+        });
+        await openSheet(view);
+
+        if (expected === 'hidden') {
+          expect(
+            view.queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+          ).not.toBeOnTheScreen();
+          expect(
+            view.queryByText(strings('money.add_money_sheet.coming_soon')),
+          ).toBeNull();
+          return;
+        }
+
+        const row = view.getByTestId(
+          MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        );
+        if (expected === 'coming-soon') {
+          expect(row).toBeDisabled();
+          expect(
+            view.getByText(strings('money.add_money_sheet.coming_soon')),
+          ).toBeOnTheScreen();
+          fireEvent.press(row);
+          expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
+          return;
+        }
+
+        expect(row).toBeEnabled();
+        expect(
+          view.queryByText(strings('money.add_money_sheet.coming_soon')),
+        ).toBeNull();
+
+        fireEvent.press(row);
+
+        expect(
+          await view.findByTestId(
+            CreateVirtualBankAccountSelectorsIDs.CONTAINER,
+          ),
+        ).toBeOnTheScreen();
+        if (arrival) {
+          expect(
+            await view.findByText(ARRIVAL_TITLE[arrival]()),
+          ).toBeOnTheScreen();
+        }
+      },
+    );
+
+    it('hides the Bank account row while location is still loading and a currency flag is open', async () => {
+      const view = renderVbaMoneyEntry({
+        markets: BRL_ONLY,
+        overrides: {
+          engine: {
+            backgroundState: {
+              // Blank, not empty: an empty location blocks the whole sheet.
+              GeolocationController: { location: ' ', status: 'loading' },
+            },
+          },
+        } as unknown as DeepPartial<RootState>,
+      });
+      await openSheet(view);
+
+      expect(
+        view.queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   describe('from Card home', () => {
