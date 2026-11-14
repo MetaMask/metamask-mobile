@@ -13,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
-import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
 import AnimatedNumericText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedNumericText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
@@ -175,10 +174,13 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             </Tag>
           ) : null}
         </Box>
+        {/* Glyph row, same as the P&L. The slot reel mounts a thirty-text
+            wheel per digit, and the first live price mounts one per card. */}
         {subtitleLabel && live ? (
-          <AnimatedSlotText
+          <AnimatedNumericText
             animated={!live.reduceMotion}
             color={TextColor.TextAlternative}
+            fontFamily={FontFamily.Default}
             fontWeight={FontWeight.Medium}
             testID={props.testID && `${props.testID}-subtitle`}
             value={subtitleLabel}
