@@ -9,6 +9,8 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
+import { useQuickDepositStablecoins } from '../../hooks/useQuickDepositStablecoins';
+import type { QuickDepositStablecoinOption } from '../../utils/quickDepositStablecoins';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
@@ -77,6 +79,10 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
+}));
+
+jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
+  useQuickDepositStablecoins: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -179,6 +185,7 @@ describe('MoneyAddMoneySheet', () => {
       tokenBalanceAggregated: '1203.89',
       tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1203.89' },
     });
+    (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -817,6 +824,157 @@ describe('MoneyAddMoneySheet', () => {
         address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
         chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
       },
+    });
+  });
+
+  describe('USDC and USDT quick deposit', () => {
+    const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7' as const;
+    const BASE_USDC_ADDRESS =
+      '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
+
+    const usdcOption: QuickDepositStablecoinOption = {
+      symbol: 'USDC',
+      aggregatedBalance: '65',
+      preferredPaymentToken: {
+        address: BASE_USDC_ADDRESS,
+        chainId: CHAIN_IDS.BASE,
+      },
+    };
+    const usdtOption: QuickDepositStablecoinOption = {
+      symbol: 'USDT',
+      aggregatedBalance: '12.5',
+      preferredPaymentToken: {
+        address: USDT_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      },
+    };
+
+    it('shows USDC and USDT rows with the held balance when the account holds both', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
+        usdcOption,
+        usdtOption,
+      ]);
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION),
+      ).toBeOnTheScreen();
+      expect(getByText('$65.00')).toBeOnTheScreen();
+      expect(getByText('USDC')).toBeOnTheScreen();
+      expect(getByText('$12.50')).toBeOnTheScreen();
+      expect(getByText('USDT')).toBeOnTheScreen();
+    });
+
+    it('hides USDC and USDT when the account holds neither', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
+
+      const { queryByTestId, getByTestId } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
+
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+      ).toBeNull();
+      expect(
+        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION),
+      ).toBeNull();
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens MetaMask Pay with the USDC contract and the addMusd full-balance intent', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: BASE_USDC_ADDRESS,
+          chainId: CHAIN_IDS.BASE,
+        },
+      });
+    });
+
+    it('opens MetaMask Pay with the USDT contract and the addMusd full-balance intent', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdtOption]);
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: USDT_ADDRESS,
+          chainId: CHAIN_IDS.MAINNET,
+        },
+      });
+    });
+
+    it('places funded USDC and USDT directly after mUSD', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
+        usdcOption,
+        usdtOption,
+      ]);
+
+      const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
+      const order = getOptionOrder(UNSAFE_root, [
+        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION,
+      ]);
+
+      expect(order).toEqual([
+        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
+        MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION,
+      ]);
+    });
+
+    it('calls trackSurfaceClicked with the USDC component when the USDC row is pressed', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
+    });
+
+    it('calls trackSurfaceClicked with the USDT component when the USDT row is pressed', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdtOption]);
+
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDT,
+        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      });
     });
   });
 

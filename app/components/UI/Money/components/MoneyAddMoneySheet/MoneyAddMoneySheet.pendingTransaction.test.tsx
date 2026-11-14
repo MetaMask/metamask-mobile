@@ -165,6 +165,9 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
+jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
+  useQuickDepositStablecoins: jest.fn(() => []),
+}));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),

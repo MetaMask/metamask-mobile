@@ -9936,6 +9936,8 @@
       "deposit_funds": "Debit card or Apple Pay",
       "bank_account": "Bank transfer",
       "add_musd": "Add mUSD",
+      "quick_deposit_usdc": "USDC",
+      "quick_deposit_usdt": "USDT",
       "receive_external": "External address",
       "coming_soon": "Coming soon",
       "new_badge": "New",
