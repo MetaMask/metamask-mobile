@@ -193,7 +193,9 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.openInterest).toBe(
       PERPS_CONSTANTS.FallbackPriceDisplay,
     );
-    expect(result.current.fundingRate).toBe('0.0000%');
+    expect(result.current.fundingRate).toBe(
+      PERPS_CONSTANTS.FallbackPercentageDisplay,
+    );
   });
 
   it('formats extremely large numbers with appropriate suffixes', () => {
@@ -223,8 +225,8 @@ describe('usePerpsMarketStats', () => {
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.volume24h).toBe('$12.35T'); // Decimals in formatVolume for detailed view
-    expect(result.current.openInterest).toBe('$99.00T'); // Decimals in formatLargeNumber for detailed view
+    expect(result.current.volume24h).toBe('$12.35T');
+    expect(result.current.openInterest).toBe('$99.00T');
   });
 
   it('subscribes to prices only once when the first price tick arrives', () => {
@@ -387,10 +389,10 @@ describe('usePerpsMarketStats', () => {
     expect(callbacks).toHaveLength(2);
 
     act(() => callbacks[1]([{ ...mockPriceData.BTC, volume24h: 1 }]));
-    expect(result.current.volume24h).toBe('$1');
+    expect(result.current.volume24h).toBe('$1.00');
 
     act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 2 }]));
-    expect(result.current.volume24h).toBe('$1');
+    expect(result.current.volume24h).toBe('$1.00');
   });
 
   it('formats negative funding rates with proper sign and decimals', () => {
@@ -445,9 +447,9 @@ describe('usePerpsMarketStats', () => {
     // Act
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    // Assert: actual zeros format as $0, not the missing-data placeholder
-    expect(result.current.volume24h).toBe('$0');
-    expect(result.current.openInterest).toBe('$0');
+    // Assert: actual zeros format as $0.00, not the missing-data placeholder
+    expect(result.current.volume24h).toBe('$0.00');
+    expect(result.current.openInterest).toBe('$0.00');
   });
 
   it('does not treat a current-symbol tick without stats as live data', () => {

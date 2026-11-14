@@ -10,7 +10,8 @@ import {
   calculateMarginRequired,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
-  formatPositionSize,
+  // Locale-independent: the full-close size is submitted to the venue.
+  formatPositionSize as formatCanonicalPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -85,6 +86,7 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
+  usePerpsLiveAvailableToTrade,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
@@ -111,6 +113,8 @@ import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selecte
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
 import {
+  formatMaxSlippageNumber,
+  formatPercentageNumber,
   formatPerpsFiat,
   formatPerpsPrice,
   formatWithSignificantDigits,
@@ -158,6 +162,7 @@ import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
+  PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
 } from '../../../../constants/perpsConfig';
@@ -1385,7 +1390,7 @@ export const usePerpsProOrderForm = ({
 
     return isVenueSizedScale
       ? absolutePositionSize.toFixed()
-      : formatPositionSize(absolutePositionSize.toFixed(), szDecimals);
+      : formatCanonicalPositionSize(absolutePositionSize.toFixed(), szDecimals);
   }, [
     currentMarketPosition?.size,
     isAtMaxAmount,
@@ -1890,7 +1895,11 @@ export const usePerpsProOrderForm = ({
   );
   const estimatedSlippagePctDisplay: string | null = useMemo(
     () =>
-      estimatedSlippagePct === null ? null : estimatedSlippagePct.toFixed(2),
+      estimatedSlippagePct === null
+        ? null
+        : formatPercentageNumber(estimatedSlippagePct, {
+            decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+          }),
     [estimatedSlippagePct],
   );
   const exceedsMaxSlippage =
@@ -2807,8 +2816,12 @@ export const usePerpsProOrderForm = ({
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.slippage.exceeds_max', {
-            est: estPct.toFixed(2),
-            max: maxPct.toFixed(2),
+            est: formatPercentageNumber(estPct, {
+              decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+            }),
+            max: formatPercentageNumber(maxPct, {
+              decimals: PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS,
+            }),
           }),
         ),
       );
@@ -3805,17 +3818,27 @@ export const usePerpsProOrderForm = ({
     }
   }, [assetData.price, commitLimitPrice, szDecimals]);
 
-  const availableBalance = useMemo(() => {
-    if (!isInitialized) {
-      return strings('perps.pro_order_form.available_balance_unavailable');
-    }
-
-    return strings('perps.pro_order_form.available_balance', {
-      amount: formatPerpsFiat(spendableBalance, {
-        ranges: PRICE_RANGES_MINIMAL_VIEW,
-      }),
-    });
-  }, [isInitialized, spendableBalance]);
+  const availableToTrade = usePerpsLiveAvailableToTrade({
+    symbol,
+    providerId: market.providerId,
+  });
+  // The venue's per-market, per-side amount (it nets the market's position,
+  // PnL, resting orders and leverage), not the account-wide withdrawable.
+  const availableToTradeForSide =
+    orderForm.direction === 'short'
+      ? availableToTrade?.short
+      : availableToTrade?.long;
+  const availableBalance = useMemo(
+    () =>
+      availableToTradeForSide === undefined
+        ? strings('perps.pro_order_form.available_to_trade_unknown')
+        : strings('perps.pro_order_form.available_to_trade', {
+            amount: formatPerpsFiat(availableToTradeForSide, {
+              ranges: PRICE_RANGES_MINIMAL_VIEW,
+            }),
+          }),
+    [availableToTradeForSide],
+  );
 
   const isTriggerOrderUnavailable =
     isTriggerOrderType(orderForm.type) &&
@@ -4063,17 +4086,17 @@ export const usePerpsProOrderForm = ({
     if (!hidesSlippage) {
       if (isTriggerMarketOrder) {
         slippage = strings('perps.slippage.row_format_max', {
-          value: bpsToPercent(resolvedMaxSlippageBps),
+          value: formatMaxSlippageNumber(resolvedMaxSlippageBps),
         });
       } else if (isMarketOrder) {
         slippage =
           estimatedSlippagePctDisplay === null
             ? strings('perps.slippage.row_format_pending', {
-                value: bpsToPercent(maxSlippageBps),
+                value: formatMaxSlippageNumber(maxSlippageBps),
               })
             : strings('perps.slippage.row_format', {
                 est: estimatedSlippagePctDisplay,
-                value: bpsToPercent(maxSlippageBps),
+                value: formatMaxSlippageNumber(maxSlippageBps),
               });
       }
     }

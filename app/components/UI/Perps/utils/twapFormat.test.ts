@@ -55,7 +55,7 @@ describe('formatTwapDuration', () => {
 });
 
 describe('formatTwapProgressPercent', () => {
-  it('converts basis points to whole percent', () => {
+  it('converts basis points to a percent without trailing zeros', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(2500);
 
@@ -71,7 +71,7 @@ describe('formatTwapProgressPercent', () => {
     expect(result).toBe('99.99%');
   });
 
-  it('keeps fractional progress without fixed-width trailing zeros', () => {
+  it('keeps fractional progress at two decimals', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(2505);
 

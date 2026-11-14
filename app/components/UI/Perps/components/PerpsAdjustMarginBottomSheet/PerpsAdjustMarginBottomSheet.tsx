@@ -57,7 +57,6 @@ import {
 } from '../../../../../util/haptics';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
@@ -66,6 +65,7 @@ import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
+  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -124,7 +124,7 @@ const formatLiquidationDistance = (
   !Number.isFinite(liquidationPrice) ||
   liquidationPrice <= 0
     ? PERPS_CONSTANTS.FallbackDataDisplay
-    : `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+    : formatLiquidationDistancePercent(distance);
 
 const formatLiquidationPrice = (liquidationPrice: number) =>
   Number.isFinite(liquidationPrice) && liquidationPrice > 0

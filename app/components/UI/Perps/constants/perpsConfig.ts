@@ -57,13 +57,6 @@ export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
 export const PERPS_MIN_AGGREGATORS_FOR_TRUST = 2;
 
 /**
- * Decimal places shown for a taker/maker fee rate percentage (e.g.
- * `0.00143` → `"0.143"`). Used by `PerpsFeesDisplay`'s percentage mode
- * (Perps Fee Display Format A/B test).
- */
-export const PERPS_FEE_RATE_DISPLAY_DECIMALS = 3;
-
-/**
  * Checks if an asset is trustworthy for displaying the Perps Discovery Banner.
  * An asset is considered trustworthy if:
  * - It is a native asset (ETH, BNB, SOL, etc.), OR
@@ -196,11 +189,18 @@ export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
   new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
 /**
- * Decimal places used when displaying how far a position's current price sits
- * from its liquidation price, as a percentage. Whole-number rounding hid
- * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
+ * Decimal places for the estimated and max slippage percentages in the order
+ * forms. Mobile keeps its current 2 decimals while product decides whether it
+ * moves to perps-controller's `PERPS_DISPLAY_PRECISION.SlippageEstimatePercent`
+ * (4). Pending a product decision.
  */
-export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+export const PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS = 2;
+
+/**
+ * Decimal places for the take profit / stop loss percentages summarised on
+ * order forms, position rows and the stop-loss prompt (e.g. `TP 25%`).
+ */
+export const PERPS_TPSL_PERCENT_DISPLAY_DECIMALS = 0;
 
 /**
  * Share of position notional kept back from the removable-margin maximum.
@@ -530,5 +530,7 @@ export const MOBILE_PRO_LAYOUT_DEFAULTS = {
   orderBookExpanded: true,
   orderBookPosition: 'right',
 } as const;
+/** Order form "available to trade" update throttle, matching its other live values. */
+export const PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS = 1000;
 /** Maximum retained development submission/cancellation records and Scale form lifetimes. */
 export const PERPS_UI_OBSERVATION_LIMIT = 50;

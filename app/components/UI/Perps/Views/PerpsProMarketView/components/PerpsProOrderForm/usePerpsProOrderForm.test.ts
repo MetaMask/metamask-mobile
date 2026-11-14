@@ -11,13 +11,14 @@ import {
   type PerpsMarketData,
   type OrderResult,
   TRIGGER_ORDER_TYPES,
+  type PerpsAvailableToTrade,
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../../locales/i18n';
 import {
   PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
   PERPS_ANALYTICS_SIZE_UNIT,
@@ -402,7 +403,13 @@ jest.mock('../../../../../Compliance', () => ({
   },
 }));
 
+let mockAvailableToTrade: PerpsAvailableToTrade | undefined;
+const mockUsePerpsLiveAvailableToTrade = jest.fn(
+  (_options: unknown) => mockAvailableToTrade,
+);
 jest.mock('../../../../hooks/stream', () => ({
+  usePerpsLiveAvailableToTrade: (options: unknown) =>
+    mockUsePerpsLiveAvailableToTrade(options),
   usePerpsLivePrices: () => ({
     BTC: {
       price: mockLivePrice,
@@ -804,18 +811,79 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('availableBalance', () => {
-    it('formats spendable balance as "$amount available" when connected', () => {
-      const { result } = renderProForm();
+    const availableToTradeLabel = (amount: string) =>
+      strings('perps.pro_order_form.available_to_trade', { amount });
+    const unknownLabel = strings(
+      'perps.pro_order_form.available_to_trade_unknown',
+    );
 
-      expect(result.current.availableBalance).toMatch(/^\$500 available$/);
+    beforeEach(() => {
+      mockAvailableToTrade = undefined;
     });
 
-    it('shows the unavailable placeholder before Perps is initialized', () => {
-      mockIsInitialized = false;
+    it('has a translation for both labels', () => {
+      const labels = [availableToTradeLabel('$1'), unknownLabel];
+
+      expect(labels.filter((label) => label.includes('missing'))).toEqual([]);
+    });
+
+    it('shows the placeholder until the market value is known', () => {
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toBe(unknownLabel);
+    });
+
+    it('reads the value for the market and its provider', () => {
+      renderProForm();
+
+      expect(mockUsePerpsLiveAvailableToTrade).toHaveBeenLastCalledWith({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
+    });
+
+    it('shows the controller value for the long side, not the withdrawable balance', () => {
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '8.65',
+        short: '9.65',
+      };
 
       const { result } = renderProForm();
 
-      expect(result.current.availableBalance).toBe('-- available');
+      expect(result.current.availableBalance).toBe(
+        availableToTradeLabel('$8.65'),
+      );
+    });
+
+    it('shows the short side value for a short order', () => {
+      mockContextValue.orderForm = { ...mockOrderForm, direction: 'short' };
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '8.65',
+        short: '9.65',
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toBe(
+        availableToTradeLabel('$9.65'),
+      );
+    });
+
+    it('shows a genuine zero as a value, not the placeholder', () => {
+      mockAvailableToTrade = {
+        providerId: 'hyperliquid',
+        symbol: 'BTC',
+        long: '0',
+        short: '0',
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.availableBalance).toBe(availableToTradeLabel('$0'));
     });
   });
 
@@ -3494,6 +3562,35 @@ describe('usePerpsProOrderForm', () => {
         isFullClose: true,
       });
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
+    });
+
+    it('submits a canonical fractional size for a full close in a German app language', async () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'de';
+      mockExistingPosition = {
+        size: '-0.5',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      act(() => {
+        result.current.sizeSlider.onDragEnd(
+          result.current.sizeSlider.maximumValue,
+        );
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+      I18n.locale = originalLocale;
+
+      expect(mockExecuteOrder.mock.calls[0][0]).toMatchObject({
+        size: '0.5',
+        reduceOnly: true,
+        isFullClose: true,
+      });
     });
 
     it('keeps a focused max preview from becoming a full close', async () => {

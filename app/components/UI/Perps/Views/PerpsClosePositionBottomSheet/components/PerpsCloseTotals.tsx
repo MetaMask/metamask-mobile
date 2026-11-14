@@ -6,20 +6,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
-import { formatPercentage } from '../../../utils/formatUtils';
+import { formatRoePercentage } from '../../../utils/formatUtils';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
   getCloseSummaryPnlColor,
 } from '../../../components/PerpsCloseSummary/closeSummaryFormat';
-
-// `formatPercentage` renders -0 as "+0.00%"; a limit RoE that rounds to
-// zero from below (a limit just under the entry price) must keep its minus
-// sign so the percentage agrees with the $P&L rendered beside it. The $P&L
-// must also be negative, so a market RoE of exactly -0 beside a non-negative
-// P&L keeps the plain formatted value.
-const formatSummaryPercentage = (value: number, pnl: number) =>
-  Object.is(value, -0) && pnl < 0 ? '-0.00%' : formatPercentage(value);
 
 export interface PerpsCloseTotalsProps {
   /** P&L realized by the close; undefined while unavailable. */
@@ -68,7 +60,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
           ? PERPS_CONSTANTS.FallbackDataDisplay
           : `${formatSignedCloseSummaryFiat(pnl)}${
               roePercentage !== undefined
-                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                ? ` (${formatRoePercentage(roePercentage, pnl < 0)})`
                 : ''
             }`
       }

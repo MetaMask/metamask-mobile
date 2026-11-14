@@ -573,7 +573,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('3,100');
+      ).toHaveTextContent('$3,100');
       expect(
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_CURSOR,
@@ -621,7 +621,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('0.00');
+      ).toHaveTextContent('$0.00');
     });
 
     it('prompts to set a price instead of showing a zero limit after Done', () => {
@@ -751,7 +751,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.getByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
         ),
-      ).toHaveTextContent('3,100');
+      ).toHaveTextContent('$3,100');
     });
 
     it('hides the limit price field again when switching back to market', () => {

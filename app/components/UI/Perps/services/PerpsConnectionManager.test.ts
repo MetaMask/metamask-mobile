@@ -103,6 +103,7 @@ const mockStreamManagerInstance = {
     reconnect: jest.fn(),
   },
   focusedPrice: { clearCache: jest.fn(), reconnect: jest.fn() },
+  availableToTrade: { clearCache: jest.fn(), reconnect: jest.fn() },
   candles: {
     clearCache: jest.fn(),
     prewarm: jest.fn(() => jest.fn()),
@@ -1565,6 +1566,9 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.topOfBook.reconnect,
       ).toHaveBeenCalledTimes(1);
+      expect(
+        mockStreamManagerInstance.availableToTrade.reconnect,
+      ).toHaveBeenCalledTimes(1);
       expect(mockPerpsController.init.mock.invocationCallOrder[0]).toBeLessThan(
         mockStreamManagerInstance.candles.reconnect.mock.invocationCallOrder[0],
       );
@@ -1627,6 +1631,14 @@ describe('PerpsConnectionManager', () => {
       );
       expect(
         mockStreamManagerInstance.topOfBook.reconnect,
+      ).toHaveBeenCalledTimes(1);
+      // The balance is per account, so an account-only reconnect clears and
+      // restores it even though market data is kept.
+      expect(
+        mockStreamManagerInstance.availableToTrade.clearCache,
+      ).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.availableToTrade.reconnect,
       ).toHaveBeenCalledTimes(1);
       unsubscribe();
     });
@@ -1991,6 +2003,9 @@ describe('PerpsConnectionManager', () => {
         mockStreamManagerInstance.focusedPrice.clearCache,
       ).toHaveBeenCalled();
       expect(mockStreamManagerInstance.candles.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.availableToTrade.clearCache,
+      ).toHaveBeenCalled();
       // Hard teardown must also abandon pending confirmation CUFs.
       expect(mockClearPendingPerpsCufTraces).toHaveBeenCalled();
     });

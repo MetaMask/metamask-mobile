@@ -84,6 +84,7 @@ jest.mock('../../utils/formatUtils', () => ({
     const num = typeof value === 'string' ? parseFloat(value) : value;
     return `$${num.toFixed(2)}`;
   }),
+  formatLiquidationDistancePercent: (value: number) => `${value.toFixed(2)}%`,
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));

@@ -34,10 +34,10 @@ import { usePerpsActivityQuery } from './hooks/usePerpsActivityQuery';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import {
   type PerpsTransaction,
+  formatPerpsFiat,
   formatPerpsOrderFee,
   formatSignedPerpsFiat,
   formatPerpsTransactionDate,
-  formatPositiveFiat,
   getPerpsPositionSize,
   getPerpsPriceValue,
 } from './components/ActivityDetailsPerps.utils';
@@ -654,7 +654,7 @@ describeForPlatforms('ActivityDetails — Perps trades', () => {
       { exact: false },
     );
     expect(
-      within(feesRow).getByText(fill?.fee ? formatPositiveFiat(fill.fee) : ''),
+      within(feesRow).getByText(fill?.fee ? formatPerpsFiat(fill.fee) : ''),
     ).toBeOnTheScreen();
 
     if (pnl) {

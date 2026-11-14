@@ -45,7 +45,7 @@ import {
   getPerpsDisplaySymbol,
   type Position,
 } from '@metamask/perps-controller';
-import { formatPerpsFiat } from '../utils/formatUtils';
+import { formatRoePercentage, formatPerpsFiat } from '../utils/formatUtils';
 import {
   handlePerpsError,
   type OrderEditRejection,
@@ -1008,7 +1008,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(2)}%`}
+                        {formatRoePercentage(roeValue, roeValue < 0)}
                       </Text>
                     </Text>,
                   ),
@@ -1079,7 +1079,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(2)}%`}
+                        {formatRoePercentage(roeValue, roeValue < 0)}
                       </Text>
                     </Text>,
                   ),

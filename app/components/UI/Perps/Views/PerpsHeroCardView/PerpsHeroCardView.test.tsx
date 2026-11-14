@@ -59,6 +59,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => `$${value}`),
   parseCurrencyString: jest.fn((value) => value?.replace('$', '') || ''),
+  formatPercentage: jest.requireActual('../../utils/formatUtils')
+    .formatPercentage,
+  formatRoePercentage: jest.requireActual('../../utils/formatUtils')
+    .formatRoePercentage,
   PRICE_RANGES_MINIMAL_VIEW: [],
 }));
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
@@ -144,7 +148,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('+10.00%');
+      expect(pnlText).toHaveTextContent('+10.0%');
     });
   });
 
@@ -423,7 +427,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('-10.00%');
+      expect(pnlText).toHaveTextContent('-10.0%');
     });
   });
 });

@@ -387,7 +387,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$5')).toBeOnTheScreen();
   });
 
-  it('should display fees with < $0.01 label for amounts < 0.01', () => {
+  it('displays fees with a <$0.01 label for amounts below one cent', () => {
     // Given a transaction with fee less than 0.01
     const smallFeeTransaction = {
       ...mockTransaction,
@@ -405,9 +405,9 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    // Then fee should display with < $0.01 label (not the actual value)
+    // Then fee should display with <$0.01 label (not the actual value)
     expect(getByText('Total fees')).toBeOnTheScreen();
-    expect(getByText('< $0.01')).toBeOnTheScreen();
+    expect(getByText('<$0.01')).toBeOnTheScreen();
   });
 
   it('should not render points when not present', () => {

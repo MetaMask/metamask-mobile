@@ -19,11 +19,13 @@ import {
 import {
   PerpsMeasurementName,
   PERFORMANCE_CONFIG,
+  PERPS_DISPLAY_PRECISION,
   formatAccountToCaipAccountId,
   type OrderType,
   type PerpsFeeSource,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { formatPercentage } from '../utils/formatUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import { determineMakerStatus } from '../utils/orderUtils';
 
@@ -675,11 +677,12 @@ export function usePerpsOrderFees({
 /**
  * Format fee rate as percentage
  * @param rate Fee rate as decimal (e.g., 0.00045)
- * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
+ * @returns Formatted percentage string (e.g., "0.045%"), or the shared `--%`
+ * placeholder when the rate is unknown
  */
 export function formatFeeRate(rate: number | undefined | null): string {
-  if (rate === undefined || rate === null || Number.isNaN(rate)) {
-    return 'N/A';
-  }
-  return `${(rate * 100).toFixed(3)}%`;
+  return formatPercentage(
+    rate === undefined || rate === null ? rate : rate * 100,
+    { decimals: PERPS_DISPLAY_PRECISION.FeeRatePercent, sign: 'never' },
+  );
 }

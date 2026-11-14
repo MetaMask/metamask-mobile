@@ -8,7 +8,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import type { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import {
   createEthMarketForViews,
@@ -254,7 +254,7 @@ describe('PerpsClosePositionRouter', () => {
       // (100 / 833.33 = +12.00%).
       renderTreatmentSheet(createLongPositionForViews(), { price: '2600' });
 
-      expect(await findPnlRow()).toHaveTextContent('+$100 (+10.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$100 (+10.0%)');
     });
 
     it('shows a loss and the position RoE in the P&L row for a market close', async () => {
@@ -268,7 +268,7 @@ describe('PerpsClosePositionRouter', () => {
         { price: '2400' },
       );
 
-      expect(await findPnlRow()).toHaveTextContent('-$100 (-10.00%)');
+      expect(await findPnlRow()).toHaveTextContent('-$100 (-10.0%)');
     });
 
     it('keeps the position RoE on a partial market close', async () => {
@@ -280,7 +280,7 @@ describe('PerpsClosePositionRouter', () => {
       fireEvent.press(screen.getByText('50%'));
       fireEvent.press(screen.getByText(strings('perps.deposit.done_button')));
 
-      expect(await findPnlRow()).toHaveTextContent('+$50 (+10.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$50 (+10.0%)');
     });
 
     it('shows the RoE at the limit price for a limit close', async () => {
@@ -294,7 +294,7 @@ describe('PerpsClosePositionRouter', () => {
 
       await selectLimitAtMidPrice();
 
-      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.0%)');
     });
 
     it('shows the RoE at the limit price for a losing limit close', async () => {
@@ -308,7 +308,7 @@ describe('PerpsClosePositionRouter', () => {
 
       await selectLimitAtMidPrice();
 
-      expect(await findPnlRow()).toHaveTextContent('-$100 (-12.00%)');
+      expect(await findPnlRow()).toHaveTextContent('-$100 (-12.0%)');
     });
 
     it('shows the RoE at the limit price for a short limit close', async () => {
@@ -323,7 +323,7 @@ describe('PerpsClosePositionRouter', () => {
 
       await selectLimitAtMidPrice();
 
-      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.0%)');
     });
 
     it('keeps a minus sign on a long limit RoE that rounds to zero from below', async () => {
@@ -340,7 +340,7 @@ describe('PerpsClosePositionRouter', () => {
 
       await selectLimitAtMidPrice();
 
-      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.0%)');
     });
 
     it('keeps a minus sign on a short limit RoE that rounds to zero from below', async () => {
@@ -358,7 +358,7 @@ describe('PerpsClosePositionRouter', () => {
 
       await selectLimitAtMidPrice();
 
-      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.00%)');
+      expect(await findPnlRow()).toHaveTextContent('-$0.10 (-0.0%)');
     });
 
     it('keeps the plain percentage for a market RoE of exactly zero', async () => {
@@ -372,7 +372,7 @@ describe('PerpsClosePositionRouter', () => {
         }),
       );
 
-      expect(await findPnlRow()).toHaveTextContent('+$0 (+0.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$0 (+0.0%)');
     });
 
     it('keeps the RoE at the limit price when the live price moves after it is set', async () => {
@@ -397,7 +397,47 @@ describe('PerpsClosePositionRouter', () => {
         });
       });
 
-      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.00%)');
+      expect(await findPnlRow()).toHaveTextContent('+$100 (+12.0%)');
+    });
+
+    it('shows a German limit price draft with one currency symbol', async () => {
+      const originalLocale = I18n.locale;
+      I18n.locale = 'de';
+      try {
+        renderTreatmentSheet(createLongPositionForViews(), {
+          limitOrderFlag: true,
+        });
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.ORDER_TYPE_BUTTON,
+          ),
+        );
+        const pressKeys = (keys: (keyof typeof KeypadTestIds)[]) =>
+          keys.forEach((key) =>
+            fireEvent.press(screen.getByTestId(KeypadTestIds[key])),
+          );
+
+        pressKeys(['KEY_2', 'KEY_6', 'KEY_0', 'KEY_0', 'KEY_DOT']);
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+          ),
+        ).toHaveTextContent('2.600, $');
+
+        pressKeys(['KEY_5', 'KEY_0']);
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT,
+          ),
+        ).toHaveTextContent('2.600,50 $');
+        expect(
+          screen.getByTestId(
+            PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW,
+          ).props.accessibilityLabel,
+        ).toBe(`${strings('perps.order.limit_price')}, 2.600,50\u00a0$`);
+      } finally {
+        I18n.locale = originalLocale;
+      }
     });
 
     it('omits the percentage when nothing is being closed', async () => {

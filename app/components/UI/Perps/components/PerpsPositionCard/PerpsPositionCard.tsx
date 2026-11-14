@@ -41,6 +41,7 @@ import {
 import {
   formatPerpsFiat,
   formatPnl,
+  formatRoePercentage,
   formatPositionSize,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -133,7 +134,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   // ROE is always stored as a decimal (e.g., 0.171 for 17.10%);
   // the shared parser converts it to the displayed percentage.
-  const roe = parsePositionRoePercentage(position.returnOnEquity) ?? 0;
+  // Undefined while the venue has not reported it; the label then shows the
+  // shared placeholder instead of a formatted zero.
+  const roePercentage = parsePositionRoePercentage(position.returnOnEquity);
+  const roe = roePercentage ?? 0;
 
   // Funding cost (cumulative since open) formatting logic
   const fundingSinceOpenRaw = position.cumulativeFunding?.sinceOpen ?? '0';
@@ -381,8 +385,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {roe >= 0 ? '+' : ''}
-                {roe.toFixed(2)}%
+                {formatRoePercentage(roePercentage, roe < 0)}
               </SensitiveText>
             </Card>
           </Box>

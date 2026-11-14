@@ -198,7 +198,7 @@ describe('transactionTransforms', () => {
 
         expect(transaction.fill).toMatchObject({
           fee: '0',
-          amount: '-$0.00',
+          amount: '$0.00',
           amountNumber: 0,
           isPositive: false,
         });
@@ -2664,7 +2664,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',
@@ -2844,7 +2844,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',

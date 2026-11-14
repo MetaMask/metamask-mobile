@@ -22,6 +22,7 @@ import {
   CHASE_ORDER_STATUS,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
+  PERPS_DISPLAY_PRECISION,
   PERPS_EVENT_PROPERTY,
   type ChaseOrder,
   type Order,
@@ -40,9 +41,8 @@ import React, {
 } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import I18n, { strings } from '../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { getIntlNumberFormatter } from '../../../../../../util/intl';
 import Logger from '../../../../../../util/Logger';
 import { ensureError } from '../../../../../../util/errorUtils';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
@@ -72,6 +72,7 @@ import {
 } from '../../../Perps.testIds';
 import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations';
 import {
+  formatPercentage,
   formatPerpsFiat,
   formatPositionSize,
   formatProOrderCardTimestamp,
@@ -164,6 +165,13 @@ const FILTER_ROW_CONTENT_STYLE = {
   paddingHorizontal: 8,
   paddingTop: 12,
 } as const;
+
+/** A Chase distance in basis points as a percent, e.g. `50` → `"0.50%"`. */
+const formatChaseDistance = (bps: number): string =>
+  formatPercentage(bps / 100, {
+    decimals: PERPS_DISPLAY_PRECISION.Percentage,
+    sign: 'never',
+  });
 
 const isChaseHistoryOrder = (order: ChaseOrder) =>
   CHASE_HISTORY_STATUSES.has(order.status);
@@ -565,14 +573,6 @@ const PerpsProPositionsPanel = ({
         markets.map((market) => [market.symbol, market.fundingRate]),
       ),
     [markets],
-  );
-  const locale = I18n.locale;
-  const chaseDistanceFormatter = useMemo(
-    () =>
-      getIntlNumberFormatter(locale, {
-        maximumFractionDigits: 2,
-      }),
-    [locale],
   );
 
   const visiblePositions = useMemo(
@@ -1085,10 +1085,8 @@ const PerpsProPositionsPanel = ({
     const maxDistance =
       order.maxDistanceBps === undefined
         ? PERPS_CONSTANTS.FallbackPercentageDisplay
-        : `${chaseDistanceFormatter.format(order.maxDistanceBps / 100)}%`;
-    const distanceChased = `${chaseDistanceFormatter.format(
-      order.distanceChasedBps / 100,
-    )}%`;
+        : formatChaseDistance(order.maxDistanceBps);
+    const distanceChased = formatChaseDistance(order.distanceChasedBps);
     const displayedDistanceLabel = isHistoryOrder
       ? strings('perps.order.chase.card.max_distance')
       : strings('perps.order.chase.card.distance_chased');

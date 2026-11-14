@@ -1131,9 +1131,9 @@ describe('formatFeeRate', () => {
   });
 
   it('should handle invalid values', () => {
-    expect(formatFeeRate(undefined)).toBe('N/A');
-    expect(formatFeeRate(null)).toBe('N/A');
-    expect(formatFeeRate(NaN)).toBe('N/A');
+    expect(formatFeeRate(undefined)).toBe('--%');
+    expect(formatFeeRate(null)).toBe('--%');
+    expect(formatFeeRate(NaN)).toBe('--%');
   });
 });
 

@@ -1,8 +1,18 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
+
+// The row's funding description for an unknown rate, built from its message key
+// so a copy change does not break the placeholder assertions.
+const UNKNOWN_FUNDING_DESCRIPTION = `BTC · ${
+  PERPS_CONSTANTS.FallbackPercentageDisplay
+} ${strings('perps.sort.funding_rate_short')}`;
 
 // Mock PerpsTokenLogo
 jest.mock('../PerpsTokenLogo', () => {
@@ -813,7 +823,7 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('BTC · -0.2300% Funding')).toBeOnTheScreen();
     });
 
-    it('displays zero funding rate when fundingRate is undefined', () => {
+    it('displays the funding placeholder when fundingRate is undefined', () => {
       const marketWithoutFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: undefined,
@@ -826,11 +836,10 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display zero funding rate using formatFundingRate utility
-      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText(UNKNOWN_FUNDING_DESCRIPTION)).toBeOnTheScreen();
     });
 
-    it('displays zero funding rate when fundingRate is null', () => {
+    it('displays the funding placeholder when fundingRate is null', () => {
       const marketWithNullFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: null as unknown as number,
@@ -843,8 +852,7 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display zero funding rate
-      expect(screen.getByText('BTC · 0.0000% Funding')).toBeOnTheScreen();
+      expect(screen.getByText(UNKNOWN_FUNDING_DESCRIPTION)).toBeOnTheScreen();
     });
 
     it('displays zero funding rate when fundingRate is 0', () => {

@@ -49,8 +49,8 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import {
+  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -276,7 +276,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       if (liquidationPrice === 0) {
         return PERPS_CONSTANTS.FallbackDataDisplay;
       }
-      return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+      return formatLiquidationDistancePercent(distance);
     },
     [],
   );

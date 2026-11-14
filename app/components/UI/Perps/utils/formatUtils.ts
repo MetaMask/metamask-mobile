@@ -7,12 +7,31 @@ import {
   getIntlDateTimeFormatter,
   getIntlNumberFormatter,
 } from '../../../../util/intl';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
+import { getFormatters } from '../../../hooks/useFormatters';
+import { bpsToPercent } from '../constants/slippageConfig';
 import {
   type FiatRangeConfig,
-  formatPerpsFiat,
+  type PerpsCompactFormatOptions,
+  type PerpsDisplayFormatOptions,
+  type PerpsFiatFormatOptions,
+  type PerpsFundingRateFormatOptions,
+  type PerpsOrderBookPriceFormat,
+  type PerpsOrderBookPriceFormatOptions,
+  type PerpsPercentageFormatOptions,
+  type PerpsSignDisplay,
+  formatFundingRate as formatFundingRateEnUs,
   formatHyperLiquidPrice,
+  formatLiquidationDistance as formatLiquidationDistanceEnUs,
+  formatPercentage as formatPercentageEnUs,
+  formatPerpsCompact as formatPerpsCompactEnUs,
+  formatPerpsFiat as formatPerpsFiatEnUs,
+  formatPerpsOrderBookPrice as formatPerpsOrderBookPriceEnUs,
+  formatPnl as formatPnlEnUs,
+  formatPositionSize as formatPositionSizeEnUs,
   formatWithSignificantDigits,
+  PERPS_CONSTANTS,
+  PERPS_DISPLAY_PRECISION,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
@@ -23,12 +42,149 @@ export {
   formatWithSignificantDigits,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
-  formatPositionSize,
-  formatPnl,
-  formatPercentage,
-  formatFundingRate,
 } from '@metamask/perps-controller';
-export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+/*
+ * The perps-controller display formatters, bound to the app language. This is
+ * the one place Mobile injects `createFormatters({ locale })` (cached per
+ * language by `getFormatters`). Display code uses these wrappers; execution
+ * values (order sizes and prices sent to the venue) use the locale-free Core
+ * functions directly.
+ */
+
+type PerpsDisplayValue = string | number | null | undefined;
+
+const toDisplayOptions = (
+  decimalsOrOptions?: number | PerpsDisplayFormatOptions,
+): PerpsDisplayFormatOptions =>
+  typeof decimalsOrOptions === 'number'
+    ? { decimals: decimalsOrOptions }
+    : { ...decimalsOrOptions };
+
+/** Core `formatPnl` in the app language. */
+export const formatPnl = (
+  pnl: PerpsDisplayValue,
+  options?: PerpsDisplayFormatOptions,
+): string => formatPnlEnUs(pnl, { formatters: getFormatters(), ...options });
+
+/** Core `formatPercentage` in the app language. */
+export const formatPercentage = (
+  value: PerpsDisplayValue,
+  decimalsOrOptions?: number | PerpsPercentageFormatOptions,
+): string =>
+  formatPercentageEnUs(value, {
+    formatters: getFormatters(),
+    ...(typeof decimalsOrOptions === 'number'
+      ? { decimals: decimalsOrOptions }
+      : decimalsOrOptions),
+  });
+
+/**
+ * A %RoE at the position precision whose sign agrees with the loss/profit
+ * colour rendered with it. `formatPercentage` shows a value that rounds to zero
+ * as `+0.0%`; when `isLoss` (the colour is the loss colour) and the value is not
+ * positive, it keeps a minus (`-0.0%`) so it agrees with e.g. `-$0.01` beside it.
+ * An unknown value renders the shared placeholder.
+ */
+export const formatRoePercentage = (
+  value: number | undefined,
+  isLoss: boolean,
+): string => {
+  const percentage = formatPercentage(
+    value,
+    PERPS_DISPLAY_PRECISION.RoePercent,
+  );
+  if (
+    value === undefined ||
+    !isLoss ||
+    value > 0 ||
+    percentage.startsWith('-')
+  ) {
+    return percentage;
+  }
+  const unsigned = formatPercentage(value, {
+    decimals: PERPS_DISPLAY_PRECISION.RoePercent,
+    sign: 'never',
+  });
+  return `-${unsigned}`;
+};
+
+/** Core `formatFundingRate` in the app language. */
+export const formatFundingRate = (
+  value?: PerpsDisplayValue,
+  options?: PerpsFundingRateFormatOptions,
+): string =>
+  formatFundingRateEnUs(value, { formatters: getFormatters(), ...options });
+
+/** Core `formatPositionSize` in the app language. */
+export const formatPositionSize = (
+  size: PerpsDisplayValue,
+  szDecimalsOrOptions?: number | PerpsDisplayFormatOptions,
+): string =>
+  formatPositionSizeEnUs(size, {
+    formatters: getFormatters(),
+    ...toDisplayOptions(szDecimalsOrOptions),
+  });
+
+/**
+ * Core `formatPercentage` without its trailing `%`, for locale templates that
+ * place the `%` themselves (e.g. `"Est: {{est}}% / Max: {{value}}%"`).
+ * Unsigned unless `sign` says otherwise.
+ */
+export const formatPercentageNumber = (
+  value: PerpsDisplayValue,
+  options?: PerpsPercentageFormatOptions,
+): string =>
+  formatPercentage(value, { sign: 'never', ...options }).replace(/%$/u, '');
+
+/**
+ * A max slippage setting (bps) for locale templates that place the `%`
+ * themselves, without trailing zeros as the user picked it: 300 → `3`,
+ * 50 → `0.5`.
+ */
+export const formatMaxSlippageNumber = (bps: number): string =>
+  formatPercentageNumber(bpsToPercent(bps), { stripTrailingZeros: true });
+
+/** Core `formatPerpsFiat` in the app language. */
+export const formatPerpsFiat = (
+  balance: PerpsDisplayValue,
+  options?: PerpsFiatFormatOptions,
+): string =>
+  formatPerpsFiatEnUs(balance, { formatters: getFormatters(), ...options });
+
+/** Core `formatPerpsCompact` in the app language, e.g. `$1.23M`. */
+export const formatPerpsCompact = (
+  value: PerpsDisplayValue,
+  options: PerpsCompactFormatOptions,
+): string =>
+  formatPerpsCompactEnUs(value, { formatters: getFormatters(), ...options });
+
+/** Core `formatPerpsOrderBookPrice` in the app language. */
+export const formatPerpsOrderBookPrice = (
+  price: PerpsDisplayValue,
+  format: PerpsOrderBookPriceFormat | null,
+  options?: PerpsOrderBookPriceFormatOptions,
+): string =>
+  formatPerpsOrderBookPriceEnUs(price, format, {
+    formatters: getFormatters(),
+    ...options,
+  });
+
+/**
+ * A USD amount at cents precision with grouping, e.g. `+$1,234.50`, for
+ * history amounts, fees and balances that always show cents. A nonzero amount
+ * under a cent shows Core's `<$0.01`.
+ */
+export const formatPerpsUsdCents = (
+  amount: PerpsDisplayValue | BigNumber,
+  sign: PerpsSignDisplay = 'auto',
+): string =>
+  formatPerpsFiat(BigNumber.isBigNumber(amount) ? amount.toString() : amount, {
+    minimumDecimals: PERPS_DISPLAY_PRECISION.Fee,
+    maximumDecimals: PERPS_DISPLAY_PRECISION.Fee,
+    stripTrailingZeros: false,
+    sign,
+  });
 
 const DEFAULT_PERPS_LOCALE = 'en-US';
 
@@ -899,7 +1055,19 @@ export const formatPerpsPrice = (
       price,
       szDecimals: options.szDecimals,
     });
-    return includeCurrencySymbol ? `$${formattedPrice}` : formattedPrice;
+    if (!includeCurrencySymbol) {
+      // Canonical venue price string, not a display value.
+      return formattedPrice;
+    }
+    // Display the venue-precision price in the app language, at exactly the
+    // decimals the venue precision kept.
+    const decimals = formattedPrice.split('.')[1]?.length ?? 0;
+    return formatPerpsFiat(formattedPrice, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+      minimumDecimals: decimals,
+      maximumDecimals: decimals,
+      stripTrailingZeros: false,
+    });
   } catch {
     return fallback();
   }
@@ -973,26 +1141,6 @@ export const truncateToTwoDecimals = (value: number): number =>
   new BigNumber(value).decimalPlaces(2, BigNumber.ROUND_DOWN).toNumber();
 
 /**
- * Formats a fee value as USD currency with appropriate decimal places
- * @param fee - Raw numeric or string fee value (e.g., 1234.56, not token minimal denomination)
- * @returns Formatted currency string with variable decimals based on configured ranges
- * @example formatPositiveFiat(1234.56) => "$1,234.56"
- * @example formatPositiveFiat(0.005) => "< $0.01"
- * @example formatPositiveFiat(0) => "$0"
- */
-export const formatPositiveFiat = (fee: number | string): string => {
-  const smallFeeThreshold = 0.01;
-
-  if (BigNumber(fee).isEqualTo(0)) {
-    return '$0';
-  }
-  if (BigNumber(fee).isLessThan(smallFeeThreshold)) {
-    return '< $0.01';
-  }
-  return formatPerpsFiat(fee);
-};
-
-/**
  * Default price range configurations
  * Applied in order - first matching condition wins
  */
@@ -1014,224 +1162,11 @@ export const DEFAULT_PRICE_RANGES: FiatRangeConfig[] = [
 ];
 
 /**
- * Configuration for large number range formatting
+ * USD volume or open interest with a magnitude suffix, e.g. `$1.23M`, through
+ * Core `formatPerpsCompact`.
  */
-export interface LargeNumberRangeConfig {
-  /** The minimum value threshold for this range (inclusive). Use 0 to catch numbers below the lowest suffix threshold */
-  threshold: number;
-  /** The suffix to use for this range (e.g., 'T', 'B', 'M', 'K', or '' for no suffix) */
-  suffix: string;
-  /** Number of decimal places for this range */
-  decimals: number;
-}
-
-/**
- * Default large number range configurations
- * Applied in order from largest to smallest
- */
-export const DEFAULT_LARGE_NUMBER_RANGES: LargeNumberRangeConfig[] = [
-  {
-    threshold: 1000000000000, // >= 1T
-    suffix: 'T',
-    decimals: 0,
-  },
-  {
-    threshold: 1000000000, // >= 1B
-    suffix: 'B',
-    decimals: 0,
-  },
-  {
-    threshold: 1000000, // >= 1M
-    suffix: 'M',
-    decimals: 0,
-  },
-  {
-    threshold: 1000, // >= 1K
-    suffix: 'K',
-    decimals: 0,
-  },
-  {
-    threshold: 0, // < 1K (all remaining numbers)
-    suffix: '',
-    decimals: 2,
-  },
-];
-
-/**
- * Preset for detailed large number formatting with more decimal precision
- * Useful for displaying precise statistics or detailed financial data
- */
-export const LARGE_NUMBER_RANGES_DETAILED: LargeNumberRangeConfig[] = [
-  {
-    threshold: 1000000000000, // >= 1T
-    suffix: 'T',
-    decimals: 2,
-  },
-  {
-    threshold: 1000000000, // >= 1B
-    suffix: 'B',
-    decimals: 2,
-  },
-  {
-    threshold: 1000000, // >= 1M
-    suffix: 'M',
-    decimals: 2,
-  },
-  {
-    threshold: 1000, // >= 1K
-    suffix: 'K',
-    decimals: 0,
-  },
-  {
-    threshold: 0, // < 1K (all remaining numbers)
-    suffix: '',
-    decimals: 0,
-  },
-];
-
-/**
- * Formats large numbers with magnitude suffixes (K, M, B, T)
- * @param value - The number to format
- * @param options - Optional formatting options
- * @param options.decimals - Legacy: Number of decimal places for all suffixed values (overrides range configs)
- * @param options.rawDecimals - Legacy: Number of decimal places for numbers below all thresholds (overrides range config for threshold: 0)
- * @param options.ranges - Custom range configurations for fine-grained control over decimals per range
- * @returns Formatted string with appropriate suffix
- * @example
- * // Using defaults
- * formatLargeNumber(1500000) => "2M"
- * formatLargeNumber(1234) => "1K"
- * formatLargeNumber(999) => "999.00"
- *
- * // Legacy: same decimals for all ranges
- * formatLargeNumber(1500000, { decimals: 1 }) => "1.5M"
- * formatLargeNumber(1234, { decimals: 2 }) => "1.23K"
- *
- * // New: custom decimals per range (including all remaining numbers)
- * formatLargeNumber(1500000, {
- *   ranges: [
- *     { threshold: 1000000000000, suffix: 'T', decimals: 2 },
- *     { threshold: 1000000000, suffix: 'B', decimals: 1 },
- *     { threshold: 1000000, suffix: 'M', decimals: 1 },
- *     { threshold: 1000, suffix: 'K', decimals: 0 },
- *     { threshold: 0, suffix: '', decimals: 4 }, // < 1K (all remaining numbers)
- *   ]
- * }) => "1.5M"
- */
-export const formatLargeNumber = (
-  value: string | number,
-  options?: {
-    decimals?: number; // Legacy: applies to all suffixed ranges
-    rawDecimals?: number; // Legacy: applies to numbers below all thresholds
-    ranges?: LargeNumberRangeConfig[]; // Custom range configurations
-  },
-): string => {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  const ranges = options?.ranges ?? DEFAULT_LARGE_NUMBER_RANGES;
-
-  if (isNaN(num)) {
-    return '0';
-  }
-
-  const absNum = Math.abs(num);
-  const sign = num < 0 ? '-' : '';
-
-  // Check each range in order
-  for (const range of ranges) {
-    if (absNum >= range.threshold) {
-      // Calculate divisor based on threshold (or 1 for no scaling)
-      const divisor = range.threshold > 0 ? range.threshold : 1;
-      const scaledValue = absNum / divisor;
-
-      // Determine decimals to use
-      let decimalPlaces = range.decimals;
-
-      // Legacy support: override with options.decimals for suffixed values
-      if (options?.decimals !== undefined && range.suffix !== '') {
-        decimalPlaces = options.decimals;
-      }
-
-      // Legacy support: override with options.rawDecimals for non-suffixed values
-      if (options?.rawDecimals !== undefined && range.suffix === '') {
-        decimalPlaces = options.rawDecimals;
-      }
-
-      return `${sign}${scaledValue.toFixed(decimalPlaces)}${range.suffix}`;
-    }
-  }
-
-  // This should never be reached if ranges includes a threshold: 0 entry
-  // But keep as fallback for safety
-  return num.toFixed(options?.rawDecimals ?? 2);
-};
-
-/**
- * Formats volume with appropriate magnitude suffixes
- * @param volume - Raw volume value
- * @param decimals - Number of decimal places to show (optional, auto-determined by default)
- * @returns Format: "$XB" / "$X.XXM" / "$XK" / "$X.XX"
- * @example formatVolume(1234567890) => "$1.23B"
- * @example formatVolume(12345678) => "$12.35M"
- * @example formatVolume(123456) => "$123K"
- */
-export const formatVolume = (
-  volume: string | number,
-  decimals?: number,
-): string => {
-  const num = typeof volume === 'string' ? parseFloat(volume) : volume;
-
-  // Handle invalid inputs - return fallback display for NaN/Infinity
-  if (isNaN(num) || !isFinite(num)) {
-    return '$---';
-  }
-
-  const absNum = Math.abs(num);
-
-  // Auto-determine decimals based on magnitude if not specified
-  let autoDecimals;
-  if (decimals === undefined) {
-    if (absNum >= 1000000000) {
-      // Billions: 2 decimals
-      autoDecimals = 2;
-    } else if (absNum >= 1000000) {
-      // Millions: 2 decimals
-      autoDecimals = 2;
-    } else if (absNum >= 1000) {
-      // Thousands: 0 decimals
-      autoDecimals = 0;
-    } else {
-      // Under 1000: 2 decimals
-      autoDecimals = 2;
-    }
-  } else {
-    autoDecimals = decimals;
-  }
-
-  const formatted = formatLargeNumber(volume, {
-    decimals: autoDecimals,
-    rawDecimals: autoDecimals,
-  });
-
-  // Handle negative values - ensure dollar sign comes after negative sign
-  if (formatted.startsWith('-')) {
-    return `-$${formatted.slice(1)}`;
-  }
-
-  return `$${formatted}`;
-};
-
-/**
- * Formats coin (base-asset) volume with the same magnitude suffixes as
- * {@link formatVolume}, without a fiat `$` prefix.
- * Candle volume from Hyperliquid is denominated in coins, not USD.
- *
- * @example formatCoinVolume(0.33) => "0.33"
- * @example formatCoinVolume(123456) => "123K"
- */
-export const formatCoinVolume = (
-  volume: string | number,
-  decimals?: number,
-): string => formatVolume(volume, decimals).replace('$', '');
+export const formatVolume = (volume: PerpsDisplayValue): string =>
+  formatPerpsCompact(volume, { field: 'volume' });
 
 /**
  * Formats leverage value with 'x' suffix
@@ -1252,41 +1187,36 @@ export const formatLeverage = (leverage: string | number): string => {
 };
 
 /**
- * Formats how far (in %) the price must move from `entryPrice` to reach
- * `liquidationPrice`, e.g. `"30.05%"`.
+ * Formats a distance to liquidation, already in percent, e.g. `30.05` →
+ * `"30.05%"`, for estimates that have no liquidation price to pass to
+ * {@link formatLiquidationDistance}.
+ */
+export const formatLiquidationDistancePercent = (distance: number): string =>
+  formatPercentage(distance, {
+    decimals: PERPS_DISPLAY_PRECISION.LiquidationDistancePercent,
+    sign: 'never',
+  });
+
+/**
+ * Core `formatLiquidationDistance` in the app language, e.g. `"30.05%"`.
  *
- * @returns `undefined` when either price is missing, non-finite or
- * non-positive, so callers can hide the figure instead of showing `NaN%`.
- * @example formatLiquidationDistance(100, 70) => "30.00%"
- * @example formatLiquidationDistance(100, '130') => "30.00%"
- * @example formatLiquidationDistance(100, undefined) => undefined
+ * @returns `undefined` while either price is missing or not positive, so
+ * callers can hide the figure instead of showing the placeholder.
  */
 export const formatLiquidationDistance = (
-  entryPrice: number | string | null | undefined,
-  liquidationPrice: number | string | null | undefined,
+  entryPrice: PerpsDisplayValue,
+  liquidationPrice: PerpsDisplayValue,
 ): string | undefined => {
-  const entry =
-    typeof entryPrice === 'string' ? parseFloat(entryPrice) : entryPrice;
-  const liquidation =
-    typeof liquidationPrice === 'string'
-      ? parseFloat(liquidationPrice)
-      : liquidationPrice;
-
-  if (
-    entry === null ||
-    entry === undefined ||
-    liquidation === null ||
-    liquidation === undefined ||
-    !Number.isFinite(entry) ||
-    !Number.isFinite(liquidation) ||
-    entry <= 0 ||
-    liquidation <= 0
-  ) {
-    return undefined;
-  }
-
-  const distance = (Math.abs(entry - liquidation) / entry) * 100;
-  return `${distance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+  const formatted = formatLiquidationDistanceEnUs(
+    entryPrice,
+    liquidationPrice,
+    {
+      formatters: getFormatters(),
+    },
+  );
+  return formatted === PERPS_CONSTANTS.FallbackPercentageDisplay
+    ? undefined
+    : formatted;
 };
 
 /**
@@ -1500,40 +1430,40 @@ export const formatDateSection = (timestamp: number): string => {
 /**
  * Formats a limit price for display while preserving in-progress input — a
  * trailing "." or trailing zeros after the decimal survive, which
- * `formatPerpsFiat` alone would collapse.
+ * `formatPerpsFiat` alone would collapse. The draft follows the app locale's
+ * decimal separator and currency placement; the stored price stays canonical.
  */
 export const formatLimitPriceInput = (price: string): string => {
   if (!price || price === '0') {
     return '';
   }
 
-  if (price.endsWith('.') || /\.\d*0$/.test(price)) {
-    const parts = price.split('.');
-    const integerPart = parts[0] || '0';
-    const decimalPart = parts.length > 1 ? `.${parts[1]}` : '.';
-
-    const formatted = formatPerpsFiat(integerPart, {
-      ranges: [
-        {
-          condition: () => true,
-          threshold: 0,
-          maximumDecimals: 0,
-          minimumDecimals: 0,
-        },
-      ],
-    });
-
-    return `${formatted}${decimalPart}`;
-  }
-
-  return formatPerpsFiat(price, {
+  const isTrailingDecimal = price.endsWith('.');
+  const typedDecimals = Math.min(price.split('.')[1]?.length || 0, 7);
+  // A trailing "." has no digit to format: format one placeholder decimal and
+  // drop that digit below, so the separator lands where the locale puts it.
+  const formatted = formatPerpsFiat(isTrailingDecimal ? `${price}0` : price, {
     ranges: [
       {
         condition: () => true,
         threshold: 0.00000001,
         maximumDecimals: 7,
-        minimumDecimals: Math.min(price.split('.')[1]?.length || 0, 7),
+        minimumDecimals: isTrailingDecimal ? 1 : typedDecimals,
       },
     ],
+    stripTrailingZeros: false,
   });
+
+  if (!isTrailingDecimal) {
+    return formatted;
+  }
+
+  const { decimal } = getPerpsLocaleSeparators();
+  const placeholder = `${decimal}${getPerpsLocaleGrouping().localizedDigits[0]}`;
+  const placeholderIndex = formatted.lastIndexOf(placeholder);
+  return placeholderIndex === -1
+    ? formatted
+    : `${formatted.slice(0, placeholderIndex + decimal.length)}${formatted.slice(
+        placeholderIndex + placeholder.length,
+      )}`;
 };

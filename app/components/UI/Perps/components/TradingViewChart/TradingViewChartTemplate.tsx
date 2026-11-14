@@ -57,7 +57,6 @@ export const createTradingViewChartTemplate = (
         window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         window.visibleCandleCount = 30; // Default visible candle count (matches PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT)
         window.allCandleData = []; // Store all loaded data for zoom functionality
-        window.visiblePriceRange = null; // Track visible price range for dynamic decimal precision
         window.currentInterval = null; // Track current interval for zoom reset on change
 
         // Helper function to get date string in user's timezone (YYYY-MM-DD)
@@ -76,121 +75,85 @@ export const createTradingViewChartTemplate = (
             return todayString === dateString;
         };
 
-        // Cache for Intl.NumberFormat instances to avoid expensive recreation
-        // Key: decimal count (e.g., "0", "2", "4"), Value: NumberFormat instance
-        window.formatterCache = new Map();
+        // Price axis labels are formatted by the app with perps-controller
+        // formatPerpsFiat (shared PRICE_RANGES_UNIVERSAL, no currency symbol)
+        // and the app-language formatters: the WebView cannot import app code
+        // and the chart asks for labels synchronously. A label the app has not
+        // sent yet renders empty; the app answers in one bridge round trip and
+        // the axis repaints with it.
+        window.MAX_PRICE_LABELS = 2000;
+        window.priceLabels = new Map(); // String(price) -> label from the app
+        window.requestedPriceLabels = new Set();
+        window.pendingPriceLabelRequests = [];
+        window.priceLabelRequestScheduled = false;
 
-        // Price formatting constants (matches formatUtils.ts PRICE_RANGES_UNIVERSAL)
-        window.PRICE_THRESHOLD = {
-            VERY_HIGH: 100000,  // > $100k
-            HIGH: 10000,        // > $10k
-            LARGE: 1000,        // > $1k
-            MEDIUM: 100,        // > $100
-            MEDIUM_LOW: 10,     // > $10
-            LOW: 0.01,          // >= $0.01
-        };
-
-        // Universal price ranges configuration (matches PRICE_RANGES_UNIVERSAL from formatUtils.ts)
-        window.PRICE_RANGES = [
-            { threshold: window.PRICE_THRESHOLD.VERY_HIGH, minDec: 0, maxDec: 0, sigDig: 6 },
-            { threshold: window.PRICE_THRESHOLD.HIGH, minDec: 0, maxDec: 0, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.LARGE, minDec: 0, maxDec: 1, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.MEDIUM, minDec: 0, maxDec: 2, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.MEDIUM_LOW, minDec: 0, maxDec: 4, sigDig: 5 },
-            { threshold: window.PRICE_THRESHOLD.LOW, minDec: 2, maxDec: 6, sigDig: 5 },
-            { threshold: 0, minDec: 2, maxDec: 6, sigDig: 4 }, // < $0.01
-        ];
-
-        // Get or create cached Intl.NumberFormat for given decimal precision
-        // Caching prevents expensive formatter recreation on every Y-axis label render
-        window.getCachedFormatter = function(decimals) {
-            const key = String(decimals);
-
-            if (!window.formatterCache.has(key)) {
-                window.formatterCache.set(key, new Intl.NumberFormat('en-US', {
-                    minimumFractionDigits: decimals,
-                    maximumFractionDigits: decimals
-                }));
-            }
-
-            return window.formatterCache.get(key);
-        };
-
-        // Format price with significant digits (matches formatUtils.ts logic)
-        window.formatPriceWithSignificantDigits = function(value, sigDigits, minDec, maxDec) {
-            if (value === 0) return { value: 0, decimals: minDec || 0 };
-
-            const absValue = Math.abs(value);
-
-            if (absValue >= 1) {
-                const integerDigits = Math.floor(Math.log10(absValue)) + 1;
-                const decimalsNeeded = sigDigits - integerDigits;
-                let targetDecimals = Math.max(decimalsNeeded, 0);
-
-                if (minDec !== undefined && targetDecimals < minDec) {
-                    targetDecimals = minDec;
+        window.requestPriceLabel = function(price) {
+            const key = String(price);
+            if (window.requestedPriceLabels.has(key)) return;
+            window.requestedPriceLabels.add(key);
+            window.pendingPriceLabelRequests.push(price);
+            if (window.priceLabelRequestScheduled) return;
+            window.priceLabelRequestScheduled = true;
+            // One message per render pass, carrying every label it needed.
+            setTimeout(function() {
+                window.priceLabelRequestScheduled = false;
+                const prices = window.pendingPriceLabelRequests;
+                window.pendingPriceLabelRequests = [];
+                if (prices.length > 0 && window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'FORMAT_PRICE_LABELS',
+                        prices: prices
+                    }));
                 }
-
-                const finalDecimals = maxDec !== undefined ? Math.min(targetDecimals, maxDec) : targetDecimals;
-                const roundedValue = Number(value.toFixed(finalDecimals));
-
-                return { value: roundedValue, decimals: finalDecimals };
-            }
-
-            // For values < 1, use toPrecision
-            const precisionStr = absValue.toPrecision(sigDigits);
-            const precisionNum = parseFloat(precisionStr);
-            const valueStr = precisionNum.toString();
-            const [, decPart = ''] = valueStr.split('.');
-            let actualDecimals = decPart.length;
-
-            if (minDec !== undefined && actualDecimals < minDec) {
-                actualDecimals = minDec;
-            }
-            if (maxDec !== undefined && actualDecimals > maxDec) {
-                actualDecimals = maxDec;
-            }
-
-            const finalValue = value < 0 ? -precisionNum : precisionNum;
-            const roundedValue = Number(finalValue.toFixed(actualDecimals));
-
-            return { value: roundedValue, decimals: actualDecimals };
+            }, 0);
         };
 
-        // Format price using universal ranges (matches formatPerpsFiat from formatUtils.ts)
-        window.formatPriceUniversal = function(price) {
-            if (price === 0) return '0';
-            if (isNaN(price)) return '0';
+        window.chartPriceFormatter = function(price) {
+            if (typeof price !== 'number' || !isFinite(price)) return '';
 
-            const absPrice = Math.abs(price);
+            // TradingView ignores axisLabelFormatter on price lines, so the
+            // current price line label (sent with the line, as in the header)
+            // is matched here.
+            if (window.currentPriceLabel && window.currentPriceNumeric !== undefined &&
+                Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
+                return window.currentPriceLabel;
+            }
 
-            // Find matching range
-            let rangeConfig = null;
-            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
-                if (absPrice > window.PRICE_RANGES[i].threshold) {
-                    rangeConfig = window.PRICE_RANGES[i];
-                    break;
+            const label = window.priceLabels.get(String(price));
+            if (label !== undefined) return label;
+            window.requestPriceLabel(price);
+            return '';
+        };
+
+        // Re-applying the localization makes the price scales drop their
+        // cached marks and format them again.
+        window.redrawPriceLabels = function() {
+            if (window.chart) {
+                window.chart.applyOptions({
+                    localization: { priceFormatter: window.chartPriceFormatter }
+                });
+            }
+        };
+
+        // The app language changed: every label is asked for again.
+        window.resetPriceLabels = function() {
+            window.priceLabels.clear();
+            window.requestedPriceLabels.clear();
+            window.redrawPriceLabels();
+        };
+
+        window.applyPriceLabels = function(labels) {
+            if (!Array.isArray(labels) || labels.length === 0) return;
+            if (window.priceLabels.size + labels.length > window.MAX_PRICE_LABELS) {
+                window.priceLabels.clear();
+                window.requestedPriceLabels.clear();
+            }
+            labels.forEach(function(entry) {
+                if (Array.isArray(entry) && typeof entry[0] === 'number' && typeof entry[1] === 'string') {
+                    window.priceLabels.set(String(entry[0]), entry[1]);
                 }
-            }
-
-            // Fallback to last range if nothing matched
-            if (!rangeConfig) {
-                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
-            }
-
-            // Calculate formatting with significant digits
-            const { value: formattedValue, decimals } = window.formatPriceWithSignificantDigits(
-                price,
-                rangeConfig.sigDig,
-                rangeConfig.minDec,
-                rangeConfig.maxDec
-            );
-
-            // Format the number with consistent decimal places using cached formatter
-            // Keep trailing zeros to maintain visual consistency on Y-axis
-            // e.g., for $1.24-$1.26 range, all values show 4 decimals: 1.2391, 1.2560, 1.2500
-            const formatter = window.getCachedFormatter(decimals);
-            return formatter.format(formattedValue);
+            });
+            window.redrawPriceLabels();
         };
         
         // Smart timestamp formatter using TradingView's native tickMarkType with fallback
@@ -563,68 +526,7 @@ export const createTradingViewChartTemplate = (
                         },
                     },
                     localization: {
-                        priceFormatter: (price) => {
-                            // Hybrid formatter: starts with universal formatting but adjusts for tight ranges
-                            // This prevents duplicate Y-axis labels when zoomed in while maintaining
-                            // consistency with header and pills at normal zoom levels
-
-                            if (price === 0) return '0';
-                            if (isNaN(price)) return '0';
-
-                            // For the current price line label, use universal formatting to match header
-                            // TradingView ignores axisLabelFormatter on price lines, so we detect the
-                            // current price value here and apply consistent formatting
-                            if (window.currentPriceNumeric !== undefined &&
-                                Math.abs(price - window.currentPriceNumeric) < 0.0000001) {
-                                return window.formatPriceUniversal(price);
-                            }
-
-                            const absPrice = Math.abs(price);
-
-                            // Get base formatting configuration from universal ranges
-                            let rangeConfig = null;
-                            for (let i = 0; i < window.PRICE_RANGES.length; i++) {
-                                if (absPrice > window.PRICE_RANGES[i].threshold) {
-                                    rangeConfig = window.PRICE_RANGES[i];
-                                    break;
-                                }
-                            }
-                            if (!rangeConfig) {
-                                rangeConfig = window.PRICE_RANGES[window.PRICE_RANGES.length - 1];
-                            }
-
-                            // Calculate base formatting with significant digits
-                            const { value: formattedValue, decimals: baseDecimals } = window.formatPriceWithSignificantDigits(
-                                price,
-                                rangeConfig.sigDig,
-                                rangeConfig.minDec,
-                                rangeConfig.maxDec
-                            );
-
-                            // Determine if we need extra decimals based on visible range
-                            let finalDecimals = baseDecimals;
-
-                            if (window.visiblePriceRange && window.visiblePriceRange.span > 0) {
-                                const span = window.visiblePriceRange.span;
-
-                                // Dynamic decimal adjustment based on zoom level
-                                // Tighter visible range = more decimals needed to distinguish Y-axis labels
-                                if (span < 1) {
-                                    finalDecimals = Math.max(4, baseDecimals);
-                                } else if (span < 10) {
-                                    finalDecimals = Math.max(3, baseDecimals);
-                                } else if (span < 100) {
-                                    finalDecimals = Math.max(2, baseDecimals);
-                                }
-                                // For span >= 100, use baseDecimals (no adjustment needed)
-                            }
-
-                            // Format with final decimal precision using cached formatter
-                            const formatter = window.getCachedFormatter(finalDecimals);
-                            const formatted = formatter.format(formattedValue);
-                            // Strip trailing zeros to match header formatting
-                            return formatted.replace(/(\\.[0-9]*?)0+$/, '$1').replace(/\\.$/, '');
-                        },
+                        priceFormatter: window.chartPriceFormatter,
                         timeFormatter: (time) => {
                             // Format time in user's local timezone for crosshair labels
                             return window.formatTimestamp(time, null, true);
@@ -991,70 +893,8 @@ export const createTradingViewChartTemplate = (
             }
         };
 
-        // Function to update visible price range for dynamic formatting
-        window.updateVisiblePriceRange = function() {
-            if (!window.allCandleData || window.allCandleData.length === 0) {
-                return;
-            }
-            
-            try {
-                // Get visible range from time scale
-                const timeScale = window.chart.timeScale();
-                const visibleLogicalRange = timeScale.getVisibleLogicalRange();
-                
-                if (!visibleLogicalRange) {
-                    // Fallback: use all data
-                    let minPrice = Infinity;
-                    let maxPrice = -Infinity;
-                    
-                    window.allCandleData.forEach(candle => {
-                        if (candle && candle.low !== undefined && candle.high !== undefined) {
-                            minPrice = Math.min(minPrice, candle.low);
-                            maxPrice = Math.max(maxPrice, candle.high);
-                        }
-                    });
-                    
-                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
-                        window.visiblePriceRange = {
-                            min: minPrice,
-                            max: maxPrice,
-                            span: maxPrice - minPrice
-                        };
-                    }
-                    return;
-                }
-                
-                // Calculate visible data indices
-                const firstVisibleIndex = Math.max(0, Math.ceil(visibleLogicalRange.from));
-                const lastVisibleIndex = Math.min(window.allCandleData.length - 1, Math.floor(visibleLogicalRange.to));
-                
-                if (firstVisibleIndex <= lastVisibleIndex) {
-                    let minPrice = Infinity;
-                    let maxPrice = -Infinity;
-                    
-                    for (let i = firstVisibleIndex; i <= lastVisibleIndex; i++) {
-                        const candle = window.allCandleData[i];
-                        if (candle && candle.low !== undefined && candle.high !== undefined) {
-                            minPrice = Math.min(minPrice, candle.low);
-                            maxPrice = Math.max(maxPrice, candle.high);
-                        }
-                    }
-                    
-                    if (minPrice !== Infinity && maxPrice !== -Infinity) {
-                        window.visiblePriceRange = {
-                            min: minPrice,
-                            max: maxPrice,
-                            span: maxPrice - minPrice
-                        };
-                    }
-                }
-            } catch (error) {
-                console.error('Error updating visible price range:', error);
-            }
-        };
-        
         // Function to create/update current price line
-        window.updateCurrentPriceLine = function(currentPrice) {
+        window.updateCurrentPriceLine = function(currentPrice, currentPriceLabel) {
             if (!window.candlestickSeries) {
                 return;
             }
@@ -1068,6 +908,7 @@ export const createTradingViewChartTemplate = (
                 }
                 window.priceLines.currentPrice = null;
                 window.currentPriceNumeric = undefined;
+                window.currentPriceLabel = undefined;
             }
 
             // Create new current price line if price is valid
@@ -1076,6 +917,7 @@ export const createTradingViewChartTemplate = (
                     const priceNumeric = parseFloat(currentPrice);
                     // Store numeric value so priceFormatter can detect and use universal formatting
                     window.currentPriceNumeric = priceNumeric;
+                    window.currentPriceLabel = currentPriceLabel;
 
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: priceNumeric,
@@ -1152,9 +994,6 @@ export const createTradingViewChartTemplate = (
                                 },
                             });
                         }
-
-                        // Update visible price range instead of fitContent
-                        window.updateVisiblePriceRange();
                     }
                 }
 
@@ -1332,9 +1171,6 @@ ${createLimitOrderOverlayScript({
             }
 
             window.visibleCandleCount = actualCandleCount;
-
-            // Update visible price range for dynamic formatting after zoom
-            window.updateVisiblePriceRange();
         };
 
         // Update TPSL price lines
@@ -1345,7 +1181,7 @@ ${createLimitOrderOverlayScript({
 
             // Update current price line if provided
             if (lines.currentPrice) {
-                window.updateCurrentPriceLine(lines.currentPrice);
+                window.updateCurrentPriceLine(lines.currentPrice, lines.currentPriceLabel);
             }
             
             // Remove existing entry line if it exists
@@ -1544,9 +1380,6 @@ ${createLimitOrderOverlayScript({
                                     window.applyZoom(window.visibleCandleCount, true);
                                 }
 
-                                // Update visible price range for dynamic formatting
-                                window.updateVisiblePriceRange();
-
                                 // Mark initial load as complete
                                 window.isInitialDataLoad = false;
 
@@ -1620,10 +1453,6 @@ ${createLimitOrderOverlayScript({
                                 if ((message.isNewBar || appendedCandle) && wasTrackingRealtime) {
                                     window.applyZoom(window.visibleCandleCount, false);
                                 }
-
-                                // Refresh dynamic Y-axis decimal precision without
-                                // triggering a zoom/range change.
-                                window.updateVisiblePriceRange();
                             } catch (error) {
                                 console.error('TradingView: Error applying incremental update:', error);
                             }
@@ -1635,6 +1464,12 @@ ${createLimitOrderOverlayScript({
                             window.candlestickSeries.setData([]);
                             window.allCandleData = [];
                         }
+                        break;
+                    case 'PRICE_LABELS':
+                        window.applyPriceLabels(message.labels);
+                        break;
+                    case 'RESET_PRICE_LABELS':
+                        window.resetPriceLabels();
                         break;
                     case 'ADD_AUXILIARY_LINES':
                         if (window.chart && message.lines) {
@@ -1790,9 +1625,6 @@ ${createLimitOrderOverlayScript({
                                                             width: window.chart.options().width,
                                                             height: chartHeight
                                                         });
-
-                                                        // Update visible price range instead of fitContent to preserve scroll
-                                                        window.updateVisiblePriceRange();
                                                     }
                                                 } catch (heightError) {
                                                     // Silent error handling
