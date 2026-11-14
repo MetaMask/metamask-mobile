@@ -11,7 +11,10 @@ import {
   getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
   getDeleteRegulationId as getDeleteRegulationIdUtil,
 } from '../../../util/analytics/analyticsDataDeletion';
-import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
+import type {
+  AnalyticsContext,
+  AnalyticsUserTraits,
+} from '@metamask/analytics-controller';
 
 /**
  * Hook to use analytics
@@ -59,8 +62,15 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 export const useAnalytics = (): UseAnalyticsHook =>
   useMemo(
     () => ({
-      trackEvent: (event: AnalyticsTrackingEvent): void => {
-        analytics.trackEvent(event);
+      trackEvent: (
+        event: AnalyticsTrackingEvent,
+        context?: AnalyticsContext,
+      ): void => {
+        if (context === undefined) {
+          analytics.trackEvent(event);
+        } else {
+          analytics.trackEvent(event, context);
+        }
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
