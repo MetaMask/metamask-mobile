@@ -11,9 +11,9 @@ import {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
 } from '../../../../../util/activity-adapters';
-import { usePerpsActivityQuery } from '../../hooks/usePerpsActivityQuery';
+import { usePerpsActivityQuery } from './usePerpsActivityQuery';
 import type { RootState } from '../../../../../reducers';
-import { type PerpsTransaction } from '../../components/ActivityDetailsPerps.utils';
+import { type PerpsTransaction } from './ActivityDetailsPerps.utils';
 import { equalsIgnoreCase } from '../../../../../util/string';
 
 function getPerpsTransaction(

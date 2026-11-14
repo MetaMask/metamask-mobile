@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { usePerpsActivityQuery } from './usePerpsActivityQuery';
-import Engine from '../../../../core/Engine';
+import Engine from '../../../../../core/Engine';
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getActiveProviderOrNull: jest.fn(),

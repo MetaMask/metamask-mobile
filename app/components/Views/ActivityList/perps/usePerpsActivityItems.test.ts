@@ -8,7 +8,7 @@ import {
   selectPerpsNetwork,
 } from '../../../UI/Perps/selectors/perpsController';
 // eslint-disable-next-line import-x/no-restricted-paths
-import { usePerpsActivityQuery } from '../../ActivityDetails/hooks/usePerpsActivityQuery';
+import { usePerpsActivityQuery } from '../../ActivityDetails/templates/Perps/usePerpsActivityQuery';
 import {
   FillType,
   type PerpsTransaction,
@@ -38,9 +38,12 @@ jest.mock('../../../UI/Perps/selectors/perpsController', () => ({
 }));
 
 // eslint-disable-next-line import-x/no-restricted-paths
-jest.mock('../../ActivityDetails/hooks/usePerpsActivityQuery', () => ({
-  usePerpsActivityQuery: jest.fn(),
-}));
+jest.mock(
+  '../../ActivityDetails/templates/Perps/usePerpsActivityQuery',
+  () => ({
+    usePerpsActivityQuery: jest.fn(),
+  }),
+);
 
 jest.mock('@metamask/perps-controller', () => ({
   ARBITRUM_MAINNET_CAIP_CHAIN_ID: 'eip155:42161',
