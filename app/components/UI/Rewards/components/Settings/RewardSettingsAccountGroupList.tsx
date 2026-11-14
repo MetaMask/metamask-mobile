@@ -32,8 +32,10 @@ import { REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS } from './RewardSettingsAcc
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
+import RewardsInfoBanner from '../RewardsInfoBanner';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
+import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 
 const INITIAL_ACCOUNTS_TO_SHOW = 2;
 
@@ -161,11 +163,13 @@ const AccountProgressSection: React.FC<AccountProgressSectionProps> = memo(
 
 interface RewardSettingsAccountGroupListProps {
   onRequestOptOut?: () => void;
+  offDeviceAccounts?: OffDeviceAccount[];
+  onOpenOffDeviceSheet?: () => void;
 }
 
 const SubscribedRewardSettingsAccountGroupList: React.FC<
   RewardSettingsAccountGroupListProps
-> = ({ onRequestOptOut }) => {
+> = ({ onRequestOptOut, offDeviceAccounts, onOpenOffDeviceSheet }) => {
   const tw = useTailwind();
 
   // State to track which wallets are expanded
@@ -409,6 +413,20 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
   const listHeader = (
     <>
       <ReferredByCodeSection showTrailingDivider />
+      {offDeviceAccounts && offDeviceAccounts.length > 0 && (
+        <Box twClassName="px-4 pb-4">
+          <RewardsInfoBanner
+            title={strings('rewards.settings.off_device_accounts_banner_title')}
+            description={strings(
+              'rewards.settings.off_device_accounts_banner_description',
+            )}
+            onConfirm={onOpenOffDeviceSheet}
+            confirmButtonLabel={strings(
+              'rewards.settings.off_device_accounts_banner_cta',
+            )}
+          />
+        </Box>
+      )}
       <Box
         testID={REWARD_SETTINGS_ACCOUNT_GROUP_LIST_TEST_IDS.HEADER}
         twClassName="px-4"
@@ -517,7 +535,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
 
 const RewardSettingsAccountGroupList: React.FC<
   RewardSettingsAccountGroupListProps
-> = ({ onRequestOptOut }) => {
+> = ({ onRequestOptOut, offDeviceAccounts, onOpenOffDeviceSheet }) => {
   const tw = useTailwind();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
 
@@ -537,6 +555,8 @@ const RewardSettingsAccountGroupList: React.FC<
   return (
     <SubscribedRewardSettingsAccountGroupList
       onRequestOptOut={onRequestOptOut}
+      offDeviceAccounts={offDeviceAccounts}
+      onOpenOffDeviceSheet={onOpenOffDeviceSheet}
     />
   );
 };
