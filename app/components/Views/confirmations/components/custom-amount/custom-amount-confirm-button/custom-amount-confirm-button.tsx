@@ -43,11 +43,21 @@ export function CustomAmountConfirmButton({
   const isPayLoading = useIsTransactionPayLoading();
   // Keep confirm disabled, without an alert, until the Predict withdraw gas
   // fee token check settles, so the insufficient balance alert doesn't flash.
-  const { isPending: isPredictWithdrawGasFeeTokenPending } =
-    usePredictWithdrawGasFeeToken();
+  const {
+    isPending: isPredictWithdrawGasFeeTokenPending,
+    recheck: recheckPredictWithdrawGasFeeToken,
+  } = usePredictWithdrawGasFeeToken();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+
+    // The cached check can be stale by now. Check again so a withdraw pUSD
+    // can no longer pay shows the alert instead of failing after signing.
+    if (!(await recheckPredictWithdrawGasFeeToken())) {
+      setIsConfirmationSubmitting(false);
+      return;
+    }
+
     onContinue?.();
 
     try {
@@ -56,7 +66,12 @@ export function CustomAmountConfirmButton({
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
+  }, [
+    onConfirm,
+    onContinue,
+    recheckPredictWithdrawGasFeeToken,
+    setIsConfirmationSubmitting,
+  ]);
 
   const disabled =
     isDisabled ||
