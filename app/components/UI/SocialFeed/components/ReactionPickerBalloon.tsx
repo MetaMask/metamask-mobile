@@ -73,9 +73,6 @@ const COLLAPSE_TIMING = {
   easing: Easing.in(Easing.cubic),
   reduceMotion: ReduceMotion.System,
 };
-/** The pill fades in with the morph, after it has left the finger. */
-const TRAY_FADE_START = 0.15;
-const TRAY_FADE_END = 0.7;
 /** Emoji stay hidden until the pill has lifted off the finger. */
 const EMOJI_FADE_START = 0.4;
 const EMOJI_FADE_END = 0.8;
@@ -84,31 +81,16 @@ const CONTENT_FADE_OUT = {
   easing: Easing.in(Easing.quad),
   reduceMotion: ReduceMotion.Never,
 };
-const TRAY_FADE_OUT = {
-  duration: 160,
-  easing: Easing.out(Easing.quad),
-  reduceMotion: ReduceMotion.Never,
-};
-
-function fadeForProgress(progress: number, start: number, end: number): number {
-  'worklet';
-  if (progress <= start) {
-    return 0;
-  }
-  if (progress >= end) {
-    return 1;
-  }
-  return (progress - start) / (end - start);
-}
-
-export function trayOpacityForProgress(progress: number): number {
-  'worklet';
-  return fadeForProgress(progress, TRAY_FADE_START, TRAY_FADE_END);
-}
 
 export function emojiOpacityForProgress(progress: number): number {
   'worklet';
-  return fadeForProgress(progress, EMOJI_FADE_START, EMOJI_FADE_END);
+  if (progress <= EMOJI_FADE_START) {
+    return 0;
+  }
+  if (progress >= EMOJI_FADE_END) {
+    return 1;
+  }
+  return (progress - EMOJI_FADE_START) / (EMOJI_FADE_END - EMOJI_FADE_START);
 }
 
 /** Scrolling a row whose width is still changing fights the grow. */
@@ -320,10 +302,9 @@ const ReactionPickerTray: React.FC<
   // Glass is grown by its frame, never scaled: a scaled glass layer warps
   // its refraction and its corners wobble.
   const progress = useSharedValue(calmMotion ? 1 : 0);
-  // Reduced motion fades the whole pill in place. The grow fades the pill
-  // with its frame, so the glass is clear of the finger before it is solid.
+  // The glass stays fully opaque. Fading it makes iOS drop the blur.
+  // Reduced motion fades the whole pill in place instead of growing it.
   const pillOpacity = useSharedValue(calmMotion ? 0 : 1);
-  const trayFade = useSharedValue(0);
   const closeFade = useSharedValue(0);
   const closingRef = useRef(false);
   const onCloseRef = useRef(onClose);
@@ -362,8 +343,7 @@ const ReactionPickerTray: React.FC<
   const trayStyle = useAnimatedStyle(() => {
     const p = progress.value;
     return {
-      opacity:
-        pillOpacity.value * trayOpacityForProgress(p) * (1 - trayFade.value),
+      opacity: pillOpacity.value,
       left: from.left + (to.left - from.left) * p,
       top: from.top + (to.top - from.top) * p,
       width: from.width + (to.width - from.width) * p,
@@ -403,7 +383,6 @@ const ReactionPickerTray: React.FC<
     }
 
     closeFade.value = withTiming(1, CONTENT_FADE_OUT);
-    trayFade.value = withTiming(1, TRAY_FADE_OUT);
     progress.value = withTiming(0, COLLAPSE_TIMING, (done) => {
       if (done) {
         scheduleOnRN(finishClose);
