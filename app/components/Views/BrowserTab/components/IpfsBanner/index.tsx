@@ -1,21 +1,20 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { View } from 'react-native';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
+  FontWeight,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const IPFS_BANNER_CLOSE_BUTTON_TEST_ID = 'ipfs-banner-close-button';
 
 const IpfsBanner = ({
   setIpfsBannerVisible,
@@ -24,9 +23,20 @@ const IpfsBanner = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+
+  const handleTurnOnIpfsGateway = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SHOW_IPFS,
+      params: {
+        setIpfsBannerVisible: () => setIpfsBannerVisible(false),
+      },
+    });
+  }, [navigation, setIpfsBannerVisible]);
+
   return (
     <View style={styles.bannerContainer}>
-      <Banner
+      <BannerAlert
+        severity={BannerAlertSeverity.Info}
         title={strings('ipfs_gateway_banner.ipfs_gateway_banner_title')}
         description={
           <Text>
@@ -40,20 +50,10 @@ const IpfsBanner = ({
             </Text>
           </Text>
         }
-        actionButtonProps={{
-          variant: ButtonVariants.Link,
-          onPress: () =>
-            navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-              screen: Routes.SHEET.SHOW_IPFS,
-              params: {
-                setIpfsBannerVisible: () => setIpfsBannerVisible(false),
-              },
-            }),
-          label: 'Turn on IPFS gateway',
-        }}
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Info}
+        actionButtonLabel="Turn on IPFS gateway"
+        actionButtonOnPress={handleTurnOnIpfsGateway}
         onClose={() => setIpfsBannerVisible(false)}
+        closeButtonProps={{ testID: IPFS_BANNER_CLOSE_BUTTON_TEST_ID }}
       />
     </View>
   );
