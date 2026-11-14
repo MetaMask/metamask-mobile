@@ -390,6 +390,11 @@ export const createMfaFlow = ({
           return;
         }
         if (options.length > 1) {
+          if (options[0] === 'passkey') {
+            setState({ progress });
+            await startPasskeyOrPicker(step.kind, options);
+            return;
+          }
           show({ name: 'picker', purpose: step.kind, options }, { progress });
           return;
         }
@@ -607,6 +612,25 @@ export const createMfaFlow = ({
       throw error;
     }
     // The ceremony went through: retrying must not run it again.
+    lastOperation = advance;
+    await advance();
+  }
+
+  // A declaration, as it and `advance` call each other.
+  async function startPasskeyOrPicker(
+    purpose: Exclude<MfaPurpose, 'setup'>,
+    options: MfaMethod[],
+  ) {
+    current = { method: 'passkey', purpose };
+    try {
+      await runPasskey();
+    } catch (error) {
+      show({ name: 'picker', purpose, options });
+      if (getFlowErrorCode(error) === 'passkey_ceremony_cancelled') {
+        return;
+      }
+      throw error;
+    }
     lastOperation = advance;
     await advance();
   }
