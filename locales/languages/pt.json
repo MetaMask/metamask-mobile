@@ -131,7 +131,7 @@
       "title": "Fundos insuficientes"
     },
     "money_account_no_funds": {
-      "message": "Você ainda não tem fundos na sua Money Account para enviar. Adicione fundos primeiro."
+      "message": "Add funds to your Money account to send."
     },
     "fiat_buy_amount_limit": {
       "title": "Valor fora do intervalo"
@@ -1199,7 +1199,7 @@
       "title": "Adicionar dinheiro com Pix",
       "description": "Adicione fundos diretamente da sua conta bancária. Os fundos geralmente chegam à sua conta Money em poucos minutos.",
       "provider_disclosure": "Os serviços de ativos virtuais no Brasil são fornecidos por um provedor terceirizado regulamentado.",
-      "risk_disclosure": "Comprar ou vender criptoativos pode ser arriscado. Uma vez transmitida à blockchain, a transferência de um criptoativo é irreversível.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Saiba mais.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Chave Pix",
@@ -1389,11 +1389,13 @@
       "live_stream": {
         "paused": "Pausada",
         "live": "Em tempo real",
-        "new_posts": {
-          "one": "{{count}} nova postagem",
-          "other": "{{count}} novas postagens"
+        "new_posts": "{{count}} new",
+        "new_posts_capped": "{{count}}+ new",
+        "new_posts_accessibility": {
+          "one": "{{count}} new update",
+          "other": "{{count}} new updates"
         },
-        "new_posts_capped": "{{count}}+ novas postagens"
+        "new_posts_capped_accessibility": "{{count}}+ new updates"
       },
       "following": "Seguindo",
       "all": "Tudo",
@@ -1435,7 +1437,11 @@
         },
         "following": {
           "title": "Ainda não há publicações",
-          "description": "Siga traders para ver as publicações deles aqui."
+          "description": "No one has posted yet."
+        },
+        "following_suggestions": {
+          "title": "Suggested for you",
+          "description": "Follow a few traders to populate your Following feed."
         },
         "live": {
           "title": "Nenhuma negociação ainda",
@@ -1497,6 +1503,7 @@
     },
     "translation": {
       "see_translation": "Ver tradução",
+      "see_original": "See original",
       "see_more": "Ver mais",
       "see_less": "See less",
       "translating": "Traduzindo...",
@@ -1539,7 +1546,8 @@
       "post_failed": "Não foi possível criar a postagem. Tente novamente.",
       "linked_account_missing": "Sua conta social vinculada não está nesta carteira.",
       "showing_linked_account": "Exibindo posições de {{account}}",
-      "post_pending_index": "Postado. Ele aparecerá no feed assim que a negociação for indexada."
+      "post_pending_index": "Postado. Ele aparecerá no feed assim que a negociação for indexada.",
+      "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
       "swap_in_progress": "Troca em andamento",
@@ -1799,6 +1807,9 @@
       "not_counted_sheet_unsupported_label": "Token não compatível",
       "not_counted_sheet_unsupported_body": "Não é possível acompanhar o P&L de tokens não compatíveis, como depósitos em pools de empréstimo.",
       "not_counted_sheet_dismiss": "Entendi",
+      "not_counted_note_one": "1 position not counted in P&L",
+      "not_counted_note_other": "{{count}} positions not counted in P&L",
+      "not_counted_note_hint": "Scrolls to positions not counted",
       "empty_open": "Nenhuma posição aberta",
       "empty_closed": "Nenhuma posição encerrada",
       "empty_open_tokens": "Nenhum token aberto",
@@ -1822,6 +1833,15 @@
       "scroll_helper": "Favor rolar para ler todas as seções",
       "scroll_to_bottom": "Role para baixo",
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
+    },
+    "trader_preview": {
+      "join": "Join Social",
+      "referral_code": "Referral code",
+      "not_now": "Not now",
+      "terms_note": "You'll set up your Social profile and review the terms first.",
+      "referral_accepted": "Referral accepted",
+      "referral_failed": "Couldn't accept the referral",
+      "referral_failed_description": "You can enter the code later in Rewards settings."
     },
     "profile_onboarding": {
       "intro_title": "See trades in real time",
@@ -1882,6 +1902,11 @@
       "fees": "Ganhe 15% sobre as taxas quando alguém copiar suas negociações.",
       "private": "O endereço da sua conta permanece privado.",
       "follow": "Outros traders podem seguir seu perfil."
+    },
+    "errors": {
+      "display_name_invalid": "This name isn’t valid. Try something different.",
+      "display_name_too_long": "Use at most {{max}} characters.",
+      "display_name_check_error": "Couldn't check that name. Check your connection and try again."
     },
     "manage_profile": {
       "title": "Gerenciar perfil",
@@ -3870,6 +3895,12 @@
       "politics": "Política",
       "sports": "Esportes"
     },
+    "home_feed": {
+      "trending": "Trending",
+      "sports": "Sports",
+      "games_error": "Games couldn’t be loaded.",
+      "retry": "Retry"
+    },
     "get_started_banner": {
       "title": "Get started in a few steps",
       "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
@@ -3931,6 +3962,9 @@
         "title": "Nenhuma atividade ainda",
         "description": "Suas negociações e liquidações serão exibidas aqui."
       },
+      "activity_continue_description": "More activity history is available to check. Load the next page to continue.",
+      "activity_load_more": "Load more activity",
+      "settlements_permission_denied": "Settlements are unavailable in this demo environment. Your trades are still shown.",
       "load_failed": "Não foi possível carregar.",
       "load_failed_retry": "Tentar novamente",
       "outcome_shares": "{{outcome}} · {{shares}} cotas",
@@ -3988,6 +4022,9 @@
       "exchange_fee": "Taxa de câmbio",
       "metamask_fee": "Taxa da MetaMask",
       "total_debit": "Débito total",
+      "max_cost": "Maximum cost (signed)",
+      "proceeds_if_fully_filled": "Proceeds if fully filled (signed)",
+      "partial_fill_proceeds_description": "This amount assumes all contracts fill. A partial fill can result in lower proceeds. If no contracts fill, you receive no proceeds and nothing is sold.",
       "to_win": "Para ganhar {{amount}}",
       "pay_with": "Pagar com",
       "predictions_balance": "Saldo de previsões",
@@ -4039,7 +4076,10 @@
       "reconciling_title": "Ainda confirmando a sua ordem",
       "reconciling_description": "Ainda estamos confirmando o que aconteceu com a sua ordem. Continue verificando aqui ou veja o resultado em seu Histórico mais tarde.",
       "keep_checking": "Continuar verificando",
-      "requote": "Tentar novamente"
+      "requote": "Tentar novamente",
+      "needs_review_title": "We couldn't confirm this order",
+      "needs_review_description": "Order outcome could not be confirmed. Check your activity or contact support.",
+      "done": "Done"
     },
     "order_notification": {
       "not_placed_title": "Ordem não enviada",
@@ -5019,6 +5059,10 @@
     "title_nft": "Importar NFT",
     "search_token": "Search",
     "custom_token": "Custom token",
+    "hidden_tokens": "Hidden tokens",
+    "unhide": "Unhide",
+    "add_custom_token_cta": "Can't find your token? Add a custom token",
+    "no_hidden_tokens": "You don't have any hidden tokens.",
     "tokens": {
       "cancel_add_token": "Cancelar",
       "add_token": "Importar"
@@ -5429,6 +5473,12 @@
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Selecionar URL da RPC",
     "title": "Configurações",
+    "groups": {
+      "general": "General",
+      "security_and_privacy": "Security and privacy",
+      "transactions_and_assets": "Transactions and assets",
+      "more": "More"
+    },
     "current_conversion": "Moeda base",
     "current_language": "Idioma atual",
     "ipfs_gateway": "gateway de IPFS",
@@ -5451,6 +5501,9 @@
     "reveal_seed_words": "Revelar frase de recuperação secreta",
     "reset_account": "Redefinir conta",
     "state_logs_button": "Baixar logs de estado",
+    "money_account_status": "Money account status",
+    "money_account_status_desc": "View debug information about your Money account.",
+    "money_account_status_button": "View Money account status",
     "reveal_seed_words_button": "Revelar frase de recuperação secreta",
     "reset_account_button": "Redefinir conta",
     "reset_account_confirm_button": "Sim, redefinir",
@@ -5506,6 +5559,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "Geral",
+    "preferences_and_display_title": "Preferences and display",
     "general_desc": "Conversão de moedas, moeda principal, idioma e motor de busca.",
     "advanced_title": "Avançado",
     "advanced_desc": "Acesse recursos de desenvolvedor, redefina a conta e configure testnets, logs de estado e RPC personalizado.",
@@ -8853,6 +8907,17 @@
     "unrecognized_chain_ticker": "Parece que o símbolo dessa rede não corresponde ao ID dessa cadeia.",
     "unrecognized_chain_id": "Não reconhecemos essa rede. Certifique-se de que o ID da cadeia esteja correto antes de continuar."
   },
+  "identity_verification": {
+    "delete_section_title": "Delete Identity Data",
+    "delete_section_description": "Your identity details will be permanently deleted from MetaMask. Partners you verified with keep their own copy. You may need to verify again later.",
+    "delete_identity_data": "Delete identity data",
+    "delete_confirm_title": "Delete identity data?",
+    "delete_confirm_message": "This cannot be undone.",
+    "delete_success_title": "Identity data deleted",
+    "delete_success_message": "Your encrypted identity verification data has been deleted.",
+    "delete_error_title": "Couldn't delete identity data",
+    "delete_error_message": "Something went wrong. Please try again."
+  },
   "mfa": {
     "method_email": "E-mail",
     "method_passkey": "Chaves de acesso",
@@ -9674,13 +9739,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Peça o seu Cartão MetaMask",
-          "description": "Use seu saldo e ganhe em compras.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Peça já",
           "cta_secondary": "Pular"
         },
         "unlinked_card_account": {
           "title": "Vincule seu cartão MetaMask",
-          "description": "Use seu saldo e ganhe em compras.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Vincular cartão",
           "cta_secondary": "Pular"
         }
@@ -9701,7 +9766,7 @@
       "benefit_withdraw_title": "Withdraw anytime",
       "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
@@ -9751,8 +9816,8 @@
       "step2_body": "Transfira moedas estáveis sem taxas de câmbio. Seus fundos começam a render imediatamente.",
       "step2_footer_text": "A Money Account usa a infraestrutura da Veda.",
       "step3_title": "Gaste em qualquer lugar",
-      "step3_body_card_eligible": "Receba até {{percentage}}% de cashback em compras ao vincular sua Money Account a um cartão MetaMask.",
-      "step3_body_card_ineligible": "Em breve! Receba até {{percentage}}% de cashback em compras ao vincular sua Money Account a um cartão MetaMask.",
+      "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
+      "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_footer_text": "Inclui monitoramento da Steakhouse Financial.",
       "step4_title": "Negocie e ganhe em um só lugar",
       "step4_body": "Use o saldo de sua conta Money para negociar na MetaMask e ainda obter rendimento.",
@@ -9827,11 +9892,9 @@
       "subtitle": "Gaste seu dinheiro onde desejar.",
       "virtual_card": "Cartão virtual",
       "metal_card": "Cartão Metal",
-      "cashback": "{{percentage}}% de cashback em mUSD",
       "link_title": "Vincular cartão",
-      "link_subtitle": "Use seu saldo e ganhe em compras.",
-      "link_subtitle_no_apy": "Use seu saldo e ganhe em compras.",
-      "link_bullet_cashback": "Receba {{percentage}}% de mUSD em cashback",
+      "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Ganhe até ~{{apy}}% de APY",
       "link_pending_title": "Vinculando seu cartão",
       "link_success_title": "Seu cartão está pronto para uso",
@@ -9843,14 +9906,14 @@
       "update_success_title": "Seu limite de gastos foi atualizado",
       "update_error": "Algo deu errado ao atualizar seu limite de gastos",
       "link_card_sheet_title": "Gaste e ganhe",
-      "link_card_sheet_description_prefix": "Vincule seu cartão para poder gastar o saldo da sua conta Money e ganhar mUSD de volta em compras — tudo isso enquanto ganha até",
+      "link_card_sheet_description_prefix": "Link your card to spend your Money balance while it keeps earning up to",
       "link_card_sheet_description_suffix": " (variável).",
-      "link_card_sheet_description_no_apy": "Vincule seu cartão para poder gastar o saldo da sua conta Money e ganhar mUSD de volta em compras.",
+      "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Vincular cartão",
       "unlink_card_sheet_title_no_funding_source": "Desvincular Money Account?",
       "unlink_card_sheet_title_with_funding_source": "Tem certeza?",
-      "unlink_card_sheet_description_no_funding_source": "Você deixará de ganhar sobre compras. Gastos futuros no cartão serão recusados até que você defina uma nova fonte de fundos. Reconecte sua Money Account a qualquer momento.",
-      "unlink_card_sheet_description_with_funding_source": "Você deixará de ganhar sobre compras. Gastos futuros no cartão usarão os fundos de {{fundingSource}}. Reconecte sua Money Account a qualquer momento.",
+      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
       "unlink_card_sheet_another_money_account": "outra Money Account",
       "unlink_card_sheet_keep_linked": "Manter vinculada",
       "unlink_card_sheet_unlink_account": "Desvincular conta",
@@ -9862,8 +9925,7 @@
       "benefit_auto_earn_variable": "(variável)",
       "benefit_dollar_backed": "Mantenha seu dinheiro seguro em mUSD, uma stablecoin lastreada em dólar na proporção de 1:1",
       "benefit_liquidity": "Obtenha liquidez total sem períodos de bloqueio, permitindo que você possa negociar ou sacar quando quiser",
-      "benefit_spend_prefix": "Gaste em mais de 150 milhões de estabelecimentos comerciais com o cartão MetaMask e ganhe",
-      "benefit_spend_cashback": "1-3% de cashback em mUSD",
+      "benefit_spend": "Spend at 150M+ merchants with MetaMask Card",
       "benefit_transfer": "Envie para qualquer uma de suas carteiras na MetaMask",
       "benefit_global": "Envie e receba fundos globalmente",
       "learn_more": "Saiba mais"
@@ -10030,6 +10092,7 @@
       "date": "Data",
       "paid_with": "Paga com",
       "you_deposited": "Você depositou",
+      "amount_unavailable": "Amount unavailable",
       "transaction_fees": "Taxas de transação",
       "paid_by_metamask": "Pago pela MetaMask",
       "total": "Total",
@@ -10103,6 +10166,44 @@
         "title": "A Money Account está chegando",
         "description": "Estamos liberando a Money Account gradualmente para garantir que tudo funcione corretamente. Confira em breve."
       }
+    },
+    "account_status": {
+      "title": "Money account status",
+      "loading": "Loading…",
+      "no_account": "No Money account found for this wallet.",
+      "address_title": "Money account address",
+      "copy": "Copy {{label}}",
+      "copied": "{{label}} copied",
+      "not_available": "Not available",
+      "flag_not_set": "Not set in remote flags",
+      "debug_title": "Debug info",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "MetaMetrics ID",
+      "profile_id": "Profile ID",
+      "summary_title": "Summary",
+      "chomp_registration": "CHOMP registration",
+      "summary": {
+        "registered": "Registered",
+        "pending": "Pending",
+        "incomplete": "Incomplete",
+        "unknown": "Unknown"
+      },
+      "request_error": "Some requests failed. Pull down to retry.",
+      "signals_title": "Signals",
+      "profile_association": "Profile association",
+      "account_upgrade": "Account upgrade",
+      "intents": "Intents",
+      "local_record": "Device upgrade record",
+      "local_record_completed_at": "Device upgrade completed {{date}}",
+      "signal": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "missing": "Missing",
+        "unknown": "Unknown"
+      },
+      "upgrades_title": "Upgrades",
+      "intents_title": "Intents",
+      "chain": "Chain {{chainId}}"
     }
   },
   "stake": {
@@ -10482,6 +10583,8 @@
     "nfts": "NFTs",
     "permission_from": "Autorização de",
     "spender": "Gastador",
+    "expiration": "Expiration",
+    "never_expires": "Never expires",
     "request_from": "Solicitação de",
     "staking_from": "Staking de",
     "signing_in_with": "Fazendo login com",
@@ -10895,7 +10998,6 @@
     "network_fee_info_title": "Taxa de rede",
     "network_fee_info_content": "As taxas de rede dependem do nível de atividade da rede e da complexidade da sua transação.",
     "network_fee_info_content_gasless": "Quando você não tiver tokens nativos suficientes, pagará esta taxa usando tokens de sua swap.",
-    "gas_fee_deduction": "-{{fee}} para gas",
     "batch_sell_network_fee_info_content": "As taxas de rede dependem do volume de transações na rede e da complexidade da sua transação. Se o saldo em sua conta não for suficiente para cobrir a taxa, nós a descontaremos do token para o qual você está convertendo.",
     "network_fee_info_content_sponsored": "Essa taxa de rede é paga pela MetaMask, o que permite que você realize transações sem {{nativeToken}} em sua conta.",
     "points": "Est. de pontos",
@@ -11439,19 +11541,16 @@
         "name": "Cartão virtual",
         "price": "Gratuito",
         "feature_1": "Cartão virtual para Apple Pay e Google Pay",
-        "feature_2": "Pague com criptomoedas (USDC, USDT, WETH e várias outras)",
-        "feature_3": "1% de cashback em mUSD em todas as compras"
+        "feature_2": "Pague com criptomoedas (USDC, USDT, WETH e várias outras)"
       },
       "metal_card": {
         "name": "Cartão Metal",
         "price": "US$ 199/ano",
         "everything_in_virtual": "Tudo em formato virtual, além de:",
         "feature_1": "Cartão premium de metal entalhado",
-        "feature_2": "3% de cashback em mUSD sobre os primeiros US$ 10.000/ano",
         "feature_3": "Sem taxas de transação internacional"
       },
-      "earn_up_to_badge": "Recupere até US$ 300 em mUSD anualmente",
-      "upgrade_to_metal_label": "Ou faça upgrade para Metal e ganhe 3x mais recompensas"
+      "upgrade_to_metal_label": "Or upgrade to Metal"
     },
     "review_order": {
       "title": "Confira sua ordem",
@@ -11471,7 +11570,7 @@
     "order_completed": {
       "title": "Seu cartão está a caminho",
       "subtitle": "Ele deverá chegar em 4 a 6 semanas.",
-      "description": "Configure seu cartão virtual e adicione-o à sua carteira digital para começar a ganhar cashback em mUSD.",
+      "description": "Set up your virtual card and add it to your digital wallet to start spending.",
       "set_up_card_button": "Configurar cartão",
       "back_to_card_button": "Voltar ao Cartão"
     },
@@ -11512,9 +11611,9 @@
       "try_again": "Tentar novamente"
     },
     "card_onboarding": {
-      "title": "Gaste e ganhe",
-      "description": "O cartão MetaMask é uma forma rápida e fácil de gastar suas criptomoedas e receber até 3% de volta em mUSD.",
-      "apply_now_button": "Configure já",
+      "title": "Spend anywhere",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
+      "apply_now_button": "Get card",
       "login_button": "Fazer login",
       "not_now_button": "Agora não",
       "sign_up": {
@@ -11604,16 +11703,20 @@
         "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
-        "title": "Aguardando aprovação",
-        "description": "Nosso parceiro precisa verificar sua identidade para aprovar sua solicitação.",
-        "helper_text": "Isso geralmente leva alguns segundos. Não feche o aplicativo.",
+        "loading_label": "Loading",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app.",
         "incomplete_title": "Conclua a verificação da sua identidade",
         "incomplete_description": "Você fechou a verificação de identidade antes de concluí-la. Continue para finalizar.",
         "continue_button": "Continuar verificação",
         "info_needed_title": "Informações adicionais necessárias",
         "info_needed_description": "Precisamos de mais algumas informações para concluir sua verificação. Continue a fornecê-las.",
         "info_needed_button": "Continuar verificação",
-        "expiring_error": "Sua sessão de verificação expirou. Entre em contato com o suporte para continuar."
+        "expiring_error": "Sua sessão de verificação expirou. Entre em contato com o suporte para continuar.",
+        "error_title": "Something went wrong",
+        "try_again_button": "Try again",
+        "expired_title": "Verification session expired",
+        "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
         "permission_error": "É necessário acesso à câmera e ao microfone para verificação de identidade. Permita o acesso e tente novamente.",
@@ -11654,6 +11757,19 @@
         "title": "Você não é elegível para o Cartão MetaMask neste momento",
         "description": "A elegibilidade é determinada pelas verificações regulatórias e de antecedentes feitas por nosso parceiro.",
         "close_button": "Volta à página inicial"
+      },
+      "kyc_rejected": {
+        "retry_title": "We couldn't verify your identity",
+        "reasons": {
+          "id_document": "Your ID document couldn't be verified. Try again with a different document.",
+          "document_photo": "The photo of your document wasn't clear enough. Try again in better light.",
+          "personal_details": "Your name, date of birth, or address couldn't be verified.",
+          "proof_of_address": "Your proof of address couldn't be verified.",
+          "biometrics": "The face scan didn't match. Try again.",
+          "ineligible": "You're not eligible for MetaMask Card right now.",
+          "generic": "Try verification again. Contact support if it keeps failing.",
+          "generic_permanent": "We can't complete verification for this account."
+        }
       },
       "personal_details": {
         "title": "Adicione suas informações",
@@ -11702,7 +11818,9 @@
       "complete": {
         "title": "Verificação concluída",
         "description": "Conclua a configuração do seu cartão MetaMask para começar a gastar suas criptomoedas.",
-        "confirm_button": "Concluir configuração"
+        "confirm_button": "Concluir configuração",
+        "money_account_description": "We're getting your card ready. It'll be on your Card home in a moment.",
+        "money_account_confirm_button": "Continue"
       },
       "account_exists": {
         "title": "Você já tem uma conta",
@@ -12002,10 +12120,10 @@
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Usar Money Account",
       "spend_and_earn_title": "Gaste e ganhe",
-      "spend_and_earn_description_prefix": "Vincule seu saldo ao seu cartão e receba mUSD de volta em compras. Além disso, ganhe até ",
+      "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
       "spend_and_earn_description_suffix": " (variável) em seu saldo.",
-      "spend_and_earn_description_no_apy": "Vincule seu saldo ao seu cartão e receba mUSD de volta em compras.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and spend it anywhere Mastercard is accepted.",
       "spend_and_earn_cta": "Vincular cartão"
     },
     "cashback_screen": {
@@ -12304,6 +12422,7 @@
     "close": "Fechar"
   },
   "rewards": {
+    "today": "Today",
     "rebate": {
       "banner": "Você está recebendo {{percent}}% de volta sobre as taxas",
       "tooltip_title": "Recompensas de negociação",
@@ -12384,7 +12503,7 @@
       "already_referred": "Você já foi indicado por outro usuário.",
       "cannot_use_own_referral_code": "Você não pode usar seu próprio código de indicação.",
       "referrer_cannot_be_referred": "Você não pode ser indicado por outra pessoa.",
-      "active_trader_cannot_be_referred": "Você não pode ser indicado devido à sua atividade de negociação recente.",
+      "active_trader_cannot_be_referred": "This referral code is only valid for new traders.",
       "rate_limited": "Tentativas demais. Aguarde um momento.",
       "invalid_bonus_code": "Código de bônus inválido",
       "already_redeemed": "Você já resgatou este código de bônus",
@@ -12516,31 +12635,13 @@
       "verifying_rewards": "Estamos verificando se tudo está correto antes de você resgatar suas recompensas."
     },
     "onboarding": {
-      "not_supported_region_title": "Não há suporte a essa região",
       "not_supported_region_description": "Ainda não oferecemos suporte às recompensas em sua região. Estamos trabalhando para expandir o acesso. Volte mais tarde.",
-      "not_supported_hardware_account_title": "Não há suporte para esta conta",
       "not_supported_hardware_account_description": "Contas de carteira de hardware ainda não são qualificadas para receber recompensas. Mude para uma conta diferente para continuar.",
-      "not_supported_account_type_title": "Não há suporte para este tipo de conta",
       "not_supported_account_type_description": "Atualmente, apenas contas internas Ethereum e Solana podem ser inscritas no programa de recompensas. Mude para uma conta diferente para continuar.",
-      "not_supported_confirm_go_back": "Voltar",
-      "not_supported_confirm_retry": "Tentar novamente",
-      "auth_fail_title": "Falha na autenticação",
-      "auth_fail_description": "Não foi possível autenticar no programa de recompensas. Verifique sua conexão e tente novamente.",
-      "geo_check_fail_title": "Não foi possível determinar a qualificação para participação",
-      "geo_check_fail_description": "Não foi possível determinar se a sua região permite inscrição no programa de recompensas. Verifique sua conexão e tente novamente.",
-      "intro_confirm_geo_loading": "Verificando região...",
       "step_confirm": "Avançar",
       "step_finish": "Vamos lá",
       "step_skip": "Pular",
-      "title": "Comece a ganhar recompensas",
-      "description": "Ganhe prêmios, resgate vantagens e descubra mais maneiras de ganhar — bastando apenas usar a MetaMask.",
-      "sign_up": "Participe do programa de recompensas",
-      "sign_up_loading": "Entrando...",
-      "legal_disclaimer_1": "Ao participar, você concorda com os",
-      "legal_disclaimer_2": "Termos de uso",
-      "legal_disclaimer_3": ". Ativaremos todas as contas neste dispositivo e rastrearemos a atividade na rede para recompensar você automaticamente.",
-      "legal_disclaimer_4": "Saiba mais",
-      "referral_label": "Código de indicação"
+      "description": "Ganhe prêmios, resgate vantagens e descubra mais maneiras de ganhar — bastando apenas usar a MetaMask."
     },
     "settings": {
       "title": "Configurações de recompensas",
@@ -13186,7 +13287,7 @@
     "cancel": "Cancelar",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
-    "macro_stocks_commodity_perps": "Perps",
+    "perps_trending_lists": "Trending lists",
     "crypto_perps_section": "Perps",
     "predictions": "Previsões",
     "no_results": "Nenhum resultado encontrado",
@@ -13215,7 +13316,7 @@
     },
     "tabs": {
       "now": "Agora",
-      "macro": "Macro",
+      "perps": "Perps",
       "rwas": "RWAs",
       "crypto": "Cripto",
       "sports": "Esportes",
