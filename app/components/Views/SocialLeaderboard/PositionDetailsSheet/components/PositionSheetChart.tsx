@@ -51,6 +51,9 @@ const CHART_INSET_BOTTOM = 24;
 const LINE_WIDTH = 2;
 const CHART_HORIZONTAL_INSET = 16;
 const MARKER_SIZE = 16;
+/** Sheet-colored ring drawn outside the disc so the icon stays 16px. */
+const MARKER_OUTLINE_WIDTH = 2;
+const MARKER_OUTLINE_SIZE = MARKER_SIZE + MARKER_OUTLINE_WIDTH * 2;
 const MARKER_HIT_SLOP = 16;
 /** Space between the marker edge and the active ring. */
 const MARKER_RING_GAP = 2;
@@ -389,6 +392,20 @@ const PositionSheetChart = ({
                     ]}
                   />
                 ) : null}
+                <View
+                  pointerEvents="none"
+                  testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-outline-${marker.id}`}
+                  style={[
+                    tw.style('absolute rounded-full'),
+                    {
+                      width: MARKER_OUTLINE_SIZE,
+                      height: MARKER_OUTLINE_SIZE,
+                      backgroundColor: colors.background.elevated1,
+                      left: markerXs[index] - MARKER_OUTLINE_SIZE / 2,
+                      top: point.y - MARKER_OUTLINE_SIZE / 2,
+                    },
+                  ]}
+                />
                 <View
                   testID={`${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${marker.id}`}
                   style={[
