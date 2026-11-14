@@ -3,6 +3,7 @@ import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import type { GestureResponderEvent } from 'react-native';
 import {
   buildV2OrderToastOptions,
+  resetShownV2OrderToasts,
   showV2OrderToast,
   V2OrderToastParams,
 } from './v2OrderToast';
@@ -27,9 +28,17 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(),
 }));
 
+const mockIsRampsVaultUnlocked = jest.fn(() => true);
+
+jest.mock('./isRampsVaultUnlocked', () => ({
+  isRampsVaultUnlocked: () => mockIsRampsVaultUnlocked(),
+}));
+
 describe('v2OrderToast', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetShownV2OrderToasts();
+    mockIsRampsVaultUnlocked.mockReturnValue(true);
   });
 
   describe('buildV2OrderToastOptions', () => {
@@ -199,6 +208,32 @@ describe('v2OrderToast', () => {
       expect(callArg.severity).toBe(ToastSeverity.Success);
       expect(callArg.title).toBe('Your purchase of 1.5 ETH was successful');
       expect(callArg.showCloseButton).toBe(false);
+    });
+
+    it('shows a completed purchase only once when polling reports it again', () => {
+      (strings as jest.Mock).mockReturnValue('done');
+      const params: V2OrderToastParams = {
+        orderId: 'old-order',
+        cryptocurrency: 'SOL',
+        cryptoAmount: 1,
+        status: RampsOrderStatus.Completed,
+      };
+
+      showV2OrderToast(params);
+      showV2OrderToast(params);
+
+      expect(toast).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show a purchase toast while the vault is locked', () => {
+      mockIsRampsVaultUnlocked.mockReturnValue(false);
+      showV2OrderToast({
+        orderId: 'old-order',
+        cryptocurrency: 'ETH',
+        status: RampsOrderStatus.Completed,
+      });
+
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not call toast for Created status', () => {
