@@ -135,6 +135,10 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID('bridge-fee-row');
   }
 
+  get bridgeFeeRowSkeleton(): Promise<AppiumElement> {
+    return Matchers.getElementByID('bridge-fee-row-skeleton');
+  }
+
   get payWithTokenList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
@@ -441,11 +445,34 @@ class TransactionPayConfirmation {
     );
   }
 
+  /**
+   * Wait until MM Pay fee totals leave Loading / NoQuote and the fee row is in
+   * the hierarchy. Money-account overrides (and other pay-source switches) can
+   * briefly clear quotes so `CustomAmountTotals` renders the skeleton or null —
+   * `bridge-fee-row` is absent then, and a short isDisplayed wait flakes.
+   *
+   * Polls with a fresh getter each iteration (existence, not visibility) and
+   * treats the skeleton as "still loading".
+   */
   async verifyTransactionFeeVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.bridgeFeeRow, {
-      description: 'Bridge fee row should be visible',
-      timeout: 15000,
-    });
+    const timeout = 30_000;
+
+    await Utilities.waitUntil(
+      async () => {
+        if (await (await this.bridgeFeeRow).unwrap().isExisting()) {
+          return true;
+        }
+        // Skeleton means quote totals are still loading — keep polling.
+        if (await (await this.bridgeFeeRowSkeleton).unwrap().isExisting()) {
+          return false;
+        }
+        if (await (await this.transactionFee).unwrap().isExisting()) {
+          return true;
+        }
+        return (await this.paidByMetaMask).unwrap().isExisting();
+      },
+      { interval: 300, timeout },
+    );
 
     // Prod pay configs may sponsor gas (Paid by MetaMask) instead of showing a
     // fiat `transaction-fee` value — either means the quote/fee row resolved.
@@ -459,7 +486,7 @@ class TransactionPayConfirmation {
         }
         return (await this.paidByMetaMask).unwrap().isExisting();
       },
-      { interval: 300, timeout: 15000 },
+      { interval: 300, timeout },
     );
   }
 
