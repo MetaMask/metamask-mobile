@@ -6,7 +6,9 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { FEED_REACTION_EMOJIS } from '../reactions';
 import ReactionPickerBalloon, {
   REACTION_TRAY_SURFACE_TEST_IDS,
+  emojiOpacityForProgress,
   getTrayRects,
+  trayOpacityForProgress,
 } from './ReactionPickerBalloon';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
@@ -214,6 +216,38 @@ describe('ReactionPickerBalloon', () => {
     await waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('keeps emoji hidden until the pill has cleared the button', () => {
+    expect(emojiOpacityForProgress(0)).toBe(0);
+    expect(emojiOpacityForProgress(0.4)).toBe(0);
+    expect(emojiOpacityForProgress(0.6)).toBeCloseTo(0.5);
+    expect(emojiOpacityForProgress(0.8)).toBe(1);
+    expect(emojiOpacityForProgress(1)).toBe(1);
+    expect(trayOpacityForProgress(0)).toBe(0);
+    expect(trayOpacityForProgress(0.15)).toBe(0);
+    expect(trayOpacityForProgress(0.425)).toBeCloseTo(0.5);
+    expect(trayOpacityForProgress(0.7)).toBe(1);
+    expect(trayOpacityForProgress(1)).toBe(1);
+
+    renderTray();
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toHaveStyle({ opacity: 0 });
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.CONTENT),
+    ).toHaveStyle({ opacity: 0 });
+  });
+
+  it('shows emoji immediately when the tray opens in place', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+
+    renderTray();
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.CONTENT),
+    ).toHaveStyle({ opacity: 1 });
   });
 
   it('grows from the emoji button to a full-width tray above it', () => {

@@ -73,16 +73,44 @@ const COLLAPSE_TIMING = {
   easing: Easing.in(Easing.cubic),
   reduceMotion: ReduceMotion.System,
 };
-const CONTENT_FADE_IN = {
-  duration: 140,
-  easing: Easing.out(Easing.quad),
-  reduceMotion: ReduceMotion.Never,
-};
+/** The pill fades in with the morph, after it has left the finger. */
+const TRAY_FADE_START = 0.15;
+const TRAY_FADE_END = 0.7;
+/** Emoji stay hidden until the pill has lifted off the finger. */
+const EMOJI_FADE_START = 0.4;
+const EMOJI_FADE_END = 0.8;
 const CONTENT_FADE_OUT = {
-  duration: 90,
+  duration: 70,
   easing: Easing.in(Easing.quad),
   reduceMotion: ReduceMotion.Never,
 };
+const TRAY_FADE_OUT = {
+  duration: 160,
+  easing: Easing.out(Easing.quad),
+  reduceMotion: ReduceMotion.Never,
+};
+
+function fadeForProgress(progress: number, start: number, end: number): number {
+  'worklet';
+  if (progress <= start) {
+    return 0;
+  }
+  if (progress >= end) {
+    return 1;
+  }
+  return (progress - start) / (end - start);
+}
+
+export function trayOpacityForProgress(progress: number): number {
+  'worklet';
+  return fadeForProgress(progress, TRAY_FADE_START, TRAY_FADE_END);
+}
+
+export function emojiOpacityForProgress(progress: number): number {
+  'worklet';
+  return fadeForProgress(progress, EMOJI_FADE_START, EMOJI_FADE_END);
+}
+
 /** Scrolling a row whose width is still changing fights the grow. */
 const SCROLL_READY_PROGRESS = 0.98;
 
@@ -292,9 +320,11 @@ const ReactionPickerTray: React.FC<
   // Glass is grown by its frame, never scaled: a scaled glass layer warps
   // its refraction and its corners wobble.
   const progress = useSharedValue(calmMotion ? 1 : 0);
-  // The glass stays solid while it grows. Reduced motion fades the whole pill.
+  // Reduced motion fades the whole pill in place. The grow fades the pill
+  // with its frame, so the glass is clear of the finger before it is solid.
   const pillOpacity = useSharedValue(calmMotion ? 0 : 1);
-  const contentOpacity = useSharedValue(calmMotion ? 1 : 0);
+  const trayFade = useSharedValue(0);
+  const closeFade = useSharedValue(0);
   const closingRef = useRef(false);
   const onCloseRef = useRef(onClose);
   const [isClosing, setIsClosing] = useState(false);
@@ -310,8 +340,7 @@ const ReactionPickerTray: React.FC<
       return;
     }
     progress.value = withSpring(1, GROW_SPRING);
-    contentOpacity.value = withTiming(1, CONTENT_FADE_IN);
-  }, [calmMotion, contentOpacity, pillOpacity, progress]);
+  }, [calmMotion, pillOpacity, progress]);
 
   useAnimatedReaction(
     () => progress.value >= SCROLL_READY_PROGRESS,
@@ -333,7 +362,8 @@ const ReactionPickerTray: React.FC<
   const trayStyle = useAnimatedStyle(() => {
     const p = progress.value;
     return {
-      opacity: pillOpacity.value,
+      opacity:
+        pillOpacity.value * trayOpacityForProgress(p) * (1 - trayFade.value),
       left: from.left + (to.left - from.left) * p,
       top: from.top + (to.top - from.top) * p,
       width: from.width + (to.width - from.width) * p,
@@ -341,9 +371,11 @@ const ReactionPickerTray: React.FC<
     };
   });
 
-  // Emoji stay inside the pill, on the button edge, and are uncovered as it grows.
+  // Emoji stay inside the pill, on the button edge. Their fade follows the
+  // grow, so they appear only after the pill has cleared the finger.
   const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
+    opacity:
+      emojiOpacityForProgress(progress.value) * (1 - closeFade.value),
   }));
 
   const finishClose = (): void => {
@@ -370,7 +402,8 @@ const ReactionPickerTray: React.FC<
       return;
     }
 
-    contentOpacity.value = withTiming(0, CONTENT_FADE_OUT);
+    closeFade.value = withTiming(1, CONTENT_FADE_OUT);
+    trayFade.value = withTiming(1, TRAY_FADE_OUT);
     progress.value = withTiming(0, COLLAPSE_TIMING, (done) => {
       if (done) {
         scheduleOnRN(finishClose);
@@ -420,6 +453,7 @@ const ReactionPickerTray: React.FC<
         >
           <TraySurface material={material} />
           <Animated.View
+            testID={ReactionPickerBalloonSelectorsIDs.CONTENT}
             style={[
               tw.style('absolute left-0', opensBelow ? 'top-0' : 'bottom-0'),
               {
