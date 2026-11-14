@@ -159,6 +159,10 @@ const MOCK_RIVE_FILE = { __mockRiveFile: true };
 const MOCK_VIEW_MODEL_INSTANCE = {
   __mockViewModelInstance: true,
   imageProperty: () => ({ set: __mockRiveImagePropertySet }),
+  // Money home tilt and reveal bind these on mount. A missing method throws
+  // before the screen can render in component-view tests.
+  numberProperty: () => ({ value: 0, set: jest.fn() }),
+  triggerProperty: () => ({ trigger: jest.fn() }),
 };
 
 const MOCK_RIVE_IMAGE = { byteSize: 1 };
