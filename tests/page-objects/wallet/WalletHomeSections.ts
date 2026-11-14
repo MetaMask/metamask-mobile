@@ -303,11 +303,19 @@ export class WalletHomeSections {
     const marketDetailsScreen = Matchers.getElementByID(
       PredictMarketDetailsSelectorsIDs.SCREEN,
     );
-    const scrollAndTapRetryTimeoutMs = 90_000;
-    const intoViewMaxAttempts = 8;
-    const scrollAndTapPerDirectionMs = 15_000;
+    // Positions paint after the Predictions section mounts (mock merge). One
+    // long scrollIntoView on a missing row burns the budget with a single
+    // attempt — retry short passes instead (same shape as notification rows).
+    const scrollAndTapRetryTimeoutMs = 120_000;
+    const sectionIntoViewMaxAttempts = 3;
+    const scrollAndTapMaxAttempts = 3;
     const tapTimeoutMs = 10_000;
     const predictNavigationTimeoutMs = resolveE2EWaitTimeoutMs(15_000);
+    const positionMountTimeoutMs = 5_000;
+    const clippedRowNudge = {
+      direction: 'up' as const,
+      percentage: 0.15,
+    };
 
     const assertMarketDetailsOpened = async (): Promise<void> => {
       await Assertions.expectElementToBeVisible(marketDetailsScreen, {
@@ -316,26 +324,40 @@ export class WalletHomeSections {
       });
     };
 
+    const ensurePositionRowMounted = async (): Promise<void> => {
+      // Nudge Predictions into view so late mock merges can mount rows, then
+      // wait for hierarchy existence before scrollIntoView of the row itself.
+      await WalletHomeScroll.tryScrollDirections((direction) =>
+        this.scrollPredictionsSectionIntoView(direction, {
+          maxAttempts: sectionIntoViewMaxAttempts,
+        }),
+      );
+      await Assertions.expectElementToExist(target, {
+        timeout: positionMountTimeoutMs,
+        description: `${description} mounted`,
+      });
+    };
+
     await Utilities.executeWithRetry(
       async () => {
         if (
           await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
             tapTimeout: tapTimeoutMs,
+            clearTabBar: true,
+            overshootSwipe: clippedRowNudge,
           })
         ) {
           await assertMarketDetailsOpened();
           return;
         }
 
-        await WalletHomeScroll.tryScrollDirections((direction) =>
-          this.scrollPredictionsSectionIntoView(direction, {
-            maxAttempts: intoViewMaxAttempts,
-          }),
-        );
+        await ensurePositionRowMounted();
 
         if (
           await WalletHomeScroll.tapIfAlreadyVisible(target, description, {
             tapTimeout: tapTimeoutMs,
+            clearTabBar: true,
+            overshootSwipe: clippedRowNudge,
           })
         ) {
           await assertMarketDetailsOpened();
@@ -344,9 +366,10 @@ export class WalletHomeSections {
 
         await WalletHomeScroll.tryScrollDirections((direction) =>
           WalletHomeScroll.scrollAndTapSection(target, description, direction, {
-            timeout: scrollAndTapPerDirectionMs,
+            maxAttempts: scrollAndTapMaxAttempts,
             tapTimeout: tapTimeoutMs,
             fullyVisible: true,
+            clearTabBar: true,
             overshootSwipe: {
               direction: direction === 'down' ? 'up' : 'down',
               percentage: 0.15,
@@ -358,6 +381,7 @@ export class WalletHomeSections {
       },
       {
         timeout: scrollAndTapRetryTimeoutMs,
+        interval: 500,
         description: `Scroll and tap ${description}`,
       },
     );
