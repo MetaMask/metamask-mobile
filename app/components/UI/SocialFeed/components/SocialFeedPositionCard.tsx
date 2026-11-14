@@ -100,13 +100,25 @@ const cardTone = (
 };
 
 /**
- * The closed-card stats, identical for perps and spot. Three short values that
- * sit side by side: what it was entered at, what it left at, and what it cost.
+ * The cost row's label. A perp's value is its margin, so it reads "Margin";
+ * spot keeps "Cost".
+ */
+const costRowLabel = (variant: SocialV1FeedItem['variant']): string =>
+  strings(
+    variant === 'perpsOpen' || variant === 'perpsClosed'
+      ? 'social_leaderboard.feed.position_card.margin'
+      : 'social_leaderboard.feed.position_card.cost',
+  );
+
+/**
+ * The closed-card stats. Three short values that sit side by side: what it was
+ * entered at, what it left at, and what it cost (margin for a perp).
  * Hold time and a "Closed" status row are deliberately absent -- the card's own
  * red/green treatment already says the position is settled and which way.
  */
 const closedStats = (item: {
   id: string;
+  variant: SocialV1FeedItem['variant'];
   entryPriceLabel?: string;
   entryMarketCapLabel?: string;
   exitPriceLabel?: string;
@@ -127,7 +139,7 @@ const closedStats = (item: {
   ),
   {
     key: 'cost',
-    label: strings('social_leaderboard.feed.position_card.cost'),
+    label: costRowLabel(item.variant),
     value: item.costLabel,
     testID: statId(item.id, 'cost'),
   },
@@ -210,7 +222,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
       },
       {
         key: 'cost',
-        label: strings('social_leaderboard.feed.position_card.cost'),
+        label: costRowLabel(item.variant),
         value: item.costLabel,
         testID: statId(item.id, 'cost'),
       },
