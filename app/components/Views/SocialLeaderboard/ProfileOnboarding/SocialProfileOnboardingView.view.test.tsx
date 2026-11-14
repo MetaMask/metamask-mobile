@@ -1008,15 +1008,17 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_INCOMING,
       ),
-    ).toHaveAnimatedStyle({ opacity: 1 });
-    const outgoingTitle = screen.getByTestId(
-      SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
-      { includeHiddenElements: true },
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title'),
     );
-    expect(outgoingTitle).toHaveTextContent(
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.INTRO_TITLE_OUTGOING,
+        { includeHiddenElements: true },
+      ),
+    ).toHaveTextContent(
       strings('social_leaderboard.profile_onboarding.intro_title_activity'),
     );
-    expect(outgoingTitle).toHaveAnimatedStyle({ opacity: 0 });
 
     act(() => {
       __setRivePropertyValue('currentStep', 3);
@@ -1033,7 +1035,7 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
     ).toHaveTextContent(
-      strings('social_leaderboard.profile_onboarding.intro_title_activity'),
+      strings('social_leaderboard.profile_onboarding.intro_title_post'),
     );
   });
 
