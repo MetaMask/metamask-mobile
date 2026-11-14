@@ -8,6 +8,9 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 # Platform Team
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
+# Native projects (signing configs, entitlements, native dependencies)
+android/                                                    @MetaMask/mobile-platform
+ios/                                                        @MetaMask/mobile-platform
 .ai-pr-analyzer/modes/dependency-audit-fix/                 @MetaMask/mobile-platform
 # Patches
 patches/@react-native-clipboard+clipboard+1.16.1.patch      @MetaMask/mobile-platform
@@ -75,12 +78,16 @@ app/util/number/index.js                                    @MetaMask/mobile-pla
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
+scripts/apply-build-config.js                               @MetaMask/mobile-platform
+scripts/repack.js                                           @MetaMask/mobile-platform
+app.config.js                                               @MetaMask/mobile-platform
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
-certs/certificate.pem                                       @MetaMask/mobile-admins
+certs/                                                      @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
+scripts/validate-secrets-from-config.js                     @MetaMask/mobile-admins
 
 # DevOps Team
 .github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
