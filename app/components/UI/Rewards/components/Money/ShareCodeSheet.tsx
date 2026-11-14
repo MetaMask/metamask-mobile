@@ -13,7 +13,6 @@ import QRCode from 'react-native-qrcode-svg';
 import Pressable from '../../../../../component-library/components-temp/Pressable/Pressable';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -32,6 +31,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { resolveMoneyShareUrl } from '../../utils/moneyShareUrl';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const SHARE_CODE_SHEET_TEST_IDS = {
   CONTAINER: 'share-code-sheet',
@@ -139,6 +141,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
   localizedText,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const copy = useShareCopy(localizedText);
@@ -310,12 +313,13 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
             onClose={handleSheetClosed}
             testID={SHARE_CODE_SHEET_TEST_IDS.CONTAINER}
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={handleRequestClose}
               closeButtonProps={{ testID: SHARE_CODE_SHEET_TEST_IDS.CLOSE }}
             >
               {copy.title}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
               {resolvedShareUrl ? (
                 // The graphic carries no information a screen reader can use;

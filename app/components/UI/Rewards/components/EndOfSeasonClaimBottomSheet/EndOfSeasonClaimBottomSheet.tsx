@@ -27,7 +27,6 @@ import {
   Text,
   TextVariant,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -54,6 +53,8 @@ import useClaimReward from '../../hooks/useClaimReward';
 import useLineaSeasonOneTokenReward from '../../hooks/useLineaSeasonOneTokenReward';
 import { validateEmail } from '../../utils/formatUtils';
 import { formatAssetAmount } from '../../utils/eventDetailsUtils';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ModalAction {
   label: string;
@@ -91,6 +92,7 @@ interface EndOfSeasonClaimBottomSheetProps {
 const EndOfSeasonClaimBottomSheet = ({
   route,
 }: EndOfSeasonClaimBottomSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const { showToast: showRewardsToast, RewardsToastOptions } =
@@ -516,7 +518,9 @@ const EndOfSeasonClaimBottomSheet = ({
       testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={title}
         onClose={handleModalClose}
         closeButtonProps={{ testID: 'close-button' }}
