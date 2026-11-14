@@ -143,6 +143,27 @@ post_install do |installer|
     :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
   )
 
+  # Xcode 27 rejects deployment targets below iOS 15, including projects referenced
+  # directly by the app (they are not part of the Pods project).
+  [
+    '../node_modules/react-native-aes-crypto-forked/ios/RCTAesForked.xcodeproj',
+    'branch-ios-sdk/carthage-files/BranchSDK.xcodeproj',
+  ].each do |relative_path|
+    project_path = File.expand_path(relative_path, __dir__)
+    next unless File.exist?(project_path)
+
+    project = Xcodeproj::Project.open(project_path)
+    ([project] + project.targets).each do |target|
+      target.build_configurations.each do |config|
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        next if current.nil? || Gem::Version.new(current.to_s) >= Gem::Version.new('16.4')
+
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.4'
+      end
+    end
+    project.save
+  end
+
   # Modify RCT-Folly Portability.h to disable coroutines
   Dir.glob(installer.sandbox.root + "RCT-Folly/folly/Portability.h") do |file|
     begin
