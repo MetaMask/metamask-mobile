@@ -1074,7 +1074,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.feeDiscountKind).toBe('promotional');
     });
 
-    it('attributes to subscription when contributions tie', async () => {
+    it('attributes to rewards when contributions tie', async () => {
       const result = await renderWithFees(
         createMockFeeResult({
           feeSource: 'subscription',
@@ -1094,7 +1094,8 @@ describe('usePerpsCloseAllCalculations', () => {
         ],
       );
 
-      expect(result.current.feeSource).toBe('subscription');
+      expect(result.current.feeSource).toBe('rewards');
+      expect(result.current.feeDiscountKind).toBe('vip');
     });
 
     it('ignores a discounted position with no fee weight', async () => {
