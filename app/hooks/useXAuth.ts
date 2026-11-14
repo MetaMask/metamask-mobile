@@ -48,7 +48,9 @@ const toXAuthError = (error: unknown): XAuthError => {
   if (error instanceof XAuthError) {
     return error;
   }
-  return new XAuthError(XAuthErrorType.NetworkFailure, getErrorMessage(error));
+  return new XAuthError(XAuthErrorType.NetworkFailure, getErrorMessage(error), {
+    cause: error,
+  });
 };
 
 /**

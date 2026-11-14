@@ -83,12 +83,14 @@ describe('DisconnectXAccountSheet', () => {
 
   it('shows the error line when an error message is passed', () => {
     const { getByTestId } = renderSheet({
-      errorMessage: strings('manage_profile.x_account_disconnect_error'),
+      errorMessage: strings('social_leaderboard.manage_profile.server_error'),
     });
 
     expect(
       getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
-    ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
+    ).toHaveTextContent(
+      strings('social_leaderboard.manage_profile.server_error'),
+    );
   });
 
   it('hides the error line when there is no error message', () => {
@@ -112,7 +114,7 @@ describe('DisconnectXAccountSheet', () => {
 
     it('exposes the error line as a polite alert', () => {
       const { getByTestId } = renderSheet({
-        errorMessage: strings('manage_profile.x_account_disconnect_error'),
+        errorMessage: strings('social_leaderboard.manage_profile.server_error'),
       });
 
       expect(
@@ -134,14 +136,16 @@ describe('DisconnectXAccountSheet', () => {
         <DisconnectXAccountSheet
           handle="tester"
           isDisconnecting={false}
-          errorMessage={strings('manage_profile.x_account_disconnect_error')}
+          errorMessage={strings(
+            'social_leaderboard.manage_profile.server_error',
+          )}
           onClose={mockOnClose}
           onConfirm={mockOnConfirm}
         />,
       );
 
       expect(announceSpy).toHaveBeenCalledWith(
-        strings('manage_profile.x_account_disconnect_error'),
+        strings('social_leaderboard.manage_profile.server_error'),
       );
     });
 

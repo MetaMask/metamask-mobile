@@ -1,7 +1,10 @@
 import { strings } from '../../../../../../locales/i18n';
 import {
   getHandleAvailabilityError,
+  getHandleAvailabilityRejection,
   getHandleLocalRuleError,
+  isInvalidFormatHandle,
+  isReservedHandle,
 } from './handleAvailabilityError';
 
 const TOO_SHORT = strings(
@@ -18,6 +21,7 @@ const INVALID = strings('social_leaderboard.manage_profile.username_invalid');
 const UNAVAILABLE = strings(
   'social_leaderboard.manage_profile.username_unavailable',
 );
+const RESERVED = strings('social_leaderboard.manage_profile.username_reserved');
 
 const availability = (
   overrides: Partial<{
@@ -84,7 +88,7 @@ describe('getHandleAvailabilityError', () => {
     ).toBe(UNAVAILABLE);
   });
 
-  it('reports unavailable for a reserved handle', () => {
+  it('reports a reserved handle as reserved', () => {
     expect(
       getHandleAvailabilityError(
         availability({
@@ -92,7 +96,50 @@ describe('getHandleAvailabilityError', () => {
           errors: [{ code: 'RESERVED', message: 'Reserved' }],
         }),
       ),
-    ).toBe(UNAVAILABLE);
+    ).toBe(RESERVED);
+  });
+
+  it('reports a reserved handle from the error-catalogue code', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            { code: 'USERNAME_RESERVED', message: 'This username is reserved' },
+          ],
+        }),
+      ),
+    ).toBe(RESERVED);
+  });
+
+  it('reports the character rule from the error-catalogue code', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            {
+              code: 'USERNAME_INVALID_FORMAT',
+              message: 'This username has invalid characters',
+            },
+          ],
+        }),
+      ),
+    ).toBe(INVALID);
+  });
+
+  it('prefers the reserved copy when the server reports reserved and taken', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          available: false,
+          errors: [
+            { code: 'TAKEN', message: 'Already taken' },
+            { code: 'RESERVED', message: 'Reserved' },
+          ],
+        }),
+      ),
+    ).toBe(RESERVED);
   });
 
   it('prefers a format error when the server reports several', () => {
@@ -115,5 +162,102 @@ describe('getHandleAvailabilityError', () => {
         availability({ valid: false, available: false }),
       ),
     ).toBe(INVALID);
+  });
+
+  it('reports the character rule when the catalogue code arrives with valid true', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          valid: true,
+          available: false,
+          errors: [
+            {
+              code: 'USERNAME_INVALID_FORMAT',
+              message: 'This username has invalid characters',
+            },
+          ],
+        }),
+      ),
+    ).toBe(INVALID);
+  });
+
+  it('reports the character rule when the short code arrives with valid true', () => {
+    expect(
+      getHandleAvailabilityError(
+        availability({
+          valid: true,
+          available: false,
+          errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+        }),
+      ),
+    ).toBe(INVALID);
+  });
+});
+
+describe('getHandleAvailabilityRejection', () => {
+  it('accepts a handle the server allows', () => {
+    expect(getHandleAvailabilityRejection(availability())).toBeNull();
+  });
+
+  it('classifies a validity refusal as a format problem', () => {
+    expect(
+      getHandleAvailabilityRejection(
+        availability({ valid: false, available: false }),
+      ),
+    ).toBe('invalidFormat');
+  });
+
+  it('classifies a catalogue format refusal even when valid is true', () => {
+    expect(
+      getHandleAvailabilityRejection(
+        availability({
+          valid: true,
+          available: false,
+          errors: [{ code: 'USERNAME_INVALID_FORMAT', message: 'Bad format' }],
+        }),
+      ),
+    ).toBe('invalidFormat');
+  });
+
+  it('classifies reserved before unavailable', () => {
+    expect(
+      getHandleAvailabilityRejection(
+        availability({
+          available: false,
+          errors: [
+            { code: 'USERNAME_TAKEN', message: 'Taken' },
+            { code: 'RESERVED', message: 'Reserved' },
+          ],
+        }),
+      ),
+    ).toBe('reserved');
+  });
+
+  it('classifies an unknown refusal as unavailable', () => {
+    expect(
+      getHandleAvailabilityRejection(
+        availability({ available: false, errors: [] }),
+      ),
+    ).toBe('unavailable');
+  });
+
+  it('exposes the format and reserved predicates it builds on', () => {
+    expect(
+      isInvalidFormatHandle(
+        availability({
+          valid: true,
+          available: false,
+          errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isReservedHandle(
+        availability({
+          available: false,
+          errors: [{ code: 'USERNAME_RESERVED', message: 'Reserved' }],
+        }),
+      ),
+    ).toBe(true);
   });
 });

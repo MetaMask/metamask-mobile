@@ -1,6 +1,10 @@
 import React from 'react';
 import { act, fireEvent, render, within } from '@testing-library/react-native';
-import type { XProfile } from '@metamask/profile-controller';
+import {
+  ProfileApiErrorCode,
+  ProfileServiceError,
+  type XProfile,
+} from '@metamask/profile-controller';
 
 import ManageProfileXAccount from './ManageProfileXAccount';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -291,12 +295,109 @@ describe('ManageProfileXAccount', () => {
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET),
       ).toBeOnTheScreen();
+      // The failure carries no mapped code, so the screen must not blame the
+      // server: it keeps the generic disconnect copy.
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
       ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockTrackProfileEdited).not.toHaveBeenCalled();
+    });
+
+    it('shows the connection copy, not the server copy, when the disconnect is offline', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      // A dropped connection is the user's to fix, so it must not read as a
+      // server fault.
+      utils.updateXAuth({
+        disconnectError: new XAuthError(
+          XAuthErrorType.NetworkFailure,
+          'offline',
+        ),
+      });
+
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
+      ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
+      ).not.toHaveTextContent(
+        strings('social_leaderboard.manage_profile.server_error'),
+      );
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('shows the server copy when the disconnect fails with a 5xx code', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({
+        disconnectError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'backend down',
+          {
+            cause: new ProfileServiceError(500, 'internal error', {
+              code: ProfileApiErrorCode.InternalError,
+            }),
+          },
+        ),
+      });
+
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
+      ).toHaveTextContent(
+        strings('social_leaderboard.manage_profile.server_error'),
+      );
+    });
+
+    it('shows the session-expired copy when the disconnect fails with an auth code', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({
+        disconnectError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'backend down',
+          {
+            cause: new ProfileServiceError(401, 'unauthorized', {
+              code: ProfileApiErrorCode.AuthTokenExpired,
+            }),
+          },
+        ),
+      });
+
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
+      ).toHaveTextContent(
+        strings('social_leaderboard.manage_profile.session_expired'),
+      );
     });
 
     it('toasts success and goes back once when the refresh failure lands after the link is cleared', async () => {
