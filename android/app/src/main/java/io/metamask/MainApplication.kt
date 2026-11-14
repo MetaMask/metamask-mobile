@@ -29,6 +29,7 @@ import io.metamask.nativeModules.HermesProfiler.HermesProfilerPackage
 import com.braze.Braze
 import com.braze.BrazeActivityLifecycleCallbackListener
 import com.braze.configuration.BrazeConfig
+import com.braze.ui.BrazeDeeplinkHandler
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
@@ -79,6 +80,9 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 .setIsHtmlInAppMessageApplyWindowInsetsEnabled(false)
                 .setTriggerActionMinimumTimeIntervalSeconds(2)
                 .build()
+        )
+        BrazeDeeplinkHandler.setBrazeDeeplinkHandler(
+            MetaMaskBrazeDeeplinkHandler { reactHost.currentReactContext }
         )
 
         // Initialize Branch
