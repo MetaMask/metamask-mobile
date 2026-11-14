@@ -594,6 +594,69 @@ describe('SocialFeedPostShell', () => {
       });
     });
 
+    it('plays a selection haptic when an existing chip is pressed', async () => {
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: true,
+          },
+        );
+      });
+    });
+
+    it('plays a selection haptic when the reader removes their chip', async () => {
+      jest.mocked(removeCommentReaction).mockResolvedValueOnce({
+        reactions: [{ emotion: '🔥', count: 1 }],
+        userReaction: null,
+      });
+      renderShell(
+        basePost({
+          reactions: [{ emotion: '🔥', count: 2 }],
+          userReaction: '🔥',
+        }),
+      );
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(screen.getByTestId(chipTestId)).toHaveProp(
+          'accessibilityState',
+          {
+            selected: false,
+          },
+        );
+      });
+    });
+
+    it('stays quiet when profile onboarding blocks the chip', () => {
+      mockEnsureSocialProfileOnboarding.mockReturnValueOnce(false);
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).not.toHaveBeenCalled();
+      expect(reactToComment).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when a chip is pressed while a reaction is in flight', () => {
+      jest
+        .mocked(reactToComment)
+        .mockImplementationOnce(() => new Promise(() => undefined));
+      renderShell(basePost());
+
+      fireEvent.press(screen.getByTestId(chipTestId));
+      fireEvent.press(screen.getByTestId(chipTestId));
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
     it('removes the reader from their own chip when it is pressed', async () => {
       jest.mocked(removeCommentReaction).mockResolvedValueOnce({
         reactions: [{ emotion: '🔥', count: 1 }],
