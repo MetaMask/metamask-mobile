@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   SUBSCRIPTION_STATUSES,
   SubscriptionControllerErrorMessage,
+  type SubscriptionBenefitsResponse,
+  type SubscriptionBenefitsState,
 } from '@metamask/subscription-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -17,10 +19,14 @@ import Logger from '../../../../util/Logger';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
-  selectIsMoneyAccountPlusSubscriber,
   selectMoneyAccountPlusSubscription,
   selectSubscriptionBenefits,
 } from '../../../../selectors/subscriptionController';
+import {
+  MembershipBenefitsMode,
+  getMembershipBenefitsMode,
+  isConfirmedSubscriptionStatus,
+} from '../../../../util/subscription/moneyAccountPlusStatus';
 import {
   MoneyAccountPlusAccess,
   useMoneyAccountPlusAccessState,
@@ -56,20 +62,50 @@ export interface MoneyAccountPlusBenefits {
   items: TradeAllowanceItem[];
   resetsOn: string | undefined;
   retry: () => void;
+  /**
+   * True when the rows are current-period usage for a paused or unpaid
+   * membership. The waiver is off: remaining allowance is not a fee waiver.
+   */
+  benefitsPaused: boolean;
 }
+
+/**
+ * Paused and unpaid responses include usage with `eligible: false`. A null
+ * billing period means there is no window to show. Remaining allowance is
+ * not a waiver; callers key that off `benefitsPaused`.
+ */
+const toPausedBenefitsSnapshot = (
+  response: SubscriptionBenefitsResponse,
+): SubscriptionBenefitsState | null => {
+  if (!response.billingPeriodId) {
+    return null;
+  }
+
+  return {
+    billingPeriodId: response.billingPeriodId,
+    ...response.products,
+  };
+};
 
 /**
  * Maps current-period Plus benefit usage for Member pricing.
  *
- * getSubscriptions() already fetches benefits for active subscribers and
- * clears state.benefits for any other status (past_due, etc). This hook only
- * fetches when that refresh left no snapshot. Non-active subscribers get
- * Empty so we don't render a snapshot core is about to delete. A provisional
+ * The data source comes from `getMembershipBenefitsMode`, so it follows the
+ * stored status rather than access. getSubscriptions() already fetches
+ * benefits for active subscribers and clears state.benefits for any other
+ * status. This hook only fetches when that refresh left no snapshot.
+ * `past_due` and `awaiting_funds` get Empty so we don't render a snapshot
+ * core is about to delete, even when access settles to Eligible. `paused`
+ * and `unpaid` are Deactivated: the client controller refuses getBenefits
+ * for them and drops an
+ * `eligible: false` payload, so this hook reads SubscriptionService and
+ * shows the current period's usage with the waiver off. A provisional
  * subscriber whose benefits response is not eligible, or fails validation
  * because usage fields are omitted, gets Pending. An active or trialing
  * subscriber whose response is still not eligible gets Unavailable.
- * Subscription status is part of the benefits query key, so confirming a
- * provisional membership fetches again instead of reusing that error.
+ * Subscription status, id, and period end are part of the benefits query
+ * key, so confirming a provisional membership fetches again instead of
+ * reusing that error, and a new paused period does not reuse old usage.
  *
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
@@ -77,21 +113,50 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const { access, isSubscriptionsSettled } = useMoneyAccountPlusAccessState();
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
-  const isActiveSubscriber = useSelector(selectIsMoneyAccountPlusSubscriber);
   const benefits = useSelector(selectSubscriptionBenefits);
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
   const queryClient = useQueryClient();
 
+  const status = plusSubscription?.status;
+  const benefitsMode = getMembershipBenefitsMode(status);
   const isHubSubscriber = access === MoneyAccountPlusAccess.Subscriber;
-  const canFetch = isActiveSubscriber && isSignedIn && isUnlocked;
+  const isDeactivatedMembership =
+    benefitsMode === MembershipBenefitsMode.Paused;
+  const canLoadBenefits = benefitsMode !== MembershipBenefitsMode.None;
+  const canFetch = canLoadBenefits && isSignedIn && isUnlocked;
   const hasCache = benefits !== undefined;
 
-  const { isPending, isFetching, isError, error, refetch } = useQuery({
+  const { data, isPending, isFetching, isError, error, refetch } = useQuery({
     // A cached UserNotSubscribed or StructError belongs to the status that
     // produced it. Confirming a provisional membership must not reuse it.
-    queryKey: [...BENEFITS_QUERY_KEY, plusSubscription?.status],
-    queryFn: () => Engine.context.SubscriptionController.getBenefits(),
-    enabled: canFetch && isSubscriptionsSettled && !hasCache,
+    // Paused usage belongs to one plan and billing period, so a new plan or
+    // period with the same status fetches again.
+    queryKey: [
+      ...BENEFITS_QUERY_KEY,
+      status,
+      plusSubscription?.id,
+      plusSubscription?.currentPeriodEnd,
+    ],
+    queryFn: async (): Promise<SubscriptionBenefitsState | null> => {
+      if (isDeactivatedMembership) {
+        // Optional messenger client: absent when the subscription build omits it.
+        const subscriptionService = Engine.context.SubscriptionService;
+        if (!subscriptionService) {
+          throw new Error('SubscriptionService is unavailable');
+        }
+        const response = await subscriptionService.getBenefits();
+        return toPausedBenefitsSnapshot(response);
+      }
+
+      await Engine.context.SubscriptionController.getBenefits();
+      return null;
+    },
+    // Deactivated usage is not stored on the controller, so a Redux snapshot
+    // must not skip the service read.
+    enabled:
+      canFetch &&
+      isSubscriptionsSettled &&
+      (isDeactivatedMembership || !hasCache),
     retry: false,
     // Off so queryFn cannot run before enabled:false commits after auto-lock.
     refetchOnWindowFocus: false,
@@ -111,9 +176,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   // before the controller can read `eligible`.
   const isIncompleteBenefitsResponse =
     error instanceof Error && error.name === 'StructError';
-  const isConfirmedMember =
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.active ||
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.trialing;
+  const isConfirmedMember = isConfirmedSubscriptionStatus(status);
   const isConfirmedMemberNotEligible =
     !hasCache &&
     canFetch &&
@@ -143,39 +206,56 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     });
   }, [refetch]);
 
+  // Controller state only keeps eligible snapshots. Paused usage lives on the
+  // service response, including when Redux still holds an older snapshot.
+  const pausedSnapshot = isDeactivatedMembership
+    ? (data ?? undefined)
+    : undefined;
+  const benefitsForDisplay = isDeactivatedMembership
+    ? pausedSnapshot
+    : benefits;
+  const hasDisplay = benefitsForDisplay !== undefined;
+
   const items = useMemo(
-    () => mapPlusBenefitsToTradeAllowances(benefits),
-    [benefits],
+    () => mapPlusBenefitsToTradeAllowances(benefitsForDisplay),
+    [benefitsForDisplay],
   );
   const resetsOn = formatSubscriptionPeriodEnd(
     plusSubscription?.currentPeriodEnd,
   );
 
-  if (!isHubSubscriber) {
+  // No stored plan yet: wait for subscriptions unless an entitlement already
+  // makes this a hub subscriber.
+  if (!plusSubscription && !isHubSubscriber) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
-  // past_due etc: core wipes benefits on the subscriptions refresh
-  if (!isActiveSubscriber) {
+  // past_due, awaiting_funds, and ended plans have no usage to show. Core
+  // wipes benefits on the subscriptions refresh. This does not depend on
+  // access, which can settle to Eligible for these statuses.
+  if (!canLoadBenefits) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Empty,
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
-  if (!hasCache && canFetch && !isError && (isPending || isFetching)) {
+  if (!hasDisplay && canFetch && !isError && (isPending || isFetching)) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Loading,
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
@@ -184,10 +264,10 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   // omitted. Either way the membership is still being confirmed. A confirmed
   // member who is reported not eligible is a mismatch with the benefits ledger.
   if (
-    !hasCache &&
+    !hasDisplay &&
     canFetch &&
     isError &&
-    plusSubscription?.status === SUBSCRIPTION_STATUSES.provisional &&
+    status === SUBSCRIPTION_STATUSES.provisional &&
     (isUserNotSubscribedError || isIncompleteBenefitsResponse)
   ) {
     return {
@@ -195,11 +275,12 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
   if (
-    !hasCache &&
+    !hasDisplay &&
     canFetch &&
     isError &&
     isUserNotSubscribedError &&
@@ -210,15 +291,17 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
-  if (!hasCache && canFetch && isError) {
+  if (!hasDisplay && canFetch && isError) {
     return {
       status: MoneyAccountPlusBenefitsStatus.Failed,
       items: [],
       resetsOn: undefined,
       retry,
+      benefitsPaused: false,
     };
   }
 
@@ -228,6 +311,7 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
       items: [],
       resetsOn,
       retry,
+      benefitsPaused: false,
     };
   }
 
@@ -239,5 +323,6 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     items,
     resetsOn,
     retry,
+    benefitsPaused: isDeactivatedMembership,
   };
 }

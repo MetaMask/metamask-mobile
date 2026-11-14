@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { CardRootParamList } from '../../../UI/Card/types/navigation';
 import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type { SocialShellTab } from '../../../Views/SocialLeaderboard/shell/types';
 import type {
@@ -246,4 +247,5 @@ export interface SocialLeaderboardTabParams {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MainStackParamList = {
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
+  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
 };

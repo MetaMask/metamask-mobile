@@ -7,6 +7,7 @@ export const MemberPricingOnTradesTestIds = {
   ERROR: 'pro-hub-member-pricing-error',
   PENDING: 'pro-hub-member-pricing-pending',
   UNAVAILABLE: 'pro-hub-member-pricing-unavailable',
+  PAUSED: 'pro-hub-member-pricing-paused',
   RETRY_BUTTON: 'pro-hub-member-pricing-retry-button',
   RESETS_ON: 'pro-hub-member-pricing-resets-on',
   ROW: (id: TradeAllowanceItem['id']) => `pro-hub-member-pricing-row-${id}`,

@@ -1,5 +1,10 @@
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import {
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from '@tanstack/react-query';
 import type { Subscription } from '@metamask/subscription-controller';
 import Engine from '../../core/Engine';
 import { selectIsSignedIn } from '../../selectors/identity';
@@ -20,8 +25,15 @@ export const SUBSCRIPTIONS_REFETCH_INTERVAL = 5 * 60 * 1000;
  * Redux stays the source of truth for Plus gating, and so the controller's
  * change side effects (access-token refresh, benefits refresh) still run.
  *
- * Mounted by useMoneyAccountPlusAccess so Plus entitlements stay current
- * while the user is on a surface that resolves access.
+ * Mounted by Home so the Orange menu already has a stored membership, and
+ * by useMoneyAccountPlusAccess so Plus entitlements stay current while the
+ * user is on a surface that resolves access.
+ *
+ * A result stays fresh for one refetch interval. The accounts menu and the
+ * profile drawer mount this query after Home has fetched it, and a fresh
+ * result does not refetch on mount, so the Orange row is not hidden behind a
+ * duplicate request. Locking or signing out drops the result so the next
+ * session fetches again.
  *
  * @param options - Query options.
  * @param options.enabled - Caller gate for fetching subscriptions.
@@ -34,6 +46,14 @@ const useSubscriptions = ({
 }): UseQueryResult<Subscription[]> => {
   const isSignedIn = useSelector(selectIsSignedIn);
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
+  const queryClient = useQueryClient();
+  const isSessionActive = isSignedIn && isUnlocked;
+
+  useEffect(() => {
+    if (!isSessionActive) {
+      queryClient.removeQueries({ queryKey: SUBSCRIPTIONS_QUERY_KEY });
+    }
+  }, [isSessionActive, queryClient]);
 
   // Backgrounding pauses the interval on its own: ReactQueryService wires
   // AppState into focusManager and `refetchIntervalInBackground` is false.
@@ -43,7 +63,9 @@ const useSubscriptions = ({
   return useQuery({
     queryKey: SUBSCRIPTIONS_QUERY_KEY,
     queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
-    enabled: enabled && isSignedIn && isUnlocked,
+    enabled: enabled && isSessionActive,
+    staleTime: SUBSCRIPTIONS_REFETCH_INTERVAL,
+    refetchOnMount: true,
     refetchInterval: SUBSCRIPTIONS_REFETCH_INTERVAL,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,

@@ -7,11 +7,15 @@ import {
   SUBSCRIPTION_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
+import { isMoneyAccountPlusFreeTrial } from '../../../../../selectors/subscriptionController';
 import {
-  ACTIVE_SUBSCRIPTION_STATUSES,
-  isMoneyAccountPlusFreeTrial,
-} from '../../../../../selectors/subscriptionController';
-import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+  isActiveSubscriptionStatus,
+  isDeactivatedSubscriptionStatus,
+} from '../../../../../util/subscription/moneyAccountPlusStatus';
+import {
+  canResumeMembership,
+  formatSubscriptionPeriodEnd,
+} from '../../ProHub.utils';
 
 export const MembershipStatusKind = {
   Active: 'active',
@@ -28,6 +32,8 @@ export type MembershipStatusKind =
 export const MembershipAlertAction = {
   AddFunds: 'addFunds',
   Renew: 'renew',
+  /** Uncancel a period-end cancellation that is still inside its resume window. */
+  Resume: 'resume',
 } as const;
 
 export type MembershipAlertAction =
@@ -136,7 +142,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
   }
 
   if (
-    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) &&
+    isActiveSubscriptionStatus(subscription.status) &&
     subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED
   ) {
     return {
@@ -150,16 +156,48 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 };
 
 /**
+ * Same cancelled copy as an ended plan, with Resume instead of Renew.
+ *
+ * Renew opens the subscription screen. A period-end cancel is still active,
+ * so that screen sends the user back here. Resume uncancels in place.
+ */
+const pendingCancellationAlert = (
+  date: string | undefined,
+): MembershipAlert => ({
+  ...cancelledAlert(date),
+  actionKey: 'pro_hub.membership.resume_membership',
+  action: MembershipAlertAction.Resume,
+});
+
+/**
+ * Active status plus the cancelled alert while a period-end cancel can still
+ * be reversed. The membership has not ended, so the label stays Active.
+ */
+const pendingCancellationModel = (
+  subscription: Subscription,
+): MembershipBannerModel => ({
+  ...ACTIVE_MODEL,
+  iconColor: IconColor.WarningDefault,
+  alert: pendingCancellationAlert(
+    subscription.currentPeriodEnd || subscription.canceledAt,
+  ),
+});
+
+/**
  * Maps a Money Account Plus subscription onto the Pro Hub status labels.
  *
+ * Payment state is resolved before a scheduled cancel. `past_due` shows
+ * Overdue. `paused` and `unpaid` show Deactivated. A plan waiting for funds,
+ * or an active plan whose latest invoice failed, shows the add-funds or
+ * renewal-failed alert. A period-end cancellation keeps the label Active and
+ * shows the cancelled alert only after those states, while resume is still
+ * available. That alert's action is Resume, which uncancels the plan. An
+ * ended `canceled` plan keeps Renew, which opens the subscription screen.
  * `trialing` shows Free trial. A `provisional` plan shows Free trial only
  * while `trialPeriodDays` is greater than zero, because a free trial stays
  * provisional until CHOMP moves it to `trialing`. A provisional plan with no
- * trial shows Active, as do `active` and `awaiting_funds`. A plan waiting
- * for funds, or an active plan whose latest invoice failed, also shows the
- * existing add-funds or renewal-failed alert. `past_due` shows Overdue.
- * `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
- * A missing plan, or a status this screen does not map, shows Unavailable.
+ * trial shows Active, as do `active` and `awaiting_funds`. A missing plan,
+ * or a status this screen does not map, shows Unavailable.
  *
  * @param subscription - The displayed Plus subscription. Current wins over the last one.
  * @returns The status label, icon color, and alert for that status.
@@ -169,10 +207,6 @@ export const getMembershipBannerModel = (
 ): MembershipBannerModel => {
   if (!subscription) {
     return UNAVAILABLE_MODEL;
-  }
-
-  if (isMoneyAccountPlusFreeTrial(subscription)) {
-    return FREE_TRIAL_MODEL;
   }
 
   if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {
@@ -195,10 +229,7 @@ export const getMembershipBannerModel = (
     };
   }
 
-  if (
-    subscription.status === SUBSCRIPTION_STATUSES.paused ||
-    subscription.status === SUBSCRIPTION_STATUSES.unpaid
-  ) {
+  if (isDeactivatedSubscriptionStatus(subscription.status)) {
     return {
       statusKind: MembershipStatusKind.Deactivated,
       statusKey: 'pro_hub.membership_status.deactivated',
@@ -208,9 +239,22 @@ export const getMembershipBannerModel = (
   }
 
   if (
-    ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status) ||
-    subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds
+    subscription.status === SUBSCRIPTION_STATUSES.awaitingFunds ||
+    (subscription.status === SUBSCRIPTION_STATUSES.active &&
+      subscription.lastInvoice?.status === INVOICE_PAYMENT_STATUSES.FAILED)
   ) {
+    return activeModel(subscription);
+  }
+
+  if (canResumeMembership(subscription)) {
+    return pendingCancellationModel(subscription);
+  }
+
+  if (isMoneyAccountPlusFreeTrial(subscription)) {
+    return FREE_TRIAL_MODEL;
+  }
+
+  if (isActiveSubscriptionStatus(subscription.status)) {
     return activeModel(subscription);
   }
 

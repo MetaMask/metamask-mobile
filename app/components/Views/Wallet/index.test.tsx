@@ -407,6 +407,10 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
+jest.mock('../../../hooks/usePrefetchMoneyAccountPlusSubscriptions', () => ({
+  usePrefetchMoneyAccountPlusSubscriptions: jest.fn(),
+}));
+
 import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,

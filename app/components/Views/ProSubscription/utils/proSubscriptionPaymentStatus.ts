@@ -1,8 +1,9 @@
-import {
-  SUBSCRIPTION_STATUSES,
-  type SubscriptionStatus,
-} from '@metamask/subscription-controller';
+import type { SubscriptionStatus } from '@metamask/subscription-controller';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  isConfirmedSubscriptionStatus,
+  isFundingSubscriptionStatus,
+} from '../../../../util/subscription/moneyAccountPlusStatus';
 import type {
   HardwareTier,
   NetworkTier,
@@ -11,10 +12,11 @@ import type {
 /**
  * How checkout finishes after `startSubscriptionWithDelegation` resolves.
  *
- * `ready` opens the success screen. That is the crypto path, where the Money
- * Account already held the funds. `processing` is an on-ramp or bridge top-up
- * that is still moving funds: the subscription stays provisional, so checkout
- * shows a toast and opens Pro Hub instead of the success screen.
+ * `ready` opens the success screen. That is a crypto payment: the Money
+ * Account already held the funds, or MetaMask Pay moved crypto such as mUSD.
+ * `processing` is an on-ramp or card top-up that is still moving funds: the
+ * subscription stays provisional, so checkout shows a toast and opens Pro Hub
+ * instead of the success screen.
  */
 export const StartProSubscriptionOutcome = {
   Ready: 'ready',
@@ -45,54 +47,48 @@ export const PROVISIONAL_POLL_INTERVAL_MS = 15_000;
 /** Slower refresh for a constrained device or a slow cellular link. */
 export const PROVISIONAL_POLL_SLOW_INTERVAL_MS = 60_000;
 
-const ACTIVATED_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.active,
-  SUBSCRIPTION_STATUSES.trialing,
-]);
-
-const STILL_FUNDING_STATUSES = new Set<SubscriptionStatus>([
-  SUBSCRIPTION_STATUSES.provisional,
-  SUBSCRIPTION_STATUSES.awaitingFunds,
-]);
-
 /**
- * True for a funding status, whether or not this session started the checkout.
+ * True when a MetaMask Pay top-up is an on-ramp or card payment.
  *
- * `awaiting_funds` is also the long-lived low-balance state Pro Hub shows as
- * Active. Callers that announce a checkout must already have seen
- * `provisional` in this session before treating `awaiting_funds` as that
- * payment.
+ * Crypto, including an mUSD payment, is not waiting on an external provider.
+ * Either signal is enough: the pay transaction's fiat payload, or a selected
+ * fiat payment method that has not been copied onto the transaction yet.
  *
- * @param status - Latest Plus status, or undefined when the plan is gone.
- * @returns Whether the status is provisional or awaiting funds.
+ * @param hasPayFiat - True when the approved transaction carries a fiat payload.
+ * @param selectedPaymentMethodId - Fiat method chosen for this transaction.
+ * @returns Whether checkout should keep waiting on external funds.
  */
-export function isStillFundingSubscriptionStatus(
-  status: SubscriptionStatus | undefined,
+export function membershipTopUpAwaitsExternalFunds(
+  hasPayFiat: boolean,
+  selectedPaymentMethodId: string | undefined,
 ): boolean {
-  return status !== undefined && STILL_FUNDING_STATUSES.has(status);
+  return hasPayFiat || Boolean(selectedPaymentMethodId);
 }
 
 /**
  * Chooses the post-checkout screen from how the membership was funded.
  *
- * A balance that was already sufficient is a crypto payment and opens the
- * success screen even if the returned status is still provisional. A top-up
- * opens the processing path only while the server is still waiting on funds.
- * A top-up that has already activated opens the success screen.
+ * A balance that was already sufficient, and a crypto MetaMask Pay top-up,
+ * open the success screen even if the returned status is still provisional.
+ * An on-ramp or card top-up opens the processing path only while the server
+ * is still waiting on funds. A top-up that has already activated opens the
+ * success screen.
  *
  * @param fundedFromBalance - True when checkout did not need a top-up.
  * @param status - Status returned by the subscription start.
+ * @param awaitsExternalFunds - True for an on-ramp or card top-up.
  * @returns Whether checkout should show success or keep waiting.
  */
 export function resolveProSubscriptionStartOutcome(
   fundedFromBalance: boolean,
   status: SubscriptionStatus,
+  awaitsExternalFunds = false,
 ): StartProSubscriptionOutcome {
-  if (fundedFromBalance) {
+  if (fundedFromBalance || !awaitsExternalFunds) {
     return StartProSubscriptionOutcome.Ready;
   }
 
-  if (STILL_FUNDING_STATUSES.has(status)) {
+  if (isFundingSubscriptionStatus(status)) {
     return StartProSubscriptionOutcome.Processing;
   }
 
@@ -113,11 +109,11 @@ export function resolveProSubscriptionStartOutcome(
 export function resolveProvisionalPaymentTransition(
   status: SubscriptionStatus | undefined,
 ): ProvisionalPaymentTransition {
-  if (status !== undefined && ACTIVATED_STATUSES.has(status)) {
+  if (isConfirmedSubscriptionStatus(status)) {
     return ProvisionalPaymentTransition.Activated;
   }
 
-  if (status !== undefined && STILL_FUNDING_STATUSES.has(status)) {
+  if (isFundingSubscriptionStatus(status)) {
     return ProvisionalPaymentTransition.Pending;
   }
 

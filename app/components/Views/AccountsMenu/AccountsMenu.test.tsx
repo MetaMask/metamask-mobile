@@ -177,6 +177,15 @@ jest.mock('../../../hooks/useHasProMembership', () => ({
   useHasProMembership: () => mockUseHasProMembership(),
 }));
 
+const mockUseMoneyAccountPlusAccessState = jest.fn(() => ({
+  access: 'eligible',
+  isSubscriptionsSettled: true,
+}));
+jest.mock('../../../hooks/useMoneyAccountPlusAccess', () => ({
+  ...jest.requireActual('../../../hooks/useMoneyAccountPlusAccess'),
+  useMoneyAccountPlusAccessState: () => mockUseMoneyAccountPlusAccessState(),
+}));
+
 const mockTrackButtonClicked = jest.fn();
 jest.mock('../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: () => ({
@@ -224,6 +233,10 @@ describe('AccountsMenu', () => {
       isProSubscriptionEnabled: false,
     });
     mockUseHasProMembership.mockReturnValue(false);
+    mockUseMoneyAccountPlusAccessState.mockReturnValue({
+      access: 'eligible',
+      isSubscriptionsSettled: true,
+    });
     mockUseCardUkMigrationUpdateBadge.mockReturnValue(null);
     mockActiveProviderId = 'baanx';
     mockUseCardUkMigrationState.mockReturnValue({
@@ -784,22 +797,22 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows the join label while membership access is unresolved', () => {
+    it('hides the row while membership is still loading', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
       mockUseHasProMembership.mockReturnValue(false);
+      mockUseMoneyAccountPlusAccessState.mockReturnValue({
+        access: 'unknown',
+        isSubscriptionsSettled: false,
+      });
 
-      const { getByTestId } = render(<AccountsMenu />);
-
-      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE));
+      const { queryByTestId } = render(<AccountsMenu />);
 
       expect(
-        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
-      ).toHaveTextContent('accounts_menu.join_metamask_orange');
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
-        source: 'accounts_menu',
-      });
+        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
