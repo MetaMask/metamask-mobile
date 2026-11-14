@@ -64,6 +64,7 @@ describe('getFailoverUrlsByChainId', () => {
 describe('popularNetwork', () => {
   it('should have correct chainIds for all popular network', () => {
     const expectedChainIds: { [key: string]: string } = {
+      'EB-Chain': toHex('8721'),
       Avalanche: toHex('43114'),
       Arbitrum: toHex('42161'),
       'BNB Chain': toHex('56'),
