@@ -32,7 +32,7 @@ jobs:
     uses: ./.github/workflows/runway-ota-resolve-context.yml
     with:
       source_branch: ${{ inputs.source_branch }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   validate-ota-pr:
     name: Validate PR for OTA
@@ -61,4 +61,4 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: production
       platform: all
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

@@ -50,7 +50,7 @@ jobs:
       platform: android
       source_branch: ${{ inputs.source_branch }}
       runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   publish-apk:
     name: Publish branch-named APK

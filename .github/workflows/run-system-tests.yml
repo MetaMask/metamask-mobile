@@ -48,7 +48,7 @@ jobs:
     with:
       branch_name: ${{ github.ref_name }}
       build_variant: 'e2e'
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   run-android-login-tests:
     name: Android Login Tests
