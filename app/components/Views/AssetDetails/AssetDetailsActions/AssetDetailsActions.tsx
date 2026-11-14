@@ -25,6 +25,13 @@ import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useABTest } from '../../../../hooks';
+import {
+  WALLET_HOME_HEADER_ACTIONS_AB_KEY,
+  WALLET_HOME_HEADER_ACTIONS_AB_TEST_EXPOSURE_OPTIONS,
+  WALLET_HOME_HEADER_ACTIONS_VARIANTS,
+} from './abTestConfig';
+import WalletHomeBuySellActions from './WalletHomeBuySellActions';
 
 export interface AssetDetailsActionsProps {
   displayBuyButton: boolean | undefined;
@@ -41,6 +48,7 @@ export interface AssetDetailsActionsProps {
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
+  sellButtonActionID?: string;
   sendButtonActionID?: string;
   receiveButtonActionID?: string;
   containerTestID?: string;
@@ -57,6 +65,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
+  sellButtonActionID = 'wallet-home-sell-button',
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
   receiveButtonActionID = TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
   containerTestID,
@@ -159,6 +168,26 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const handleReceivePress = useCallback(() => {
     withNavigationLock(onReceive);
   }, [withNavigationLock, onReceive]);
+
+  const { variant: headerActionsVariant } = useABTest(
+    WALLET_HOME_HEADER_ACTIONS_AB_KEY,
+    WALLET_HOME_HEADER_ACTIONS_VARIANTS,
+    WALLET_HOME_HEADER_ACTIONS_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  if (headerActionsVariant.showBuySellSendReceive) {
+    return (
+      <WalletHomeBuySellActions
+        buyButtonActionID={buyButtonActionID}
+        containerTestID={containerTestID}
+        onReceive={onReceive}
+        onSend={onSend}
+        receiveButtonActionID={receiveButtonActionID}
+        sellButtonActionID={sellButtonActionID}
+        sendButtonActionID={sendButtonActionID}
+      />
+    );
+  }
 
   return (
     <View

@@ -100,6 +100,7 @@ export const WalletViewSelectorsIDs = {
     `defi-position-list-item-${protocolName}`,
   WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
+  WALLET_SELL_BUTTON: 'wallet-sell-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
   WALLET_SEND_BUTTON: 'wallet-send-button',
   WALLET_RECEIVE_BUTTON: 'wallet-receive-button',

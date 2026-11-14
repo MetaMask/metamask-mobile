@@ -1225,6 +1225,7 @@ const Wallet = ({
         onSend={onSend}
         buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
         swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sellButtonActionID={WalletViewSelectorsIDs.WALLET_SELL_BUTTON}
         sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
         receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
         containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
