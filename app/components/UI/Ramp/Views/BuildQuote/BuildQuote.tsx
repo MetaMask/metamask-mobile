@@ -27,6 +27,8 @@ import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   Text,
   TextVariant,
   TextColor,
@@ -64,8 +66,6 @@ import {
   useParams,
   navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -893,7 +893,7 @@ function BuildQuote() {
 
           {hasQuoteFetchError ? (
             <BannerAlert
-              severity={BannerAlertSeverity.Error}
+              severity={BannerAlertSeverity.Danger}
               description={parseUserFacingError(
                 quoteFetchError,
                 strings('deposit.buildQuote.quoteFetchError'),
