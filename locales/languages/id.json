@@ -131,7 +131,7 @@
       "title": "Dana tidak cukup"
     },
     "money_account_no_funds": {
-      "message": "Anda belum memiliki dana di Money account untuk melakukan pengiriman. Tambahkan dana terlebih dahulu."
+      "message": "Add funds to your Money account to send."
     },
     "fiat_buy_amount_limit": {
       "title": "Jumlah di luar jangkauan"
@@ -1199,6 +1199,7 @@
       "title": "Tambahkan dana menggunakan Pix",
       "description": "Tambahkan dana langsung dari bank Anda. Dana biasanya akan masuk ke Money account Anda dalam hitungan menit.",
       "provider_disclosure": "Layanan aset virtual di Brasil disediakan oleh penyedia pihak ketiga yang teregulasi.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Selengkapnya",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Kunci Pix",
@@ -1388,11 +1389,13 @@
       "live_stream": {
         "paused": "Dijeda",
         "live": "Langsung",
-        "new_posts": {
-          "one": "{{count}} postingan baru",
-          "other": "{{count}} postingan baru"
+        "new_posts": "{{count}} new",
+        "new_posts_capped": "{{count}}+ new",
+        "new_posts_accessibility": {
+          "one": "{{count}} new update",
+          "other": "{{count}} new updates"
         },
-        "new_posts_capped": "{{count}}+ postingan baru"
+        "new_posts_capped_accessibility": "{{count}}+ new updates"
       },
       "following": "Mengikuti",
       "all": "Semua",
@@ -1434,7 +1437,11 @@
         },
         "following": {
           "title": "Belum ada postingan",
-          "description": "Ikuti trader untuk melihat postingan mereka di sini."
+          "description": "No one has posted yet."
+        },
+        "following_suggestions": {
+          "title": "Suggested for you",
+          "description": "Follow a few traders to populate your Following feed."
         },
         "live": {
           "title": "Belum ada perdagangan",
@@ -1496,6 +1503,7 @@
     },
     "translation": {
       "see_translation": "Lihat terjemahan",
+      "see_original": "See original",
       "see_more": "Lihat selengkapnya",
       "see_less": "See less",
       "translating": "Menerjemahkan...",
@@ -1538,7 +1546,8 @@
       "post_failed": "Tidak dapat membuat postingan. Coba lagi.",
       "linked_account_missing": "Akun Sosial yang Anda hubungkan tidak ada di dalam dompet ini.",
       "showing_linked_account": "Menampilkan posisi dari {{account}}",
-      "post_pending_index": "Sudah diposting. Postingan tersebut akan muncul di feed setelah transaksi diindeks."
+      "post_pending_index": "Sudah diposting. Postingan tersebut akan muncul di feed setelah transaksi diindeks.",
+      "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
       "swap_in_progress": "Swap sedang berlangsung",
@@ -1798,6 +1807,9 @@
       "not_counted_sheet_unsupported_label": "Token yang tidak didukung",
       "not_counted_sheet_unsupported_body": "Kami tidak dapat melacak P&L untuk token yang tidak didukung, seperti aset yang didepositkan ke dalam pool pinjaman.",
       "not_counted_sheet_dismiss": "Mengerti",
+      "not_counted_note_one": "1 position not counted in P&L",
+      "not_counted_note_other": "{{count}} positions not counted in P&L",
+      "not_counted_note_hint": "Scrolls to positions not counted",
       "empty_open": "Tidak ada posisi terbuka",
       "empty_closed": "Tidak ada posisi tertutup",
       "empty_open_tokens": "Tidak ada token terbuka",
@@ -1821,6 +1833,15 @@
       "scroll_helper": "Gulirkan layar untuk membaca semua bagian",
       "scroll_to_bottom": "Gulir ke bagian paling bawah",
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
+    },
+    "trader_preview": {
+      "join": "Join Social",
+      "referral_code": "Referral code",
+      "not_now": "Not now",
+      "terms_note": "You'll set up your Social profile and review the terms first.",
+      "referral_accepted": "Referral accepted",
+      "referral_failed": "Couldn't accept the referral",
+      "referral_failed_description": "You can enter the code later in Rewards settings."
     },
     "profile_onboarding": {
       "intro_title": "See trades in real time",
@@ -1881,6 +1902,11 @@
       "fees": "Dapatkan 15% dari biaya saat seseorang menyalin perdagangan Anda.",
       "private": "Alamat akun Anda tetap bersifat pribadi.",
       "follow": "Trader lain dapat mengikuti profil Anda."
+    },
+    "errors": {
+      "display_name_invalid": "This name isn’t valid. Try something different.",
+      "display_name_too_long": "Use at most {{max}} characters.",
+      "display_name_check_error": "Couldn't check that name. Check your connection and try again."
     },
     "manage_profile": {
       "title": "Kelola profil",
@@ -3869,6 +3895,12 @@
       "politics": "Politik",
       "sports": "Olahraga"
     },
+    "home_feed": {
+      "trending": "Trending",
+      "sports": "Sports",
+      "games_error": "Games couldn’t be loaded.",
+      "retry": "Retry"
+    },
     "get_started_banner": {
       "title": "Get started in a few steps",
       "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
@@ -3930,6 +3962,9 @@
         "title": "Belum ada aktivitas",
         "description": "Perdagangan dan penyelesaian akan muncul di sini."
       },
+      "activity_continue_description": "More activity history is available to check. Load the next page to continue.",
+      "activity_load_more": "Load more activity",
+      "settlements_permission_denied": "Settlements are unavailable in this demo environment. Your trades are still shown.",
       "load_failed": "Tidak dapat memuat.",
       "load_failed_retry": "Coba lagi",
       "outcome_shares": "{{outcome}} · {{shares}} saham",
@@ -3987,6 +4022,9 @@
       "exchange_fee": "Biaya penukaran",
       "metamask_fee": "Biaya MetaMask",
       "total_debit": "Total debit",
+      "max_cost": "Maximum cost (signed)",
+      "proceeds_if_fully_filled": "Proceeds if fully filled (signed)",
+      "partial_fill_proceeds_description": "This amount assumes all contracts fill. A partial fill can result in lower proceeds. If no contracts fill, you receive no proceeds and nothing is sold.",
       "to_win": "Untuk memenangkan {{amount}}",
       "pay_with": "Bayar melalui",
       "predictions_balance": "Saldo Prediction",
@@ -4038,7 +4076,10 @@
       "reconciling_title": "Masih mengonfirmasi order Anda",
       "reconciling_description": "Kami masih memastikan apa yang terjadi dengan order Anda. Terus periksa di sini, atau lihat hasilnya di Riwayat Anda nanti.",
       "keep_checking": "Terus periksa",
-      "requote": "Coba lagi"
+      "requote": "Coba lagi",
+      "needs_review_title": "We couldn't confirm this order",
+      "needs_review_description": "Order outcome could not be confirmed. Check your activity or contact support.",
+      "done": "Done"
     },
     "order_notification": {
       "not_placed_title": "Order belum dibuat",
@@ -5018,6 +5059,10 @@
     "title_nft": "Impor NFT",
     "search_token": "Search",
     "custom_token": "Custom token",
+    "hidden_tokens": "Hidden tokens",
+    "unhide": "Unhide",
+    "add_custom_token_cta": "Can't find your token? Add a custom token",
+    "no_hidden_tokens": "You don't have any hidden tokens.",
     "tokens": {
       "cancel_add_token": "Batal",
       "add_token": "Impor"
@@ -5428,6 +5473,12 @@
     "notifications_dismiss_modal": "Lewatkan",
     "select_rpc_url": "Pilih URL RPC",
     "title": "Pengaturan",
+    "groups": {
+      "general": "General",
+      "security_and_privacy": "Security and privacy",
+      "transactions_and_assets": "Transactions and assets",
+      "more": "More"
+    },
     "current_conversion": "Mata uang dasar",
     "current_language": "Bahasa saat ini",
     "ipfs_gateway": "gateway IPFS",
@@ -5450,6 +5501,9 @@
     "reveal_seed_words": "Tampilkan Frasa Pemulihan Rahasia",
     "reset_account": "Reset akun",
     "state_logs_button": "Unduh log state",
+    "money_account_status": "Money account status",
+    "money_account_status_desc": "View debug information about your Money account.",
+    "money_account_status_button": "View Money account status",
     "reveal_seed_words_button": "Tampilkan Frasa Pemulihan Rahasia",
     "reset_account_button": "Reset akun",
     "reset_account_confirm_button": "Ya, reset",
@@ -5505,6 +5559,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "Umum",
+    "preferences_and_display_title": "Preferences and display",
     "general_desc": "Konversi mata uang, mata uang utama, bahasa, dan mesin pencari.",
     "advanced_title": "Lanjutan",
     "advanced_desc": "Akses fitur pengembang, reset akun, atur testnet, log status, dan RPC kustom.",
@@ -8852,6 +8907,17 @@
     "unrecognized_chain_ticker": "Sepertinya simbol jaringan ini tidak cocok dengan ID chain-nya.",
     "unrecognized_chain_id": "Kami tidak mengenali jaringan ini. Pastikan ID chain sudah benar sebelum melanjutkan."
   },
+  "identity_verification": {
+    "delete_section_title": "Delete Identity Data",
+    "delete_section_description": "Your identity details will be permanently deleted from MetaMask. Partners you verified with keep their own copy. You may need to verify again later.",
+    "delete_identity_data": "Delete identity data",
+    "delete_confirm_title": "Delete identity data?",
+    "delete_confirm_message": "This cannot be undone.",
+    "delete_success_title": "Identity data deleted",
+    "delete_success_message": "Your encrypted identity verification data has been deleted.",
+    "delete_error_title": "Couldn't delete identity data",
+    "delete_error_message": "Something went wrong. Please try again."
+  },
   "mfa": {
     "method_email": "Email",
     "method_passkey": "Kode sandi",
@@ -9673,13 +9739,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Dapatkan Kartu MetaMask",
-          "description": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Dapatkan kartu",
           "cta_secondary": "Lewati"
         },
         "unlinked_card_account": {
           "title": "Hubungkan Kartu MetaMask",
-          "description": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Tautkan kartu",
           "cta_secondary": "Lewati"
         }
@@ -9700,7 +9766,7 @@
       "benefit_withdraw_title": "Withdraw anytime",
       "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
@@ -9750,8 +9816,8 @@
       "step2_body": "Pindahkan stablecoin tanpa biaya pertukaran. Dana mulai menghasilkan keuntungan segera.",
       "step2_footer_text": "Money Account menggunakan infrastruktur Veda.",
       "step3_title": "Gunakan di mana pun",
-      "step3_body_card_eligible": "Dapatkan hingga {{percentage}}% pengembalian dari pembelian dengan menautkan Money Account ke Kartu MetaMask.",
-      "step3_body_card_ineligible": "Segera hadir! Dapatkan hingga {{percentage}}% pengembalian dari pembelian dengan menautkan Money Account ke Kartu MetaMask.",
+      "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
+      "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_footer_text": "Termasuk pemantauan Steakhouse Financial.",
       "step4_title": "Berdagang dan hasilkan keuntungan di satu tempat",
       "step4_body": "Gunakan saldo Dana untuk bertransaksi di MetaMask sambil tetap mendapatkan keuntungan.",
@@ -9826,11 +9892,9 @@
       "subtitle": "Gunakan uang Anda di mana saja.",
       "virtual_card": "Kartu virtual",
       "metal_card": "Kartu logam",
-      "cashback": "pengembalian {{percentage}}% mUSD",
       "link_title": "Tautkan kartu",
-      "link_subtitle": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
-      "link_subtitle_no_apy": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
-      "link_bullet_cashback": "Dapatkan pengembalian {{percentage}}% mUSD",
+      "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+      "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Dapatkan hingga ~{{apy}}% APY",
       "link_pending_title": "Menghubungkan kartu Anda",
       "link_success_title": "Kartu Anda siap digunakan",
@@ -9842,14 +9906,14 @@
       "update_success_title": "Batas penggunaan Anda telah diperbarui",
       "update_error": "Terjadi kesalahan saat memperbarui batas penggunaan Anda",
       "link_card_sheet_title": "Gunakan dan dapatkan",
-      "link_card_sheet_description_prefix": "Hubungkan kartu agar Anda dapat menggunakan saldo Dana dan mendapatkan cashback mUSD untuk setiap pembelian—semuanya sambil mendapatkan hingga",
+      "link_card_sheet_description_prefix": "Link your card to spend your Money balance while it keeps earning up to",
       "link_card_sheet_description_suffix": " (variabel).",
-      "link_card_sheet_description_no_apy": "Hubungkan kartu agar Anda dapat menggunakan saldo Dana dan mendapatkan cashback mUSD untuk setiap pembelian.",
+      "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Tautkan kartu",
       "unlink_card_sheet_title_no_funding_source": "Putuskan tautan Money Account?",
       "unlink_card_sheet_title_with_funding_source": "Anda yakin?",
-      "unlink_card_sheet_description_no_funding_source": "Anda akan berhenti mendapatkan keuntungan dari pembelian. Penggunaan kartu di masa mendatang akan ditolak hingga Anda menetapkan sumber pendanaan baru. Hubungkan kembali Money Account setiap saat.",
-      "unlink_card_sheet_description_with_funding_source": "Anda akan berhenti mendapatkan keuntungan dari pembelian. Penggunaan kartu di masa mendatang akan didanai oleh {{fundingSource}}. Hubungkan kembali Money Account setiap saat.",
+      "unlink_card_sheet_description_no_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "Your card will no longer spend from your Money balance. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
       "unlink_card_sheet_another_money_account": "Money Account lain",
       "unlink_card_sheet_keep_linked": "Tetap terhubung",
       "unlink_card_sheet_unlink_account": "Putuskan tautan akun",
@@ -9861,8 +9925,7 @@
       "benefit_auto_earn_variable": "(variabel)",
       "benefit_dollar_backed": "Amankan uang Anda di mUSD, stablecoin yang didukung dolar dengan rasio 1:1",
       "benefit_liquidity": "Dapatkan likuiditas penuh tanpa penguncian, sehingga Anda dapat melakukan perdagangan atau penarikan setiap saat",
-      "benefit_spend_prefix": "Gunakan di lebih dari 150 juta merchant dengan Kartu MetaMask dan dapatkan ",
-      "benefit_spend_cashback": "Pengembalian 1-3% mUSD",
+      "benefit_spend": "Spend at 150M+ merchants with MetaMask Card",
       "benefit_transfer": "Kirim ke dompet Anda di MetaMask",
       "benefit_global": "Kirim dan terima dana secara global",
       "learn_more": "Pelajari selengkapnya"
@@ -10029,6 +10092,7 @@
       "date": "Tanggal",
       "paid_with": "Dibayar dengan",
       "you_deposited": "Anda mendeposit",
+      "amount_unavailable": "Amount unavailable",
       "transaction_fees": "Biaya transaksi",
       "paid_by_metamask": "Dibayar oleh MetaMask",
       "total": "Total",
@@ -10102,6 +10166,44 @@
         "title": "Money Account sedang diproses",
         "description": "Kami meluncurkan Money Account secara bertahap untuk memastikan semuanya berjalan lancar. Periksa kembali dalam waktu singkat."
       }
+    },
+    "account_status": {
+      "title": "Money account status",
+      "loading": "Loading…",
+      "no_account": "No Money account found for this wallet.",
+      "address_title": "Money account address",
+      "copy": "Copy {{label}}",
+      "copied": "{{label}} copied",
+      "not_available": "Not available",
+      "flag_not_set": "Not set in remote flags",
+      "debug_title": "Debug info",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "MetaMetrics ID",
+      "profile_id": "Profile ID",
+      "summary_title": "Summary",
+      "chomp_registration": "CHOMP registration",
+      "summary": {
+        "registered": "Registered",
+        "pending": "Pending",
+        "incomplete": "Incomplete",
+        "unknown": "Unknown"
+      },
+      "request_error": "Some requests failed. Pull down to retry.",
+      "signals_title": "Signals",
+      "profile_association": "Profile association",
+      "account_upgrade": "Account upgrade",
+      "intents": "Intents",
+      "local_record": "Device upgrade record",
+      "local_record_completed_at": "Device upgrade completed {{date}}",
+      "signal": {
+        "complete": "Complete",
+        "pending": "Pending",
+        "missing": "Missing",
+        "unknown": "Unknown"
+      },
+      "upgrades_title": "Upgrades",
+      "intents_title": "Intents",
+      "chain": "Chain {{chainId}}"
     }
   },
   "stake": {
@@ -10481,6 +10583,8 @@
     "nfts": "NFT",
     "permission_from": "Izin dari",
     "spender": "Spender",
+    "expiration": "Expiration",
+    "never_expires": "Never expires",
     "request_from": "Permintaan dari",
     "staking_from": "Stake dari",
     "signing_in_with": "Masuk dengan",
@@ -10894,7 +10998,6 @@
     "network_fee_info_title": "Biaya jaringan",
     "network_fee_info_content": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa rumit transaksi Anda.",
     "network_fee_info_content_gasless": "Jika token asli yang Anda miliki tidak cukup, Anda akan membayar biaya ini menggunakan token dalam transaksi swap.",
-    "gas_fee_deduction": "-{{fee}} untuk gas",
     "batch_sell_network_fee_info_content": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa kompleks transaksi Anda. Jika Anda tidak memiliki cukup dana untuk menutupi biaya tersebut, kami akan mengambilnya dari token yang Anda konversi.",
     "network_fee_info_content_sponsored": "Biaya jaringan ini dibayar oleh MetaMask, sehingga Anda dapat bertransaksi tanpa {{nativeToken}} di akun Anda.",
     "points": "Estimasi poin",
@@ -11438,19 +11541,16 @@
         "name": "Kartu Virtual",
         "price": "Gratis",
         "feature_1": "Kartu virtual untuk Apple Pay dan Google Pay",
-        "feature_2": "Bayar dengan kripto (USDC, USDT, WETH, dan lainnya)",
-        "feature_3": "Pengembalian 1% mUSD untuk setiap pembelian"
+        "feature_2": "Bayar dengan kripto (USDC, USDT, WETH, dan lainnya)"
       },
       "metal_card": {
         "name": "Kartu Logam",
         "price": "$199/tahun",
         "everything_in_virtual": "Semuanya serba virtual, ditambah:",
         "feature_1": "Kartu logam berukir premium",
-        "feature_2": "Pengembalian 3% mUSD untuk $10.000 pertama/tahun",
         "feature_3": "Tidak ada biaya transaksi luar negeri"
       },
-      "earn_up_to_badge": "Dapatkan pengembalian hingga $300 setiap tahunnya",
-      "upgrade_to_metal_label": "Atau tingkatkan ke Metal untuk mendapatkan reward 3x"
+      "upgrade_to_metal_label": "Or upgrade to Metal"
     },
     "review_order": {
       "title": "Tinjau order",
@@ -11470,7 +11570,7 @@
     "order_completed": {
       "title": "Kartu Anda sedang dikirim",
       "subtitle": "Kartu akan tiba dalam waktu 4 sampai 6 minggu.",
-      "description": "Atur kartu virtual Anda dan tambahkan ke dompet digital untuk mulai mendapatkan pengembalian mUSD.",
+      "description": "Set up your virtual card and add it to your digital wallet to start spending.",
       "set_up_card_button": "Atur kartu",
       "back_to_card_button": "Kembali ke Kartu"
     },
@@ -11511,9 +11611,9 @@
       "try_again": "Coba lagi"
     },
     "card_onboarding": {
-      "title": "Gunakan dan dapatkan",
-      "description": "Kartu MetaMask merupakan cara cepat dan mudah untuk menggunakan kripto Anda serta untuk mendapatkan cashback hingga 3% dalam bentuk mUSD.",
-      "apply_now_button": "Atur sekarang",
+      "title": "Spend anywhere",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
+      "apply_now_button": "Get card",
       "login_button": "Masuk",
       "not_now_button": "Tidak sekarang",
       "sign_up": {
@@ -11603,16 +11703,20 @@
         "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
-        "title": "Menunggu persetujuan",
-        "description": "Mitra kami perlu memverifikasi identitas Anda untuk menyetujui permohonan Anda.",
-        "helper_text": "Proses ini umumnya membutuhkan waktu beberapa detik. Jangan tutup aplikasi.",
+        "loading_label": "Loading",
+        "in_progress_title": "Verifying your identity",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app.",
         "incomplete_title": "Selesaikan verifikasi identitas Anda",
         "incomplete_description": "Anda menutup verifikasi identitas sebelum selesai. Lanjutkan untuk menyelesaikannya.",
         "continue_button": "Lanjutkan verifikasi",
         "info_needed_title": "Informasi tambahan diperlukan",
         "info_needed_description": "Kami memerlukan informasi lebih lanjut untuk menyelesaikan verifikasi Anda. Lanjutkan untuk memberikan informasi tersebut.",
         "info_needed_button": "Lanjutkan verifikasi",
-        "expiring_error": "Sesi verifikasi Anda telah berakhir. Hubungi dukungan untuk melanjutkan."
+        "expiring_error": "Sesi verifikasi Anda telah berakhir. Hubungi dukungan untuk melanjutkan.",
+        "error_title": "Something went wrong",
+        "try_again_button": "Try again",
+        "expired_title": "Verification session expired",
+        "back_to_home_button": "Back to home"
       },
       "immersve_kyc_modal": {
         "permission_error": "Akses kamera dan mikrofon diperlukan untuk verifikasi identitas. Izinkan akses dan coba lagi.",
@@ -11653,6 +11757,19 @@
         "title": "Saat ini Anda tidak memenuhi syarat untuk mendapatkan Kartu MetaMask",
         "description": "Kelayakan ditentukan oleh pemeriksaan regulasi dan verifikasi dari mitra kami.",
         "close_button": "Kembali ke beranda"
+      },
+      "kyc_rejected": {
+        "retry_title": "We couldn't verify your identity",
+        "reasons": {
+          "id_document": "Your ID document couldn't be verified. Try again with a different document.",
+          "document_photo": "The photo of your document wasn't clear enough. Try again in better light.",
+          "personal_details": "Your name, date of birth, or address couldn't be verified.",
+          "proof_of_address": "Your proof of address couldn't be verified.",
+          "biometrics": "The face scan didn't match. Try again.",
+          "ineligible": "You're not eligible for MetaMask Card right now.",
+          "generic": "Try verification again. Contact support if it keeps failing.",
+          "generic_permanent": "We can't complete verification for this account."
+        }
       },
       "personal_details": {
         "title": "Tambahkan informasi Anda",
@@ -11701,7 +11818,9 @@
       "complete": {
         "title": "Anda sudah terverifikasi",
         "description": "Selesaikan pengaturan kartu MetaMask agar Anda dapat mulai menggunakan kripto.",
-        "confirm_button": "Selesaikan pengaturan"
+        "confirm_button": "Selesaikan pengaturan",
+        "money_account_description": "We're getting your card ready. It'll be on your Card home in a moment.",
+        "money_account_confirm_button": "Continue"
       },
       "account_exists": {
         "title": "Anda sudah memiliki akun",
@@ -12001,10 +12120,10 @@
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Gunakan Money Account",
       "spend_and_earn_title": "Gunakan dan dapatkan",
-      "spend_and_earn_description_prefix": "Hubungkan saldo ke kartu Anda dan dapatkan cashback mUSD untuk setiap pembelian. Plus, dapatkan hingga ",
+      "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "APY {{apy}}%",
       "spend_and_earn_description_suffix": " (variabel) dari saldo Anda.",
-      "spend_and_earn_description_no_apy": "Hubungkan saldo ke kartu Anda dan dapatkan cashback mUSD untuk setiap pembelian.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and spend it anywhere Mastercard is accepted.",
       "spend_and_earn_cta": "Tautkan kartu"
     },
     "cashback_screen": {
@@ -12303,6 +12422,7 @@
     "close": "Tutup"
   },
   "rewards": {
+    "today": "Today",
     "rebate": {
       "banner": "Anda mendapatkan cashback {{percent}}% dari biaya",
       "tooltip_title": "Reward Perdagangan",
@@ -12383,7 +12503,7 @@
       "already_referred": "Anda telah dirujuk oleh pengguna lain.",
       "cannot_use_own_referral_code": "Anda tidak dapat menggunakan kode referensi milik Anda sendiri.",
       "referrer_cannot_be_referred": "Anda tidak dapat dirujuk oleh orang lain.",
-      "active_trader_cannot_be_referred": "Anda tidak dapat dirujuk karena aktivitas perdagangan baru-baru ini.",
+      "active_trader_cannot_be_referred": "This referral code is only valid for new traders.",
       "rate_limited": "Terlalu banyak percobaan. Tunggu sebentar.",
       "invalid_bonus_code": "Kode bonus tidak valid",
       "already_redeemed": "Anda telah menukarkan kode bonus ini",
@@ -12515,31 +12635,13 @@
       "verifying_rewards": "Kami memastikan semuanya benar sebelum Anda mengklaim reward."
     },
     "onboarding": {
-      "not_supported_region_title": "Wilayah tidak didukung",
       "not_supported_region_description": "Reward belum didukung di wilayah Anda. Kami sedang berupaya memperluas akses, jadi, periksa kembali nanti.",
-      "not_supported_hardware_account_title": "Akun tidak didukung",
       "not_supported_hardware_account_description": "Akun dompet perangkat keras belum memenuhi syarat untuk menerima reward. Beralih ke akun lain untuk melanjutkan.",
-      "not_supported_account_type_title": "Jenis akun tidak didukung",
       "not_supported_account_type_description": "Saat ini, hanya akun internal Ethereum dan Solana yang dapat didaftarkan dalam program Reward. Beralih ke akun lain untuk melanjutkan.",
-      "not_supported_confirm_go_back": "Kembali",
-      "not_supported_confirm_retry": "Coba lagi",
-      "auth_fail_title": "Autentikasi gagal",
-      "auth_fail_description": "Tidak dapat mengautentikasi dengan program reward. Periksa koneksi Anda dan coba lagi.",
-      "geo_check_fail_title": "Tidak dapat menentukan kelayakan berpartisipasi",
-      "geo_check_fail_description": "Kami tidak dapat memastikan apakah wilayah Anda mengizinkan pendaftaran program reward. Periksa koneksi Anda dan coba lagi.",
-      "intro_confirm_geo_loading": "Memeriksa wilayah...",
       "step_confirm": "Berikutnya",
       "step_finish": "Ayo",
       "step_skip": "Lewati",
-      "title": "Mulai dapatkan reward",
-      "description": "Menangkan hadiah, klaim keuntungan, dan temukan cara lainnya untuk menghasilkan—hanya dengan menggunakan MetaMask.",
-      "sign_up": "Gabung dengan Reward",
-      "sign_up_loading": "Bergabung...",
-      "legal_disclaimer_1": "Dengan bergabung, Anda menyetujui",
-      "legal_disclaimer_2": "Ketentuan Penggunaan",
-      "legal_disclaimer_3": "Kami akan mengaktifkan semua akun di perangkat ini dan melacak aktivitas onchain untuk memberikan reward secara otomatis.",
-      "legal_disclaimer_4": "Pelajari selengkapnya",
-      "referral_label": "Kode referensi"
+      "description": "Menangkan hadiah, klaim keuntungan, dan temukan cara lainnya untuk menghasilkan—hanya dengan menggunakan MetaMask."
     },
     "settings": {
       "title": "Pengaturan reward",
@@ -13185,7 +13287,7 @@
     "cancel": "Batal",
     "perps": "Perps",
     "rwa_perps_section": "Perp",
-    "macro_stocks_commodity_perps": "Perp",
+    "perps_trending_lists": "Trending lists",
     "crypto_perps_section": "Perp",
     "predictions": "Prediksi",
     "no_results": "Hasil tidak ditemukan",
@@ -13214,7 +13316,7 @@
     },
     "tabs": {
       "now": "Sekarang",
-      "macro": "Makro",
+      "perps": "Perps",
       "rwas": "RWA",
       "crypto": "Kripto",
       "sports": "Olahraga",
