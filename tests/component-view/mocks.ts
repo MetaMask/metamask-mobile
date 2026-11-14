@@ -309,6 +309,14 @@ jest.mock('../../app/core/Engine', () => {
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
+        // Identity verification records session consents, then launches SumSub.
+        fetchSessionDisclaimers: jest.fn().mockResolvedValue({
+          idOS: [],
+          kycProvider: [],
+        }),
+        recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
+        launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
+        refreshSessionStatus: jest.fn(),
       },
       SeedlessOnboardingController: {
         state: {
