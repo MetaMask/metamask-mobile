@@ -289,7 +289,7 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
-    it('dispatches pending deeplink when a legacy referral parameter is also present', async () => {
+    it('dispatches the campaigns deeplink from a query containing referral', async () => {
       await handleRewardsUrl({
         rewardsPath: '?referral=abc123&page=campaigns',
       });
