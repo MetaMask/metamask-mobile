@@ -183,4 +183,17 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
       opensSupportArticle: true,
     },
   },
+  kyc_retry: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    source: 'vba-home-card-kyc-retry',
+    i18nPrefix: 'money.vba_home_card.kyc_retry',
+    // Same identity-scan art as finish_verification. The orange X is the
+    // terminal rejection illustration and would still read as a final no.
+    heroArt: IDENTITY_HERO_ART,
+    cta: {
+      buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      className: 'bg-muted',
+      textClassName: 'text-default',
+    },
+  },
 };

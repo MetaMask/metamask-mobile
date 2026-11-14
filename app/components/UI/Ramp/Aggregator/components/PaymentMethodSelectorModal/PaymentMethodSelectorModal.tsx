@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, useWindowDimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Payment } from '@consensys/on-ramp-sdk';
@@ -23,6 +22,9 @@ import { useRampSDK } from '../../sdk';
 
 import styleSheet from './PaymentMethodSelectorModal.styles';
 import { strings } from '../../../../../../../locales/i18n';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PaymentMethodSelectorModalParams {
   paymentMethods?: Payment[] | null;
@@ -36,6 +38,7 @@ export const createPaymentMethodSelectorModalNavigationDetails =
   );
 
 function PaymentMethodSelectorModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { paymentMethods, location } =
     useParams<PaymentMethodSelectorModalParams>();
@@ -100,7 +103,9 @@ function PaymentMethodSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

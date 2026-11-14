@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -13,6 +12,9 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface RampInfoBottomSheetAction {
   /** Button label */
@@ -53,6 +55,7 @@ function RampInfoBottomSheet({
   description,
   actions,
 }: RampInfoBottomSheetProps) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -67,14 +70,15 @@ function RampInfoBottomSheet({
       isInteractable={false}
       testID={testIDs.MODAL}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: testIDs.CLOSE_BUTTON,
         }}
       >
         <Text variant={titleVariant}>{title}</Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-6 pb-6">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
