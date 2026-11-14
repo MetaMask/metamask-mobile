@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Modal, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { FullWindowOverlay } from 'react-native-screens';
@@ -16,6 +16,9 @@ import { ConfirmMembershipRequestData } from './ConfirmMembershipApproval.types'
 const ConfirmMembershipApproval = () => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isConfirmingRef = useRef(false);
+  const hasConfirmedRef = useRef(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const { approvalRequest, onConfirm, onReject } = useApprovalRequest();
 
   const handleClose = useCallback(() => {
@@ -23,7 +26,16 @@ const ConfirmMembershipApproval = () => {
   }, []);
 
   const handleConfirm = useCallback(() => {
+    if (isConfirmingRef.current) {
+      return;
+    }
+    isConfirmingRef.current = true;
+    setIsConfirming(true);
     sheetRef.current?.onCloseBottomSheet(() => {
+      if (hasConfirmedRef.current) {
+        return;
+      }
+      hasConfirmedRef.current = true;
       onConfirm();
     });
   }, [onConfirm]);
@@ -59,6 +71,7 @@ const ConfirmMembershipApproval = () => {
             billedOn={billedOn ?? ''}
             onClose={handleClose}
             onConfirm={handleConfirm}
+            isConfirming={isConfirming}
           />
         </BottomSheet>
       </GestureHandlerRootView>
