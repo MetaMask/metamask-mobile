@@ -6,6 +6,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
+  openAsOnlyOnboardingRoute,
+  openCompletedVbaAccount,
   openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -753,7 +755,7 @@ describe('useOpenVbaOnboarding', () => {
     expect(rootDispatch).not.toHaveBeenCalled();
   });
 
-  it('keeps only the active caller and destination on first entry', () => {
+  it('keeps the screens under the caller on first entry', () => {
     const dispatch = jest.fn();
     const parentNavigate = jest.fn();
     const childNavigate = jest.fn();
@@ -784,8 +786,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { key: 'settings-1', name: 'Settings' },
             { key: 'home-1', name: 'Home' },
             {
               name: Routes.RAMP.VBA_ONBOARDING,
@@ -846,8 +849,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { name: 'Settings' },
             { name: 'Wallet' },
             {
               key: 'vba-1',
@@ -897,6 +901,83 @@ describe('useOpenVbaOnboarding', () => {
               state: {
                 index: 0,
                 routes: [{ name: VbaOnboardingRoutes.KYC_PENDING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+});
+
+describe('opening a bank account from card home', () => {
+  const cardHomeState = (): {
+    index: number;
+    routeNames: string[];
+    routes: { key: string; name: string }[];
+  } => ({
+    index: 1,
+    routeNames: [
+      'Home',
+      Routes.CARD.ROOT,
+      Routes.RAMP.VBA_ONBOARDING,
+      Routes.RAMP.VBA_DETAILS,
+    ],
+    routes: [
+      { key: 'home-1', name: 'Home' },
+      { key: 'card-1', name: Routes.CARD.ROOT },
+    ],
+  });
+
+  it('keeps wallet home under card home when the account details open', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openCompletedVbaAccount(navigationFromCardHome);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('keeps wallet home under card home when onboarding opens', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openAsOnlyOnboardingRoute(
+      navigationFromCardHome,
+      VbaOnboardingRoutes.LOADING,
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.LOADING }],
               },
             },
           ],

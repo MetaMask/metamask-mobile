@@ -3,11 +3,17 @@ import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import OrderDetails, {
   createRampsOrderDetailsNavDetails,
+  isWalletHomeOnboardingFundFlowOrderAccepted,
 } from './OrderDetails';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  cancelWalletHomeOnboardingFundFlow,
+  consumeWalletHomeOnboardingFundFlowCompletion,
+  startWalletHomeOnboardingFundFlow,
+} from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -72,9 +78,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn<Record<string, string | undefined>, []>(() => ({
-  orderId: 'test-order-123',
-}));
+const mockUseParams = jest.fn<Record<string, string | boolean | undefined>, []>(
+  () => ({
+    orderId: 'test-order-123',
+  }),
+);
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
@@ -133,6 +141,7 @@ function render() {
 describe('OrderDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    cancelWalletHomeOnboardingFundFlow();
     mockGetOrderById.mockReturnValue(mockOrder);
     mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
@@ -341,6 +350,7 @@ describe('OrderDetails', () => {
   });
 
   it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    startWalletHomeOnboardingFundFlow();
     const { getByTestId } = render();
 
     await waitFor(() => {
@@ -353,6 +363,113 @@ describe('OrderDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalled();
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+  });
+
+  it.each([
+    RampsOrderStatus.Pending,
+    RampsOrderStatus.Created,
+    RampsOrderStatus.Precreated,
+    RampsOrderStatus.Unknown,
+    RampsOrderStatus.Completed,
+  ])('treats %s orders as accepted for onboarding', (status) => {
+    expect(isWalletHomeOnboardingFundFlowOrderAccepted(status)).toBe(true);
+  });
+
+  it.each([
+    RampsOrderStatus.Failed,
+    RampsOrderStatus.Cancelled,
+    RampsOrderStatus.IdExpired,
+  ])('does not treat %s orders as accepted for onboarding', (status) => {
+    expect(isWalletHomeOnboardingFundFlowOrderAccepted(status)).toBe(false);
+  });
+
+  it('completes the onboarding flow when the user leaves an accepted order with the back arrow', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
+  });
+
+  it('completes the onboarding flow for a Precreated order from an external-browser return', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Precreated,
+    });
+    mockRefreshOrder.mockResolvedValue(undefined);
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(true);
+  });
+
+  it.each([RampsOrderStatus.Failed, RampsOrderStatus.Cancelled])(
+    'does not complete the onboarding flow for a %s order',
+    async (status) => {
+      startWalletHomeOnboardingFundFlow();
+      mockGetOrderById.mockReturnValue({ ...mockOrder, status });
+      mockUseParams.mockReturnValue({
+        orderId: 'ord-123',
+        showCloseButton: true,
+      });
+
+      const { getByTestId } = render();
+
+      await waitFor(() => {
+        expect(getByTestId('order-content')).toBeOnTheScreen();
+      });
+
+      expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
+    },
+  );
+
+  it('clears the onboarding completion when a pending order turns failed', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+    });
+    mockRefreshOrder.mockImplementationOnce(async () => {
+      mockGetOrderById.mockReturnValue({
+        ...mockOrder,
+        providerOrderId: 'ord-failed',
+        status: RampsOrderStatus.Failed,
+      });
+    });
+    mockUseParams.mockReturnValue({
+      orderId: 'ord-123',
+      showCloseButton: true,
+    });
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ord-failed')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('shows V2 order toast when callback fetch succeeds', async () => {
@@ -385,6 +502,26 @@ describe('OrderDetails', () => {
         }),
       );
     });
+  });
+
+  it('does not complete the onboarding flow when callback order loading fails', async () => {
+    startWalletHomeOnboardingFundFlow();
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+      showCloseButton: true,
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(new Error('Callback failed'));
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+    });
+
+    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 
   it('resets to build quote when callback returns no order', async () => {

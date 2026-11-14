@@ -98,21 +98,24 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   // Resolve the account ID scoped to the asset's chain.
   // Non-EVM assets (Solana, BTC, …) are stored under their own account ID —
   // using the global EVM account would miss all non-EVM balance/custom entries.
+  const assetChainId = asset?.chainId;
+  const assetAddress = asset?.address;
+
   const accountId = useMemo(() => {
-    if (!asset?.chainId) return globalAccountId;
-    const caipChainId: CaipChainId | undefined = isCaipChainId(asset.chainId)
-      ? (asset.chainId as CaipChainId)
-      : toEvmCaipChainId(asset.chainId as Hex);
+    if (!assetChainId) return globalAccountId;
+    const caipChainId: CaipChainId | undefined = isCaipChainId(assetChainId)
+      ? (assetChainId as CaipChainId)
+      : toEvmCaipChainId(assetChainId as Hex);
     if (!caipChainId) return globalAccountId;
     return internalAccountByScope(caipChainId)?.id ?? globalAccountId;
-  }, [asset?.chainId, internalAccountByScope, globalAccountId]);
+  }, [assetChainId, internalAccountByScope, globalAccountId]);
 
   const assetId = useMemo(
     () =>
-      asset?.address && asset?.chainId
-        ? resolveAssetId(asset.address, asset.chainId)
+      assetAddress && assetChainId
+        ? resolveAssetId(assetAddress, assetChainId)
         : undefined,
-    [asset?.address, asset?.chainId],
+    [assetAddress, assetChainId],
   );
 
   const isCustomAsset = useMemo(() => {

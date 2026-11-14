@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   CommissionEntryView,
   EarningsSummaryDto,
@@ -316,11 +317,15 @@ describe('PerformanceTab', () => {
     );
 
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_EMPTY),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.People);
     expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.Activity);
     expect(
       getByText(
         'You can earn rewards from sharing a trade. Start sharing to earn today!',

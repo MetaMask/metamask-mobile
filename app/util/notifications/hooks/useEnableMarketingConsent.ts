@@ -5,11 +5,11 @@ import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
 import OAuthService from '../../../core/OAuthService/OAuthService';
+import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { analytics } from '../../analytics/analytics';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import Logger from '../../Logger';
 
 interface UseEnableMarketingConsentOptions {
   metricsOptInLocation: string;
@@ -59,11 +59,10 @@ export function useEnableMarketingConsent({
 
     if (isSeedlessOnboardingLoginFlow) {
       // Social-login wallets also store marketing opt-in server-side so the
-      // setting survives OAuth rehydration. Match settings behavior and revert
-      // the optimistic Redux update if that sync fails.
+      // auth service can create the HubSpot contact for email marketing.
+      // A failed sync keeps the local decision; only reads are dropped.
       OAuthService.updateMarketingOptInStatus(true).catch((error) => {
         Logger.error(error as Error);
-        dispatch(setDataCollectionForMarketing(false));
       });
     }
   }, [

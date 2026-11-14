@@ -2,7 +2,7 @@
 # Submit the Android performance suite to TestMu AI HyperExecute.
 #
 # Required env:
-#   BUILD_TYPE              onboarding | imported-wallet
+#   BUILD_TYPE              onboarding | imported-wallet | dev-onboarding
 #   LT_USERNAME / LT_ACCESS_KEY
 #   TESTMU_DEVICE / TESTMU_OS_VERSION
 #   App URL env vars consumed by tests/playwright.testmu.config.ts
@@ -34,7 +34,7 @@ if [[ -z "$BUILD_TYPE" || -z "$LT_USERNAME" || -z "$LT_ACCESS_KEY" ]]; then
 fi
 
 case "$BUILD_TYPE" in
-  onboarding|imported-wallet) ;;
+  onboarding|imported-wallet|dev-onboarding) ;;
   *)
     echo "Unsupported BUILD_TYPE: $BUILD_TYPE" >&2
     exit 1
@@ -88,7 +88,7 @@ RESOLVED_ANDROID_ONBOARDING_URL="${TESTMU_ANDROID_ONBOARDING_PERF_APP_URL:-$RESO
 RESOLVED_ANDROID_SEEDLESS_URL="${TESTMU_ANDROID_SEEDLESS_PERF_APP_URL:-$RESOLVED_ANDROID_CLEAN_URL}"
 
 case "$BUILD_TYPE" in
-  onboarding) PRIMARY_APP_URL="$RESOLVED_ANDROID_CLEAN_URL" ;;
+  onboarding|dev-onboarding) PRIMARY_APP_URL="$RESOLVED_ANDROID_CLEAN_URL" ;;
   imported-wallet) PRIMARY_APP_URL="$RESOLVED_ANDROID_APP_URL" ;;
 esac
 

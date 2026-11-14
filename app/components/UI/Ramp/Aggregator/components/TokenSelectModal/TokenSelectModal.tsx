@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  HeaderStandard,
   AvatarToken,
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
@@ -45,6 +44,8 @@ import { getCaipChainIdFromCryptoCurrency } from '../../utils';
 import NetworksFilterBar from '../../../components/NetworksFilterBar';
 import { CaipChainId } from '@metamask/utils';
 import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -59,6 +60,7 @@ export const createTokenSelectModalNavigationDetails =
   );
 
 function TokenSelectModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
 
@@ -244,7 +246,9 @@ function TokenSelectModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('fiat_on_ramp_aggregator.select_a_cryptocurrency')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import AddCustomToken from './AddCustomToken';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -11,6 +12,7 @@ import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getBlockExplorerAddressUrl } from '../../../../../util/networks';
+import { TraceName, endTrace } from '../../../../../util/trace';
 
 const mockPush = jest.fn();
 const mockNavigate = jest.fn();
@@ -76,11 +78,21 @@ jest.mock('../../../../../util/networks', () => ({
   isMainnetByChainId: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn(),
+    endTrace: jest.fn(),
+  };
+});
+
 const mockIsSmartContractAddress = isSmartContractAddress as jest.Mock;
 const mockGetBlockExplorerAddressUrl = getBlockExplorerAddressUrl as jest.Mock;
 const mockToAssetId = jest.mocked(toAssetId);
 
 const VALID_ADDRESS = '0x1234567890123456789012345678901234567890';
+const OTHER_VALID_ADDRESS = '0x1111111111111111111111111111111111111111';
 const SHORT_ADDRESS = '0x12345';
 const MOCK_CAIP_ASSET =
   'eip155:1/erc20:0x1234567890123456789012345678901234567890' as CaipAssetType;
@@ -152,18 +164,107 @@ describe('AddCustomToken', () => {
   it('shows address error when address is not a smart contract', async () => {
     mockIsSmartContractAddress.mockResolvedValue(false);
 
-    const { getByTestId } = renderComponent();
+    const utils = renderComponent();
 
     await act(async () => {
       fireEvent.changeText(
-        getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
         VALID_ADDRESS,
       );
     });
 
     expect(
-      getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE),
+      utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_WARNING_MESSAGE),
     ).toBeOnTheScreen();
+    expect(utils.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+  });
+
+  it('clears the loading indicator when token metadata cannot be fetched', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(true);
+    (
+      Engine.context.AssetsContractController.getERC20TokenDecimals as jest.Mock
+    ).mockRejectedValueOnce(new Error('rpc failed'));
+
+    const utils = renderComponent();
+
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
+    });
+
+    expect(
+      utils.getByTestId(ImportTokenViewSelectorsIDs.SYMBOL_INPUT).props.value,
+    ).toBe('');
+    expect(utils.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
+  });
+
+  it('keeps the loading indicator up when an older lookup fails after the address changes', async () => {
+    let rejectFirstLookup: (error: Error) => void = () => undefined;
+    mockIsSmartContractAddress
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectFirstLookup = reject;
+          }),
+      )
+      .mockImplementationOnce(() => new Promise(() => undefined));
+
+    const utils = renderComponent();
+
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
+    });
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        OTHER_VALID_ADDRESS,
+      );
+    });
+    await act(async () => {
+      rejectFirstLookup(new Error('stale lookup'));
+    });
+
+    expect(utils.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
+  });
+
+  it('does not apply metadata from a lookup that finished after the address changed', async () => {
+    let resolveFirstLookup: (isContract: boolean) => void = () => undefined;
+    mockIsSmartContractAddress
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstLookup = resolve;
+          }),
+      )
+      .mockImplementationOnce(() => new Promise(() => undefined));
+
+    const utils = renderComponent();
+
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        VALID_ADDRESS,
+      );
+    });
+    await act(async () => {
+      fireEvent.changeText(
+        utils.getByTestId(ImportTokenViewSelectorsIDs.ADDRESS_INPUT),
+        OTHER_VALID_ADDRESS,
+      );
+    });
+    await act(async () => {
+      resolveFirstLookup(true);
+    });
+
+    expect(
+      Engine.context.AssetsContractController.getERC20TokenDecimals,
+    ).not.toHaveBeenCalled();
+    expect(utils.UNSAFE_queryByType(ActivityIndicator)).not.toBeNull();
   });
 
   it('fetches and displays token metadata for a valid contract address', async () => {
@@ -372,6 +473,9 @@ describe('AddCustomToken', () => {
       await expect(params.addTokenList()).rejects.toThrow('contract error');
 
       expect(mockAddCustomAsset).toHaveBeenCalled();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.ImportTokens,
+      });
       expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.TOKEN_ADDED,
       );
@@ -414,6 +518,29 @@ describe('AddCustomToken', () => {
         MetaMetricsEvents.TOKEN_ADDED,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.ImportTokens,
+      });
+    });
+
+    it('ends the import trace when the import rejects with undefined', async () => {
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'evm-account-id',
+        address: '0xabc',
+      });
+      mockAddCustomAsset.mockRejectedValue(undefined);
+
+      const utils = renderComponent();
+      await setupAndPressNext(utils);
+
+      const [, params] = mockPush.mock.calls[0];
+      await expect(params.addTokenList()).rejects.toBeUndefined();
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.ImportTokens,
+      });
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.TOKEN_ADDED,
+      );
     });
   });
 });

@@ -41,12 +41,14 @@ export function useSpotTraderPositionPrices(
     [caipChainId],
   );
 
+  // Live revisions hand over a new `Position` for the same token, so the
+  // fetches key on the address rather than the object.
+  const tokenAddress = positionParam?.tokenAddress;
+
   const allMarketData = useSelector(selectTokenMarketData);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const cachedMarket = hexChainId
-    ? allMarketData?.[hexChainId]?.[
-        positionParam?.tokenAddress?.toLowerCase() as Hex
-      ]
+    ? allMarketData?.[hexChainId]?.[tokenAddress?.toLowerCase() as Hex]
     : undefined;
 
   const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
@@ -57,12 +59,12 @@ export function useSpotTraderPositionPrices(
     if (
       !enabled ||
       cachedMarket?.marketCap != null ||
-      !positionParam ||
+      tokenAddress === undefined ||
       !caipChainId
     ) {
       return;
     }
-    const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
+    const assetId = toAssetId(tokenAddress, caipChainId);
     if (!assetId) return;
 
     let cancelled = false;
@@ -96,7 +98,7 @@ export function useSpotTraderPositionPrices(
   }, [
     enabled,
     cachedMarket?.marketCap,
-    positionParam,
+    tokenAddress,
     caipChainId,
     currentCurrency,
   ]);
@@ -113,7 +115,7 @@ export function useSpotTraderPositionPrices(
       return;
     }
 
-    if (!positionParam) {
+    if (tokenAddress === undefined) {
       setPricesByPeriod({});
       setIsLoading(false);
       return;
@@ -128,7 +130,7 @@ export function useSpotTraderPositionPrices(
     setIsLoading(true);
     let cancelled = false;
 
-    const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
+    const assetIdentifier = `erc20:${tokenAddress}`;
     const vsCurrency = currentCurrency.toLowerCase();
 
     const fetchPeriod = async (period: TimePeriod) => {
@@ -169,7 +171,7 @@ export function useSpotTraderPositionPrices(
     return () => {
       cancelled = true;
     };
-  }, [enabled, positionParam, caipChainId, currentCurrency]);
+  }, [enabled, tokenAddress, caipChainId, currentCurrency]);
 
   return {
     pricesByPeriod,
