@@ -40,7 +40,7 @@ function getBuildTypeInfo() {
  */
 function resolveScenarioFromTestFilePath(testFilePath) {
   const pathValue = testFilePath || '';
-  if (pathValue.includes('/performance/onboarding/')) {
+  if (pathValue.includes('/performance/onboarding/') || pathValue.includes('/performance/dev-onboarding/')) {
     return 'onboarding';
   }
   return 'imported-wallet';
@@ -276,6 +276,12 @@ function extractPlatformScenarioAndDevice(filePath) {
     scenario = 'imported-wallet';
     scenarioKey = 'ImportedWallet';
     console.log(`✅ Detected iOS Imported Wallet test`);
+  } else if (fullPath.includes('android-dev-onboarding-test-results')) {
+    platform = 'android';
+    platformKey = 'Android';
+    scenario = 'onboarding';
+    scenarioKey = 'Onboarding';
+    console.log(`✅ Detected Android Dev Onboarding test`);
   } else if (fullPath.includes('android-onboarding-flow-test-results')) {
     platform = 'android';
     platformKey = 'Android';
@@ -296,6 +302,7 @@ function extractPlatformScenarioAndDevice(filePath) {
   // Extract device info from path
   const deviceMatch = pathParts.find(part =>
     part.includes('-imported-wallet-test-results-') ||
+    part.includes('-dev-onboarding-test-results-') ||
     part.includes('-onboarding-flow-test-results-')
   );
 

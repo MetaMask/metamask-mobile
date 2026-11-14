@@ -25,10 +25,8 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
-import {
-  useMoneyDepositNavigation,
-  type TrackMoneyEntry,
-} from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import type { TrackMoneyEntry } from '../../hooks/useMoneyNavigation.types';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
@@ -83,7 +81,6 @@ import ModalSafeAreaProvider from '../../../../../component-library/components-t
  */
 const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 const RIVE_ARTBOARD_NAME = 'Money_Account';
-const CARD_CASHBACK_PERCENTAGE = 3;
 const CLOSE_TRIGGER = 'close';
 const ONBOARDING_COMPLETED_TRIGGER = 'onboardingCompleted';
 
@@ -267,7 +264,9 @@ const styles = StyleSheet.create({
     opacity: 0,
   },
   textGroup: {
+    left: 0,
     position: 'absolute',
+    right: 0,
   },
   title: {
     textAlign: 'center',
@@ -340,6 +339,7 @@ const MoneyOnboardingTextOverlay = ({
                 top: insets.top + HEADER_TOP_OFFSET,
               },
             ]}
+            testID={MoneyOnboardingViewTestIds.OVERLAY_TEXT_GROUP}
           >
             <Text
               color={TextColor.OverlayInverse}
@@ -470,11 +470,8 @@ const MoneyOnboardingView = () => {
         title: strings('money.rive_onboarding.step3_title'),
         content: strings(
           isUsUnauthenticatedNonCardholder
-            ? 'money.rive_onboarding.step3_body_card_ineligible'
-            : 'money.rive_onboarding.step3_body_card_eligible',
-          {
-            percentage: CARD_CASHBACK_PERCENTAGE,
-          },
+            ? 'money.rive_onboarding.step3_body_coming_soon'
+            : 'money.rive_onboarding.step3_body',
         ),
         footer: strings('money.rive_onboarding.step3_footer_text'),
       },

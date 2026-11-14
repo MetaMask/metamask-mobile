@@ -18,6 +18,7 @@ import { detectAppInstallation } from '../../../../../core/DeeplinkManager/util/
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { runAfterInteractions } from '../../utils/runAfterInteractions';
+import { usePendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 
 /**
  * How long the referral me read may take before the code is dropped. The push
@@ -139,16 +140,36 @@ const PendingMoneyReferralInvitePresenter = ({
 };
 
 /**
+ * Whether the invite should stay hidden for now. The code is kept, so the
+ * invite opens once the hold ends.
+ *
+ * It is held while the deeplink that carried the code is still being handled,
+ * so the invite opens over the link's destination rather than the
+ * interstitial.
+ *
+ * It is also held while the Social trader preview is open. A Social link
+ * opened before joining Social offers the code in that preview, which answers
+ * the code when it closes, so the invite never follows it.
+ *
+ * @returns True while the invite should wait.
+ */
+const useShouldHoldReferralInvite = (): boolean => {
+  const isReferralLinkPending = useSelector(selectIsReferralLinkPending);
+  const isSocialPreviewOpen =
+    usePendingSocialPreviewTarget()?.stage === 'previewing';
+  return isReferralLinkPending || isSocialPreviewOpen;
+};
+
+/**
  * Offers the referral code a deeplink left behind, once the wallet is unlocked
- * and onboarded. Mounted with the main navigator, and held until the link is
- * handled, so the invite opens over the link's destination rather than the
- * interstitial. Without basic functionality or the Rewards Money surface the
- * invite cannot be validated, so the code is dropped.
+ * and onboarded. Mounted with the main navigator. Without basic functionality
+ * or the Rewards Money surface the invite cannot be validated, so the code is
+ * dropped.
  */
 const PendingMoneyReferralInvite = () => {
   const dispatch = useDispatch();
   const referralCode = useSelector(selectPendingMoneyReferralCode);
-  const isReferralLinkPending = useSelector(selectIsReferralLinkPending);
+  const shouldHoldInvite = useShouldHoldReferralInvite();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -165,7 +186,7 @@ const PendingMoneyReferralInvite = () => {
     }
   }, [canOfferInvite, dispatch, referralCode]);
 
-  if (!referralCode || !canOfferInvite || isReferralLinkPending) {
+  if (!referralCode || !canOfferInvite || shouldHoldInvite) {
     return null;
   }
 

@@ -3,8 +3,17 @@ import NavigationService from '../../../../NavigationService';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderUrl } from '../handleSocialTraderUrl';
 import { navigateToSocialV1Profile } from '../../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
-import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  isSocialV1Treatment,
+  popToSocialTab,
+} from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { ensureSocialTermsAccepted } from '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { openSocialTraderPreviewIfNotJoined } from '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview';
+
+jest.mock(
+  '../../../../../components/Views/SocialLeaderboard/TraderPreviewSheet/openSocialTraderPreview',
+  () => ({ openSocialTraderPreviewIfNotJoined: jest.fn(() => false) }),
+);
 
 jest.mock(
   '../../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance',
@@ -32,6 +41,7 @@ jest.mock(
   () => ({
     getFollowTradingHomeRoute: () => 'SocialV0View',
     isSocialV1Treatment: jest.fn(() => false),
+    popToSocialTab: jest.fn(),
   }),
 );
 
@@ -39,22 +49,45 @@ describe('handleSocialTraderUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
   const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
   const mockEnsureSocialTermsAccepted = jest.mocked(ensureSocialTermsAccepted);
+  const mockOpenPreview = jest.mocked(openSocialTraderPreviewIfNotJoined);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsSocialV1Treatment.mockReturnValue(false);
     mockEnsureSocialTermsAccepted.mockReturnValue(true);
+    mockOpenPreview.mockReturnValue(false);
   });
 
-  it('stops before opening a profile when the Social terms are not accepted', () => {
+  it('opens the trader preview instead of the profile when the user has not joined Social', () => {
     mockIsSocialV1Treatment.mockReturnValue(true);
-    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+    mockOpenPreview.mockReturnValue(true);
 
     handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
 
-    expect(mockEnsureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockOpenPreview).toHaveBeenCalledWith(NavigationService.navigation, {
+      kind: 'trader',
+      traderId: 'trader-1',
+    });
     expect(navigateToSocialV1Profile).not.toHaveBeenCalled();
+  });
+
+  it('does not open the trader preview for the Social V1 control', () => {
+    handleSocialTraderUrl({ actionPath: '?traderId=trader-1' });
+
+    expect(mockOpenPreview).not.toHaveBeenCalled();
+  });
+
+  it('opens Social home after the Social terms are accepted when the link has no trader', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValueOnce(false);
+
+    handleSocialTraderUrl({ actionPath: '' });
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    const onAccepted = mockEnsureSocialTermsAccepted.mock.calls[0]?.[1];
+    expect(onAccepted).toEqual(expect.any(Function));
+    onAccepted?.();
+
+    expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
   });
 
   it('opens the V0 trader profile when the Social V1 flag is control', () => {
@@ -125,5 +158,24 @@ describe('handleSocialTraderUrl', () => {
     expect(mockNavigate).toHaveBeenLastCalledWith(Routes.SOCIAL.V0, undefined, {
       pop: true,
     });
+  });
+
+  it('falls back to Social home on the Social tab for the Social V1 treatment', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    handleSocialTraderUrl({ actionPath: '' });
+
+    expect(popToSocialTab).toHaveBeenCalledWith(NavigationService.navigation);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not fall back to Social home when the Social V1 terms are not accepted', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+    mockEnsureSocialTermsAccepted.mockReturnValue(false);
+
+    handleSocialTraderUrl({ actionPath: '' });
+
+    expect(popToSocialTab).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

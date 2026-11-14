@@ -300,6 +300,57 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     expect(arcAssets[0].isNative).toBe(true);
   });
 
+  it('treats an erc20-namespaced asset with native metadata as native', () => {
+    const mntAssetId =
+      'eip155:5000/erc20:0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000';
+    const tokenAddress = '0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9';
+    const tokenAssetId = `eip155:5000/erc20:${tokenAddress}`;
+
+    const state = buildStateWithAssets([
+      {
+        amount: '5',
+        assetId: mntAssetId,
+        info: {
+          type: 'native',
+          symbol: 'MNT',
+          name: 'Mantle',
+          decimals: 18,
+          image: '',
+        },
+      },
+      {
+        amount: '5',
+        assetId: tokenAssetId,
+        info: {
+          type: 'erc20',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          image: '',
+        },
+      },
+    ]);
+
+    const mantleAssets = selectConfirmationAssetsByAccountGroupId(
+      state,
+      undefined,
+    ).filter((asset) => asset.chainId === '0x1388');
+
+    const mnt = mantleAssets.find((asset) => asset.symbol === 'MNT');
+    const token = mantleAssets.find((asset) => asset.symbol === 'USDC');
+
+    expect(mnt).toMatchObject({
+      address: '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000',
+      isETH: true,
+      isNative: true,
+    });
+    expect(token).toMatchObject({
+      address: tokenAddress,
+      isETH: false,
+      isNative: false,
+    });
+  });
+
   // `assetId` on an emitted asset is the address for EVM chains and the
   // CAIP-19 ID only for non-EVM, so each case matches on its own terms.
   it.each([

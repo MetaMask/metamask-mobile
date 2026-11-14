@@ -1,6 +1,13 @@
 /* eslint-disable react/no-unstable-nested-components */
 import { TokenPrice } from 'app/components/hooks/useTokenHistoricalPrices';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Dimensions,
   GestureResponderEvent,
@@ -10,7 +17,6 @@ import {
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -23,7 +29,7 @@ import {
 import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
-import { Box } from '@metamask/design-system-react-native';
+import ChartLineSkeleton from '../../Charts/ChartLineSkeleton';
 
 interface LineProps {
   line: string;
@@ -67,6 +73,61 @@ export function findNearestIndex(
   }
   return lo;
 }
+
+interface ChartPanHandlers {
+  updatePosition: (pixelX: number) => void;
+  setIsChartBeingTouched: (isTouched: boolean) => void;
+}
+
+interface ChartPanResponder {
+  panResponder: ReturnType<typeof PanResponder.create>;
+  setHandlers: (next: ChartPanHandlers) => void;
+}
+
+const createChartPanResponder = (): ChartPanResponder => {
+  const handlers: ChartPanHandlers = {
+    updatePosition: () => undefined,
+    setIsChartBeingTouched: () => undefined,
+  };
+  const prevTouch = { x: 0, y: 0 };
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onStartShouldSetPanResponderCapture: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
+    onPanResponderTerminationRequest: () => true,
+    onPanResponderGrant: (evt: GestureResponderEvent) => {
+      prevTouch.x = evt.nativeEvent.locationX;
+      prevTouch.y = evt.nativeEvent.locationY;
+      handlers.updatePosition(evt.nativeEvent.locationX);
+    },
+    onPanResponderMove: (evt: GestureResponderEvent) => {
+      const deltaX = evt.nativeEvent.locationX - prevTouch.x;
+      const deltaY = evt.nativeEvent.locationY - prevTouch.y;
+      const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+
+      handlers.setIsChartBeingTouched(isHorizontalSwipe);
+      handlers.updatePosition(
+        isHorizontalSwipe ? evt.nativeEvent.locationX : -1,
+      );
+
+      prevTouch.x = evt.nativeEvent.locationX;
+      prevTouch.y = evt.nativeEvent.locationY;
+    },
+    onPanResponderRelease: () => {
+      handlers.setIsChartBeingTouched(false);
+      handlers.updatePosition(-1);
+    },
+  });
+
+  return {
+    panResponder,
+    setHandlers: (next: ChartPanHandlers) => {
+      handlers.updatePosition = next.updatePosition;
+      handlers.setIsChartBeingTouched = next.setIsChartBeingTouched;
+    },
+  };
+};
 
 interface PriceChartProps {
   prices: TokenPrice[];
@@ -141,12 +202,11 @@ const PriceChart = ({
   // Stable x-domain for the time-based axis. Recalculated when the data or
   // time-period changes so the "now" anchor matches the fetch moment.
   const { chartXMin, chartXMax } = useMemo(() => {
-    if (!isTimeBased) {
+    if (!isTimeBased || prices.length === 0) {
       return { chartXMin: undefined, chartXMax: undefined };
     }
     const now = Date.now();
     return { chartXMin: now - timePeriodMs, chartXMax: now };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isTimeBased, timePeriodMs, prices]);
 
   // Detect if this is a stablecoin and calculate appropriate Y-axis range
@@ -211,80 +271,54 @@ const PriceChart = ({
     );
   }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
 
-  const onActiveIndexChange = (index: number) => {
-    setPositionX(index);
-    onChartIndexChange(index);
-  };
-
-  const updatePosition = (pixelX: number) => {
-    if (pixelX === -1) {
-      onActiveIndexChange(-1);
-      return;
-    }
-    const chartWidth =
-      chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
-
-    if (isTimeBased && chartXMin != null && chartXMax != null) {
-      const rangeMax = chartWidth - endDotInsetRight;
-      const clamped = Math.max(0, Math.min(pixelX, rangeMax));
-      const fraction = rangeMax > 0 ? clamped / rangeMax : 0;
-      const targetTs = chartXMin + fraction * (chartXMax - chartXMin);
-      const idx = findNearestIndex(prices, targetTs);
-      onActiveIndexChange(idx);
-    } else {
-      const xDistance = chartWidth / priceList.length;
-      const clamped = Math.max(0, Math.min(pixelX, chartWidth));
-      let value = Number((clamped / xDistance).toFixed(0));
-      if (value >= priceList.length - 1) {
-        value = priceList.length - 1;
+  const updatePosition = useCallback(
+    (pixelX: number) => {
+      const reportIndex = (index: number): void => {
+        setPositionX(index);
+        onChartIndexChange(index);
+      };
+      if (pixelX === -1) {
+        reportIndex(-1);
+        return;
       }
-      onActiveIndexChange(value);
-    }
-  };
+      const chartWidth =
+        chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
 
-  // Refs so the PanResponder closure always calls the latest functions.
-  const updatePositionRef = useRef(updatePosition);
-  updatePositionRef.current = updatePosition;
-  const setIsChartBeingTouchedRef = useRef(setIsChartBeingTouched);
-  setIsChartBeingTouchedRef.current = setIsChartBeingTouched;
-
-  const prevTouch = useRef({ x: 0, y: 0 });
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponderCapture: () => true,
-      onPanResponderTerminationRequest: () => true,
-      onPanResponderGrant: (evt: GestureResponderEvent) => {
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-        updatePositionRef.current(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt: GestureResponderEvent) => {
-        const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
-        const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
-        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
-
-        setIsChartBeingTouchedRef.current(isHorizontalSwipe);
-        updatePositionRef.current(
-          isHorizontalSwipe ? evt.nativeEvent.locationX : -1,
-        );
-
-        prevTouch.current = {
-          x: evt.nativeEvent.locationX,
-          y: evt.nativeEvent.locationY,
-        };
-      },
-
-      onPanResponderRelease: () => {
-        setIsChartBeingTouchedRef.current(false);
-        updatePositionRef.current(-1);
-      },
-    }),
+      if (isTimeBased && chartXMin != null && chartXMax != null) {
+        const rangeMax = chartWidth - endDotInsetRight;
+        const clamped = Math.max(0, Math.min(pixelX, rangeMax));
+        const fraction = rangeMax > 0 ? clamped / rangeMax : 0;
+        const targetTs = chartXMin + fraction * (chartXMax - chartXMin);
+        reportIndex(findNearestIndex(prices, targetTs));
+      } else {
+        const xDistance = chartWidth / priceList.length;
+        const clamped = Math.max(0, Math.min(pixelX, chartWidth));
+        let value = Number((clamped / xDistance).toFixed(0));
+        if (value >= priceList.length - 1) {
+          value = priceList.length - 1;
+        }
+        reportIndex(value);
+      }
+    },
+    [
+      chartRowWidth,
+      chartXMax,
+      chartXMin,
+      endDotInsetRight,
+      isTimeBased,
+      onChartIndexChange,
+      priceList,
+      prices,
+    ],
   );
+
+  const [chartPan] = useState(() => createChartPanResponder());
+  useEffect(() => {
+    chartPan.setHandlers({
+      updatePosition,
+      setIsChartBeingTouched,
+    });
+  }, [chartPan, setIsChartBeingTouched, updatePosition]);
 
   const Line = (props: Partial<LineProps>) => {
     const { line, lineStrokeActive } = props as LineProps;
@@ -362,30 +396,10 @@ const PriceChart = ({
   };
 
   /**
-   * Loading overlay component.
-   * Note: We render this conditionally in the return statement rather than early-returning
-   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * Loading overlay stays in the tree (not an early return) to work around an
+   * Android bug where charts wouldn't render until screen interaction.
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
-  const LoadingOverlay = () => (
-    <Box twClassName="justify-center items-center" testID="price-chart-loading">
-      <SkeletonPlaceholder
-        backgroundColor={theme.colors.background.section}
-        highlightColor={theme.colors.background.subsection}
-      >
-        <SkeletonPlaceholder.Item
-          width={
-            chartRowWidth > 0
-              ? chartRowWidth
-              : Dimensions.get('window').width - 32
-          }
-          height={chartHeight}
-          borderRadius={6}
-        ></SkeletonPlaceholder.Item>
-      </SkeletonPlaceholder>
-    </Box>
-  );
-
   return (
     <View
       style={styles.chart}
@@ -399,7 +413,7 @@ const PriceChart = ({
       <View
         style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...(chartHasData ? panResponder.current.panHandlers : {})}
+        {...(chartHasData ? chartPan.panResponder.panHandlers : {})}
       >
         {chartHasData ? (
           <AreaChart
@@ -431,8 +445,11 @@ const PriceChart = ({
           </AreaChart>
         ) : null}
         {isLoading && (
-          <View style={styles.loadingOverlayContainer}>
-            <LoadingOverlay />
+          <View
+            style={styles.loadingOverlayContainer}
+            testID="price-chart-loading"
+          >
+            <ChartLineSkeleton height={chartHeight} />
           </View>
         )}
         {!isLoading && !chartHasData && (

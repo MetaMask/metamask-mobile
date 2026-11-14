@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -26,6 +25,9 @@ import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { getPerpsProChooserIconColors } from '../../constants/perpsModeColors';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsModeSelectionBottomSheetProps {
   isVisible?: boolean;
@@ -172,6 +174,7 @@ const PerpsModeSelectionBottomSheet = ({
   onSelect,
   onClose,
 }: PerpsModeSelectionBottomSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
@@ -190,11 +193,12 @@ const PerpsModeSelectionBottomSheet = ({
       goBack={onClose}
       testID={PerpsModeSelectionBottomSheetSelectorsIDs.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         testID={PerpsModeSelectionBottomSheetSelectorsIDs.TITLE}
       >
         {strings('perps.mode.selection_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {/* Inset matches the card row below rather than the sheet header. */}
       <Box paddingHorizontal={4}>
         <Text

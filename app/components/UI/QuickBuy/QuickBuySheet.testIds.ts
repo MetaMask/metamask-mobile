@@ -13,7 +13,6 @@ export const QuickBuySheetSelectorsIDs = {
   NETWORK_LIST_BACK: 'quick-buy-network-list-back',
   CONFIRM_BUTTON: 'quick-buy-confirm-button',
   RATE_TAG: 'quick-buy-rate-tag',
-  GAS_FEE_DEDUCTION: 'quick-buy-gas-fee-deduction',
   GASLESS_FEE_TOKEN: 'quick-buy-gasless-fee-token',
   EST_RECEIVE_ROW: 'quick-buy-est-receive-row',
   EST_RECEIVE_LOADING: 'quick-buy-est-receive-loading',

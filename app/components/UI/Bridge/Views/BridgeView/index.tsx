@@ -1,19 +1,26 @@
 import React, {
-  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
+  useState,
 } from 'react';
+import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   type RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { scheduleOnRN } from 'react-native-worklets';
-import { Box, IconName } from '@metamask/design-system-react-native';
+import PagerView from 'react-native-pager-view';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  Box,
+  IconName,
+} from '@metamask/design-system-react-native';
 import {
   TabsBar,
   type TabItem,
@@ -48,9 +55,7 @@ import {
 } from '../../../../../selectors/bridge/featureFlags';
 import { BridgeTabKey } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import BridgeMarketView from './BridgeMarketView';
-import BridgeLimitOrderView from './BridgeLimitOrderView';
-import BridgeRecurringBuyView from './BridgeRecurringBuyView';
+import BridgeTabPage from './BridgeTabPage';
 import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
@@ -59,12 +64,21 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
 import { OrdersTabKey } from '../../components/OrdersTabs';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
+import { useTabPager } from '../../hooks/useTabPager';
+import { useFirstPageSwipeGesture } from '../../hooks/useFirstPageSwipeGesture';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { selectBridgeLimitTabSeen } from '../../../../../reducers/user/selectors';
+import { setBridgeLimitTabSeen } from '../../../../../actions/user';
 
 const BridgeView = () => {
+  const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  // Low-RAM devices only ever mount the rendered tab, so the incoming page
+  // fills in once the pager settles instead of while it slides.
+  const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
   const {
     selectedTab,
     renderedTab,
@@ -89,6 +103,8 @@ const BridgeView = () => {
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
+  const hasSeenLimitTab = useSelector(selectBridgeLimitTabSeen);
+  const showLimitTabNewDot = isLimitOrderTabEnabled && !hasSeenLimitTab;
   const isRecurringBuyTabEnabled = useSelector(
     selectBridgeRecurringBuyTabEnabledFlag,
   );
@@ -259,6 +275,16 @@ const BridgeView = () => {
     [renderedTab, handleSlippageSettingsPress],
   );
 
+  useEffect(() => {
+    if (
+      isLimitOrderTabEnabled &&
+      renderedTab === BridgeTabKey.Limit &&
+      !hasSeenLimitTab
+    ) {
+      dispatch(setBridgeLimitTabSeen());
+    }
+  }, [dispatch, hasSeenLimitTab, isLimitOrderTabEnabled, renderedTab]);
+
   // Limit and Recurring are still work-in-progress, so each is only added to
   // the tab list once its own feature flag is enabled. When both are
   // disabled, only Market remains and the tabs bar is hidden entirely below.
@@ -278,6 +304,16 @@ const BridgeView = () => {
         label: strings('bridge.tabs.limit'),
         content: null,
         testID: BridgeViewSelectorsIDs.LIMIT_TAB,
+        // Same discovery dot as the Social nav item. Absolute so it sits just
+        // past the label's top-right corner and does not widen the underline.
+        endAccessory: showLimitTabNewDot ? (
+          <BadgeStatus
+            status={BadgeStatusStatus.Active}
+            twClassName="absolute top-0.5 -right-3"
+            testID={BridgeViewSelectorsIDs.LIMIT_TAB_NEW_DOT}
+            accessibilityLabel={strings('bridge.tabs.new_badge')}
+          />
+        ) : undefined,
       });
     }
 
@@ -291,63 +327,44 @@ const BridgeView = () => {
     }
 
     return visibleTabs;
-  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled]);
+  }, [isLimitOrderTabEnabled, isRecurringBuyTabEnabled, showLimitTabNewDot]);
 
   const showTabsBar = tabs.length > 1;
 
-  const activeIndex = useMemo(
-    () =>
-      Math.max(
-        tabs.findIndex((tab) => tab.key === selectedTab),
-        0,
-      ),
-    [tabs, selectedTab],
+  const tabKeys = useMemo(
+    () => tabs.map((tab) => tab.key as BridgeTabKey),
+    [tabs],
   );
 
-  const handleTabPress = useCallback(
-    (index: number) => {
-      const nextTab = (tabs[index]?.key as BridgeTabKey) ?? BridgeTabKey.Market;
-      setSelectedTab(nextTab);
-      startTransition(() => setRenderedTab(nextTab));
-    },
-    [tabs, setRenderedTab, setSelectedTab],
-  );
+  const {
+    pagerRef,
+    pagerKey,
+    activeIndex,
+    renderedIndex,
+    mountedTabs,
+    handleTabPress,
+    handlePageSelected,
+    handlePageScrollStateChanged,
+  } = useTabPager({
+    tabKeys,
+    selectedTab,
+    renderedTab,
+    setSelectedTab,
+    setRenderedTab,
+    pendingTab: initialTab,
+    mountTransitionPages: !isLowHardware,
+  });
 
-  const goToPreviousTab = useCallback(() => {
-    if (activeIndex > 0) {
-      handleTabPress(activeIndex - 1);
-    } else {
-      handleBack();
-    }
-  }, [activeIndex, handleTabPress, handleBack]);
-
-  const goToNextTab = useCallback(() => {
-    if (activeIndex < tabs.length - 1) {
-      handleTabPress(activeIndex + 1);
-    }
-  }, [activeIndex, tabs.length, handleTabPress]);
-
-  const swipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .withTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE)
-        .activeOffsetX([-50, 50])
-        .failOffsetY([-15, 15])
-        .maxPointers(1)
-        .onEnd((gestureEvent) => {
-          'worklet';
-          const { translationX, velocityX } = gestureEvent;
-
-          if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
-            if (translationX > 0) {
-              scheduleOnRN(goToPreviousTab);
-            } else {
-              scheduleOnRN(goToNextTab);
-            }
-          }
-        }),
-    [goToPreviousTab, goToNextTab],
-  );
+  const {
+    gesture: firstPageSwipeGesture,
+    isPagerScrollEnabled,
+    isBackGestureEdgeVisible,
+  } = useFirstPageSwipeGesture({
+    isOnFirstPage: renderedIndex === 0,
+    hasMultiplePages: showTabsBar,
+    onSwipeBack: handleBack,
+    testID: BridgeViewSelectorsIDs.FIRST_PAGE_SWIPE_GESTURE,
+  });
 
   // A tab can disappear if its feature flag flips off while it's active
   // (e.g. remote flag update). Fall back to Market rather than rendering
@@ -409,18 +426,34 @@ const BridgeView = () => {
           testID={BridgeViewSelectorsIDs.TABS_BAR}
         />
       ) : null}
-      <GestureDetector gesture={swipeGesture}>
-        <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? (
-            <BridgeMarketView location={location} />
+      <GestureDetector gesture={firstPageSwipeGesture}>
+        <View style={tw.style('flex-1')} collapsable={false}>
+          <PagerView
+            key={pagerKey}
+            ref={pagerRef}
+            style={tw.style('flex-1 bg-default')}
+            initialPage={activeIndex}
+            scrollEnabled={isPagerScrollEnabled}
+            onPageSelected={handlePageSelected}
+            onPageScrollStateChanged={handlePageScrollStateChanged}
+            testID={BridgeViewSelectorsIDs.TABS_CONTENT}
+          >
+            {tabKeys.map((tabKey) => (
+              <BridgeTabPage
+                key={tabKey}
+                tab={tabKey}
+                isMounted={mountedTabs.has(tabKey)}
+                location={location}
+              />
+            ))}
+          </PagerView>
+          {isBackGestureEdgeVisible ? (
+            <View
+              style={tw.style('absolute left-0 top-0 bottom-0 w-6')}
+              testID={BridgeViewSelectorsIDs.BACK_GESTURE_EDGE}
+            />
           ) : null}
-          {renderedTab === BridgeTabKey.Limit ? (
-            <BridgeLimitOrderView location={location} />
-          ) : null}
-          {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView location={location} />
-          ) : null}
-        </Box>
+        </View>
       </GestureDetector>
     </Box>
   );

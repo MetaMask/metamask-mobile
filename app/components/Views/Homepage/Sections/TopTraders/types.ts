@@ -99,8 +99,9 @@ export interface TraderRowProps {
    */
   highlighted?: boolean;
   /**
-   * Social V1 only: leave the position column blank when the viewer's rank
-   * is unknown. The column keeps its width. Ignored by the legacy row.
+   * Social V1 only: the viewer's rank is unknown, so the position column shows
+   * "-" instead of a number. The column keeps its width. Ignored by the legacy
+   * row.
    */
   hideRank?: boolean;
 }

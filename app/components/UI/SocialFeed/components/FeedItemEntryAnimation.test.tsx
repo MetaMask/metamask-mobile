@@ -152,12 +152,14 @@ describe('FeedItemEntryAnimation', () => {
   it('marks an event that reaches a mounted row as played without animating', () => {
     const onAnimationComplete = jest.fn();
     const { rerender } = renderLiveEntry({
+      itemKey: 'post-1',
       eventId: undefined,
       onAnimationComplete,
     });
 
     rerender(
       <FeedItemEntryAnimation
+        itemKey="post-1"
         eventId="event-2"
         testID="entry-animation"
         onAnimationComplete={onAnimationComplete}
@@ -168,6 +170,36 @@ describe('FeedItemEntryAnimation', () => {
 
     expect(onAnimationComplete).toHaveBeenCalledWith('event-2');
     expect(getEntering()).toBeUndefined();
+  });
+
+  it('replays the entrance on the same view when a recycled cell shows another live post', () => {
+    const scheduleEntryDelay = jest.fn(() => 0);
+    const onAnimationComplete = jest.fn();
+    const { rerender } = renderLiveEntry({
+      itemKey: 'post-1',
+      eventId: 'event-1',
+      scheduleEntryDelay,
+      onAnimationComplete,
+    });
+    const mountedEntering = getEntering();
+    const mountedView = screen.getByTestId('entry-animation');
+
+    rerender(
+      <FeedItemEntryAnimation
+        itemKey="post-2"
+        eventId="event-2"
+        scheduleEntryDelay={scheduleEntryDelay}
+        onAnimationComplete={onAnimationComplete}
+        testID="entry-animation"
+      >
+        <Text>live feed item</Text>
+      </FeedItemEntryAnimation>,
+    );
+
+    expect(screen.getByTestId('entry-animation')).toBe(mountedView);
+    expect(getEntering()).toBe(mountedEntering);
+    expect(scheduleEntryDelay).toHaveBeenCalledWith('event-2');
+    expect(onAnimationComplete).not.toHaveBeenCalled();
   });
 });
 

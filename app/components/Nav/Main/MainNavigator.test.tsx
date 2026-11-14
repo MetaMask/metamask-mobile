@@ -96,9 +96,9 @@ jest.mock(
   }),
 );
 
-// RewardsHome resolves the candidate subscription id for both the dashboard and
-// onboarding branches. Mock it so the regression test can assert the call
-// without exercising the real async fetch.
+// RewardsHome resolves the candidate subscription id before it opens a home.
+// Mock it so the regression test can assert the call without exercising the
+// real async fetch.
 const mockUseCandidateSubscriptionId = jest.fn();
 jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
@@ -223,9 +223,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
-  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
 }));
 
 describe('MainNavigator', () => {
@@ -404,7 +404,7 @@ describe('MainNavigator', () => {
     });
 
     describe('Rewards tab bar visibility', () => {
-      // Only the three Rewards home screens live under the tab; every sub-page
+      // Only the Rewards home screens live under the tab; every sub-page
       // is pushed as REWARDS_FLOW on the root stack, which covers the tab
       // shell entirely. So the tab bar stays up for the whole tab.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
@@ -425,7 +425,6 @@ describe('MainNavigator', () => {
       it.each([
         Routes.REWARDS_DASHBOARD,
         Routes.REWARDS_MONEY_DASHBOARD,
-        Routes.REWARDS_ONBOARDING_FLOW,
         undefined,
       ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
         // Given HomeTabs is rendered with the Rewards tab active
@@ -575,7 +574,7 @@ describe('MainNavigator', () => {
   });
 
   // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
-  // read once at module-load time (see MainNavigator.js) so that
+  // read once at module-load time (see MainNavigator.tsx) so that
   // `app/features/SampleFeature` is dead-code-eliminated out of builds that
   // don't set the flag. Re-requiring the module with the flag flipped would
   // pull in a second React instance and break context, so only the default
@@ -909,38 +908,6 @@ describe('MainNavigator', () => {
       },
     });
 
-    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('treatment'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
-    });
-
-    it('does not register the ProfileDrawer route under the control arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('control'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
-    });
-
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
       const stateWithSocialLeaderboard = {
         ...initialRootState,
@@ -1001,6 +968,7 @@ describe('MainNavigator', () => {
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
+        Routes.MONEY.ACCOUNT_STATUS,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
@@ -1075,6 +1043,10 @@ describe('MainNavigator', () => {
       );
 
       expect(bridgeScreen).toBeDefined();
+      expect(bridgeScreen?.options).toMatchObject({
+        fullScreenGestureEnabled: true,
+      });
+      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {
@@ -1898,7 +1870,7 @@ describe('MainNavigator', () => {
 
     expect(manageProfileScreen).toBeDefined();
     expect(manageProfileScreen?.component.displayName).toBe(
-      'withSocialAccountGate(ManageProfileView)',
+      'withSocialAccountGate(withPortfolioBalanceProviders(ManageProfileView))',
     );
   });
 
@@ -2476,11 +2448,10 @@ describe('MainNavigator', () => {
       });
 
       it('fetches the candidate subscription id at the Rewards tab entry point', () => {
-        // Regression: non-opted-in users only ever mount RewardsHome ->
-        // RewardsOnboardingNavigator (never RewardsDashboard / RewardsNavigator),
-        // so the candidate-subscription fetch must run here. Otherwise
-        // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
-        // full-screen skeleton indefinitely.
+        // Regression: users who have not joined only mount RewardsHome, so the
+        // candidate-subscription fetch must run here. Otherwise
+        // candidateSubscriptionId stays 'pending' and the tab skeleton never
+        // clears.
         mockUseCandidateSubscriptionId.mockClear();
         const RewardsHome = getScreenComponent(
           homeTabsRoot,
@@ -2558,20 +2529,28 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
         )[0]?.props?.initialRouteName as string | undefined;
 
-      it('registers onboarding and dashboard in the Rewards tab stack', () => {
-        // Both routes stay registered so opt-in can push the dashboard with a
-        // native slide transition; initialRouteName picks the entry screen.
+      it('registers the two Rewards homes in the tab stack', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
       });
 
-      it('registers onboarding and dashboard when the user has no subscription', () => {
+      it('registers the same homes when the user has no subscription', () => {
         const screenNames = findRewardsHomeScreenNames(null);
 
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
+      });
+
+      it('opens the points dashboard when Money is off and the user has not joined', () => {
+        expect(findRewardsHomeInitialRouteName(null)).toBe(
+          Routes.REWARDS_DASHBOARD,
+        );
       });
 
       it('does not register rewards modal screens in the Rewards tab stack', () => {
@@ -2607,16 +2586,17 @@ describe('MainNavigator', () => {
       });
 
       describe('Rewards Money routing', () => {
-        it('registers the Money dashboard alongside onboarding and the points dashboard', () => {
+        it('registers the Money dashboard alongside the points dashboard', () => {
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: true,
             moneyPersona: 'plain',
           });
 
-          expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
-          expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-          expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+          expect(screenNames).toEqual([
+            Routes.REWARDS_DASHBOARD,
+            Routes.REWARDS_MONEY_DASHBOARD,
+          ]);
         });
 
         it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
@@ -2673,9 +2653,8 @@ describe('MainNavigator', () => {
         });
 
         it('mounts no home screen while the Money persona is unresolved', () => {
-          // Neither onboarding nor the points dashboard may become active
-          // before the persona settles, or the tab flashes the wrong home and
-          // swaps under the user.
+          // Neither home may become active before the persona settles, or the
+          // tab flashes the wrong home and swaps under the user.
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: false,

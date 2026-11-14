@@ -3,7 +3,6 @@ import { Image, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -23,11 +22,14 @@ import ApplePayHandGraphic from '../ApplePayHandGraphic';
 import marksLight from '../../Views/ApplePayConfirmation/assets/marks-light.png';
 import marksDark from '../../Views/ApplePayConfirmation/assets/marks-dark.png';
 import { ApplePayUsageSheetSelectors } from './ApplePayUsageSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MARKS_WIDTH = 141;
 const MARKS_ASPECT_RATIO = 465 / 129;
 
 const ApplePayUsageSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { themeAppearance } = useTheme();
@@ -53,7 +55,8 @@ const ApplePayUsageSheet = () => {
       testID={ApplePayUsageSheetSelectors.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: ApplePayUsageSheetSelectors.CLOSE_BUTTON,
@@ -66,7 +69,7 @@ const ApplePayUsageSheet = () => {
         >
           {strings('card.apple_pay_usage.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="items-center px-4 pb-4">
         <Box twClassName="mt-2 w-full">
           <ApplePayHandGraphic

@@ -1,4 +1,4 @@
-import { formatCurrency } from '../../Bridge/utils/currencyUtils';
+import { getFormatters } from '../../../hooks/useFormatters';
 
 /** USD anchor set for buy quick-amount pills (Swap Next Figma). */
 export const USD_QUICK_BUY_BASE = [10, 50, 100, 250] as const;
@@ -92,7 +92,11 @@ export function snapToNiceFiatAmount(value: number, currency: string): number {
 }
 
 function formatPillCurrency(value: number, currency: string): string {
-  return formatCurrency(value, currency, PILL_LABEL_CURRENCY_OPTIONS);
+  return getFormatters().formatCurrency(
+    value,
+    currency,
+    PILL_LABEL_CURRENCY_OPTIONS,
+  );
 }
 
 function formatCompactMagnitude(value: number): string {

@@ -23,9 +23,12 @@ export const BridgeViewSelectorsIDs = {
   MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
-  TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
+  FIRST_PAGE_SWIPE_GESTURE: 'bridge-first-page-swipe-gesture',
+  BACK_GESTURE_EDGE: 'bridge-back-gesture-edge',
+  TAB_PAGE_SKELETON: 'bridge-tab-page-skeleton',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
+  LIMIT_TAB_NEW_DOT: 'bridge-limit-tab-new-dot',
   RECURRING_TAB: 'bridge-recurring-tab',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
@@ -54,6 +57,7 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_FEE_TOKENS_UNAVAILABLE_BANNER:
     'recurring-fee-tokens-unavailable-banner',
   RECURRING_FEE_TOKEN_RETRY_BUTTON: 'recurring-fee-token-retry-button',
+  GASLESS_NETWORK_FEE: 'bridge-gasless-network-fee',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

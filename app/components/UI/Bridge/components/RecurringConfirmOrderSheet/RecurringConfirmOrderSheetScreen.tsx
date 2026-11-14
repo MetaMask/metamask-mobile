@@ -21,7 +21,9 @@ import {
   convertPriceRangeToUsd,
   USD_PRICE_RANGE_CURRENCY,
 } from '../../utils/priceRange';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import RecurringConfirmOrderSheet from './RecurringConfirmOrderSheet';
+import type { RecurringConfirmOrderModalParams } from './RecurringConfirmOrderSheet.types';
 import {
   showRecurringAutoUpgradeError,
   showRecurringOrderCreatedToast,
@@ -30,10 +32,16 @@ import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromDraftPriceRange } from '../../utils/recurringOrders';
+import {
+  getAdvancedOrderTokenProperties,
+  getAdvancedOrderTradeProperties,
+} from '../../utils/advancedOrders';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
+  const { location } = useParams<RecurringConfirmOrderModalParams>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const priceRange = useSelector(selectRecurringPriceRange);
@@ -63,13 +71,16 @@ export const RecurringConfirmOrderSheetScreen = () => {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  const { activeQuote } = useBridgeQuoteDataContext();
+
   const sharedAdvancedOrderProperties = useMemo(
     () => ({
+      ...getAdvancedOrderTokenProperties({ sourceToken, destToken }),
+      ...getAdvancedOrderTradeProperties(activeQuote),
       feature_id: FeatureId.RECURRING_ORDER,
-      // TODO use location from navigation context
-      location: 'Main View',
+      location,
     }),
-    [],
+    [sourceToken, destToken, activeQuote, location],
   );
 
   const handleConfirm = useCallback(async () => {

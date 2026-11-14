@@ -6,11 +6,20 @@ import {
   parseCaipAssetType,
 } from '@metamask/utils';
 import { getTrendingTokenImageUrl } from '../../../UI/Trending/utils/getTrendingTokenImageUrl';
-import { formatChainIdToHex } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import { constants } from 'ethers';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 
 export type ImportAsset = Token & { chainId: Hex | CaipChainId };
+
+/** The same address can exist on several networks, so key by chain too. */
+export const getImportAssetKey = (
+  chainId: Hex | CaipChainId,
+  address: string,
+): string => `${formatChainIdToCaip(chainId)}|${address.toLowerCase()}`;
 
 export const convertTrendingAssetsToImporAssets = (
   apiTokens: TrendingAsset[],

@@ -5,7 +5,7 @@ const stylesSheet = () =>
     footerContainer: {
       flexDirection: 'row',
       justifyContent: 'center',
-      gap: 16,
+      gap: 8,
       paddingTop: 24,
     },
     button: {

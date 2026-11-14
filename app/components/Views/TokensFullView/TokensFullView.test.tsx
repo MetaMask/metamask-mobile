@@ -93,7 +93,7 @@ describe('TokensFullView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the add token screen when the header add button is pressed', () => {
+  it('opens the add token screen when the header customize button is pressed', () => {
     // Arrange
     const { getByTestId } = renderScreen(TokensFullView, {
       name: 'TokensFullView',

@@ -6,6 +6,11 @@ import PredictPreviewSheet, {
   PredictPreviewSheetRef,
 } from './PredictPreviewSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -147,21 +152,18 @@ describe('PredictPreviewSheet', () => {
     });
   });
 
-  it('insets the header content to 16px from the screen edge when there is no image', async () => {
+  it('insets the header 16px from the screen edge when there is no image', async () => {
     render(<TestComponent shouldOpen title="Yes · 25 bps decrease" />);
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('preview-sheet-header-content'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('preview-sheet-header')).toBeOnTheScreen();
     });
-    // The header itself contributes 8px, so the content adds the remaining 8px.
-    expect(screen.getByTestId('preview-sheet-header-content')).toHaveStyle({
-      paddingLeft: 8,
+    expect(screen.getByTestId('preview-sheet-header')).toHaveStyle({
+      paddingLeft: 16,
     });
   });
 
-  it('does not inset the header content when an image is rendered', async () => {
+  it('insets the header 16px from the screen edge when an image is rendered', async () => {
     render(
       <TestComponent
         shouldOpen
@@ -171,12 +173,10 @@ describe('PredictPreviewSheet', () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('preview-sheet-header-content'),
-      ).toBeOnTheScreen();
+      expect(screen.getByTestId('preview-sheet-header')).toBeOnTheScreen();
     });
-    expect(screen.getByTestId('preview-sheet-header-content')).not.toHaveStyle({
-      paddingLeft: 8,
+    expect(screen.getByTestId('preview-sheet-header')).toHaveStyle({
+      paddingLeft: 16,
     });
   });
 

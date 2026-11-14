@@ -74,7 +74,10 @@ export const renderAdvancedSettings = (options: SettingsRendererOptions = {}) =>
   renderScreenWithRoutes(
     AdvancedSettings as unknown as React.ComponentType,
     { name: Routes.SETTINGS.ADVANCED_SETTINGS },
-    [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+    [
+      { name: Routes.MODAL.ROOT_MODAL_FLOW },
+      { name: Routes.MONEY.ACCOUNT_STATUS },
+    ],
     { state: buildSettingsState(options) },
   );
 
