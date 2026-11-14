@@ -133,17 +133,14 @@ describe('PostUnlockResume', () => {
   });
 
   describe('clearPostUnlockResume', () => {
-    it('removes the owner request and resume count', async () => {
+    it('removes the owner request and keeps the resume count', async () => {
+      const count = JSON.stringify({ owner: OWNER, count: 2, lastAt: NOW });
       mockStore[REQUEST_KEY] = previousRuntimeRequest();
-      mockStore[COUNT_KEY] = JSON.stringify({
-        owner: OWNER,
-        count: 2,
-        lastAt: NOW,
-      });
+      mockStore[COUNT_KEY] = count;
 
       await clearPostUnlockResume(OWNER);
 
-      expect(mockStore).toStrictEqual({});
+      expect(mockStore).toStrictEqual({ [COUNT_KEY]: count });
     });
 
     it('leaves another owner request in place', async () => {
@@ -269,6 +266,17 @@ describe('PostUnlockResume', () => {
       await expect(takePostUnlockResume()).resolves.toBeUndefined();
       expect(mockStore[REQUEST_KEY]).toBeUndefined();
       expect(mockStore[COUNT_KEY]).toBe(count);
+    });
+
+    it('goes home at the cap even when the flow returned between resumes', async () => {
+      for (let i = 0; i < MAX_CONSECUTIVE_POST_UNLOCK_RESUMES; i++) {
+        mockStore[REQUEST_KEY] = previousRuntimeRequest();
+        await expect(takeAndCommit()).resolves.toStrictEqual(STATE);
+        await clearPostUnlockResume(OWNER);
+      }
+      mockStore[REQUEST_KEY] = previousRuntimeRequest();
+
+      await expect(takePostUnlockResume()).resolves.toBeUndefined();
     });
 
     it.each([
