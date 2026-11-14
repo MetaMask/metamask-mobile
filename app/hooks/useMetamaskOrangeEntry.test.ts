@@ -7,11 +7,18 @@ import {
   SCREEN_NAMES,
 } from '../components/UI/Money/constants/moneyEvents';
 import { useMoneyAnalytics } from '../components/UI/Money/hooks/useMoneyAnalytics';
+import { selectIsMoneyAccountGeoEligible } from '../components/UI/Money/selectors/eligibility';
 import Routes from '../constants/navigation/Routes';
 import { strings } from '../../locales/i18n';
 import { useHasProMembership } from './useHasProMembership';
 import { useMetamaskOrangeEntry } from './useMetamaskOrangeEntry';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
+
+const mockUseSelector = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
+}));
 
 const mockNavigate = jest.fn();
 const mockTrackButtonClicked = jest.fn();
@@ -46,6 +53,9 @@ const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 describe('useMetamaskOrangeEntry', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsMoneyAccountGeoEligible ? true : undefined,
+    );
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -111,6 +121,39 @@ describe('useMetamaskOrangeEntry', () => {
       redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'accounts_menu',
+    });
+  });
+
+  it('hides the join row when the country is geo-blocked', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+    );
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    expect(result.current.showOrangeEntry).toBe(false);
+  });
+
+  it('keeps the hub row for a member in a geo-blocked country', () => {
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: true,
+    });
+    mockUseHasProMembership.mockReturnValue(true);
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectIsMoneyAccountGeoEligible ? false : undefined,
+    );
+
+    const { result } = renderHook(() => useMetamaskOrangeEntry());
+
+    result.current.onPress();
+
+    expect(result.current.showOrangeEntry).toBe(true);
+    expect(result.current.label).toBe(strings('accounts_menu.metamask_orange'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
       source: 'accounts_menu',
     });
   });
