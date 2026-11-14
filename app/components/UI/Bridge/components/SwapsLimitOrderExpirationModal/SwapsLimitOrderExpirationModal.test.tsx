@@ -10,6 +10,11 @@ import SwapsLimitOrderExpirationModal from './SwapsLimitOrderExpirationModal';
 import { SwapsLimitOrderExpirationModalSelectorsIDs } from './testIds';
 import type { SwapsLimitOrderExpirationModalProps } from './types';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactModule = jest.requireActual('react');

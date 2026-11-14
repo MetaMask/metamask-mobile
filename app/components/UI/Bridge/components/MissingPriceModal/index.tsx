@@ -9,7 +9,6 @@ import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/Bridge
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -22,12 +21,16 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface MissingPriceModalParams {
   location: MetaMetricsSwapsEventSource;
 }
 
 export const MissingPriceModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +57,8 @@ export const MissingPriceModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -66,7 +70,7 @@ export const MissingPriceModal = () => {
           size={IconSize.Xl}
           color={IconColor.ErrorDefault}
         />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         alignItems={BoxAlignItems.Center}
         paddingBottom={4}

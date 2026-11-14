@@ -21,6 +21,11 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockRouteParams,
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 function renderModal(params: BatchSellNetworkFeeInfoModalParams = {}) {
   mockRouteParams = params;
 

@@ -4,7 +4,6 @@ import {
   BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   FontWeight,
@@ -16,6 +15,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { CancelLimitOrderModalSelectorsIDs } from './testIds';
 import type { CancelLimitOrderModalProps } from './types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const CancelLimitOrderModal = ({
   onConfirm,
@@ -25,6 +27,7 @@ export const CancelLimitOrderModal = ({
   goBack,
   testID = CancelLimitOrderModalSelectorsIDs.SHEET,
 }: CancelLimitOrderModalProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -38,14 +41,15 @@ export const CancelLimitOrderModal = ({
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: CancelLimitOrderModalSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.limit.cancel_order')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {error && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert

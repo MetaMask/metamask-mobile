@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   Text,
@@ -16,6 +15,9 @@ import { DetailRow } from '../LimitOrderConfirmationModal/DetailRow';
 import { TokenAmountValue } from '../LimitOrderConfirmationModal/TokenAmountValue';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
 import type { OpenLimitOrderDetailsModalProps } from './types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const OpenLimitOrderDetailsModal = ({
   sourceToken,
@@ -32,6 +34,7 @@ export const OpenLimitOrderDetailsModal = ({
   goBack,
   testID = OpenLimitOrderDetailsModalSelectorsIDs.SHEET,
 }: OpenLimitOrderDetailsModalProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -49,7 +52,8 @@ export const OpenLimitOrderDetailsModal = ({
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: OpenLimitOrderDetailsModalSelectorsIDs.CLOSE_BUTTON,
@@ -59,7 +63,7 @@ export const OpenLimitOrderDetailsModal = ({
           source: sourceToken?.symbol ?? '',
           dest: destToken?.symbol ?? '',
         })}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingBottom={2}>
         <DetailRow
           label={strings('bridge.limit.status')}

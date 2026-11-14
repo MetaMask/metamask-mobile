@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   Text,
   TextColor,
@@ -12,10 +11,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { RecurringDelegationFeeInfoSheetSelectorsIDs } from './RecurringDelegationFeeInfoSheet.testIds';
 import type { RecurringDelegationFeeInfoSheetProps } from './RecurringDelegationFeeInfoSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const RecurringDelegationFeeInfoSheet = ({
   goBack,
 }: RecurringDelegationFeeInfoSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -28,14 +31,15 @@ const RecurringDelegationFeeInfoSheet = ({
       testID={RecurringDelegationFeeInfoSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: RecurringDelegationFeeInfoSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.account_upgrade_fee_info_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingBottom={4}>
         <Text
           variant={TextVariant.BodyMd}

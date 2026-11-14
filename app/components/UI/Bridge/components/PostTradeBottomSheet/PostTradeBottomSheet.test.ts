@@ -61,7 +61,10 @@ const expectedSharedProperties = {
   token_address_destination: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 };
 
-jest.mock('react-redux', () => ({ useDispatch: () => mockDispatch }));
+jest.mock('react-redux', () => ({
+  useDispatch: () => mockDispatch,
+  useSelector: jest.fn(() => false),
+}));
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
