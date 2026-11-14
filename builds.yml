@@ -7,7 +7,9 @@
 #
 # Structure:
 #   - env: sets environment variables directly (servers, build config, etc.)
-#   - secrets: maps env var names to GitHub Secret names
+#   - secrets: maps env var names to GitHub Secret names. A new GitHub Secret name must
+#     also be added to the "set secrets" steps in build.yml and eas-update-platform.yml
+#     (validate-build-config.js fails until it is).
 #   - signing: (optional) AWS role + secret for code signing (omit for dev/simulator builds)
 #   - script_name: (optional) yarn script base name override (defaults to the build key name)
 #

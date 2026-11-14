@@ -9,6 +9,7 @@ const yaml = require('js-yaml');
 const { checkValue } = require('./lib/validate-value');
 
 const BUILDS_PATH = path.join(__dirname, '../builds.yml');
+const WORKFLOWS_DIR = path.join(__dirname, '../.github/workflows');
 
 // Env keys in builds.yml that may legitimately be the empty string. Every
 // other declared env key must have a non-empty value, so an accidental
@@ -23,6 +24,61 @@ const ENV_KEYS_ALLOWED_EMPTY = new Set([
   // Empty by default: the URL is derived from METAMASK_ENVIRONMENT.
   'BRIDGE_USE_CUSTOM_BASE_URL',
 ]);
+
+/**
+ * Workflow steps that run set-secrets-from-config.js without ALL_SECRETS read each
+ * secret from an explicit `NAME: ${{ secrets.NAME }}` env entry. Returns one
+ * message per secret that builds.yml maps but such a step does not list, so a new
+ * secret cannot silently ship as empty.
+ *
+ * @param {object} config - Parsed builds.yml.
+ * @param {Record<string, object>} workflows - Parsed workflows keyed by file name.
+ * @returns {string[]} Error messages.
+ */
+function findUnmappedSecrets(config, workflows) {
+  const secretNames = new Set();
+  for (const build of Object.values(config.builds || {})) {
+    for (const secretName of Object.values(build?.secrets || {})) {
+      secretNames.add(secretName);
+    }
+  }
+
+  const errors = [];
+  for (const [file, workflow] of Object.entries(workflows)) {
+    for (const [jobId, job] of Object.entries(workflow?.jobs || {})) {
+      for (const step of job?.steps || []) {
+        const env = step?.env || {};
+        if (
+          typeof step?.run !== 'string' ||
+          !step.run.includes('set-secrets-from-config.js') ||
+          'ALL_SECRETS' in env
+        ) {
+          continue;
+        }
+        for (const secretName of secretNames) {
+          if (env[secretName] !== `\${{ secrets.${secretName} }}`) {
+            errors.push(
+              `${file} (${jobId} / "${step.name}"): missing env ${secretName}: \${{ secrets.${secretName} }}`,
+            );
+          }
+        }
+      }
+    }
+  }
+  return errors;
+}
+
+function loadWorkflows() {
+  const workflows = {};
+  for (const file of fs.readdirSync(WORKFLOWS_DIR)) {
+    if (/\.ya?ml$/.test(file)) {
+      workflows[file] = yaml.load(
+        fs.readFileSync(path.join(WORKFLOWS_DIR, file), 'utf8'),
+      );
+    }
+  }
+  return workflows;
+}
 
 function validate() {
   if (!fs.existsSync(BUILDS_PATH)) {
@@ -77,6 +133,8 @@ function validate() {
     }
   });
 
+  errors.push(...findUnmappedSecrets(config, loadWorkflows()));
+
   if (errors.length > 0) {
     console.error('❌ Validation errors:');
     errors.forEach((e) => console.error(`  - ${e}`));
@@ -91,4 +149,4 @@ if (require.main === module) {
   validate();
 }
 
-module.exports = { validate };
+module.exports = { validate, findUnmappedSecrets };
