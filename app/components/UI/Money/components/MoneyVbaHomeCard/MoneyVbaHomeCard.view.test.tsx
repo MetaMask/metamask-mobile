@@ -146,5 +146,20 @@ describeForPlatforms('MoneyVbaHomeCard view', () => {
     expect(
       view.queryByTestId(FINISH_VERIFICATION.CONTAINER),
     ).not.toBeOnTheScreen();
+
+    const pendingButton = view.getByTestId(KYC_PENDING.CTA_BUTTON);
+    expect(pendingButton).toBeDisabled();
+
+    mockHydrateVbaOnboarding.mockClear();
+    fireEvent.press(pendingButton);
+
+    expect(view.getByTestId(KYC_PENDING.CONTAINER)).toBeOnTheScreen();
+    expect(view.queryByTestId(kycPendingProbe)).not.toBeOnTheScreen();
+    for (const routeName of Object.values(VbaOnboardingRoutes)) {
+      expect(
+        view.queryByTestId(getRouteParamsProbeTestId(routeName)),
+      ).not.toBeOnTheScreen();
+    }
+    expect(mockHydrateVbaOnboarding).not.toHaveBeenCalled();
   });
 });
