@@ -9,6 +9,7 @@ import type {
   SocialDataFetchTab,
   SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
+import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
 /**
@@ -112,6 +113,8 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   inlineRows?: readonly SocialFeedInlineRow[];
   /** Called when the user pulls to refresh, for host analytics. */
   onRefresh?: () => void;
+  /** Lets the host hide chrome that only belongs above posts. */
+  onListStateChange?: (state: SocialFeedListState) => void;
   /** Social V1 tab traces: the initial fetch and the first content. */
   performance?: Readonly<{
     tab: SocialDataFetchTab;

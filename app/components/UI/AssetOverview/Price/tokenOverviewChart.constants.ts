@@ -17,8 +17,8 @@ export const CHART_DATA_THRESHOLD = 3;
 
 /**
  * Min height for the token overview time-range row (advanced selector + legacy period nav).
- * Matches TimeRangeSelector skeleton height so swapping loading/loaded does not shift content
- * below (e.g. Receive/More).
+ * Matches the TimeRangeSelector row so the controls and the content below
+ * (e.g. Receive/More) do not shift.
  */
 export const TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT = 34;
 

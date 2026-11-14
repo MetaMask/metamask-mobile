@@ -80,6 +80,7 @@ const TabLabel: React.FC<{
         fontWeight={focused ? FontWeight.Bold : FontWeight.Regular}
         twClassName={focused ? 'text-default' : 'text-alternative'}
         numberOfLines={1}
+        ellipsizeMode="clip"
         testID={focused ? undefined : testID}
         style={[
           tw.style('absolute inset-0 flex items-center justify-center'),

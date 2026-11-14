@@ -131,7 +131,7 @@
       "title": "Insufficient funds"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "Add funds to your Money account to send."
     },
     "fiat_buy_amount_limit": {
       "title": "Amount out of range"
@@ -1199,6 +1199,7 @@
       "title": "Add money with Pix",
       "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "risk_disclosure": "Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.",
       "provider_disclosure_link": "Learn more",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
@@ -1436,7 +1437,11 @@
         },
         "following": {
           "title": "No posts yet",
-          "description": "Follow traders to see their posts here."
+          "description": "No one has posted yet."
+        },
+        "following_suggestions": {
+          "title": "Suggested for you",
+          "description": "Follow a few traders to populate your Following feed."
         },
         "live": {
           "title": "No trades yet",
@@ -1498,6 +1503,7 @@
     },
     "translation": {
       "see_translation": "See translation",
+      "see_original": "See original",
       "see_more": "See more",
       "see_less": "See less",
       "translating": "Translating...",
@@ -1801,6 +1807,9 @@
       "not_counted_sheet_unsupported_label": "Unsupported token",
       "not_counted_sheet_unsupported_body": "We can't track P&L for unsupported tokens like deposits in lending pools.",
       "not_counted_sheet_dismiss": "Got it",
+      "not_counted_note_one": "1 position not counted in P&L",
+      "not_counted_note_other": "{{count}} positions not counted in P&L",
+      "not_counted_note_hint": "Scrolls to positions not counted",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
       "empty_open_tokens": "No open tokens",
@@ -1824,6 +1833,15 @@
       "scroll_helper": "Please scroll to read all sections",
       "scroll_to_bottom": "Scroll to the bottom",
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
+    },
+    "trader_preview": {
+      "join": "Join Social",
+      "referral_code": "Referral code",
+      "not_now": "Not now",
+      "terms_note": "You'll set up your Social profile and review the terms first.",
+      "referral_accepted": "Referral accepted",
+      "referral_failed": "Couldn't accept the referral",
+      "referral_failed_description": "You can enter the code later in Rewards settings."
     },
     "profile_onboarding": {
       "intro_title": "See trades in real time",
@@ -1884,6 +1902,11 @@
       "fees": "Earn 15% on fees when someone copies your trades.",
       "private": "Your account address stays private.",
       "follow": "Other traders can follow your profile."
+    },
+    "errors": {
+      "display_name_invalid": "This name isn’t valid. Try something different.",
+      "display_name_too_long": "Use at most {{max}} characters.",
+      "display_name_check_error": "Couldn't check that name. Check your connection and try again."
     },
     "manage_profile": {
       "title": "Manage profile",
@@ -3939,6 +3962,9 @@
         "title": "No activity yet",
         "description": "Your trades and settlements will appear here."
       },
+      "activity_continue_description": "More activity history is available to check. Load the next page to continue.",
+      "activity_load_more": "Load more activity",
+      "settlements_permission_denied": "Settlements are unavailable in this demo environment. Your trades are still shown.",
       "load_failed": "Couldn't load.",
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
@@ -3996,6 +4022,9 @@
       "exchange_fee": "Exchange fee",
       "metamask_fee": "MetaMask fee",
       "total_debit": "Total debit",
+      "max_cost": "Maximum cost (signed)",
+      "proceeds_if_fully_filled": "Proceeds if fully filled (signed)",
+      "partial_fill_proceeds_description": "This amount assumes all contracts fill. A partial fill can result in lower proceeds. If no contracts fill, you receive no proceeds and nothing is sold.",
       "to_win": "To win {{amount}}",
       "pay_with": "Pay with",
       "predictions_balance": "Predictions balance",
@@ -4047,7 +4076,10 @@
       "reconciling_title": "Still confirming your order",
       "reconciling_description": "We're still confirming what happened with your order. Keep checking here, or find the outcome in your History later.",
       "keep_checking": "Keep checking",
-      "requote": "Try again"
+      "requote": "Try again",
+      "needs_review_title": "We couldn't confirm this order",
+      "needs_review_description": "Order outcome could not be confirmed. Check your activity or contact support.",
+      "done": "Done"
     },
     "order_notification": {
       "not_placed_title": "Order not placed",
@@ -5441,6 +5473,12 @@
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
+    "groups": {
+      "general": "General",
+      "security_and_privacy": "Security and privacy",
+      "transactions_and_assets": "Transactions and assets",
+      "more": "More"
+    },
     "current_conversion": "Base currency",
     "current_language": "Current language",
     "ipfs_gateway": "IPFS gateway",
@@ -5521,6 +5559,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "General",
+    "preferences_and_display_title": "Preferences and display",
     "general_desc": "Currency conversion, primary currency, language and search engine.",
     "advanced_title": "Advanced",
     "advanced_desc": "Access developer features, reset account, set up testnets, state logs, and custom RPC.",
@@ -8868,6 +8907,17 @@
     "unrecognized_chain_ticker": "It looks like this network's symbol doesn't match this chain ID.",
     "unrecognized_chain_id": "We don't recognize this network. Be sure the chain ID is correct before you continue."
   },
+  "identity_verification": {
+    "delete_section_title": "Delete Identity Data",
+    "delete_section_description": "Your identity details will be permanently deleted from MetaMask. Partners you verified with keep their own copy. You may need to verify again later.",
+    "delete_identity_data": "Delete identity data",
+    "delete_confirm_title": "Delete identity data?",
+    "delete_confirm_message": "This cannot be undone.",
+    "delete_success_title": "Identity data deleted",
+    "delete_success_message": "Your encrypted identity verification data has been deleted.",
+    "delete_error_title": "Couldn't delete identity data",
+    "delete_error_message": "Something went wrong. Please try again."
+  },
   "mfa": {
     "method_email": "Email",
     "method_passkey": "Passkey",
@@ -10533,6 +10583,8 @@
     "nfts": "NFTs",
     "permission_from": "Permission from",
     "spender": "Spender",
+    "expiration": "Expiration",
+    "never_expires": "Never expires",
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
@@ -12370,6 +12422,7 @@
     "close": "Close"
   },
   "rewards": {
+    "today": "Today",
     "rebate": {
       "banner": "You’re getting {{percent}}% back on fees",
       "tooltip_title": "Trading Rewards",
@@ -12450,7 +12503,7 @@
       "already_referred": "You have already been referred by another user.",
       "cannot_use_own_referral_code": "You cannot use your own referral code.",
       "referrer_cannot_be_referred": "You cannot be referred by someone else.",
-      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "active_trader_cannot_be_referred": "This referral code is only valid for new traders.",
       "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "Invalid bonus code",
       "already_redeemed": "You have already redeemed this bonus code",
@@ -12582,31 +12635,13 @@
       "verifying_rewards": "We're making sure everything's correct before you claim your rewards."
     },
     "onboarding": {
-      "not_supported_region_title": "Region not supported",
       "not_supported_region_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
-      "not_supported_hardware_account_title": "Account not supported",
       "not_supported_hardware_account_description": "Hardware wallet accounts are not eligible to receive rewards yet. Switch to a different account to proceed.",
-      "not_supported_account_type_title": "Account type not supported",
       "not_supported_account_type_description": "Currently only internal Ethereum and Solana accounts can be enrolled in the Rewards program. Switch to a different account to proceed.",
-      "not_supported_confirm_go_back": "Go back",
-      "not_supported_confirm_retry": "Retry",
-      "auth_fail_title": "Authentication failed",
-      "auth_fail_description": "Unable to authenticate with the rewards program. Check your connection and try again.",
-      "geo_check_fail_title": "Cannot determine opt-in eligibility",
-      "geo_check_fail_description": "We cannot determine if your region allows enrolling into the rewards program. Check your connection and try again.",
-      "intro_confirm_geo_loading": "Checking region...",
       "step_confirm": "Next",
       "step_finish": "Let's go",
       "step_skip": "Skip",
-      "title": "Start earning rewards",
-      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
-      "sign_up": "Join Rewards",
-      "sign_up_loading": "Joining...",
-      "legal_disclaimer_1": "By joining, you agree to the",
-      "legal_disclaimer_2": "Terms of Use",
-      "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
-      "legal_disclaimer_4": "Learn more",
-      "referral_label": "Referral code"
+      "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask."
     },
     "settings": {
       "title": "Rewards settings",

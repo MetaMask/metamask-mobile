@@ -161,6 +161,20 @@ describe('AddCustomCollectible', () => {
       });
     });
 
+    it('enables the button after the contract check rejects', async () => {
+      jest
+        .spyOn(utilsTransactions, 'isSmartContractAddress')
+        .mockRejectedValue(new Error('rpc down'));
+
+      const utils = renderComponent();
+
+      await fillFormAndWait(utils);
+
+      await waitFor(() => {
+        expect(utils.getByTestId('add-collectible-button')).not.toBeDisabled();
+      });
+    });
+
     it('shows error when address is not a smart contract', async () => {
       jest
         .spyOn(utilsTransactions, 'isSmartContractAddress')
@@ -266,6 +280,26 @@ describe('AddCustomCollectible', () => {
       });
     });
 
+    it('enables the button when the account does not own the collectible', async () => {
+      (Engine.context.NftController.isNftOwner as jest.Mock).mockResolvedValue(
+        false,
+      );
+
+      const utils = renderComponent({
+        navigation: { navigate: jest.fn(), goBack: jest.fn() },
+      });
+
+      await fillFormAndWait(utils);
+
+      await act(async () => {
+        fireEvent.press(utils.getByTestId('add-collectible-button'));
+      });
+
+      await waitFor(() => {
+        expect(utils.getByTestId('add-collectible-button')).not.toBeDisabled();
+      });
+    });
+
     it('shows toast when ownership verification fails', async () => {
       (Engine.context.NftController.isNftOwner as jest.Mock).mockRejectedValue(
         new Error('Network error'),
@@ -310,6 +344,31 @@ describe('AddCustomCollectible', () => {
       await fillFormAndWait(utils);
 
       expect(utils.getByTestId('add-collectible-button')).toBeDisabled();
+    });
+
+    it('enables the button when the import rejects', async () => {
+      const importError = new Error('import failed');
+      (Engine.context.NftController.addNft as jest.Mock).mockRejectedValue(
+        importError,
+      );
+
+      const utils = renderComponent({
+        navigation: { navigate: jest.fn(), goBack: jest.fn() },
+      });
+
+      await fillFormAndWait(utils);
+
+      let caught: unknown;
+      await act(async () => {
+        try {
+          await fireEvent.press(utils.getByTestId('add-collectible-button'));
+        } catch (error) {
+          caught = error;
+        }
+      });
+
+      expect(caught).toBe(importError);
+      expect(utils.getByTestId('add-collectible-button')).not.toBeDisabled();
     });
 
     it('is disabled during submission', async () => {

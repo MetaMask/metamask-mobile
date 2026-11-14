@@ -266,8 +266,10 @@ module.exports = {
           },
         ],
         // Oxlint owns these. explicit-function-return-type, no-empty-object-type,
-        // and no-unused-vars are warnings there. The error-severity rules have
-        // existing hits in oxlint-suppressions.json.
+        // and no-unused-vars are warnings there. no-wrapper-object-types and
+        // prefer-enum-initializers are errors there, and their existing hits
+        // are in oxlint-suppressions.json. The shared config turns all five
+        // on, so they are set to off here.
         '@typescript-eslint/explicit-function-return-type': 'off',
         '@typescript-eslint/no-empty-object-type': 'off',
         '@typescript-eslint/no-unused-vars': 'off',

@@ -114,9 +114,10 @@ const TokenListComponent = ({
       SCROLL_TO_TOKEN_EVENT,
       ({ address, chainId }: { address: string; chainId: string }) => {
         // Find the index of the token in the display list
+        const eventAddress = address?.toLowerCase();
         const tokenIndex = displayTokenKeys.findIndex(
           (item) =>
-            item.address?.toLowerCase() === address?.toLowerCase() &&
+            item.address?.toLowerCase() === eventAddress &&
             item.chainId === chainId,
         );
 

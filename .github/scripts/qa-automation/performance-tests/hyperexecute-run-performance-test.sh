@@ -24,6 +24,9 @@ select_project_args() {
         echo --project testmu-android-onboarding
       fi
       ;;
+    dev-onboarding)
+      echo --project testmu-android-dev-onboarding
+      ;;
     imported-wallet)
       echo --project testmu-android
       ;;

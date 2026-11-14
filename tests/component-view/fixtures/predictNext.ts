@@ -8,6 +8,15 @@ import {
 import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import type {
+  SignOperation,
+  SignRead,
+} from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
@@ -673,11 +682,18 @@ export const answerPredictNextCatalog = (
 export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
-  messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) =>
+  messengerCall.mockImplementation((action: string, ...params: unknown[]) => {
+    if (action === 'PredictOrderService:getRecovery') {
+      return [];
+    }
+    if (action === 'PredictOrderService:refreshRecovery') {
+      return Promise.resolve();
+    }
+    return (
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[])),
-  );
+      implementation(action, ...(params as never[]))
+    );
+  });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
@@ -687,6 +703,68 @@ export interface PredictNextPositionsPageFixture {
   positions: readonly unknown[];
   nextCursor?: string;
 }
+
+// Deterministic test envelopes; the real client still performs the exchange
+// and sends exactly the profile-rendered bytes, including the commit overlay.
+const signRead: SignRead = async ({ method, path, query }) => ({
+  name: VENUE_AUTHORIZATION_HEADER,
+  value: JSON.stringify({ method, path, query }),
+});
+
+/** Renders one intent from the bundled profile exactly as the Engine
+ * signer does, invariant included. */
+const renderIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  return renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+  );
+};
+
+/** Installs the Engine rendering seam used by the adapter's review dependency. */
+export const installPredictNextPreviewOperation = (): void => {
+  (
+    Engine.context as unknown as Record<string, unknown>
+  ).PredictDeviceAuthService = {
+    getApprovalGeneration: () => 0,
+    previewOperation: async (
+      operation: string,
+      input?: Parameters<SignOperation>[1],
+    ) => (await renderIntent(operation, input)).display,
+  };
+};
+
+const signOperation: SignOperation = async (operation, input) => {
+  const rendered = await renderIntent(operation, input);
+  return {
+    header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+    body: rendered.body,
+    idempotencyKey: rendered.idempotencyKey,
+  };
+};
 
 /**
  * Composes the real Order workflow service the way the Engine init does,
@@ -699,6 +777,8 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  // The adapter asks the Engine for checked review figures before approval.
+  installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -710,7 +790,15 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   return new PredictOrderService({
     messenger,
@@ -727,6 +815,7 @@ export const composePredictNextOrderService = (
  * by delegating its messenger adapter to the returned root.
  */
 export const composePredictNextPortfolioTrading = () => {
+  installPredictNextPreviewOperation();
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -736,7 +825,15 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   const portfolioService = new PredictPortfolioService({
     messenger: getPredictPortfolioServiceMessenger(
@@ -1018,6 +1115,12 @@ export const configurePredictNextFeeds = ({
   resetPredictNextCatalog();
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
         return catalogResponse;

@@ -12,6 +12,11 @@ import useBalanceChanges from '../../../../UI/SimulationDetails/useBalanceChange
 import { AssetType } from '../../../../UI/SimulationDetails/types';
 // eslint-disable-next-line import-x/no-namespace
 import * as TokenUtils from '../../utils/token';
+import { buildPermit2ApproveTransactionData } from '../../__mocks__/helpers/approve';
+import {
+  approvalSpenderMock,
+  permit2TokenMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { useBatchApproveBalanceChanges } from './useBatchApproveBalanceChanges';
 
 jest.mock('../../../../UI/SimulationDetails/useBalanceChanges');
@@ -109,5 +114,60 @@ describe('useBatchApproveBalanceChanges', () => {
     await waitFor(() => {
       expect(result.value).toStrictEqual([]);
     });
+  });
+
+  it('uses the token from Permit2 calldata', async () => {
+    const permit2Address = '0x000000000022D473030F116dDEE9F6B43aC78BA3';
+    const useBalanceChangesMock = jest.mocked(useBalanceChanges);
+    useBalanceChangesMock.mockReturnValue({ pending: false, value: [] });
+
+    runHook({
+      ...batchApprovalConfirmation,
+      nestedTransactions: [
+        {
+          data: buildPermit2ApproveTransactionData(
+            permit2TokenMock,
+            approvalSpenderMock,
+            100,
+            1746696740,
+          ),
+          to: permit2Address,
+        },
+      ],
+    } as unknown as TransactionMeta);
+
+    await waitFor(() => {
+      expect(useBalanceChangesMock).toHaveBeenLastCalledWith({
+        chainId: '0x1',
+        networkClientId: 'mainnet',
+        simulationData: {
+          tokenBalanceChanges: [
+            {
+              address: permit2TokenMock,
+              approveMethod: 'approve',
+              difference: '0x64',
+              id: undefined,
+              isAll: false,
+              isDecrease: true,
+              isUnlimited: false,
+              nestedTransactionIndex: 0,
+              newBalance: '0x0',
+              previousBalance: '0x5',
+              standard: 'erc20',
+              tokenSymbol: 'DAI',
+            },
+          ],
+        },
+      });
+    });
+    expect(TokenUtils.memoizedGetTokenStandardAndDetails).toHaveBeenCalledWith({
+      tokenAddress: permit2TokenMock,
+      userAddress: batchApprovalConfirmation.txParams.from,
+    });
+    expect(
+      TokenUtils.memoizedGetTokenStandardAndDetails,
+    ).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tokenAddress: permit2Address }),
+    );
   });
 });
