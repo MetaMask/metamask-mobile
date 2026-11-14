@@ -119,6 +119,54 @@ describe('removeChannel', () => {
     });
   });
 
+  it('revokes permissions and deletes the channel when terminate fails', async () => {
+    const mockChannelId = 'mockChannelId';
+    const mockHost = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockChannelId;
+
+    mockInstance.state.connected[mockChannelId] = {
+      removeConnection: jest.fn().mockResolvedValue(false),
+    } as unknown as SDKConnect['state']['connected'][string];
+    mockInstance.state.connections[mockChannelId] = {
+      otherPublicKey: 'key',
+    } as unknown as SDKConnect['state']['connections'][string];
+    mockInstance.state.approvedHosts[mockHost] = 1234567890;
+
+    const result = await removeChannel({
+      channelId: mockChannelId,
+      engine: Engine,
+      instance: mockInstance,
+    });
+
+    expect(result).toBe(true);
+    expect(revokeChannelPermissions).toHaveBeenCalledWith(mockChannelId);
+    expect(mockInstance.state.connected[mockChannelId]).toBeUndefined();
+    expect(mockInstance.state.connections[mockChannelId]).toBeUndefined();
+    expect(mockInstance.state.approvedHosts[mockHost]).toBeUndefined();
+  });
+
+  it('keeps the channel when revoking permissions throws', async () => {
+    const mockChannelId = 'mockChannelId';
+    const mockHost = AppConstants.MM_SDK.SDK_REMOTE_ORIGIN + mockChannelId;
+
+    mockInstance.state.connected[mockChannelId] = {
+      removeConnection: jest.fn().mockResolvedValue(true),
+    } as unknown as SDKConnect['state']['connected'][string];
+    mockInstance.state.approvedHosts[mockHost] = 1234567890;
+    jest.mocked(revokeChannelPermissions).mockImplementationOnce(() => {
+      throw new Error('revoke failed');
+    });
+
+    const result = await removeChannel({
+      channelId: mockChannelId,
+      engine: Engine,
+      instance: mockInstance,
+    });
+
+    expect(result).toBe(false);
+    expect(mockInstance.state.connected[mockChannelId]).toBeDefined();
+    expect(mockInstance.state.approvedHosts[mockHost]).toBe(1234567890);
+  });
+
   it('should delete the channel from the connecting state', () => {
     const mockChannelId = 'mockChannelId';
 
