@@ -94,6 +94,7 @@ jest.mock('lottie-react-native', () => 'LottieView');
 jest.mock('../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
   getItem: jest.fn().mockResolvedValue(null),
+  getItemSync: jest.fn().mockReturnValue(null),
   removeItem: jest.fn(),
 }));
 

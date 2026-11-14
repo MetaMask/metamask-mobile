@@ -61,6 +61,11 @@ import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import {
+  MoneyMfaSetupCard,
+  MoneyMfaStatusBanner,
+} from '../../components/MoneyMfa';
+import { useMoneyMfa } from '../../hooks/useMoneyMfa';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -166,6 +171,10 @@ const ACTION_BUTTON_ROW_BASE_COUNT = 3;
  * second hydrate.
  */
 const DETAILS_REENTRY_WINDOW_MS = 1000;
+
+// The shield pulses once the success toast has left the header.
+const MFA_BADGE_PULSE_DELAY_MS = 3200;
+const MFA_BADGE_PULSE_MS = 3000;
 
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -313,6 +322,89 @@ const MoneyHomeView = () => {
     selectMoneyEarningSectionEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const {
+    status: mfaStatus,
+    turnOn: turnOnMfa,
+    retry: retryMfaSetup,
+    isSettingUpBannerDismissed: isMfaBannerDismissed,
+    dismissSettingUpBanner: dismissMfaBanner,
+    refreshCredentials: refreshMfaCredentials,
+    hasUnseenEnabledConfirmation,
+    showEnabledConfirmation,
+  } = useMoneyMfa();
+
+  useFocusEffect(refreshMfaCredentials);
+
+  const [isMfaBadgePulsePending, setIsMfaBadgePulsePending] = useState(false);
+  const [isMfaBadgeHighlighted, setIsMfaBadgeHighlighted] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (hasUnseenEnabledConfirmation && showEnabledConfirmation()) {
+        setIsMfaBadgePulsePending(true);
+      }
+    }, [hasUnseenEnabledConfirmation, showEnabledConfirmation]),
+  );
+  useEffect(() => {
+    if (!isMfaBadgePulsePending) {
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setIsMfaBadgePulsePending(false);
+      setIsMfaBadgeHighlighted(true);
+    }, MFA_BADGE_PULSE_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [isMfaBadgePulsePending]);
+  useEffect(() => {
+    if (!isMfaBadgeHighlighted) {
+      return;
+    }
+    const timeout = setTimeout(
+      () => setIsMfaBadgeHighlighted(false),
+      MFA_BADGE_PULSE_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isMfaBadgeHighlighted]);
+
+  const handleMfaSetUpPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+      label_key: 'money.mfa.card_cta',
+      component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
+    });
+    void turnOnMfa();
+  }, [trackButtonClicked, turnOnMfa]);
+
+  const handleMfaRetry = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.RETRY_MFA_SETUP,
+      label_key: 'money.mfa.failed_retry',
+      component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+    });
+    void retryMfaSetup();
+  }, [retryMfaSetup, trackButtonClicked]);
+
+  const handleMfaBannerDismiss = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+      component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+    });
+    dismissMfaBanner();
+  }, [dismissMfaBanner, trackButtonClicked]);
+
+  const handleMfaBadgePress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
+      component_name: COMPONENT_NAMES.MONEY_MFA_HEADER_BADGE,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_ENABLED_SHEET,
+    });
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+    });
+  }, [navigation, trackButtonClicked]);
   const {
     getLinkFlowRedirectTarget,
     startLinkFlow,
@@ -578,6 +670,9 @@ const MoneyHomeView = () => {
     onMenuPress: handleMenuPress,
     onBack: isPushed ? handleBackPress : undefined,
     isEnabled: isBrandRefresh,
+    isMfaEnabled: mfaStatus === 'enabled',
+    onMfaBadgePress: handleMfaBadgePress,
+    isMfaBadgeHighlighted,
   });
 
   const { scrollY, scrollDistance, onScroll } =
@@ -599,12 +694,17 @@ const MoneyHomeView = () => {
   const headerProps: MoneyHeaderProps = isPushed
     ? {
         onMenuPress: handleMenuPress,
+        isMfaEnabled: mfaStatus === 'enabled',
+        onMfaBadgePress: handleMfaBadgePress,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
       }
     : {
         onMenuPress: handleMenuPress,
+        isMfaEnabled: mfaStatus === 'enabled',
+        onMfaBadgePress: handleMfaBadgePress,
+        isMfaBadgeHighlighted,
         scrollY,
       };
 
@@ -645,20 +745,25 @@ const MoneyHomeView = () => {
   );
 
   const handleTransferPress = useCallback(() => {
+    const isMfaSettingUp = mfaStatus === 'setting_up';
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
       label_key: 'money.action.transfer',
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+      redirect_target: isMfaSettingUp
+        ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+        : BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
       button_row_button_count: actionButtonRowCount,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      screen: isMfaSettingUp
+        ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
+        : Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation, trackButtonClicked, actionButtonRowCount]);
+  }, [navigation, trackButtonClicked, actionButtonRowCount, mfaStatus]);
 
   const navigateToCardHome = useCallback(() => {
     markCardFlowOpened();
@@ -1229,6 +1334,12 @@ const MoneyHomeView = () => {
           testID={MoneyHomeViewTestIds.TITLE_SECTION}
           onLayout={isPushed ? handleTitleSectionLayout : undefined}
         >
+          <MoneyMfaStatusBanner
+            status={mfaStatus}
+            isSettingUpDismissed={isMfaBannerDismissed}
+            onDismissSettingUp={handleMfaBannerDismiss}
+            onRetry={handleMfaRetry}
+          />
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2 pb-2">
               <BannerAlert
@@ -1277,6 +1388,9 @@ const MoneyHomeView = () => {
               : undefined
           }
         />
+        {mfaStatus === 'not_set_up' ? (
+          <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
+        ) : null}
         {moneyHomeCard.type === 'vba' && (
           <MoneyVbaHomeCard
             key={devOverride?.id ?? moneyHomeCard.variant}

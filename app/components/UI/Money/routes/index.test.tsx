@@ -30,6 +30,10 @@ jest.mock('../selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(),
 }));
 
+let mockRoute: { name: string; params?: { screen?: string } } = {
+  name: Routes.MONEY.MODALS.ROOT,
+};
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
@@ -108,6 +112,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
   }),
+  useRoute: () => mockRoute,
 }));
 
 jest.mock('../Views/MoneyHomeView', () => () => (
@@ -292,6 +297,37 @@ describe('MoneyConfirmationScreenStack', () => {
 describe('MoneyModalStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute = { name: Routes.MONEY.MODALS.ROOT };
+  });
+
+  it('enables the account upgrade when a Money sheet opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: true,
+    });
+  });
+
+  it('skips the account upgrade when the 2-step verification prompt opens', () => {
+    mockRoute = {
+      name: Routes.MONEY.MODALS.ROOT,
+      params: { screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET },
+    };
+
+    renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledWith({
+      enabled: false,
+    });
   });
 
   it('calls useUpgradeMoneyAccountOnFocus', () => {
@@ -376,6 +412,19 @@ describe('MoneyModalStack', () => {
     });
 
     expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
+  });
+
+  it.each([
+    'MoneyMfaPromptSheet',
+    'MoneyMfaEnabledSheet',
+    'MoneyMfaSettingUpSheet',
+    'MoneyMfaTurnOffSheet',
+  ])('registers the %s 2-step verification sheet as a modal screen', (name) => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId(`money-screen-${name}`)).toBeOnTheScreen();
   });
 });
 
