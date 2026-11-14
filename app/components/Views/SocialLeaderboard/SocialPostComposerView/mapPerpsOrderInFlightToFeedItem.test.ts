@@ -14,6 +14,20 @@ const preview: SocialPostPerpsPreview = {
   entryPriceLabel: '$3,200.00',
 };
 
+const createHip3Preview = (
+  overrides: Partial<SocialPostPerpsPreview> = {},
+): SocialPostPerpsPreview => ({
+  product: 'perps',
+  tokenSymbol: 'SPCX',
+  tradeSymbol: 'xyz:SPCX',
+  tokenAddress: 'xyz:SPCX',
+  direction: 'long',
+  leverageLabel: '5x',
+  costLabel: '$50.00',
+  entryPriceLabel: '$12.40',
+  ...overrides,
+});
+
 describe('mapPerpsOrderInFlightToFeedItem', () => {
   it('maps an accepted order to a sparse perpsOpen card without copy trade', () => {
     const item = mapPerpsOrderInFlightToFeedItem(preview, 'this is alpha');
@@ -53,5 +67,27 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
 
     expect(item).not.toHaveProperty('commentGifUrl');
     expect(getPositionCardMode(item)).toBe('openCompact');
+  });
+
+  it('passes the HIP-3 market id to the avatar so the market icon resolves', () => {
+    const hip3Preview = createHip3Preview();
+
+    const item = mapPerpsOrderInFlightToFeedItem(hip3Preview, '');
+
+    expect(item.asset.avatar.tokenSymbol).toBe('xyz:SPCX');
+  });
+
+  it('keeps the unprefixed display symbol as the card title for HIP-3 markets', () => {
+    const hip3Preview = createHip3Preview();
+
+    const item = mapPerpsOrderInFlightToFeedItem(hip3Preview, '');
+
+    expect(item.asset.symbol).toBe('SPCX');
+  });
+
+  it('passes the plain market symbol to the avatar for main-dex markets', () => {
+    const item = mapPerpsOrderInFlightToFeedItem(preview, '');
+
+    expect(item.asset.avatar.tokenSymbol).toBe('ETH');
   });
 });
