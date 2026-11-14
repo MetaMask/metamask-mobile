@@ -211,6 +211,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   pendingPostsSurface,
   comparePosts,
   inlineRows = NO_INLINE_ROWS,
+  prepareRefresh,
   onRefresh,
   onListStateChange,
   performance,
@@ -395,6 +396,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      if (prepareRefresh) {
+        await prepareRefresh();
+      }
       await Promise.all([
         enabled ? refreshWithPendingPosts() : undefined,
         waitForMinimumRefresh(),
@@ -403,7 +407,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [enabled, onRefresh, refreshWithPendingPosts]);
+  }, [enabled, onRefresh, prepareRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {

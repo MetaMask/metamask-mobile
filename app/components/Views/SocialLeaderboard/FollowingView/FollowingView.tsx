@@ -218,6 +218,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     { tab_name: Tab.FOLLOWING, source },
     isActive,
   );
+  const prepareRefresh = useCallback(() => invalidateFollowingFeed(), []);
   const handleRefresh = useCallback(() => {
     trackInteraction(Interaction.REFRESH);
     setHoldSuggestions(false);
@@ -294,6 +295,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           filterPost={filterPost}
           comparePosts={feedSort === 'popular' ? byMostReactions : undefined}
           emptyState={emptyState}
+          prepareRefresh={prepareRefresh}
           onRefresh={handleRefresh}
           performance={feedPerformance}
           onScroll={onScroll}

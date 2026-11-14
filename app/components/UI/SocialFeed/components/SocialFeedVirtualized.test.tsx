@@ -644,6 +644,33 @@ describe('SocialFeedVirtualized', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
+  it('drops a stale cache before the pull-to-refresh refetch', async () => {
+    jest.useFakeTimers();
+    const order: string[] = [];
+    const refresh = jest.fn(async () => {
+      order.push('refetch');
+    });
+    const prepareRefresh = jest.fn(async () => {
+      order.push('prepare');
+    });
+    const onRefresh = jest.fn(() => {
+      order.push('host');
+    });
+    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+    renderFeed({ prepareRefresh, onRefresh });
+
+    await act(async () => {
+      const refreshing = screen
+        .UNSAFE_getByType(RefreshControl)
+        .props.onRefresh();
+      await Promise.resolve();
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+      await refreshing;
+    });
+
+    expect(order).toEqual(['prepare', 'refetch', 'host']);
+  });
+
   it('tells the host about a pull-to-refresh', async () => {
     jest.useFakeTimers();
     const onRefresh = jest.fn();

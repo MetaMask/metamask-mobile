@@ -36,6 +36,7 @@ interface MockSocialFeedProps {
   isActive?: boolean;
   renderHeader?: () => React.ReactNode;
   emptyState?: React.ReactNode;
+  prepareRefresh?: () => void | Promise<void>;
   onRefresh?: () => void;
   onListStateChange?: (state: {
     showSkeleton: boolean;
@@ -414,10 +415,11 @@ describe('FollowingView', () => {
     rerender(<FollowingView />);
 
     act(() => {
+      void lastFeedProps().prepareRefresh?.();
       lastFeedProps().onRefresh?.();
     });
 
-    expect(mockInvalidateFollowingFeed).not.toHaveBeenCalled();
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
     expect(
       screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),

@@ -180,6 +180,9 @@ const invalidateFollowingQuery = async (): Promise<void> => {
   );
   await Promise.all([
     ReactQueryService.queryClient.invalidateQueries({
+      queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
+    }),
+    ReactQueryService.queryClient.invalidateQueries({
       queryKey: FOLLOWING_QUERY_KEY,
     }),
     ReactQueryService.queryClient.invalidateQueries({
@@ -286,9 +289,10 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             { breadcrumb: false },
           );
         });
-        // The Following feed stays cached so a viewer can follow several
+        // The V1 Following feed stays cached so a viewer can follow several
         // traders before it reloads. FollowingView refreshes it on return
-        // and on pull.
+        // and before a pull-to-refresh refetch. The older following feed
+        // still reloads with the follow lists.
         await invalidateFollowingQuery();
         if (requestEpoch !== followToggleSessionEpoch) {
           return;
