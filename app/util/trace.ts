@@ -176,6 +176,8 @@ export enum TraceName {
   PerpsClosePosition = 'Perps Close Position',
   PerpsDeposit = 'Perps Deposit',
   PerpsWithdraw = 'Perps Withdraw',
+  /** Account-support read awaited before a trade or withdrawal can continue. */
+  PerpsAccountSupportCheck = 'Perps Account Support Check',
   PerpsPlaceOrder = 'Perps Place Order',
   PerpsEditOrder = 'Perps Edit Order',
   PerpsCancelOrder = 'Perps Cancel Order',

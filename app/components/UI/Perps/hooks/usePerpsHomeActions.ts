@@ -2,12 +2,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPerpsEligibility } from '../selectors/perpsController';
+import {
+  selectPerpsEligibility,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { usePerpsTrading } from './usePerpsTrading';
 import type {
   ConfirmationLaunchSource,
@@ -18,6 +22,8 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
+  type PerpsActiveProviderMode,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
@@ -34,6 +40,32 @@ import {
   type DepositConfirmationNavigation,
   type DepositPrepSession,
 } from '../utils/depositConfirmationGuard';
+import {
+  usePerpsAccountSupport,
+  type UsePerpsAccountSupportReturn,
+} from './usePerpsAccountSupport';
+
+/**
+ * Withdrawals omit providerId, so Core signs with the active provider, or
+ * with Hyperliquid when that provider is the aggregated router. Name that
+ * venue on the support check. Anything else stays on the Hyperliquid default
+ * instead of sending a route a direct provider would reject.
+ *
+ * The same mapping is the support check's live-provider watch. An explicit
+ * id alone ignores a provider switch, so a Lighter result could otherwise
+ * let a withdrawal sign on Hyperliquid.
+ */
+const resolveWithdrawalProviderId = (
+  activeProvider: PerpsActiveProviderMode | undefined,
+): PerpsProviderType => {
+  if (
+    activeProvider === PROVIDER_CONFIG.DefaultProvider ||
+    activeProvider === PROVIDER_CONFIG.LighterProvider
+  ) {
+    return activeProvider;
+  }
+  return PROVIDER_CONFIG.DefaultProvider;
+};
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
 
@@ -64,6 +96,8 @@ export interface UsePerpsHomeActionsReturn {
   isEligible: boolean;
   /** Whether eligibility modal is visible */
   isEligibilityModalVisible: boolean;
+  /** Whether the unsupported-account modal is visible */
+  isAccountUnsupportedModalVisible: boolean;
   /** Whether an action is currently processing */
   isProcessing: boolean;
   /** Last error that occurred */
@@ -79,6 +113,10 @@ export interface UsePerpsHomeActionsReturn {
   showEligibilityModal: (source: string) => void;
   /** Close eligibility modal */
   closeEligibilityModal: () => void;
+  /** Close unsupported-account modal */
+  closeAccountUnsupportedModal: () => void;
+  /** Check whether the active account can submit provider actions */
+  checkAccountSupport: UsePerpsAccountSupportReturn['checkAccountSupport'];
 }
 
 /**
@@ -99,6 +137,7 @@ export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
   const navigation = useNavigation<AppNavigationProp>();
+  const store = useStore<RootState>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
@@ -108,6 +147,11 @@ export const usePerpsHomeActions = (
   );
   const { withdrawWithConfirmation } = usePerpsWithdrawConfirmation();
   const { gate } = useComplianceGate(selectedAddress);
+  const {
+    isAccountUnsupportedModalVisible,
+    checkAccountSupport,
+    closeAccountUnsupportedModal,
+  } = usePerpsAccountSupport();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
     useState(false);
@@ -128,6 +172,7 @@ export const usePerpsHomeActions = (
   // StackActions.push always adds a route, and dismissing the deposit only
   // goes back once.
   const inPlaceConfirmationOpenRef = useRef(false);
+  const isWithdrawInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!openConfirmationInPlace) {
@@ -283,6 +328,13 @@ export const usePerpsHomeActions = (
   ]);
 
   const handleWithdraw = useCallback(async () => {
+    // The support check is async, so a second tap would otherwise start a
+    // second withdrawal while the first is still waiting on it.
+    if (isWithdrawInFlightRef.current) {
+      return;
+    }
+    isWithdrawInFlightRef.current = true;
+
     // Track withdrawal button click with geo-block status for monitoring (TAT-2337)
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -306,6 +358,14 @@ export const usePerpsHomeActions = (
     });
 
     try {
+      const support = await checkAccountSupport(
+        resolveWithdrawalProviderId(selectPerpsProvider(store.getState())),
+        { watchActiveProvider: resolveWithdrawalProviderId },
+      );
+      if (support !== 'supported' || !navigation.isFocused()) {
+        return;
+      }
+
       if (perpsWithdrawConfig.enabled) {
         await withdrawWithConfirmation();
         DevLogger.log(
@@ -343,6 +403,7 @@ export const usePerpsHomeActions = (
         onError(errorObj, 'withdraw');
       }
     } finally {
+      isWithdrawInFlightRef.current = false;
       setIsProcessing(false);
     }
   }, [
@@ -354,6 +415,8 @@ export const usePerpsHomeActions = (
     onError,
     track,
     buttonLocation,
+    checkAccountSupport,
+    store,
   ]);
 
   const closeEligibilityModal = useCallback(() => {
@@ -364,11 +427,14 @@ export const usePerpsHomeActions = (
   return {
     isEligible,
     isEligibilityModalVisible,
+    isAccountUnsupportedModalVisible,
     isProcessing,
     error,
     handleAddFunds,
     handleWithdraw,
     showEligibilityModal,
     closeEligibilityModal,
+    closeAccountUnsupportedModal,
+    checkAccountSupport,
   };
 };

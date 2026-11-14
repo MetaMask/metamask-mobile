@@ -16,6 +16,9 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { selectPerpsProvider } from '../selectors/perpsController';
+
+const mockCheckAccountSupport = jest.fn();
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => {
@@ -43,18 +46,31 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+jest.mock('react-redux', () => {
+  const store = { getState: () => ({}) };
+  return {
+    useSelector: jest.fn(),
+    useStore: () => store,
+  };
+});
 
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
+  selectPerpsProvider: jest.fn(),
 }));
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: jest.fn(() => ({
     depositWithConfirmation: jest.fn().mockReturnValue(Promise.resolve()),
   })),
+}));
+
+jest.mock('./usePerpsAccountSupport', () => ({
+  usePerpsAccountSupport: () => ({
+    isAccountUnsupportedModalVisible: false,
+    checkAccountSupport: mockCheckAccountSupport,
+    closeAccountUnsupportedModal: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
@@ -104,6 +120,7 @@ describe('usePerpsHomeActions', () => {
     navigate: jest.fn(),
     dispatch: jest.fn(),
     goBack: jest.fn(),
+    isFocused: jest.fn(() => true),
     getState: jest.fn(() => ({
       index: 1,
       routes: [
@@ -128,11 +145,14 @@ describe('usePerpsHomeActions', () => {
     mockDepositWithConfirmation.mockReset();
     mockDepositWithConfirmation.mockResolvedValue(undefined);
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockCheckAccountSupport.mockResolvedValue('supported');
+    mockNavigation.isFocused.mockReturnValue(true);
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
+    (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
     (usePerpsTrading as jest.Mock).mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     });
@@ -531,6 +551,145 @@ describe('usePerpsHomeActions', () => {
 
       expect(result.current.isProcessing).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  // Unit fallback. The unsupported-account explanation is covered through the
+  // rendered home view in PerpsHomeView.view.test.tsx; losing focus while the
+  // support read is held is not drivable there.
+  describe('handleWithdraw - account support', () => {
+    it('does not start a withdrawal after the screen loses focus during the support check', async () => {
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+      let withdrawPromise: Promise<void> | undefined;
+
+      act(() => {
+        withdrawPromise = result.current.handleWithdraw();
+      });
+      mockNavigation.isFocused.mockReturnValue(false);
+      await act(async () => {
+        resolveSupport?.('supported');
+        await withdrawPromise;
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('starts one withdrawal when the button is pressed again during the support check', async () => {
+      let resolveSupport:
+        | ((support: 'supported' | 'unsupported' | 'stale') => void)
+        | undefined;
+      mockCheckAccountSupport.mockReturnValueOnce(
+        new Promise<'supported' | 'unsupported' | 'stale'>((resolve) => {
+          resolveSupport = resolve;
+        }),
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+      let firstPress: Promise<void> | undefined;
+      let secondPress: Promise<void> | undefined;
+
+      act(() => {
+        firstPress = result.current.handleWithdraw();
+        secondPress = result.current.handleWithdraw();
+      });
+      await act(async () => {
+        resolveSupport?.('supported');
+        await Promise.all([firstPress, secondPress]);
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('checks Hyperliquid when the active provider is aggregated', async () => {
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(
+        'aggregated',
+      );
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
+        watchActiveProvider: expect.any(Function),
+      });
+    });
+
+    it('checks Hyperliquid when no active provider is selected', async () => {
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(undefined);
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('hyperliquid', {
+        watchActiveProvider: expect.any(Function),
+      });
+    });
+
+    it('checks the active venue when it is a direct provider', async () => {
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockCheckAccountSupport).toHaveBeenCalledWith('lighter', {
+        watchActiveProvider: expect.any(Function),
+      });
+    });
+
+    it('watches the venue a withdrawal signs on', async () => {
+      (selectPerpsProvider as unknown as jest.Mock).mockReturnValue('lighter');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      const watchActiveProvider = mockCheckAccountSupport.mock.calls[0][1]
+        .watchActiveProvider as (provider?: string) => string;
+
+      expect(watchActiveProvider('lighter')).toBe('lighter');
+      expect(watchActiveProvider('hyperliquid')).toBe('hyperliquid');
+      expect(watchActiveProvider('aggregated')).toBe('hyperliquid');
+      expect(watchActiveProvider(undefined)).toBe('hyperliquid');
+    });
+
+    it('does not start a withdrawal when the signing venue check is stale', async () => {
+      mockCheckAccountSupport.mockResolvedValue('stale');
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockWithdrawWithConfirmation).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('accepts a new withdrawal once the previous one has finished', async () => {
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+      await act(async () => {
+        await result.current.handleWithdraw();
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
     });
   });
 
