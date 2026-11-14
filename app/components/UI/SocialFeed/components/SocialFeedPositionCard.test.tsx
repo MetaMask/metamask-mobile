@@ -351,6 +351,61 @@ describe('SocialFeedPositionCard', () => {
     });
   });
 
+  describe('cost row label', () => {
+    const costRow = (cardId: string) =>
+      screen.getByTestId(getSocialFeedPositionCardStatTestId(cardId, 'cost'));
+
+    it('labels an open perp cost as margin and keeps its value', () => {
+      const item = mockOpenPerpsFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        within(costRow(item.id)).getByText(
+          'social_leaderboard.feed.position_card.margin',
+        ),
+      ).toBeOnTheScreen();
+      expect(statValue(item.id, 'cost')).toBe('$212,000.00');
+    });
+
+    it('labels a closed perp cost as margin and keeps its value', () => {
+      const item = mockClosedPerpsFeedItem();
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        within(costRow(item.id)).getByText(
+          'social_leaderboard.feed.position_card.margin',
+        ),
+      ).toBeOnTheScreen();
+      expect(statValue(item.id, 'cost')).toBe('$252,300.00');
+    });
+
+    it('keeps the cost label on an open spot card', () => {
+      const item = mockOpenSpotFeedItem({ comment: 'Buying the dip' });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        within(costRow(item.id)).getByText(
+          'social_leaderboard.feed.position_card.cost',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the cost label on a closed spot card', () => {
+      const item = mockClosedSpotFeedItem({ comment: 'Took profit' });
+
+      renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+      expect(
+        within(costRow(item.id)).getByText(
+          'social_leaderboard.feed.position_card.cost',
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
   // One line, one colour: the result carries the green/red, not the title.
   describe('closed card header', () => {
     // The shell is a content-sized column. `flex-1` there is a zero height
