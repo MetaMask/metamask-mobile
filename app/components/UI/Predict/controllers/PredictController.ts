@@ -145,7 +145,7 @@ import { validateMarketBettable } from '../utils/marketState';
 import { getPredictClaimOutcomeVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
-import { ensureError } from '../utils/predictErrorHandler';
+import { ensureError, reportPredictError } from '../utils/predictErrorHandler';
 import {
   resolvePredictFeePolicy,
   syncPreviewWithFeePolicy,
@@ -843,8 +843,8 @@ export class PredictController extends BaseController<
         error: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString(),
       });
-      Logger.error(
-        ensureError(error),
+      reportPredictError(
+        error,
         this.getErrorContext('invalidateQueryCache', {
           chainId,
         }),
@@ -3241,7 +3241,7 @@ export class PredictController extends BaseController<
       return;
     }
 
-    Logger.error(ensureError(error), errorContext);
+    reportPredictError(error, errorContext);
   }
 
   /**

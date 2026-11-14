@@ -6,14 +6,8 @@ import {
   type TraceOperation,
   type TraceValue,
 } from '../../../../../util/trace';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { ensureError, isNetworkError } from '../../utils/predictErrorHandler';
+import { reportPredictError } from '../../utils/predictErrorHandler';
 import { type TraceableController, withTrace } from './withTrace';
-
-jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
-  __esModule: true,
-  default: { log: jest.fn() },
-}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -28,8 +22,7 @@ jest.mock('../../../../../util/trace', () => ({
 
 jest.mock('../../utils/predictErrorHandler', () => ({
   __esModule: true,
-  ensureError: jest.fn(),
-  isNetworkError: jest.fn(),
+  reportPredictError: jest.fn(),
 }));
 
 interface ControllerState {
@@ -74,17 +67,11 @@ const createController = (initialState?: Partial<ControllerState>) => {
 describe('withTrace', () => {
   const mockTrace = jest.mocked(trace);
   const mockEndTrace = jest.mocked(endTrace);
-  const mockEnsureError = jest.mocked(ensureError);
-  const mockIsNetworkError = jest.mocked(isNetworkError);
-  const mockDevLogger = jest.mocked(DevLogger);
+  const mockReportPredictError = jest.mocked(reportPredictError);
   const mockLogger = jest.mocked(Logger);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnsureError.mockImplementation((error: unknown) =>
-      error instanceof Error ? error : new Error(String(error)),
-    );
-    mockIsNetworkError.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -137,11 +124,9 @@ describe('withTrace', () => {
   it('sets error message, logs context, re-throws Error, and ends trace with failure data', async () => {
     const controller = createController();
     const thrownError = new Error('network failed');
-    const wrappedError = new Error('wrapped network failed');
     const run = jest.fn(async () => {
       throw thrownError;
     });
-    mockEnsureError.mockReturnValue(wrappedError);
     jest.spyOn(Date, 'now').mockReturnValueOnce(3000).mockReturnValueOnce(4000);
 
     const resultPromise = withTrace(
@@ -164,54 +149,15 @@ describe('withTrace', () => {
     expect(controller.getErrorContext).toHaveBeenCalledWith('getBalance', {
       accountId: '0xabc',
     });
-    expect(mockEnsureError).toHaveBeenCalledWith(thrownError);
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      wrappedError,
+    expect(mockReportPredictError).toHaveBeenCalledWith(
+      thrownError,
       controller.getErrorContext.mock.results[0].value,
     );
+    expect(mockLogger.error).not.toHaveBeenCalled();
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TRACE_NAME,
       id: 'getBalance-3000',
       data: { success: false, error: 'network failed' },
-    });
-  });
-
-  it('reports transient network errors to DevLogger instead of Sentry', async () => {
-    const controller = createController();
-    const thrownError = new Error(
-      'java.lang.RuntimeException: Cronet failed: net::ERR_NAME_NOT_RESOLVED',
-    );
-    const run = jest.fn(async () => {
-      throw thrownError;
-    });
-    mockIsNetworkError.mockReturnValue(true);
-    jest.spyOn(Date, 'now').mockReturnValueOnce(3000).mockReturnValueOnce(4000);
-
-    const resultPromise = withTrace(
-      controller,
-      {
-        method: 'getPositions',
-        trace: {
-          name: TRACE_NAME,
-          op: TRACE_OPERATION,
-        },
-      },
-      run,
-    );
-
-    await expect(resultPromise).rejects.toBe(thrownError);
-    // Still updates error state and re-throws so UI behaves the same...
-    expect(controller.state.lastError).toBe(thrownError.message);
-    // ...but does NOT report to Sentry.
-    expect(mockLogger.error).not.toHaveBeenCalled();
-    expect(mockDevLogger.log).toHaveBeenCalledWith(
-      'withTrace: network error in getPositions',
-      thrownError.message,
-    );
-    expect(mockEndTrace).toHaveBeenCalledWith({
-      name: TRACE_NAME,
-      id: 'getPositions-3000',
-      data: { success: false, error: thrownError.message },
     });
   });
 
@@ -365,11 +311,9 @@ describe('withTrace', () => {
       lastUpdateTimestamp: 654,
     });
     const thrownError = new Error('fetch failed');
-    const wrappedError = new Error('wrapped fetch failed');
     const run = jest.fn(async () => {
       throw thrownError;
     });
-    mockEnsureError.mockReturnValue(wrappedError);
     jest.spyOn(Date, 'now').mockReturnValueOnce(14000);
 
     const resultPromise = withTrace(
@@ -393,10 +337,11 @@ describe('withTrace', () => {
     expect(controller.getErrorContext).toHaveBeenCalledWith('getRewards', {
       tab: 'positions',
     });
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      wrappedError,
+    expect(mockReportPredictError).toHaveBeenCalledWith(
+      thrownError,
       controller.getErrorContext.mock.results[0].value,
     );
+    expect(mockLogger.error).not.toHaveBeenCalled();
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TRACE_NAME,
       id: 'getRewards-14000',
