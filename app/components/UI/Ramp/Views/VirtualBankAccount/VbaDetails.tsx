@@ -21,6 +21,7 @@ import {
   TextButton,
   TextVariant,
   TitleStandard,
+  toast,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -728,11 +729,15 @@ const VbaDetails = () => {
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
-      AccessibilityInfo.announceForAccessibility(
-        strings('virtual_bank_account.vba_details.copied_label', {
-          field: label,
-        }),
+      const copiedMessage = strings(
+        'virtual_bank_account.vba_details.copied_label',
+        { field: label },
       );
+      AccessibilityInfo.announceForAccessibility(copiedMessage);
+      toast({
+        title: copiedMessage,
+        hasNoTimeout: false,
+      });
     },
     [],
   );
