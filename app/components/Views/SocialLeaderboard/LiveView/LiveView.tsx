@@ -3,13 +3,10 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import type { ScrollHandlerProcessed } from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
-import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import SocialFeed, {
@@ -62,7 +59,6 @@ const LiveView: React.FC<LiveViewProps> = ({
 }) => {
   const { onAuthorPress, onPositionPress } =
     useSocialFeedPostNavigation('social_live');
-  const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [paused, setPaused] = useState(false);
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
   useEffect(() => {
@@ -82,14 +78,9 @@ const LiveView: React.FC<LiveViewProps> = ({
     [],
   );
 
-  const followingProfileIdSet = useMemo(
-    () => new Set(followingProfileIds),
-    [followingProfileIds],
-  );
   const filterPost = useCallback(
-    (post: SocialV1FeedPost) =>
-      matchesLivePost(post, appliedFilters, followingProfileIdSet),
-    [appliedFilters, followingProfileIdSet],
+    (post: SocialV1FeedPost) => matchesLivePost(post, appliedFilters),
+    [appliedFilters],
   );
 
   const previousFiltersRef = useRef(appliedFilters);
