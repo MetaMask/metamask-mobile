@@ -202,6 +202,41 @@ describe('mapPositionToFeedItem', () => {
     }
   });
 
+  it('derives a closed percent from realized P&L when the API omits pnlPercent', () => {
+    const position: Position = {
+      ...openPerp,
+      pnlPercent: null,
+      realizedPnl: 93.17,
+      boughtUsd: 311.13,
+      pnlValueUsd: 93.17,
+      currentValueUSD: 0,
+      positionAmount: 0,
+    };
+
+    const item = mapPositionToFeedItem(position, 'closed cl', {
+      isClosed: true,
+    });
+
+    expect(item.variant).toBe('perpsClosed');
+    expect(item.pnlLabel).toBe(`${(93.17 / 311.13) * 100}%`);
+  });
+
+  it('keeps a closed percent the API already sent', () => {
+    const item = mapPositionToFeedItem(
+      {
+        ...openPerp,
+        pnlPercent: 29.95,
+        realizedPnl: 1,
+        boughtUsd: 311.13,
+        currentValueUSD: 0,
+      },
+      'closed cl',
+      { isClosed: true },
+    );
+
+    expect(item.pnlLabel).toBe('29.95%');
+  });
+
   it('maps a closed perp without copy trade', () => {
     const item = mapPositionToFeedItem(
       { ...openPerp, currentValueUSD: 0, realizedPnl: 100 },

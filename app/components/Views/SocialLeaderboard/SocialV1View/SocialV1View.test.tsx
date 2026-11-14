@@ -84,6 +84,17 @@ jest.mock('../utils/socialTabVisit', () => ({
   markSocialTabVisited: () => mockMarkSocialTabVisited(),
 }));
 
+// Following reads the viewer's follow graph through React Query. This suite
+// covers the V1 chrome, so stand in for that query.
+jest.mock('../NotificationPreferences/hooks/useFollowedTraders', () => ({
+  useFollowedTraders: () => ({
+    traders: [{ id: 'followed-1' }],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
 // React Query. This suite covers the V1 chrome, so stand in for it.
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({

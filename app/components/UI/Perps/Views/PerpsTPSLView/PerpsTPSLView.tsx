@@ -26,7 +26,6 @@ import {
   BoxJustifyContent,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   ButtonsAlignment,
   Button,
@@ -85,6 +84,8 @@ import { TP_SL_VIEW_CONFIG } from '../../constants/perpsConfig';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Await a dismissal that may never call back.
@@ -252,6 +253,7 @@ export interface PerpsTPSLViewProps {
 const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   variant = 'screen',
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
@@ -1577,7 +1579,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
-        <BottomSheetHeader>{strings('perps.tpsl.title')}</BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
+          {strings('perps.tpsl.title')}
+        </BottomSheetHeaderGlass>
         {body}
       </BottomSheet>
     );

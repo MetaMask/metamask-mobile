@@ -200,6 +200,9 @@ async function loadOrCreate(
 
   const persisted = await readPersistedP256DeviceKey(profile);
   if (epoch !== epochAtStart) {
+    if (persisted.status === 'present') {
+      forgetKey(persisted.key);
+    }
     return null;
   }
 
@@ -216,6 +219,10 @@ async function loadOrCreate(
       ? persisted.key
       : await createDeviceKey(profile);
   try {
+    if (epoch !== epochAtStart) {
+      forgetKey(key);
+      return null;
+    }
     if (persisted.status !== 'present') {
       await writePersistedP256DeviceKey(profile, key);
     }

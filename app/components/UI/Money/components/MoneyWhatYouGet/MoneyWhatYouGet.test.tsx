@@ -27,7 +27,10 @@ describe('MoneyWhatYouGet', () => {
     expect(container).toHaveTextContent(/Auto-earn/);
     expect(container).toHaveTextContent(/dollar-backed stablecoin/);
     expect(container).toHaveTextContent(/Get full liquidity/);
-    expect(container).toHaveTextContent(/1-3% mUSD back/);
+    expect(container).toHaveTextContent(
+      /Spend at 150M\+ merchants with MetaMask Card/,
+    );
+    expect(container).not.toHaveTextContent(/mUSD back/);
     expect(container).toHaveTextContent(/Send to any of your wallets/);
     expect(container).toHaveTextContent(/Send and receive funds globally/);
   });

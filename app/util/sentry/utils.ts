@@ -15,6 +15,10 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import {
+  installStandaloneOutgoingFetchSpan,
+  registerOutgoingRequestAnnotation,
+} from './outgoingRequestContext';
 import { getTraceTags } from './tags';
 import {
   groupDiskSpaceSentryReport,
@@ -679,13 +683,13 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    // reactNativeTracingIntegration is intentionally omitted here: getDefaultIntegrations()
-    // already pushes it whenever tracesSampleRate is set and enableAutoPerformanceTracing
-    // is true (both hold for this config). Adding it explicitly would be a no-op after
-    // the SDK's name-deduplication pass.
+    // Replaces the default ReactNativeTracing integration. traceFetch wraps
+    // global.fetch, which this app has already replaced with nitro-fetch.
+    // The default leaves fetch tracing off and only instruments XHR.
     const integrations = [
       Sentry.dedupeIntegration(),
       Sentry.extraErrorDataIntegration(),
+      Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(
@@ -726,6 +730,16 @@ export async function setupSentry(
         enableStandaloneAppStartTracing: true,
       },
     });
+
+    // Route and connection type are captured here, at request start.
+    // beforeSendSpan runs when the span is sent, after the parent has ended,
+    // so it would record a later screen.
+    const client = Sentry.getClient();
+    if (client && typeof client.on === 'function') {
+      registerOutgoingRequestAnnotation(client);
+    }
+    // Fetch spans created above are still dropped unless a parent is active.
+    installStandaloneOutgoingFetchSpan();
 
     beginNavigationInitializationAppStart();
 

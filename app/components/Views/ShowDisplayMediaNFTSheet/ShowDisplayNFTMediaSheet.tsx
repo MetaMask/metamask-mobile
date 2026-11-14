@@ -1,7 +1,6 @@
 // Third party dependencies
 import React, { useRef } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
@@ -26,8 +25,12 @@ import { strings } from '../../../../locales/i18n';
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const ShowDisplayNftMediaSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { identify } = useAnalytics();
@@ -49,7 +52,9 @@ const ShowDisplayNftMediaSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('show_display_nft_media.show_display_nft_media_title')}
         onClose={onCancel}
       />

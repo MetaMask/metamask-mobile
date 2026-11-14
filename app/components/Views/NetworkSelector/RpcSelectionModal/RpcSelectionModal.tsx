@@ -4,7 +4,6 @@ import { Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Text,
   TextVariant,
@@ -37,6 +36,8 @@ import {
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {
@@ -64,6 +65,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   networkConfigurations,
   styles,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
@@ -154,7 +156,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
 
   return (
     <BottomSheet ref={rpcMenuSheetRef} onClose={closeRpcModal}>
-      <BottomSheetHeader style={styles.baseHeader}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} style={styles.baseHeader}>
         <Text variant={TextVariant.HeadingMd}>
           {strings('app_settings.select_rpc_url')}{' '}
         </Text>
@@ -174,7 +176,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.rpcMenu}>
         {rpcEndpoints.map(
           ({

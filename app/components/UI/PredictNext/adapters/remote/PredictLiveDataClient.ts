@@ -1,6 +1,14 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import Logger from '../../../../../util/Logger';
 import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+  type TraceValue,
+} from '../../../../../util/trace';
+import { PREDICT_NEXT_FEATURE_NAME } from '../../constants';
+import {
   parsePredictLiveDataServerFrame,
   type PredictGameLive,
   type PredictLiveDataServerFrame,
@@ -192,6 +200,8 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #reconnectTimer?: TimerId;
   #lingerTimer?: TimerId;
   #appStateSubscription?: { remove: () => void };
+  #connectTraceSerial = 0;
+  #connectTraceId?: string;
 
   constructor({
     baseUrl,
@@ -314,6 +324,41 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #abandonConnect(): void {
     this.#connectEpoch += 1;
     this.#connecting = false;
+    this.#endConnectTrace({ success: false, reason: 'abandoned' });
+  }
+
+  /**
+   * One attempt, from the token fetch through welcome. Screen spans end when
+   * REST data is ready, so they hide a cold socket. The token and URL stay out.
+   */
+  #beginConnectTrace(venueId: PredictVenueId): void {
+    this.#endConnectTrace({ success: false, reason: 'superseded' });
+    this.#connectTraceSerial += 1;
+    const id = `live-data-connect-${this.#connectTraceSerial}`;
+    this.#connectTraceId = id;
+    trace({
+      name: TraceName.PredictNextLiveDataConnect,
+      op: TraceOperation.PredictDataFetch,
+      id,
+      tags: {
+        feature: PREDICT_NEXT_FEATURE_NAME,
+        venueId,
+        reconnectAttempt: this.#reconnectAttempts,
+      },
+    });
+  }
+
+  #endConnectTrace(data: Record<string, TraceValue>): void {
+    const id = this.#connectTraceId;
+    if (!id) {
+      return;
+    }
+    this.#connectTraceId = undefined;
+    endTrace({
+      name: TraceName.PredictNextLiveDataConnect,
+      id,
+      data,
+    });
   }
 
   #suspend(): void {
@@ -342,10 +387,11 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   }
 
   #connect(): void {
+    const venueId = this.#venueId;
     if (this.#protocolRejected || this.#suspended || this.#connecting) {
       return;
     }
-    if (!this.#venueId || this.#isSocketLive()) {
+    if (!venueId || this.#isSocketLive()) {
       return;
     }
     if (!this.#url) {
@@ -358,6 +404,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     // a missing token, never surfaced.
     const epoch = this.#connectEpoch;
     this.#connecting = true;
+    this.#beginConnectTrace(venueId);
     this.#getBearerToken()
       .catch(() => undefined)
       .then((token) => {
@@ -375,12 +422,14 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
           this.#isSocketLive() ||
           this.#watchedCount() === 0
         ) {
+          this.#endConnectTrace({ success: false, reason: 'abandoned' });
           return;
         }
         if (!token?.trim()) {
           // Retry with backoff: a token can appear later (e.g. once the
           // wallet is unlocked or the session is refreshed).
           this.#logMissingTokenOnce();
+          this.#endConnectTrace({ success: false, reason: 'no_token' });
           this.#scheduleReconnect();
           return;
         }
@@ -391,6 +440,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #openSocket(token: string): void {
     const venueId = this.#venueId;
     if (!venueId || !this.#url) {
+      this.#endConnectTrace({ success: false, reason: 'abandoned' });
       return;
     }
 
@@ -427,6 +477,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         return;
       }
 
+      const closedBeforeWelcome = !this.#welcomed;
       if (event?.code === PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE) {
         Logger.log(
           'PredictLiveDataClient: connection closed as unauthorized; a fresh token is fetched on reconnect',
@@ -435,6 +486,15 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
 
       this.#socket = undefined;
       this.#welcomed = false;
+      if (closedBeforeWelcome) {
+        this.#endConnectTrace({
+          success: false,
+          reason:
+            event?.code === PREDICT_LIVE_DATA_UNAUTHORIZED_CLOSE_CODE
+              ? 'unauthorized'
+              : 'closed',
+        });
+      }
       if (this.#watchedCount() > 0 && !this.#suspended) {
         this.#scheduleReconnect();
       }
@@ -449,10 +509,17 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
           'PredictLiveDataClient: unsupported live-data protocol',
           frame.protocol,
         );
+        this.#endConnectTrace({ success: false, reason: 'protocol' });
         this.disconnect();
         return;
       }
       this.#welcomed = true;
+      this.#endConnectTrace({
+        success: true,
+        reason: 'welcome',
+        marketWatchCount: this.#topics.market.watchCounts.size,
+        gameWatchCount: this.#topics.game.watchCounts.size,
+      });
       this.#reconnectAttempts = 0;
       this.#loggedReconnectCap = false;
       this.#forEachTopic((state) => {

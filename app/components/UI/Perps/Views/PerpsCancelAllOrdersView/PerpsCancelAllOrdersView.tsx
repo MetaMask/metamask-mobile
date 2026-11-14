@@ -6,7 +6,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -30,6 +29,9 @@ import {
   resolveCancelAllErrorMessage,
   resolveCancelAllSuccessFeedback,
 } from './resolveCancelAllOrdersFeedback';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCancelAllOrdersViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -46,6 +48,7 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
   orders: propOrders,
   isFiltered = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
@@ -187,13 +190,14 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
       onClose={externalSheetRef ? onExternalClose : undefined}
       testID={PerpsCancelAllOrdersViewSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: 'header-close' }}
         testID={PerpsCancelAllOrdersViewSelectorsIDs.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box paddingHorizontal={4}>
         <Text

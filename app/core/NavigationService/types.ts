@@ -646,8 +646,6 @@ export type RootStackParamList = {
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
-  RewardsOnboardingFlow: undefined;
-  RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -1110,6 +1108,7 @@ export type RootStackParamList = {
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
   SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
+  SocialTraderPreviewSheet: { traderId: string; positionId?: string };
 
   // Misc routes
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;

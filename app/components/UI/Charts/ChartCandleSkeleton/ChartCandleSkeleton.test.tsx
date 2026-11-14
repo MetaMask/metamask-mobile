@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, within } from '@testing-library/react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { mockTheme } from '../../../../util/theme';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import ChartCandleSkeleton from './ChartCandleSkeleton';
@@ -8,7 +9,13 @@ jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => 'HIGH'),
 }));
 
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated'),
+  useReducedMotion: jest.fn(() => false),
+}));
+
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
+const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
 const ID = 'chart-candle-skeleton';
 const HEIGHT = 350;
@@ -37,6 +44,10 @@ const flatStyle = (style: unknown): Record<string, unknown> => {
 };
 
 describe('ChartCandleSkeleton', () => {
+  beforeEach(() => {
+    mockUseReducedMotion.mockReturnValue(false);
+  });
+
   const styleOf = (
     getByTestId: ReturnType<typeof render>['getByTestId'],
     suffix: string,
@@ -184,6 +195,20 @@ describe('ChartCandleSkeleton', () => {
       expect(within(marks).getByTestId(`${ID}-candle-0`)).toBeOnTheScreen();
     },
   );
+
+  it('renders the marks static when Reduce Motion is on', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+    mockGetHardwareTier.mockReturnValue('HIGH');
+
+    const { getByTestId, queryByTestId } = render(
+      <ChartCandleSkeleton height={HEIGHT} />,
+    );
+    const marks = getByTestId(`${ID}-static`);
+
+    expect(queryByTestId(`${ID}-pulse`)).toBeNull();
+    expect(flatStyle(marks.props.style).opacity).toBe(0.2);
+    expect(within(marks).getByTestId(`${ID}-candle-0`)).toBeOnTheScreen();
+  });
 
   it.each([
     ['perps-market-details-view-chart-skeleton', true],
