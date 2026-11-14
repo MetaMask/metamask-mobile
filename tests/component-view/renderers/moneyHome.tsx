@@ -112,8 +112,8 @@ export function renderMoneyHomeVbaCard(
   const kycController = Engine.context.KycController as unknown as {
     state: { sessionStatus: KycSessionFixture };
   };
-  const previousKycState = kycController.state;
   restoreMoneyHomeKycState?.();
+  const previousKycState = kycController.state;
   kycController.state = { sessionStatus };
   restoreMoneyHomeKycState = (): void => {
     kycController.state = previousKycState;
