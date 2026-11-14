@@ -211,6 +211,16 @@ describe('ReactionPickerBalloon', () => {
     fireEvent.press(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
     );
+    expect(onClose).not.toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(ReactionPickerBalloonSelectorsIDs.STRIP),
+      ).toHaveProp('scrollEnabled', true);
+    });
+    fireEvent.press(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.SCRIM),
+    );
 
     await waitFor(() => {
       expect(onClose).toHaveBeenCalledTimes(1);
