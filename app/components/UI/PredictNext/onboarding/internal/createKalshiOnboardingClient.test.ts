@@ -6,6 +6,7 @@ import {
 } from '../../adapters/remote/KalshiOnboardingClient';
 import { createP256DeviceKey } from '../../auth/p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../auth/venueAuthProfiles';
+import { getPredictApiUrl } from '../../config/predictClusterUrls';
 import { createKalshiOnboardingClient } from './createKalshiOnboardingClient';
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -70,9 +71,7 @@ describe('createKalshiOnboardingClient', () => {
     await expect(options.signDeviceProof(message)).resolves.toBe(message);
     options.invalidateA2t();
 
-    // Babel inlines `process.env.MM_PREDICT_API_URL` in the factory, so the
-    // expected value is that same expression, not a runtime assignment.
-    expect(options.baseUrl).toBe(process.env.MM_PREDICT_API_URL);
+    expect(options.baseUrl).toBe(getPredictApiUrl());
     expect(options.clientVersion).toBe(packageJSON.version);
     expect(getBearerToken).toHaveBeenCalledTimes(1);
     expect(messengerCall).toHaveBeenCalledWith(

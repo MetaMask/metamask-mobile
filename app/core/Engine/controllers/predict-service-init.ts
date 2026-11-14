@@ -31,6 +31,7 @@ import type { MessengerClientInitFunction } from '../types';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { createOrderDispatchJournal } from '../../../components/UI/PredictNext/services/internal/orderDispatchJournal';
 import { bindOrderRecoveryLifecycle } from '../../../components/UI/PredictNext/services/internal/orderRecoveryLifecycle';
+import { getPredictApiUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
   parsePredictConfig,
   resolveVenueAuthProfile,
@@ -43,7 +44,7 @@ export const predictMarketDataServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger }) => {
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
-      baseUrl: process.env.MM_PREDICT_API_URL,
+      baseUrl: getPredictApiUrl(),
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
@@ -70,7 +71,7 @@ export const predictLiveDataServiceInit: MessengerClientInitFunction<
       initMessenger.call('PredictMarketDataService:getEvent', venueId, eventId),
     createClient: ({ onGameUpdate, onQuoteUpdate }) =>
       new PredictLiveDataClient({
-        baseUrl: process.env.MM_PREDICT_API_URL,
+        baseUrl: getPredictApiUrl(),
         getBearerToken: () =>
           initMessenger.call('AuthenticationController:getBearerToken'),
         onGameUpdate,
@@ -88,7 +89,7 @@ export const predictPortfolioServiceInit: MessengerClientInitFunction<
 > = ({ controllerMessenger, initMessenger }) => {
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
-      baseUrl: process.env.MM_PREDICT_API_URL,
+      baseUrl: getPredictApiUrl(),
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),
@@ -122,7 +123,7 @@ export const predictOrderServiceInit: MessengerClientInitFunction<
   // the Engine-registered data services' cached reads.
   const adapter = new KalshiRemoteAdapter(
     new PredictApiReadClient({
-      baseUrl: process.env.MM_PREDICT_API_URL,
+      baseUrl: getPredictApiUrl(),
       clientVersion: packageJSON.version,
       getBearerToken: () =>
         initMessenger.call('AuthenticationController:getBearerToken'),

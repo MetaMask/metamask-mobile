@@ -105,8 +105,8 @@ A composition root may build the enabled graph and own initialization/teardown. 
 
 `PredictDeviceAuthService` is an Engine-owned stateless capability service. It
 owns the unlocked P-256 key and in-memory A2T lifecycle, delegates only the
-Authentication, Keyring, feature-flag, and message-signing Snap dependencies it
-needs, and exposes no generic signing action. PredictNext may ask it to prepare
+Authentication, Keyring, and feature-flag dependencies it needs, and exposes
+no generic signing action. PredictNext may ask it to prepare
 credentials without blocking rendering. Lock, identity replacement, flag
 disable, and wallet reset invalidate the appropriate credentials independently
 of React mount state. The service binds a bundled authentication profile to an

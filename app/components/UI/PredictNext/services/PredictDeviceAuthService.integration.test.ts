@@ -29,6 +29,13 @@ const jsonResponse = (status: number, body: unknown): Response =>
     json: async () => body,
   }) as Response;
 
+const tokenResponse = (accessToken: string, expiresIn = 900): Response =>
+  jsonResponse(200, {
+    access_token: accessToken,
+    expires_in: expiresIn,
+    token_type: 'bearer',
+  });
+
 // The mobile TypeScript library target is ES2022, before Promise.withResolvers.
 const deferred = <T>() => {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -40,13 +47,13 @@ const deferred = <T>() => {
 
 describe('PredictDeviceAuthService integration', () => {
   const originalFetch = global.fetch;
-  const originalIssuerUrl = process.env.MM_A2T_URL;
+  const originalIssuerUrl = process.env.MM_PREDICT_A2T_URL;
   let stored: string | null;
   let secureItems: Map<string, string>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.MM_A2T_URL = 'https://issuer.example';
+    process.env.MM_PREDICT_A2T_URL = 'https://issuer.example';
     stored = null;
     secureItems = new Map();
     jest
@@ -77,33 +84,15 @@ describe('PredictDeviceAuthService integration', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    process.env.MM_A2T_URL = originalIssuerUrl;
+    process.env.MM_PREDICT_A2T_URL = originalIssuerUrl;
     jest.restoreAllMocks();
   });
 
   it('issues once, reuses the cache, and follows Engine lifecycle boundaries', async () => {
     const fetchMock = jest
       .fn()
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '11111111-1111-4111-8111-111111111111',
-          srpMessage: 'metamask:nonce:0xabc',
-          expiresIn: 120,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, { a2t: 'opaque-a2t', expiresIn: 900 }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '22222222-2222-4222-8222-222222222222',
-          srpMessage: 'metamask:nonce-2:0xabc',
-          expiresIn: 120,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, { a2t: 'replacement-a2t', expiresIn: 900 }),
-      );
+      .mockResolvedValueOnce(tokenResponse('opaque-a2t'))
+      .mockResolvedValueOnce(tokenResponse('replacement-a2t'));
     global.fetch = fetchMock;
     const harness = buildPredictDeviceAuthIntegrationHarness();
 
@@ -119,7 +108,25 @@ describe('PredictDeviceAuthService integration', () => {
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),
     ).resolves.toBe('opaque-a2t');
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [tokenUrl, request] = fetchMock.mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    const body = JSON.parse(String(request.body)) as {
+      device_public_key: string;
+      salt: string;
+    };
+    expect(tokenUrl).toBe('https://issuer.example/api/v2/kalshi/token');
+    expect(request.method).toBe('POST');
+    expect(request.headers).toEqual(
+      expect.objectContaining({
+        Authorization: 'Bearer access-token',
+      }),
+    );
+    expect(Object.keys(body)).toEqual(['device_public_key', 'salt']);
+    expect(body.device_public_key.length).toBeGreaterThan(0);
+    expect(body.salt.length).toBeGreaterThan(0);
 
     harness.authenticationState.isSignedIn = false;
     harness.emit('AuthenticationController:stateChange');
@@ -127,7 +134,7 @@ describe('PredictDeviceAuthService integration', () => {
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),
     ).resolves.toBeUndefined();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
 
     harness.authenticationState.isSignedIn = true;
     harness.authenticationState.srpSessionData[
@@ -138,7 +145,7 @@ describe('PredictDeviceAuthService integration', () => {
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),
     ).resolves.toBe('replacement-a2t');
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
 
     harness.featureFlagState.remoteFeatureFlags.predictConfig.enabled = false;
     harness.emit('RemoteFeatureFlagController:stateChange');
@@ -159,18 +166,7 @@ describe('PredictDeviceAuthService integration', () => {
   });
 
   it('cryptographically binds a reconciliation read to the server challenge', async () => {
-    global.fetch = jest
-      .fn()
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '11111111-1111-4111-8111-111111111111',
-          srpMessage: 'metamask:nonce:0xabc',
-          expiresIn: 120,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, { a2t: 'opaque-a2t', expiresIn: 900 }),
-      );
+    global.fetch = jest.fn().mockResolvedValueOnce(tokenResponse('opaque-a2t'));
     const harness = buildPredictDeviceAuthIntegrationHarness();
     const proposed = {
       method: 'GET' as const,
@@ -238,13 +234,6 @@ describe('PredictDeviceAuthService integration', () => {
   it('fails issuance without caching an issuer error', async () => {
     const fetchMock = jest
       .fn()
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '11111111-1111-4111-8111-111111111111',
-          srpMessage: 'metamask:nonce:0xabc',
-          expiresIn: 120,
-        }),
-      )
       .mockResolvedValueOnce(jsonResponse(503, { message: 'unavailable' }));
     global.fetch = fetchMock;
     const harness = buildPredictDeviceAuthIntegrationHarness();
@@ -255,7 +244,7 @@ describe('PredictDeviceAuthService integration', () => {
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),
     ).rejects.toThrow('A2T request failed with status 503');
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('restores the persisted key across service instances and rotates it on reset', async () => {
@@ -283,26 +272,8 @@ describe('PredictDeviceAuthService integration', () => {
     let now = 1_000;
     const fetchMock = jest
       .fn()
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '11111111-1111-4111-8111-111111111111',
-          srpMessage: 'metamask:first:0xabc',
-          expiresIn: 120,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, { a2t: 'first-a2t', expiresIn: 61 }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, {
-          challengeId: '22222222-2222-4222-8222-222222222222',
-          srpMessage: 'metamask:second:0xabc',
-          expiresIn: 120,
-        }),
-      )
-      .mockResolvedValueOnce(
-        jsonResponse(200, { a2t: 'second-a2t', expiresIn: 900 }),
-      );
+      .mockResolvedValueOnce(tokenResponse('first-a2t', 61))
+      .mockResolvedValueOnce(tokenResponse('second-a2t'));
     global.fetch = fetchMock;
     const harness = buildPredictDeviceAuthIntegrationHarness({
       now: () => now,
@@ -316,43 +287,34 @@ describe('PredictDeviceAuthService integration', () => {
     await expect(
       harness.messenger.call('PredictDeviceAuthService:getA2t'),
     ).resolves.toBe('second-a2t');
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it.each(['lock', 'reset'] as const)(
     'does not let issuance refill the cache after %s',
     async (clearBoundary) => {
-      let releaseChallenge: (response: Response) => void = () => undefined;
-      const pendingChallenge = new Promise<Response>((resolve) => {
-        releaseChallenge = resolve;
+      let releaseToken: (response: Response) => void = () => undefined;
+      const pendingToken = new Promise<Response>((resolve) => {
+        releaseToken = resolve;
       });
-      let markChallengeStarted: () => void = () => undefined;
-      const challengeStarted = new Promise<void>((resolve) => {
-        markChallengeStarted = resolve;
+      let markTokenStarted: () => void = () => undefined;
+      const tokenStarted = new Promise<void>((resolve) => {
+        markTokenStarted = resolve;
       });
       const fetchMock = jest
         .fn()
         .mockImplementationOnce(() => {
-          markChallengeStarted();
-          return pendingChallenge;
+          markTokenStarted();
+          return pendingToken;
         })
-        .mockResolvedValueOnce(
-          jsonResponse(200, {
-            challengeId: '22222222-2222-4222-8222-222222222222',
-            srpMessage: 'metamask:fresh:0xabc',
-            expiresIn: 120,
-          }),
-        )
-        .mockResolvedValueOnce(
-          jsonResponse(200, { a2t: 'fresh-a2t', expiresIn: 900 }),
-        );
+        .mockResolvedValueOnce(tokenResponse('fresh-a2t'));
       global.fetch = fetchMock;
       const harness = buildPredictDeviceAuthIntegrationHarness();
 
       const staleIssuance = harness.messenger.call(
         'PredictDeviceAuthService:getA2t',
       );
-      await challengeStarted;
+      await tokenStarted;
       if (clearBoundary === 'lock') {
         harness.keyringState.isUnlocked = false;
         harness.emit('KeyringController:lock');
@@ -360,19 +322,13 @@ describe('PredictDeviceAuthService integration', () => {
       } else {
         await harness.messenger.call('PredictDeviceAuthService:reset');
       }
-      releaseChallenge(
-        jsonResponse(200, {
-          challengeId: '11111111-1111-4111-8111-111111111111',
-          srpMessage: 'metamask:stale:0xabc',
-          expiresIn: 120,
-        }),
-      );
+      releaseToken(tokenResponse('stale-a2t'));
 
       await expect(staleIssuance).rejects.toThrow('A2T session was cleared');
       await expect(
         harness.messenger.call('PredictDeviceAuthService:getA2t'),
       ).resolves.toBe('fresh-a2t');
-      expect(fetchMock).toHaveBeenCalledTimes(3);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
     },
   );
 
@@ -381,16 +337,7 @@ describe('PredictDeviceAuthService integration', () => {
     async (lane) => {
       global.fetch = jest
         .fn()
-        .mockResolvedValueOnce(
-          jsonResponse(200, {
-            challengeId: '11111111-1111-4111-8111-111111111111',
-            srpMessage: 'metamask:nonce:0xabc',
-            expiresIn: 120,
-          }),
-        )
-        .mockResolvedValueOnce(
-          jsonResponse(200, { a2t: 'opaque-a2t', expiresIn: 900 }),
-        );
+        .mockResolvedValueOnce(tokenResponse('opaque-a2t'));
       const harness = buildPredictDeviceAuthIntegrationHarness();
       await harness.messenger.call('PredictDeviceAuthService:getA2t');
       const cryptoStarted = deferred<void>();

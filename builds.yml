@@ -43,9 +43,10 @@ _api_prod: &api_prod
   REWARDS_MONEY_API_URL: 'https://rewards-money.api.cx.metamask.io'
   BAANX_API_URL: 'https://api.baanx.com'
   CARD_API_URL: 'https://card.api.cx.metamask.io'
-  # Predict has no UAT/prod deployment yet, so every cluster (prod/uat/dev)
-  # bundles the dev predict-api host. Override via local .js.env if needed.
-  MM_PREDICT_API_URL: 'https://predict-api.dev-api.cx.metamask.io'
+  # Predict hosts are not set here. The app follows MM_API_ENV: dev and a
+  # local development build use the dev API and A2T issuer, uat uses the UAT
+  # hosts, and prod stays blank. A non-empty MM_PREDICT_API_URL or
+  # MM_PREDICT_A2T_URL in .js.env overrides that.
 
 _public_envs: &public_envs # Production hosts plus build flags
   <<: *api_prod
