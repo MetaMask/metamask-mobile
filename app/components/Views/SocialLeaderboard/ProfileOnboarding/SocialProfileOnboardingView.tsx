@@ -1518,7 +1518,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                           <Icon
                             name={IconName.Check}
                             size={IconSize.Sm}
-                            color={IconColor.PrimaryDefault}
+                            color={IconColor.SuccessDefault}
                           />
                         ) : undefined
                       }
