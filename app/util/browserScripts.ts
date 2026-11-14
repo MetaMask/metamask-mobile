@@ -539,6 +539,10 @@ true;`;
  * native load, because `srcdoc` would run text or data as HTML in the
  * embedding page.
  *
+ * The HTML spec keeps using `srcdoc` until that attribute is removed, even
+ * after `src` changes. A later non-blob `src`, or a blob that stays on the
+ * native load, removes the `srcdoc` this script wrote.
+ *
  * The built script must not contain a NUL character. iOS passes it to WebKit
  * as a C string, which ends at the first NUL.
  */
@@ -614,6 +618,26 @@ export const buildBlobIframeSrcdocScript = (): string =>
     };
   }
 
+  // srcdoc wins over src while the attribute exists, including when its value
+  // is empty, so removeAttribute is what drops it. Callers write src first: a
+  // src write does nothing while srcdoc exists, and the removal then starts
+  // one load, of the new src. Removing srcdoc first would start a load of the
+  // previous src. The attribute is removed only while it still holds the HTML
+  // this shim wrote, so a srcdoc the page wrote itself stays in place.
+  function clearRewrittenSrcdoc(iframe) {
+    var written = iframe ? iframe.__mmBlobSrcdoc : null;
+    if (typeof written !== 'string') {
+      return;
+    }
+    iframe.__mmBlobSrcdoc = null;
+    if (
+      iframe.srcdoc === written &&
+      typeof iframe.removeAttribute === 'function'
+    ) {
+      iframe.removeAttribute('srcdoc');
+    }
+  }
+
   // Assign the native blob URL once and leave __mmBlobRendered set. Clearing
   // the marker before the assignment makes the src observer call renderBlob
   // again, which reads the same blob and assigns src forever.
@@ -625,6 +649,7 @@ export const buildBlobIframeSrcdocScript = (): string =>
         srcDescriptor.set.call(iframe, blobUrl);
       }
     } catch (e) {}
+    clearRewrittenSrcdoc(iframe);
   }
 
   function loadBlob(blobUrl) {
@@ -669,6 +694,8 @@ export const buildBlobIframeSrcdocScript = (): string =>
         // The HTML is copied as is. A srcdoc document resolves relative URLs
         // against the embedding document, so no <base> element is inserted.
         iframe.srcdoc = html;
+        // Remember what was written so a later src can remove it.
+        iframe.__mmBlobSrcdoc = html;
       });
     }).catch(function () {
       if (iframe.__mmBlobRendered !== blobUrl) {
@@ -691,6 +718,8 @@ export const buildBlobIframeSrcdocScript = (): string =>
       }
       this.__mmBlobRendered = '';
       srcDescriptor.set.call(this, value);
+      // The new URL does not load while our srcdoc remains.
+      clearRewrittenSrcdoc(this);
     },
   });
 

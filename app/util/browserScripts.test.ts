@@ -404,6 +404,177 @@ describe('buildBlobIframeSrcdocScript', () => {
     expect(iframe.srcdoc).toBeUndefined();
   });
 
+  // srcdoc precedence lives in the injected page script. Component-view and
+  // integration runners never install that setter, so this stays a unit test.
+  describe('after a blob was rewritten to srcdoc', () => {
+    interface BlobParts {
+      type?: string;
+      text?: () => Promise<string>;
+    }
+
+    const installSrcFrame = (
+      fetchImpl: (url: string) => Promise<{
+        blob: () => Promise<BlobParts>;
+      }> = () => Promise.reject(new Error('fetch should not run')),
+    ) => {
+      // One ordered log, because the order of the two writes decides how many
+      // loads the browser starts.
+      const writes: string[] = [];
+      const frameProto: object = {};
+      Object.defineProperty(frameProto, 'src', {
+        configurable: true,
+        get(this: { _src?: string }) {
+          return this._src || '';
+        },
+        set(this: { _src?: string }, value: string) {
+          writes.push(`src=${value}`);
+          this._src = value;
+        },
+      });
+      const iframeProto = Object.create(frameProto);
+      const iframe = Object.create(iframeProto);
+      iframe.removeAttribute = function (
+        this: { srcdoc?: string },
+        name: string,
+      ) {
+        writes.push(`removeAttribute(${name})`);
+        if (String(name).toLowerCase() === 'srcdoc') {
+          delete this.srcdoc;
+        }
+      };
+      let blobCount = 0;
+      const sandbox: Record<string, unknown> = {
+        HTMLIFrameElement: function HTMLIFrameElement() {
+          return undefined;
+        },
+        Map,
+        setTimeout,
+        location: { href: 'https://www.tradingview.com/widget' },
+        document: {
+          readyState: 'complete',
+          documentElement: {},
+          addEventListener() {
+            return undefined;
+          },
+        },
+        MutationObserver: class {
+          observe() {
+            return undefined;
+          }
+        },
+        fetch: fetchImpl,
+        URL: {
+          createObjectURL: () => `blob:https://example.com/${blobCount++}`,
+          revokeObjectURL() {
+            return undefined;
+          },
+        },
+      };
+      (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
+        iframeProto;
+      install(sandbox);
+
+      return {
+        writes,
+        iframe,
+        createObjectURL: (
+          sandbox.URL as { createObjectURL: (blob: BlobParts) => string }
+        ).createObjectURL,
+      };
+    };
+
+    // A src write does nothing while srcdoc exists. Removing srcdoc afterwards
+    // starts one load, of the new URL. The reverse order would first start a
+    // load of whatever src held before.
+    it('writes a later non-blob src and then removes the rewritten srcdoc', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(writes).toEqual([
+        'src=https://example.com/embed',
+        'removeAttribute(srcdoc)',
+      ]);
+      expect(iframe.srcdoc).toBeUndefined();
+    });
+
+    it('writes a later pdf blob src and then removes the rewritten srcdoc', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+      const pdfUrl = createObjectURL({
+        type: 'application/pdf',
+        text: () => Promise.resolve('%PDF-1.7'),
+      });
+
+      iframe.src = pdfUrl;
+
+      expect(writes).toEqual([`src=${pdfUrl}`, 'removeAttribute(srcdoc)']);
+      expect(iframe.srcdoc).toBeUndefined();
+    });
+
+    it('leaves a page-authored srcdoc in place when src changes', () => {
+      const { writes, iframe } = installSrcFrame();
+      iframe.srcdoc = '<p>turnstile</p>';
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(iframe.srcdoc).toBe('<p>turnstile</p>');
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+
+    it('leaves a srcdoc the page wrote over the rewritten one', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      await flush();
+      iframe.srcdoc = '<p>turnstile</p>';
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(iframe.srcdoc).toBe('<p>turnstile</p>');
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+
+    it('ignores a blob read that finishes after src leaves the blob URL', async () => {
+      let resolveHtml: (html: string) => void = () => undefined;
+      const htmlReady = new Promise<string>((resolve) => {
+        resolveHtml = resolve;
+      });
+      const { writes, iframe } = installSrcFrame(() =>
+        Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/html',
+              text: () => htmlReady,
+            }),
+        }),
+      );
+      iframe.src = 'blob:https://example.com/chart';
+      await flush();
+
+      iframe.src = 'https://example.com/embed';
+      resolveHtml('<html><head></head><body>chart</body></html>');
+      await flush();
+
+      expect(iframe.srcdoc).toBeUndefined();
+      expect(writes).toEqual(['src=https://example.com/embed']);
+    });
+  });
+
   // The re-entry loop lives in the injected page script. Component-view and
   // integration runners never install that MutationObserver, so this stays a
   // unit test of the script itself.
