@@ -195,6 +195,9 @@ const config = {
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+    // CI scripts are .mts. Unit tests import the pure helpers. The test:unit
+    // path filter is still *.test.ts, so *.test.mts files are not collected.
+    '^.+\\.mts$': ['babel-jest', { configFile: './babel.config.mts-jest.js' }],
     '^.+\\.cjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.mjs$': ['babel-jest', { configFile: './babel.config.tests.js' }],
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4|riv|ttf|otf)$':
