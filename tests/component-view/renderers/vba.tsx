@@ -6,6 +6,8 @@ import {
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSelector } from 'react-redux';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
@@ -15,8 +17,14 @@ import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/Mone
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
+import VbaOnboardingLoading from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingRoutes } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/routes';
-import { renderScreenWithRoutes } from '../render';
+import { useVbaHomeCard } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
+import { useVbaEligibility } from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import MoneyVbaHomeCard from '../../../app/components/UI/Money/components/MoneyVbaHomeCard';
+import { getMoneyHomeCard } from '../../../app/components/UI/Money/hooks/getMoneyHomeCard';
+import { selectUsableVbaAutoramp } from '../../../app/selectors/rampsController';
+import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
 export const VbaRendererTestIds = {
@@ -56,11 +64,9 @@ const bindVbaReduxServiceStore = (store: ReduxStore) => {
   };
 };
 
-interface RenderVbaOptions {
-  location?: string;
-  flagEnabled?: boolean;
+type RenderVbaOptions = NonNullable<Parameters<typeof initialStateVba>[0]> & {
   overrides?: DeepPartial<RootState>;
-}
+};
 
 const VbaTermsCaller = () => {
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -136,12 +142,8 @@ const VbaCardHomeCaller = (): React.ReactElement => {
   );
 };
 
-const buildVbaState = ({
-  location,
-  flagEnabled,
-  overrides,
-}: RenderVbaOptions) => {
-  const builder = initialStateVba({ location, flagEnabled });
+const buildVbaState = ({ overrides, ...presetOptions }: RenderVbaOptions) => {
+  const builder = initialStateVba(presetOptions);
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -233,6 +235,101 @@ export const renderVbaCardHomeEntry = (
         name: Routes.RAMP.VBA_DETAILS,
         Component: VbaDetails as unknown as React.ComponentType,
       },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+const VBA_PROBED_ONBOARDING_ROUTES = Object.values(VbaOnboardingRoutes).filter(
+  (name) => name !== VbaOnboardingRoutes.LOADING,
+);
+
+const ProbedOnboardingStack = createNativeStackNavigator();
+
+const VbaProbedOnboardingNavigator = () => (
+  <ProbedOnboardingStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProbedOnboardingStack.Screen
+      name={VbaOnboardingRoutes.LOADING}
+      component={VbaOnboardingLoading as unknown as React.ComponentType}
+    />
+    {VBA_PROBED_ONBOARDING_ROUTES.map((name) => (
+      <ProbedOnboardingStack.Screen
+        key={name}
+        name={name}
+        component={createRouteParamsProbe(name)}
+      />
+    ))}
+  </ProbedOnboardingStack.Navigator>
+);
+
+const VbaHomeCardHost = () => {
+  const vbaCard = useVbaHomeCard();
+  const { isEligible, isLoading } = useVbaEligibility();
+  const hasUsableAutoramp = Boolean(useSelector(selectUsableVbaAutoramp));
+  const homeCard = getMoneyHomeCard({
+    isEligibilityLoading: isLoading,
+    isMoneyBalanceLoading: false,
+    isCryptoBalanceLoading: false,
+    isCardStateResolved: true,
+    vbaCard,
+    isVbaEligible: isEligible,
+    hasCrypto: false,
+    hasUsableAutoramp,
+    isMoneyAccountFunded: false,
+    isCardLinked: false,
+    isResidencyBlocked: false,
+    isCardStepSkipped: false,
+    isKycDecisionDismissed: false,
+  });
+
+  return homeCard.type === 'vba' ? (
+    <MoneyVbaHomeCard variant={homeCard.variant} />
+  ) : null;
+};
+
+/**
+ * Money home VBA card. Its CTA lands on an onboarding params probe or the
+ * account details probe.
+ */
+export const renderVbaHomeCard = (options: RenderVbaOptions = {}) => {
+  const result = renderScreenWithRoutes(
+    VbaHomeCardHost,
+    { name: Routes.MONEY.HOME },
+    [
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component: VbaProbedOnboardingNavigator,
+      },
+      { name: Routes.RAMP.VBA_DETAILS },
+    ],
+    { state: buildVbaState(options) },
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return result;
+};
+
+/**
+ * Like {@link renderVbaMoneyEntry}, but the loading screen is real and every
+ * other onboarding route is a params probe.
+ */
+export const renderVbaMoneyEntryWithDestinationProbes = (
+  options: RenderVbaOptions = {},
+) => {
+  const result = renderScreenWithRoutes(
+    VbaMoneyCaller,
+    { name: 'VbaMoneyCaller' },
+    [
+      {
+        name: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+        Component: MoneyAddMoneySheet as unknown as React.ComponentType,
+      },
+      {
+        name: Routes.RAMP.VBA_ONBOARDING,
+        Component: VbaProbedOnboardingNavigator,
+      },
+      { name: Routes.RAMP.VBA_DETAILS },
     ],
     { state: buildVbaState(options) },
   );
