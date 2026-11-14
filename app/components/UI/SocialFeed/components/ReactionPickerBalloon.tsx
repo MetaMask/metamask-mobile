@@ -360,8 +360,7 @@ const ReactionPickerTray: React.FC<
   // Emoji stay inside the pill, on the button edge. Their fade follows the
   // grow, so they appear only after the pill has cleared the finger.
   const contentStyle = useAnimatedStyle(() => ({
-    opacity:
-      emojiOpacityForProgress(progress.value) * (1 - closeFade.value),
+    opacity: emojiOpacityForProgress(progress.value) * (1 - closeFade.value),
   }));
 
   const finishClose = (): void => {
@@ -404,6 +403,13 @@ const ReactionPickerTray: React.FC<
     requestClose();
   };
 
+  const handleScrimPress = (): void => {
+    if (!isReady || isClosing) {
+      return;
+    }
+    requestClose();
+  };
+
   return (
     <Modal
       transparent
@@ -414,7 +420,7 @@ const ReactionPickerTray: React.FC<
       <Pressable
         accessibilityRole="button"
         testID={ReactionPickerBalloonSelectorsIDs.SCRIM}
-        onPress={requestClose}
+        onPress={handleScrimPress}
         style={tw.style('absolute inset-0')}
       />
       <Animated.View
