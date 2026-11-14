@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.os.Build
+import android.util.Log
 import android.webkit.WebView
 import android.database.CursorWindow
 
@@ -26,6 +27,8 @@ import io.metamask.nativeModules.BrazePushPackage
 import io.metamask.nativeModules.NotificationPackage
 import io.metamask.nativeModules.PrivacyCoverPackage
 import io.metamask.nativeModules.HermesProfiler.HermesProfilerPackage
+import io.metamask.nativeModules.PerfSession.PerfSession
+import io.metamask.nativeModules.PerfSession.PerfSessionPackage
 import com.braze.Braze
 import com.braze.BrazeActivityLifecycleCallbackListener
 import com.braze.configuration.BrazeConfig
@@ -54,6 +57,9 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
                 if (BuildConfig.IS_PERFORMANCE_TEST) {
                     add(HermesProfilerPackage())
                 }
+                if (BuildConfig.PERF_SESSION_URL.isNotEmpty()) {
+                    add(PerfSessionPackage())
+                }
             },
         )
     }
@@ -69,6 +75,19 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Internal test builds only: sample from process start so cold start is covered.
+        // A sampler failure must never take the app down.
+        if (BuildConfig.PERF_SESSION_URL.isNotEmpty()) {
+            runCatching {
+                PerfSession.start(
+                    this,
+                    BuildConfig.PERF_SESSION_URL,
+                    BuildConfig.PERF_SESSION_KEY,
+                    BuildConfig.PERF_SESSION_ENV,
+                )
+            }.onFailure { Log.w("PerfSession", "Could not start", it) }
+        }
 
         // Fill the edge-to-edge host; HTML templates use --braze-safe-area-inset-* for content padding.
         // Braze defaults to 30s between triggered in-app messages; allow a

@@ -12,6 +12,11 @@ import {
   SPAN_STATUS_OK,
 } from '@sentry/core';
 import performance from 'react-native-performance';
+import {
+  recordPerfSpanEnd,
+  recordPerfSpanStart,
+  wrapPerfSpanCallback,
+} from '../core/Performance/perfSession';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
@@ -714,19 +719,23 @@ export function trace<T>(
   request: TraceRequest,
   fn?: TraceCallback<T>,
 ): T | TraceContext {
+  // Perf session spans (internal perf builds only) are recorded regardless of
+  // Sentry consent; only the name, id and timing leave the device.
   if (!fn) {
+    recordPerfSpanStart(request.name, request.id, request.startTime);
     startTimelineEntry(request);
     return startTrace(request);
   }
 
+  const perfFn = wrapPerfSpanCallback(request.name, request.id, fn);
   const timelineStart = getTimelineNow();
   if (timelineStart === undefined) {
-    return traceCallback(request, fn);
+    return traceCallback(request, perfFn);
   }
 
   let failed = false;
   return tryCatchMaybePromise(
-    () => traceCallback(request, fn),
+    () => traceCallback(request, perfFn),
     (error) => {
       failed = true;
       throw error;
@@ -996,6 +1005,7 @@ export function endTrace(request: EndTraceRequest): void {
 
 function endSentryTrace(request: EndTraceRequest): void {
   const { name, timestamp } = request;
+  recordPerfSpanEnd(name, request.id, request.status, timestamp);
   const id = getTraceId(request);
   const key = getTraceKey(request);
   const pendingTrace = tracesByKey.get(key);
