@@ -1,9 +1,12 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { renderHook } from '@testing-library/react-native';
 
 import { NameType } from '../../UI/Name/Name.types';
 import useDisplayName, {
   DisplayNameVariant,
   TrustSignalDisplayState,
+  UseDisplayNameRequest,
+  useDisplayNames,
 } from './useDisplayName';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { useERC20Tokens } from './useERC20Tokens';
@@ -56,6 +59,10 @@ jest.mock('../../Views/confirmations/hooks/useAddressTrustSignals', () => ({
   useAddressTrustSignals: jest.fn(),
 }));
 
+function runHook(request: UseDisplayNameRequest) {
+  return renderHook(() => useDisplayName(request)).result.current;
+}
+
 describe('useDisplayName', () => {
   const mockUseWatchedNFTNames = jest.mocked(useWatchedNFTNames);
   const mockUseFirstPartyContractNames = jest.mocked(
@@ -85,7 +92,7 @@ describe('useDisplayName', () => {
 
   describe('unknown address', () => {
     it('should not return a name', () => {
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: UNKNOWN_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -111,7 +118,7 @@ describe('useDisplayName', () => {
         KNOWN_FIRST_PARTY_CONTRACT_NAME,
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -133,7 +140,7 @@ describe('useDisplayName', () => {
     it('returns watched NFT name', () => {
       mockUseWatchedNFTNames.mockReturnValue([KNOWN_NFT_NAME_MOCK]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -166,7 +173,7 @@ describe('useDisplayName', () => {
         { name: KNOWN_TOKEN_LIST_NAME, image: '' },
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -192,7 +199,7 @@ describe('useDisplayName', () => {
     it('returns internal account name', () => {
       mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -209,7 +216,7 @@ describe('useDisplayName', () => {
     it('returns account wallet name', () => {
       mockUseAccountWalletNames.mockReturnValue([KNOWN_ACCOUNT_WALLET_NAME]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -227,7 +234,7 @@ describe('useDisplayName', () => {
         getResolvedENSName: jest.fn().mockReturnValue('ensname.eth'),
       } as unknown as ReturnType<typeof useSendFlowEnsResolutions>);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -248,7 +255,7 @@ describe('useDisplayName', () => {
       ]);
       mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -268,7 +275,7 @@ describe('useDisplayName', () => {
       ]);
       mockUseAccountNames.mockReturnValue([KNOWN_ACCOUNT_NAME]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -288,7 +295,7 @@ describe('useDisplayName', () => {
         { state: TrustSignalDisplayState.Warning, label: null },
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: UNKNOWN_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -309,7 +316,7 @@ describe('useDisplayName', () => {
         KNOWN_FIRST_PARTY_CONTRACT_NAME,
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -328,7 +335,7 @@ describe('useDisplayName', () => {
         { state: TrustSignalDisplayState.Verified, label: 'Verified Label' },
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: UNKNOWN_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -347,7 +354,7 @@ describe('useDisplayName', () => {
         { state: TrustSignalDisplayState.Unknown, label: null },
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: UNKNOWN_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -366,7 +373,7 @@ describe('useDisplayName', () => {
         { state: TrustSignalDisplayState.Unknown, label: 'Scan Label' },
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: UNKNOWN_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -387,7 +394,7 @@ describe('useDisplayName', () => {
         KNOWN_FIRST_PARTY_CONTRACT_NAME,
       ]);
 
-      const displayName = useDisplayName({
+      const displayName = runHook({
         type: NameType.EthereumAddress,
         value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
         variation: CHAIN_IDS.MAINNET,
@@ -399,6 +406,84 @@ describe('useDisplayName', () => {
           displayState: TrustSignalDisplayState.Recognized,
         }),
       );
+    });
+  });
+
+  describe('referential stability', () => {
+    const REQUEST_MOCK: UseDisplayNameRequest = {
+      type: NameType.EthereumAddress,
+      value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+      variation: CHAIN_IDS.MAINNET,
+    };
+
+    beforeEach(() => {
+      // Mirror the real sub-hooks, which return a new array on every render.
+      mockUseFirstPartyContractNames.mockImplementation(() => [null]);
+      mockUseWatchedNFTNames.mockImplementation(() => [null]);
+      mockUseERC20Tokens.mockImplementation(() => [undefined]);
+      mockUseAccountNames.mockImplementation(() => [KNOWN_ACCOUNT_NAME]);
+      mockUseAccountWalletNames.mockImplementation(() => []);
+      mockUseAddressTrustSignals.mockImplementation(() => [
+        { state: TrustSignalDisplayState.Unknown, label: null },
+      ]);
+    });
+
+    it('returns the same array when rerendered with equal requests', () => {
+      const { result, rerender } = renderHook(
+        (requests: UseDisplayNameRequest[]) => useDisplayNames(requests),
+        { initialProps: [REQUEST_MOCK] },
+      );
+      const firstResult = result.current;
+
+      rerender([{ ...REQUEST_MOCK }]);
+
+      expect(result.current).toBe(firstResult);
+      expect(result.current[0]).toBe(firstResult[0]);
+    });
+
+    it('returns a new array when a resolved name changes', () => {
+      const { result, rerender } = renderHook(
+        (requests: UseDisplayNameRequest[]) => useDisplayNames(requests),
+        { initialProps: [REQUEST_MOCK] },
+      );
+      const firstResult = result.current;
+
+      mockUseAccountNames.mockImplementation(() => ['Account 2']);
+      rerender([REQUEST_MOCK]);
+
+      expect(result.current).not.toBe(firstResult);
+      expect(result.current[0].name).toBe('Account 2');
+    });
+
+    it('picks up an ENS name resolved after the first render', () => {
+      mockUseAccountNames.mockImplementation(() => [undefined]);
+      mockGetResolvedENSName.mockReturnValue(undefined);
+
+      const { result, rerender } = renderHook(
+        (requests: UseDisplayNameRequest[]) => useDisplayNames(requests),
+        { initialProps: [REQUEST_MOCK] },
+      );
+
+      expect(result.current[0].name).toBeUndefined();
+
+      mockGetResolvedENSName.mockReturnValue('ensname.eth');
+      rerender([REQUEST_MOCK]);
+
+      expect(result.current[0].name).toBe('ensname.eth');
+    });
+
+    it('passes a stable requests array to sub-hooks when useDisplayName receives an equal request', () => {
+      const { result, rerender } = renderHook(
+        (request: UseDisplayNameRequest) => useDisplayName(request),
+        { initialProps: REQUEST_MOCK },
+      );
+      const firstResult = result.current;
+
+      rerender({ ...REQUEST_MOCK });
+
+      const [firstCall, secondCall] = mockUseAccountNames.mock.calls;
+      expect(secondCall[0]).toBe(firstCall[0]);
+      expect(result.current).toBe(firstResult);
     });
   });
 });
