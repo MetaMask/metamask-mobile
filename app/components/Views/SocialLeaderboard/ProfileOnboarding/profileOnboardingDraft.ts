@@ -1,8 +1,8 @@
 import type { CreateProfileParams } from '@metamask/profile-controller';
 import type { CaipAccountId } from '@metamask/utils';
 import {
-  DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
-  DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
@@ -87,6 +87,19 @@ export const displayNameFromUsername = (value: string): string =>
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ');
 
+const pickRandom = <Item>(items: readonly Item[]): Item =>
+  items[Math.floor(Math.random() * items.length)];
+
+/** Middle of the color strip. The entrance glide looks uneven on the ends. */
+const STARTING_COLOR_COUNT = 3;
+const startingColorIndex = Math.floor(
+  (PROFILE_AVATAR_BACKGROUNDS.length - STARTING_COLOR_COUNT) / 2,
+);
+const STARTING_AVATAR_BACKGROUNDS = PROFILE_AVATAR_BACKGROUNDS.slice(
+  startingColorIndex,
+  startingColorIndex + STARTING_COLOR_COUNT,
+);
+
 export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
   const username = generateUsername();
   return {
@@ -99,8 +112,8 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     xUsername: null,
     xDisplayName: null,
     xAvatarUrl: null,
-    avatarPresetId: DEFAULT_PROFILE_AVATAR_PRESET_ID,
-    avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+    avatarPresetId: pickRandom(PROFILE_AVATAR_PRESETS).id,
+    avatarBackgroundId: pickRandom(STARTING_AVATAR_BACKGROUNDS).id,
     linkedAccountId: null,
     linkedAccountAddress: null,
     shareTradingActivity: true,
