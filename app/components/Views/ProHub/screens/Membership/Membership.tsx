@@ -30,6 +30,7 @@ import {
   selectMoneyAccountPlusPricing,
   selectMoneyAccountPlusSubscription,
 } from '../../../../../selectors/subscriptionController';
+import { useOpenMembershipInvoices } from '../../hooks/useOpenMembershipInvoices';
 import { useResumeMembership } from '../../hooks/useResumeMembership';
 import {
   getMembershipManageAction,
@@ -180,6 +181,11 @@ const Membership = () => {
     isResuming,
     errorMessage: resumeErrorMessage,
   } = useResumeMembership();
+  const {
+    openInvoices,
+    isOpening: isOpeningInvoices,
+    errorMessage: invoicesErrorMessage,
+  } = useOpenMembershipInvoices();
   const manageAction = getMembershipManageAction(subscription);
 
   const handleBack = useCallback(() => {
@@ -187,8 +193,8 @@ const Membership = () => {
   }, [navigation]);
 
   const handleInvoices = useCallback(() => {
-    // TODO: navigate to invoices
-  }, []);
+    openInvoices().catch(() => undefined);
+  }, [openInvoices]);
 
   const handleContactSupport = useCallback(() => {
     // TODO: navigate to support
@@ -216,6 +222,22 @@ const Membership = () => {
     }
     AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
   }, [resumeErrorMessage]);
+
+  useEffect(() => {
+    if (!isOpeningInvoices) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.invoices_in_progress'),
+    );
+  }, [isOpeningInvoices]);
+
+  useEffect(() => {
+    if (!invoicesErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(invoicesErrorMessage);
+  }, [invoicesErrorMessage]);
 
   return (
     <View
@@ -389,7 +411,20 @@ const Membership = () => {
             label={strings('pro_hub.membership.invoices')}
             onPress={handleInvoices}
             testID={MembershipTestIds.INVOICES_ROW}
+            isDisabled={isOpeningInvoices}
+            isBusy={isOpeningInvoices}
           />
+          {invoicesErrorMessage ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              testID={MembershipTestIds.INVOICES_ERROR}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
+            >
+              {invoicesErrorMessage}
+            </Text>
+          ) : null}
           <ManageRow
             label={strings('pro_hub.membership.contact_support')}
             onPress={handleContactSupport}

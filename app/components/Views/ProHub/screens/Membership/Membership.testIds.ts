@@ -15,6 +15,7 @@ export const MembershipTestIds = {
   // Manage section
   MANAGE_SECTION: 'membership-manage-section',
   INVOICES_ROW: 'membership-invoices-row',
+  INVOICES_ERROR: 'membership-invoices-error',
   CONTACT_SUPPORT_ROW: 'membership-contact-support-row',
   CANCEL_MEMBERSHIP_ROW: 'membership-cancel-membership-row',
   RESUME_MEMBERSHIP_ROW: 'membership-resume-membership-row',
