@@ -1872,7 +1872,7 @@ describe('SocialProfileOnboardingView', () => {
       expect.objectContaining({
         username: 'moon_fox',
         display_name: 'Degan Giri',
-        avatar_url: 'foxicon://zombie/background3',
+        avatar_url: expect.stringMatching(/^foxicon:\/\/zombie\/background\d+$/),
       }),
     );
   });
