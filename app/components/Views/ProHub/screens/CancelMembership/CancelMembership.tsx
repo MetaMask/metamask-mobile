@@ -9,15 +9,22 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
 import {
+  buildPostCancellationHomeResetState,
   buildPostCancellationResetState,
   CANCELLATION_TIMINGS,
   getCancellationTiming,
+  getPostCancellationDestination,
+  POST_CANCELLATION_DESTINATIONS,
   shuffleCancelReasons,
   toCancellationReason,
+  type CancellationTiming,
+  type PostCancellationDestination,
 } from './CancelMembership.utils';
+import CancelPostCancelSheet from './components/CancelPostCancelSheet';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
 
@@ -28,6 +35,12 @@ const CANCEL_STEPS = {
 
 type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 
+/** Set once the cancellation request succeeds. Drives the post-cancel sheet. */
+interface CancelOutcome {
+  timing: CancellationTiming;
+  periodEndDate: string | undefined;
+}
+
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -37,6 +50,9 @@ const CancelMembership = () => {
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cancelOutcome, setCancelOutcome] = useState<CancelOutcome | null>(
+    null,
+  );
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -56,15 +72,29 @@ const CancelMembership = () => {
     navigation.goBack();
   }, [isSubmitting, navigation]);
 
-  const navigateToProHub = useCallback(() => {
-    if (isNavigatingRef.current) return;
-    isNavigatingRef.current = true;
-    // Reset instead of navigate so the stale cancel and membership screens are
-    // removed and Pro Hub sits directly above the origin screen.
-    navigation.dispatch((state) =>
-      CommonActions.reset(buildPostCancellationResetState(state)),
+  const resetAfterCancellation = useCallback(
+    (destination: PostCancellationDestination) => {
+      if (isNavigatingRef.current) return;
+      isNavigatingRef.current = true;
+      // Reset instead of navigate so the stale cancel and membership screens are
+      // removed. Period-end lands on Pro Hub; immediate lands on the origin screen.
+      navigation.dispatch((state) =>
+        CommonActions.reset(
+          destination === POST_CANCELLATION_DESTINATIONS.HOME
+            ? buildPostCancellationHomeResetState(state)
+            : buildPostCancellationResetState(state),
+        ),
+      );
+    },
+    [navigation],
+  );
+
+  const handleCancelOutcomeConfirm = useCallback(() => {
+    if (!cancelOutcome) return;
+    resetAfterCancellation(
+      getPostCancellationDestination(cancelOutcome.timing),
     );
-  }, [navigation]);
+  }, [cancelOutcome, resetAfterCancellation]);
 
   const handleCancelConfirm = useCallback(async () => {
     if (isSubmitting || isNavigatingRef.current) return;
@@ -95,7 +125,12 @@ const CancelMembership = () => {
         ...(cancellationReason ? { cancellationReason } : {}),
       });
 
-      navigateToProHub();
+      // Stay on this screen with the post-cancel sheet. isSubmitting stays true,
+      // so the screen cannot be left until "Got it" is pressed.
+      setCancelOutcome({
+        timing,
+        periodEndDate: formatSubscriptionPeriodEnd(currentPeriodEnd),
+      });
     } catch (error) {
       Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
         tags: {
@@ -106,7 +141,7 @@ const CancelMembership = () => {
       setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
       setIsSubmitting(false);
     }
-  }, [isSubmitting, selectedReasonId, navigateToProHub]);
+  }, [isSubmitting, selectedReasonId]);
 
   const handleReasonSelect = useCallback((id: string) => {
     setSelectedReasonId(id);
@@ -117,8 +152,9 @@ const CancelMembership = () => {
     setStayFeedback(value);
   }, []);
 
-  // Leaving is blocked while the cancel request is in flight: it would still
-  // cancel the membership but skip the redirect to Pro Hub.
+  // Leaving is blocked while the cancel request is in flight (it would still
+  // cancel the membership but skip the redirect) and while the post-cancel
+  // sheet is shown. isSubmitting stays true after success, so this covers both.
   const isLeaveBlocked = isSubmitting;
 
   // On the stay step, leaving via back gesture / hardware back should return
@@ -192,6 +228,13 @@ const CancelMembership = () => {
           onCancelConfirm={handleCancelConfirm}
           isSubmitting={isSubmitting}
           errorMessage={errorMessage}
+        />
+      )}
+      {cancelOutcome && (
+        <CancelPostCancelSheet
+          timing={cancelOutcome.timing}
+          periodEndDate={cancelOutcome.periodEndDate}
+          onConfirm={handleCancelOutcomeConfirm}
         />
       )}
     </SafeAreaView>
