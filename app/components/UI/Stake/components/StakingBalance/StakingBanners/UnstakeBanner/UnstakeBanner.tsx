@@ -1,13 +1,14 @@
 import React from 'react';
-import Banner, {
+import { StyleProp, View, ViewStyle } from 'react-native';
+import {
+  BannerAlert,
   BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../../../component-library/components/Banners/Banner';
-import Text from '../../../../../../../component-library/components/Texts/Text';
+  Text,
+} from '@metamask/design-system-react-native';
 import { renderUnstakingTimeRemaining } from './utils';
-import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
 
-export type UnstakingBannerProps = Pick<BannerProps, 'style'> & {
+export type UnstakingBannerProps = {
+  style?: StyleProp<ViewStyle>;
   timeRemaining: {
     days: number;
     hours: number;
@@ -21,16 +22,16 @@ const UnstakingBanner = ({
   amountEth,
   style,
 }: UnstakingBannerProps) => (
-  <Banner
-    severity={BannerAlertSeverity.Info}
-    variant={BannerVariant.Alert}
-    style={style}
-    description={
-      <Text testID="unstaking-banner">
-        {renderUnstakingTimeRemaining(timeRemaining, amountEth)}
-      </Text>
-    }
-  />
+  <View style={style}>
+    <BannerAlert
+      severity={BannerAlertSeverity.Info}
+      description={
+        <Text testID="unstaking-banner">
+          {renderUnstakingTimeRemaining(timeRemaining, amountEth)}
+        </Text>
+      }
+    />
+  </View>
 );
 
 export default UnstakingBanner;
