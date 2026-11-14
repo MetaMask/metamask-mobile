@@ -1889,8 +1889,13 @@ describe('useHomeDeepLinkEffects', () => {
     jest.useRealTimers();
   });
 
-  const arrangeMocks = () => {
+  const arrangeMocks = (
+    parentRouteName:
+      | typeof Routes.WALLET.HOME
+      | typeof Routes.MODAL.TRADE_WALLET_ACTIONS = Routes.WALLET.HOME,
+  ) => {
     const mockSetParams = jest.fn();
+    const mockReplaceParentParams = jest.fn();
     const mockOnPerpsTabsSelected = jest.fn();
     const mockOnNetworkSelectorSelected = jest.fn();
     const mockUseRoute = jest
@@ -1899,8 +1904,16 @@ describe('useHomeDeepLinkEffects', () => {
     return {
       mockNavigate,
       mockSetParams,
+      mockReplaceParentParams,
       navigation: {
         setParams: mockSetParams,
+        getParent: () => ({
+          getState: () => ({
+            index: 0,
+            routes: [{ name: parentRouteName }],
+          }),
+          replaceParams: mockReplaceParentParams,
+        }),
       } as unknown as NavigationProp<ParamListBase>,
       mockUseRoute,
       mockOnPerpsTabsSelected,
@@ -1912,6 +1925,7 @@ describe('useHomeDeepLinkEffects', () => {
     testName: string;
     params: Record<string, unknown>;
     isPerpsEnabled: boolean;
+    trade?: boolean;
     assertCase: (mocks: ReturnType<typeof arrangeMocks>) => void;
   }
 
@@ -1928,9 +1942,10 @@ describe('useHomeDeepLinkEffects', () => {
       },
     },
     {
-      testName: 'navigates to perps tab when initialTab is perps',
+      testName: 'clears perps params without replacing the Trade parent',
       params: { initialTab: 'perps' },
       isPerpsEnabled: true,
+      trade: true,
       assertCase: (mocks) => {
         expect(mocks.mockOnPerpsTabsSelected).toHaveBeenCalled();
         expect(mocks.mockSetParams).toHaveBeenCalledWith({ initialTab: null });
@@ -1961,8 +1976,11 @@ describe('useHomeDeepLinkEffects', () => {
     },
   ];
 
-  it.each(testCases)('$testName', ({ params, isPerpsEnabled, assertCase }) => {
-    const mocks = arrangeMocks();
+  it.each(testCases)('$testName', (testCase) => {
+    const { params, isPerpsEnabled, trade, assertCase } = testCase;
+    const mocks = arrangeMocks(
+      trade ? Routes.MODAL.TRADE_WALLET_ACTIONS : undefined,
+    );
 
     // Setup the mocked useRoute to return the provided params.
     mocks.mockUseRoute.mockReturnValue({
@@ -1986,6 +2004,14 @@ describe('useHomeDeepLinkEffects', () => {
 
     jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     assertCase(mocks);
+    if (trade) {
+      expect(mocks.mockReplaceParentParams).not.toHaveBeenCalled();
+    } else if (Object.keys(params).length > 0) {
+      expect(mocks.mockReplaceParentParams).toHaveBeenCalledWith({
+        screen: Routes.WALLET_VIEW,
+        pop: true,
+      });
+    }
   });
 });
 

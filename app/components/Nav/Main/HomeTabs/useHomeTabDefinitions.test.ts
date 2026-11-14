@@ -71,6 +71,9 @@ const renderDefinitions = (
     { state: initialRootState },
   );
 
+const flushMicrotasks = () =>
+  new Promise<void>((resolve) => queueMicrotask(resolve));
+
 describe('useHomeTabDefinitions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -209,13 +212,14 @@ describe('useHomeTabDefinitions', () => {
   });
 
   describe('native tab listeners', () => {
-    it('plays the haptic, tracks, runs the press effect and pops Home to its root', () => {
+    it('plays the haptic, tracks, runs the press effect and selects Home', async () => {
       const { result } = renderDefinitions();
       const home = result.current.tabs[0];
 
       result.current
         .getNativeTabListeners(home)({ navigation: mockNavigation })
         .tabPress?.();
+      await flushMicrotasks();
 
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -224,9 +228,38 @@ describe('useHomeTabDefinitions', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.WALLET_OPENED,
       );
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET_VIEW,
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('selects bare Home after native tabs replay retained params', async () => {
+      const { result } = renderDefinitions();
+      const home = result.current.tabs[0];
+      const navigation = {
+        navigate: jest.fn(),
+      } as unknown as NativeBottomTabNavigationProp<ParamListBase>;
+      const retainedParams = {
+        state: {
+          index: 1,
+          routes: [
+            { name: Routes.WALLET_VIEW },
+            { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
+          ],
+        },
+      };
+
+      result.current.getNativeTabListeners(home)({ navigation }).tabPress?.();
+      navigation.navigate(Routes.WALLET.HOME, retainedParams);
+      await flushMicrotasks();
+
+      expect(navigation.navigate).toHaveBeenNthCalledWith(
+        1,
+        Routes.WALLET.HOME,
+        retainedParams,
+      );
+      expect(navigation.navigate).toHaveBeenNthCalledWith(
+        2,
+        Routes.WALLET.HOME,
+      );
     });
 
     it('opens Activity with the bottom nav entry point', () => {

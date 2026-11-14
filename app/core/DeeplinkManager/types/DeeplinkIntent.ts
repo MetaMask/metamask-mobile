@@ -1,8 +1,8 @@
 /**
  * A deeplink target rendered as a tab inside the bottom `HOME_TABS` navigator
- * (e.g. Wallet, Trending, Browser). `params` may use React
- * Navigation's nested `{ screen, params }` form to reach a screen within the
- * tab's own stack.
+ * (e.g. Wallet, Trending, Browser). Wallet and Browser accept their leaf params
+ * directly, while retained child stacks also accept React Navigation's nested
+ * `{ screen, params }` form.
  */
 export interface HomeTabDeeplinkNavigationTarget {
   type: 'home-tab';
