@@ -474,6 +474,7 @@ const Routes = {
     POST_COMPOSER: 'SocialPostComposerView',
     PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
+    TRADER_PREVIEW_SHEET: 'SocialTraderPreviewSheet',
   },
   PREDICT: {
     ROOT: 'Predict',

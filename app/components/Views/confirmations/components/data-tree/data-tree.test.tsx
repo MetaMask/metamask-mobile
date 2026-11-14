@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import DataTree, { DataTreeInput } from './data-tree';
 import { PrimaryType, PrimaryTypeOrder } from '../../constants/signatures';
-import { NONE_DATE_VALUE } from '../../utils/date';
+import { NONE_DATE_VALUE, UINT48_MAX } from '../../utils/date';
 
 const timestamp = 1647359825; // March 15, 2022  15:57:05 UTC
 
@@ -155,5 +155,32 @@ describe('NoChangeSimulation', () => {
 
     expect(getByText('Expiry')).toBeDefined();
     expect(getByText(largeHexDate)).toBeDefined();
+  });
+
+  it('displays never expires for the max uint48 date value', async () => {
+    const { getByText } = renderWithProvider(
+      <DataTree
+        data={
+          {
+            expiration: {
+              type: 'uint48',
+              value: String(UINT48_MAX),
+            },
+          } as DataTreeInput
+        }
+        chainId="0x1"
+        primaryType={PrimaryType.PermitSingle}
+      />,
+      {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      },
+    );
+
+    expect(getByText('Expiration')).toBeDefined();
+    expect(getByText('Never expires')).toBeDefined();
   });
 });

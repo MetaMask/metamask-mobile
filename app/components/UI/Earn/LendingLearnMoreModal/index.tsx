@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import styleSheet from './LendingLearnMoreModal.styles';
 import { useStyles } from '../../../hooks/useStyles';
 import BottomSheet, {
@@ -52,6 +51,9 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import useEarnToken from '../hooks/useEarnToken';
 import { Hex } from 'viem';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -138,6 +140,7 @@ type EarnLendingLearnMoreModalRouteProp = RouteProp<
 const CHART_HEIGHT = 300; // Adjust to your chart's height
 
 export const LendingLearnMoreModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
@@ -288,7 +291,9 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('earn.how_it_works')}
         onClose={handleClose}
       />

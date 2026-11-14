@@ -14,7 +14,12 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  SectionDivider,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -39,6 +44,9 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
+import { usePredictLiveNowSection } from './components/PredictLiveNowSection/usePredictLiveNowSection';
+import { POPULAR_TODAY_FILTER_PARAMS } from './components/PredictPopularTodaySection/PredictPopularTodaySection';
+import { usePredictFilterOptions } from '../../hooks/usePredictFilterOptions';
 import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
@@ -152,6 +160,20 @@ const PredictHome: React.FC = () => {
     refetch: retryHome,
   } = usePredictTrendingSection();
   const showHomeError = Boolean(homeError) && homeMarkets.length === 0;
+
+  // Visibility signals for sections that can hide themselves (return null).
+  // Hoisting these lets us gate the surrounding dividers/padding/impression
+  // wrappers so hidden sections don't leave stray lines, empty gaps, or
+  // register phantom in-view impressions. Both sections call the same hooks
+  // internally and hit the same React Query cache keys, so there is exactly
+  // one underlying fetch shared between PredictHome and the section.
+  const { isEmpty: isLiveNowEmpty } = usePredictLiveNowSection();
+  const {
+    filterOptions: popularTodayFilterOptions,
+    isLoading: isPopularTodayLoading,
+  } = usePredictFilterOptions(POPULAR_TODAY_FILTER_PARAMS);
+  const isPopularTodayEmpty =
+    !isPopularTodayLoading && popularTodayFilterOptions.length === 0;
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
@@ -206,55 +228,79 @@ const PredictHome: React.FC = () => {
               </Text>
             </Box>
 
-            <Box twClassName="gap-8">
+            <Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.BeforePortfolio}
               />
-              <PredictPortfolioModule
-                isGlass={isGlass}
-                onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-              />
+              <Box twClassName="pb-3">
+                <PredictPortfolioModule
+                  isGlass={isGlass}
+                  onDepositWalletWithdrawPress={
+                    handleDepositWalletWithdrawPress
+                  }
+                />
+              </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPortfolio}
               />
-              <Box
-                testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
-                onLayout={registerSection(
-                  PredictEventValues.SECTION_ID.LIVE_NOW,
-                )}
-              >
-                <PredictLiveNowSection />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
               </Box>
+              {!isLiveNowEmpty && (
+                <Box
+                  testID={PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.LIVE_NOW,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictLiveNowSection />
+                </Box>
+              )}
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterLiveNow}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.CATEGORIES,
                 )}
+                twClassName="pt-3 pb-3"
               >
                 <PredictCategoriesSection />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterCategories}
               />
-              <Box
-                testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
-                onLayout={registerSection(
-                  PredictEventValues.SECTION_ID.POPULAR_TODAY,
-                )}
-              >
-                <PredictPopularTodaySection />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
               </Box>
+              {!isPopularTodayEmpty && (
+                <Box
+                  testID={PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION}
+                  onLayout={registerSection(
+                    PredictEventValues.SECTION_ID.POPULAR_TODAY,
+                  )}
+                  twClassName="pt-3 pb-3"
+                >
+                  <PredictPopularTodaySection />
+                </Box>
+              )}
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterPopularToday}
               />
+              <Box twClassName="-mx-4">
+                <SectionDivider />
+              </Box>
               <Box
                 testID={PredictHomeSelectorsIDs.TRENDING_IMPRESSION}
                 onLayout={registerSection(
                   PredictEventValues.SECTION_ID.TRENDING,
                 )}
+                twClassName="pt-3"
               >
                 <PredictTrendingSection />
               </Box>

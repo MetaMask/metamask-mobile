@@ -688,7 +688,7 @@ const MultichainPermissionsSummary = ({
                 variant={ButtonVariant.Secondary}
                 onPress={cancel}
                 size={ButtonBaseSize.Lg}
-                twClassName="mr-4 flex-1"
+                twClassName="flex-1"
                 testID={CommonSelectorsIDs.CANCEL_BUTTON}
               >
                 {strings('permissions.cancel')}

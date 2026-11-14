@@ -78,7 +78,7 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
-      gap={4}
+      gap={2}
     >
       <Button
         testID={TronStakingButtonsTestIds.UNSTAKE_BUTTON}

@@ -226,6 +226,7 @@ import {
   SocialLeaderboardOnboarding,
   SocialProfileOnboardingView,
   TradingSignalsSetupBottomSheet,
+  TraderPreviewSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -1353,7 +1354,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
+        options={{
+          ...slideFromRightNativeOptions,
+          fullScreenGestureEnabled: true,
+        }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1587,6 +1591,13 @@ const MainNavigator = () => {
             component={SocialProfileOnboardingView}
           />
         </NativeStack.Group>
+      )}
+      {isSocialV1Enabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL.TRADER_PREVIEW_SHEET}
+          component={TraderPreviewSheet}
+          options={transparentModalStackOptions}
+        />
       )}
       {isSocialExperienceEnabled && (
         <>

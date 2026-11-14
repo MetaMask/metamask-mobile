@@ -601,7 +601,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           </FeedCellSlideDurationContext.Provider>
           <Box
             pointerEvents="box-none"
-            twClassName="absolute top-5 left-0 right-0 items-center"
+            // Clips the glass pill while it is parked above the feed.
+            twClassName="absolute top-0 left-0 right-0 items-center overflow-hidden pt-5 pb-4"
           >
             <PendingPostsButton
               pendingNewCount={pendingNewCount}

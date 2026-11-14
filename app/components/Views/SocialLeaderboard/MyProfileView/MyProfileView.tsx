@@ -1382,8 +1382,14 @@ const MyProfileView: React.FC = () => {
                   <ProfilePostsLoadingState />
                 ) : privacyLoadError ? (
                   <SocialFeedError onRetry={handlePrivacyRetry} />
-                ) : (
-                  <Box paddingTop={4}>
+                ) : null}
+                {/* Hidden, not unmounted, on the positions tabs: every post
+                    mounts inside this scroll, so a remount rebuilds all of them. */}
+                {!isAwaitingPrivacy && !privacyLoadError ? (
+                  <Box
+                    paddingTop={4}
+                    twClassName={activeTab === 'posts' ? undefined : 'hidden'}
+                  >
                     <SocialFeed
                       scope="all"
                       chains={postsChains}
@@ -1401,7 +1407,7 @@ const MyProfileView: React.FC = () => {
                       testID={MyProfileViewSelectorsIDs.POSTS_LIST}
                     />
                   </Box>
-                )}
+                ) : null}
                 {activeTab !== 'posts' && isFetchingMorePositions ? (
                   <Box
                     alignItems={BoxAlignItems.Center}
