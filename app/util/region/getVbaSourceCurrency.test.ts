@@ -3,11 +3,13 @@ import { getVbaMarketForCountry, type VbaMarket } from './getVbaSourceCurrency';
 
 const brl: VbaMarket = { currency: 'BRL', regions: ['BR'] };
 const usd: VbaMarket = { currency: 'USD', regions: ['US'] };
+const eur: VbaMarket = { currency: 'EUR', regions: ['DE'] };
 
 describe('getVbaMarketForCountry', () => {
   it('returns the open market listing the country of the location', () => {
-    expect(getVbaMarketForCountry([brl, usd], ' br-sp ')).toBe(brl);
-    expect(getVbaMarketForCountry([brl, usd], 'US-CA')).toBe(usd);
+    expect(getVbaMarketForCountry([brl, usd, eur], ' br-sp ')).toBe(brl);
+    expect(getVbaMarketForCountry([brl, usd, eur], 'US-CA')).toBe(usd);
+    expect(getVbaMarketForCountry([brl, usd, eur], 'DE-BE')).toBe(eur);
   });
 
   it('returns the BRL market, not USD, when both markets list the same country', () => {
@@ -57,10 +59,10 @@ describe('getVbaMarketForCountry', () => {
     ).toBe(usdSharedCountry);
   });
 
-  it.each([['DE'], [UNKNOWN_LOCATION], [''], [undefined], [null]])(
+  it.each([['JP'], [UNKNOWN_LOCATION], [''], [undefined], [null]])(
     'returns undefined for %s',
     (location) => {
-      expect(getVbaMarketForCountry([brl, usd], location)).toBeUndefined();
+      expect(getVbaMarketForCountry([brl, usd, eur], location)).toBeUndefined();
     },
   );
 

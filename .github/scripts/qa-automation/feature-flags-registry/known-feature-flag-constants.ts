@@ -18,6 +18,7 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'MONEY_MOVEMENT_NEOBANK_FLAG_KEY', file: sel('moneyAccount'), exportName: 'MONEY_MOVEMENT_NEOBANK_FLAG_KEY' },
   { key: 'MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY', file: sel('moneyAccount'), exportName: 'MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY' },
   { key: 'MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY', file: sel('moneyAccount'), exportName: 'MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY' },
+  { key: 'MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY', file: sel('moneyAccount'), exportName: 'MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY' },
   { key: 'SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY', file: sel('moneyAccount'), exportName: 'SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY' },
   { key: 'NETWORK_MANAGEMENT_FLAG_KEY', file: sel('networkManagement'), exportName: 'NETWORK_MANAGEMENT_FLAG_KEY' },
   // FEATURE_FLAG_NAME is omitted (non-unique across rwa / gasFeesSponsored); per-file fallback handles it.
