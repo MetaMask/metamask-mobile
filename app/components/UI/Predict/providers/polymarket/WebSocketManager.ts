@@ -25,6 +25,7 @@ import {
   type PolyBoltChannel,
   type PolyBoltCredentials,
   type PolyBoltSubscription,
+  toPolyboltChannel,
   toPolyboltWireSymbol,
 } from './polyboltCryptoFeed';
 
@@ -1041,8 +1042,8 @@ export class WebSocketManager {
     const subscriptions = new Map<string, PolyBoltSubscription>();
     this.cryptoPriceSubscriptions.forEach((_callbacks, key) => {
       const { topic, symbols, provider } = parseCryptoSubscriptionKey(key);
-      const channel = this.polyboltChannelForTopic(topic);
-      if (!channel) {
+      const topicChannel = this.polyboltChannelForTopic(topic);
+      if (!topicChannel) {
         return;
       }
 
@@ -1052,6 +1053,9 @@ export class WebSocketManager {
           return;
         }
 
+        // Callers subscribe to `xau/usd` like any crypto symbol; PolyBolt
+        // serves metals on `price.equity`.
+        const channel = toPolyboltChannel(topicChannel, wireSymbol);
         const subscription: PolyBoltSubscription = {
           channel,
           callerSymbol: symbol,
@@ -1094,7 +1098,13 @@ export class WebSocketManager {
       return false;
     }
 
-    return this.polyboltChannelForTopic(parsedSubscription.topic) === channel;
+    const topicChannel = this.polyboltChannelForTopic(parsedSubscription.topic);
+    const wireSymbol = toPolyboltWireSymbol(symbol);
+    if (!topicChannel || !wireSymbol) {
+      return false;
+    }
+
+    return toPolyboltChannel(topicChannel, wireSymbol) === channel;
   }
 
   private invokeCryptoPriceCallbacks(

@@ -3,6 +3,15 @@ import type { PredictMarket, PredictSeries } from '../types';
 
 export const UP_OR_DOWN_TAG = 'up-or-down';
 export const CRYPTO_TAG = 'crypto';
+export const GOLD_TAG = 'gold';
+export const SILVER_TAG = 'silver';
+
+/**
+ * Asset tags that mark an up-or-down series as a price market. Gold and silver
+ * series carry `gold` / `silver` instead of `crypto`.
+ */
+const UP_DOWN_ASSET_TAGS = [CRYPTO_TAG, GOLD_TAG, SILVER_TAG];
+
 export const MILLISECOND_TIMESTAMP_THRESHOLD = 9999999999;
 
 export const toTimestampSeconds = (timestamp: number) =>
@@ -10,9 +19,9 @@ export const toTimestampSeconds = (timestamp: number) =>
 
 /**
  * Type guard: narrows to a market with a guaranteed `series` field.
- * Returns true when a market has series metadata AND both the "up-or-down"
- * and "crypto" tags. Regular series markets (e.g., recurring tweet counts)
- * and non-crypto up-or-down markets are excluded.
+ * Returns true when a market has series metadata, the "up-or-down" tag and an
+ * asset tag ("crypto", "gold" or "silver"). Regular series markets (e.g.,
+ * recurring tweet counts) and other up-or-down markets are excluded.
  */
 export function isCryptoUpDown(
   market: PredictMarket,
@@ -20,7 +29,7 @@ export function isCryptoUpDown(
   return (
     market.series != null &&
     market.tags.includes(UP_OR_DOWN_TAG) &&
-    market.tags.includes(CRYPTO_TAG)
+    UP_DOWN_ASSET_TAGS.some((tag) => market.tags.includes(tag))
   );
 }
 
@@ -35,6 +44,8 @@ const CRYPTO_TAG_TO_SYMBOL: Record<string, string> = {
   dogecoin: 'DOGE',
   bnb: 'BNB',
   hype: 'HYPE',
+  [GOLD_TAG]: 'XAU',
+  [SILVER_TAG]: 'XAG',
 };
 
 const CRYPTO_SLUG_PREFIX_TO_SYMBOL: Record<string, string> = {
@@ -45,7 +56,20 @@ const CRYPTO_SLUG_PREFIX_TO_SYMBOL: Record<string, string> = {
   doge: 'DOGE',
   bnb: 'BNB',
   hype: 'HYPE',
+  xau: 'XAU',
+  xag: 'XAG',
 };
+
+/**
+ * Metal symbols. polymarket.com's `crypto-price` (400) and `price-history`
+ * (502) endpoints don't serve them, so callers skip those requests and fall
+ * back to the Gamma `priceToBeat`. Their prices are also small enough
+ * (~$4,000 gold, ~$50 silver) to need cents when displayed.
+ */
+const METAL_SYMBOLS = new Set(['XAU', 'XAG']);
+
+export const isMetalSymbol = (symbol: string | undefined): boolean =>
+  symbol !== undefined && METAL_SYMBOLS.has(symbol.toUpperCase());
 
 /**
  * Extracts the crypto trading symbol from a market's tags.

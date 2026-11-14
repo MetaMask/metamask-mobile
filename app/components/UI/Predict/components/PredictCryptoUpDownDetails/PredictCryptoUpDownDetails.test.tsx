@@ -623,6 +623,77 @@ describe('PredictCryptoUpDownDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('gold market', () => {
+    const goldSeries: PredictSeries = {
+      id: '12967',
+      slug: 'gold-up-or-down-15m',
+      title: 'Gold Up or Down 15m',
+      recurrence: '15m',
+    };
+    const createGoldMarket = (
+      endDate: string,
+    ): PredictMarket & { series: PredictSeries } =>
+      createMockMarket({
+        slug: 'xau-updown-15m-1794338100',
+        tags: ['finance', 'gold', 'up-or-down'],
+        series: goldSeries,
+        priceToBeat: 4031.35,
+        endDate,
+      });
+
+    it('shows the chart and the price to beat while a window is live', () => {
+      const now = Date.UTC(2026, 10, 10, 19, 20, 0);
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const market = createGoldMarket(
+          new Date(now + 10 * 60 * 1000).toISOString(),
+        );
+        mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+        render(
+          <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+        );
+
+        expect(getChartMarketId()).toBe('market-1');
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY,
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('hides the chart when no window is live, since metals have no history', () => {
+      const now = Date.UTC(2026, 10, 10, 22, 30, 0);
+      jest.useFakeTimers();
+      jest.setSystemTime(now);
+      try {
+        const market = createGoldMarket(
+          new Date(now - 60 * 60 * 1000).toISOString(),
+        );
+        mockUsePredictSeries.mockReturnValue({ data: [market] });
+
+        render(
+          <PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />,
+        );
+
+        expect(
+          screen.queryByTestId('mock-predict-crypto-up-down-chart'),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByTestId(
+            PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY,
+          ),
+        ).toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
   it('uses the Bitcoin accent color for BTC markets', () => {
     const market = createMockMarket({
       slug: 'btc-up-or-down-5m',

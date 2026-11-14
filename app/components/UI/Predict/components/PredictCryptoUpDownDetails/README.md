@@ -7,7 +7,7 @@ Full-screen detail view for Crypto Up/Down prediction markets (e.g., "BTC Up or 
 `PredictMarketDetails` renders this screen instead of the default market view when **both** conditions are met:
 
 1. The `predict_up_down_enabled` feature flag is `true`.
-2. `isCryptoUpDown(market)` returns `true` — meaning the market has a `series`, an `up-or-down` tag, and a `crypto` tag.
+2. `isCryptoUpDown(market)` returns `true` — meaning the market has a `series`, an `up-or-down` tag, and a `crypto`, `gold` or `silver` tag. Gold and silver stream from PolyBolt `price.equity`; with no price-history endpoint, their chart history is built from live ticks and the chart is hidden while no window is live.
 
 ## Props
 

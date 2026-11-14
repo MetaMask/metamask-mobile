@@ -47,6 +47,7 @@ import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   RECURRENCE_TO_DURATION_SECS,
   getCryptoSymbol,
+  isMetalSymbol,
   getEventStartTime,
   getVariant,
   resolveCryptoTargetPrice,
@@ -296,17 +297,25 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   // time slot the user has selected. Future slots have no chart data of
   // their own — `selectedMarket` only drives the target line, Up/Down
   // buttons, and outcomes.
+  const liveSeriesMarket = useMemo(
+    () =>
+      currentSeriesMarkets ? findLiveMarket(currentSeriesMarkets) : undefined,
+    [currentSeriesMarkets],
+  );
   const liveMarketForChart = useMemo<PredictMarketWithSeries>(() => {
-    const live = currentSeriesMarkets
-      ? findLiveMarket(currentSeriesMarkets)
-      : undefined;
+    const live = liveSeriesMarket;
     if (!live) {
       return selectedMarket;
     }
     return live.series
       ? (live as PredictMarketWithSeries)
       : { ...live, series: market.series };
-  }, [currentSeriesMarkets, market.series, selectedMarket]);
+  }, [liveSeriesMarket, market.series, selectedMarket]);
+  // Metals have no price history, only live ticks, so an ended window (the
+  // daily break, weekends) has nothing to draw: skip the chart until a window
+  // is live again. Crypto falls back to the selected market's history.
+  const shouldRenderChart =
+    !isMetalSymbol(targetPriceSymbol) || liveSeriesMarket !== undefined;
   const chartTargetPrice =
     liveMarketForChart.id === selectedMarket.id ||
     liveMarketForChart.twapWindowSeconds === selectedMarket.twapWindowSeconds
@@ -690,15 +699,17 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
           </Box>
         </Box>
 
-        <Box twClassName="px-4 pt-1">
-          <PredictCryptoUpDownChart
-            market={liveMarketForChart}
-            targetPrice={chartTargetPrice}
-            onCurrentPriceChange={handleCurrentPriceChange}
-            color={currentPriceAccentColor}
-            height={chartAreaHeight}
-          />
-        </Box>
+        {shouldRenderChart && (
+          <Box twClassName="px-4 pt-1">
+            <PredictCryptoUpDownChart
+              market={liveMarketForChart}
+              targetPrice={chartTargetPrice}
+              onCurrentPriceChange={handleCurrentPriceChange}
+              color={currentPriceAccentColor}
+              height={chartAreaHeight}
+            />
+          </Box>
+        )}
 
         {hasPositions && (
           <Box twClassName="pt-2">

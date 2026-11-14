@@ -1,7 +1,7 @@
 import type { PredictMarket } from '../../../../types';
 
 /** Max number of crypto Up/Down cards shown in the Live Now rail. */
-export const LIVE_NOW_MAX_CRYPTO = 3;
+export const LIVE_NOW_MAX_CRYPTO = 5;
 
 /** Live cards shown between each crypto card (Figma: 2 live, 1 crypto, ...). */
 const LIVE_PER_CRYPTO = 2;

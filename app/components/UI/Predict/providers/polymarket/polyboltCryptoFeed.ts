@@ -20,7 +20,33 @@ export interface PolyBoltCredentials {
   passphrase: string;
 }
 
-export type PolyBoltChannel = 'price.crypto' | 'price.crypto.twap';
+export type PolyBoltChannel =
+  | 'price.crypto'
+  | 'price.crypto.twap'
+  | 'price.equity';
+
+/**
+ * Wire symbols PolyBolt serves on `price.equity` instead of `price.crypto`.
+ * Gold and silver default to Chainlink there, the stream their up/down
+ * markets settle on, so they need no provider pin.
+ */
+const EQUITY_WIRE_SYMBOLS = new Set(['xauusd', 'xagusd']);
+
+/**
+ * Picks the PolyBolt channel that serves a symbol. Spot prices for metals
+ * live on `price.equity`; every other symbol keeps the channel it asked for.
+ *
+ * @param channel - Channel the caller's subscription maps to.
+ * @param wireSymbol - Lowercase PolyBolt symbol, such as `xauusd`.
+ * @returns The channel to subscribe on.
+ */
+export const toPolyboltChannel = (
+  channel: PolyBoltChannel,
+  wireSymbol: string,
+): PolyBoltChannel =>
+  channel === 'price.crypto' && EQUITY_WIRE_SYMBOLS.has(wireSymbol)
+    ? 'price.equity'
+    : channel;
 
 export interface PolyBoltSubscription {
   channel: PolyBoltChannel;
@@ -83,6 +109,25 @@ const parseDecimalPrice = (fullAccuracyValue: unknown): number | undefined => {
   return Number.isFinite(price) ? price : undefined;
 };
 
+// Equity points name `value` (a float) next to `full_accuracy_value`. Prefer the
+// exact decimal and fall back to the float, rejecting anything not positive.
+const parseEquityPrice = (
+  point: Record<string, unknown>,
+): number | undefined => {
+  const price =
+    parseDecimalPrice(point.full_accuracy_value) ??
+    (typeof point.value === 'number' ? point.value : undefined);
+  return price !== undefined && Number.isFinite(price) && price > 0
+    ? price
+    : undefined;
+};
+
+// `market_status` is per provider series and absent when not stated. Only an
+// explicit `closed` stops a price from being painted: the Chainlink metal
+// streams run around the clock and report `open` outside exchange hours.
+const isClosedMarket = (payload: Record<string, unknown>): boolean =>
+  payload.market_status === 'closed';
+
 // The provider is part of the identity: a 5m (Chainlink) and an hourly
 // (Binance) BTC market are open together and must not share a subscription.
 const subscriptionId = (subscription: PolyBoltSubscription): string =>
@@ -107,6 +152,12 @@ export const toPolyboltFilter = (
     return { symbol: wireSymbol, window_seconds: 60 };
   }
 
+  // Metals default to Chainlink on this channel, which is what they settle
+  // on. A binance pin would only fall back, so none is sent.
+  if (channel === 'price.equity') {
+    return { symbol: wireSymbol };
+  }
+
   return provider ? { symbol: wireSymbol, provider } : { symbol: wireSymbol };
 };
 
@@ -121,7 +172,7 @@ const randomInt = (maxExclusive: number): number => {
 };
 
 /**
- * Authenticated PolyBolt socket for crypto reference prices.
+ * Authenticated PolyBolt socket for crypto and metal reference prices.
  * The server sends protocol pings. This client does not send a text ping.
  */
 export class PolyBoltCryptoFeed {
@@ -711,7 +762,8 @@ export class PolyBoltCryptoFeed {
   private handleEnvelope(message: Record<string, unknown>): void {
     if (
       (message.channel !== 'price.crypto' &&
-        message.channel !== 'price.crypto.twap') ||
+        message.channel !== 'price.crypto.twap' &&
+        message.channel !== 'price.equity') ||
       !isRecord(message.payload)
     ) {
       return;
@@ -819,6 +871,10 @@ export class PolyBoltCryptoFeed {
       return [];
     }
 
+    if (channel === 'price.equity') {
+      return this.parseEquitySnapshot(callerSymbol, payload, payload.data);
+    }
+
     return payload.data
       .flatMap((point) => {
         if (!isRecord(point) || typeof point.timestamp !== 'number') {
@@ -840,6 +896,10 @@ export class PolyBoltCryptoFeed {
     callerSymbol: string,
     payload: Record<string, unknown>,
   ): CryptoPriceUpdate | undefined {
+    if (channel === 'price.equity') {
+      return this.parseEquityLivePoint(callerSymbol, payload);
+    }
+
     if (typeof payload.timestamp !== 'number') {
       return undefined;
     }
@@ -854,6 +914,66 @@ export class PolyBoltCryptoFeed {
     }
 
     return this.toUpdate(channel, callerSymbol, price, payload.timestamp);
+  }
+
+  /**
+   * A closed batch still carries the price the market stopped at, older than
+   * the usual two-minute window. It is dropped so no stale price is painted.
+   */
+  private parseEquitySnapshot(
+    callerSymbol: string,
+    payload: Record<string, unknown>,
+    data: unknown[],
+  ): CryptoPriceUpdate[] {
+    if (isClosedMarket(payload)) {
+      return [];
+    }
+
+    return data
+      .flatMap((point) => {
+        if (
+          !isRecord(point) ||
+          typeof point.timestamp !== 'number' ||
+          !Number.isFinite(point.timestamp)
+        ) {
+          return [];
+        }
+
+        const price = parseEquityPrice(point);
+        if (price === undefined) {
+          return [];
+        }
+
+        return [
+          this.toUpdate('price.equity', callerSymbol, price, point.timestamp),
+        ];
+      })
+      .sort((left, right) => left.timestamp - right.timestamp);
+  }
+
+  private parseEquityLivePoint(
+    callerSymbol: string,
+    payload: Record<string, unknown>,
+  ): CryptoPriceUpdate | undefined {
+    if (
+      isClosedMarket(payload) ||
+      typeof payload.timestamp !== 'number' ||
+      !Number.isFinite(payload.timestamp)
+    ) {
+      return undefined;
+    }
+
+    const price = parseEquityPrice(payload);
+    if (price === undefined) {
+      return undefined;
+    }
+
+    return this.toUpdate(
+      'price.equity',
+      callerSymbol,
+      price,
+      payload.timestamp,
+    );
   }
 
   private toUpdate(
