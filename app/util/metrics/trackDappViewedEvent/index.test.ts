@@ -33,6 +33,7 @@ jest.mock('../../../store', () => {
   mockGetState = jest.fn();
   mockGetState.mockImplementation(() => ({
     browser: {
+      tabs: [],
       visitedDappsByHostname: {},
     },
     engine: {
@@ -59,6 +60,7 @@ describe('trackDappViewedEvent', () => {
   it('tracks as first visit when dapp hostname not in history', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
+        tabs: [],
         visitedDappsByHostname: {},
       },
       engine: {
@@ -94,6 +96,7 @@ describe('trackDappViewedEvent', () => {
   it('does not tracks as first visit when dapp hostname is in history', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
+        tabs: [],
         visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
@@ -128,6 +131,7 @@ describe('trackDappViewedEvent', () => {
   it('tracks connected accounts number', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
+        tabs: [],
         visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
@@ -163,6 +167,7 @@ describe('trackDappViewedEvent', () => {
   it('tracks account number', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
+        tabs: [],
         visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
@@ -198,6 +203,7 @@ describe('trackDappViewedEvent', () => {
   it('tracks dapp url', () => {
     mockGetState.mockImplementation(() => ({
       browser: {
+        tabs: [],
         visitedDappsByHostname: { 'uniswap.org': true },
       },
       engine: {
@@ -228,5 +234,69 @@ describe('trackDappViewedEvent', () => {
       .build();
 
     expect(analytics.trackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+  describe('entry_point', () => {
+    const mockStateWithActiveTab = (tab: {
+      url: string;
+      entryPoint?: 'explore_search';
+    }) =>
+      mockGetState.mockImplementation(() => ({
+        browser: {
+          tabs: [{ id: 1, ...tab }],
+          activeTab: 1,
+          visitedDappsByHostname: {},
+        },
+        engine: {
+          backgroundState: {
+            AccountsController: MOCK_DEFAULT_ACCOUNTS_CONTROLLER_STATE,
+            KeyringController: MOCK_KEYRING_CONTROLLER,
+          },
+        },
+      }));
+
+    const trackedProperties = () =>
+      jest.mocked(analytics.trackEvent).mock.calls[0][0].properties;
+
+    it('adds the active tab entry point when the tab shows the dapp', () => {
+      mockStateWithActiveTab({
+        url: 'https://app.uniswap.org/swap',
+        entryPoint: 'explore_search',
+      });
+
+      trackDappViewedEvent({
+        hostname: 'https://app.uniswap.org',
+        numberOfConnectedAccounts: 1,
+      });
+
+      expect(trackedProperties()).toMatchObject({
+        entry_point: 'explore_search',
+        source: 'in-app browser',
+      });
+    });
+
+    it('omits entry_point when the active tab shows a different dapp', () => {
+      mockStateWithActiveTab({
+        url: 'https://metamask.io',
+        entryPoint: 'explore_search',
+      });
+
+      trackDappViewedEvent({
+        hostname: 'app.uniswap.org',
+        numberOfConnectedAccounts: 1,
+      });
+
+      expect(trackedProperties()).not.toHaveProperty('entry_point');
+    });
+
+    it('omits entry_point when the tab was not opened from Search', () => {
+      mockStateWithActiveTab({ url: 'https://app.uniswap.org' });
+
+      trackDappViewedEvent({
+        hostname: 'app.uniswap.org',
+        numberOfConnectedAccounts: 1,
+      });
+
+      expect(trackedProperties()).not.toHaveProperty('entry_point');
+    });
   });
 });
