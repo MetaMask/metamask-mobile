@@ -58,6 +58,7 @@ const mockFeedListState = {
   current: { showSkeleton: false, showEmpty: false, showRetry: false },
 };
 const mockUseFollowedTraders = jest.fn();
+const mockInvalidateFollowingFeed = jest.fn(() => Promise.resolve());
 const mockUsePopularTraders = jest.fn(
   (): UsePopularTradersResult => ({
     traders: [],
@@ -69,6 +70,10 @@ const mockUsePopularTraders = jest.fn(
     toggleFollow: jest.fn(),
   }),
 );
+
+jest.mock('../../../UI/SocialFeed/data/socialFeedQueries', () => ({
+  invalidateFollowingFeed: () => mockInvalidateFollowingFeed(),
+}));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
@@ -321,6 +326,102 @@ describe('FollowingView', () => {
       screen.queryByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR),
     ).toBeNull();
     expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  // The feed and follow list are stubbed here. A view test would have to boot
+  // the social query client to reach the same hold.
+  it('keeps suggested traders on screen after a follow', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    rerender(<FollowingView />);
+
+    expect(screen.getByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR),
+    ).toBeNull();
+    expect(mockInvalidateFollowingFeed).not.toHaveBeenCalled();
+  });
+
+  it('reloads the following feed when the tab is opened again', async () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    rerender(<FollowingView isActive={false} />);
+    rerender(<FollowingView isActive />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockInvalidateFollowingFeed).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('leaves suggestions after a pull to refresh once someone is followed', () => {
+    mockFeedListState.current = {
+      showSkeleton: false,
+      showEmpty: true,
+      showRetry: false,
+    };
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    const { rerender } = renderWithProvider(<FollowingView />);
+    mockUseFollowedTraders.mockReturnValue({
+      traders: [{ id: 'followed-1' }],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    rerender(<FollowingView />);
+
+    act(() => {
+      lastFeedProps().onRefresh?.();
+    });
+
+    expect(mockInvalidateFollowingFeed).not.toHaveBeenCalled();
+    expect(screen.queryByTestId(FOLLOWING_SUGGESTIONS_TEST_ID)).toBeNull();
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
   it('says no one has posted yet when followed traders have no posts', () => {
