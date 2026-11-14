@@ -15,7 +15,6 @@ import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   IconName,
@@ -44,6 +43,8 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { localizeLargeNumber } from '../../../../util/number/bigint';
 import { TokenI } from '../../Tokens/types';
 import ShareTokenCard from './ShareTokenCard';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ShareTokenBottomSheetProps {
   shareUrl: string;
@@ -122,6 +123,7 @@ const ShareTokenBottomSheet = ({
   networkName,
   onClose,
 }: ShareTokenBottomSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const isNonEvm = isNonEvmChainId(token.chainId as string);
@@ -324,9 +326,12 @@ const ShareTokenBottomSheet = ({
       onClose={onClose}
       testID="share-token-sheet"
     >
-      <BottomSheetHeader textProps={{ variant: TextVariant.HeadingLg }}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        textProps={{ variant: TextVariant.HeadingLg }}
+      >
         {strings('share_token.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="px-4 pb-4 gap-3">
         <ShareTokenCard
