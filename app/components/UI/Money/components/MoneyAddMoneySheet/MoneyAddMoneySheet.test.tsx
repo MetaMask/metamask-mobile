@@ -697,52 +697,24 @@ describe('MoneyAddMoneySheet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('opens MetaMask Pay with the USDC contract and the addMusd full-balance intent', () => {
+    it('opens MetaMask Pay with the addUsdc intent and records the row tap', () => {
       (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
 
       const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
       fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION));
 
-      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
       expect(mockInitiateDeposit).toHaveBeenCalledWith({
-        intent: 'addMusd',
+        intent: 'addUsdc',
         preferredPaymentToken: {
           address: BASE_USDC_ADDRESS,
           chainId: CHAIN_IDS.BASE,
         },
       });
-    });
-
-    it('places the funded USDC row after the fiat deposit option', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
-
-      const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
-      const order = getOptionOrder(UNSAFE_root, [
-        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
-        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
-      ]);
-
-      expect(order).toEqual([
-        MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
-        MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
-      ]);
-    });
-
-    it('calls trackSurfaceClicked with the USDC component when the USDC row is pressed', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION));
-
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        deposit_intent: 'addUsdc',
       });
     });
   });

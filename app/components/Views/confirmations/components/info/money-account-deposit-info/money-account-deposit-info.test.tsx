@@ -179,4 +179,15 @@ describe('MoneyAccountDepositInfo', () => {
       expect.objectContaining({ name: 'Confirmation Screen Viewed' }),
     );
   });
+
+  it('adds mm_pay_deposit_intent when Pay is opened from the USDC row', () => {
+    mockUseParams.mockReturnValue({ depositIntent: 'addUsdc' });
+
+    render(<MoneyAccountDepositInfo />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+      mm_pay_deposit_intent: 'addUsdc',
+    });
+  });
 });

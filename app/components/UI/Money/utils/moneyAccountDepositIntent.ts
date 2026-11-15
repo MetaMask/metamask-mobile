@@ -1,4 +1,13 @@
-export type MoneyAccountDepositIntent = 'convert' | 'addMusd' | 'card';
+export type MoneyAccountDepositIntent =
+  | 'convert'
+  | 'addMusd'
+  | 'addUsdc'
+  | 'card';
+
+/** Intents that prefill 100% of the selected pay token. */
+export const isFullBalanceDepositIntent = (
+  intent: MoneyAccountDepositIntent | undefined,
+): boolean => intent === 'addMusd' || intent === 'addUsdc';
 
 const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
 

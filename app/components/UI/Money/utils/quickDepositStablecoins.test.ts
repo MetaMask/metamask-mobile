@@ -4,7 +4,6 @@ import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import {
   buildQuickDepositStablecoinOptions,
-  QUICK_DEPOSIT_STABLECOIN_FALLBACK_CONTRACTS,
   resolveQuickDepositStablecoinContracts,
   type AccountTokenBalances,
 } from './quickDepositStablecoins';
@@ -59,10 +58,8 @@ const build = (
   });
 
 describe('resolveQuickDepositStablecoinContracts', () => {
-  it('uses the fallback catalog when no deposit routes are available', () => {
-    expect(resolveQuickDepositStablecoinContracts([])).toEqual(
-      QUICK_DEPOSIT_STABLECOIN_FALLBACK_CONTRACTS,
-    );
+  it('returns nothing when the sponsored-route flag is empty', () => {
+    expect(resolveQuickDepositStablecoinContracts([])).toEqual([]);
   });
 
   it('keeps USDC routes into Monad mUSD and drops wrappers, testnets, and other targets', () => {
@@ -97,60 +94,44 @@ describe('buildQuickDepositStablecoinOptions', () => {
     ]);
   });
 
-  it.each([
-    ['a zero balance', { [CHAIN_IDS.MAINNET]: { [ETH_USDC]: '0x0' } }],
-    [
-      'a chain with no Monad mUSD route',
-      { [CHAIN_IDS.POLYGON]: { [POLYGON_USDC]: raw('80', 6) } },
-    ],
-    ['a testnet route', { [CHAIN_IDS.SEPOLIA]: { [ETH_USDC]: raw('90', 6) } }],
-  ])('hides USDC for %s', (_label, balances) => {
-    expect(build(balances)).toEqual([]);
+  it('hides a zero balance, an unsponsored chain, and a testnet', () => {
+    expect(build({ [CHAIN_IDS.MAINNET]: { [ETH_USDC]: '0x0' } })).toEqual([]);
+    expect(
+      build({ [CHAIN_IDS.POLYGON]: { [POLYGON_USDC]: raw('80', 6) } }),
+    ).toEqual([]);
+    expect(
+      build({ [CHAIN_IDS.SEPOLIA]: { [ETH_USDC]: raw('90', 6) } }),
+    ).toEqual([]);
   });
 
-  it('reads 18-decimal BNB Chain USDC as a whole token', () => {
+  it('reads 18-decimal BNB Chain USDC and skips a blocked contract', () => {
     expect(
       build({ [CHAIN_IDS.BSC]: { [BSC_USDC]: raw('7', 18) } })[0]
         ?.aggregatedBalance,
     ).toBe('7');
+    expect(
+      build(
+        {
+          [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('12', 6) },
+          [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('2', 6) },
+        },
+        {
+          blockedTokens: {
+            chainIds: [CHAIN_IDS.MAINNET],
+            tokens: [],
+          },
+        },
+      )[0]?.aggregatedBalance,
+    ).toBe('2');
   });
 
-  it('skips a blocked contract and a blocked chain', () => {
-    const balances = {
-      [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('12', 6) },
-      [CHAIN_IDS.BASE]: { [BASE_USDC]: raw('2', 6) },
-    };
-
-    expect(
-      build(balances, {
-        blockedTokens: {
-          chainIds: [],
-          tokens: [{ address: ETH_USDC, chainId: CHAIN_IDS.MAINNET }],
-        },
-      })[0]?.preferredPaymentToken.chainId,
-    ).toBe(CHAIN_IDS.BASE);
-    expect(
-      build(balances, {
-        blockedTokens: { chainIds: [CHAIN_IDS.BASE], tokens: [] },
-      }),
-    ).toEqual([
-      expect.objectContaining({
-        aggregatedBalance: '12',
-        preferredPaymentToken: {
-          address: ETH_USDC,
-          chainId: CHAIN_IDS.MAINNET,
-        },
-      }),
-    ]);
-  });
-
-  it('uses the fallback catalog when the relay flag is missing', () => {
+  it('hides USDC when the sponsored-route flag is missing', () => {
     expect(
       build(
         { [CHAIN_IDS.MAINNET]: { [ETH_USDC]: raw('8', 6) } },
         { relayFlag: null },
-      )[0]?.preferredPaymentToken,
-    ).toEqual({ address: ETH_USDC, chainId: CHAIN_IDS.MAINNET });
+      ),
+    ).toEqual([]);
   });
 
   it('does not fall back once the flag lists Monad mUSD routes without USDC', () => {

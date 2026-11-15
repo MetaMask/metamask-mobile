@@ -52,7 +52,7 @@ export function getDepositPrefillAmountInputType({
 
 /**
  * Whether Money Account deposit confirmation will present an amount prefill.
- * Uses forceAddMusd so addMusd matches the loader / always-prefill path.
+ * Uses forceAddMusd so addMusd and addUsdc match the always-prefill path.
  */
 export function resolveMoneyAccountDepositPrefillPresented(
   transactionMeta: TransactionMeta,

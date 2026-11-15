@@ -38,6 +38,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import type { MoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import {
@@ -132,6 +133,8 @@ export interface ConfirmationParams {
     address: Hex;
     chainId: Hex;
   };
+  /** Funding intent for this confirmation. Set by the Money add-funds sheet. */
+  depositIntent?: MoneyAccountDepositIntent;
 }
 
 /**

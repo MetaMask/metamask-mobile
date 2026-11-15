@@ -13,10 +13,6 @@ import {
   type QuickDepositStablecoinOption,
 } from '../utils/quickDepositStablecoins';
 
-/**
- * USDC the selected EVM account can quick-deposit into the Money account.
- * Empty when the account holds no USDC on a chain this flow supports.
- */
 export const useQuickDepositStablecoins =
   (): QuickDepositStablecoinOption[] => {
     const selectedEvmAddress = useSelector(
@@ -35,8 +31,6 @@ export const useQuickDepositStablecoins =
 
       return buildQuickDepositStablecoinOptions({
         relayFlag: remoteFeatureFlags?.confirmations_relay_fixed_spread,
-        // TokenBalancesController stores checksummed hex keys. The builder
-        // only reads them, so the controller's branded Hex map is safe here.
         accountBalances: accountBalances as AccountTokenBalances | undefined,
         blockedTokens,
       });

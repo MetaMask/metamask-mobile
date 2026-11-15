@@ -62,6 +62,7 @@ jest.mock(
   }),
 );
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
+  ...jest.requireActual('../../../../UI/Money/utils/moneyAccountDepositIntent'),
   getMoneyAccountDepositIntent: jest.fn(),
 }));
 jest.mock('../../../../../util/abTest', () => ({

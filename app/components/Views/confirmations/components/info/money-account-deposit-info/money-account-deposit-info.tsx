@@ -40,10 +40,13 @@ export function MoneyAccountDepositInfo() {
       createEventBuilder(CONFIRMATION_EVENTS.SCREEN_VIEWED)
         .addProperties({
           location: MONEY_ACCOUNT_DEPOSIT_CONFIRMATION_LOCATION,
+          ...(params?.depositIntent
+            ? { mm_pay_deposit_intent: params.depositIntent }
+            : {}),
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, params?.depositIntent, trackEvent]);
 
   return (
     <CustomAmountInfo

@@ -43,6 +43,7 @@ export type { MoneyAccountDepositIntent };
 export {
   clearMoneyAccountDepositIntent,
   getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
 } from '../utils/moneyAccountDepositIntent';
 
 const LOG_TAG = '[Money Account]';
@@ -184,6 +185,7 @@ export function useMoneyAccountDeposit() {
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
+        ...(options?.intent ? { depositIntent: options.intent } : {}),
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
         forceBottomSheet: options?.forceBottomSheet,

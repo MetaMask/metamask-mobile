@@ -10,6 +10,10 @@ import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 import { resolveMoneyAccountDepositPrefillPresented } from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
+import {
+  clearMoneyAccountDepositIntent,
+  setMoneyAccountDepositIntent,
+} from '../../../../../components/UI/Money/utils/moneyAccountDepositIntent';
 
 jest.mock(
   '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics',
@@ -116,6 +120,16 @@ describe('Metamask Pay Metrics', () => {
       },
       sensitiveProperties: {},
     });
+  });
+
+  it('adds mm_pay_deposit_intent for a stored addUsdc batch', async () => {
+    setMoneyAccountDepositIntent('0xabc', 'addUsdc');
+    request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+    request.transactionMeta.batchId = '0xabc';
+
+    const result = await getMetaMaskPayProperties(request);
+    expect(result.properties.mm_pay_deposit_intent).toBe('addUsdc');
+    clearMoneyAccountDepositIntent('0xabc');
   });
 
   it('derives baseline properties if moneyAccountWithdraw without metamaskPay', () => {

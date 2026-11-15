@@ -46,7 +46,10 @@ export type MoneyRedirectEventProperties = {
 };
 
 export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
-  Partial<MoneyLocationEventProperties>;
+  Partial<MoneyLocationEventProperties> & {
+    /** Funding intent for quick-deposit rows, so USDC can be split from mUSD. */
+    deposit_intent?: 'addUsdc';
+  };
 
 export type MoneyTokenSurfaceClickedEventProperties =
   MoneySurfaceClickedEventProperties & MoneyTokenRowEventProperties;

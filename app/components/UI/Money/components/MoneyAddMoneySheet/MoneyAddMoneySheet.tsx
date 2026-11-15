@@ -182,18 +182,16 @@ const MoneyAddMoneySheetContent: React.FC = () => {
     startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
-  // `addMusd` is the existing intent that opens MetaMask Pay and prefills 100%
-  // of the selected pay token. The USDC row reuses it so a quick deposit loads
-  // the full USDC balance instead of the generic convert flow.
   const depositHeldUsdc = useCallback(
     (preferredPaymentToken: { address: Hex; chainId: Hex }) => {
       trackSurfaceClicked({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+        deposit_intent: 'addUsdc',
       });
 
       startDeposit({
-        intent: 'addMusd',
+        intent: 'addUsdc',
         preferredPaymentToken,
       });
     },
