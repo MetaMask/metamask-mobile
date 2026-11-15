@@ -65,7 +65,7 @@ function resolveAccountsApiAmount(
       : (amountUnavailable ??
         `${approximatePrefix}${sign}${usdValue.toFixed(2)} ${MONEY_ACCOUNT_DISPLAY_SYMBOL}`),
     dollarAmount: hasDollarAmount
-      ? `${approximatePrefix}${sign}${moneyFormatUsd(usdValue)}`
+      ? `${approximatePrefix}${sign}${moneyFormatUsd(usdValue.abs())}`
       : '',
     isAmountPending,
   };

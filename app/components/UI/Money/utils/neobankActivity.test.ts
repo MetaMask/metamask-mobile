@@ -1,4 +1,3 @@
-import { strings } from '../../../../../locales/i18n';
 import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
@@ -57,11 +56,12 @@ describe('neobankActivity', () => {
       expect(display.label).toBe('Depositing');
       expect(display.description).toBe('Bank transfer');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('+$15.00');
-      expect(display.showPrimaryAmount).toBe(true);
-      expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
-      expect(display.isPrimaryAmountPending).toBe(true);
-      expect(display.fiatAmount).toBe('');
+      expect(display.isIncoming).toBe(true);
+      expect(display.fiatAmount).toBe('+$15.00');
+      expect(display.showPrimaryAmount).toBeUndefined();
+      expect(display.pendingStatusLabel).toBeUndefined();
+      expect(display.isPrimaryAmountPending).toBeUndefined();
+      expect(display.isFiatAmountMuted).toBeUndefined();
     });
 
     it('shows the amount while MoonPay is completed but Money settlement is pending', () => {
@@ -77,11 +77,27 @@ describe('neobankActivity', () => {
 
       expect(display.label).toBe('Depositing');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('+$15.00');
-      expect(display.showPrimaryAmount).toBe(true);
-      expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
-      expect(display.isPrimaryAmountPending).toBe(true);
-      expect(display.fiatAmount).toBe('');
+      expect(display.isIncoming).toBe(true);
+      expect(display.fiatAmount).toBe('+$15.00');
+      expect(display.showPrimaryAmount).toBeUndefined();
+    });
+
+    it('shows a failed deposit as a signed zero dollar amount', () => {
+      const display = neobankActivityDisplayInfo(
+        mapAutorampTransactionToNeobankActivity({
+          id: 'f1',
+          autorampId: 'ar-1',
+          status: 'Failed',
+          destinationAmount: '15',
+          createdAt: '2026-10-14T00:12:00.000Z',
+        }),
+      );
+
+      expect(display.label).toBe('Deposit failed');
+      expect(display.status).toBe('failed');
+      expect(display.isIncoming).toBe(true);
+      expect(display.fiatAmount).toBe('+$0.00');
+      expect(display.showPrimaryAmount).toBeUndefined();
     });
   });
 });

@@ -6,18 +6,6 @@ import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import { moneyFormatUsd } from './moneyFormatFiat';
 
-/**
- * Pending VBA deposits are still denominated in destination mUSD, which is
- * pegged 1:1 to USD. The activity list shows that as dollars.
- */
-function formatIncomingDepositDollars(amount: string | undefined): string {
-  const value = new BigNumber(amount ?? 'NaN');
-  if (!value.isFinite() || !value.isGreaterThan(0)) {
-    return '';
-  }
-  return `+${moneyFormatUsd(value)}`;
-}
-
 /** MoonPay autoramp transaction statuses that are no longer in flight. */
 export const NEOBANK_TERMINAL_STATUSES = new Set([
   'Completed',
@@ -81,22 +69,26 @@ export function neobankActivityDisplayInfo(
   const failed = isNeobankFailedStatus(activity.status);
   // NeoBank rows are off-chain only. Even MoonPay `Completed` is still pending
   // from Money's POV until mUSD lands and Accounts API emits bank_transfer.
-  const primaryAmount = formatIncomingDepositDollars(
-    activity.destinationAmount,
-  );
+  // The list amount uses the same fiat line as an on-chain deposit: full
+  // opacity, success colour while pending, and a signed zero when failed.
+  const destination = new BigNumber(activity.destinationAmount ?? 'NaN');
+  let fiatAmount = '';
+  if (failed) {
+    // Same signed-zero fiat line as a failed on-chain deposit.
+    fiatAmount = `+${moneyFormatUsd(new BigNumber(0))}`;
+  } else if (destination.isFinite() && destination.isGreaterThan(0)) {
+    fiatAmount = `+${moneyFormatUsd(destination.abs())}`;
+  }
 
   return {
     description: strings('money.transaction.bank_transfer'),
     label: failed
       ? strings('money.transaction.deposit_failed')
       : strings('money.transaction.depositing'),
-    primaryAmount,
-    fiatAmount: '',
+    primaryAmount: '',
+    fiatAmount,
     isIncoming: true,
     icon: IconName.Add,
     status: failed ? 'failed' : 'pending',
-    showPrimaryAmount: !failed && Boolean(primaryAmount),
-    pendingStatusLabel: !failed ? strings('transaction.pending') : undefined,
-    isPrimaryAmountPending: !failed && Boolean(primaryAmount),
   };
 }
