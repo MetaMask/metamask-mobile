@@ -7,14 +7,12 @@ import {
   buildQuickDepositStablecoinOptions,
   QUICK_DEPOSIT_STABLECOIN_FALLBACK_CONTRACTS,
   resolveQuickDepositStablecoinContracts,
-  selectHighestPositiveBalanceChain,
   type AccountTokenBalances,
 } from './quickDepositStablecoins';
 
 const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-const ETH_USDT = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 const BASE_USDC = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
-const BSC_USDT = '0x55d398326f99059ff775485246999027b3197955';
+const BSC_USDC = '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d';
 const POLYGON_USDC = '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359';
 const MUSD = MUSD_TOKEN_ADDRESS.toLowerCase();
 
@@ -29,20 +27,18 @@ const monadMusdFlag = {
   },
   tokens: {
     eth_usdc: ETH_USDC,
-    eth_usdt: ETH_USDT,
     eth_ausdc: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
     base_usdc: BASE_USDC,
-    bsc_usdt: BSC_USDT,
+    bsc_usdc: BSC_USDC,
     polygon_usdc: POLYGON_USDC,
     sepolia_usdc: ETH_USDC,
     musd: MUSD,
   },
   routes: [
     ['eth', 'eth_usdc', 'monad', 'musd'],
-    ['eth', 'eth_usdt', 'monad', 'musd'],
     ['eth', 'eth_ausdc', 'monad', 'musd'],
     ['base', 'base_usdc', 'monad', 'musd'],
-    ['bsc', 'bsc_usdt', 'monad', 'musd'],
+    ['bsc', 'bsc_usdc', 'monad', 'musd'],
     ['polygon', 'polygon_usdc', 'base', 'base_usdc'],
     ['sepolia', 'sepolia_usdc', 'monad', 'musd'],
     ['eth', 'musd', 'monad', 'musd'],
@@ -55,14 +51,13 @@ const raw = (whole: string, decimals: number): Hex => {
 };
 
 describe('aliasToQuickDepositSymbol', () => {
-  it('reads USDC and USDT from chain-prefixed aliases', () => {
+  it('reads USDC from a chain-prefixed alias', () => {
     expect(aliasToQuickDepositSymbol('eth_usdc')).toBe('USDC');
-    expect(aliasToQuickDepositSymbol('bsc_usdt')).toBe('USDT');
   });
 
   it('ignores wrapped and lookalike aliases', () => {
     expect(aliasToQuickDepositSymbol('eth_ausdc')).toBeUndefined();
-    expect(aliasToQuickDepositSymbol('eth_ausdt')).toBeUndefined();
+    expect(aliasToQuickDepositSymbol('eth_usdt')).toBeUndefined();
     expect(aliasToQuickDepositSymbol('polygon_usdce')).toBeUndefined();
     expect(aliasToQuickDepositSymbol('musd')).toBeUndefined();
   });
@@ -85,42 +80,17 @@ describe('resolveQuickDepositStablecoinContracts', () => {
 
     expect(contracts.map((contract) => contract.address)).toEqual([
       ETH_USDC,
-      ETH_USDT,
       BASE_USDC,
-      BSC_USDT,
+      BSC_USDC,
     ]);
   });
 });
 
-describe('selectHighestPositiveBalanceChain', () => {
-  it('returns the chain with the largest balance', () => {
-    const chainId = selectHighestPositiveBalanceChain(
-      {
-        [CHAIN_IDS.MAINNET]: '500',
-        [CHAIN_IDS.LINEA_MAINNET]: '1000',
-      },
-      CHAIN_IDS.MAINNET,
-    );
-
-    expect(chainId).toBe(CHAIN_IDS.LINEA_MAINNET);
-  });
-
-  it('returns the fallback chain when every balance is zero', () => {
-    const chainId = selectHighestPositiveBalanceChain(
-      { [CHAIN_IDS.BASE]: '0' },
-      CHAIN_IDS.MAINNET,
-    );
-
-    expect(chainId).toBe(CHAIN_IDS.MAINNET);
-  });
-});
-
 describe('buildQuickDepositStablecoinOptions', () => {
-  it('shows USDC and USDT when the account holds a non-zero balance on a supported chain', () => {
+  it('shows USDC when the account holds a non-zero balance on a supported chain', () => {
     const accountBalances: AccountTokenBalances = {
       [CHAIN_IDS.MAINNET]: {
         [ETH_USDC]: raw('25', 6),
-        [ETH_USDT]: raw('4', 6),
       },
     };
 
@@ -138,24 +108,15 @@ describe('buildQuickDepositStablecoinOptions', () => {
           chainId: CHAIN_IDS.MAINNET,
         },
       },
-      {
-        symbol: 'USDT',
-        aggregatedBalance: '4',
-        preferredPaymentToken: {
-          address: ETH_USDT,
-          chainId: CHAIN_IDS.MAINNET,
-        },
-      },
     ]);
   });
 
-  it('hides a symbol when every supported balance is zero', () => {
+  it('hides USDC when every supported balance is zero', () => {
     const options = buildQuickDepositStablecoinOptions({
       relayFlag: monadMusdFlag,
       accountBalances: {
         [CHAIN_IDS.MAINNET]: {
           [ETH_USDC]: '0x0',
-          [ETH_USDT]: '0x0',
         },
       },
     });
@@ -163,7 +124,7 @@ describe('buildQuickDepositStablecoinOptions', () => {
     expect(options).toEqual([]);
   });
 
-  it('hides a symbol the account does not hold', () => {
+  it('returns only USDC when that is the held stablecoin', () => {
     const options = buildQuickDepositStablecoinOptions({
       relayFlag: monadMusdFlag,
       accountBalances: {
@@ -227,22 +188,22 @@ describe('buildQuickDepositStablecoinOptions', () => {
     ]);
   });
 
-  it('reads 18-decimal BNB Chain USDT as a whole token', () => {
+  it('reads 18-decimal BNB Chain USDC as a whole token', () => {
     const options = buildQuickDepositStablecoinOptions({
       relayFlag: monadMusdFlag,
       accountBalances: {
         [CHAIN_IDS.BSC]: {
-          [BSC_USDT]: raw('7', 18),
+          [BSC_USDC]: raw('7', 18),
         },
       },
     });
 
     expect(options).toEqual([
       {
-        symbol: 'USDT',
+        symbol: 'USDC',
         aggregatedBalance: '7',
         preferredPaymentToken: {
-          address: BSC_USDT,
+          address: BSC_USDC,
           chainId: CHAIN_IDS.BSC,
         },
       },
@@ -255,7 +216,9 @@ describe('buildQuickDepositStablecoinOptions', () => {
       accountBalances: {
         [CHAIN_IDS.MAINNET]: {
           [ETH_USDC]: raw('12', 6),
-          [ETH_USDT]: raw('3', 6),
+        },
+        [CHAIN_IDS.BASE]: {
+          [BASE_USDC]: raw('3', 6),
         },
       },
       blockedTokens: {
@@ -264,7 +227,16 @@ describe('buildQuickDepositStablecoinOptions', () => {
       },
     });
 
-    expect(options.map((option) => option.symbol)).toEqual(['USDT']);
+    expect(options).toEqual([
+      {
+        symbol: 'USDC',
+        aggregatedBalance: '3',
+        preferredPaymentToken: {
+          address: BASE_USDC,
+          chainId: CHAIN_IDS.BASE,
+        },
+      },
+    ]);
   });
 
   it('hides holdings on a chain MetaMask Pay blocks', () => {
@@ -312,21 +284,20 @@ describe('buildQuickDepositStablecoinOptions', () => {
     });
   });
 
-  it('does not fall back to extra chains once the flag lists Monad mUSD routes', () => {
+  it('does not fall back to extra chains once the flag lists Monad mUSD routes without USDC', () => {
     const options = buildQuickDepositStablecoinOptions({
       relayFlag: {
         chains: { eth: CHAIN_IDS.MAINNET, monad: CHAIN_IDS.MONAD },
-        tokens: { eth_usdt: ETH_USDT, musd: MUSD },
-        routes: [['eth', 'eth_usdt', 'monad', 'musd']],
+        tokens: { musd: MUSD },
+        routes: [['eth', 'musd', 'monad', 'musd']],
       },
       accountBalances: {
         [CHAIN_IDS.MAINNET]: {
           [ETH_USDC]: raw('8', 6),
-          [ETH_USDT]: raw('1', 6),
         },
       },
     });
 
-    expect(options.map((option) => option.symbol)).toEqual(['USDT']);
+    expect(options).toEqual([]);
   });
 });

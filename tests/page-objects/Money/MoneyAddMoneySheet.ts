@@ -24,8 +24,8 @@ class MoneyAddMoneySheet {
     );
   }
 
-  get moveMusdOption(): Promise<AppiumElement> {
-    return Matchers.getElementByID(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION);
+  get moveUsdcOption(): Promise<AppiumElement> {
+    return Matchers.getElementByID(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION);
   }
 
   get bankAccountRow(): Promise<AppiumElement> {
@@ -60,9 +60,9 @@ class MoneyAddMoneySheet {
     });
   }
 
-  async tapMoveMusd(): Promise<void> {
-    await Gestures.waitAndTap(this.moveMusdOption, {
-      elemDescription: 'Add money sheet - Move/Add mUSD option',
+  async tapMoveUsdc(): Promise<void> {
+    await Gestures.waitAndTap(this.moveUsdcOption, {
+      elemDescription: 'Add money sheet - USDC option',
     });
   }
 }

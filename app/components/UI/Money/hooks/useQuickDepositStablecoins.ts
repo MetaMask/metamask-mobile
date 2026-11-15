@@ -14,9 +14,8 @@ import {
 } from '../utils/quickDepositStablecoins';
 
 /**
- * USDC and USDT the selected EVM account can quick-deposit into the Money
- * account. Empty when the account holds neither token on a chain this flow
- * supports.
+ * USDC the selected EVM account can quick-deposit into the Money account.
+ * Empty when the account holds no USDC on a chain this flow supports.
  */
 export const useQuickDepositStablecoins =
   (): QuickDepositStablecoinOption[] => {

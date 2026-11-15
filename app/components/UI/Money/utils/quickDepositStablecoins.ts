@@ -13,10 +13,10 @@ import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import { toChecksumAddress } from '../../../../util/address';
 
 /**
- * Stablecoins offered as quick deposits next to mUSD on the Add funds sheet.
- * Aave wrappers (aUSDC, aUSDT) are intentionally excluded.
+ * The Add funds sheet offers one quick-deposit row, for USDC.
+ * Aave wrappers (aUSDC) and other stablecoins are excluded.
  */
-export const QUICK_DEPOSIT_STABLECOIN_SYMBOLS = ['USDC', 'USDT'] as const;
+export const QUICK_DEPOSIT_STABLECOIN_SYMBOLS = ['USDC'] as const;
 
 export type QuickDepositStablecoinSymbol =
   (typeof QUICK_DEPOSIT_STABLECOIN_SYMBOLS)[number];
@@ -47,25 +47,23 @@ export type AccountTokenBalances = Record<
 const STANDARD_STABLECOIN_DECIMALS = 6;
 
 /**
- * Binance-peg USDC and USDT use 18 decimals. Every other contract in the
+ * Binance-peg USDC uses 18 decimals. Every other USDC contract in the
  * Money-deposit catalog uses 6. Unknown addresses from a newer flag default
- * to 6, which is the Circle / Tether standard on the chains this flow uses.
+ * to 6, which is Circle's standard on the chains this flow uses.
  */
 const DECIMALS_BY_ADDRESS: Record<string, number> = {
   // Binance-Peg USDC (BNB Smart Chain)
   '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 18,
-  // Binance-Peg BSC-USD (USDT)
-  '0x55d398326f99059ff775485246999027b3197955': 18,
 };
 
 /**
  * Contracts that can fund a Money account deposit when the relay fixed-spread
  * flag is missing or has no Monad mUSD deposit routes.
  *
- * Mirrors the USDC / USDT sources in the production-shaped
+ * Mirrors the USDC sources in the production-shaped
  * `confirmations_relay_fixed_spread` flag (routes whose output is Monad mUSD).
- * Linea and Polygon are omitted: that flag does not route their USDC or USDT
- * into Monad mUSD. Aave wrappers are omitted on purpose.
+ * Linea and Polygon are omitted: that flag does not route their USDC into
+ * Monad mUSD. Aave wrappers are omitted on purpose.
  */
 export const QUICK_DEPOSIT_STABLECOIN_FALLBACK_CONTRACTS: readonly QuickDepositStablecoinContract[] =
   [
@@ -99,25 +97,13 @@ export const QUICK_DEPOSIT_STABLECOIN_FALLBACK_CONTRACTS: readonly QuickDepositS
       address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
       decimals: STANDARD_STABLECOIN_DECIMALS,
     },
-    {
-      symbol: 'USDT',
-      chainId: CHAIN_IDS.MAINNET,
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-      decimals: STANDARD_STABLECOIN_DECIMALS,
-    },
-    {
-      symbol: 'USDT',
-      chainId: CHAIN_IDS.BSC,
-      address: '0x55d398326f99059ff775485246999027b3197955',
-      decimals: 18,
-    },
   ];
 
 const RELAY_FIXED_SPREAD_FLAG = 'confirmations_relay_fixed_spread';
 
 /**
- * Maps a relay token alias such as `eth_usdc` to USDC or USDT.
- * `ausdc`, `ausdt`, and `usdce` do not match.
+ * Maps a relay token alias such as `eth_usdc` to USDC.
+ * `ausdc` and `usdce` do not match.
  */
 export const aliasToQuickDepositSymbol = (
   alias: string,
@@ -126,13 +112,7 @@ export const aliasToQuickDepositSymbol = (
   const raw = (
     underscoreIdx >= 0 ? alias.slice(underscoreIdx + 1) : alias
   ).toLowerCase();
-  if (raw === 'usdc') {
-    return 'USDC';
-  }
-  if (raw === 'usdt') {
-    return 'USDT';
-  }
-  return undefined;
+  return raw === 'usdc' ? 'USDC' : undefined;
 };
 
 const decimalsForAddress = (address: string): number =>
@@ -143,8 +123,8 @@ const isMonadMusdTarget = (route: RelayFixedSpreadAliasRoute): boolean =>
   route.targetToken.toLowerCase() === MUSD_TOKEN_ADDRESS.toLowerCase();
 
 /**
- * USDC and USDT contracts MetaMask Pay can use to deposit into the Money
- * account (Monad mUSD).
+ * USDC contracts MetaMask Pay can use to deposit into the Money account
+ * (Monad mUSD).
  *
  * Live relay routes win when the flag lists at least one Monad mUSD deposit
  * route. Otherwise the documented fallback catalog is used, so a missing flag
@@ -221,33 +201,11 @@ const humanBalance = (
 };
 
 /**
- * Chain with the greatest positive human balance. Ties keep the earlier
- * chain. Returns `fallbackChainId` when every balance is zero or missing —
- * the same rule the mUSD row uses.
- */
-export const selectHighestPositiveBalanceChain = (
-  tokenBalanceByChain: Record<string, string | undefined> | undefined,
-  fallbackChainId: Hex,
-): Hex => {
-  let sourceChainId = fallbackChainId;
-  let bestBalance = new BigNumber(0);
-  for (const [chainId, balance] of Object.entries(tokenBalanceByChain ?? {})) {
-    const candidate = new BigNumber(balance ?? 0);
-    if (candidate.isGreaterThan(bestBalance)) {
-      sourceChainId = chainId as Hex;
-      bestBalance = candidate;
-    }
-  }
-  return sourceChainId;
-};
-
-/**
- * One quick-deposit row per symbol the selected account actually holds.
+ * The USDC quick-deposit row when the selected account holds USDC.
  *
  * Balances on blocked chains, blocked contracts, testnets, and chains without
- * a Money-deposit route are ignored. A symbol with no remaining balance is
- * omitted. The payment token is the supported chain with the largest balance,
- * matching the mUSD row.
+ * a Money-deposit route are ignored. No balance means no row. The payment
+ * token is the supported chain with the largest balance.
  */
 export const buildQuickDepositStablecoinOptions = ({
   relayFlag,

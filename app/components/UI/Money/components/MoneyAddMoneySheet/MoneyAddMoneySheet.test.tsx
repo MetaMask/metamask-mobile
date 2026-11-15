@@ -8,7 +8,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useQuickDepositStablecoins } from '../../hooks/useQuickDepositStablecoins';
 import type { QuickDepositStablecoinOption } from '../../utils/quickDepositStablecoins';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
@@ -22,11 +21,7 @@ import {
 } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../../Earn/constants/musd';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
@@ -76,10 +71,6 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({ params: mockRouteParams }),
   };
 });
-
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
-}));
 
 jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
   useQuickDepositStablecoins: jest.fn(),
@@ -178,13 +169,6 @@ describe('MoneyAddMoneySheet', () => {
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
     });
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '1203.89',
-      fiatBalanceAggregatedFormatted: '$1,203.89',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '1203.89',
-      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1203.89' },
-    });
     (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -255,9 +239,10 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
     expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
-    expect(getByText('$1,203.89')).toBeOnTheScreen();
-    expect(getByText('mUSD')).toBeOnTheScreen();
     expect(getByText('Bank transfer')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+    ).toBeNull();
     expect(queryByText('External address')).toBeNull();
     // Bank transfer is live with a "No fees" badge; External address row is gone.
     expect(queryByText('Coming soon')).toBeNull();
@@ -398,112 +383,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add funds')).toBeOnTheScreen();
   });
 
-  it('formats the move-mUSD amount as USD regardless of the locale fiat currency (assumed 1:1 mUSD -> USD rate)', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '1500.00',
-      fiatBalanceAggregatedFormatted: 'CA$1,500.00',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '1500.00',
-      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1500.00' },
-    });
-    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(getByText('$1,500.00')).toBeOnTheScreen();
-    expect(getByText('mUSD')).toBeOnTheScreen();
-  });
-
-  it('shows the move-mUSD row with the "Add mUSD" label and starts the MM Pay fiat deposit when the selected EVM account has no mUSD tokens or fiat balance', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: undefined,
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: false,
-      tokenBalanceAggregated: '0',
-      tokenBalanceByChain: {},
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('Add mUSD')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      autoSelectFiatPayment: true,
-      intent: 'card',
-    });
-  });
-
-  it('shows the move-mUSD row with the "Add mUSD" label and starts the MM Pay fiat deposit when the selected EVM account mUSD fiat balance is zero', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '0',
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: false,
-      tokenBalanceAggregated: '0',
-      tokenBalanceByChain: {},
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('Add mUSD')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      autoSelectFiatPayment: true,
-      intent: 'card',
-    });
-  });
-
-  it('disables the "Add mUSD" row when there is no mUSD and the fiat deposit flow is unavailable', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '0',
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: false,
-      tokenBalanceAggregated: '0',
-      tokenBalanceByChain: {},
-    });
-    (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
-  });
-
-  it('shows the move-mUSD row with the "$X mUSD" label when the selected EVM account mUSD fiat balance is positive', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '12.34',
-      fiatBalanceAggregatedFormatted: '$12.34',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '12.34',
-      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '12.34' },
-    });
-
-    const { getByTestId, getByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
-
-    expect(
-      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeOnTheScreen();
-    expect(getByText('$12.34')).toBeOnTheScreen();
-    expect(getByText('mUSD')).toBeOnTheScreen();
-  });
-
   it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -584,8 +463,8 @@ describe('MoneyAddMoneySheet', () => {
       getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-    ).toBeOnTheScreen();
+      queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
+    ).toBeNull();
     expect(
       getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
     ).toBeOnTheScreen();
@@ -711,7 +590,6 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
     ],
   ): string[] => {
     const seen = new Set<string>();
@@ -735,7 +613,6 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
     ]);
   });
 
@@ -750,7 +627,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(order).toEqual([
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
     ]);
   });
@@ -768,67 +644,16 @@ describe('MoneyAddMoneySheet', () => {
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
     ]);
 
     expect(order).toEqual([
       MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-      MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
       MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
       MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
     ]);
   });
 
-  it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '1500.00',
-      fiatBalanceAggregatedFormatted: '$1,500.00',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '1500.00',
-      tokenBalanceByChain: {
-        [CHAIN_IDS.MAINNET]: '500.00',
-        [CHAIN_IDS.LINEA_MAINNET]: '1000.00',
-      },
-    });
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      intent: 'addMusd',
-      preferredPaymentToken: {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
-        chainId: CHAIN_IDS.LINEA_MAINNET,
-      },
-    });
-  });
-
-  it('falls back to the default mUSD chain when no per-chain balances are available', () => {
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '12.34',
-      fiatBalanceAggregatedFormatted: '$12.34',
-      hasMusdBalanceOnAnyChain: true,
-      tokenBalanceAggregated: '12.34',
-      tokenBalanceByChain: undefined,
-    });
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-    expect(mockInitiateDeposit).toHaveBeenCalledWith({
-      intent: 'addMusd',
-      preferredPaymentToken: {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
-        chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-      },
-    });
-  });
-
-  describe('USDC and USDT quick deposit', () => {
-    const USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7' as const;
+  describe('USDC quick deposit', () => {
     const BASE_USDC_ADDRESS =
       '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as const;
 
@@ -840,38 +665,24 @@ describe('MoneyAddMoneySheet', () => {
         chainId: CHAIN_IDS.BASE,
       },
     };
-    const usdtOption: QuickDepositStablecoinOption = {
-      symbol: 'USDT',
-      aggregatedBalance: '12.5',
-      preferredPaymentToken: {
-        address: USDT_ADDRESS,
-        chainId: CHAIN_IDS.MAINNET,
-      },
-    };
 
-    it('shows USDC and USDT rows with the held balance when the account holds both', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
-        usdcOption,
-        usdtOption,
-      ]);
+    it('shows the USDC row with the held balance when the account holds USDC', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
 
-      const { getByTestId, getByText } = renderWithProvider(
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
         <MoneyAddMoneySheet />,
       );
 
       expect(
         getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
       ).toBeOnTheScreen();
-      expect(
-        getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION),
-      ).toBeOnTheScreen();
       expect(getByText('$65.00')).toBeOnTheScreen();
       expect(getByText('USDC')).toBeOnTheScreen();
-      expect(getByText('$12.50')).toBeOnTheScreen();
-      expect(getByText('USDT')).toBeOnTheScreen();
+      expect(queryByText('mUSD')).toBeNull();
+      expect(queryByText('USDT')).toBeNull();
     });
 
-    it('hides USDC and USDT when the account holds neither', () => {
+    it('hides the USDC row when the account holds no USDC', () => {
       (useQuickDepositStablecoins as jest.Mock).mockReturnValue([]);
 
       const { queryByTestId, getByTestId } = renderWithProvider(
@@ -881,12 +692,6 @@ describe('MoneyAddMoneySheet', () => {
       expect(
         queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION),
       ).toBeNull();
-      expect(
-        queryByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION),
-      ).toBeNull();
-      expect(
-        getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION),
-      ).toBeOnTheScreen();
       expect(
         getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
       ).toBeOnTheScreen();
@@ -909,45 +714,22 @@ describe('MoneyAddMoneySheet', () => {
       });
     });
 
-    it('opens MetaMask Pay with the USDT contract and the addMusd full-balance intent', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdtOption]);
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION));
-
-      expect(mockInitiateDeposit).toHaveBeenCalledWith({
-        intent: 'addMusd',
-        preferredPaymentToken: {
-          address: USDT_ADDRESS,
-          chainId: CHAIN_IDS.MAINNET,
-        },
-      });
-    });
-
-    it('places funded USDC and USDT directly after mUSD', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([
-        usdcOption,
-        usdtOption,
-      ]);
+    it('places the funded USDC row after the fiat deposit option', () => {
+      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdcOption]);
 
       const { UNSAFE_root } = renderWithProvider(<MoneyAddMoneySheet />);
       const order = getOptionOrder(UNSAFE_root, [
         MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
         MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
         MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
         MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION,
       ]);
 
       expect(order).toEqual([
         MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
         MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
         MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
         MoneyAddMoneySheetTestIds.MOVE_USDC_OPTION,
-        MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION,
       ]);
     });
 
@@ -960,19 +742,6 @@ describe('MoneyAddMoneySheet', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDC,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      });
-    });
-
-    it('calls trackSurfaceClicked with the USDT component when the USDT row is pressed', () => {
-      (useQuickDepositStablecoins as jest.Mock).mockReturnValue([usdtOption]);
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_USDT_OPTION));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_USDT,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
@@ -1029,36 +798,6 @@ describe('MoneyAddMoneySheet', () => {
 
       expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      });
-    });
-
-    it('calls trackSurfaceClicked with MOVE_MUSD component when "Move mUSD" row is pressed', () => {
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
-        redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      });
-    });
-
-    it('calls trackSurfaceClicked with the MONEY_DEPOSIT redirect target when "Add mUSD" is pressed with no mUSD balance', () => {
-      (useMusdBalance as jest.Mock).mockReturnValue({
-        fiatBalanceAggregated: '0',
-        fiatBalanceAggregatedFormatted: '$0.00',
-        hasMusdBalanceOnAnyChain: false,
-        tokenBalanceAggregated: '0',
-        tokenBalanceByChain: {},
-      });
-
-      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
-
-      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
-        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
         redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       });
     });
