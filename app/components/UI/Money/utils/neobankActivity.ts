@@ -1,10 +1,22 @@
+import BigNumber from 'bignumber.js';
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
-import { MUSD_TOKEN } from '../../Earn/constants/musd';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
-import { moneyFormatIncomingAmount } from './moneyFormatFiat';
+import { moneyFormatUsd } from './moneyFormatFiat';
+
+/**
+ * Pending VBA deposits are still denominated in destination mUSD, which is
+ * pegged 1:1 to USD. The activity list shows that as dollars.
+ */
+function formatIncomingDepositDollars(amount: string | undefined): string {
+  const value = new BigNumber(amount ?? 'NaN');
+  if (!value.isFinite() || !value.isGreaterThan(0)) {
+    return '';
+  }
+  return `+${moneyFormatUsd(value)}`;
+}
 
 /** MoonPay autoramp transaction statuses that are no longer in flight. */
 export const NEOBANK_TERMINAL_STATUSES = new Set([
@@ -69,9 +81,8 @@ export function neobankActivityDisplayInfo(
   const failed = isNeobankFailedStatus(activity.status);
   // NeoBank rows are off-chain only. Even MoonPay `Completed` is still pending
   // from Money's POV until mUSD lands and Accounts API emits bank_transfer.
-  const primaryAmount = moneyFormatIncomingAmount(
+  const primaryAmount = formatIncomingDepositDollars(
     activity.destinationAmount,
-    MUSD_TOKEN.symbol,
   );
 
   return {

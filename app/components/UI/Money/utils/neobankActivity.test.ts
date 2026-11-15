@@ -57,7 +57,7 @@ describe('neobankActivity', () => {
       expect(display.label).toBe('Depositing');
       expect(display.description).toBe('Bank transfer');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('+15.00 mUSD');
+      expect(display.primaryAmount).toBe('+$15.00');
       expect(display.showPrimaryAmount).toBe(true);
       expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
       expect(display.isPrimaryAmountPending).toBe(true);
@@ -77,7 +77,7 @@ describe('neobankActivity', () => {
 
       expect(display.label).toBe('Depositing');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('+15.00 mUSD');
+      expect(display.primaryAmount).toBe('+$15.00');
       expect(display.showPrimaryAmount).toBe(true);
       expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
       expect(display.isPrimaryAmountPending).toBe(true);
