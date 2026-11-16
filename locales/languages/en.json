@@ -9029,6 +9029,7 @@
       "not_used_yet": "Not used yet",
       "used_for": "Used for",
       "used_for_money": "Verifying Money transactions",
+      "used_for_wallet_recovery": "Wallet recovery",
       "remove_passkey": "Remove passkey",
       "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
       "remove_email": "Remove email",
