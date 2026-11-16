@@ -150,6 +150,7 @@ export type LeaderboardScreenViewedSource = Extract<
   | 'deep_link'
   | 'home_carousel'
   | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type TraderProfileScreenViewedSource = Extract<
@@ -162,6 +163,7 @@ export type TraderProfileScreenViewedSource = Extract<
   | 'deep_link'
   | 'trader_feed'
   | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type TraderFollowInteractionSource = Extract<
@@ -174,6 +176,7 @@ export type TraderFollowInteractionSource = Extract<
   | 'nux'
   | 'trader_feed'
   | 'explore_perps'
+  | 'explore_crypto'
 >;
 
 export type FollowTradingTokenSource = Extract<
