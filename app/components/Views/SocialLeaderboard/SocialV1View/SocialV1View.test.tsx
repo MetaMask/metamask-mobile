@@ -628,6 +628,24 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('unmounts the page the user switched away from', () => {
+    renderWithProvider(<SocialV1View />);
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    ).toBeTruthy();
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+    ).toBeTruthy();
+  });
+
   it('does not scroll the page to the top when a different tab is tapped', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -1007,16 +1025,23 @@ describe('SocialV1View', () => {
 
     expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
 
-    // Going back to a visited tab turns the old page off after the animation.
+    // Leaving Live unmounts it, which releases its realtime stream.
     fireEvent.press(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
     );
-    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
     settlePager();
+    expect(screen.queryByTestId(SocialV1ViewSelectorsIDs.LIVE_PAGE)).toBeNull();
 
+    // Returning remounts Live. Realtime waits for the pager to settle.
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
     expect(lastLiveCall()).toEqual(
       expect.objectContaining({ realtime: false }),
     );
+    settlePager();
+
+    expect(lastLiveCall()).toEqual(expect.objectContaining({ realtime: true }));
   });
 
   it('filters Live posts with the applied Live filters', () => {
