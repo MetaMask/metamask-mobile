@@ -161,7 +161,14 @@ export function accountsApiActivityListDisplayInfo(
   const { dollarAmount } = resolveAccountsApiAmount(activity);
 
   if (!dollarAmount) {
-    return details;
+    // A pending or unavailable valuation has no USD figure yet. Drop any
+    // merchant-currency amount enrichment put on the details fiat line so the
+    // list shows only the placeholder.
+    return {
+      ...details,
+      fiatAmount: '',
+      isFiatAmountMuted: false,
+    };
   }
 
   return {

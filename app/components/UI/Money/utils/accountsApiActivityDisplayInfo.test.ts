@@ -398,6 +398,37 @@ describe('accountsApiActivityListDisplayInfo', () => {
     expect(details.fiatAmount).toBe('-R$27.50');
   });
 
+  it.each(['pending', 'unavailable'] as const)(
+    'hides a non-USD merchant amount while the valuation is %s',
+    (type) => {
+      const enrichment: CardTransaction = {
+        id: 'baanx-1',
+        providerId: 'baanx',
+        timestamp: card.time,
+        status: CardTransactionStatus.Pending,
+        type: CardTransactionType.Purchase,
+        isDebit: true,
+        billingAmount: { value: '5.38', currency: 'USD' },
+        originalAmount: { value: '27.50', currency: 'BRL' },
+        merchant: { name: 'Coffee Shop' },
+        fundingSources: [],
+      };
+      const activity: AccountsApiActivity = {
+        ...card,
+        displayAmount: { type },
+      };
+
+      const list = accountsApiActivityListDisplayInfo(activity, enrichment);
+      const details = accountsApiActivityDisplayInfo(activity, enrichment);
+
+      expect(list.description).toBe('Coffee Shop');
+      expect(list.fiatAmount).toBe('');
+      expect(list.showPrimaryAmount).toBe(true);
+      expect(list.fiatAmount).not.toContain('R$');
+      expect(details.fiatAmount).toBe('-R$27.50');
+    },
+  );
+
   it('keeps the pending placeholder when no dollar amount is available', () => {
     const info = accountsApiActivityListDisplayInfo({
       ...card,
