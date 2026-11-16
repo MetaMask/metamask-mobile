@@ -78,7 +78,6 @@ import {
   walletHomeOnboardingTitleForStep,
 } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
-import { consumeWalletHomeOnboardingFundFlowCompletion } from './walletHomeOnboardingFundFlow';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
 
@@ -99,24 +98,23 @@ export interface WalletHomeOnboardingStepsProps {
   onTradePrimaryPress?: () => void;
   /** Notifications step: invoked when user taps Primary (before advancing). Skip does not call this. */
   onNotificationsPrimaryPress?: () => void;
-  /** Fund step: opens buy / on-ramp and advances after the completed flow returns. */
+  /** Fund step: opens buy / on-ramp and advances on return once the Fund step is satisfied. */
   onFundPrimaryPress?: (onLaunchFailure: () => void) => void;
   /**
-   * True when aggregated balance is settled and positive (on-ramp complete, incoming transfer, etc.).
-   * Enables passive fund-step advance when funds arrive without leaving the wallet.
+   * True when the wallet is funded: a settled positive balance or a paid buy order from any
+   * entry point. Advances the Fund step on return from Buy, or passively while Wallet is open.
    */
-  canAdvanceFundStepAfterBalance?: boolean;
+  canAdvanceFundStep?: boolean;
 }
 
 /**
  * Multi-step onboarding flow for newly onboarded users with zero aggregated balance.
  * Primary on trade/notifications/fund with navigation callbacks defers advance until the user
- * returns to the wallet. Fund requires a completed buy-flow marker; trade and notifications
- * advance after returning. Both paths briefly hold on the completed step, then run outro + slide.
- * Skip advances immediately (no navigation).
- * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set; reaching the final
- * order details screen with an accepted order marks the flow complete, however the user leaves it.
- * Incoming funds without leaving the wallet still advance when the balance gate becomes true.
+ * returns to the wallet. Fund advances on return only when {@link canAdvanceFundStep} is true;
+ * trade and notifications advance after returning. Both paths briefly hold on the completed step,
+ * then run outro + slide. Skip advances immediately (no navigation).
+ * Step 1 (fund): Primary opens on-ramp when {@link onFundPrimaryPress} is set. A paid buy order
+ * from any entry point, or funds that arrive while Wallet is open, also advance it.
  */
 const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   testID = WalletHomeOnboardingStepsSelectors.CONTAINER,
@@ -126,7 +124,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
   onFundPrimaryPress,
-  canAdvanceFundStepAfterBalance = false,
+  canAdvanceFundStep = false,
 }) => {
   const tw = useTailwind();
   const isGlass = useIsGlassSurfaceEnabled(
@@ -196,7 +194,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   );
   /** Primary opened a navigation flow — advance only after the user returns and a short hold. */
   const deferAdvanceUntilReturnRef = useRef(false);
-  /** Fund primary opened Buy — advance only after its completed flow returns. */
+  /** Fund primary opened Buy — advance on return only if the Fund step is satisfied. */
   const deferFromFundStepRef = useRef(false);
   /** Preserves a completed Fund return across effect cleanup/re-execution during the hold. */
   const fundReturnAuthorizedRef = useRef(false);
@@ -237,6 +235,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   const isLastStepRef = useRef(stepIndex >= totalSteps - 1);
   const isOptimisticFundReturnRef = useRef(isOptimisticFundReturn);
   isOptimisticFundReturnRef.current = isOptimisticFundReturn;
+  const canAdvanceFundStepRef = useRef(canAdvanceFundStep);
+  canAdvanceFundStepRef.current = canAdvanceFundStep;
   /** Kept in sync with `stepIndex` + `isAwaitingBalance` so Primary commit matches `goNextOrComplete` ref reads. */
   const currentStepKindRef = useRef<WalletHomeOnboardingStepKind>(
     visibleSteps[visualStepIndexForProgress].kind,
@@ -611,7 +611,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
     if (deferFromFundStepRef.current) {
       if (!fundReturnAuthorizedRef.current) {
-        if (!consumeWalletHomeOnboardingFundFlowCompletion()) {
+        if (!canAdvanceFundStepRef.current) {
           resetDeferredNavigation();
           return;
         }
@@ -646,8 +646,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   }, [goNextOrComplete, isFocused, resetDeferredNavigation]);
 
   /**
-   * Fund step: user received funds (or already had positive aggregate) without an active
-   * deferred-return timer — e.g. incoming transfer while the checklist is visible.
+   * Fund step: wallet became funded without an active deferred-return timer, e.g. an incoming
+   * transfer or a buy order from another entry point turning paid while the checklist is visible.
    */
   useEffect(() => {
     if (hasTestOverrides) {
@@ -661,7 +661,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     ) {
       return;
     }
-    if (canAdvanceFundStepAfterBalance !== true) {
+    if (canAdvanceFundStep !== true) {
       return;
     }
     if (deferAdvanceUntilReturnRef.current) {
@@ -689,7 +689,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       setIsAwaitingDeferredNavResumeHold(false);
     };
   }, [
-    canAdvanceFundStepAfterBalance,
+    canAdvanceFundStep,
     goNextOrComplete,
     isBalanceShellVisible,
     isFocused,

@@ -124,8 +124,11 @@ describe('finalizeOnboardingCompletion', () => {
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setWalletHomeOnboardingStepsEligible(true, {
-        skipInitialBalanceWait: true,
+      expect.objectContaining({
+        ...setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+        eligibleAt: expect.any(Number),
       }),
     );
     expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
@@ -170,8 +173,11 @@ describe('finalizeOnboardingCompletion', () => {
     expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setWalletHomeOnboardingStepsEligible(true, {
-        skipInitialBalanceWait: true,
+      expect.objectContaining({
+        ...setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+        eligibleAt: expect.any(Number),
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());

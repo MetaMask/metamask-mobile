@@ -17,6 +17,7 @@ import {
 } from '../../../../../selectors/onboarding';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
+import { selectHasWalletHomeOnboardingFundingOrder } from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundingOrder';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
@@ -164,6 +165,9 @@ const AccountGroupBalance = ({
       accountGroupBalance,
       groupId: groupBalance?.groupId ?? null,
     });
+  const hasWalletHomeOnboardingFundingOrder = useSelector(
+    selectHasWalletHomeOnboardingFundingOrder,
+  );
 
   useWalletHomeOnboardingBalanceRefreshEffect({
     enabled:
@@ -226,7 +230,11 @@ const AccountGroupBalance = ({
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
           onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
-          canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
+          canAdvanceFundStep={
+            canAdvanceFundStepAfterBalance ||
+            (isWalletHomeOnboardingFundStep &&
+              hasWalletHomeOnboardingFundingOrder)
+          }
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}
           testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}

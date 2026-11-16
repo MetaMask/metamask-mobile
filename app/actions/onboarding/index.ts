@@ -82,6 +82,8 @@ export interface SetWalletHomeOnboardingStepsEligibleAction {
    * (user just finished onboarding). Never persisted.
    */
   skipInitialBalanceWait: boolean;
+  /** Epoch ms when the user became eligible; `null` when clearing eligibility. */
+  eligibleAt: number | null;
 }
 
 export interface ResetWalletHomeOnboardingStepsAction {
@@ -216,6 +218,7 @@ export function setWalletHomeOnboardingStepsEligible(
     skipInitialBalanceWait: Boolean(
       eligible && (options?.skipInitialBalanceWait ?? true),
     ),
+    eligibleAt: eligible ? Date.now() : null,
   };
 }
 
