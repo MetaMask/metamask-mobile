@@ -4,6 +4,7 @@ import { TokenListItem } from './TokenListItem';
 import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { TokenI } from '../../types';
 import {
@@ -27,6 +28,11 @@ import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/f
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+
+jest.mock('../../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../../util/haptics'),
+  fireImpact: jest.fn(),
+}));
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -844,6 +850,35 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       fireEvent(tokenElement, 'longPress');
 
       expect(mockShowRemoveMenu).not.toHaveBeenCalled();
+      expect(jest.mocked(fireImpact)).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic on long press for native token', () => {
+      prepareMocks({
+        asset: { ...defaultAsset, isNative: true, isETH: true },
+      });
+
+      const mockShowRemoveMenu = jest.fn();
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={mockShowRemoveMenu}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      const tokenElement = getByText('Test Token');
+      fireEvent(tokenElement, 'longPress');
+
+      expect(mockShowRemoveMenu).not.toHaveBeenCalled();
+      expect(jest.mocked(fireImpact)).not.toHaveBeenCalled();
     });
 
     it('calls showRemoveMenu on long press for non-mUSD token', () => {
@@ -870,6 +905,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const tokenElement = getByText('Test Token');
       fireEvent(tokenElement, 'longPress');
 
+      expect(jest.mocked(fireImpact)).toHaveBeenCalledWith(
+        ImpactMoment.SecondaryCTA,
+      );
       expect(mockShowRemoveMenu).toHaveBeenCalledWith(
         expect.objectContaining({
           address: '0x456',
