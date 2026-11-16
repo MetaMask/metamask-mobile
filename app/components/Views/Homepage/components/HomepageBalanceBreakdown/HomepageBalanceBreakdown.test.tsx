@@ -416,14 +416,14 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Money APY as plain success text without a tag background', () => {
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+  it('renders the Money APY as success text on a neutral muted tag', () => {
+    const { getByTestId, getByText } = render(<HomepageBalanceBreakdown />);
 
-    const apy = getByTestId(HomepageBalanceBreakdownTestIds.APY);
-
-    expect(apy).toHaveStyle({ color: mockTheme.colors.success.default });
-    expect(apy).not.toHaveStyle({
-      backgroundColor: mockTheme.colors.success.muted,
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveStyle({
+      backgroundColor: mockTheme.colors.background.muted,
+    });
+    expect(getByText('4.1% APY')).toHaveStyle({
+      color: mockTheme.colors.success.default,
     });
   });
 
