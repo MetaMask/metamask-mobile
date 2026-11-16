@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { LayoutChangeEvent } from 'react-native';
+import { scheduleOnRN } from 'react-native-worklets';
 import {
-  runOnJS,
   useAnimatedReaction,
+  useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated';
 import {
   createSectionViewTracker,
+  DEFAULT_DWELL_MS,
   type SectionViewTracker,
 } from '../utils/sectionViewTracker';
+
+/**
+ * How often a scroll offset is copied to the JS impression tracker.
+ * Dwell is {@link DEFAULT_DWELL_MS}, so a sample this often still sees a
+ * section that actually rests in view. Bridging every frame wakes JS for the
+ * whole gesture.
+ * shortcut: a section can be counted up to this late, or a pass shorter than
+ * dwell plus this gap can still count; sample faster if impression timing gets stricter.
+ */
+export const SECTION_IMPRESSION_SCROLL_SAMPLE_MS = Math.min(
+  100,
+  DEFAULT_DWELL_MS,
+);
 
 export interface UsePredictSectionImpressionsParams {
   /** Scroll offset shared value driving the page (from usePredictStackedHeader). */
@@ -32,12 +47,14 @@ export interface UsePredictSectionImpressionsResult {
  * Scroll-into-view impression tracker for the PredictHome sections.
  *
  * The home is a single non-virtualized `Animated.ScrollView`, so every section
- * mounts at once — mount-based "viewed" would fire for all sections on every
+ * mounts at once. Mount-based "viewed" would fire for all sections on every
  * load regardless of scroll. This hook instead reuses the page's `scrollY`
  * shared value and each section's measured layout to fire `onSectionViewed`
  * only once a section has been sufficiently visible for a dwell period
- * (see `sectionImpressionTracker`). All visibility/dwell logic lives in the
- * framework-agnostic tracker; this hook is glue.
+ * (see `sectionViewTracker`). Scroll offsets are sampled on the UI thread and
+ * copied to JS about ten times a second, not once per frame. All
+ * visibility/dwell logic lives in the framework-agnostic tracker; this hook
+ * is glue.
  */
 export const usePredictSectionImpressions = ({
   scrollY,
@@ -51,6 +68,12 @@ export const usePredictSectionImpressions = ({
   }, [onSectionViewed]);
 
   const trackerRef = useRef<SectionViewTracker | undefined>(undefined);
+  const trailingSampleRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const sampleWindowOpen = useSharedValue(false);
+  const latestScrollY = useSharedValue(0);
+
   if (!trackerRef.current) {
     trackerRef.current = createSectionViewTracker({
       onViewed: (sectionId) => onViewedRef.current(sectionId),
@@ -61,20 +84,49 @@ export const usePredictSectionImpressions = ({
 
   useEffect(() => {
     const tracker = trackerRef.current;
-    return () => tracker?.destroy();
-  }, []);
+    return () => {
+      if (trailingSampleRef.current) {
+        clearTimeout(trailingSampleRef.current);
+        trailingSampleRef.current = undefined;
+      }
+      sampleWindowOpen.value = false;
+      tracker?.destroy();
+      // A sample already queued must not start a new dwell after unmount.
+      trackerRef.current = undefined;
+    };
+  }, [sampleWindowOpen]);
 
-  const handleScrollY = useCallback((value: number) => {
-    trackerRef.current?.setScrollY(value);
-  }, []);
+  const publishScrollSample = useCallback(
+    (value: number) => {
+      const tracker = trackerRef.current;
+      if (!tracker) {
+        return;
+      }
+      tracker.setScrollY(value);
+      if (trailingSampleRef.current) {
+        clearTimeout(trailingSampleRef.current);
+      }
+      trailingSampleRef.current = setTimeout(() => {
+        trailingSampleRef.current = undefined;
+        sampleWindowOpen.value = false;
+        trackerRef.current?.setScrollY(latestScrollY.value);
+      }, SECTION_IMPRESSION_SCROLL_SAMPLE_MS);
+    },
+    [latestScrollY, sampleWindowOpen],
+  );
 
   useAnimatedReaction(
     () => scrollY.value,
     (value) => {
       'worklet';
-      runOnJS(handleScrollY)(value);
+      latestScrollY.value = value;
+      if (sampleWindowOpen.value) {
+        return;
+      }
+      sampleWindowOpen.value = true;
+      scheduleOnRN(publishScrollSample, value);
     },
-    [handleScrollY],
+    [latestScrollY, publishScrollSample, sampleWindowOpen],
   );
 
   const registerSection = useCallback(
