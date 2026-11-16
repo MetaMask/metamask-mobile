@@ -271,6 +271,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isFetchingNextPage,
     loadMore,
     error,
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
     dataUpdatedAt,
     realtime: live,
@@ -592,7 +594,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                   <SocialFeedFooter
                     state={state}
                     isFetchingNextPage={isFetchingNextPage}
+                    isLoadMoreError={isLoadMoreError}
                     onRetry={() => refresh()}
+                    onRetryLoadMore={retryLoadMore}
                   />
                 ) : null
               }

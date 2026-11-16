@@ -10,6 +10,7 @@ import type { Position } from '@metamask/social-controllers';
 import type { FlashListProps } from '@shopify/flash-list';
 import React from 'react';
 import { FlatList, RefreshControl, Text } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import {
   useAnimatedScrollHandler,
   useComposedEventHandler,
@@ -92,6 +93,7 @@ jest.mock('../socialFeedTracking', () => ({
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from './SocialFeedStates.testIds';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
@@ -233,6 +235,8 @@ const feedState = (
   hasNextPage: false,
   loadMore: jest.fn(),
   error: null,
+  isLoadMoreError: false,
+  retryLoadMore: jest.fn(),
   refresh: jest.fn(async () => undefined),
   dataUpdatedAt: 1,
   ...overrides,
@@ -846,16 +850,45 @@ describe('SocialFeedVirtualized', () => {
     expect(requestVisibilityCheck).toHaveBeenCalledTimes(2);
   });
 
-  it('offers a retry after a failed page while posts stay visible', () => {
+  it('shows an inline retry after a failed next page while posts stay visible', () => {
+    const refresh = jest.fn(async () => undefined);
+    const retryLoadMore = jest.fn();
+    mockUseSocialFeed.mockReturnValue(
+      feedState({
+        posts: [post('one')],
+        isLoadMoreError: true,
+        refresh,
+        retryLoadMore,
+      }),
+    );
+    renderFeed();
+
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
+
+    expect(screen.getByText('one')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('social_leaderboard.feed.error.title')),
+    ).toBeNull();
+    expect(retryLoadMore).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('keeps the full-screen retry when a loaded feed fails for a reason other than the next page', () => {
     const refresh = jest.fn(async () => undefined);
     mockUseSocialFeed.mockReturnValue(
-      feedState({ posts: [post('one')], error: 'next page down', refresh }),
+      feedState({ posts: [post('one')], error: 'refresh down', refresh }),
     );
     renderFeed();
 
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
 
     expect(screen.getByText('one')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.error.title')),
+    ).toBeOnTheScreen();
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 

@@ -139,6 +139,7 @@ describe('useTokenHolders', () => {
     await waitFor(() =>
       expect(result.current.error).toBe('holders route exploded'),
     );
+    expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.rows).toStrictEqual([]);
     expect(mockUseLogSocialQueryError).toHaveBeenCalledWith(
       expect.any(Error),
@@ -206,5 +207,33 @@ describe('useTokenHolders', () => {
 
     await waitFor(() => expect(result.current.rows).toHaveLength(1));
     expect(result.current.rows[0].core.positionId).toBe('page-1-again');
+  });
+
+  it('keeps loaded holders and retries only the failed next page', async () => {
+    mockFetchPage
+      .mockResolvedValueOnce(page([holder(0, { positionId: 'page-1' })], true))
+      .mockRejectedValueOnce(new Error('page down'))
+      .mockResolvedValueOnce(page([holder(1, { positionId: 'page-2' })]));
+
+    const { result } = renderTokenHolders();
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+    act(() => result.current.loadMore());
+
+    await waitFor(() => expect(result.current.isLoadMoreError).toBe(true));
+    expect(result.current.error).toBeNull();
+    expect(result.current.rows).toHaveLength(1);
+    expect(result.current.hasNextPage).toBe(false);
+
+    act(() => result.current.loadMore());
+    expect(mockFetchPage).toHaveBeenCalledTimes(2);
+
+    act(() => result.current.retryLoadMore());
+
+    await waitFor(() => expect(result.current.rows).toHaveLength(2));
+    expect(result.current.isLoadMoreError).toBe(false);
+    expect(result.current.rows.map((row) => row.core.positionId)).toStrictEqual(
+      ['page-1', 'page-2'],
+    );
   });
 });

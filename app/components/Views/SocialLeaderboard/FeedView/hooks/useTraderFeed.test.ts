@@ -232,9 +232,44 @@ describe('useTraderFeed', () => {
     });
 
     await waitFor(() => expect(result.current.error).toBe('boom'));
+    expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.items).toHaveLength(0);
     expect(result.current.hasLoadedItems).toBe(false);
     expect(result.current.hasNextPage).toBe(false);
+  });
+
+  it('keeps loaded items and retries only the failed next page', async () => {
+    mockCall
+      .mockResolvedValueOnce(mockFeedResponse([mockSpotFeedItem()], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('page down'))
+      .mockResolvedValueOnce(mockFeedResponse([mockPerpFeedItem()]));
+
+    const { result } = renderHook(() => useTraderFeed({ audience: 'all' }), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.isLoadMoreError).toBe(true));
+    expect(result.current.error).toBeNull();
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.hasNextPage).toBe(false);
+
+    act(() => {
+      result.current.loadMore();
+    });
+    expect(mockCall).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      result.current.retryLoadMore();
+    });
+
+    await waitFor(() => expect(result.current.items).toHaveLength(2));
+    expect(result.current.isLoadMoreError).toBe(false);
   });
 
   it('filters loaded items to spot rows for the tokens type filter', async () => {

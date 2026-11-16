@@ -3,7 +3,10 @@ export interface SocialFeedListState {
   showSkeleton: boolean;
   /** "No trades yet" once a load finished with nothing to show. */
   showEmpty: boolean;
-  /** A retry, for a failed first page or a failed next page alike. */
+  /**
+   * The full-screen retry. A failed next page is not passed in as `error`;
+   * that case is the inline load-more notice instead.
+   */
   showRetry: boolean;
 }
 

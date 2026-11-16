@@ -43,8 +43,15 @@ export interface TokenHoldersState {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
-  /** Normalised error message, or `null`. */
+  /**
+   * Normalised error for a failed first page or refetch, or `null`.
+   * A failed next page is `isLoadMoreError` so loaded rows stay on screen.
+   */
   error: string | null;
+  /** True when the latest next-page fetch failed and earlier pages are kept. */
+  isLoadMoreError: boolean;
+  /** Retries the page that failed. No-op unless `isLoadMoreError`. */
+  retryLoadMore: () => void;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
   refresh: () => Promise<void>;
 }
@@ -128,17 +135,29 @@ export const useTokenHolders = ({
     queryParams: { assetId: assetId ?? '' },
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
+  const {
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isError,
+    isFetchNextPageError,
+    refetch,
+  } = query;
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
       // Fire and forget: the query owns the result, and a failed page is
-      // already surfaced through `error`. The catch is for an unexpected
-      // rejection only -- without it this is a floating promise.
+      // already surfaced through `isLoadMoreError`. The catch is for an
+      // unexpected rejection only -- without it this is a floating promise.
       fetchNextPage().catch(() => undefined);
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
+
+  const retryLoadMore = useCallback(() => {
+    if (isFetchNextPageError && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().catch(() => undefined);
+    }
+  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
 
   const refresh = useCallback(async () => {
     // Refetch only the first page (the stale list stays visible meanwhile, so
@@ -162,7 +181,9 @@ export const useTokenHolders = ({
     isFetchingNextPage,
     hasNextPage: hasNextPage === true && !isError,
     loadMore,
-    error: formatSocialQueryErrorMessage(error),
+    error: formatSocialQueryErrorMessage(isFetchNextPageError ? null : error),
+    isLoadMoreError: isFetchNextPageError,
+    retryLoadMore,
     refresh,
   };
 };

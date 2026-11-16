@@ -60,8 +60,15 @@ export interface UseTraderFeedResult {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
-  /** Normalised error message, or `null`. */
+  /**
+   * Normalised error for a failed first page or refetch, or `null`.
+   * A failed next page is `isLoadMoreError` so loaded rows stay on screen.
+   */
   error: string | null;
+  /** True when the latest next-page fetch failed and earlier pages are kept. */
+  isLoadMoreError: boolean;
+  /** Retries the page that failed. No-op unless `isLoadMoreError`. */
+  retryLoadMore: () => void;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
   /**
@@ -188,13 +195,26 @@ export const useTraderFeed = (
     queryParams: { scope, chains: FEED_CAIP2_CHAINS.join(',') },
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
+  const {
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isError,
+    isFetchNextPageError,
+    refetch,
+  } = query;
+  // A failed next page stays put until Try again. An automatic retry from
+  // the still-visible list end would loop.
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
       fetchNextPage().catch(() => undefined);
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
+  const retryLoadMore = useCallback(() => {
+    if (isFetchNextPageError && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().catch(() => undefined);
+    }
+  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
 
   const refresh = useCallback(async () => {
     // Reset to the newest activity from the top. Refetch only the first page
@@ -222,7 +242,9 @@ export const useTraderFeed = (
     isFetchingNextPage,
     hasNextPage: hasNextPage === true && !isError,
     loadMore,
-    error: formatSocialQueryErrorMessage(error),
+    error: formatSocialQueryErrorMessage(isFetchNextPageError ? null : error),
+    isLoadMoreError: isFetchNextPageError,
+    retryLoadMore,
     refresh,
     // React Query reports `0` until the first success; normalise to `undefined`
     // so consumers fall back to their own render-time clock.

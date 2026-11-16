@@ -66,6 +66,8 @@ const feedState = (
   hasNextPage: false,
   loadMore: jest.fn(),
   error: null,
+  isLoadMoreError: false,
+  retryLoadMore: jest.fn(),
   refresh: jest.fn(async () => undefined),
   dataUpdatedAt: 1,
   ...overrides,

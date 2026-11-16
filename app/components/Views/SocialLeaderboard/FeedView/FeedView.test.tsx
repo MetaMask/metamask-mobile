@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -17,6 +18,7 @@ import {
   TypeFilterSelectorsIDs,
   getTypeFilterOptionTestId,
 } from '../components/Filters';
+import { SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID } from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 import type { FeedItem } from '../../../UI/SocialFeed/types';
 import type { FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
@@ -103,6 +105,8 @@ const buildResult = (
     hasNextPage: false,
     loadMore: mockLoadMore,
     error: null,
+    isLoadMoreError: false,
+    retryLoadMore: jest.fn(),
     refresh: mockRefresh,
     // Undefined by default so rows fall back to their own render-time clock.
     dataUpdatedAt: undefined,
@@ -312,6 +316,23 @@ describe('FeedView', () => {
 
     fireEvent.press(screen.getByTestId(FeedViewSelectorsIDs.RETRY_BUTTON));
     expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the inline paging error under loaded rows and retries that page', () => {
+    const retryLoadMore = jest.fn();
+    mockFeedResult = buildResult({ isLoadMoreError: true, retryLoadMore });
+
+    renderWithProvider(<FeedView />);
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
+
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(FeedViewSelectorsIDs.ERROR_STATE),
+    ).not.toBeOnTheScreen();
+    expect(retryLoadMore).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
   it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {

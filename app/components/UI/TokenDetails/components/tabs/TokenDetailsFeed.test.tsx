@@ -1,5 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import {
@@ -9,6 +10,7 @@ import {
 import { mockOpenPerpsFeedItem } from '../../../SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../SocialFeed/types';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
+import { SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { TokenDetailsIds } from '../../testIds';
 import { TokenDetailsFeed } from './TokenDetailsFeed';
 
@@ -110,6 +112,8 @@ const feedState = (
   hasNextPage: false,
   loadMore: jest.fn(),
   error: null,
+  isLoadMoreError: false,
+  retryLoadMore: jest.fn(),
   refresh: jest.fn(async () => undefined),
   dataUpdatedAt: undefined,
   ...overrides,
@@ -179,6 +183,34 @@ describe('TokenDetailsFeed', () => {
     expect(withPosition.onPositionPress).toBe(onPositionPress);
     expect(withoutPosition.onAuthorPress).toBe(onAuthorPress);
     expect(withoutPosition.onPositionPress).toBeUndefined();
+  });
+
+  it('shows the inline paging error under loaded posts and retries that page', () => {
+    const retryLoadMore = jest.fn();
+    const refresh = jest.fn(async () => undefined);
+    mockUseSocialFeed.mockReturnValue(
+      feedState({
+        posts: [post('one')],
+        isLoadMoreError: true,
+        retryLoadMore,
+        refresh,
+      }),
+    );
+
+    renderWithProvider(
+      <TokenDetailsFeed source={source} location="token_details" />,
+    );
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
+
+    expect(screen.getByTestId('post-one')).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('social_leaderboard.feed.error.title')),
+    ).toBeNull();
+    expect(retryLoadMore).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('drops a hidden post from the list instead of leaving a gap', () => {

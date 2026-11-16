@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Text, View } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
@@ -14,6 +15,7 @@ import SocialFeed, {
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from './SocialFeedStates.testIds';
 
@@ -73,6 +75,8 @@ const feedState = (
   hasNextPage: false,
   loadMore: jest.fn(),
   error: null,
+  isLoadMoreError: false,
+  retryLoadMore: jest.fn(),
   refresh: jest.fn(async () => undefined),
   dataUpdatedAt: undefined,
   ...overrides,
@@ -158,24 +162,33 @@ describe('SocialFeed', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
-  it('offers a retry when a later page fails and posts are already showing', () => {
+  it('shows an inline retry when a later page fails and posts are already showing', () => {
     const refresh = jest.fn(async () => undefined);
+    const retryLoadMore = jest.fn();
     mockUseSocialFeed.mockReturnValue(
       feedState({
         posts: [post('one')],
-        error: 'next page down',
+        isLoadMoreError: true,
         hasNextPage: false,
         refresh,
+        retryLoadMore,
       }),
     );
 
     renderWithProvider(
       <SocialFeed {...query} location="perps_market_details" />,
     );
-    fireEvent.press(screen.getByTestId(SOCIAL_FEED_RETRY_TEST_ID));
+    fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
 
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
-    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('social_leaderboard.feed.error.title')),
+    ).toBeNull();
+    expect(retryLoadMore).toHaveBeenCalledTimes(1);
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it('shows a spinner while the next page loads', () => {

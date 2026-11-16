@@ -83,8 +83,16 @@ export interface SocialFeedState {
   hasNextPage: boolean;
   /** Request the next page; no-op if none remain, one is in flight, or errored. */
   loadMore: () => void;
-  /** Normalised error message, or `null`. */
+  /**
+   * Normalised error for a failed first page or refetch, or `null`.
+   * A failed next page is `isLoadMoreError` so loaded rows stay on screen
+   * without the full-screen feed error.
+   */
   error: string | null;
+  /** True when the latest next-page fetch failed and earlier pages are kept. */
+  isLoadMoreError: boolean;
+  /** Retries the page that failed. No-op unless `isLoadMoreError`. */
+  retryLoadMore: () => void;
   /** Reset to the first page and refetch -- also the recovery path after an error. */
   refresh: () => Promise<void>;
   /** When the loaded pages were fetched, or `undefined` before the first success. */
@@ -282,14 +290,28 @@ export const useSocialFeed = (
     queryParams: toTelemetryQueryParams(request),
   });
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError, refetch } =
-    query;
+  const {
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    isError,
+    isFetchNextPageError,
+    refetch,
+  } = query;
 
+  // Reaching the end must not retry a failed page on its own: the footer is
+  // still in view, so another automatic fetch would loop. The button retries.
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
       fetchNextPage().catch(() => undefined);
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
+
+  const retryLoadMore = useCallback(() => {
+    if (isFetchNextPageError && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().catch(() => undefined);
+    }
+  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
 
   const refresh = useCallback(async () => {
     if (!request) {
@@ -334,7 +356,11 @@ export const useSocialFeed = (
     isFetchingNextPage: hasRequest && isFetchingNextPage,
     hasNextPage: hasRequest && hasNextPage === true && !isError,
     loadMore,
-    error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
+    error: hasRequest
+      ? formatSocialQueryErrorMessage(isFetchNextPageError ? null : error)
+      : null,
+    isLoadMoreError: hasRequest && isFetchNextPageError,
+    retryLoadMore,
     refresh,
     dataUpdatedAt,
     ...(live ? { realtime: live.realtime } : {}),

@@ -479,6 +479,7 @@ describe('useSocialFeed', () => {
     });
 
     await waitFor(() => expect(result.current.error).toBe('feed down'));
+    expect(result.current.isLoadMoreError).toBe(false);
     expect(result.current.hasNextPage).toBe(false);
     expect(result.current.posts).toEqual([]);
     expect(mockUseLogSocialQueryError).toHaveBeenLastCalledWith(
@@ -492,6 +493,57 @@ describe('useSocialFeed', () => {
 
     result.current.loadMore();
     expect(mockCall).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps loaded posts and retries only the failed next page', async () => {
+    mockCall.mockImplementation(
+      (_action: string, options: { olderThan?: string }) => {
+        if (options.olderThan) {
+          return Promise.reject(new Error('page down'));
+        }
+        return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
+      },
+    );
+
+    const { result } = renderHook(() => useSocialFeed(perpSource), {
+      wrapper: createWrapper().wrapper,
+    });
+
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+    expect(result.current.posts).toHaveLength(1);
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.isLoadMoreError).toBe(true));
+    expect(result.current.error).toBeNull();
+    expect(result.current.posts).toHaveLength(1);
+    expect(result.current.hasNextPage).toBe(false);
+
+    act(() => {
+      result.current.loadMore();
+    });
+    expect(mockCall).toHaveBeenCalledTimes(2);
+
+    mockCall.mockImplementation(
+      (_action: string, options: { olderThan?: string }) => {
+        if (options.olderThan) {
+          return Promise.resolve(mockFeedResponse([olderItem]));
+        }
+        return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
+      },
+    );
+    act(() => {
+      result.current.retryLoadMore();
+    });
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(2));
+    expect(result.current.isLoadMoreError).toBe(false);
+    expect(mockCall).toHaveBeenLastCalledWith(
+      'SocialService:fetchTokenFeed',
+      expect.objectContaining({ olderThan: 'cursor-1' }),
+    );
   });
 
   it('keeps paginated posts when a plain feed page hydrates under the service key', async () => {

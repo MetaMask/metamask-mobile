@@ -144,9 +144,17 @@ const mockUseTraderPositions = jest.fn<
 >();
 let mockSocialFeedState: Omit<SocialFeedState, 'dataUpdatedAt'>;
 const setMockSocialFeedState = (
-  state: Omit<SocialFeedState, 'dataUpdatedAt'>,
+  state: Omit<
+    SocialFeedState,
+    'dataUpdatedAt' | 'isLoadMoreError' | 'retryLoadMore'
+  > &
+    Partial<Pick<SocialFeedState, 'isLoadMoreError' | 'retryLoadMore'>>,
 ) => {
-  mockSocialFeedState = state;
+  mockSocialFeedState = {
+    isLoadMoreError: false,
+    retryLoadMore: jest.fn(),
+    ...state,
+  };
 };
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();

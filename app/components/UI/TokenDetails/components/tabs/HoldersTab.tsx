@@ -16,6 +16,7 @@ import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import SocialFeedLoadMoreError from '../../../SocialFeed/components/SocialFeedLoadMoreError';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
 import TokenHolderRow from './holders/TokenHolderRow';
@@ -57,6 +58,8 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
     hasNextPage,
     loadMore,
     error,
+    isLoadMoreError,
+    retryLoadMore,
     refresh,
   } = useTokenHolders({ assetId, enabled: socialEnabled });
   // Set only before Social terms are accepted: a row tap opens onboarding.
@@ -94,6 +97,9 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
             {strings('token_details_v1.holders_tab.empty')}
           </Text>
         </Box>
+      ) : null}
+      {isLoadMoreError && !isFetchingNextPage ? (
+        <SocialFeedLoadMoreError onRetry={retryLoadMore} />
       ) : null}
       {error ? (
         <Box
