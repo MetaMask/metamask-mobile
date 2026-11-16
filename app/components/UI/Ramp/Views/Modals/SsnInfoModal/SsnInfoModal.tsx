@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View } from 'react-native';
 
 import styleSheet from './SsnInfoModal.styles';
@@ -15,6 +14,9 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export const createSsnInfoModalNavigationDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -22,13 +24,16 @@ export const createSsnInfoModalNavigationDetails = createNavigationDetails(
 );
 
 function SsnInfoModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('deposit.ssn_info_modal.title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />
