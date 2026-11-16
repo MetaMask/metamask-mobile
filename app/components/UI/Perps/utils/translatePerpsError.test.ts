@@ -10,6 +10,7 @@ jest.mock('@metamask/perps-controller', () => {
       CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
       CLIENT_REINITIALIZING: 'CLIENT_REINITIALIZING',
       PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
+      PROVIDER_NOT_FOUND: 'PROVIDER_NOT_FOUND',
       PROVIDER_ROUTE_REQUIRED: 'PROVIDER_ROUTE_REQUIRED',
       TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
       BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
@@ -108,10 +109,27 @@ describe('translatePerpsError', () => {
         PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE,
       );
 
-      expect(result).toBe('perps.errors.providerNotAvailable');
+      expect(result).toBe(
+        'perps.errors.providerNotAvailable [providerId:Unknown]',
+      );
       expect(strings).toHaveBeenCalledWith(
         'perps.errors.providerNotAvailable',
-        {},
+        { providerId: 'Unknown' },
+      );
+    });
+
+    it('translates PROVIDER_ROUTE_REQUIRED with a provider name when one is passed', () => {
+      const result = translatePerpsError(
+        PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+        { providerId: 'hyperliquid' },
+      );
+
+      expect(result).toBe(
+        'perps.errors.providerNotAvailable [providerId:hyperliquid]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerNotAvailable',
+        { providerId: 'hyperliquid' },
       );
     });
 
@@ -773,6 +791,22 @@ describe('handlePerpsError', () => {
         'perps.errors.providerNotAvailable',
         {
           providerId: 'hyperliquid',
+        },
+      );
+    });
+
+    it('defaults providerId for a route-required failure', () => {
+      const result = handlePerpsError({
+        error: PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED,
+      });
+
+      expect(result).toBe(
+        'perps.errors.providerNotAvailable [providerId:Unknown]',
+      );
+      expect(strings).toHaveBeenCalledWith(
+        'perps.errors.providerNotAvailable',
+        {
+          providerId: 'Unknown',
         },
       );
     });
