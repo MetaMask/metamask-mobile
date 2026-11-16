@@ -2,13 +2,18 @@ import '../mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
 import {
+  createNavigationContainerRef,
+  NavigationContainer,
   useNavigation,
   type NavigationProp,
   type ParamListBase,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector } from 'react-redux';
-import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../app/util/test/renderWithProvider';
+import NavigationService from '../../../app/core/NavigationService';
 import type { RootState } from '../../../app/reducers';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
@@ -24,6 +29,10 @@ import { useVbaEligibility } from '../../../app/components/UI/Ramp/Views/Virtual
 import MoneyVbaHomeCard from '../../../app/components/UI/Money/components/MoneyVbaHomeCard';
 import { getMoneyHomeCard } from '../../../app/components/UI/Money/hooks/getMoneyHomeCard';
 import { selectUsableVbaAutoramp } from '../../../app/selectors/rampsController';
+import DeleteIdentityData from '../../../app/components/Views/Settings/SecuritySettings/Sections/DeleteIdentityData';
+import { MfaFlowSelectorsIDs } from '../../../app/components/Views/Mfa/Mfa.testIds';
+import MfaFlowHost from '../../../app/components/Views/Mfa/MfaFlowHost/MfaFlowHost';
+import MfaFlowLauncher from '../../../app/components/Views/Mfa/MfaFlowHost/MfaFlowLauncher';
 import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
 
@@ -335,4 +344,60 @@ export const renderVbaMoneyEntryWithDestinationProbes = (
   );
   bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
   return result;
+};
+
+const DeleteIdentityStack = createNativeStackNavigator();
+
+/** MFA controls the identity-deletion email check renders. */
+export const VbaDeleteIdentityTestIds = {
+  OTP_SCREEN: `${MfaFlowSelectorsIDs.CONTAINER}-otp`,
+  CODE_INPUT: MfaFlowSelectorsIDs.CODE_INPUT,
+  BACK_BUTTON: MfaFlowSelectorsIDs.BACK_BUTTON,
+} as const;
+
+/**
+ * Security settings hosts the delete section. The MFA launcher opens the
+ * email check through `NavigationService`, so this renderer owns the
+ * container ref instead of the flat route helper.
+ */
+const VbaDeleteIdentityHost = (): React.ReactElement => (
+  <>
+    <DeleteIdentityData />
+    <MfaFlowLauncher />
+  </>
+);
+
+/**
+ * Renders the identity-deletion section for a customer with an active virtual
+ * bank account and a KYC session. Callers can turn either off.
+ */
+export const renderVbaDeleteIdentityData = (options: RenderVbaOptions = {}) => {
+  const navigation = createNavigationContainerRef<ParamListBase>();
+  NavigationService.navigation = navigation;
+  const result = renderWithProvider(
+    <NavigationContainer ref={navigation}>
+      <DeleteIdentityStack.Navigator
+        screenOptions={{ headerShown: false, animation: 'none' }}
+      >
+        <DeleteIdentityStack.Screen
+          name={Routes.SETTINGS.SECURITY_SETTINGS}
+          component={VbaDeleteIdentityHost}
+        />
+        <DeleteIdentityStack.Screen
+          name={Routes.MFA.FLOW}
+          component={MfaFlowHost}
+        />
+      </DeleteIdentityStack.Navigator>
+    </NavigationContainer>,
+    {
+      state: buildVbaState({
+        hasActiveAccount: true,
+        hasKycSession: true,
+        ...options,
+      }),
+    },
+    false,
+  );
+  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  return { ...result, navigation };
 };

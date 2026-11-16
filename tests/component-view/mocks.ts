@@ -226,6 +226,15 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
         getSessionProfile: jest.fn().mockResolvedValue(undefined),
+        // Real MFA kit (`useMfa` → AuthenticationController). Defaults match a
+        // profile with no credential and no verification session.
+        refreshEnrolledCredentials: jest.fn().mockResolvedValue([]),
+        beginCredentialEnrollment: jest.fn(),
+        completeCredentialEnrollment: jest.fn(),
+        beginCredentialVerification: jest.fn(),
+        completeCredentialVerification: jest.fn(),
+        getVerificationToken: jest.fn().mockReturnValue(null),
+        clearVerificationSession: jest.fn(),
       },
       ProfileController: {
         state: {
@@ -318,6 +327,7 @@ jest.mock('../../app/core/Engine', () => {
         recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
         launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
         refreshSessionStatus: jest.fn(),
+        deleteEncryptedStorage: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
