@@ -17,8 +17,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(
     () =>
-      jest.requireActual('../../__mocks__/pay-token.mock')
-        .resolveEvmAssetIdMock,
+      jest.requireActual('../../__mocks__/pay-token.mock').encodeEvmAssetIdMock,
   ),
 }));
 jest.mock('./useAutomaticMoneyAccountPayToken');

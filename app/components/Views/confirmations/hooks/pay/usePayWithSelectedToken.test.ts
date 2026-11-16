@@ -7,7 +7,7 @@ import { usePayWithSelectedToken } from './usePayWithSelectedToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import {
   evmAssetId,
-  resolveEvmAssetIdMock,
+  encodeEvmAssetIdMock,
 } from '../../__mocks__/pay-token.mock';
 
 jest.mock('react-redux', () => ({
@@ -65,7 +65,7 @@ describe('usePayWithSelectedToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useSelector).mockReturnValue(resolveEvmAssetIdMock);
+    jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
     useAutomaticTransactionPayTokenMock.mockReturnValue(AUTOMATIC_TOKEN_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({

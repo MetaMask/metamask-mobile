@@ -11,8 +11,8 @@ import { RootState } from '../../reducers';
 import { buildEvmCaip19AssetId } from '../../util/multichain/buildEvmCaip19AssetId';
 import {
   buildAssetIdIndex,
-  resolveEvmAssetId,
-  type EvmAssetIdResolver,
+  encodeEvmAssetId,
+  type EvmAssetIdEncoder,
 } from '../../util/transactions/payment-token';
 import { selectAccountTreeControllerState } from '../multichainAccounts/accountTreeController';
 
@@ -189,14 +189,14 @@ export const selectErc20MetadataLookup = createSelector(
 );
 
 /**
- * Resolves the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * Encodes the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
  * state, for callers that select tokens by chain and address (configured,
  * persisted or required tokens). State is indexed once per `assetsInfo` change.
  */
-export const selectEvmAssetIdResolver = createSelector(
+export const selectEvmAssetIdEncoder = createSelector(
   [getAssetsInfo],
-  (assetsInfo): EvmAssetIdResolver => {
+  (assetsInfo): EvmAssetIdEncoder => {
     const index = buildAssetIdIndex(assetsInfo);
-    return (token) => resolveEvmAssetId(token, index);
+    return (token) => encodeEvmAssetId(token, index);
   },
 );

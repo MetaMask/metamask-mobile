@@ -5,7 +5,7 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import {
-  getPaymentTokenEvmAsset,
+  decodePaymentTokenAssetId,
   isSameAssetId,
 } from '../../../../../util/transactions/payment-token';
 
@@ -20,7 +20,7 @@ export function usePayTokenAccountBalance(): {
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const usdRate = useTokenFiatRate(
     payTokenAsset?.address ?? ZERO_ADDRESS,
     payTokenAsset?.chainId ?? ZERO_ADDRESS,

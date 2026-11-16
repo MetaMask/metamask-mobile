@@ -26,7 +26,7 @@ jest.mock('react-redux', () => ({
     () =>
       jest.requireActual(
         '../../../../../../Views/confirmations/__mocks__/pay-token.mock',
-      ).resolveEvmAssetIdMock,
+      ).encodeEvmAssetIdMock,
   ),
 }));
 jest.mock('../../../../hooks/usePredictPaymentToken', () => ({

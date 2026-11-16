@@ -8,7 +8,7 @@ import { useIsMoneyAccountPaymentOverride } from './useIsMoneyAccountPaymentOver
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
-import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
 import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 /**
@@ -44,7 +44,7 @@ export function useMoneyAccountDepositAndOrder({
   useDefaultPaySelectedSection({ disable });
 
   const { payToken, setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { availableTokens } = useTransactionPayAvailableTokens();
   const fiatPayment = useTransactionPayFiatPayment();
 
@@ -57,7 +57,7 @@ export function useMoneyAccountDepositAndOrder({
 
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
-  const musdOnMonadAssetId = resolveAssetId({
+  const musdOnMonadAssetId = encodeAssetId({
     address: MUSD_TOKEN_ADDRESS,
     chainId: CHAIN_IDS.MONAD,
   });

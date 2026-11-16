@@ -4,17 +4,17 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 export const useMusdPaymentToken = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   const onPaymentTokenChange = (token: AssetType) => {
     const assetId =
       token.caipAssetId ??
-      resolveAssetId({
+      encodeAssetId({
         address: token.address as Hex,
         chainId: token.chainId as Hex,
       });

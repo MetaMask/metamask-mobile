@@ -14,7 +14,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useIsMMPayHardwareEnabled } from '../pay/useIsMMPayHardwareEnabled';
 import { isHardwareAccount } from '../../../../../util/address';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export const PAY_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -58,7 +58,7 @@ export const useSignedOrSubmittedAlert = () => {
       hasTransactionType(existingTransaction, [payType]),
   );
 
-  const payTokenChainId = getPaymentTokenEvmAsset(payToken)?.chainId;
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
 
   const hasExistingTransactionOnPayChain =
     payTokenChainId &&
