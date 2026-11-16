@@ -29,6 +29,7 @@ import {
 } from '../../hooks/useMoneyHistoricalEarnings';
 import type { MoneyNavigationParamList } from '../../types/navigation';
 import EarningsChart from './EarningsChart';
+import EarningsHero from './EarningsHero';
 import EarningsSummary from './EarningsSummary';
 import {
   getAuthoritativeRangeTotal,
@@ -61,6 +62,10 @@ const MoneyEarningsView = (): React.ReactElement => {
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
+
+  // TODO: Remove after earnings API integration debugging is complete.
+  // eslint-disable-next-line no-console
+  console.log('data', JSON.stringify(data, null, 2));
 
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
@@ -109,6 +114,10 @@ const MoneyEarningsView = (): React.ReactElement => {
       getAuthoritativeRangeTotal(getSelectedRange(entries, '1Y')) ?? Number.NaN,
     [entries],
   );
+  const selectedRangeTotal = useMemo(
+    () => getAuthoritativeRangeTotal(selectedRangeData) ?? Number.NaN,
+    [selectedRangeData],
+  );
   const projectedOneYear = useMemo(
     () => Math.max(0, thirtyDayTotal) * 12,
     [thirtyDayTotal],
@@ -125,6 +134,7 @@ const MoneyEarningsView = (): React.ReactElement => {
     !hasInvalidProjection &&
     Number.isFinite(thirtyDayTotal) &&
     Number.isFinite(oneYearTotal) &&
+    Number.isFinite(selectedRangeTotal) &&
     chartPoints.some(isAvailableBucket);
 
   const handleRetry = useCallback(() => {
@@ -180,6 +190,15 @@ const MoneyEarningsView = (): React.ReactElement => {
           contentContainerStyle={tw.style('gap-6 px-4 py-6')}
           showsVerticalScrollIndicator={false}
         >
+          {hasHistoricalEarnings && selectedRangeData ? (
+            <EarningsHero
+              totalEarned={oneYearTotal}
+              periodEarnings={selectedRangeTotal}
+              periodStart={selectedRangeData.range_start}
+              periodEnd={selectedRangeData.range_end}
+              periodGranularity={selectedRangeData.granularity}
+            />
+          ) : null}
           <EarningsChart
             entries={entries}
             isLoading={isLoading}

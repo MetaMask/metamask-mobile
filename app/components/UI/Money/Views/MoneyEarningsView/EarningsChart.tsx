@@ -13,7 +13,6 @@ import {
   FilterButtonGroup,
   FilterButtonSize,
   FilterButtonVariant,
-  FontWeight,
   Skeleton,
   Text,
   TextColor,
@@ -51,14 +50,6 @@ const RANGE_LABEL_KEYS: Record<EarningsRange, string> = {
   '3M': 'money.earnings.range_3m',
   '6M': 'money.earnings.range_6m',
   '1Y': 'money.earnings.range_1y',
-};
-
-const RANGE_PERIOD_LABEL_KEYS: Record<EarningsRange, string> = {
-  '1W': 'money.earnings.earned_last_7_days',
-  '30D': 'money.earnings.earned_last_30_days',
-  '3M': 'money.earnings.earned_last_3_months',
-  '6M': 'money.earnings.earned_last_6_months',
-  '1Y': 'money.earnings.earned_last_year',
 };
 
 const CHART_HEIGHT = 160;
@@ -148,11 +139,6 @@ const EarningsChart = ({
       ),
     [points],
   );
-  const dateRange = selectedPoint
-    ? formatPointDateRange(selectedPoint)
-    : undefined;
-  const selectedAmount = selectedPoint?.amount;
-
   const handleRangeChange = (range: EarningsRange): void => {
     const nextPoints = getBucketPoints(getSelectedRange(entries, range));
     setSelection(createSelection(range, nextPoints));
@@ -295,28 +281,6 @@ const EarningsChart = ({
 
   return (
     <Box twClassName="gap-4">
-      {!isLoading &&
-      !isError &&
-      selectedAmount !== undefined &&
-      selectedAmount !== null ? (
-        <Box testID={MoneyEarningsViewTestIds.CHART_HEADER}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings(RANGE_PERIOD_LABEL_KEYS[selectedRange])}
-          </Text>
-          <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
-            {formatSignedUsd(selectedAmount)}
-          </Text>
-          {dateRange ? (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {dateRange}
-            </Text>
-          ) : null}
-        </Box>
-      ) : null}
-
       {renderChartContent()}
 
       <FilterButtonGroup
