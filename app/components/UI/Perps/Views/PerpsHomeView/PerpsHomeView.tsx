@@ -96,6 +96,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
+import PerpsAvailableBalanceLabel from '../../components/PerpsAvailableBalanceLabel';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
@@ -1347,26 +1348,11 @@ const PerpsHomeView = () => {
             }
             bottomLabel={
               !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
-                  <SensitiveText
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    isHidden={privacyMode}
-                    length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
-                  >
-                    {formatPerpsBalance(spendableBalance)}
-                  </SensitiveText>
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {' '}
-                    {strings('perps.available')}
-                  </Text>
-                </Box>
+                <PerpsAvailableBalanceLabel
+                  spendableBalance={spendableBalance}
+                  isHidden={privacyMode}
+                  variant={TextVariant.BodySm}
+                />
               ) : undefined
             }
             twClassName="px-4 pb-3"
