@@ -1,11 +1,13 @@
 import {
   beginPerpsPostTradeShare,
+  buildPerpsClosePostTradePreview,
   canBeginPerpsPostTradeShare,
   canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
   isPerpsPostTradeShareEligible,
   openPerpsPostTradeShareSession,
+  withPerpsFillPrice,
 } from './perpsPostTradeShare';
 import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
@@ -135,6 +137,7 @@ describe('perpsPostTradeShare', () => {
 
   it('keeps a low-value copy-trade on the normal toast path', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -150,6 +153,7 @@ describe('perpsPostTradeShare', () => {
 
   it('keeps a leveraged copy-trade on the toast path when position size is below the minimum', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -165,6 +169,7 @@ describe('perpsPostTradeShare', () => {
 
   it('opens a share for a leveraged copy-trade at the minimum position size', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -180,8 +185,25 @@ describe('perpsPostTradeShare', () => {
     );
   });
 
+  it('keeps a copy-trade from an account that cannot post on the normal toast path', () => {
+    const sessionId = beginPerpsPostTradeShare({
+      canShare: false,
+      copyTradeOrigin,
+      orderType: 'market',
+      activeProvider: 'hyperliquid',
+      asset: 'ETH',
+      direction: 'long',
+      leverage: 10,
+      amountUsd: '400',
+    });
+
+    expect(sessionId).toBeUndefined();
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
   it('completes a pending session with the order id', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -210,6 +232,7 @@ describe('perpsPostTradeShare', () => {
 
   it('clears a pending session when the accepted order has no order id', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -229,6 +252,7 @@ describe('perpsPostTradeShare', () => {
 
   it('leaves a closed session alone so the caller can toast', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'limit',
       activeProvider: undefined,
@@ -246,6 +270,7 @@ describe('perpsPostTradeShare', () => {
 
   it('marks the session failed when the order is rejected', () => {
     const sessionId = beginPerpsPostTradeShare({
+      canShare: true,
       copyTradeOrigin,
       orderType: 'market',
       activeProvider: 'hyperliquid',
@@ -257,5 +282,121 @@ describe('perpsPostTradeShare', () => {
 
     expect(failPerpsPostTradeShare(sessionId)).toBe(true);
     expect(getPostTradeShareSession()?.status).toBe('failed');
+  });
+
+  describe('close share', () => {
+    const closePreview = () =>
+      buildPerpsClosePostTradePreview({
+        asset: 'ETH',
+        direction: 'short',
+        leverage: 5,
+        amountUsd: '500',
+        entryPrice: '3000',
+        pnlUsd: -25,
+        pnlPercent: -12.5,
+      });
+
+    it('builds a close preview with the realized PnL', () => {
+      const preview = closePreview();
+
+      expect(preview).toEqual(
+        expect.objectContaining({
+          product: 'perps',
+          action: 'close',
+          tradeSymbol: 'ETH',
+          direction: 'short',
+          leverageLabel: '5x',
+          isPnlPositive: false,
+        }),
+      );
+      expect(preview.costLabel).toBeDefined();
+      expect(preview.entryPriceLabel).toBeDefined();
+      expect(preview.pnlLabel).toContain('12.5');
+      expect(preview.pnlValueLabel).toMatch(/^-/);
+      expect(preview.exitPriceLabel).toBeUndefined();
+    });
+
+    it('leaves the PnL off a close preview without a realized PnL', () => {
+      const preview = buildPerpsClosePostTradePreview({
+        asset: 'ETH',
+        direction: 'long',
+      });
+
+      expect(preview.action).toBe('close');
+      expect(preview.pnlLabel).toBeUndefined();
+      expect(preview.pnlValueLabel).toBeUndefined();
+      expect(preview.isPnlPositive).toBeUndefined();
+    });
+
+    it('opens a pending close session with the close pair label', () => {
+      openPerpsPostTradeShareSession({
+        asset: 'ETH',
+        direction: 'short',
+        preview: closePreview(),
+      });
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          product: 'perps',
+          status: 'pending',
+          pairLabel: 'Close 5x Short ETH',
+          preview: expect.objectContaining({ action: 'close' }),
+        }),
+      );
+    });
+
+    it('writes the fill price as the exit price when a close completes', () => {
+      const sessionId = openPerpsPostTradeShareSession({
+        asset: 'ETH',
+        direction: 'short',
+        preview: closePreview(),
+      });
+      const entryPriceLabel = closePreview().entryPriceLabel;
+
+      completePerpsPostTradeShare(sessionId, {
+        orderId: '7',
+        entryPrice: '2800',
+      });
+
+      const session = getPostTradeShareSession();
+      if (session?.product !== 'perps') {
+        throw new Error('expected a perps session');
+      }
+      expect(session.preview.exitPriceLabel).toBeDefined();
+      expect(session.preview.exitPriceLabel).not.toBe(entryPriceLabel);
+      expect(session.preview.entryPriceLabel).toBe(entryPriceLabel);
+    });
+  });
+
+  describe('withPerpsFillPrice', () => {
+    const openPreview = {
+      product: 'perps' as const,
+      tokenSymbol: 'ETH',
+      tradeSymbol: 'ETH',
+      tokenAddress: 'ETH',
+      direction: 'long' as const,
+    };
+
+    it('sets the entry price of an open', () => {
+      const preview = withPerpsFillPrice(openPreview, '3200');
+
+      expect(preview.entryPriceLabel).toBeDefined();
+      expect(preview.exitPriceLabel).toBeUndefined();
+    });
+
+    it('sets the exit price of a close', () => {
+      const preview = withPerpsFillPrice(
+        { ...openPreview, action: 'close' },
+        '3200',
+      );
+
+      expect(preview.exitPriceLabel).toBeDefined();
+      expect(preview.entryPriceLabel).toBeUndefined();
+    });
+
+    it('keeps the preview when the fill price is unusable', () => {
+      expect(withPerpsFillPrice(openPreview, undefined)).toBe(openPreview);
+      expect(withPerpsFillPrice(openPreview, '0')).toBe(openPreview);
+    });
   });
 });

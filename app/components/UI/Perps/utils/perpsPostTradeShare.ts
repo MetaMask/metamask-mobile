@@ -6,7 +6,10 @@ import {
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
+import { strings } from '../../../../../locales/i18n';
 import {
+  formatPercent,
+  formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from '../../SocialFeed/utils/formatters';
@@ -120,12 +123,91 @@ export const buildPerpsPostTradePreview = ({
   entryPriceLabel: priceLabel(entryPrice),
 });
 
-/** Opens the pending perps share sheet without the copy-trade checks. */
+/**
+ * Preview for an order that fully closed a position. The exit price is filled
+ * in by {@link completePerpsPostTradeShare} once the close fills.
+ */
+export const buildPerpsClosePostTradePreview = ({
+  asset,
+  direction,
+  leverage,
+  amountUsd,
+  entryPrice,
+  pnlUsd,
+  pnlPercent,
+}: {
+  asset: string;
+  direction: 'long' | 'short';
+  leverage?: number;
+  /** Closed notional. */
+  amountUsd?: string;
+  /** Position's average entry price. */
+  entryPrice?: string;
+  pnlUsd?: number;
+  pnlPercent?: number;
+}): SocialPostPerpsPreview => {
+  const hasPnl = pnlUsd != null && Number.isFinite(pnlUsd);
+  return {
+    ...buildPerpsPostTradePreview({
+      asset,
+      direction,
+      leverage,
+      amountUsd,
+      entryPrice,
+    }),
+    action: 'close',
+    ...(hasPnl
+      ? {
+          pnlValueLabel: formatSignedAbbreviatedUsd(pnlUsd),
+          pnlLabel:
+            pnlPercent != null && Number.isFinite(pnlPercent)
+              ? formatPercent(pnlPercent)
+              : undefined,
+          isPnlPositive: pnlUsd >= 0,
+        }
+      : {}),
+  };
+};
+
+/**
+ * Applies the order's average fill price to the preview: the entry price of
+ * an open, or the exit price of a close. An unusable price keeps the preview.
+ */
+export const withPerpsFillPrice = (
+  preview: SocialPostPerpsPreview,
+  averagePrice: string | undefined,
+): SocialPostPerpsPreview => {
+  const fillPriceLabel = priceLabel(averagePrice);
+  if (!fillPriceLabel) {
+    return preview;
+  }
+  return preview.action === 'close'
+    ? { ...preview, exitPriceLabel: fillPriceLabel }
+    : { ...preview, entryPriceLabel: fillPriceLabel };
+};
+
+const formatPerpsPairLabel = (preview: SocialPostPerpsPreview): string => {
+  const directionLabel = preview.direction === 'long' ? 'Long' : 'Short';
+  const position = preview.leverageLabel
+    ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
+    : `${directionLabel} ${preview.tokenSymbol}`;
+  return preview.action === 'close'
+    ? strings('social_leaderboard.post_trade_share.close_pair_label', {
+        position,
+      })
+    : position;
+};
+
+/**
+ * Opens the pending perps share sheet without the copy-trade checks. Pass
+ * `preview` for a close; an open builds its preview from the order fields.
+ */
 export const openPerpsPostTradeShareSession = ({
   asset,
   direction,
   leverage,
   amountUsd,
+  preview: closePreview,
   variant = 'share',
   analyticsSource,
 }: {
@@ -133,23 +215,23 @@ export const openPerpsPostTradeShareSession = ({
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  preview?: SocialPostPerpsPreview;
   variant?: PostTradeShareVariant;
   analyticsSource?: SocialEventSource;
 }): string => {
-  const preview = buildPerpsPostTradePreview({
-    asset,
-    direction,
-    leverage,
-    amountUsd,
-  });
-  const directionLabel = direction === 'long' ? 'Long' : 'Short';
+  const preview =
+    closePreview ??
+    buildPerpsPostTradePreview({
+      asset,
+      direction,
+      leverage,
+      amountUsd,
+    });
   return beginPostTradeShareSession({
     product: 'perps',
     status: 'pending',
     variant,
-    pairLabel: preview.leverageLabel
-      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
-      : `${directionLabel} ${preview.tokenSymbol}`,
+    pairLabel: formatPerpsPairLabel(preview),
     tradeInFlightChain: 'hyperliquid',
     preview,
     ...(analyticsSource ? { analyticsSource } : {}),
@@ -159,9 +241,11 @@ export const openPerpsPostTradeShareSession = ({
 /**
  * Opens the share sheet as pending for a Social V1 perps copy-trade that can
  * return an order id. Returns the session id, or undefined when this order
- * should keep the normal perps toasts.
+ * should keep the normal perps toasts. `canShare` is false when the account
+ * trading is not the one linked to the social profile, so it cannot post.
  */
 export const beginPerpsPostTradeShare = ({
+  canShare,
   copyTradeOrigin,
   orderType,
   activeProvider,
@@ -171,6 +255,7 @@ export const beginPerpsPostTradeShare = ({
   amountUsd,
   analyticsSource,
 }: {
+  canShare: boolean;
   copyTradeOrigin: CopyTradeOrigin | undefined;
   orderType: OrderType;
   activeProvider: PerpsActiveProviderMode | undefined;
@@ -181,6 +266,7 @@ export const beginPerpsPostTradeShare = ({
   analyticsSource?: SocialEventSource;
 }): string | undefined => {
   if (
+    !canShare ||
     !canBeginPerpsPostTradeShare({
       copyTradeOrigin,
       orderType,
@@ -242,12 +328,9 @@ export const completePerpsPostTradeShare = (
   ) {
     return false;
   }
-  const entryPriceLabel = priceLabel(entryPrice);
   return patchPostTradeShareSession(sessionId, {
     status: 'complete',
     orderId,
-    preview: entryPriceLabel
-      ? { ...session.preview, entryPriceLabel }
-      : session.preview,
+    preview: withPerpsFillPrice(session.preview, entryPrice),
   });
 };
