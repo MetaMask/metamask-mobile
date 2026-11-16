@@ -118,6 +118,12 @@ export const PerpsReceiveToSelectorsIDs = {
   OPTION: 'perps-receive-to-option',
 } as const;
 
+export const PerpsWithdrawFromSelectorsIDs = {
+  ROW: 'perps-withdraw-from-row',
+  SHEET: 'perps-withdraw-from-sheet',
+  OPTION: 'perps-withdraw-from-option',
+} as const;
+
 export const PredictAccountPickerSelectorsIDs = {
   ROW: 'predict-account-picker-row',
   SHEET: 'predict-account-picker-sheet',

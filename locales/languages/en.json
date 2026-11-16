@@ -10558,6 +10558,13 @@
       "default": "Default",
       "available": "{{amount}} available"
     },
+    "perps_withdraw_from": {
+      "section": "Perps",
+      "hyperliquid": "Hyperliquid balance",
+      "lighter": "Lighter balance",
+      "default": "Default",
+      "available": "{{amount}} available"
+    },
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
