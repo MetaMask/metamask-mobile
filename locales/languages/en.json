@@ -8985,7 +8985,9 @@
       "support_title": "We couldn't verify your details",
       "support_description": "Contact support to continue.",
       "contact_support": "Contact support",
-      "done": "Done"
+      "done": "Done",
+      "passkey_exists_title": "Can't create passkey",
+      "passkey_exists_description": "A passkey already exists on this device. Try using a different password manager."
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
@@ -9021,6 +9023,10 @@
       "passkey_name": "Passkey #{{number}}",
       "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
       "added_on": "Added {{date}}",
+      "created": "Created",
+      "last_used": "Last used",
+      "last_used_on": "Last used {{date}}",
+      "not_used_yet": "Not used yet",
       "used_for": "Used for",
       "used_for_money": "Verifying Money transactions",
       "remove_passkey": "Remove passkey",
@@ -10550,6 +10556,20 @@
       "switch_to_standard_account": "You're switching back to a standard account (EOA).",
       "contract_deployment": "This site wants you to deploy a contract",
       "decrease_allowance": "This site wants decrease the spending cap for your tokens."
+    },
+    "perps_receive_to": {
+      "section": "Perps",
+      "hyperliquid": "USDC on Hyperliquid",
+      "lighter": "USDC on Lighter",
+      "default": "Default",
+      "available": "{{amount}} available"
+    },
+    "perps_withdraw_from": {
+      "section": "Perps",
+      "hyperliquid": "Hyperliquid balance",
+      "lighter": "Lighter balance",
+      "default": "Default",
+      "available": "{{amount}} available"
     },
     "tooltip": {
       "perps_deposit": {
