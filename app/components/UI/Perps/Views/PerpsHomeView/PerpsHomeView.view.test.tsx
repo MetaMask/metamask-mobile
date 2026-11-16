@@ -32,6 +32,8 @@ import { PERPS_MODE_SELECTION_COMPLETED } from '../../../../../constants/storage
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPerpsBalance } from '../../utils/formatUtils';
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as perpsOutreachApi from '../../services/perpsOutreachApi';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   createBtcMarketForViews,
@@ -64,6 +66,7 @@ import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachB
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   clearPerpsOutreachApiMocks,
+  mockPerpsOutreachBanner,
   setupPerpsOutreachApiMock,
 } from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import {
@@ -139,32 +142,44 @@ describe('PerpsHomeView', () => {
   });
 
   it('shows and dismisses an eligible Terminal outreach campaign', async () => {
-    // The fixture's selected account enables the outreach query on the first
-    // render. Leave the session profile unset: a profile that resolves after
-    // mount changes the query key, aborts the in-flight request, and makes the
-    // banner wait on a second round trip.
-    renderPerpsHomeView({
-      overrides: eligibleOverrides,
-    });
+    // Resolve the campaign at the service boundary. This case asserts that
+    // PerpsHomeView renders and dismisses a campaign; the HTTP request, status
+    // handling, payload validation, and cancellation live in
+    // services/perpsOutreachApi.test.ts, and the query key/enabled logic in
+    // hooks/usePerpsOutreachBanner.test.tsx. Waiting on a real round trip here
+    // made the assertion depend on the first HTTP request of a cold Jest
+    // worker (this suite opens shard 1) and fail intermittently at 5s while
+    // every other test in the file passed.
+    const fetchCampaignSpy = jest
+      .spyOn(perpsOutreachApi, 'fetchPerpsOutreachBanner')
+      .mockResolvedValue(mockPerpsOutreachBanner);
 
-    // Waits on the single Terminal outreach request keyed by the account.
-    expect(
-      await screen.findByTestId(
-        PerpsOutreachBannerSelectorsIDs.BANNER,
-        {},
-        { timeout: TIMEOUT_MS },
-      ),
-    ).toBeOnTheScreen();
+    try {
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+      });
 
-    fireEvent.press(
-      screen.getByTestId(PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON),
-    );
-
-    await waitFor(() => {
       expect(
-        screen.queryByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
-      ).not.toBeOnTheScreen();
-    });
+        await screen.findByTestId(
+          PerpsOutreachBannerSelectorsIDs.BANNER,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(fetchCampaignSpy).toHaveBeenCalled();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOutreachBannerSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+        ).not.toBeOnTheScreen();
+      });
+    } finally {
+      fetchCampaignSpy.mockRestore();
+    }
   });
 
   it('shows Add funds as the next action for a no-funds trader', async () => {
