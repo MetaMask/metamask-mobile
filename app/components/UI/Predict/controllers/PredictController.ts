@@ -4976,8 +4976,7 @@ export class PredictController extends BaseController<
       to: activeWithdrawTransaction.predictAddress as Hex,
     };
 
-    // Attempt to estimate gas for the updated transaction
-    let updatedGas: Hex | undefined;
+    let updatedGas: Hex;
     try {
       const estimateResult = await this.messenger.call(
         'TransactionController:estimateGas',
@@ -4986,17 +4985,14 @@ export class PredictController extends BaseController<
       );
       updatedGas = estimateResult.gas as Hex;
     } catch (error) {
-      // Keep the original gas but still swap in the signed Safe call. Without
-      // the swap, the transaction keeps the EOA `pUSD.transfer`, which the EOA
-      // can't fund, so the gas fee token check before publish can't find pUSD
-      // even though the pre-sign check quoted it for the Safe call.
-      DevLogger.log(
-        'PredictController: Gas estimation failed in beforeSign, using original gas values',
-        {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        },
-      );
+      // Fail the withdraw before signing. Returning without the swap would
+      // leave the EOA `pUSD.transfer`, which the EOA can't fund, and swapping
+      // without a new estimate would broadcast the Safe call with a gas limit
+      // that was never estimated for it.
+      DevLogger.log('PredictController: Gas estimation failed in beforeSign', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
+      });
       Logger.error(
         ensureError(error),
         this.getErrorContext('beforeSignWithdrawIfNeeded', {
@@ -5004,6 +5000,13 @@ export class PredictController extends BaseController<
           transactionId: request.transactionMeta.id,
         }),
       );
+      this.update((state) => {
+        if (state.withdrawTransaction) {
+          state.withdrawTransaction.status = PredictWithdrawStatus.ERROR;
+        }
+      });
+
+      throw error;
     }
 
     this.update((state) => {
@@ -5022,13 +5025,10 @@ export class PredictController extends BaseController<
           ...transaction.assetsFiatValues,
           receiving: String(amount),
         };
-        // Only update gas if estimation succeeded
-        if (updatedGas) {
-          transaction.txParams.gas = updatedGas;
-          // Keep the legacy field synchronized for existing transaction consumers.
-          // eslint-disable-next-line @typescript-eslint/no-deprecated
-          transaction.txParams.gasLimit = updatedGas;
-        }
+        transaction.txParams.gas = updatedGas;
+        // Keep the legacy field synchronized for existing transaction consumers.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        transaction.txParams.gasLimit = updatedGas;
       },
     };
   }
