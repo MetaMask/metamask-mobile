@@ -67,7 +67,6 @@ export const REWARDS_VIEW_SELECTORS = {
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
   EARN_REWARDS_MUSD_DISCLAIMER_LINK:
     'rewards-view-earn-rewards-musd-disclaimer-link',
-  EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',
   CAMPAIGNS_PREVIEW_ACTIVE_TILE: 'rewards-view-campaigns-preview-active-tile',

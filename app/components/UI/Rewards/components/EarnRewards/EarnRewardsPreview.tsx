@@ -28,15 +28,10 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
-import {
-  selectIsCardAuthenticated,
-  selectIsCardholder,
-} from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
-import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MONEY_DISCLAIMER_URL } from '../../../../../constants/urls';
@@ -113,22 +108,17 @@ const EarnCard: React.FC<EarnCardProps> = ({
   );
 };
 
-type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
+type CarouselSlotKey = 'musd-skeleton' | 'musd';
 
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * mUSD calculator card: shown when geoLocation has settled AND is not UK.
- * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined
- * (loading) or 'GB' to prevent flash for UK users.
- * MetaMask Card card: always shown.
- * While geo is loading (status 'idle' or 'loading'): a skeleton occupies the
- * mUSD slot; the Card slot is always present.
- * Cards are displayed in a horizontal peek carousel that scales to any
- * number of items: every card except the last snaps flush-left with the next
- * card peeking on the right; the last card snaps flush-right with the
- * previous card peeking on the left. No pagination dots. If there are no
- * items at all the entire section is not rendered.
+ * The only slide is the mUSD calculator. It is shown when geoLocation has
+ * settled and is not UK. 'UNKNOWN' is treated as non-UK. It is hidden when
+ * the location is still unknown or is 'GB', so UK users do not see a flash.
+ * While geo is loading (status 'idle' or 'loading') a skeleton occupies the
+ * slot. If Money is off, or the location has settled with no slide to show,
+ * the section is not rendered.
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -152,14 +142,6 @@ const EarnRewardsPreview: React.FC = () => {
   const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
   const { apyPercent } = useMoneyVaultApy();
 
-  // Card check — subtitle varies by cardholder status; card is always rendered
-  const isCardholder = useSelector(selectIsCardholder);
-  const isAuthenticatedCard = useSelector(selectIsCardAuthenticated);
-  const cardSubtitle =
-    isCardholder || isAuthenticatedCard
-      ? strings('rewards.earn_rewards.card_subtitle_cardholder')
-      : strings('rewards.earn_rewards.card_subtitle');
-
   const handleMusdPress = useCallback(() => {
     handleDeeplink({ uri: MUSD_MONEY_URL });
   }, []);
@@ -178,10 +160,6 @@ const EarnRewardsPreview: React.FC = () => {
     [navigation],
   );
 
-  const handleCardPress = useCallback(() => {
-    handleDeeplink({ uri: 'metamask://card-home' });
-  }, []);
-
   // Disable presses only while the user is actively dragging the carousel.
   // We intentionally do NOT include momentum-scroll state here so that taps
   // during deceleration still register and stop the scroll.
@@ -196,7 +174,6 @@ const EarnRewardsPreview: React.FC = () => {
   } else if (showMusdCard) {
     items.push('musd');
   }
-  items.push('card');
   const itemCount = items.length;
 
   // Explicit snap offsets give the first card a flush-left snap (peek on right)
@@ -280,23 +257,6 @@ const EarnRewardsPreview: React.FC = () => {
                   }
                   subtitle={strings('rewards.earn_rewards.musd_subtitle')}
                   onPress={handleMusdPress}
-                  disabled={isDragging}
-                />
-              )}
-              {item === 'card' && (
-                <EarnCard
-                  testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-                  image={cardImage}
-                  title={
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {strings('rewards.earn_rewards.card_title')}
-                    </Text>
-                  }
-                  subtitle={cardSubtitle}
-                  onPress={handleCardPress}
                   disabled={isDragging}
                 />
               )}
