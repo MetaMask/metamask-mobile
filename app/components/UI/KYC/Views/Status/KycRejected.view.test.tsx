@@ -78,6 +78,8 @@ describeForPlatforms('KycRejected view', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
+    launchProviderFlow.mockReset();
+    launchProviderFlow.mockResolvedValue('abandoned');
   });
 
   it('opens the rejected screen with Contact support for a terminal rejection', async () => {
