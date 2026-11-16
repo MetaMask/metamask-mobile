@@ -297,10 +297,18 @@ const KalshiOnboarding = () => {
       if (!aal2Token) {
         throw new Error('MetaMask could not confirm your email.');
       }
+      // kyc-api reads the session's email from this token, so the address
+      // Kalshi registers is the one MetaMask verified, not one typed here.
+      // TODO: mint this for the `kalshi` audience once MetaMask Auth has one.
+      const partnerIdentityToken =
+        await Engine.context.AuthenticationController.getPartnerIdentityToken(
+          ['email'],
+          'iron',
+        );
       await VendorOnboardingController.startSession({
         vendor: VENDOR,
         aal2Token,
-        ...(linkedEmail ? { email: linkedEmail } : {}),
+        partnerIdentityToken,
       });
     });
 

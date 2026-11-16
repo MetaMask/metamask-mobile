@@ -48,6 +48,9 @@ jest.mock('../../../../core/Engine', () => ({
       getGeoCountry: jest.fn(),
       fetchVendorDisclaimers: jest.fn(),
     },
+    AuthenticationController: {
+      getPartnerIdentityToken: jest.fn(),
+    },
   },
 }));
 
@@ -59,6 +62,8 @@ const service = Engine.context.KycService as unknown as Record<
   string,
   jest.Mock
 >;
+const mockGetPartnerIdentityToken = Engine.context.AuthenticationController
+  .getPartnerIdentityToken as unknown as jest.Mock;
 
 const TERMS = [
   { id: 'tos-v1', url: 'https://kalshi.example/tos', display_name: 'Terms' },
@@ -102,6 +107,7 @@ describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    mockGetPartnerIdentityToken.mockResolvedValue('partner-token');
     flow.refreshStep.mockResolvedValue('vendor_terms');
     for (const name of [
       'acceptTerms',
@@ -231,7 +237,7 @@ describe('KalshiOnboarding', () => {
   });
 
   describe('confirm with MetaMask', () => {
-    it('opens the session with the MFA token', async () => {
+    it('opens the session with the MFA token and an identity token', async () => {
       const screen = render('confirm_identity');
 
       fireEvent.press(primary(screen));
@@ -240,6 +246,7 @@ describe('KalshiOnboarding', () => {
         expect(flow.startSession).toHaveBeenCalledWith({
           vendor: 'kalshi',
           aal2Token: 'aal2',
+          partnerIdentityToken: 'partner-token',
         }),
       );
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
@@ -247,9 +254,23 @@ describe('KalshiOnboarding', () => {
       );
     });
 
-    it('leaves the email out when the screen was opened after the link', async () => {
-      // The email only lives while the link screens are open, and kyc-api
-      // already holds the Kalshi user, so a reopened screen sends none.
+    it('mints the identity token for the iron audience for now', async () => {
+      // MetaMask Auth has no `kalshi` audience yet, so kyc-api verifies a
+      // Kalshi session's token against Iron's.
+      const screen = render('confirm_identity');
+
+      fireEvent.press(primary(screen));
+
+      await waitFor(() => expect(flow.startSession).toHaveBeenCalled());
+      expect(mockGetPartnerIdentityToken).toHaveBeenCalledWith(
+        ['email'],
+        'iron',
+      );
+    });
+
+    it('never sends an email the user typed', async () => {
+      // The address Kalshi registers comes from the verified token, so the
+      // Kalshi account and the MetaMask account cannot diverge.
       const screen = render('confirm_identity');
 
       fireEvent.press(primary(screen));
