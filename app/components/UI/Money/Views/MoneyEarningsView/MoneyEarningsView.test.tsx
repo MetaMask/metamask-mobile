@@ -6,6 +6,9 @@ import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import {
   useMoneyHistoricalEarnings,
+  type InterestHistoryAvailability,
+  type InterestHistoryBucket,
+  type InterestHistoryRange,
   type InterestHistoryResponse,
 } from '../../hooks/useMoneyHistoricalEarnings';
 import MoneyEarningsView from './MoneyEarningsView';
@@ -53,49 +56,98 @@ const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
 
+const available: InterestHistoryAvailability = {
+  earnings: 'available',
+  usd_pricing: 'available',
+};
+
 const createBucket = (
   start: string,
   interestEarnedUsd: string | null,
-): { start: string; end: string; interest_earned_usd: string | null } => ({
+  bucketAvailability: InterestHistoryAvailability = available,
+): InterestHistoryBucket => ({
   start,
   end: new Date(Date.parse(start) + 24 * 60 * 60 * 1000).toISOString(),
+  period_status: 'complete',
+  availability: bucketAvailability,
+  unavailable_reasons:
+    bucketAvailability.earnings === 'available'
+      ? []
+      : ['before_user_earnings_inception'],
+  interest_earned_musd_assets: interestEarnedUsd,
   interest_earned_usd: interestEarnedUsd,
+  musd_price_usd: bucketAvailability.usd_pricing === 'available' ? '1' : null,
+  price_as_of: bucketAvailability.usd_pricing === 'available' ? start : null,
+  price_source:
+    bucketAvailability.usd_pricing === 'available'
+      ? 'metamask_price_api'
+      : null,
+  by_vault: [],
+});
+
+const createRange = (
+  range: InterestHistoryRange['range'],
+  buckets: InterestHistoryBucket[],
+  total: string,
+): InterestHistoryRange => ({
+  range,
+  granularity: range === '7d' ? 'day' : range === '30d' ? 'week' : 'month',
+  range_start: buckets[0]?.start ?? '2026-10-17T00:00:00.000Z',
+  range_end: '2026-11-16T00:00:00.000Z',
+  period_status: 'partial',
+  availability: available,
+  unavailable_reasons: [],
+  totals: {
+    interest_earned_musd_assets: total,
+    interest_earned_usd: total,
+  },
+  buckets,
 });
 
 const historicalEarnings: InterestHistoryResponse = {
   address: '0x1234',
   chain_id: 143,
+  bucket_timezone: 'UTC',
+  updated_through: '2026-11-16T16:02:44.000Z',
+  source_watermark: {
+    vault_accounting: {
+      block_number: '122782198',
+      block_timestamp: '2026-11-16T16:02:44.000Z',
+    },
+  },
+  method: 'nav_difference',
+  denomination: {
+    asset: 'mUSD',
+    decimals: 6,
+  },
   ranges: [
-    {
-      range: '7d',
-      buckets: [createBucket('2026-11-16T12:00:00.000Z', '10')],
-    },
-    {
-      range: '30d',
-      buckets: [
-        createBucket('2026-11-16T12:00:00.000Z', '10'),
-        createBucket('2026-10-18T12:00:00.000Z', '20'),
+    createRange('7d', [createBucket('2026-11-15T00:00:00.000Z', '10')], '10'),
+    createRange(
+      '30d',
+      [
+        createBucket('2026-10-18T00:00:00.000Z', '20'),
+        createBucket('2026-11-15T00:00:00.000Z', '10'),
       ],
-    },
-    {
-      range: '90d',
-      buckets: [createBucket('2026-11-16T12:00:00.000Z', '10')],
-    },
-    {
-      range: '180d',
-      buckets: [
-        createBucket('2026-11-16T12:00:00.000Z', '10'),
-        createBucket('2026-01-01T12:00:00.000Z', '70'),
+      '200',
+    ),
+    createRange('90d', [createBucket('2026-11-15T00:00:00.000Z', '10')], '30'),
+    createRange(
+      '180d',
+      [
+        createBucket('2026-01-01T00:00:00.000Z', '70'),
+        createBucket('2026-11-15T00:00:00.000Z', '10'),
       ],
-    },
-    {
-      range: '365d',
-      buckets: [
-        createBucket('2026-11-16T12:00:00.000Z', '10'),
-        createBucket('2026-10-18T12:00:00.000Z', '20'),
-        createBucket('2026-01-01T12:00:00.000Z', '70'),
+      '80',
+    ),
+    createRange(
+      '365d',
+      [
+        createBucket('2026-01-01T00:00:00.000Z', '70'),
+        createBucket('2026-10-18T00:00:00.000Z', '20'),
+        createBucket('2026-11-15T00:00:00.000Z', '10'),
       ],
-    },
+      '300',
+    ),
   ],
 };
 
@@ -130,7 +182,9 @@ describe('MoneyEarningsView', () => {
   });
 
   it('selects the Earnings tab when route params are missing', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
 
     const earningsTab = getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS);
 
@@ -140,14 +194,12 @@ describe('MoneyEarningsView', () => {
     });
     const chart = getByTestId(MoneyEarningsViewTestIds.CHART);
     expect(chart).toBeOnTheScreen();
-    expect(chart.props.accessible).toBe(true);
-    expect(chart.props.accessibilityRole).toBe('image');
-    expect(chart.props.accessibilityLabel).toBe(
-      strings('money.earnings.chart_accessibility_label', {
-        range: strings('money.earnings.range_1m'),
-        total: '+$30.00',
-      }),
-    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.earned_last_30_days')),
+    ).toBeOnTheScreen();
   });
 
   it('normalizes an unsupported route tab to Earnings', () => {
@@ -181,7 +233,7 @@ describe('MoneyEarningsView', () => {
   });
 
   it('selects a different earnings range', () => {
-    const { getAllByText, getByLabelText } = renderWithProvider(
+    const { getByLabelText, getByText } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
@@ -191,17 +243,15 @@ describe('MoneyEarningsView', () => {
       getByLabelText(strings('money.earnings.range_1y')).props
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
-    expect(getAllByText('+$100.00')).toHaveLength(2);
+    expect(getByText('+$10.00')).toBeOnTheScreen();
+    expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
-  it('displays the 30-day total in the hero and summary', () => {
-    const { getAllByText } = renderWithProvider(<MoneyEarningsView />);
+  it('displays the authoritative 30-day total in the summary', () => {
+    const { getByText } = renderWithProvider(<MoneyEarningsView />);
 
-    const thirtyDayValues = getAllByText('+$30.00');
-
-    expect(thirtyDayValues).toHaveLength(2);
-    expect(thirtyDayValues[0]).toBeOnTheScreen();
-    expect(thirtyDayValues[1]).toBeOnTheScreen();
+    expect(getByText('+$10.00')).toBeOnTheScreen();
+    expect(getByText('+$200.00')).toBeOnTheScreen();
   });
 
   it('displays the one-year total as Lifetime', () => {
@@ -210,7 +260,7 @@ describe('MoneyEarningsView', () => {
     const lifetimeLabel = getByText(strings('money.earnings.lifetime'));
 
     expect(lifetimeLabel).toBeOnTheScreen();
-    expect(getByText('+$100.00')).toBeOnTheScreen();
+    expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
   it('displays the projected annual value', () => {
@@ -221,7 +271,58 @@ describe('MoneyEarningsView', () => {
     );
 
     expect(projectedLabel).toBeOnTheScreen();
-    expect(getByText('+$360.00')).toBeOnTheScreen();
+    expect(getByText('+$2,400.00')).toBeOnTheScreen();
+  });
+
+  it('uses the exclusive range end for summary freshness', () => {
+    const { getByText } = renderWithProvider(<MoneyEarningsView />);
+
+    expect(
+      getByText(
+        strings('money.earnings.data_through', {
+          date: 'Nov 16, 2026',
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('displays a range error when selected range earnings are unavailable', () => {
+    const unavailableRange: InterestHistoryRange = {
+      ...createRange(
+        '30d',
+        [
+          createBucket('2026-11-15T00:00:00.000Z', null, {
+            earnings: 'unavailable',
+            usd_pricing: 'unavailable',
+          }),
+        ],
+        '0',
+      ),
+      availability: {
+        earnings: 'unavailable',
+        usd_pricing: 'unavailable',
+      },
+      totals: {
+        interest_earned_musd_assets: null,
+        interest_earned_usd: null,
+      },
+    };
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          ...historicalEarnings.ranges.filter(({ range }) => range !== '30d'),
+          unavailableRange,
+        ],
+      },
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByTestId(MoneyEarningsViewTestIds.ERROR)).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
   });
 
   it('displays loading state without a summary', () => {
@@ -265,16 +366,16 @@ describe('MoneyEarningsView', () => {
       data: {
         ...historicalEarnings,
         ranges: [
-          {
-            range: '30d',
-            buckets: [
+          createRange(
+            '30d',
+            [
               {
+                ...createBucket('2026-11-15T00:00:00.000Z', '1'),
                 start: 'invalid',
-                end: '2026-11-17T12:00:00.000Z',
-                interest_earned_usd: '1',
               },
             ],
-          },
+            '1',
+          ),
         ],
       },
     });
@@ -302,24 +403,16 @@ describe('MoneyEarningsView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays error content without a summary for aggregation overflow', () => {
+  it('displays error content without a summary for non-finite bucket data', () => {
     setHistoricalEarningsResult({
       data: {
         ...historicalEarnings,
         ranges: [
-          {
-            range: '30d',
-            buckets: [
-              createBucket(
-                '2026-11-16T12:00:00.000Z',
-                String(Number.MAX_VALUE),
-              ),
-              createBucket(
-                '2026-11-16T13:00:00.000Z',
-                String(Number.MAX_VALUE),
-              ),
-            ],
-          },
+          createRange(
+            '30d',
+            [createBucket('2026-11-15T00:00:00.000Z', 'Infinity')],
+            '0',
+          ),
         ],
       },
     });
@@ -339,15 +432,11 @@ describe('MoneyEarningsView', () => {
       data: {
         ...historicalEarnings,
         ranges: [
-          {
-            range: '30d',
-            buckets: [
-              createBucket(
-                '2026-11-16T12:00:00.000Z',
-                String(Number.MAX_VALUE),
-              ),
-            ],
-          },
+          createRange(
+            '30d',
+            [createBucket('2026-11-15T00:00:00.000Z', '1')],
+            String(Number.MAX_VALUE),
+          ),
         ],
       },
     });
@@ -367,7 +456,7 @@ describe('MoneyEarningsView', () => {
     setHistoricalEarningsResult({
       data: {
         ...historicalEarnings,
-        ranges: [{ range: '30d', buckets: [] }],
+        ranges: [createRange('30d', [], '0')],
       },
     });
 
