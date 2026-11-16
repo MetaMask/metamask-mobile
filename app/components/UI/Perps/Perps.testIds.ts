@@ -969,11 +969,19 @@ export const PerpsChartGridLinesSelectorsIDs = {
 // PERPS MARKET BALANCE ACTIONS SELECTORS
 // ========================================
 
+export const PerpsProviderLogosSelectorsIDs = {
+  CONTAINER: 'perps-provider-logos',
+  HYPERLIQUID: 'perps-provider-logos-hyperliquid',
+  LIGHTER: 'perps-provider-logos-lighter',
+};
+
 export const PerpsMarketBalanceActionsSelectorsIDs = {
   CONTAINER: 'perps-market-balance-actions',
   TITLE_SECTION: 'perps-market-balance-title-section',
   BALANCE_VALUE: 'perps-market-balance-value',
+  AVAILABLE_BALANCE_ROW: 'perps-market-available-balance-row',
   AVAILABLE_BALANCE_TEXT: 'perps-market-available-balance-text',
+  AVAILABLE_BALANCE_SUFFIX: 'perps-market-available-balance-suffix',
   PNL_VALUE: 'perps-market-pnl-value',
   ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
   WITHDRAW_BUTTON: 'perps-market-withdraw-button',
