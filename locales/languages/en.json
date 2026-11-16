@@ -13815,7 +13815,8 @@
     "success": {
       "title": "You just leveled up",
       "description": "Time to start earning.",
-      "cta": "Continue"
+      "cta": "Continue",
+      "continue_error": "We couldn't confirm your membership. Try again."
     }
   }
 }

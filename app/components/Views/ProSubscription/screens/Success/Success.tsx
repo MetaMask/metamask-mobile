@@ -8,6 +8,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  BannerAlert,
+  BannerAlertSeverity,
   Icon,
   IconName,
   IconSize,
@@ -18,9 +20,15 @@ import { SuccessTestIds } from './Success.testIds';
 
 interface SuccessProps {
   onSuccess: () => void;
+  isContinuing?: boolean;
+  continueError?: string;
 }
 
-const Success = ({ onSuccess }: SuccessProps) => (
+const Success = ({
+  onSuccess,
+  isContinuing = false,
+  continueError,
+}: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
     testID={SuccessTestIds.CONTAINER}
@@ -60,10 +68,20 @@ const Success = ({ onSuccess }: SuccessProps) => (
         </Text>
       </Box>
 
+      {continueError ? (
+        <BannerAlert
+          severity={BannerAlertSeverity.Danger}
+          description={continueError}
+          testID={SuccessTestIds.CONTINUE_ERROR}
+        />
+      ) : null}
+
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={onSuccess}
+        isLoading={isContinuing}
+        isDisabled={isContinuing}
         isFullWidth
         testID={SuccessTestIds.CTA_BUTTON}
       >

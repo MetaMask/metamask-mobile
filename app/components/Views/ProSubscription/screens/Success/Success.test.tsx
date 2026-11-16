@@ -8,7 +8,10 @@ import { strings } from '../../../../../../locales/i18n';
 
 const mockOnSuccess = jest.fn();
 
-const renderSuccess = () => render(<Success onSuccess={mockOnSuccess} />);
+const renderSuccess = (props?: {
+  isContinuing?: boolean;
+  continueError?: string;
+}) => render(<Success onSuccess={mockOnSuccess} {...props} />);
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -46,6 +49,30 @@ describe('Success', () => {
       expect(getByTestId(SuccessTestIds.CTA_BUTTON)).toHaveTextContent(
         strings('pro_subscription.success.cta'),
       );
+    });
+
+    it('shows the CTA as busy while continuing', () => {
+      const { getByTestId } = renderSuccess({ isContinuing: true });
+
+      expect(getByTestId(SuccessTestIds.CTA_BUTTON)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ busy: true, disabled: true }),
+      );
+    });
+
+    it('shows the continue error banner', () => {
+      const message = strings('pro_subscription.success.continue_error');
+      const { getByTestId } = renderSuccess({ continueError: message });
+
+      expect(getByTestId(SuccessTestIds.CONTINUE_ERROR)).toHaveTextContent(
+        message,
+      );
+    });
+
+    it('does not show the continue error banner before a failure', () => {
+      const { queryByTestId } = renderSuccess();
+
+      expect(queryByTestId(SuccessTestIds.CONTINUE_ERROR)).toBeNull();
     });
   });
 
