@@ -190,7 +190,7 @@ describe('EarningsChart', () => {
   });
 
   it('selects the latest available bucket by default', () => {
-    const { getByTestId, getByText } = renderChart();
+    const { getByTestId } = renderChart();
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)).props
@@ -199,15 +199,13 @@ describe('EarningsChart', () => {
       selected: true,
       disabled: false,
     });
-    expect(getByText('+$2.00')).toBeOnTheScreen();
   });
 
-  it('updates the selected amount and active fill when a bucket is pressed', () => {
-    const { getByTestId, getByText } = renderChart();
+  it('updates the active fill when a bucket is pressed', () => {
+    const { getByTestId } = renderChart();
 
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)));
 
-    expect(getByText('+$1.00')).toBeOnTheScreen();
     const activeColor = getBackgroundColor(
       getByTestId(MoneyEarningsViewTestIds.CHART_FILL(0)).props.style,
     );
@@ -232,7 +230,7 @@ describe('EarningsChart', () => {
   });
 
   it('keeps compact range selectors and changes the selected range', () => {
-    const { getByLabelText, getByText } = renderWithProvider(
+    const { getByLabelText, getByTestId } = renderWithProvider(
       <EarningsChartHarness />,
       { state: { engine: { backgroundState: {} } } },
     );
@@ -246,7 +244,13 @@ describe('EarningsChart', () => {
 
     fireEvent.press(getByLabelText(strings('money.earnings.range_1w')));
 
-    expect(getByText('+$1.00')).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)).props
+        .accessibilityState,
+    ).toEqual({
+      selected: true,
+      disabled: false,
+    });
   });
 
   it('calls retry from the error state', () => {

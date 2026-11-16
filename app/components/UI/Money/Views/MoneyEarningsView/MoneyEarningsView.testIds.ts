@@ -4,8 +4,11 @@ export const MoneyEarningsViewTestIds = {
   TAB_EARNINGS: 'money-earnings-view-tab-earnings',
   TAB_APY: 'money-earnings-view-tab-apy',
   TAB_ALLOCATION: 'money-earnings-view-tab-allocation',
+  HERO: 'money-earnings-view-hero',
+  HERO_TOTAL: 'money-earnings-view-hero-total',
+  HERO_PERIOD_AMOUNT: 'money-earnings-view-hero-period-amount',
+  HERO_PERIOD_DATE: 'money-earnings-view-hero-period-date',
   CHART: 'money-earnings-view-chart',
-  CHART_HEADER: 'money-earnings-view-chart-header',
   CHART_SLOT: (index: number): string =>
     `money-earnings-view-chart-slot-${index}`,
   CHART_FILL: (index: number): string =>

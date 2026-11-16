@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
@@ -182,7 +183,7 @@ describe('MoneyEarningsView', () => {
   });
 
   it('selects the Earnings tab when route params are missing', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, queryByText } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
@@ -194,12 +195,19 @@ describe('MoneyEarningsView', () => {
     });
     const chart = getByTestId(MoneyEarningsViewTestIds.CHART);
     expect(chart).toBeOnTheScreen();
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO)).toBeOnTheScreen();
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '$300.00',
+    );
     expect(
-      getByTestId(MoneyEarningsViewTestIds.CHART_HEADER),
-    ).toBeOnTheScreen();
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
+    ).toHaveTextContent('▲ $200.00');
     expect(
-      getByText(strings('money.earnings.earned_last_30_days')),
-    ).toBeOnTheScreen();
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('· Oct 18 – Nov 15');
+    expect(
+      queryByText(strings('money.earnings.earned_last_30_days')),
+    ).not.toBeOnTheScreen();
   });
 
   it('normalizes an unsupported route tab to Earnings', () => {
@@ -233,7 +241,7 @@ describe('MoneyEarningsView', () => {
   });
 
   it('selects a different earnings range', () => {
-    const { getByLabelText, getByText } = renderWithProvider(
+    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
@@ -243,14 +251,76 @@ describe('MoneyEarningsView', () => {
       getByLabelText(strings('money.earnings.range_1y')).props
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
-    expect(getByText('+$10.00')).toBeOnTheScreen();
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '$300.00',
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
+    ).toHaveTextContent('▲ $300.00');
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('· Jan – Nov');
     expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
-  it('displays the authoritative 30-day total in the summary', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsView />);
+  it('formats non-zero sub-cent period earnings as less than one cent', () => {
+    const subCentRange = createRange(
+      '30d',
+      [createBucket('2026-11-15T00:00:00.000Z', '0.001')],
+      '0.001',
+    );
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          ...historicalEarnings.ranges.filter(({ range }) => range !== '30d'),
+          subCentRange,
+        ],
+      },
+    });
 
-    expect(getByText('+$10.00')).toBeOnTheScreen();
+    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
+    ).toHaveTextContent('▲ <$0.01');
+  });
+
+  it('uses default text color for zero period earnings', () => {
+    const zeroRange = createRange(
+      '30d',
+      [createBucket('2026-11-15T00:00:00.000Z', '0')],
+      '0',
+    );
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          ...historicalEarnings.ranges.filter(({ range }) => range !== '30d'),
+          zeroRange,
+        ],
+      },
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+
+    const periodAmount = getByTestId(
+      MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT,
+    );
+
+    expect(periodAmount).toHaveTextContent('$0.00');
+    expect(periodAmount).not.toHaveTextContent('▲');
+    expect(periodAmount.props.color ?? TextColor.TextDefault).toBe(
+      TextColor.TextDefault,
+    );
+  });
+
+  it('displays the authoritative 30-day total in the summary', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
     expect(getByText('+$200.00')).toBeOnTheScreen();
   });
 
