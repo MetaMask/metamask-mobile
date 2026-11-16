@@ -232,3 +232,90 @@ No whitespace errors.
 
 - Scoped ESLint retains three pre-existing `no-void` warnings in async event handlers; no errors or unused imports remain.
 - Focused Jest intentionally used `--no-coverage` because the prior final-fix run documented coverage post-processing heap exhaustion even with an 8 GB heap.
+
+---
+
+## Projection overflow final fix — 2026-11-16
+
+### Status
+
+- Routes a non-finite `Math.max(0, thirtyDayTotal) * 12` projection through the existing chart error/retry state.
+- Hides the earnings summary when projection overflows; neither `Infinity` nor a fake zero is rendered.
+- Adds focused view coverage using one finite `Number.MAX_VALUE` 30-day entry.
+- Verifies the chart container already has `accessible`, `accessibilityRole="image"`, and a stable accessibility assertion.
+
+### Changed files
+
+- `app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.tsx`
+- `app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.test.tsx`
+- `.superpowers/sdd/final-fix-report.md`
+
+Existing unrelated native changes were not staged or modified:
+
+- `ios/MetaMask.xcodeproj/project.pbxproj`
+- `ios/Podfile.lock`
+
+### Commands and results
+
+#### Focused Jest
+
+```text
+yarn jest app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.test.tsx app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.test.ts app/components/UI/Money/hooks/useMoneyHistoricalEarnings.test.ts --no-coverage
+
+Exit code: 0
+Test Suites: 3 passed, 3 total
+Tests: 52 passed, 52 total
+Snapshots: 0 total
+```
+
+The command was rerun after the final assertion change with the same passing result.
+
+#### TypeScript
+
+```text
+yarn lint:tsc
+
+Exit code: 0
+No TypeScript errors.
+```
+
+The command was rerun after the final assertion change and exited 0 again.
+
+#### Scoped ESLint with 12 GB heap
+
+```text
+NODE_OPTIONS='--max-old-space-size=12288' yarn eslint app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.tsx app/components/UI/Money/Views/MoneyEarningsView/EarningsChart.tsx app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.test.tsx app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.ts app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.test.ts app/components/UI/Money/hooks/useMoneyHistoricalEarnings.test.ts --max-warnings=0
+
+Exit code: 1
+0 errors, 3 existing no-void warnings in MoneyEarningsView.tsx.
+The zero-warning gate treated those warnings as a failure.
+```
+
+Rerun without the zero-warning gate:
+
+```text
+NODE_OPTIONS='--max-old-space-size=12288' yarn eslint app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.tsx app/components/UI/Money/Views/MoneyEarningsView/EarningsChart.tsx app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.test.tsx app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.ts app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.test.ts app/components/UI/Money/hooks/useMoneyHistoricalEarnings.test.ts
+
+Exit code: 0
+0 errors, 3 existing no-void warnings in MoneyEarningsView.tsx at lines 123, 126, and 129.
+```
+
+#### Prettier check
+
+```text
+yarn prettier app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.tsx app/components/UI/Money/Views/MoneyEarningsView/EarningsChart.tsx app/components/UI/Money/Views/MoneyEarningsView/MoneyEarningsView.test.tsx app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.ts app/components/UI/Money/Views/MoneyEarningsView/earningsHistory.test.ts app/components/UI/Money/hooks/useMoneyHistoricalEarnings.test.ts --check
+
+Exit code: 0
+All matched files use Prettier code style.
+```
+
+#### IDE lint and diff validation
+
+```text
+IDE diagnostics: no linter errors found.
+git diff --check: exit code 0; no whitespace errors.
+```
+
+### Concerns
+
+- Scoped ESLint retains three pre-existing `no-void` warnings in async event handlers; no errors or unused imports remain.
