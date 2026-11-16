@@ -169,7 +169,6 @@ describe('useMusdConversion', () => {
         TransactionPayController: mockTransactionPayController,
         GasFeeController: mockGasFeeController,
         ApprovalController: mockApprovalController,
-        AssetsController: { state: { assetsInfo: {} } },
       },
       writable: true,
       configurable: true,
@@ -827,6 +826,33 @@ describe('useMusdConversion', () => {
       ).toHaveBeenCalledWith({
         transactionId: 'tx-max-123',
         assetId: `eip155:1/erc20:${toChecksumHexAddress(mockToken.address)}`,
+      });
+    });
+
+    it('sets the payment token by the asset ID the token carries', async () => {
+      setupUseSelectorMock();
+
+      mockNetworkController.findNetworkClientIdByChainId.mockReturnValue(
+        'mainnet',
+      );
+      mockTransactionController.addTransaction.mockResolvedValue({
+        transactionMeta: { id: 'tx-max-123' },
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateMaxConversion({
+          ...mockToken,
+          caipAssetId: 'eip155:1/erc20:0xHeldTokenKey',
+        });
+      });
+
+      expect(
+        mockTransactionPayController.updatePaymentToken,
+      ).toHaveBeenCalledWith({
+        transactionId: 'tx-max-123',
+        assetId: 'eip155:1/erc20:0xHeldTokenKey',
       });
     });
 

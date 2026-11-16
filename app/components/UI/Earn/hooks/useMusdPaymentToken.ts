@@ -12,6 +12,12 @@ export const useMusdPaymentToken = () => {
   const resolveAssetId = useSelector(selectEvmAssetIdResolver);
 
   const onPaymentTokenChange = (token: AssetType) => {
+    const assetId =
+      token.caipAssetId ??
+      resolveAssetId({
+        address: token.address as Hex,
+        chainId: token.chainId as Hex,
+      });
     const selectedTokenChainId = token?.chainId;
     const transactionChainId = transactionMeta?.chainId;
 
@@ -28,7 +34,7 @@ export const useMusdPaymentToken = () => {
      */
     if (isChainMismatch && transactionMeta) {
       replaceMusdConversionTransactionForPayToken(transactionMeta, {
-        address: token.address as Hex,
+        assetId,
         chainId: selectedTokenChainId as Hex,
       }).catch((error) => {
         console.error(
@@ -39,14 +45,7 @@ export const useMusdPaymentToken = () => {
       return;
     }
 
-    setPayToken({
-      assetId:
-        token.caipAssetId ??
-        resolveAssetId({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        }),
-    });
+    setPayToken({ assetId });
   };
 
   return {
