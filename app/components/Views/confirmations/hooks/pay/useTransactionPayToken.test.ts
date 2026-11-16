@@ -26,9 +26,6 @@ jest.mock('../../../../UI/Money/utils/moneyAccountTransactions', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    AssetsController: {
-      state: { assetsInfo: {} },
-    },
     TransactionPayController: {
       updatePaymentToken: jest.fn(),
     },
@@ -66,8 +63,7 @@ const PAYMENT_TOKEN_MOCK: TransactionPaymentToken = {
   symbol: 'TST',
 };
 
-const PAY_TOKEN_MOCK = {
-  ...PAYMENT_TOKEN_MOCK,
+const PAY_TOKEN_ASSET_MOCK = {
   address: tokenAddress1Mock as Hex,
   chainId: ChainId.mainnet as Hex,
 };
@@ -140,33 +136,47 @@ describe('useTransactionPayToken', () => {
     expect(result.current.isNative).toBeFalsy();
   });
 
-  it('returns token matching state with the chain and address derived from its asset ID', () => {
+  it('returns token matching state', () => {
     const { result } = runHook({
       payToken: PAYMENT_TOKEN_MOCK,
     });
 
-    expect(result.current.payToken).toStrictEqual(PAY_TOKEN_MOCK);
+    expect(result.current.payToken).toStrictEqual(PAYMENT_TOKEN_MOCK);
     expect(result.current.isNative).toBe(false);
   });
 
-  it('returns undefined for a non-EVM token in state', () => {
-    const { result } = runHook({
-      payToken: {
-        ...PAYMENT_TOKEN_MOCK,
-        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-      },
-    });
+  it('throws when setting a non-EVM token', () => {
+    const { result } = runHook();
 
-    expect(result.current.payToken).toBeUndefined();
+    expect(() =>
+      result.current.setPayToken({
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+      }),
+    ).toThrow(
+      'Unsupported payment token: bip122:000000000019d6689c085ae165831e93/slip44:0',
+    );
+    expect(updatePaymentTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('fetches gas fee estimates on the chain of the new token', async () => {
+    const { result } = runHook();
+
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
+
+    await flushPromises();
+
+    expect(findNetworkClientIdByChainIdMock).toHaveBeenCalledWith(
+      ChainId.mainnet,
+    );
+    expect(fetchGasFeeEstimatesMock).toHaveBeenCalledWith({
+      networkClientId: NETWORK_CLIENT_ID_MOCK,
+    });
   });
 
   it('sets token in state', async () => {
     const { result } = runHook();
 
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-    });
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
     await flushPromises();
 
@@ -179,19 +189,13 @@ describe('useTransactionPayToken', () => {
   it('syncs a money account withdrawal transfer with the new token', async () => {
     const { result } = runHook();
 
-    result.current.setPayToken({
-      address: PAY_TOKEN_MOCK.address,
-      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-    });
+    result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
     await flushPromises();
 
     expect(syncMoneyAccountWithdrawTransferMock).toHaveBeenCalledWith(
       expect.objectContaining({ id: TRANSACTION_ID_MOCK }),
-      {
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId,
-      },
+      PAY_TOKEN_ASSET_MOCK,
     );
   });
 
@@ -220,16 +224,13 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
+          selectedGasFeeToken: PAY_TOKEN_ASSET_MOCK.address,
           isGasFeeTokenIgnoredIfBalance: true,
         }),
         TRANSACTION_ID_MOCK,
@@ -243,16 +244,13 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
       expect(updateTransactionMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
+          selectedGasFeeToken: PAY_TOKEN_ASSET_MOCK.address,
           isGasFeeTokenIgnoredIfBalance: true,
         }),
         TRANSACTION_ID_MOCK,
@@ -272,10 +270,7 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [differentToken],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -295,10 +290,7 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [REQUIRED_TOKEN_MOCK],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -318,10 +310,7 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [differentToken],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 
@@ -341,10 +330,7 @@ describe('useTransactionPayToken', () => {
         requiredTokens: [],
       });
 
-      result.current.setPayToken({
-        address: PAY_TOKEN_MOCK.address,
-        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
-      });
+      result.current.setPayToken({ assetId: PAYMENT_TOKEN_MOCK.assetId });
 
       await flushPromises();
 

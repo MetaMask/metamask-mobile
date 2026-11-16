@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictPayWithAnyTokenInfo from './PredictPayWithAnyTokenInfo';
 import { OrderPreview, Side } from '../../../../types';
+import { evmAssetId } from '../../../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 let mockIsPredictBalanceSelected = false;
 let mockUpdatePendingAmount = jest.fn();
@@ -14,16 +15,20 @@ let mockSelectedPaymentToken:
       chainId?: string;
     }
   | undefined;
-let mockPayToken:
-  | {
-      address: string;
-      chainId: string;
-    }
-  | undefined;
+let mockPayToken: { assetId: string } | undefined;
 let mockSetPayToken = jest.fn();
 let mockPredictBalance = 0;
 let mockIsMoneyAccountSelected = false;
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(
+    () =>
+      jest.requireActual(
+        '../../../../../../Views/confirmations/__mocks__/pay-token.mock',
+      ).resolveEvmAssetIdMock,
+  ),
+}));
 jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
@@ -754,10 +759,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         address: '0xabc123',
         chainId: '0x1',
       };
-      mockPayToken = {
-        address: '0xdef456',
-        chainId: '0x1',
-      };
+      mockPayToken = { assetId: evmAssetId('0xdef456', '0x1') };
 
       render(
         <PredictPayWithAnyTokenInfo
@@ -768,8 +770,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
       );
 
       expect(mockSetPayToken).toHaveBeenCalledWith({
-        address: '0xabc123',
-        chainId: '0x1',
+        assetId: evmAssetId('0xabc123', '0x1'),
       });
     });
 
@@ -779,10 +780,7 @@ describe('PredictPayWithAnyTokenInfo', () => {
         address: '0xAbC123',
         chainId: '0x1',
       };
-      mockPayToken = {
-        address: '0xabc123',
-        chainId: '0X1',
-      };
+      mockPayToken = { assetId: 'eip155:1/erc20:0xabc123' };
 
       render(
         <PredictPayWithAnyTokenInfo
@@ -822,8 +820,10 @@ describe('PredictPayWithAnyTokenInfo', () => {
         chainId: '0x1',
       };
       mockPayToken = {
-        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-        chainId: '0x8f',
+        assetId: evmAssetId(
+          '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          '0x8f',
+        ),
       };
 
       render(

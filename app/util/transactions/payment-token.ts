@@ -1,5 +1,6 @@
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import {
@@ -9,6 +10,7 @@ import {
   toCaipAssetType,
   toCaipChainId,
   type CaipAssetType,
+  type CaipChainId,
   type Hex,
 } from '@metamask/utils';
 
@@ -19,11 +21,25 @@ const SLIP44_COIN_TYPE_BY_CHAIN: Partial<Record<Hex, number>> = {
 
 const DEFAULT_SLIP44_COIN_TYPE = 60;
 
-/** Payment token on an EVM chain, with the chain and address derived from its asset ID. */
-export type EvmPaymentToken = TransactionPaymentToken & {
+/** EVM token identified by its Hex chain ID and token address. */
+export interface EvmTokenReference {
   address: Hex;
   chainId: Hex;
-};
+}
+
+/**
+ * Resolves the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * state.
+ */
+export type EvmAssetIdResolver = (token: EvmTokenReference) => CaipAssetType;
+
+/** `AssetsController` asset IDs indexed for {@link resolveEvmAssetId}. */
+export interface AssetIdIndex {
+  /** Asset ID by lowercase asset ID, preferring a checksummed key. */
+  byLowercaseAssetId: Map<string, CaipAssetType>;
+  /** Asset ID of the `native` asset by CAIP-2 chain ID. */
+  nativeByChain: Map<CaipChainId, CaipAssetType>;
+}
 
 /**
  * Derive the Hex chain ID and token address of an EVM CAIP-19 asset type. A
@@ -35,7 +51,7 @@ export type EvmPaymentToken = TransactionPaymentToken & {
  */
 export function getEvmAsset(
   assetId: CaipAssetType,
-): { address: Hex; chainId: Hex } | undefined {
+): EvmTokenReference | undefined {
   const { chain, assetNamespace, assetReference } = parseCaipAssetType(assetId);
 
   if (chain.namespace !== KnownCaipNamespace.Eip155) {
@@ -53,71 +69,133 @@ export function getEvmAsset(
 }
 
 /**
- * Add the chain ID and address derived from its asset ID to an EVM payment
- * token.
+ * Derive the Hex chain ID and token address of a payment token, for the EVM
+ * lookups (market data, gas, routes) that are keyed by them.
  *
  * @param paymentToken - Payment token, if any.
- * @returns The EVM payment token, or undefined if none is selected or it is not
- * an EVM token.
+ * @returns The Hex chain ID and token address, or undefined if no token is
+ * selected or it is not an EVM token.
  */
-export function getEvmPaymentToken(
-  paymentToken: TransactionPaymentToken | undefined,
-): EvmPaymentToken | undefined {
-  const evmAsset = paymentToken && getEvmAsset(paymentToken.assetId);
-
-  return evmAsset && { ...paymentToken, ...evmAsset };
+export function getPaymentTokenEvmAsset(
+  paymentToken: Pick<TransactionPaymentToken, 'assetId'> | undefined,
+): EvmTokenReference | undefined {
+  return paymentToken && getEvmAsset(paymentToken.assetId);
 }
 
 /**
- * Get the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * Whether two CAIP-19 asset IDs identify the same asset. EVM addresses are
+ * case-insensitive, so `AssetsController` keys and derived IDs may differ in
+ * case only.
+ *
+ * @param assetId - CAIP-19 asset ID, if any.
+ * @param otherAssetId - CAIP-19 asset ID to compare with, if any.
+ * @returns Whether both are defined and identify the same asset.
+ */
+export function isSameAssetId(
+  assetId: string | undefined,
+  otherAssetId: string | undefined,
+): boolean {
+  return Boolean(
+    assetId &&
+      otherAssetId &&
+      assetId.toLowerCase() === otherAssetId.toLowerCase(),
+  );
+}
+
+/**
+ * Index `AssetsController` asset IDs so EVM tokens resolve to their key in
+ * constant time, even when matched case-insensitively.
+ *
+ * @param assetsInfo - `AssetsController` asset metadata keyed by asset ID.
+ * @returns The asset ID index.
+ */
+export function buildAssetIdIndex(
+  assetsInfo: AssetsControllerState['assetsInfo'],
+): AssetIdIndex {
+  const byLowercaseAssetId = new Map<string, CaipAssetType>();
+  const nativeByChain = new Map<CaipChainId, CaipAssetType>();
+
+  for (const assetId of Object.keys(assetsInfo) as CaipAssetType[]) {
+    const lowercaseAssetId = assetId.toLowerCase();
+    const indexed = byLowercaseAssetId.get(lowercaseAssetId);
+
+    if (!indexed || indexed === lowercaseAssetId) {
+      byLowercaseAssetId.set(lowercaseAssetId, assetId);
+    }
+
+    if (assetsInfo[assetId].type === 'native') {
+      const { chainId } = parseCaipAssetType(assetId);
+
+      if (!nativeByChain.has(chainId)) {
+        nativeByChain.set(chainId, assetId);
+      }
+    }
+  }
+
+  return { byLowercaseAssetId, nativeByChain };
+}
+
+/**
+ * Resolve the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
  * state, which identifies the payment token in `updatePaymentToken`.
  *
  * A native token is the chain's asset of type `native`, since natives are
  * keyed as `slip44` assets. An ERC-20 key is matched case-insensitively,
  * preferring a checksummed key over a lowercase duplicate. A token absent from
- * state falls back to its derived asset ID.
+ * state falls back to its derived asset ID with a checksummed address, which
+ * is how `AssetsController` keys it once added (e.g. by `addCustomAsset`).
  *
  * @param token - EVM token.
  * @param token.address - Token address, or the chain's native token address.
  * @param token.chainId - Hex chain ID.
- * @param assetsInfo - `AssetsController` asset metadata keyed by asset ID.
+ * @param index - `AssetsController` asset IDs, from {@link buildAssetIdIndex}.
  * @returns The CAIP-19 asset ID of the token.
  */
-export function getEvmPaymentTokenAssetId(
-  { address, chainId }: { address: Hex; chainId: Hex },
-  assetsInfo: AssetsControllerState['assetsInfo'],
+export function resolveEvmAssetId(
+  { address, chainId }: EvmTokenReference,
+  index: AssetIdIndex,
 ): CaipAssetType {
-  const caipChainId = toCaipChainId(
-    KnownCaipNamespace.Eip155,
-    String(parseInt(chainId, 16)),
-  );
-  const chainPrefix = `${caipChainId}/`;
-  const keys = Object.keys(assetsInfo) as CaipAssetType[];
-  const derivedAssetId: CaipAssetType = `${caipChainId}/erc20:${address}`;
+  const chainReference = String(parseInt(chainId, 16));
+  const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainReference);
   const isNative =
     address.toLowerCase() === getNativeTokenAddress(chainId).toLowerCase();
 
   if (isNative) {
     return (
-      keys.find(
-        (key) =>
-          key.startsWith(chainPrefix) && assetsInfo[key].type === 'native',
-      ) ??
+      index.nativeByChain.get(caipChainId) ??
       toCaipAssetType(
         KnownCaipNamespace.Eip155,
-        String(parseInt(chainId, 16)),
+        chainReference,
         'slip44',
         String(SLIP44_COIN_TYPE_BY_CHAIN[chainId] ?? DEFAULT_SLIP44_COIN_TYPE),
       )
     );
   }
 
-  const target = derivedAssetId.toLowerCase();
-  const matches = keys.filter((key) => key.toLowerCase() === target);
+  const derivedAssetId = toCaipAssetType(
+    KnownCaipNamespace.Eip155,
+    chainReference,
+    'erc20',
+    toChecksumHexAddress(address),
+  );
 
   return (
-    matches.find((key) => key !== key.toLowerCase()) ??
-    matches[0] ??
-    derivedAssetId
+    index.byLowercaseAssetId.get(derivedAssetId.toLowerCase()) ?? derivedAssetId
   );
+}
+
+/**
+ * Get the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * state. Prefer `selectEvmAssetIdResolver` when resolving several tokens, since
+ * it indexes state once.
+ *
+ * @param token - EVM token.
+ * @param assetsInfo - `AssetsController` asset metadata keyed by asset ID.
+ * @returns The CAIP-19 asset ID of the token.
+ */
+export function getEvmPaymentTokenAssetId(
+  token: EvmTokenReference,
+  assetsInfo: AssetsControllerState['assetsInfo'],
+): CaipAssetType {
+  return resolveEvmAssetId(token, buildAssetIdIndex(assetsInfo));
 }

@@ -19,6 +19,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -29,24 +30,22 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const transaction = useTransactionMetadataRequest();
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const targetTokenAddress = getTokenAddress(transaction);
   const isWithdraw = isTransactionPayWithdraw(transaction);
 
   const fiatRequests = useMemo(
     () =>
-      payToken && targetTokenAddress
+      payTokenAsset && targetTokenAddress
         ? [
-            {
-              chainId: payToken.chainId,
-              address: payToken.address,
-            },
+            payTokenAsset,
             {
               chainId: chainId as Hex,
               address: targetTokenAddress,
             },
           ]
         : [],
-    [chainId, payToken, targetTokenAddress],
+    [chainId, payTokenAsset, targetTokenAddress],
   );
 
   const fiatRates = useTokenFiatRates(fiatRequests);

@@ -1,5 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useDefaultPaySelectedSection } from './useDefaultPaySelectedSection';
@@ -7,6 +8,8 @@ import { useIsMoneyAccountPaymentOverride } from './useIsMoneyAccountPaymentOver
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 /**
  * Enables Money Account as a payment source for the perps and predict
@@ -41,6 +44,7 @@ export function useMoneyAccountDepositAndOrder({
   useDefaultPaySelectedSection({ disable });
 
   const { payToken, setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
   const { availableTokens } = useTransactionPayAvailableTokens();
   const fiatPayment = useTransactionPayFiatPayment();
 
@@ -53,18 +57,25 @@ export function useMoneyAccountDepositAndOrder({
 
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
-  const isPayTokenMusdOnMonad =
-    payToken?.chainId?.toLowerCase() === CHAIN_IDS.MONAD.toLowerCase() &&
-    payToken?.address?.toLowerCase() === MUSD_TOKEN_ADDRESS.toLowerCase();
+  const musdOnMonadAssetId = resolveAssetId({
+    address: MUSD_TOKEN_ADDRESS,
+    chainId: CHAIN_IDS.MONAD,
+  });
+  const isPayTokenMusdOnMonad = isSameAssetId(
+    payToken?.assetId,
+    musdOnMonadAssetId,
+  );
 
   useEffect(() => {
     if (!isMoneyAccountSelected || isPayTokenMusdOnMonad) {
       return;
     }
 
-    setPayToken({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
-    });
-  }, [isMoneyAccountSelected, isPayTokenMusdOnMonad, setPayToken]);
+    setPayToken({ assetId: musdOnMonadAssetId });
+  }, [
+    isMoneyAccountSelected,
+    isPayTokenMusdOnMonad,
+    musdOnMonadAssetId,
+    setPayToken,
+  ]);
 }

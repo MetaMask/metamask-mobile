@@ -4,6 +4,10 @@ import { Hex } from '@metamask/utils';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
+import {
+  getPaymentTokenEvmAsset,
+  isSameAssetId,
+} from '../../../../../util/transactions/payment-token';
 
 const ZERO_ADDRESS = '0x0' as Hex;
 
@@ -16,9 +20,10 @@ export function usePayTokenAccountBalance(): {
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const usdRate = useTokenFiatRate(
-    (payToken?.address ?? ZERO_ADDRESS) as Hex,
-    (payToken?.chainId ?? ZERO_ADDRESS) as Hex,
+    payTokenAsset?.address ?? ZERO_ADDRESS,
+    payTokenAsset?.chainId ?? ZERO_ADDRESS,
     'usd',
   );
 
@@ -27,10 +32,8 @@ export function usePayTokenAccountBalance(): {
       return { balanceUsd: '0', balanceRaw: '0' };
     }
 
-    const matchingToken = accountTokens.find(
-      (t) =>
-        t.address?.toLowerCase() === payToken.address.toLowerCase() &&
-        t.chainId === payToken.chainId,
+    const matchingToken = accountTokens.find((t) =>
+      isSameAssetId(t.caipAssetId, payToken.assetId),
     );
 
     if (!matchingToken?.rawBalance) {

@@ -14,8 +14,8 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
 import { isHardwareAccount } from '../../../../../util/address';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
 
 const FROM_MOCK = '0x123';
 const CHAIN_ID_MOCK = '0x456' as Hex;
@@ -275,9 +275,10 @@ describe('useSignedOrSubmittedAlert', () => {
     'returns alert if %s transaction on pay token chain from same account',
     (status) => {
       useTransactionPayTokenMock.mockReturnValue({
-        payToken: {
+        payToken: buildPaymentTokenMock({
+          address: '0x1234567890123456789012345678901234567890',
           chainId: CHAIN_ID_2_MOCK,
-        } as EvmPaymentToken,
+        }),
         setPayToken: jest.fn(),
       });
 

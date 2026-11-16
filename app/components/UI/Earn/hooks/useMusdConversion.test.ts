@@ -5,7 +5,10 @@ import {
 } from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  ORIGIN_METAMASK,
+  toChecksumHexAddress,
+} from '@metamask/controller-utils';
 import { generateTransferData } from '../../../../util/transactions';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -823,7 +826,7 @@ describe('useMusdConversion', () => {
         mockTransactionPayController.updatePaymentToken,
       ).toHaveBeenCalledWith({
         transactionId: 'tx-max-123',
-        assetId: `eip155:1/erc20:${mockToken.address}`,
+        assetId: `eip155:1/erc20:${toChecksumHexAddress(mockToken.address)}`,
       });
     });
 

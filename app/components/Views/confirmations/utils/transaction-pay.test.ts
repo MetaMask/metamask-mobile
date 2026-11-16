@@ -30,13 +30,13 @@ import {
   PaymentOverride,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { EvmPaymentToken } from '../../../../util/transactions/payment-token';
 import type {
   BlockedTokensListConfig,
   BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import { buildPaymentTokenMock, evmAssetId } from '../__mocks__/pay-token.mock';
 
 jest.mock('../../../../util/transaction-controller', () => ({
   updateAtomicBatchData: jest.fn(),
@@ -70,6 +70,7 @@ const TOKEN_MOCK = {
   address: NATIVE_TOKEN_ADDRESS,
   balance: '1.23',
   balanceInSelectedCurrency: '$1.23',
+  caipAssetId: evmAssetId(NATIVE_TOKEN_ADDRESS, CHAIN_ID_MOCK),
   chainId: CHAIN_ID_MOCK,
   decimals: 18,
   name: 'Native Token 1',
@@ -80,6 +81,10 @@ const TOKEN_MOCK = {
 const ERC20_TOKEN_MOCK = {
   ...TOKEN_MOCK,
   address: '0x1234567890abcdef1234567890abcdef12345678',
+  caipAssetId: evmAssetId(
+    '0x1234567890abcdef1234567890abcdef12345678',
+    CHAIN_ID_MOCK,
+  ),
   name: 'Test Token',
   symbol: 'TST',
   balance: '2.34',
@@ -273,10 +278,10 @@ describe('Transaction Pay Utils', () => {
 
       const result = getAvailableTokens({
         tokens: [tokenWithZeroBalance] as AssetType[],
-        payToken: {
+        payToken: buildPaymentTokenMock({
           address: TOKEN_MOCK.address as Hex,
           chainId: TOKEN_MOCK.chainId as Hex,
-        } as EvmPaymentToken,
+        }),
       });
 
       expect(result).toMatchObject([tokenWithZeroBalance]);
@@ -408,10 +413,10 @@ describe('Transaction Pay Utils', () => {
       it('clears isSelected on all tokens when fiat payment is active', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
+          payToken: buildPaymentTokenMock({
             address: TOKEN_MOCK.address as Hex,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as EvmPaymentToken,
+          }),
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
         });
 
@@ -422,10 +427,10 @@ describe('Transaction Pay Utils', () => {
       it('preserves isSelected when fiat payment has no selected method', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
-          payToken: {
+          payToken: buildPaymentTokenMock({
             address: TOKEN_MOCK.address as Hex,
             chainId: TOKEN_MOCK.chainId as Hex,
-          } as EvmPaymentToken,
+          }),
           fiatPayment: {},
         });
 
