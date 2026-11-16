@@ -82,11 +82,6 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
   default: jest.fn(() => null),
 }));
 
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
-});
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View, Text } = jest.requireActual('react-native');
