@@ -385,7 +385,19 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
 
     typeQuery(view, ' packers ');
 
-    const openRow = await view.findByTestId(
+    await waitFor(() => {
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_2.id), HIDDEN),
+      ).toBeOnTheScreen();
+    });
+
+    // Re-query after the wait: the list re-keys a row whenever a section above
+    // Predictions settles, so a node found before that settles is unmounted by
+    // the time it is used.
+    const openRow = view.getByTestId(
       getPredictSearchResultRowTestId(NFL_1.id),
       HIDDEN,
     );
