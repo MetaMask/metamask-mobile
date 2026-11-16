@@ -420,17 +420,35 @@ describe('buildBlobIframeSrcdocScript', () => {
       // One ordered log, because the order of the two writes decides how many
       // loads the browser starts.
       const writes: string[] = [];
-      const frameProto: object = {};
+      // What srcdoc held at each native src write. A src write made while the
+      // frame has no srcdoc starts a load of that URL.
+      const srcdocAtSrcWrite: (string | undefined)[] = [];
+      const frameProto: {
+        getAttribute?: (this: { _src?: string }, name: string) => string | null;
+        hasAttribute?: (this: { srcdoc?: string }, name: string) => boolean;
+      } = {};
       Object.defineProperty(frameProto, 'src', {
         configurable: true,
         get(this: { _src?: string }) {
           return this._src || '';
         },
-        set(this: { _src?: string }, value: string) {
+        set(this: { _src?: string; srcdoc?: string }, value: string) {
           writes.push(`src=${value}`);
+          srcdocAtSrcWrite.push(this.srcdoc);
           this._src = value;
         },
       });
+      frameProto.getAttribute = function (name) {
+        return String(name).toLowerCase() === 'src'
+          ? (this._src ?? null)
+          : null;
+      };
+      frameProto.hasAttribute = function (name) {
+        return (
+          String(name).toLowerCase() === 'srcdoc' &&
+          typeof this.srcdoc === 'string'
+        );
+      };
       const iframeProto = Object.create(frameProto);
       const iframe = Object.create(iframeProto);
       iframe.removeAttribute = function (
@@ -476,6 +494,7 @@ describe('buildBlobIframeSrcdocScript', () => {
 
       return {
         writes,
+        srcdocAtSrcWrite,
         iframe,
         createObjectURL: (
           sandbox.URL as { createObjectURL: (blob: BlobParts) => string }
@@ -483,21 +502,88 @@ describe('buildBlobIframeSrcdocScript', () => {
       };
     };
 
+    it('returns the blob URL from src and getAttribute while the HTML is read', () => {
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      const chartUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve('<html><body>chart</body></html>'),
+      });
+
+      iframe.src = chartUrl;
+
+      expect(iframe.src).toBe(chartUrl);
+      expect(iframe.getAttribute('src')).toBe(chartUrl);
+      // The native write waits for srcdoc, or it would load the blob URL.
+      expect(writes).toEqual([]);
+    });
+
+    it('writes the blob URL to the native src once the srcdoc exists', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, srcdocAtSrcWrite, iframe, createObjectURL } =
+        installSrcFrame();
+      const chartUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+
+      iframe.src = chartUrl;
+      await flush();
+
+      expect(writes).toEqual([`src=${chartUrl}`]);
+      expect(srcdocAtSrcWrite).toEqual([html]);
+      expect(iframe.src).toBe(chartUrl);
+      expect(iframe.getAttribute('src')).toBe(chartUrl);
+      expect(iframe.srcdoc).toBe(html);
+    });
+
+    it('keeps the rewritten srcdoc when the page assigns src to itself', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      const chartUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(html),
+      });
+      iframe.src = chartUrl;
+      await flush();
+
+      // eslint-disable-next-line no-self-assign
+      iframe.src = iframe.src;
+
+      expect(iframe.srcdoc).toBe(html);
+      expect(iframe.src).toBe(chartUrl);
+      expect(writes).toEqual([`src=${chartUrl}`]);
+    });
+
+    it('returns the native src again after a non-blob src replaces a pending blob', () => {
+      const { iframe, createObjectURL } = installSrcFrame();
+      iframe.src = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve('<html><body>chart</body></html>'),
+      });
+
+      iframe.src = 'https://example.com/embed';
+
+      expect(iframe.src).toBe('https://example.com/embed');
+      expect(iframe.getAttribute('src')).toBe('https://example.com/embed');
+    });
+
     // A src write does nothing while srcdoc exists. Removing srcdoc afterwards
     // starts one load, of the new URL. The reverse order would first start a
     // load of whatever src held before.
     it('writes a later non-blob src and then removes the rewritten srcdoc', async () => {
       const html = '<html><head></head><body>chart</body></html>';
       const { writes, iframe, createObjectURL } = installSrcFrame();
-      iframe.src = createObjectURL({
+      const chartUrl = createObjectURL({
         type: 'text/html',
         text: () => Promise.resolve(html),
       });
+      iframe.src = chartUrl;
       await flush();
 
       iframe.src = 'https://example.com/embed';
 
       expect(writes).toEqual([
+        `src=${chartUrl}`,
         'src=https://example.com/embed',
         'removeAttribute(srcdoc)',
       ]);
@@ -507,10 +593,11 @@ describe('buildBlobIframeSrcdocScript', () => {
     it('writes a later pdf blob src and then removes the rewritten srcdoc', async () => {
       const html = '<html><head></head><body>chart</body></html>';
       const { writes, iframe, createObjectURL } = installSrcFrame();
-      iframe.src = createObjectURL({
+      const chartUrl = createObjectURL({
         type: 'text/html',
         text: () => Promise.resolve(html),
       });
+      iframe.src = chartUrl;
       await flush();
       const pdfUrl = createObjectURL({
         type: 'application/pdf',
@@ -519,7 +606,11 @@ describe('buildBlobIframeSrcdocScript', () => {
 
       iframe.src = pdfUrl;
 
-      expect(writes).toEqual([`src=${pdfUrl}`, 'removeAttribute(srcdoc)']);
+      expect(writes).toEqual([
+        `src=${chartUrl}`,
+        `src=${pdfUrl}`,
+        'removeAttribute(srcdoc)',
+      ]);
       expect(iframe.srcdoc).toBeUndefined();
     });
 
@@ -533,20 +624,63 @@ describe('buildBlobIframeSrcdocScript', () => {
       expect(writes).toEqual(['src=https://example.com/embed']);
     });
 
+    // srcdoc wins over src in a browser, so the blob was never going to load.
+    it('leaves a page-authored srcdoc in place when an html blob src is assigned', async () => {
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      iframe.srcdoc = '<p>turnstile</p>';
+      const chartUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve('<html><body>chart</body></html>'),
+      });
+
+      iframe.src = chartUrl;
+      await flush();
+
+      expect(iframe.srcdoc).toBe('<p>turnstile</p>');
+      expect(iframe.src).toBe(chartUrl);
+      expect(writes).toEqual([`src=${chartUrl}`]);
+    });
+
+    it('replaces the rewritten srcdoc when a second html blob src is assigned', async () => {
+      const secondHtml = '<html><head></head><body>second</body></html>';
+      const { writes, iframe, createObjectURL } = installSrcFrame();
+      const firstUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve('<html><body>first</body></html>'),
+      });
+      iframe.src = firstUrl;
+      await flush();
+      const secondUrl = createObjectURL({
+        type: 'text/html',
+        text: () => Promise.resolve(secondHtml),
+      });
+
+      iframe.src = secondUrl;
+      await flush();
+
+      expect(iframe.srcdoc).toBe(secondHtml);
+      expect(iframe.src).toBe(secondUrl);
+      expect(writes).toEqual([`src=${firstUrl}`, `src=${secondUrl}`]);
+    });
+
     it('leaves a srcdoc the page wrote over the rewritten one', async () => {
       const html = '<html><head></head><body>chart</body></html>';
       const { writes, iframe, createObjectURL } = installSrcFrame();
-      iframe.src = createObjectURL({
+      const chartUrl = createObjectURL({
         type: 'text/html',
         text: () => Promise.resolve(html),
       });
+      iframe.src = chartUrl;
       await flush();
       iframe.srcdoc = '<p>turnstile</p>';
 
       iframe.src = 'https://example.com/embed';
 
       expect(iframe.srcdoc).toBe('<p>turnstile</p>');
-      expect(writes).toEqual(['src=https://example.com/embed']);
+      expect(writes).toEqual([
+        `src=${chartUrl}`,
+        'src=https://example.com/embed',
+      ]);
     });
 
     it('ignores a blob read that finishes after src leaves the blob URL', async () => {
@@ -701,6 +835,27 @@ describe('buildBlobIframeSrcdocScript', () => {
       expect(reads).toEqual([]);
     });
 
+    it('writes the native src of an html blob once when the src observer fires', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { assigned, sandbox } = installObservedFrame(
+        () => 'blob:https://example.com/chart',
+      );
+
+      const iframe = assignBlobFrame(
+        sandbox,
+        `var blob = {
+          type: 'text/html',
+          text: function () {
+            return Promise.resolve(${JSON.stringify(html)});
+          }
+        };`,
+      );
+      await drain();
+
+      expect(assigned).toEqual(['blob:https://example.com/chart']);
+      expect(iframe.srcdoc).toBe(html);
+    });
+
     // A browser shows these blobs as inert text or media. srcdoc would parse
     // the same bytes as HTML in the embedding page's origin.
     it.each([
@@ -818,6 +973,54 @@ describe('buildBlobIframeSrcdocScript', () => {
         expect(inserted.iframe.srcdoc).toBe(html);
       },
     );
+
+    // The observer starts at DOMContentLoaded. A deferred script can insert
+    // the frame as markup before that, and no record ever reports it.
+    it('renders an html blob iframe that was inserted before the observer started', async () => {
+      const html = '<html><head></head><body>chart</body></html>';
+      const { sandbox } = installObservedFrame(() => 'blob:unused');
+      sandbox.fetch = () =>
+        Promise.resolve({
+          blob: () =>
+            Promise.resolve({
+              type: 'text/html',
+              text: () => Promise.resolve(html),
+            }),
+        });
+      const listeners: Record<string, () => void> = {};
+      const inserted: object[] = [];
+      sandbox.document = {
+        readyState: 'loading',
+        documentElement: {
+          tagName: 'HTML',
+          querySelectorAll: (selector: string) =>
+            selector === 'iframe' ? inserted : [],
+        },
+        addEventListener(type: string, listener: () => void) {
+          listeners[type] = listener;
+        },
+      };
+      sandbox.window = sandbox;
+      const iframe = runInNewContext(
+        `${buildBlobIframeSrcdocScript()}
+          var iframe = Object.create(HTMLIFrameElement.prototype);
+          iframe.tagName = 'IFRAME';
+          iframe.getAttribute = function (name) {
+            return String(name).toLowerCase() === 'src'
+              ? 'blob:https://example.com/chart'
+              : null;
+          };
+          iframe;
+        `,
+        sandbox,
+      );
+      inserted.push(iframe);
+
+      listeners.DOMContentLoaded();
+      await drain();
+
+      expect(iframe.srcdoc).toBe(html);
+    });
 
     it('keeps the newer chart when an older blob read finishes later', async () => {
       const resolvers: ((html: string) => void)[] = [];

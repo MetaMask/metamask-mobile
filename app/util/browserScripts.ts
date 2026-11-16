@@ -543,6 +543,10 @@ true;`;
  * after `src` changes. A later non-blob `src`, or a blob that stays on the
  * native load, removes the `srcdoc` this script wrote.
  *
+ * A rewritten frame still reports the blob URL the page assigned. `src` and
+ * `getAttribute('src')` return it at once, and the native `src` is written as
+ * soon as `srcdoc` exists, when that write no longer starts a load.
+ *
  * The built script must not contain a NUL character. iOS passes it to WebKit
  * as a C string, which ends at the first NUL.
  */
@@ -638,18 +642,44 @@ export const buildBlobIframeSrcdocScript = (): string =>
     }
   }
 
+  // The blob URL the page assigned while its HTML is still being read. The
+  // native src cannot hold it yet: with no srcdoc on the frame, that write
+  // starts the blob: navigation this shim replaces. The src getter and
+  // getAttribute answer with this URL until the native write is made.
+  function pendingBlobSrc(iframe) {
+    var pending = iframe ? iframe.__mmBlobPending : null;
+    return typeof pending === 'string' && pending ? pending : null;
+  }
+
   // Assign the native blob URL once and leave __mmBlobRendered set. Clearing
   // the marker before the assignment makes the src observer call renderBlob
   // again, which reads the same blob and assigns src forever.
-  function keepNativeBlob(iframe, blobUrl) {
+  function writeNativeBlobSrc(iframe, blobUrl) {
     iframe.__mmBlobRendered = blobUrl;
+    iframe.__mmBlobPending = null;
     try {
       var current = srcDescriptor.get ? srcDescriptor.get.call(iframe) : '';
       if (current !== blobUrl) {
         srcDescriptor.set.call(iframe, blobUrl);
       }
     } catch (e) {}
+  }
+
+  function keepNativeBlob(iframe, blobUrl) {
+    writeNativeBlobSrc(iframe, blobUrl);
     clearRewrittenSrcdoc(iframe);
+  }
+
+  // A srcdoc this shim did not write already wins over src, so the browser
+  // starts no blob: navigation for the frame and there is nothing to replace.
+  // Either the page wrote that srcdoc, or the frame is a copy of a rewritten
+  // one: cloneNode and innerHTML copy the attributes and not the markers.
+  function hasOtherSrcdoc(iframe) {
+    return (
+      typeof iframe.hasAttribute === 'function' &&
+      iframe.hasAttribute('srcdoc') &&
+      iframe.srcdoc !== iframe.__mmBlobSrcdoc
+    );
   }
 
   function loadBlob(blobUrl) {
@@ -674,6 +704,7 @@ export const buildBlobIframeSrcdocScript = (): string =>
       keepNativeBlob(iframe, blobUrl);
       return;
     }
+    iframe.__mmBlobPending = blobUrl;
     loadBlob(blobUrl).then(function (blob) {
       // A newer src may have been assigned while this read was in flight.
       if (iframe.__mmBlobRendered !== blobUrl) {
@@ -691,11 +722,21 @@ export const buildBlobIframeSrcdocScript = (): string =>
           keepNativeBlob(iframe, blobUrl);
           return;
         }
+        if (hasOtherSrcdoc(iframe)) {
+          // Record the URL only. The existing srcdoc keeps this from loading.
+          writeNativeBlobSrc(iframe, blobUrl);
+          return;
+        }
         // The HTML is copied as is. A srcdoc document resolves relative URLs
         // against the embedding document, so no <base> element is inserted.
         iframe.srcdoc = html;
         // Remember what was written so a later src can remove it.
         iframe.__mmBlobSrcdoc = html;
+        // The page reads src back, matches iframe[src^="blob:"], and reloads
+        // with iframe.src = iframe.src, so the property and the attribute
+        // must hold the URL it assigned. srcdoc exists now, so this write
+        // records the URL and starts no load.
+        writeNativeBlobSrc(iframe, blobUrl);
       });
     }).catch(function () {
       if (iframe.__mmBlobRendered !== blobUrl) {
@@ -709,6 +750,10 @@ export const buildBlobIframeSrcdocScript = (): string =>
     configurable: true,
     enumerable: Boolean(srcDescriptor.enumerable),
     get: function () {
+      var pending = pendingBlobSrc(this);
+      if (pending) {
+        return pending;
+      }
       return srcDescriptor.get ? srcDescriptor.get.call(this) : '';
     },
     set: function (value) {
@@ -717,11 +762,25 @@ export const buildBlobIframeSrcdocScript = (): string =>
         return;
       }
       this.__mmBlobRendered = '';
+      this.__mmBlobPending = null;
       srcDescriptor.set.call(this, value);
       // The new URL does not load while our srcdoc remains.
       clearRewrittenSrcdoc(this);
     },
   });
+
+  var nativeGetAttribute = iframeProto.getAttribute;
+  if (typeof nativeGetAttribute === 'function') {
+    iframeProto.getAttribute = function (name) {
+      if (String(name).toLowerCase() === 'src') {
+        var pending = pendingBlobSrc(this);
+        if (pending) {
+          return pending;
+        }
+      }
+      return nativeGetAttribute.apply(this, arguments);
+    };
+  }
 
   var nativeSetAttribute = iframeProto.setAttribute;
   if (typeof nativeSetAttribute === 'function') {
@@ -754,6 +813,23 @@ export const buildBlobIframeSrcdocScript = (): string =>
     }
   }
 
+  function renderIframeSrc(node) {
+    if (!node || node.tagName !== 'IFRAME') {
+      return;
+    }
+    // Read the real attribute. The patched getAttribute answers with the
+    // pending URL and would hide a newer src written past the shim.
+    var src =
+      typeof nativeGetAttribute === 'function'
+        ? nativeGetAttribute.call(node, 'src')
+        : node.getAttribute && node.getAttribute('src');
+    // renderBlob returns at once for a URL it already handled, so a native
+    // src write made by the shim does not start a second read.
+    if (typeof src === 'string' && src.indexOf('blob:') === 0) {
+      renderBlob(node, src);
+    }
+  }
+
   function observeIframes() {
     if (!document.documentElement || typeof MutationObserver !== 'function') {
       return;
@@ -768,17 +844,7 @@ export const buildBlobIframeSrcdocScript = (): string =>
             collectIframes(node, nodes);
           });
         }
-        nodes.forEach(function (node) {
-          if (!node || node.tagName !== 'IFRAME') {
-            return;
-          }
-          var src = node.getAttribute && node.getAttribute('src');
-          // renderBlob returns at once for a URL it already handled, so a
-          // native src write made by the shim does not start a second read.
-          if (typeof src === 'string' && src.indexOf('blob:') === 0) {
-            renderBlob(node, src);
-          }
-        });
+        nodes.forEach(renderIframeSrc);
       });
     });
     observer.observe(document.documentElement, {
@@ -787,6 +853,12 @@ export const buildBlobIframeSrcdocScript = (): string =>
       attributes: true,
       attributeFilter: ['src'],
     });
+    // The observer starts at DOMContentLoaded. Markup that a script inserted
+    // while the page was still loading is not in any record, so the frames
+    // already in the document are checked once.
+    var existing = [];
+    collectIframes(document.documentElement, existing);
+    existing.forEach(renderIframeSrc);
   }
 
   if (typeof document !== 'undefined') {
