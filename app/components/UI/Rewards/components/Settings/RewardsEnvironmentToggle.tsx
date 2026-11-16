@@ -65,6 +65,11 @@ interface EnvironmentUrlFieldProps {
   closeButtonTestID: string;
   currentEnv: string | null;
   defaultEnv: string | null;
+  /**
+   * Shows the host without opening the selector. Used when the build is
+   * not local.
+   */
+  isDisabled?: boolean;
   options: string[];
   isSheetOpen: boolean;
   onOpen: () => void;
@@ -81,6 +86,7 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
   closeButtonTestID,
   currentEnv,
   defaultEnv,
+  isDisabled = false,
   options,
   isSheetOpen,
   onOpen,
@@ -98,6 +104,7 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
       isFullWidth
+      isDisabled={isDisabled}
       onPress={onOpen}
       accessibilityLabel={`${label}: ${currentEnv ?? '...'}`}
     >
@@ -189,12 +196,11 @@ const RewardsEnvironmentToggle: React.FC = () => {
         'RewardsMoneyController:canChangeRewardsMoneyEnvUrl',
       ) === true;
     setCanChangeMoney(moneyAllowed);
+    const moneyHost = Engine.controllerMessenger.call(
+      'RewardsMoneyController:getRewardsMoneyEnvUrl',
+    );
+    setCurrentMoneyEnv(typeof moneyHost === 'string' ? moneyHost : null);
     if (moneyAllowed) {
-      setCurrentMoneyEnv(
-        Engine.controllerMessenger.call(
-          'RewardsMoneyController:getRewardsMoneyEnvUrl',
-        ),
-      );
       setDefaultMoneyEnv(
         Engine.controllerMessenger.call(
           'RewardsMoneyController:getDefaultRewardsMoneyEnvUrl',
@@ -242,7 +248,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
     return null;
   }
 
-  if (!canChangeRewards && !canChangeMoney) {
+  if (!canChangeRewards && !currentMoneyEnv) {
     return null;
   }
 
@@ -273,7 +279,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             isGlassHeader={isGlassHeader}
           />
         ) : null}
-        {canChangeMoney ? (
+        {currentMoneyEnv ? (
           <EnvironmentUrlField
             label={strings('bottom_nav.money')}
             triggerTestID="rewards-money-environment-toggle-trigger"
@@ -281,6 +287,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             closeButtonTestID="money-environment-sheet-close-button"
             currentEnv={currentMoneyEnv}
             defaultEnv={defaultMoneyEnv}
+            isDisabled={canChangeMoney !== true}
             options={MONEY_ENV_OPTIONS}
             isSheetOpen={openSheet === 'money'}
             onOpen={() => setOpenSheet('money')}

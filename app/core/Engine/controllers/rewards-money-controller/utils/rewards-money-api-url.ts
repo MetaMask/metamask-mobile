@@ -1,19 +1,15 @@
 import AppConstants from '../../../../AppConstants';
 
-export const REWARDS_MONEY_ENV_CHANGE_ALLOWED = [
-  'dev',
-  'e2e',
-  'local',
-  'pre-release',
-  'exp',
-  'beta',
-  'rc',
-  'test',
-];
-
+/**
+ * A local build may point Money at any host. Every other build shows its
+ * own Money URL and the selector stays disabled.
+ *
+ * @param metaMaskEnv - `METAMASK_ENVIRONMENT`.
+ * @returns Whether the Money host can be switched.
+ */
 export const canChangeRewardsMoneyEnvUrl = (
   metaMaskEnv: string | undefined,
-): boolean => REWARDS_MONEY_ENV_CHANGE_ALLOWED.includes(metaMaskEnv ?? '');
+): boolean => metaMaskEnv === 'local';
 
 /**
  * Returns the Rewards Money API base URL for the given MetaMask environment.

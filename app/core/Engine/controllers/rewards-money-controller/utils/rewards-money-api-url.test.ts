@@ -12,23 +12,23 @@ jest.mock('../../../../AppConstants', () => ({
 }));
 
 describe('canChangeRewardsMoneyEnvUrl', () => {
-  it.each(['e2e', 'dev', 'local', 'pre-release', 'exp', 'beta', 'rc', 'test'])(
-    'returns true for "%s" env',
-    (env) => {
-      expect(canChangeRewardsMoneyEnvUrl(env)).toBe(true);
-    },
-  );
-
-  it('returns false for production env', () => {
-    expect(canChangeRewardsMoneyEnvUrl('production')).toBe(false);
+  it('returns true for a local build', () => {
+    expect(canChangeRewardsMoneyEnvUrl('local')).toBe(true);
   });
 
-  it('returns false for unknown env', () => {
-    expect(canChangeRewardsMoneyEnvUrl('unknown')).toBe(false);
-  });
-
-  it('returns false for undefined', () => {
-    expect(canChangeRewardsMoneyEnvUrl(undefined)).toBe(false);
+  it.each([
+    'dev',
+    'e2e',
+    'pre-release',
+    'exp',
+    'beta',
+    'rc',
+    'test',
+    'production',
+    'unknown',
+    undefined,
+  ])('returns false for "%s"', (env) => {
+    expect(canChangeRewardsMoneyEnvUrl(env)).toBe(false);
   });
 });
 
@@ -51,7 +51,7 @@ describe('getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv', () => {
       const [apiUrl, canChange] =
         getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('dev');
       expect(apiUrl).toEqual('https://custom.api');
-      expect(canChange).toBe(true);
+      expect(canChange).toBe(false);
     });
 
     it('preserves canChange based on env when returning custom URL', () => {
@@ -64,11 +64,11 @@ describe('getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv', () => {
     });
   });
 
-  it('returns DEV url and canChange=true for local or dev env', () => {
+  it('returns DEV url and canChange only for a local build', () => {
     let [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('dev');
     expect(apiUrl).toEqual('https://api.dev');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
 
     [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('local');
@@ -88,22 +88,22 @@ describe('getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv', () => {
     expect(canChange).toBe(false);
   });
 
-  it('returns UAT url and canChange=true for e2e or exp env', () => {
+  it('returns UAT url and canChange=false for e2e or exp env', () => {
     let [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('e2e');
     expect(apiUrl).toEqual('https://api.uat');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
 
     [apiUrl, canChange] = getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('exp');
     expect(apiUrl).toEqual('https://api.uat');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
   });
 
-  it('returns DEV url and canChange=true for test env', () => {
+  it('returns DEV url and canChange=false for test env', () => {
     const [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('test');
     expect(apiUrl).toEqual('https://api.dev');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
   });
 
   it('returns PRD url and canChange=false for production env', () => {
@@ -113,19 +113,19 @@ describe('getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv', () => {
     expect(canChange).toBe(false);
   });
 
-  it('returns PRD url and canChange=true for beta, pre-release, or rc env', () => {
+  it('returns PRD url and canChange=false for beta, pre-release, or rc env', () => {
     let [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('beta');
     expect(apiUrl).toEqual('https://api.prd');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
 
     [apiUrl, canChange] =
       getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('pre-release');
     expect(apiUrl).toEqual('https://api.prd');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
 
     [apiUrl, canChange] = getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('rc');
     expect(apiUrl).toEqual('https://api.prd');
-    expect(canChange).toBe(true);
+    expect(canChange).toBe(false);
   });
 });
