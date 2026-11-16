@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   AvatarIcon,
@@ -7,7 +7,7 @@ import {
   Box,
   IconName,
 } from '@metamask/design-system-react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import {
   Alignment,
   Fit,
@@ -16,7 +16,6 @@ import {
   useRive,
   useRiveFile,
   type RiveError,
-  type RiveViewRef,
 } from '@rive-app/react-native';
 import Logger from '../../../../../util/Logger';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
@@ -24,6 +23,9 @@ import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import moneyTwoFactorAnimation from '../../../../../animations/money_2fa_v2.riv';
 
 const STATE_MACHINE_NAME = 'State Machine 1';
+
+// Lets a screen opened on top (e.g. Money onboarding) cover Money first, so the animation isn't played unseen.
+export const SHIELD_PLAY_DELAY_MS = 600;
 
 const styles = StyleSheet.create({
   hidden: { opacity: 0 },
@@ -69,34 +71,23 @@ const MoneyMfaShieldAnimation = ({ size }: MoneyMfaShieldAnimationProps) => {
     [logError],
   );
 
-  const riveViewRefLatest = useRef<RiveViewRef | null>(riveViewRef);
-  const animateLatest = useRef(animate);
-  const hasFocusedRef = useRef(false);
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    riveViewRefLatest.current = riveViewRef;
-    animateLatest.current = animate;
-  }, [riveViewRef, animate]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (!hasFocusedRef.current) {
-        hasFocusedRef.current = true;
-        return;
-      }
-      const view = riveViewRefLatest.current;
-      if (!view || !animateLatest.current) return;
-      const replay = async () => {
-        await view.reset();
-        await view.play();
+    if (!isFocused || !isRiveReady || !riveViewRef) return undefined;
+    const timer = setTimeout(() => {
+      const play = async () => {
+        await riveViewRef.reset();
+        await riveViewRef.play();
       };
-      replay().catch((error: unknown) =>
+      play().catch((error: unknown) =>
         logError(error instanceof Error ? error : new Error(String(error)), {
-          action: 'replay',
+          action: 'play',
         }),
       );
-    }, [logError]),
-  );
+    }, SHIELD_PLAY_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [isFocused, isRiveReady, riveViewRef, logError]);
 
   const dimensions = { width: size, height: size };
 
@@ -116,7 +107,7 @@ const MoneyMfaShieldAnimation = ({ size }: MoneyMfaShieldAnimationProps) => {
           hybridRef={setHybridRef}
           file={riveFile}
           stateMachineName={STATE_MACHINE_NAME}
-          autoPlay
+          autoPlay={false}
           fit={Fit.Contain}
           alignment={Alignment.Center}
           style={[dimensions, !isRiveReady && styles.hidden]}

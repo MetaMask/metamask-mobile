@@ -1,7 +1,9 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import { RiveErrorType, type RiveError } from '@rive-app/react-native';
-import MoneyMfaShieldAnimation from './MoneyMfaShieldAnimation';
+import MoneyMfaShieldAnimation, {
+  SHIELD_PLAY_DELAY_MS,
+} from './MoneyMfaShieldAnimation';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import Logger from '../../../../../util/Logger';
@@ -42,22 +44,14 @@ jest.mock('@rive-app/react-native', () => {
   };
 });
 
-let mockFocusCallback: (() => void) | undefined;
-jest.mock('@react-navigation/native', () => {
-  const ReactActual = jest.requireActual('react');
-  return {
-    useFocusEffect: (callback: () => void) => {
-      mockFocusCallback = callback;
-      ReactActual.useEffect(() => {
-        callback();
-      }, []);
-    },
-  };
-});
+let mockIsFocused = true;
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockIsFocused,
+}));
 
-const refocus = async () => {
+const waitForPlayDelay = async () => {
   await act(async () => {
-    mockFocusCallback?.();
+    jest.advanceTimersByTime(SHIELD_PLAY_DELAY_MS);
   });
 };
 
@@ -66,10 +60,16 @@ const mockUseReduceMotion = jest.mocked(useReduceMotion);
 describe('MoneyMfaShieldAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
+    mockIsFocused = true;
     mockRiveViewReady = true;
     mockRiveView.reset.mockResolvedValue(undefined);
     mockRiveView.play.mockResolvedValue(undefined);
     mockUseReduceMotion.mockReturnValue(false);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('plays the 2FA state machine and hides the static shield once ready', () => {
@@ -118,22 +118,54 @@ describe('MoneyMfaShieldAnimation', () => {
     expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 
-  it('replays from the start when the screen regains focus', async () => {
+  it('plays from the start once the screen has been focused for the delay', async () => {
     render(<MoneyMfaShieldAnimation size={96} />);
-    expect(mockRiveView.reset).not.toHaveBeenCalled();
+    expect(mockRiveView.play).not.toHaveBeenCalled();
 
-    await refocus();
+    await waitForPlayDelay();
 
     expect(mockRiveView.reset).toHaveBeenCalledTimes(1);
     expect(mockRiveView.play).toHaveBeenCalledTimes(1);
   });
 
-  it('does not replay on refocus when Reduce Motion is on', async () => {
+  it('does not play when the screen loses focus before the delay', async () => {
+    const { rerender } = render(<MoneyMfaShieldAnimation size={96} />);
+
+    mockIsFocused = false;
+    rerender(<MoneyMfaShieldAnimation size={96} />);
+    await waitForPlayDelay();
+
+    expect(mockRiveView.play).not.toHaveBeenCalled();
+  });
+
+  it('plays again when the screen regains focus', async () => {
+    const { rerender } = render(<MoneyMfaShieldAnimation size={96} />);
+    await waitForPlayDelay();
+
+    mockIsFocused = false;
+    rerender(<MoneyMfaShieldAnimation size={96} />);
+    mockIsFocused = true;
+    rerender(<MoneyMfaShieldAnimation size={96} />);
+    await waitForPlayDelay();
+
+    expect(mockRiveView.play).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not play when Reduce Motion is on', async () => {
     mockUseReduceMotion.mockReturnValue(true);
     render(<MoneyMfaShieldAnimation size={96} />);
 
-    await refocus();
+    await waitForPlayDelay();
 
-    expect(mockRiveView.reset).not.toHaveBeenCalled();
+    expect(mockRiveView.play).not.toHaveBeenCalled();
+  });
+
+  it('logs when playing fails', async () => {
+    mockRiveView.play.mockRejectedValueOnce(new Error('play failed'));
+    render(<MoneyMfaShieldAnimation size={96} />);
+
+    await waitForPlayDelay();
+
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 });

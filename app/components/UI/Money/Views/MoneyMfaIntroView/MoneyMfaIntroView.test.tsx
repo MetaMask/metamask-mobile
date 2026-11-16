@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyMfaIntroView from './MoneyMfaIntroView';
 import { MoneyMfaIntroViewTestIds } from './MoneyMfaIntroView.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -17,6 +18,32 @@ const mockTrackComponentViewed = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
+}));
+
+let mockRootRoutes: { name: string }[] = [];
+let mockStateListener: (() => void) | undefined;
+const mockStopNavigation = jest.fn();
+jest.mock('../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      getRootState: () => ({ routes: mockRootRoutes }),
+      addListener: (_event: string, listener: () => void) => {
+        mockStateListener = listener;
+        return mockStopNavigation;
+      },
+    },
+  },
+}));
+
+let mockActiveFlow: object | undefined;
+let mockFlowListener: (() => void) | undefined;
+jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
+  getActiveMfaFlow: () => mockActiveFlow,
+  subscribeToActiveMfaFlow: (listener: () => void) => {
+    mockFlowListener = listener;
+    return jest.fn();
+  },
 }));
 
 jest.mock('../../hooks/useMoneyMfa', () => ({
@@ -38,7 +65,20 @@ jest.mock('../../components/MoneyMfa/MoneyMfaShieldAnimation', () => {
 describe('MoneyMfaIntroView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRootRoutes = [];
+    mockActiveFlow = undefined;
+    mockStateListener = undefined;
+    mockFlowListener = undefined;
+    mockTurnOn.mockReturnValue(new Promise(() => undefined));
   });
+
+  const pressContinue = () => {
+    const screen = render(<MoneyMfaIntroView />);
+    fireEvent.press(
+      screen.getByTestId(MoneyMfaIntroViewTestIds.CONTINUE_BUTTON),
+    );
+    return screen;
+  };
 
   it('renders the title, description and actions', () => {
     const { getByTestId, getByText } = render(<MoneyMfaIntroView />);
@@ -64,18 +104,69 @@ describe('MoneyMfaIntroView', () => {
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
-  it('closes and starts 2-step verification setup on Continue', () => {
-    const { getByTestId } = render(<MoneyMfaIntroView />);
+  it('starts 2-step verification setup on Continue and stays open until its screen opens', () => {
+    pressContinue();
 
-    fireEvent.press(getByTestId(MoneyMfaIntroViewTestIds.CONTINUE_BUTTON));
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockTurnOn).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockTrackButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
       label_key: 'money.mfa.intro_continue',
     });
+  });
+
+  it('closes once the 2-step verification screen is on top', () => {
+    pressContinue();
+
+    mockRootRoutes = [{ name: 'Main' }, { name: Routes.MFA.FLOW }];
+    act(() => mockStateListener?.());
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockStopNavigation).toHaveBeenCalled();
+  });
+
+  it('ignores navigation changes that do not open the 2-step verification screen', () => {
+    pressContinue();
+
+    mockRootRoutes = [{ name: 'Main' }];
+    act(() => mockStateListener?.());
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('closes when the flow ends without opening a screen', () => {
+    pressContinue();
+
+    mockActiveFlow = {};
+    act(() => mockFlowListener?.());
+    expect(mockGoBack).not.toHaveBeenCalled();
+    mockActiveFlow = undefined;
+    act(() => mockFlowListener?.());
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes when setup returns without a flow', async () => {
+    mockTurnOn.mockResolvedValue(undefined);
+
+    pressContinue();
+    await act(async () => undefined);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes only once and ignores a second Continue', async () => {
+    mockTurnOn.mockResolvedValue(undefined);
+    const { getByTestId } = pressContinue();
+    fireEvent.press(getByTestId(MoneyMfaIntroViewTestIds.CONTINUE_BUTTON));
+
+    mockRootRoutes = [{ name: Routes.MFA.FLOW }];
+    act(() => mockStateListener?.());
+    await act(async () => undefined);
+
+    expect(mockTurnOn).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('closes without starting setup on Not now', () => {
