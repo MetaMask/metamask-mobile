@@ -204,12 +204,23 @@ export const useTokenTransactions = (
   const allTransactions = useMemo(() => {
     // Redesign Activity hides gas_payment siblings and shows the fee on the
     // primary row; keep token-details lists in sync when that flag is on.
-    // Filter to transactions from the selected address (received transfers come from API)
-    let transactions = evmTransactions.filter(
-      (tx: Transaction) =>
-        tx.type !== TransactionType.gasPayment &&
-        areAddressesEqual(tx.txParams?.from ?? '', selectedAddress ?? ''),
-    );
+    // Token receives come from the API, so a local token row stays only when
+    // this account sent it. Native receives still live here when `to` is this
+    // account, including rows whose `from` was never recorded.
+    const accountAddress = selectedAddress ?? '';
+    const isNativeEvmAsset = Boolean(asset.isNative || asset.isETH);
+    let transactions = evmTransactions.filter((tx: Transaction) => {
+      if (tx.type === TransactionType.gasPayment) {
+        return false;
+      }
+      if (areAddressesEqual(tx.txParams?.from ?? '', accountAddress)) {
+        return true;
+      }
+      if (!isNativeEvmAsset) {
+        return false;
+      }
+      return areAddressesEqual(tx.txParams?.to ?? '', accountAddress);
+    });
 
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
       const txs =
