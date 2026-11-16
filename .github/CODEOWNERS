@@ -132,6 +132,12 @@ app/selectors/transactionPayController.*                        @MetaMask/confir
 app/util/confirmation/                                          @MetaMask/confirmations
 app/util/transaction-controller/                               @MetaMask/confirmations
 app/util/transactions/                                         @MetaMask/confirmations
+app/components/Views/confirmations/hooks/send/usePercentageAmount.ts      @MetaMask/confirmations @MetaMask/networks
+app/components/Views/confirmations/hooks/send/usePercentageAmount.test.ts @MetaMask/confirmations @MetaMask/networks
+app/components/Views/confirmations/hooks/gas/useFeeCalculations.ts        @MetaMask/confirmations @MetaMask/networks
+app/components/Views/confirmations/hooks/gas/useFeeCalculations.test.ts   @MetaMask/confirmations @MetaMask/networks
+app/components/Views/confirmations/hooks/useMaxValueRefresher.ts          @MetaMask/confirmations @MetaMask/networks
+app/components/Views/confirmations/hooks/useMaxValueRefresher.test.ts     @MetaMask/confirmations @MetaMask/networks
 
 # Product Safety Team
 **/product-safety/**                                            @MetaMask/product-safety
@@ -362,7 +368,7 @@ app/components/Views/EditAccountName             @MetaMask/mobile-core-ux
 app/components/Views/LockScreen                  @MetaMask/mobile-core-ux
 app/components/Views/Login                       @MetaMask/mobile-core-ux
 app/components/Views/NetworkConnect              @MetaMask/mobile-core-ux
-app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
+app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux @MetaMask/networks
 app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
@@ -522,6 +528,10 @@ app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @Met
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Earn/        @MetaMask/earn @MetaMask/mobile-core-ux
 app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @MetaMask/mobile-core-ux
+
+# Networks Team
+app/util/networks                                           @MetaMask/networks
+app/components/UI/NetworkMultiSelectorList                  @MetaMask/networks
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
