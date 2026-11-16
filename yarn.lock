@@ -44851,6 +44851,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-passkeys@patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch":
+  version: 0.4.2
+  resolution: "react-native-passkeys@patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch::version=0.4.2&hash=d8dbf1"
+  peerDependencies:
+    expo: ">=53.0.0"
+    react: "*"
+    react-native: ">=0.71.0"
+  checksum: 10/2867ebc07cb81404eb474b29ae57f9a1e5c9e70e10b8dac715b9de026995ef42dfa4d805de1e4b06edd6098b83dcd87ea88e260d380a80cf7e299e2bf4508468
+  languageName: node
+  linkType: hard
+
 "react-native-performance@npm:6.0.0":
   version: 6.0.0
   resolution: "react-native-performance@npm:6.0.0"

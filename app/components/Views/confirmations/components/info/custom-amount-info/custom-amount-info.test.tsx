@@ -124,6 +124,10 @@ jest.mock('../../rows/perps-receive-to-row', () => ({
   DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
   PerpsReceiveToRow: () => null,
 }));
+jest.mock('../../rows/perps-withdraw-from-row', () => ({
+  DEFAULT_PERPS_WITHDRAW_SOURCE: 'hyperliquid',
+  PerpsWithdrawFromRow: () => null,
+}));
 jest.mock('../../rows/predict-account-picker-row', () => ({
   PredictAccountPickerRow: () => null,
 }));

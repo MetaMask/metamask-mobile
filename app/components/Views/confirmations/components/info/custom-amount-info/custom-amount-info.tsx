@@ -69,6 +69,11 @@ import {
   PerpsReceiveToRow,
   type PerpsReceiveDestination,
 } from '../../rows/perps-receive-to-row';
+import {
+  DEFAULT_PERPS_WITHDRAW_SOURCE,
+  PerpsWithdrawFromRow,
+  type PerpsWithdrawSource,
+} from '../../rows/perps-withdraw-from-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
@@ -217,6 +222,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const [perpsReceiveDestination, setPerpsReceiveDestination] =
       useState<PerpsReceiveDestination>(DEFAULT_PERPS_RECEIVE_DESTINATION);
+    const [perpsWithdrawSource, setPerpsWithdrawSource] =
+      useState<PerpsWithdrawSource>(DEFAULT_PERPS_WITHDRAW_SOURCE);
 
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.
@@ -535,6 +542,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 )}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
               {disablePay !== true &&
                 (hasPaymentOption || hasAccountNoFunds) && <PayWithRow />}
               <PerpsReceiveToRow
@@ -553,6 +564,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 !shouldHideAccountSelector && <PayAccountSelector />}
               <PerpsAccountPickerRow />
               <PredictAccountPickerRow />
+              <PerpsWithdrawFromRow
+                source={perpsWithdrawSource}
+                onSourceChange={setPerpsWithdrawSource}
+              />
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
