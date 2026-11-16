@@ -38675,7 +38675,7 @@ __metadata:
     react-native-nitro-websockets: "patch:react-native-nitro-websockets@npm%3A1.0.3#~/.yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
     react-native-pager-view: "npm:8.0.4"
-    react-native-passkeys: "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch"
+    react-native-passkeys: "npm:0.4.2"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
