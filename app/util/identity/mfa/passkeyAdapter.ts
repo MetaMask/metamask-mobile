@@ -62,11 +62,15 @@ const withoutNulls = <Response>(response: Response): Response =>
  *
  * @param ceremony - The library call.
  * @param failure - The code for a failed ceremony.
+ * @param isCreation - Whether the ceremony creates a passkey. Only creation
+ * can match `excludeCredentials`; on Android, `InvalidStateError` during
+ * verification means something else, such as a request already in progress.
  * @returns The ceremony's response.
  */
 const runCeremony = async <Response>(
   ceremony: () => Promise<Response | null>,
   failure: MfaFlowErrorCode,
+  isCreation: boolean,
 ): Promise<Response> => {
   let response: Response | null;
   try {
@@ -75,7 +79,7 @@ const runCeremony = async <Response>(
     if (isCancellation(error)) {
       throw new MfaFlowError('passkey_ceremony_cancelled');
     }
-    if (isExcludedCredential(error)) {
+    if (isCreation && isExcludedCredential(error)) {
       throw new MfaFlowError('passkey_already_exists');
     }
     // The flow only shows "Couldn't use your passkey"; keep the cause (for
@@ -102,7 +106,11 @@ type GetRequest = Parameters<typeof get>[0];
  */
 export const mobilePasskeyAdapter: PasskeyAdapter = {
   create: (options) =>
-    runCeremony(() => create(options as CreateRequest), 'invalid_attestation'),
+    runCeremony(
+      () => create(options as CreateRequest),
+      'invalid_attestation',
+      true,
+    ),
   get: (options) =>
-    runCeremony(() => get(options as GetRequest), 'invalid_assertion'),
+    runCeremony(() => get(options as GetRequest), 'invalid_assertion', false),
 };

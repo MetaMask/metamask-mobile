@@ -107,6 +107,21 @@ describe('mobilePasskeyAdapter', () => {
     },
   );
 
+  it('reports an Android InvalidStateError while verifying as an unusable passkey', async () => {
+    const nativeError = {
+      code: 'Passkey Get',
+      message: 'DomError: InvalidStateError - a request is already pending',
+    };
+    mockGet.mockRejectedValue(nativeError);
+
+    expect(await codeOf(mobilePasskeyAdapter.get(requestOptions))).toBe(
+      'invalid_assertion',
+    );
+    expect(Logger.error).toHaveBeenCalledWith(nativeError, {
+      tags: { feature: 'mfa', mfaCode: 'invalid_assertion' },
+    });
+  });
+
   it('reports any other failure or an empty response as an unusable passkey', async () => {
     const nativeError = new Error('NotConfigured');
     mockCreate.mockRejectedValue(nativeError);
