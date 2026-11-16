@@ -32,7 +32,11 @@ describe('compileSource', () => {
   it('reports a file Babel cannot parse', () => {
     const [result] = compileSource('export const = ;', 'app/Broken.ts');
 
-    expect(result.reason).toMatch(/^Babel could not transform this file:/);
+    expect(result).toEqual({
+      line: 1,
+      column: 13,
+      reason: 'Babel could not transform this file: Unexpected token',
+    });
   });
 });
 

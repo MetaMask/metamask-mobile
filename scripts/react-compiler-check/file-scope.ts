@@ -27,7 +27,11 @@ export function fileCategories(filePath: string): {
 
 export function isInScope(filePath: string): boolean {
   const normalized = filePath.replace(/\\/g, '/');
-  if (!normalized.startsWith(SOURCE_ROOT) || !SOURCE_EXTENSION.test(normalized)) {
+  if (
+    !normalized.startsWith(SOURCE_ROOT) ||
+    !SOURCE_EXTENSION.test(normalized) ||
+    normalized.split('/').includes('..')
+  ) {
     return false;
   }
   const { test, mock } = fileCategories(normalized);

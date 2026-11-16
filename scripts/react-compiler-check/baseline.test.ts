@@ -4,6 +4,7 @@ import {
   type FileResult,
   compareWithBaseline,
   parseBaseline,
+  selectCheckedPaths,
   serializeBaseline,
   summarize,
   toBaselineEntry,
@@ -111,15 +112,35 @@ describe('compareWithBaseline', () => {
     ]);
   });
 
-  it('reports a new reason even when the count stays the same', () => {
+  it('ignores reason wording changes when the count stays the same', () => {
+    expect(
+      compareWithBaseline(
+        [
+          {
+            path: 'app/known.tsx',
+            failures: [failure(REFS), failure('Reworded')],
+          },
+        ],
+        baseline,
+        ['app/known.tsx'],
+      ),
+    ).toEqual({ regressions: [], improvements: [] });
+  });
+
+  it('lists only reasons the baseline did not have as new', () => {
     const { regressions } = compareWithBaseline(
-      [{ path: 'app/known.tsx', failures: [failure(REFS), failure('Other')] }],
+      [
+        {
+          path: 'app/known.tsx',
+          failures: [failure(REFS), failure(TRY), failure('Other')],
+        },
+      ],
       baseline,
       ['app/known.tsx'],
     );
 
     expect(regressions).toMatchObject([
-      { path: 'app/known.tsx', count: 2, newReasons: ['Other'] },
+      { path: 'app/known.tsx', count: 3, newReasons: ['Other'] },
     ]);
   });
 
@@ -213,5 +234,25 @@ describe('summarize', () => {
         'app/b.tsx': { count: 3, reasons: [TRY] },
       }),
     ).toEqual({ files: 2, failures: 5 });
+  });
+});
+
+describe('selectCheckedPaths', () => {
+  const baseline: Baseline = {
+    'app/deleted.tsx': { count: 1, reasons: [REFS] },
+  };
+
+  it('adds every baselined path on a full run so deleted files are pruned', () => {
+    expect(selectCheckedPaths(['app/a.tsx'], baseline, true)).toEqual([
+      'app/a.tsx',
+      'app/deleted.tsx',
+    ]);
+  });
+
+  it('checks only the selected paths on a partial run', () => {
+    expect(selectCheckedPaths(['app/b.tsx', 'app/a.tsx', 'app/a.tsx'], baseline, false)).toEqual([
+      'app/a.tsx',
+      'app/b.tsx',
+    ]);
   });
 });

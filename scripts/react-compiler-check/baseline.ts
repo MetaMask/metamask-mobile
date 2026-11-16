@@ -87,24 +87,25 @@ export function compareWithBaseline(
   for (const path of [...new Set(checkedPaths)].sort()) {
     const failures = current.get(path)?.failures ?? [];
     const baselineEntry = baseline[path] ?? { count: 0, reasons: [] };
-    const entry = toBaselineEntry(failures);
-    const newReasons = entry.reasons.filter(
-      (reason) => !baselineEntry.reasons.includes(reason),
-    );
-    const removedReasons = baselineEntry.reasons.filter(
-      (reason) => !entry.reasons.includes(reason),
-    );
-    const counts = { baselineCount: baselineEntry.count, count: entry.count };
-    if (entry.count > baselineEntry.count || newReasons.length > 0) {
+    const counts = { baselineCount: baselineEntry.count, count: failures.length };
+    if (failures.length > baselineEntry.count) {
+      const newReasons = toBaselineEntry(failures).reasons.filter(
+        (reason) => !baselineEntry.reasons.includes(reason),
+      );
       regressions.push({ path, ...counts, newReasons, failures });
-    } else if (
-      entry.count < baselineEntry.count ||
-      removedReasons.length > 0
-    ) {
+    } else if (failures.length < baselineEntry.count) {
       improvements.push({ path, ...counts });
     }
   }
   return { regressions, improvements };
+}
+
+export function selectCheckedPaths(
+  selected: string[],
+  baseline: Baseline,
+  fullRun: boolean,
+): string[] {
+  return [...new Set(fullRun ? [...selected, ...Object.keys(baseline)] : selected)].sort();
 }
 
 export function updateBaseline(

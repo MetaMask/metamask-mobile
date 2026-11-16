@@ -21,17 +21,22 @@ describe('parseCliArgs', () => {
     expect(parseCliArgs(['--changed']).changed).toBe('origin/main');
   });
 
-  it('accepts a ref for --changed', () => {
-    expect(parseCliArgs(['--changed', 'HEAD~3']).changed).toBe('HEAD~3');
-    expect(parseCliArgs(['--changed=main']).changed).toBe('main');
+  it('accepts a ref with --changed=<ref>', () => {
+    expect(parseCliArgs(['--changed=HEAD~3']).changed).toBe('HEAD~3');
   });
 
-  it('does not treat a file after --changed as a ref', () => {
-    expect(parseCliArgs(['--changed', 'app/a.tsx'])).toMatchObject({
-      changed: 'origin/main',
-      files: ['app/a.tsx'],
-    });
+  it('does not treat the next argument as a ref', () => {
+    expect(() => parseCliArgs(['--changed', 'app/components/Foo'])).toThrow(
+      'Pass either --changed or a list of files, not both.',
+    );
   });
+
+  it.each(['--changed=', '--changed=--output=/tmp/x'])(
+    'rejects %s',
+    (arg) => {
+      expect(() => parseCliArgs([arg])).toThrow('Invalid ref for --changed');
+    },
+  );
 
   it('rejects --allow-new without --update', () => {
     expect(() => parseCliArgs(['--allow-new'])).toThrow(

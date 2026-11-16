@@ -14,7 +14,8 @@ and compares the failures with scripts/react-compiler-check/baseline.json.
 Options:
   --update           Rewrite the baseline for the checked files. Refuses to add failures.
   --allow-new        With --update, also record new or increased failures.
-  --changed [ref]    Check only files changed since ref (default origin/main) plus untracked files.
+  --changed          Check only files changed since origin/main, plus uncommitted and untracked files.
+  --changed=<ref>    Same, against another ref.
   -h, --help         Show this help.`;
 
 export function parseCliArgs(argv: string[]): CliArgs {
@@ -25,22 +26,18 @@ export function parseCliArgs(argv: string[]): CliArgs {
     files: [],
     help: false,
   };
-  for (let index = 0; index < argv.length; index += 1) {
-    const arg = argv[index];
+  for (const arg of argv) {
     if (arg === '--update') {
       args.update = true;
     } else if (arg === '--allow-new') {
       args.allowNew = true;
     } else if (arg === '--changed') {
-      const next = argv[index + 1];
-      if (next && !next.startsWith('-') && !/\.(?:jsx?|tsx?|mjs|cjs)$/i.test(next)) {
-        args.changed = next;
-        index += 1;
-      } else {
-        args.changed = 'origin/main';
-      }
+      args.changed = 'origin/main';
     } else if (arg.startsWith('--changed=')) {
       args.changed = arg.slice('--changed='.length);
+      if (!args.changed || args.changed.startsWith('-')) {
+        throw new Error(`Invalid ref for --changed: "${args.changed}"`);
+      }
     } else if (arg === '-h' || arg === '--help') {
       args.help = true;
     } else if (arg.startsWith('-')) {
@@ -48,6 +45,9 @@ export function parseCliArgs(argv: string[]): CliArgs {
     } else {
       args.files.push(arg);
     }
+  }
+  if (args.changed !== null && args.files.length > 0) {
+    throw new Error('Pass either --changed or a list of files, not both.');
   }
   if (args.allowNew && !args.update) {
     throw new Error('--allow-new only applies together with --update.');

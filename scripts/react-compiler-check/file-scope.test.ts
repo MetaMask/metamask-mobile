@@ -71,6 +71,7 @@ describe('isInScope', () => {
     'app/images/logo.png',
     'app/components/Foo/styles.json',
     'application/Foo.tsx',
+    'app/../outside/secret.js',
   ])('excludes %s', (path) => {
     expect(isInScope(path)).toBe(false);
   });

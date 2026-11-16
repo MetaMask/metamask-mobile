@@ -119,9 +119,12 @@ export function compileSource(
       {
         line: loc?.line ?? 1,
         column: loc?.column ?? 0,
-        reason: `Babel could not transform this file: ${
-          (message ?? String(error)).split('\n')[0]
-        }`,
+        reason: `Babel could not transform this file: ${(
+          message ?? String(error)
+        )
+          .split('\n')[0]
+          .replace(/^[^:]*:\s*/, '')
+          .replace(/\s*\(\d+:\d+\)$/, '')}`,
       },
     ];
   }

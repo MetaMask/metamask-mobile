@@ -24,7 +24,7 @@ describe('formatRegressions', () => {
 
     expect(text).toContain('app/Foo.tsx (new: 1 failure(s))');
     expect(text).toContain(
-      'app/Foo.tsx:12:4  Cannot access refs during render',
+      'app/Foo.tsx:12:5  Cannot access refs during render',
     );
     expect(text).toContain(MIGRATION_SKILL_URL);
     expect(text).not.toContain('new reason:');
@@ -60,6 +60,7 @@ describe('formatImprovements', () => {
       improvements: [{ path: 'app/Foo.tsx', baselineCount: 2, count: 0 }],
     });
 
+    expect(text).toContain('Baseline out of date');
     expect(text).toContain('app/Foo.tsx (2 → 0 failure(s))');
     expect(text).toContain(
       'Run `yarn lint:react-compiler --update` to shrink the baseline',

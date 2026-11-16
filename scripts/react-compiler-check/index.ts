@@ -7,6 +7,7 @@ import {
   type FileResult,
   compareWithBaseline,
   parseBaseline,
+  selectCheckedPaths,
   serializeBaseline,
   updateBaseline,
 } from './baseline';
@@ -37,8 +38,8 @@ function selectFiles(
   }
   if (changedSince) {
     return [
-      ...git(root, ['diff', '-z', '--name-only', '--diff-filter=d', `${changedSince}...HEAD`]),
-      ...git(root, ['diff', '-z', '--name-only', '--diff-filter=d', 'HEAD']),
+      ...git(root, ['diff', '-z', '--name-only', '--no-renames', `${changedSince}...HEAD`, '--']),
+      ...git(root, ['diff', '-z', '--name-only', '--no-renames', 'HEAD', '--']),
       ...git(root, ['ls-files', '-z', '--others', '--exclude-standard', 'app']),
     ];
   }
@@ -89,7 +90,7 @@ async function main(): Promise<number> {
   const fullRun = args.files.length === 0 && args.changed === null;
   const selected = [...new Set(selectFiles(root, args.files, args.changed))].filter(isInScope);
   const files = selected.filter((file) => existsSync(`${root}/${file}`)).sort();
-  const checkedPaths = fullRun ? [...files, ...Object.keys(baseline)] : selected;
+  const checkedPaths = selectCheckedPaths(selected, baseline, fullRun);
 
   const results = await compileInWorkers(root, files);
   const comparison = compareWithBaseline(results, baseline, checkedPaths);

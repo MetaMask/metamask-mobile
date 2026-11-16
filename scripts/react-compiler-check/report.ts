@@ -39,7 +39,7 @@ export function formatRegressions(comparison: Comparison): string {
         : `${regression.path} (${regression.baselineCount} → ${regression.count} failure(s))`;
     lines.push(header);
     for (const failure of regression.failures) {
-      lines.push(`  ${regression.path}:${failure.line}:${failure.column}  ${failure.reason}`);
+      lines.push(`  ${regression.path}:${failure.line}:${failure.column + 1}  ${failure.reason}`);
     }
     if (regression.baselineCount > 0) {
       for (const reason of regression.newReasons) {
@@ -63,7 +63,7 @@ export function formatImprovements(comparison: Comparison): string {
     return '';
   }
   const lines = [
-    `✖ ${comparison.improvements.length} file(s) improved but ${BASELINE_FILE} still lists the old failures:`,
+    `✖ Baseline out of date: ${comparison.improvements.length} file(s) now have fewer React Compiler failures than ${BASELINE_FILE} records. Nice work!`,
     '',
   ];
   for (const improvement of comparison.improvements) {
