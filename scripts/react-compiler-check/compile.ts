@@ -87,7 +87,9 @@ export function compileSource(
       parserOpts: {
         plugins: usesFlowParser(filePath)
           ? ['flow', 'jsx']
-          : ['typescript', 'jsx'],
+          : /\.[cm]?ts$/i.test(filePath)
+            ? ['typescript']
+            : ['typescript', 'jsx'],
       },
       plugins: [
         [

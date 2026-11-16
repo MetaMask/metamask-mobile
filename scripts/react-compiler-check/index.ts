@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
+import { relative, resolve as resolvePath } from 'node:path';
 import { Worker } from 'node:worker_threads';
 import {
   type Baseline,
@@ -34,7 +35,8 @@ function selectFiles(
   changedSince: string | null,
 ): string[] {
   if (explicitFiles.length > 0) {
-    return explicitFiles.map((file) => file.replace(/\\/g, '/').replace(/^\.\//, ''));
+    const cwd = process.env.INIT_CWD ?? process.cwd();
+    return explicitFiles.map((file) => relative(root, resolvePath(cwd, file)).replace(/\\/g, '/'));
   }
   if (changedSince) {
     return [
@@ -88,8 +90,25 @@ async function main(): Promise<number> {
     ? parseBaseline(readFileSync(baselinePath, 'utf8'))
     : {};
   const fullRun = args.files.length === 0 && args.changed === null;
-  const selected = [...new Set(selectFiles(root, args.files, args.changed))].filter(isInScope);
+  const candidates = [...new Set(selectFiles(root, args.files, args.changed))];
+  const selected = candidates.filter(isInScope);
+  if (args.files.length > 0) {
+    const skipped = candidates.filter((file) => !isInScope(file));
+    if (skipped.length > 0) {
+      process.stderr.write(
+        `Skipped ${skipped.length} file(s) outside the check's scope (app/ source files, no tests or mocks):\n${skipped.map((file) => `  ${file}`).join('\n')}\n\n`,
+      );
+    }
+  }
   const files = selected.filter((file) => existsSync(`${root}/${file}`)).sort();
+  if (args.files.length > 0) {
+    const missing = selected.filter((file) => !files.includes(file));
+    if (missing.length > 0) {
+      process.stderr.write(
+        `Not found, so not compiled:\n${missing.map((file) => `  ${file}`).join('\n')}\n\n`,
+      );
+    }
+  }
   const checkedPaths = selectCheckedPaths(selected, baseline, fullRun);
 
   const results = await compileInWorkers(root, files);

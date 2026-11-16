@@ -29,6 +29,12 @@ describe('compileSource', () => {
     ]);
   });
 
+  it('parses TypeScript generic arrows in .ts files', () => {
+    expect(
+      compileSource('export const identity = <T>(value: T): T => value;\n', 'app/util/identity.ts'),
+    ).toEqual([]);
+  });
+
   it('reports a file Babel cannot parse', () => {
     const [result] = compileSource('export const = ;', 'app/Broken.ts');
 
