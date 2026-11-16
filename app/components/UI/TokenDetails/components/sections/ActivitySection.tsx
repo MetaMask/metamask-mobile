@@ -1,4 +1,11 @@
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -67,6 +74,13 @@ interface UseGroupedTokenActivityParams {
 interface GroupedTokenActivityResult {
   groupedItems: GroupedActivityListItem[];
   transactionByActivityItem: Map<ActivityListItem, TransactionWithImportTime>;
+  apiItemCount: number;
+  hasNextApiPage: boolean;
+  isApiLoading: boolean;
+  isApiError: boolean;
+  fetchNextVisiblePage: (options?: {
+    minVisibleItems?: number;
+  }) => Promise<void | undefined>;
 }
 
 /**
@@ -87,9 +101,14 @@ function useGroupedTokenActivity({
     data: apiEvmTransactions,
     hasNextPage,
     isFetchingNextPage,
+    isLoading,
     isError,
+    isFetchNextPageError,
     fetchNextVisiblePage,
-  } = useTransactionsQuery(caipAssetId ? { assetId: caipAssetId } : undefined);
+  } = useTransactionsQuery(
+    caipAssetId ? { assetId: caipAssetId } : { enabled: false },
+  );
+  const autoFilledAssetIdRef = useRef<CaipAssetType | undefined>(undefined);
 
   const tokenApiItems = useMemo(
     () =>
@@ -98,33 +117,62 @@ function useGroupedTokenActivity({
         : [],
     [apiEvmTransactions, caipAssetId],
   );
+  const localTransactionCount =
+    submittedTxs.length > 0
+      ? submittedTxs.length + confirmedTxs.length
+      : transactions.length;
+  const initialApiRowsNeeded = Math.max(
+    DEFAULT_INITIAL_VISIBLE_ROWS - localTransactionCount,
+    0,
+  );
 
   useEffect(() => {
-    if (
-      caipAssetId &&
-      apiEvmTransactions?.pages.length === 1 &&
-      tokenApiItems.length < DEFAULT_INITIAL_VISIBLE_ROWS &&
-      hasNextPage &&
-      !isFetchingNextPage &&
-      !isError
-    ) {
-      fetchNextVisiblePage();
+    if (!caipAssetId || isLoading || !apiEvmTransactions) {
+      return;
     }
+    if (autoFilledAssetIdRef.current === caipAssetId) {
+      return;
+    }
+    if (isError || isFetchNextPageError || isFetchingNextPage) {
+      return;
+    }
+
+    // One pass fills the first screen. View more loads anything older, so a
+    // short or failed scan cannot chain requests by itself.
+    autoFilledAssetIdRef.current = caipAssetId;
+    if (
+      !hasNextPage ||
+      initialApiRowsNeeded === 0 ||
+      tokenApiItems.length >= initialApiRowsNeeded
+    ) {
+      return;
+    }
+
+    Promise.resolve(
+      fetchNextVisiblePage({ minVisibleItems: initialApiRowsNeeded }),
+    ).catch(() => undefined);
   }, [
     caipAssetId,
-    apiEvmTransactions?.pages.length,
+    apiEvmTransactions,
     tokenApiItems.length,
+    initialApiRowsNeeded,
     hasNextPage,
+    isLoading,
     isFetchingNextPage,
     isError,
+    isFetchNextPageError,
     fetchNextVisiblePage,
   ]);
 
-  return useMemo(() => {
+  const apiHistoryEnabled = Boolean(caipAssetId);
+  const groupedActivity = useMemo(() => {
     if (isNonEvmAsset) {
       return {
         groupedItems: [],
-        transactionByActivityItem: new Map(),
+        transactionByActivityItem: new Map<
+          ActivityListItem,
+          TransactionWithImportTime
+        >(),
       };
     }
 
@@ -189,6 +237,15 @@ function useGroupedTokenActivity({
     chainId,
     tokenApiItems,
   ]);
+
+  return {
+    ...groupedActivity,
+    apiItemCount: tokenApiItems.length,
+    hasNextApiPage: apiHistoryEnabled && Boolean(hasNextPage),
+    isApiLoading: apiHistoryEnabled && (isLoading || isFetchingNextPage),
+    isApiError: apiHistoryEnabled && (isError || isFetchNextPageError),
+    fetchNextVisiblePage,
+  };
 }
 
 /**
@@ -197,9 +254,14 @@ function useGroupedTokenActivity({
  * pending/date headers sit in between. Trailing headers are only rendered
  * when at least one of their rows is visible.
  */
+function countActivityRows(groupedItems: GroupedActivityListItem[]) {
+  return groupedItems.filter((item) => item.type === 'item').length;
+}
+
 function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
   visibleItems: GroupedActivityListItem[];
   hasMore: boolean;
+  visibleRowCount: number;
   handleShowMore: () => void;
 } {
   const [visibleRowCount, setVisibleRowCount] = useState(
@@ -228,7 +290,7 @@ function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
     return { visibleItems: visibleGroupedItems, hasMore: hasHiddenRows };
   }, [groupedItems, visibleRowCount]);
 
-  return { visibleItems, hasMore, handleShowMore };
+  return { visibleItems, hasMore, visibleRowCount, handleShowMore };
 }
 
 const ActivitySection: React.FC<ActivitySectionProps> = ({
@@ -261,6 +323,11 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
   const {
     groupedItems: activityGroupedItems,
     transactionByActivityItem: activityItemToTransaction,
+    apiItemCount,
+    hasNextApiPage,
+    isApiLoading,
+    isApiError,
+    fetchNextVisiblePage,
   } = useGroupedTokenActivity({
     transactions,
     submittedTxs,
@@ -271,14 +338,46 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     caipAssetId: isNonEvmAsset ? undefined : (caipAssetId ?? undefined),
   });
 
-  const { visibleItems, hasMore, handleShowMore } =
-    useVisibleActivityRows(activityGroupedItems);
+  const {
+    visibleItems,
+    hasMore: hasHiddenLoadedRows,
+    visibleRowCount,
+    handleShowMore: revealMoreLoadedRows,
+  } = useVisibleActivityRows(activityGroupedItems);
+
+  const handleShowMore = useCallback(() => {
+    const nextVisibleRowCount = visibleRowCount + ACTIVITY_EXPAND_STEP_ROWS;
+    const loadedRowCount = countActivityRows(activityGroupedItems);
+    if (hasNextApiPage && loadedRowCount < nextVisibleRowCount) {
+      Promise.resolve(
+        fetchNextVisiblePage({
+          minVisibleItems:
+            apiItemCount + (nextVisibleRowCount - loadedRowCount),
+        }),
+      ).catch(() => undefined);
+    }
+    revealMoreLoadedRows();
+  }, [
+    activityGroupedItems,
+    apiItemCount,
+    fetchNextVisiblePage,
+    hasNextApiPage,
+    revealMoreLoadedRows,
+    visibleRowCount,
+  ]);
 
   const hasActivity = activityGroupedItems.length > 0;
-  // Same header gate as the legacy Token Details view: the activity section
-  // shows while transactions are still loading or once any are listed.
+  // Receive-only accounts have no local txs. Keep the section up while the
+  // API read is in flight, after it fails, or while older pages can still
+  // hold this token.
   const showActivitySection =
-    !isNonEvmAsset && (isActivityLoading || hasActivity);
+    !isNonEvmAsset &&
+    (isActivityLoading ||
+      isApiLoading ||
+      isApiError ||
+      hasActivity ||
+      hasNextApiPage);
+  const hasMore = hasHiddenLoadedRows || (hasNextApiPage && !isApiLoading);
 
   if (!showActivitySection) {
     return null;

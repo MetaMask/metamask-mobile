@@ -23,9 +23,12 @@ type QueryOptions = Extract<
   { getNextPageParam: unknown }
 >;
 
-const MAX_EMPTY_FILTERED_PAGES_TO_SKIP = 5;
+const maxPagesPerVisibleFetch = 5;
 
-export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
+export const useTransactionsQuery = (filters?: {
+  assetId?: CaipAssetType;
+  enabled?: boolean;
+}) => {
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
   );
@@ -74,48 +77,52 @@ export const useTransactionsQuery = (filters?: { assetId?: CaipAssetType }) => {
   const query = useInfiniteQuery({
     ...queryOptions,
     select: selectFn,
-    enabled: accountIds.length > 0 && networks.length > 0,
+    enabled:
+      filters?.enabled !== false &&
+      accountIds.length > 0 &&
+      networks.length > 0,
     staleTime: 5 * MINUTE,
     retry: false,
   });
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = query;
 
-  const fetchNextVisiblePage = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) {
-      return;
-    }
-    async function fetchPages() {
-      let visibleItemCount =
-        data?.pages.flatMap((page) => page.data).length ?? 0;
-      let pageCount = data?.pages.length ?? 0;
-      let emptyFilteredPagesSkipped = 0;
-      let result = await fetchNextPage();
-
-      while (
-        result.hasNextPage &&
-        emptyFilteredPagesSkipped < MAX_EMPTY_FILTERED_PAGES_TO_SKIP
-      ) {
-        const pages = result.data?.pages ?? [];
-        const nextPageCount = pages.length;
-        const nextVisibleItemCount = pages.flatMap((page) => page.data).length;
-
-        if (
-          nextVisibleItemCount > visibleItemCount ||
-          nextPageCount <= pageCount
-        ) {
-          break;
-        }
-
-        emptyFilteredPagesSkipped += 1;
-        visibleItemCount = nextVisibleItemCount;
-        pageCount = nextPageCount;
-        result = await fetchNextPage();
+  const fetchNextVisiblePage = useCallback(
+    (options?: { minVisibleItems?: number }) => {
+      const minVisibleItems = options?.minVisibleItems ?? 1;
+      if (!hasNextPage || isFetchingNextPage || minVisibleItems <= 0) {
+        return Promise.resolve();
       }
-    }
 
-    fetchPages().catch(() => undefined);
-  }, [data?.pages, fetchNextPage, hasNextPage, isFetchingNextPage]);
+      async function fetchPages() {
+        let visibleItemCount =
+          data?.pages.flatMap((page) => page.data).length ?? 0;
+        let pageCount = data?.pages.length ?? 0;
+
+        for (
+          let pagesFetched = 0;
+          pagesFetched < maxPagesPerVisibleFetch &&
+          visibleItemCount < minVisibleItems;
+          pagesFetched++
+        ) {
+          const result = await fetchNextPage();
+          const pages = result.data?.pages ?? [];
+          const nextPageCount = pages.length;
+          if (nextPageCount <= pageCount) {
+            break;
+          }
+          pageCount = nextPageCount;
+          visibleItemCount = pages.flatMap((page) => page.data).length;
+          if (!result.hasNextPage) {
+            break;
+          }
+        }
+      }
+
+      return fetchPages().catch(() => undefined);
+    },
+    [data?.pages, fetchNextPage, hasNextPage, isFetchingNextPage],
+  );
 
   return { ...query, fetchNextVisiblePage };
 };

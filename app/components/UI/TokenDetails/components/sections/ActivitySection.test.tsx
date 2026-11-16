@@ -251,6 +251,44 @@ describe('ActivitySection', () => {
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
   });
 
+  it('keeps the activity section visible while API history is loading', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the activity section visible when API history fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      hasNextPage: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
   it('hides the activity section for non-EVM assets', () => {
     mockUseTokenTransactions.mockReturnValue(
       mockTransactionsResult({
@@ -259,8 +297,12 @@ describe('ActivitySection', () => {
       }),
     );
 
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
+    expect(useTransactionsQuery).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {
@@ -480,6 +522,7 @@ describe('ActivitySection', () => {
 
     const { queryByTestId } = render(<ActivitySection token={token} />);
 
+    expect(useTransactionsQuery).toHaveBeenCalledWith({ enabled: false });
     expect(
       queryByTestId('mock-api-activity-item-0xShouldNotRender'),
     ).not.toBeOnTheScreen();
@@ -510,7 +553,9 @@ describe('ActivitySection', () => {
 
     render(<ActivitySection token={token} />);
 
-    expect(mockFetchNextVisiblePage).toHaveBeenCalled();
+    expect(mockFetchNextVisiblePage).toHaveBeenCalledWith({
+      minVisibleItems: 3,
+    });
   });
 
   it('does not fetch next page after a failed fetch', () => {
@@ -540,4 +585,113 @@ describe('ActivitySection', () => {
 
     expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
   });
+
+  it('does not auto-fetch again after a next page fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      isFetchNextPageError: true,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-fetch when the first page already fills the list', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              apiReceive('0x1'),
+              apiReceive('0x2', NOW * 1000 - 1000),
+              apiReceive('0x3', NOW * 1000 - 2000),
+            ],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('requests older API pages when View more runs out of loaded rows', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [apiReceive('0xOnlyOne')],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).toHaveBeenCalledWith({
+      minVisibleItems: 3,
+    });
+
+    fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
+
+    expect(mockFetchNextVisiblePage).toHaveBeenLastCalledWith({
+      minVisibleItems: 8,
+    });
+  });
 });
+
+function apiReceive(hash: string, timestamp = NOW * 1000) {
+  return {
+    chainId: 'eip155:1',
+    timestamp,
+    type: 'receive',
+    hash,
+    status: 'confirmed',
+    data: {
+      from: '0xSender',
+      to: '0x123',
+      token: {
+        assetId: 'eip155:1/erc20:0xabc',
+        decimals: 18,
+        symbol: 'PEPE',
+        amount: '100',
+        direction: 'in',
+      },
+    },
+  };
+}
