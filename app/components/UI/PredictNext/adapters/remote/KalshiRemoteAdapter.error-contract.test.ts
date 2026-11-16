@@ -1,4 +1,5 @@
 import contract from '../../contracts/v1/fixtures/api-errors.v1.json';
+import signRequest from '../../contracts/v1/fixtures/funding-contract/sign-request.json';
 import { PredictErrorCode } from '../../errors';
 import {
   predictErrorEvidence,
@@ -48,6 +49,54 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
   rate_limited: PredictErrorCode.RATE_LIMITED,
   venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
+  client_operation_id_conflict: PredictErrorCode.DEPOSIT_MISMATCH,
+  deposit_in_progress: PredictErrorCode.DEPOSIT_IN_PROGRESS,
+  deposit_not_cancellable: PredictErrorCode.DEPOSIT_NOT_CANCELLABLE,
+  amount_rejected: PredictErrorCode.DEPOSIT_AMOUNT_REJECTED,
+  deposit_rejected: PredictErrorCode.DEPOSIT_FAILED,
+  deposit_address_invalid: PredictErrorCode.DEPOSIT_FAILED,
+  address_request_lost: PredictErrorCode.DEPOSIT_FAILED,
+};
+
+/** Codes only a deposit route answers, exercised through that route. Every
+ * other commit code goes through the Order commit. */
+const DEPOSIT_CALL_BY_API_CODE: Record<
+  string,
+  'createDeposit' | 'cancelDeposit' | undefined
+> = {
+  client_operation_id_conflict: 'createDeposit',
+  deposit_in_progress: 'createDeposit',
+  amount_rejected: 'createDeposit',
+  deposit_rejected: 'createDeposit',
+  deposit_address_invalid: 'createDeposit',
+  address_request_lost: 'createDeposit',
+  deposit_not_cancellable: 'cancelDeposit',
+};
+
+const invokeDeposit = async (
+  call: 'createDeposit' | 'cancelDeposit',
+  error: PredictHttpError,
+): Promise<unknown> => {
+  const client = {
+    startDeposit: jest.fn().mockResolvedValue(signRequest),
+    createDeposit: jest.fn().mockRejectedValue(error),
+    cancelDeposit: jest.fn().mockRejectedValue(error),
+  } as unknown as PredictApiReadTransport;
+  const adapter = new KalshiRemoteAdapter(client, {
+    getApprovalGeneration: () => 0,
+  });
+  if (call === 'cancelDeposit') {
+    return adapter.funding.cancelDeposit(
+      '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f',
+    );
+  }
+  return adapter.funding.prepareDeposit(
+    {
+      amount: '25.50' as PredictAmount,
+      clientOperationId: signRequest.next.clientOperationId,
+    },
+    { kind: 'user-approved' },
+  );
 };
 
 const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
@@ -122,11 +171,12 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
       expect(expected).toBeDefined();
       const commitRelay =
         'commitRelay' in definition ? definition.commitRelay : 'unknown';
+      const error = new PredictHttpError(definition.status, code);
+      const depositCall = DEPOSIT_CALL_BY_API_CODE[code];
       await expect(
-        invoke(
-          phase as PredictErrorPhase,
-          new PredictHttpError(definition.status, code),
-        ),
+        depositCall && phase === 'commit'
+          ? invokeDeposit(depositCall, error)
+          : invoke(phase as PredictErrorPhase, error),
       ).rejects.toMatchObject({
         code: expected,
         metadata: {

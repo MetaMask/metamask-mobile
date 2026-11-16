@@ -92,6 +92,12 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   commitOrder: jest.fn(),
   observeOrder: jest.fn(),
   listUnresolvedOrders: jest.fn(),
+  startDeposit: jest.fn(),
+  createDeposit: jest.fn(),
+  getDeposit: jest.fn(),
+  listOpenDeposits: jest.fn(),
+  reportDepositTransfer: jest.fn(),
+  cancelDeposit: jest.fn(),
 });
 
 describe('KalshiRemoteAdapter', () => {
@@ -137,11 +143,12 @@ describe('KalshiRemoteAdapter', () => {
   it('lists only the actions its adapter structure implements', async () => {
     const { actions } = await adapter.marketData.fetchVenueCatalog();
 
-    // Buy and sell are served by the trading capability; there is no
-    // funding or Claim capability, so those actions must stay absent.
+    // Buy and sell are served by the trading capability. The funding
+    // capability has deposit routes, but the catalog does not list deposit
+    // until the client flow is enabled. There is no Claim capability.
     expect(typeof adapter.trading.previewOrder).toBe('function');
     expect(typeof adapter.trading.commitOrder).toBe('function');
-    expect(adapter).not.toHaveProperty('funding');
+    expect(typeof adapter.funding.prepareDeposit).toBe('function');
     expect(adapter).not.toHaveProperty('claims');
     expect([...actions].sort()).toEqual(['buy', 'sell']);
   });
