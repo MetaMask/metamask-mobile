@@ -10,6 +10,7 @@
 
 import '../../../../../tests/component-view/mocks';
 import type { Profile } from '@metamask/profile-controller';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 import NetInfo from '@react-native-community/netinfo';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -2050,6 +2051,250 @@ describe('SocialProfileOnboardingView', () => {
         linked_addresses: [`eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`],
       }),
     );
+  });
+
+  it.each([
+    ['paired', [{ id: 'secondary-identifier', type: 'SRP' }], true],
+    ['skipped despite a matching canonical', [], false],
+    ['unknown', undefined, false],
+  ] as const)(
+    'filters the %s secondary SRP from auth membership',
+    async (_name, pairedIdentifiers, eligible) => {
+      await renderOnboarding([], {
+        includeSecondEvmAccount: true,
+        overrides: {
+          engine: {
+            backgroundState: {
+              AuthenticationController: {
+                srpSessionData: {
+                  wallet1: {
+                    profile: {
+                      identifierId: 'primary-identifier',
+                      canonicalProfileId: 'canonical',
+                      pairedIdentifierIds: pairedIdentifiers
+                        ? [...pairedIdentifiers]
+                        : undefined,
+                    },
+                  },
+                  secondary: {
+                    profile: {
+                      identifierId: 'secondary-identifier',
+                      canonicalProfileId: 'canonical',
+                    },
+                  },
+                },
+              },
+              AccountTreeController: {
+                accountTree: {
+                  wallets: {
+                    'entropy:wallet1': {
+                      groups: {
+                        'entropy:wallet1/1': { accounts: [] },
+                      },
+                    },
+                    'entropy:secondary': {
+                      id: 'entropy:secondary',
+                      type: AccountWalletType.Entropy,
+                      metadata: {
+                        name: 'Secondary SRP',
+                        entropy: { id: 'secondary' },
+                      },
+                      groups: {
+                        'entropy:secondary/0': {
+                          id: 'entropy:secondary/0',
+                          type: AccountGroupType.MultichainAccount,
+                          metadata: {
+                            name: 'Secondary account',
+                            entropy: { groupIndex: 0 },
+                            hidden: false,
+                          },
+                          accounts: [SECOND_ONBOARDING_EVM_ACCOUNT.id],
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      );
+      await continueFromUsername();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      fireEvent.press(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(
+          `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-acc-1`,
+        ),
+      ).toBeOnTheScreen();
+      const secondary = screen.queryByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${SECOND_ONBOARDING_EVM_ACCOUNT.id}`,
+      );
+      if (eligible) {
+        expect(secondary).toBeOnTheScreen();
+      } else {
+        expect(secondary).not.toBeOnTheScreen();
+      }
+    },
+  );
+
+  it('does not submit a secondary account that loses pairing while resolving the profile id', async () => {
+    const { store } = await renderOnboarding([], {
+      overrides: {
+        engine: {
+          backgroundState: {
+            KeyringController: {
+              keyrings: [
+                {
+                  type: 'HD Key Tree',
+                  accounts: [],
+                  metadata: { id: 'primary', name: '' },
+                },
+              ],
+            },
+            AuthenticationController: {
+              srpSessionData: {
+                primary: {
+                  profile: {
+                    identifierId: 'primary-identifier',
+                    pairedIdentifierIds: [
+                      { id: 'secondary-identifier', type: 'SRP' },
+                    ],
+                  },
+                },
+                wallet1: { profile: { identifierId: 'secondary-identifier' } },
+              },
+            },
+          },
+        },
+      },
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+
+    let resolveSession: (session: typeof SIGNED_IN_SESSION) => void = () =>
+      undefined;
+    const pendingSession = new Promise<typeof SIGNED_IN_SESSION>((resolve) => {
+      resolveSession = resolve;
+    });
+    const getSession = jest.mocked(
+      Engine.context.AuthenticationController.getSessionProfile,
+    );
+    getSession.mockClear();
+    getSession.mockReturnValueOnce(pendingSession);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    await waitFor(() => expect(getSession).toHaveBeenCalled());
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+
+    act(() => {
+      const authState =
+        store.getState().engine.backgroundState.AuthenticationController;
+      const primarySession = authState.srpSessionData?.primary;
+      if (!primarySession) {
+        throw new Error('Pairing-loss fixture requires a primary session');
+      }
+      engineWithState.state = {
+        ...Engine.state,
+        AuthenticationController: {
+          ...authState,
+          srpSessionData: {
+            ...authState.srpSessionData,
+            primary: {
+              ...primarySession,
+              profile: {
+                ...primarySession.profile,
+                pairedIdentifierIds: [],
+              },
+            },
+          },
+        },
+      };
+      store.dispatch(updateBgState({ key: 'AuthenticationController' }));
+    });
+    await act(async () => {
+      resolveSession(SIGNED_IN_SESSION);
+      await pendingSession;
+    });
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.save_error'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(
+      Engine.context.ProfileController.updateProfile,
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('blocks saving a selected account after its eligibility disappears', async () => {
+    const { store } = await renderOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+
+    act(() => {
+      engineWithState.state = {
+        ...Engine.state,
+        KeyringController: {
+          ...store.getState().engine.backgroundState.KeyringController,
+          keyrings: [],
+        },
+      };
+      store.dispatch(updateBgState({ key: 'KeyringController' }));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      ).toBeDisabled();
+    });
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows only the numbered username when the shuffled handle is taken', async () => {

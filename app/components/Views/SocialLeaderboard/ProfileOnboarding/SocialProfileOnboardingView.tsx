@@ -656,11 +656,15 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [existingProfileLookupResult, openExistingProfile]);
 
   useEffect(() => {
-    if (accounts.length === 0) {
-      return;
-    }
     setDraft((current) => {
       if (current.linkedAccountId) {
+        return accounts.some(
+          (account) => account.id === current.linkedAccountId,
+        )
+          ? current
+          : { ...current, linkedAccountId: null, linkedAccountAddress: null };
+      }
+      if (accounts.length === 0) {
         return current;
       }
       return {
@@ -1093,10 +1097,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     const linkedAccount = accountsRef.current.find(
       (account) => account.id === current.linkedAccountId,
     );
-    return onboardingProfileFingerprint(
-      current,
-      linkedAccount?.linkedAddresses,
-    );
+    return linkedAccount
+      ? onboardingProfileFingerprint(current, linkedAccount.linkedAddresses)
+      : null;
   };
 
   /**
@@ -1106,17 +1109,20 @@ const SocialProfileOnboardingView: React.FC = () => {
   const writeOnboardingProfile = async (
     current: ProfileOnboardingDraft,
   ): Promise<'saved' | 'existing'> => {
-    const linkedAccount = accountsRef.current.find(
-      (account) => account.id === current.linkedAccountId,
-    );
     const profileId = await getSocialProfileId();
     if (!profileId) {
       throw new Error('Social profile id is not available');
     }
+    const linkedAccount = accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+    if (!linkedAccount) {
+      throw new Error('Profile onboarding requires an eligible linked account');
+    }
     const params = buildCreateProfileParams(
       current,
       profileId,
-      linkedAccount?.linkedAddresses,
+      linkedAccount.linkedAddresses,
     );
     // createProfile has no abort signal. Keep a successful in-flight create
     // and patch it when the draft changes, instead of issuing a second create
@@ -1144,6 +1150,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     ) {
       return 'existing';
     }
+    if (
+      !accountsRef.current.some(
+        (account) => account.id === current.linkedAccountId,
+      )
+    ) {
+      throw new Error('Profile onboarding requires an eligible linked account');
+    }
     await createProfileRef.current(params);
     return 'saved';
   };
@@ -1160,6 +1173,8 @@ const SocialProfileOnboardingView: React.FC = () => {
       const currentDraft = draftRef.current;
       const fingerprint = fingerprintForDraft(currentDraft);
       if (!fingerprint) {
+        profileCreatedRef.current = false;
+        setProfileCreated(false);
         setIsSubmitting(false);
         return;
       }
@@ -1248,7 +1263,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     const linkedAccount = accounts.find(
       (account) => account.id === draft.linkedAccountId,
     );
-    return onboardingProfileFingerprint(draft, linkedAccount?.linkedAddresses);
+    return linkedAccount
+      ? onboardingProfileFingerprint(draft, linkedAccount.linkedAddresses)
+      : null;
   }, [accounts, draft]);
 
   useEffect(() => {
@@ -1295,7 +1312,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [navigation, step]);
 
   const handleFinish = useCallback(() => {
-    if (!profileCreatedRef.current) {
+    if (!profileCreatedRef.current || !fingerprintForDraft(draftRef.current)) {
       return;
     }
     if (openPendingSocialPreviewTarget(navigation)) {
@@ -1328,7 +1345,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
-    (step === 'account' && !draft.linkedAccountId);
+    (step === 'account' &&
+      !accounts.some((account) => account.id === draft.linkedAccountId));
   // The first step of either path has no earlier step to return to, so it hides back.
   const hasBackStep =
     step !== 'intro' && step !== 'username' && step !== 'x-identity';

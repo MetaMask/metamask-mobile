@@ -16,9 +16,10 @@ import {
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import {
-  selectVisibleEntropyAccountGroupsByWallet,
+  selectProfileWalletSections,
   selectWallets,
 } from '../../../../selectors/multichainAccounts/wallets';
+import { selectProfileEntropySourceIds } from '../../../../selectors/identity';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
@@ -72,14 +73,13 @@ export const toLinkedCaipAccountId = (
  *
  * Each row resolves to its EVM account for display and selection, and carries
  * every address in the group for `linked_addresses`. Groups with no EVM
- * account are left out. Only entropy wallets are included.
+ * account are left out. Only the primary and confirmed paired SRPs are included.
  */
 export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
   const evmAccounts = useSelector(selectInternalEvmAccounts);
   const accountsById = useSelector(selectInternalAccountsById);
-  const accountSections = useSelector(
-    selectVisibleEntropyAccountGroupsByWallet,
-  );
+  const accountSections = useSelector(selectProfileWalletSections);
+  const profileEntropySourceIds = useSelector(selectProfileEntropySourceIds);
   const wallets = useSelector(selectWallets);
   const seedAddressByGroupId = useSelector(
     selectAllAccountGroupIconSeedAddresses,
@@ -156,7 +156,7 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
       ]),
     );
     const groupRows = accountSections.flatMap((section) =>
-      section.data.flatMap((group) => {
+      section.groups.flatMap((group) => {
         const seedAddress = seedAddressByGroupId[group.id];
         const account = seedAddress
           ? accountsByAddress.get(seedAddress.toLowerCase())
@@ -183,7 +183,7 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
               ...groupAddresses.filter((id) => id !== evmCaipId),
             ],
             accountGroup: group,
-            walletTitle: section.title,
+            walletTitle: section.name,
           },
         ];
       }),
@@ -193,21 +193,29 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
       return groupRows;
     }
 
-    // A tree that only has keyring, hardware, or snap wallets must stay empty.
-    // The flat account list is only a stand-in before any wallet exists.
+    // Never bypass profile or visibility filtering when a tree exists.
+    // Before hydration, the flat fallback still requires profile SRP ownership.
     if (wallets.length > 0) {
       return [];
     }
 
-    return evmAccounts.map((account) => ({
-      id: account.id,
-      name: accountLabel(account.metadata.name, account.address),
-      address: account.address,
-      balanceLabel: balanceLabelFor(accountsToGroupMap[account.id]?.id ?? ''),
-      linkedAddresses: [`eip155:1:${account.address}` as CaipAccountId],
-      accountGroup: null,
-      walletTitle: '',
-    }));
+    const profileEntropySources = new Set(profileEntropySourceIds);
+    return evmAccounts
+      .filter((account) => {
+        const entropy = account.options.entropy;
+        return (
+          entropy?.type === 'mnemonic' && profileEntropySources.has(entropy.id)
+        );
+      })
+      .map((account) => ({
+        id: account.id,
+        name: accountLabel(account.metadata.name, account.address),
+        address: account.address,
+        balanceLabel: balanceLabelFor(accountsToGroupMap[account.id]?.id ?? ''),
+        linkedAddresses: [`eip155:1:${account.address}` as CaipAccountId],
+        accountGroup: null,
+        walletTitle: '',
+      }));
   }, [
     accountSections,
     accountsById,
@@ -215,6 +223,7 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
     contribution,
     evmAccounts,
     privacyMode,
+    profileEntropySourceIds,
     seedAddressByGroupId,
     selectedGroupId,
     unifiedBalances,

@@ -64,8 +64,9 @@ const ManageProfileLinkedAccountView: React.FC = () => {
     : selectedAccount?.id;
 
   const handleAccountPress = useCallback(
-    async (nextLinkedAddresses: CaipAccountId[]): Promise<void> => {
-      if (!isControllerBacked) {
+    async (accountId: string): Promise<void> => {
+      const account = accounts.find((candidate) => candidate.id === accountId);
+      if (!isControllerBacked || !account) {
         return;
       }
 
@@ -73,7 +74,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       setErrorMessage(null);
 
       try {
-        await updateProfile({ linked_addresses: nextLinkedAddresses });
+        await updateProfile({ linked_addresses: account.linkedAddresses });
         trackProfileEdited();
       } catch (error) {
         setErrorMessage(
@@ -84,7 +85,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, trackProfileEdited, updateProfile],
+    [accounts, isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (
@@ -100,7 +101,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
             accounts={accounts}
             disabled={!isControllerBacked || isUpdating}
             onSelect={(account) => {
-              void handleAccountPress(account.linkedAddresses);
+              void handleAccountPress(account.id);
             }}
             rowTestIdPrefix={ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}
             selectedAccountId={selectedAccountId}

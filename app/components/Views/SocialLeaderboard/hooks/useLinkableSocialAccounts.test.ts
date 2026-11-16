@@ -11,9 +11,10 @@ import {
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import {
-  selectVisibleEntropyAccountGroupsByWallet,
+  selectProfileWalletSections,
   selectWallets,
 } from '../../../../selectors/multichainAccounts/wallets';
+import { selectProfileEntropySourceIds } from '../../../../selectors/identity';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { renderShortAddress } from '../../../../util/address';
 import { clearPortfolioTotalCache } from '../../../UI/PortfolioBalance/portfolioBalance';
@@ -55,6 +56,7 @@ const evmAccount1 = {
   type: 'eip155:eoa',
   scopes: ['eip155:0'],
   metadata: { name: 'Internal One' },
+  options: { entropy: { type: 'mnemonic', id: 'primary' } },
 };
 const evmAccount2 = {
   id: 'evm-2',
@@ -62,6 +64,7 @@ const evmAccount2 = {
   type: 'eip155:eoa',
   scopes: ['eip155:0'],
   metadata: { name: '' },
+  options: { entropy: { type: 'mnemonic', id: 'paired' } },
 };
 const group1SolanaAccount = {
   id: 'sol-group-1',
@@ -81,7 +84,8 @@ const solanaAccount = {
 interface SelectorValues {
   evmAccounts: unknown[];
   accountsById: Record<string, unknown>;
-  accountSections: unknown[];
+  accountSections: { title: string; data: unknown[] }[];
+  profileEntropySourceIds?: string[];
   wallets?: unknown[];
   seedAddressByGroupId: Record<string, string>;
   accountToGroupMap?: Record<string, { id: string }>;
@@ -118,6 +122,7 @@ const mockSelectors = ({
   accountsById,
   accountSections,
   wallets = [],
+  profileEntropySourceIds = ['primary', 'paired'],
   seedAddressByGroupId,
   accountToGroupMap = {},
   selectedGroupId,
@@ -127,7 +132,14 @@ const mockSelectors = ({
   const values = new Map<unknown, unknown>([
     [selectInternalEvmAccounts, evmAccounts],
     [selectInternalAccountsById, accountsById],
-    [selectVisibleEntropyAccountGroupsByWallet, accountSections],
+    [
+      selectProfileWalletSections,
+      accountSections.map((section) => ({
+        name: section.title,
+        groups: section.data,
+      })),
+    ],
+    [selectProfileEntropySourceIds, profileEntropySourceIds],
     [selectWallets, wallets],
     [selectAllAccountGroupIconSeedAddresses, seedAddressByGroupId],
     [selectAccountToGroupMap, accountToGroupMap],

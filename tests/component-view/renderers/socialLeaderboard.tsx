@@ -36,6 +36,8 @@ import {
   type SocialLeaderboardPresetOptions,
 } from '../presets/socialLeaderboard';
 import SocialProfileOnboardingView from '../../../app/components/Views/SocialLeaderboard/ProfileOnboarding';
+import ManageProfileLinkedAccountView from '../../../app/components/Views/SocialLeaderboard/ManageProfileView/screens/ManageProfileLinkedAccountView';
+import { withPortfolioBalanceProviders } from '../../../app/components/UI/PortfolioBalance/withPortfolioBalanceProviders';
 import MyProfileView from '../../../app/components/Views/SocialLeaderboard/MyProfileView/MyProfileView';
 import SocialV1View from '../../../app/components/Views/SocialLeaderboard/SocialV1View';
 import GifPickerSheet from '../../../app/components/Views/SocialLeaderboard/SocialPostComposerView/GifPickerSheet';
@@ -266,6 +268,9 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
 };
 
 const ONBOARDING_WALLET_ID = 'entropy:wallet1';
+const ManageProfileLinkedAccountWithProviders = withPortfolioBalanceProviders(
+  ManageProfileLinkedAccountView,
+);
 const ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/0`;
 const SECOND_ONBOARDING_ACCOUNT_GROUP_ID = `${ONBOARDING_WALLET_ID}/1`;
 
@@ -322,6 +327,52 @@ const buildOnboardingAccountTree = (
   selectedAccountGroup: ONBOARDING_ACCOUNT_GROUP_ID,
 });
 
+/** Renders the linked-account editor with a live primary SRP and account tree. */
+export function renderManageProfileLinkedAccount(
+  options: RenderSocialLeaderboardOptions & {
+    emptyAccountTree?: boolean;
+  } = {},
+): ReturnType<typeof renderComponentViewScreen> {
+  const builder = initialStateSocialLeaderboard({
+    linkedSocialProfile: true,
+  }).withOverrides({
+    engine: {
+      backgroundState: {
+        PreferencesController: { privacyMode: false },
+        NetworkEnablementController: {
+          enabledNetworkMap: { eip155: { '0x1': true } },
+        },
+        KeyringController: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [],
+              metadata: { id: 'wallet1', name: '' },
+            },
+          ],
+        },
+        AccountTreeController: buildOnboardingAccountTree(false),
+      },
+    },
+  });
+  if (options.overrides) builder.withOverrides(options.overrides);
+  const state = builder.build();
+  // Overrides deep-merge objects; replace wallets to model pre-hydration.
+  if (options.emptyAccountTree) {
+    const accountTree =
+      state.engine?.backgroundState?.AccountTreeController?.accountTree;
+    if (!accountTree) {
+      throw new Error('Linked-account fixtures require an account tree');
+    }
+    accountTree.wallets = {};
+  }
+  return renderComponentViewScreen(
+    ManageProfileLinkedAccountWithProviders as unknown as React.ComponentType,
+    { name: Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT },
+    { state },
+  );
+}
+
 /**
  * Renders profile onboarding with an EVM account that has a native mainnet
  * balance, plus a Solana account. The balance hooks are EVM-only. Onboarding
@@ -338,9 +389,10 @@ export function renderSocialProfileOnboarding(
   options: {
     includeSecondEvmAccount?: boolean;
     initialParams?: Record<string, unknown>;
+    overrides?: DeepPartial<RootState>;
   } = {},
 ) {
-  const state = createStateFixture()
+  const builder = createStateFixture()
     .withMinimalAccounts()
     .withMinimalKeyringController()
     .withMinimalMainnetNetwork()
@@ -349,6 +401,15 @@ export function renderSocialProfileOnboarding(
         backgroundState: {
           PreferencesController: {
             privacyMode: false,
+          },
+          KeyringController: {
+            keyrings: [
+              {
+                type: 'HD Key Tree',
+                accounts: [],
+                metadata: { id: 'wallet1', name: '' },
+              },
+            ],
           },
           AccountsController: {
             internalAccounts: {
@@ -415,8 +476,9 @@ export function renderSocialProfileOnboarding(
           ),
         },
       },
-    })
-    .build();
+    });
+  if (options.overrides) builder.withOverrides(options.overrides);
+  const state = builder.build();
 
   return renderScreenWithRoutes(
     SocialProfileOnboardingView as unknown as React.ComponentType,
