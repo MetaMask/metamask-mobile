@@ -355,6 +355,50 @@ describe('TokenDetailsStickyFooter', () => {
       jest.useRealTimers();
     });
 
+    it('stops reporting footer height after the trader position sheet expands', async () => {
+      jest.useFakeTimers();
+      const onFooterLayout = jest.fn();
+      const traderPositionPnl = { positionValue: '$103.31', isExpanded: false };
+      const { getByTestId, rerender } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={traderPositionPnl}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 132 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(onFooterLayout).toHaveBeenLastCalledWith(132);
+
+      rerender(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ ...traderPositionPnl, isExpanded: true }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      onFooterLayout.mockClear();
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(onFooterLayout).not.toHaveBeenCalled();
+      jest.useRealTimers();
+    });
+
     it('reports no overlay height when the footer renders in flow', () => {
       const onFooterLayout = jest.fn();
       render(
