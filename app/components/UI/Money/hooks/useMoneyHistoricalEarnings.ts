@@ -13,25 +13,83 @@ const MONEY_ACCOUNT_API_URL_BY_ENV: Record<ApiEnv, string> = {
   [ApiEnv.Prod]: 'https://money.api.cx.metamask.io',
 };
 
-export interface InterestHistoryEntry {
-  timestamp: string;
-  interest_earned_usd: string;
+export type InterestHistoryRangeKey = '7d' | '30d' | '90d' | '180d' | '365d';
+
+export type InterestHistoryGranularity = 'day' | 'week' | 'month';
+
+export type PeriodStatus = 'complete' | 'partial' | 'not_applicable';
+
+export type Availability = 'available' | 'unavailable' | 'not_applicable';
+
+export type UnavailableReason =
+  | 'insufficient_cash_flow_history'
+  | 'cash_flow_replay_invariant_failed'
+  | 'historical_accountant_rate_unavailable'
+  | 'vault_accounting_not_finalized'
+  | 'before_user_earnings_inception'
+  | 'historical_price_missing'
+  | 'historical_price_stale';
+
+export interface InterestHistoryAvailability {
+  earnings: Availability;
+  usd_pricing: Availability;
 }
 
-export interface InterestHistoryBucket {
-  start: string;
-  end: string;
+export interface InterestHistoryTotals {
+  interest_earned_musd_assets: string | null;
   interest_earned_usd: string | null;
 }
 
+export interface InterestHistoryEarnings {
+  period_status: PeriodStatus;
+  availability: InterestHistoryAvailability;
+  unavailable_reasons: UnavailableReason[];
+  interest_earned_musd_assets: string | null;
+  interest_earned_usd: string | null;
+}
+
+export interface InterestHistoryPerVault extends InterestHistoryEarnings {
+  vault_key: string;
+  vault_address: string;
+}
+
+export interface InterestHistoryBucket extends InterestHistoryEarnings {
+  start: string;
+  end: string;
+  musd_price_usd: string | null;
+  price_as_of: string | null;
+  price_source: 'metamask_price_api' | null;
+  by_vault: InterestHistoryPerVault[];
+}
+
 export interface InterestHistoryRange {
-  range: '7d' | '30d' | '90d' | '180d' | '365d';
+  range: InterestHistoryRangeKey;
+  granularity: InterestHistoryGranularity;
+  range_start: string;
+  range_end: string;
+  period_status: PeriodStatus;
+  availability: InterestHistoryAvailability;
+  unavailable_reasons: UnavailableReason[];
+  totals: InterestHistoryTotals;
   buckets: InterestHistoryBucket[];
 }
 
 export interface InterestHistoryResponse {
   address: string;
   chain_id: number;
+  bucket_timezone: 'UTC';
+  updated_through: string;
+  source_watermark: {
+    vault_accounting: {
+      block_number: string;
+      block_timestamp: string;
+    };
+  };
+  method: 'nav_difference';
+  denomination: {
+    asset: 'mUSD';
+    decimals: 6;
+  };
   ranges: InterestHistoryRange[];
 }
 
@@ -101,6 +159,7 @@ export const useMoneyHistoricalEarnings =
 
         return await fetchInterestHistory(normalizedAddress, chainId);
       },
+      staleTime: 1000 * 60 * 60 * 12, // 12 hours
       enabled: isEnabled,
     });
   };

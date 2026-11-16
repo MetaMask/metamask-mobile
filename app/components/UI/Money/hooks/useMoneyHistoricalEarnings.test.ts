@@ -36,14 +36,64 @@ const MOCK_CHAIN_ID = 143;
 const MOCK_RESPONSE: InterestHistoryResponse = {
   address: MOCK_ADDRESS.toLowerCase(),
   chain_id: MOCK_CHAIN_ID,
+  bucket_timezone: 'UTC',
+  updated_through: '2026-11-16T16:02:44.000Z',
+  source_watermark: {
+    vault_accounting: {
+      block_number: '122782198',
+      block_timestamp: '2026-11-16T16:02:44.000Z',
+    },
+  },
+  method: 'nav_difference',
+  denomination: {
+    asset: 'mUSD',
+    decimals: 6,
+  },
   ranges: [
     {
       range: '30d',
+      granularity: 'week',
+      range_start: '2026-10-17T00:00:00.000Z',
+      range_end: '2026-11-16T00:00:00.000Z',
+      period_status: 'partial',
+      availability: {
+        earnings: 'available',
+        usd_pricing: 'available',
+      },
+      unavailable_reasons: [],
+      totals: {
+        interest_earned_musd_assets: '2665076',
+        interest_earned_usd: '2.664489',
+      },
       buckets: [
         {
-          start: '2026-11-16T00:00:00.000Z',
-          end: '2026-11-17T00:00:00.000Z',
+          start: '2026-11-09T00:00:00.000Z',
+          end: '2026-11-16T00:00:00.000Z',
+          period_status: 'complete',
+          availability: {
+            earnings: 'available',
+            usd_pricing: 'available',
+          },
+          unavailable_reasons: [],
+          interest_earned_musd_assets: '620790',
           interest_earned_usd: '12.34',
+          musd_price_usd: '0.999796291580000000',
+          price_as_of: '2026-11-15T00:00:00.000Z',
+          price_source: 'metamask_price_api',
+          by_vault: [
+            {
+              vault_key: 'standard',
+              vault_address: '0x1c8a336051d2024e318a229d01f9f6cf96efd316',
+              period_status: 'complete',
+              availability: {
+                earnings: 'available',
+                usd_pricing: 'available',
+              },
+              unavailable_reasons: [],
+              interest_earned_musd_assets: '620790',
+              interest_earned_usd: '12.34',
+            },
+          ],
         },
       ],
     },

@@ -1,14 +1,24 @@
 import type {
-  InterestHistoryEntry,
+  InterestHistoryAvailability,
+  InterestHistoryBucket,
+  InterestHistoryGranularity,
   InterestHistoryRange,
   InterestHistoryResponse,
+  PeriodStatus,
+  UnavailableReason,
 } from '../../hooks/useMoneyHistoricalEarnings';
 
 export type EarningsRange = '1W' | '30D' | '3M' | '6M' | '1Y';
 
 export interface EarningsPoint {
+  start: string;
+  end: string;
   timestamp: string;
-  amount: number;
+  amount: number | null;
+  granularity: InterestHistoryGranularity;
+  periodStatus: PeriodStatus;
+  availability: InterestHistoryAvailability;
+  unavailableReasons: UnavailableReason[];
 }
 
 export const EARNINGS_RANGES = [
@@ -19,53 +29,25 @@ export const EARNINGS_RANGES = [
   '1Y',
 ] as const satisfies readonly EarningsRange[];
 
-const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
-
 const ISO_CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T/;
-const AGGREGATION_OVERFLOW_ERROR =
-  'Historical earnings aggregation exceeded the finite numeric range';
 
-const RANGE_CONFIG: Record<
-  EarningsRange,
-  { apiRange: InterestHistoryRange['range']; days: number }
-> = {
-  '1W': { apiRange: '7d', days: 7 },
-  '30D': { apiRange: '30d', days: 30 },
-  '3M': { apiRange: '90d', days: 90 },
-  '6M': { apiRange: '180d', days: 180 },
-  '1Y': { apiRange: '365d', days: 365 },
-};
-
-const isLeapYear = (year: number): boolean =>
-  year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-
-const getDaysInMonth = (year: number, month: number): number => {
-  const daysByMonth = [
-    31,
-    isLeapYear(year) ? 29 : 28,
-    31,
-    30,
-    31,
-    30,
-    31,
-    31,
-    30,
-    31,
-    30,
-    31,
-  ];
-  return daysByMonth[month - 1] ?? 0;
+const RANGE_CONFIG: Record<EarningsRange, InterestHistoryRange['range']> = {
+  '1W': '7d',
+  '30D': '30d',
+  '3M': '90d',
+  '6M': '180d',
+  '1Y': '365d',
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-const getTimestamp = (entry: unknown): number | undefined => {
-  if (!isRecord(entry) || typeof entry.timestamp !== 'string') {
+const getTimestamp = (value: unknown): number | undefined => {
+  if (typeof value !== 'string') {
     return undefined;
   }
 
-  const calendarDate = ISO_CALENDAR_DATE_PATTERN.exec(entry.timestamp);
+  const calendarDate = ISO_CALENDAR_DATE_PATTERN.exec(value);
   if (!calendarDate) {
     return undefined;
   }
@@ -73,241 +55,288 @@ const getTimestamp = (entry: unknown): number | undefined => {
   const year = Number(calendarDate[1]);
   const month = Number(calendarDate[2]);
   const day = Number(calendarDate[3]);
-  if (month < 1 || month > 12 || day < 1 || day > getDaysInMonth(year, month)) {
+  const calendarTimestamp = Date.UTC(year, month - 1, day);
+  const calendar = new Date(calendarTimestamp);
+  if (
+    calendar.getUTCFullYear() !== year ||
+    calendar.getUTCMonth() !== month - 1 ||
+    calendar.getUTCDate() !== day
+  ) {
     return undefined;
   }
 
-  const timestamp = Date.parse(entry.timestamp);
+  const timestamp = Date.parse(value);
   return Number.isFinite(timestamp) ? timestamp : undefined;
 };
 
-const getAmount = (entry: unknown): number | undefined => {
-  if (!isRecord(entry) || typeof entry.interest_earned_usd !== 'string') {
+export const parseFiniteUsd = (value: unknown): number | undefined => {
+  if (typeof value !== 'string' || value.trim() === '') {
     return undefined;
   }
 
-  if (entry.interest_earned_usd.trim() === '') {
-    return undefined;
-  }
-
-  const amount = Number(entry.interest_earned_usd);
+  const amount = Number(value);
   return Number.isFinite(amount) ? amount : undefined;
 };
 
-const getUtcDayStart = (timestamp: number): number => {
-  const date = new Date(timestamp);
-  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-};
+const isNullableFiniteUsd = (value: unknown): boolean =>
+  value === null || parseFiniteUsd(value) !== undefined;
 
-const addEarnings = (total: number, amount: number): number => {
-  const result = total + amount;
-  if (!Number.isFinite(result)) {
-    throw new Error(AGGREGATION_OVERFLOW_ERROR);
-  }
-  return result;
-};
+const isEnumValue = <Value extends string>(
+  value: unknown,
+  values: readonly Value[],
+): value is Value =>
+  typeof value === 'string' && values.includes(value as Value);
 
-export const getRangeEntries = (
-  entries: InterestHistoryEntry[] | InterestHistoryResponse,
-  range: EarningsRange,
-): InterestHistoryEntry[] => {
-  if (!Array.isArray(entries)) {
-    const apiRange = entries.ranges.find(
-      ({ range: candidateRange }) =>
-        candidateRange === RANGE_CONFIG[range].apiRange,
-    );
+const PERIOD_STATUSES = [
+  'complete',
+  'partial',
+  'not_applicable',
+] as const satisfies readonly PeriodStatus[];
 
-    return (
-      apiRange?.buckets.flatMap(({ start, interest_earned_usd }) =>
-        interest_earned_usd === null
-          ? []
-          : [{ timestamp: start, interest_earned_usd }],
-      ) ?? []
-    );
-  }
+const AVAILABILITIES = [
+  'available',
+  'unavailable',
+  'not_applicable',
+] as const satisfies readonly Availability[];
 
-  const validEntries = entries
-    .map((entry) => ({ entry, timestamp: getTimestamp(entry) }))
-    .filter(
-      (
-        candidate,
-      ): candidate is { entry: InterestHistoryEntry; timestamp: number } =>
-        candidate.timestamp !== undefined,
-    );
+const GRANULARITIES = [
+  'day',
+  'week',
+  'month',
+] as const satisfies readonly InterestHistoryGranularity[];
 
-  if (validEntries.length === 0) {
-    return [];
-  }
+const RANGE_KEYS = [
+  '7d',
+  '30d',
+  '90d',
+  '180d',
+  '365d',
+] as const satisfies readonly InterestHistoryRange['range'][];
 
-  const newestTimestamp = Math.max(
-    ...validEntries.map(({ timestamp }) => timestamp),
-  );
-  const endDay = getUtcDayStart(newestTimestamp);
-  const startDay =
-    endDay - (RANGE_CONFIG[range].days - 1) * MILLISECONDS_PER_DAY;
+const UNAVAILABLE_REASONS = [
+  'insufficient_cash_flow_history',
+  'cash_flow_replay_invariant_failed',
+  'historical_accountant_rate_unavailable',
+  'vault_accounting_not_finalized',
+  'before_user_earnings_inception',
+  'historical_price_missing',
+  'historical_price_stale',
+] as const satisfies readonly UnavailableReason[];
 
-  return validEntries
-    .filter(({ timestamp }) => {
-      const day = getUtcDayStart(timestamp);
-      return day >= startDay && day <= endDay;
-    })
-    .map(({ entry }) => entry);
-};
-
-const hasAggregationOverflow = (entries: InterestHistoryEntry[]): boolean => {
-  const totalsByDay = new Map<number, number>();
-  let total = 0;
-
-  for (const entry of entries) {
-    const timestamp = getTimestamp(entry);
-    const amount = getAmount(entry);
-
-    if (timestamp === undefined || amount === undefined) {
-      continue;
-    }
-
-    total += amount;
-    if (!Number.isFinite(total)) {
-      return true;
-    }
-
-    const day = getUtcDayStart(timestamp);
-    const dailyTotal = (totalsByDay.get(day) ?? 0) + amount;
-    if (!Number.isFinite(dailyTotal)) {
-      return true;
-    }
-    totalsByDay.set(day, dailyTotal);
-  }
-
-  return EARNINGS_RANGES.some((range) => {
-    let rangeTotal = 0;
-
-    for (const entry of getRangeEntries(entries, range)) {
-      rangeTotal += getAmount(entry) ?? 0;
-      if (!Number.isFinite(rangeTotal)) {
-        return true;
-      }
-    }
-
+const isAvailability = (value: unknown): boolean => {
+  if (!isRecord(value)) {
     return false;
-  });
-};
-
-export const hasInvalidHistoryEntries = (entries: unknown): boolean => {
-  if (Array.isArray(entries)) {
-    if (
-      entries.some(
-        (entry) =>
-          getTimestamp(entry) === undefined || getAmount(entry) === undefined,
-      )
-    ) {
-      return true;
-    }
-
-    return hasAggregationOverflow(entries);
   }
 
-  if (!isRecord(entries)) {
-    return true;
-  }
-
-  if (!Array.isArray(entries.ranges)) {
-    return true;
-  }
-
-  const hasInvalidRange = entries.ranges.some((range) => {
-    if (
-      !isRecord(range) ||
-      typeof range.range !== 'string' ||
-      !Object.values(RANGE_CONFIG).some(
-        ({ apiRange }) => range.range === apiRange,
-      ) ||
-      !Array.isArray(range.buckets)
-    ) {
-      return true;
-    }
-
-    return range.buckets.some((bucket) => {
-      if (
-        !isRecord(bucket) ||
-        getTimestamp({ timestamp: bucket.start }) === undefined ||
-        getTimestamp({ timestamp: bucket.end }) === undefined
-      ) {
-        return true;
-      }
-
-      return (
-        bucket.interest_earned_usd !== null &&
-        (typeof bucket.interest_earned_usd !== 'string' ||
-          getAmount({
-            interest_earned_usd: bucket.interest_earned_usd,
-          }) === undefined)
-      );
-    });
-  });
-
-  if (hasInvalidRange) {
-    return true;
-  }
-
-  return EARNINGS_RANGES.some((range) =>
-    hasAggregationOverflow(
-      getRangeEntries(entries as unknown as InterestHistoryResponse, range),
-    ),
+  return (
+    isEnumValue(value.earnings, AVAILABILITIES) &&
+    isEnumValue(value.usd_pricing, AVAILABILITIES)
   );
 };
+
+const isEarningsShape = (value: unknown): boolean => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isEnumValue(value.period_status, PERIOD_STATUSES) &&
+    isAvailability(value.availability) &&
+    Array.isArray(value.unavailable_reasons) &&
+    value.unavailable_reasons.every((reason) =>
+      isEnumValue(reason, UNAVAILABLE_REASONS),
+    ) &&
+    isNullableFiniteUsd(value.interest_earned_musd_assets) &&
+    isNullableFiniteUsd(value.interest_earned_usd)
+  );
+};
+
+const isPerVaultShape = (value: unknown): boolean => {
+  if (
+    !isEarningsShape(value) ||
+    !isRecord(value) ||
+    typeof value.vault_key !== 'string' ||
+    typeof value.vault_address !== 'string'
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+const isBucketShape = (value: unknown): boolean => {
+  if (
+    !isEarningsShape(value) ||
+    !isRecord(value) ||
+    getTimestamp(value.start) === undefined ||
+    getTimestamp(value.end) === undefined ||
+    typeof value.start !== 'string' ||
+    typeof value.end !== 'string' ||
+    getTimestamp(value.end) <= getTimestamp(value.start) ||
+    !isNullableFiniteUsd(value.musd_price_usd) ||
+    (value.price_as_of !== null &&
+      getTimestamp(value.price_as_of) === undefined) ||
+    (value.price_source !== null &&
+      value.price_source !== 'metamask_price_api') ||
+    !Array.isArray(value.by_vault)
+  ) {
+    return false;
+  }
+
+  return value.by_vault.every(isPerVaultShape);
+};
+
+const isRangeShape = (value: unknown): boolean => {
+  if (
+    !isRecord(value) ||
+    !isEnumValue(value.range, RANGE_KEYS) ||
+    !isEnumValue(value.granularity, GRANULARITIES) ||
+    getTimestamp(value.range_start) === undefined ||
+    getTimestamp(value.range_end) === undefined ||
+    getTimestamp(value.range_end) <= getTimestamp(value.range_start) ||
+    !isEnumValue(value.period_status, PERIOD_STATUSES) ||
+    !isAvailability(value.availability) ||
+    !Array.isArray(value.unavailable_reasons) ||
+    !value.unavailable_reasons.every((reason) =>
+      isEnumValue(reason, UNAVAILABLE_REASONS),
+    ) ||
+    !isRecord(value.totals) ||
+    !isNullableFiniteUsd(value.totals.interest_earned_musd_assets) ||
+    !isNullableFiniteUsd(value.totals.interest_earned_usd) ||
+    !Array.isArray(value.buckets)
+  ) {
+    return false;
+  }
+
+  return value.buckets.every(isBucketShape);
+};
+
+export const getSelectedRange = (
+  response: InterestHistoryResponse | undefined,
+  range: EarningsRange,
+): InterestHistoryRange | undefined =>
+  response?.ranges.find(
+    ({ range: candidateRange }) => candidateRange === RANGE_CONFIG[range],
+  );
+
+export const hasInvalidHistoryEntries = (value: unknown): boolean => {
+  if (
+    !isRecord(value) ||
+    typeof value.address !== 'string' ||
+    typeof value.chain_id !== 'number' ||
+    !Number.isSafeInteger(value.chain_id) ||
+    value.bucket_timezone !== 'UTC' ||
+    getTimestamp(value.updated_through) === undefined ||
+    !isRecord(value.source_watermark) ||
+    !isRecord(value.source_watermark.vault_accounting) ||
+    typeof value.source_watermark.vault_accounting.block_number !== 'string' ||
+    getTimestamp(value.source_watermark.vault_accounting.block_timestamp) ===
+      undefined ||
+    value.method !== 'nav_difference' ||
+    !isRecord(value.denomination) ||
+    value.denomination.asset !== 'mUSD' ||
+    value.denomination.decimals !== 6 ||
+    !Array.isArray(value.ranges)
+  ) {
+    return true;
+  }
+
+  return value.ranges.some((range) => !isRangeShape(range));
+};
+
+const getBucketAmount = (bucket: InterestHistoryBucket): number | null => {
+  if (bucket.interest_earned_usd === null) {
+    return null;
+  }
+
+  const amount = parseFiniteUsd(bucket.interest_earned_usd);
+  if (amount === undefined) {
+    throw new Error('Historical earnings contains an invalid USD amount');
+  }
+  return amount;
+};
+
+export const getBucketPoints = (
+  selectedRange: InterestHistoryRange | undefined,
+): EarningsPoint[] =>
+  selectedRange?.buckets.map((bucket) => ({
+    start: bucket.start,
+    end: bucket.end,
+    timestamp: bucket.start,
+    amount: getBucketAmount(bucket),
+    granularity: selectedRange.granularity,
+    periodStatus: bucket.period_status,
+    availability: bucket.availability,
+    unavailableReasons: bucket.unavailable_reasons,
+  })) ?? [];
+
+export const isAvailableBucket = (point: EarningsPoint): boolean =>
+  point.amount !== null &&
+  point.availability.earnings === 'available' &&
+  point.availability.usd_pricing === 'available';
+
+export const getAuthoritativeRangeTotal = (
+  selectedRange: InterestHistoryRange | undefined,
+): number | undefined => {
+  const serializedTotal = selectedRange?.totals.interest_earned_usd;
+  if (serializedTotal === undefined || serializedTotal === null) {
+    return undefined;
+  }
+
+  const total = parseFiniteUsd(serializedTotal);
+  if (total === undefined) {
+    throw new Error('Historical earnings contains an invalid range total');
+  }
+  return total;
+};
+
+export const getLatestAvailableBucketIndex = (
+  points: EarningsPoint[],
+): number =>
+  points.reduce(
+    (latestIndex, point, index) =>
+      isAvailableBucket(point) ? index : latestIndex,
+    -1,
+  );
+
+export interface EarningsDisplayDateRange {
+  start: string;
+  end: string;
+}
+
+export const getBucketDisplayDateRange = (
+  point: Pick<EarningsPoint, 'start' | 'end'>,
+): EarningsDisplayDateRange => {
+  const startTimestamp = getTimestamp(point.start);
+  const endTimestamp = getTimestamp(point.end);
+
+  if (startTimestamp === undefined || endTimestamp === undefined) {
+    throw new Error('Historical earnings contains an invalid bucket boundary');
+  }
+
+  return {
+    start: new Date(startTimestamp).toISOString(),
+    end: new Date(endTimestamp - 1).toISOString(),
+  };
+};
+
+// Compatibility exports used by the current screen until its integration task.
+export const getRangeEntries = (
+  response: InterestHistoryResponse | readonly [],
+  range: EarningsRange,
+): InterestHistoryBucket[] =>
+  Array.isArray(response)
+    ? []
+    : (getSelectedRange(response, range)?.buckets ?? []);
 
 export const getDailyEarningsPoints = (
-  entries: InterestHistoryEntry[],
-  range?: EarningsRange,
-): EarningsPoint[] => {
-  const amountsByDay = entries.reduce<Map<number, number>>((points, entry) => {
-    const timestamp = getTimestamp(entry);
-    const amount = getAmount(entry);
+  entries: InterestHistoryBucket[],
+  _range?: EarningsRange,
+): { timestamp: string; amount: number | null }[] =>
+  entries.map((bucket) => ({
+    timestamp: bucket.start,
+    amount: getBucketAmount(bucket),
+  }));
 
-    if (timestamp === undefined || amount === undefined) {
-      return points;
-    }
-
-    const day = getUtcDayStart(timestamp);
-    const existingAmount = points.get(day);
-    points.set(
-      day,
-      existingAmount === undefined
-        ? amount
-        : addEarnings(existingAmount, amount),
-    );
-    return points;
-  }, new Map());
-
-  const points = [...amountsByDay.entries()]
-    .sort(
-      ([firstTimestamp], [secondTimestamp]) => firstTimestamp - secondTimestamp,
-    )
-    .map(([timestamp, amount]) => ({
-      timestamp: new Date(timestamp).toISOString(),
-      amount,
-    }));
-
-  if (range === undefined || points.length === 0) {
-    return points;
-  }
-
-  const endDay = Date.parse(points[points.length - 1].timestamp);
-  const startDay =
-    endDay - (RANGE_CONFIG[range].days - 1) * MILLISECONDS_PER_DAY;
-
-  return Array.from({ length: RANGE_CONFIG[range].days }, (_, index) => {
-    const timestamp = startDay + index * MILLISECONDS_PER_DAY;
-    return {
-      timestamp: new Date(timestamp).toISOString(),
-      amount: amountsByDay.get(timestamp) ?? 0,
-    };
-  });
-};
-
-export const sumEarnings = (entries: InterestHistoryEntry[]): number =>
-  entries.reduce(
-    (total, entry) => addEarnings(total, getAmount(entry) ?? 0),
-    0,
-  );
+export const sumEarnings = (entries: InterestHistoryBucket[]): number =>
+  entries.reduce((total, entry) => total + (getBucketAmount(entry) ?? 0), 0);
