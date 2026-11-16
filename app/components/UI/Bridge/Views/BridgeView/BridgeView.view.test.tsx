@@ -182,7 +182,7 @@ describeForPlatforms('BridgeView', () => {
   describe('tabs', () => {
     it('opens the Recurring tab with the schedule from route params', async () => {
       const state = initialStateBridge().build();
-      const { getByTestId, store } = renderComponentViewScreen(
+      const { getByTestId, queryByTestId, store } = renderComponentViewScreen(
         BridgeView as unknown as React.ComponentType,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
@@ -221,6 +221,9 @@ describeForPlatforms('BridgeView', () => {
         priceRange: undefined,
       });
       expect(store.getState().user.bridgeRecurringTabSeen).toBe(true);
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
     });
 
     it('falls back to Market when a route requests the disabled Recurring tab', async () => {
@@ -573,6 +576,10 @@ describeForPlatforms('BridgeView', () => {
       const { getByTestId, queryByTestId } = renderBridgeView({
         overrides: { user: { bridgeRecurringTabSeen: true } },
       });
+
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB_NEW_DOT),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
 
