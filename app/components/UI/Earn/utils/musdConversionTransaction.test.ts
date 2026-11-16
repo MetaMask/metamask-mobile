@@ -4,7 +4,7 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import type { Hex } from '@metamask/utils';
+import type { CaipAssetType, Hex } from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import EngineService from '../../../../core/EngineService';
@@ -120,7 +120,6 @@ interface MockedEngineContext {
       ]
     >;
     state: {
-      assetsInfo: Record<string, unknown>;
       customAssets: Record<string, string[]>;
     };
   };
@@ -156,13 +155,12 @@ const createTransactionMeta = (
   }) as unknown as TransactionMeta;
 
 const createPayTokenSelection = (
-  overrides: Partial<{ address: Hex; chainId: Hex }> = {},
-): { address: Hex; chainId: Hex } =>
-  ({
-    address: '0xpayTokenAddress',
-    chainId: '0x1',
-    ...overrides,
-  }) as { address: Hex; chainId: Hex };
+  overrides: Partial<{ assetId: CaipAssetType; chainId: Hex }> = {},
+): { assetId: CaipAssetType; chainId: Hex } => ({
+  assetId: 'eip155:1/erc20:0xpayTokenAddress',
+  chainId: '0x1',
+  ...overrides,
+});
 
 describe('musdConversionTransaction', () => {
   const networkControllerFindNetworkClientIdByChainId = jest.fn<
@@ -237,7 +235,6 @@ describe('musdConversionTransaction', () => {
       AssetsController: {
         addCustomAsset: assetsControllerAddCustomAsset,
         state: {
-          assetsInfo: {},
           customAssets: mockCustomAssets,
         },
       },
@@ -485,7 +482,7 @@ describe('musdConversionTransaction', () => {
         } as unknown as TransactionMeta['txParams'],
       });
       const newPayToken = createPayTokenSelection({
-        address: '0xpayTokenAddress' as Hex,
+        assetId: 'eip155:1/erc20:0xpayTokenAddress',
         chainId: '0x1' as Hex,
       });
 

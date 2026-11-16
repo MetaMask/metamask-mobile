@@ -183,19 +183,3 @@ export function resolveEvmAssetId(
     index.byLowercaseAssetId.get(derivedAssetId.toLowerCase()) ?? derivedAssetId
   );
 }
-
-/**
- * Get the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
- * state. Prefer `selectEvmAssetIdResolver` when resolving several tokens, since
- * it indexes state once.
- *
- * @param token - EVM token.
- * @param assetsInfo - `AssetsController` asset metadata keyed by asset ID.
- * @returns The CAIP-19 asset ID of the token.
- */
-export function getEvmPaymentTokenAssetId(
-  token: EvmTokenReference,
-  assetsInfo: AssetsControllerState['assetsInfo'],
-): CaipAssetType {
-  return resolveEvmAssetId(token, buildAssetIdIndex(assetsInfo));
-}

@@ -5,7 +5,11 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { isStrictHexString, type Hex } from '@metamask/utils';
+import {
+  isStrictHexString,
+  type CaipAssetType,
+  type Hex,
+} from '@metamask/utils';
 
 import Engine from '../../../../core/Engine';
 import EngineService from '../../../../core/EngineService';
@@ -15,10 +19,10 @@ import { parseStandardTokenTransactionData } from '../../../Views/confirmations/
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../constants/musd';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
-import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment-token';
-
 interface PayTokenSelection {
-  address: Hex;
+  /** CAIP-19 asset ID of the payment token, as keyed in `AssetsController`. */
+  assetId: CaipAssetType;
+  /** Hex chain ID of the payment token, where the conversion is recreated. */
   chainId: Hex;
 }
 
@@ -284,12 +288,8 @@ export async function replaceMusdConversionTransactionForPayToken(
         amountHex,
       });
 
-    const {
-      AssetsController,
-      GasFeeController,
-      TransactionPayController,
-      ApprovalController,
-    } = Engine.context;
+    const { GasFeeController, TransactionPayController, ApprovalController } =
+      Engine.context;
 
     GasFeeController.fetchGasFeeEstimates({ networkClientId }).catch(
       () => undefined,
@@ -297,10 +297,7 @@ export async function replaceMusdConversionTransactionForPayToken(
 
     TransactionPayController.updatePaymentToken({
       transactionId: newTransactionId,
-      assetId: getEvmPaymentTokenAssetId(
-        newPayToken,
-        AssetsController.state.assetsInfo,
-      ),
+      assetId: newPayToken.assetId,
     });
 
     EngineService.flushState();

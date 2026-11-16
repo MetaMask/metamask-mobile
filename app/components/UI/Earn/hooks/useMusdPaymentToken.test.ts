@@ -163,7 +163,7 @@ describe('useMusdPaymentToken', () => {
           typeof useTransactionMetadataRequest
         >,
         {
-          address: token.address as Hex,
+          assetId: evmAssetId(token.address as Hex, token.chainId as Hex),
           chainId: token.chainId as Hex,
         },
       );
