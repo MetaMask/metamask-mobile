@@ -338,6 +338,8 @@ const PredictionsSectionDefault = forwardRef<
       contentReady: predictTimeToContentReady,
       isEmpty: isEmpty && !hasError,
       contentStateForTrace: hasError ? 'error' : undefined,
+      demandStarted: isPredictEnabled,
+      cacheState: isLoading ? 'cold' : hasError ? 'unknown' : 'warm',
       isLoading,
       enabled: isPredictEnabled,
     });

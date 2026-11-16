@@ -172,6 +172,8 @@ export const NextPredictHomeSection = forwardRef<
     sectionId: HomeSectionNames.PREDICT,
     contentReady: !isLoading,
     isEmpty: !isLoading && itemCount === 0,
+    demandStarted: true,
+    cacheState: isLoading ? 'cold' : hasPositions ? 'warm' : 'unknown',
     contentStateForTrace:
       showsDiscovery &&
       discovery.status === 'hidden' &&

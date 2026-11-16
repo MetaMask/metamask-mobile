@@ -213,6 +213,12 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       contentReady,
       isEmpty: isZeroBalanceAccount || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
+      demandStarted: true,
+      cacheState: isTokenListLoading
+        ? 'cold'
+        : isZeroBalanceAccount || showTokensError
+          ? 'unknown'
+          : 'warm',
       isLoading: isTokenListLoading,
     });
     useHomepageReady({

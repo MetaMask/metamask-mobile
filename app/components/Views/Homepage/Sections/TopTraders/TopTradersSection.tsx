@@ -136,6 +136,7 @@ const TopTradersSection = forwardRef<
     isLoading,
     isFetching,
     hasFetched,
+    cacheState,
     error,
     refresh,
     toggleFollow,
@@ -210,7 +211,15 @@ const TopTradersSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
-    contentReady: !isLoading && hasTraders,
+    // Do not complete TTC for the idle offscreen placeholder. A settled empty
+    // response or rendered trader rows is valid content for the metric, but an
+    // uncached disabled query is neither content nor a completed request.
+    contentReady: hasTraders || (hasFetched && !isInFlight),
+    demandStarted:
+      hasRequestedTraders &&
+      (hasTraders || hasFetched || (isLoading && isFetching)),
+    cacheState,
+    contentStateForTrace: showError ? 'error' : undefined,
     // Exclude error renders from the empty bucket so Sentry doesn't conflate
     // visible error states (which render the retry UI) with truly empty
     // sections. Without this, a fetch error with no cached traders would be
@@ -219,10 +228,7 @@ const TopTradersSection = forwardRef<
     // React Query v4 reports isLoading=true for an uncached disabled query.
     // Require active fetching so offscreen dwell is not counted as fetch time.
     isLoading: isLoading && isFetching,
-    // Disable telemetry once we render the error UI so the in-flight TTC and
-    // data-fetch spans get closed via the hook's cleanup instead of remaining
-    // open until the user navigates away.
-    enabled: isEnabled && !showError && isHomepageContext,
+    enabled: isEnabled && isHomepageContext,
   });
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {

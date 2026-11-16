@@ -98,6 +98,8 @@ const DeFiSectionV1 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
       contentReady: !isLoading,
       isEmpty: isEmpty && !hasError,
       contentStateForTrace: hasError ? 'error' : undefined,
+      demandStarted: isDeFiEnabled,
+      cacheState: isLoading ? 'cold' : hasError ? 'unknown' : 'warm',
       isLoading,
       enabled: isDeFiEnabled,
     });

@@ -101,7 +101,15 @@ const DeFiSectionV2 = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.DEFI,
-      contentReady: !isLoading,
+      // The idle placeholder is mounted before the viewport-gated request.
+      // Rendered positions or a settled fetch represent resolved DeFi content.
+      contentReady: displayedPositions.length > 0 || (hasFetched && !isLoading),
+      demandStarted: hasFetched || isLoading || isError,
+      cacheState: isLoading
+        ? 'cold'
+        : displayedPositions.length > 0
+          ? 'warm'
+          : 'unknown',
       isEmpty: isEmpty && !isError,
       contentStateForTrace: isError ? 'error' : undefined,
       isLoading,

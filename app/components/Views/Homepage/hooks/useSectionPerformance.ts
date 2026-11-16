@@ -11,6 +11,8 @@ import {
 import type { HomeSectionName } from './useHomeViewedEvent';
 import { useRenderStormMonitor } from '../../../../hooks/performance/useRenderStormMonitor';
 
+export type HomepageSectionCacheState = 'cold' | 'warm' | 'unknown';
+
 interface UseSectionPerformanceConfig {
   /** Section identifier — primary Sentry tag for filtering. */
   sectionId: HomeSectionName;
@@ -28,9 +30,17 @@ interface UseSectionPerformanceConfig {
    */
   contentStateForTrace?: 'filled' | 'empty' | 'error';
   /**
+   * True when the section has entered a real loading/render demand. This must
+   * remain false for mounted, deferred placeholders.
+   */
+  demandStarted: boolean;
+  /** Cache state captured when the TTC/DFD span starts. */
+  cacheState?: HomepageSectionCacheState;
+  /**
    * When provided, tracks **full** data loading (including background work) via
-   * the first `isLoading` true→false transition per mount. Can stay true after
-   * `contentReady` if the section still fetches optional/secondary data.
+   * the first `isLoading` true→false transition per mount.
+   * Can stay true after `contentReady` if the section still fetches
+   * optional/secondary data.
    */
   isLoading?: boolean;
   /** Skip all tracing when false. Use for feature-flagged sections that return null. @default true */
@@ -56,6 +66,8 @@ const RESERVED_METADATA_KEYS = new Set([
   'success',
   'content_state',
   'reason',
+  'demand_started',
+  'cache_state',
 ]);
 
 const sanitizeMetadata = (
@@ -83,7 +95,8 @@ const resolveCancellationReason = (
  * Reusable performance telemetry for homepage sections.
  *
  * Captures three metrics via the existing trace/endTrace Sentry integration:
- * 1. **Time to Content** — mount until `contentReady` (valuable non-skeleton UI).
+ * 1. **Time to Content** — explicit demand boundary through the first frame
+ * after `contentReady` (valuable non-skeleton UI).
  * 2. **Data Fetch Latency** — first full `isLoading` cycle per mount (opt-in; refresh excluded).
  * 3. **Re-render Monitoring** — breadcrumb when commits exceed threshold in a window (runs after every commit).
  *
@@ -94,6 +107,8 @@ export const useSectionPerformance = ({
   contentReady,
   isEmpty,
   contentStateForTrace,
+  demandStarted,
+  cacheState = 'unknown',
   isLoading,
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
@@ -137,15 +152,20 @@ export const useSectionPerformance = ({
   const ttcEnded = useRef(false);
   const hasStartedTtcGeneration = useRef(false);
   const ttcReadyForCompletion = useRef(true);
+  const ttcCacheState = useRef<HomepageSectionCacheState>(cacheState);
+  const pendingTtcCompletion = useRef<(() => void) | null>(null);
 
   // --- Data Fetch Latency refs ---
   const fetchTraceId = useRef(uuidv4());
   const fetchStarted = useRef(false);
   const fetchEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
+  const fetchCacheState = useRef<HomepageSectionCacheState>(cacheState);
 
   const traceContentState =
     contentStateForTrace ?? (isEmpty ? 'empty' : 'filled');
+  const traceContentStateRef = useRef(traceContentState);
+  traceContentStateRef.current = traceContentState;
 
   useRenderStormMonitor({
     id: sectionId,
@@ -158,8 +178,10 @@ export const useSectionPerformance = ({
   });
 
   // ──────────────────────────────────────────────
-  // 1. Time to Content — start span on mount
+  // 1. Time to Content — start at the explicit demand boundary
   // ──────────────────────────────────────────────
+  const ttcStartReady = demandStarted;
+
   useEffect(() => {
     activeGenerationKeyRef.current = generationKey;
     tagsRef.current = nextTagsRef.current;
@@ -167,27 +189,16 @@ export const useSectionPerformance = ({
     fetchStarted.current = false;
     fetchEnded.current = false;
     prevIsLoading.current = undefined;
+    ttcStarted.current = false;
+    ttcEnded.current = false;
+    pendingTtcCompletion.current?.();
+    pendingTtcCompletion.current = null;
     if (!enabled) return;
 
     const startedGenerationKey = generationKey;
-    const isRestart = hasStartedTtcGeneration.current;
-    hasStartedTtcGeneration.current = true;
-    ttcReadyForCompletion.current =
-      !isRestart ||
-      !contentReadyRef.current ||
-      acceptReadyContentOnGenerationStartRef.current;
-    ttcTraceId.current = uuidv4();
-    ttcEnded.current = false;
-    trace({
-      name: TraceName.HomepageSectionTimeToContent,
-      op: TraceOperation.HomepageSectionPerformance,
-      id: ttcTraceId.current,
-      tags: { ...tagsRef.current, section_id: sectionId },
-      data: { ...dataRef.current, section_id: sectionId },
-    });
-    ttcStarted.current = true;
-
     return () => {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
       if (ttcStarted.current && !ttcEnded.current) {
         annotateLatestTags(
           TraceName.HomepageSectionTimeToContent,
@@ -199,6 +210,8 @@ export const useSectionPerformance = ({
           data: {
             ...tagsRef.current,
             ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
             success: false,
             reason: resolveCancellationReason(
               startedGenerationKey,
@@ -220,6 +233,8 @@ export const useSectionPerformance = ({
           data: {
             ...tagsRef.current,
             ...dataRef.current,
+            demand_started: true,
+            cache_state: fetchCacheState.current,
             success: false,
             reason: resolveCancellationReason(
               startedGenerationKey,
@@ -233,9 +248,44 @@ export const useSectionPerformance = ({
     };
   }, [enabled, generationKey, sectionId]);
 
+  useEffect(() => {
+    if (!enabled || !ttcStartReady || ttcStarted.current || ttcEnded.current)
+      return;
+
+    const isRestart = hasStartedTtcGeneration.current;
+    hasStartedTtcGeneration.current = true;
+    ttcReadyForCompletion.current =
+      !isRestart ||
+      !contentReadyRef.current ||
+      acceptReadyContentOnGenerationStartRef.current;
+    ttcTraceId.current = uuidv4();
+    ttcCacheState.current = cacheState;
+    ttcEnded.current = false;
+    trace({
+      name: TraceName.HomepageSectionTimeToContent,
+      op: TraceOperation.HomepageSectionPerformance,
+      id: ttcTraceId.current,
+      tags: {
+        ...tagsRef.current,
+        section_id: sectionId,
+        demand_started: true,
+        cache_state: cacheState,
+      },
+      data: {
+        ...dataRef.current,
+        section_id: sectionId,
+        demand_started: true,
+        cache_state: cacheState,
+      },
+    });
+    ttcStarted.current = true;
+  }, [enabled, generationKey, sectionId, ttcStartReady, cacheState]);
+
   // Time to Content — end span when content is ready
   useEffect(() => {
     if (!contentReady) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
       ttcReadyForCompletion.current = true;
       return;
     }
@@ -243,24 +293,54 @@ export const useSectionPerformance = ({
       enabled &&
       ttcReadyForCompletion.current &&
       ttcStarted.current &&
-      !ttcEnded.current
+      !ttcEnded.current &&
+      !pendingTtcCompletion.current
     ) {
-      annotateLatestTags(
-        TraceName.HomepageSectionTimeToContent,
-        ttcTraceId.current,
-      );
-      endTrace({
-        name: TraceName.HomepageSectionTimeToContent,
-        id: ttcTraceId.current,
-        data: {
-          ...tagsRef.current,
-          ...dataRef.current,
-          success: true,
-          section_id: sectionId,
-          content_state: traceContentState,
-        },
-      });
-      ttcEnded.current = true;
+      const traceId = ttcTraceId.current;
+      const finishAfterFrame = () => {
+        pendingTtcCompletion.current = null;
+        if (
+          !contentReadyRef.current ||
+          !ttcStarted.current ||
+          ttcEnded.current ||
+          ttcTraceId.current !== traceId
+        ) {
+          return;
+        }
+
+        annotateLatestTags(TraceName.HomepageSectionTimeToContent, traceId);
+        endTrace({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: traceId,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
+            success: true,
+            section_id: sectionId,
+            content_state: traceContentStateRef.current,
+          },
+        });
+        ttcEnded.current = true;
+      };
+
+      let frameId: number;
+      try {
+        frameId = requestAnimationFrame(finishAfterFrame);
+      } catch {
+        finishAfterFrame();
+        return;
+      }
+
+      const cancelFrame = () => {
+        cancelAnimationFrame(frameId);
+      };
+      if (ttcEnded.current) {
+        cancelFrame();
+      } else {
+        pendingTtcCompletion.current = cancelFrame;
+      }
     }
   }, [enabled, contentReady, generationKey, sectionId, traceContentState]);
 
@@ -276,12 +356,23 @@ export const useSectionPerformance = ({
     // Start: first loading spell only (subsequent refresh cycles are not traced)
     if (isLoading && !fetchStarted.current && !fetchEnded.current) {
       fetchTraceId.current = uuidv4();
+      fetchCacheState.current = cacheState;
       trace({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { ...tagsRef.current, section_id: sectionId },
-        data: { ...dataRef.current, section_id: sectionId },
+        tags: {
+          ...tagsRef.current,
+          section_id: sectionId,
+          demand_started: true,
+          cache_state: cacheState,
+        },
+        data: {
+          ...dataRef.current,
+          section_id: sectionId,
+          demand_started: true,
+          cache_state: cacheState,
+        },
       });
       fetchStarted.current = true;
     }
@@ -303,6 +394,8 @@ export const useSectionPerformance = ({
         data: {
           ...tagsRef.current,
           ...dataRef.current,
+          demand_started: true,
+          cache_state: fetchCacheState.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
@@ -311,5 +404,12 @@ export const useSectionPerformance = ({
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, generationKey, isLoading, sectionId, traceContentState]);
+  }, [
+    enabled,
+    generationKey,
+    isLoading,
+    sectionId,
+    traceContentState,
+    cacheState,
+  ]);
 };

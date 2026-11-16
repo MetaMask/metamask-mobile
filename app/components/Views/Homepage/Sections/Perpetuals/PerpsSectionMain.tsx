@@ -457,6 +457,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         lifecycle !== 'network_switch' &&
         lifecycle !== 'background_reconnect',
       contentReady,
+      demandStarted: Boolean(sessionId),
+      cacheState:
+        marketSource === 'unknown' && accountSource === 'unknown'
+          ? 'unknown'
+          : marketSource === 'memory_cache' || accountSource === 'memory_cache'
+            ? 'warm'
+            : 'cold',
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
