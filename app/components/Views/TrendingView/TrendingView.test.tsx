@@ -1,15 +1,21 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
+import { EXPLORE_TAB_INDEX } from '../../../constants/navigation/exploreTabIndices';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockIsEnabled = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+const mockSetParams = jest.fn();
+let mockRouteParams: {
+  initialTab?: number | null;
+  source?: string;
+} = {};
 
 // Replace every tab's content with a render-tracking stub so a tab-switch
 // re-render regression test doesn't have to mock each tab's underlying
@@ -19,6 +25,18 @@ const mockAddListener = jest.fn(() => jest.fn());
 // run) — never eagerly by the `jest.mock` factory itself — so it's safe
 // despite `jest.mock` factories being hoisted above other statements.
 const mockTabRenderCounts: Record<string, number> = {};
+const mockCryptoActiveTabLog: (string | undefined)[] = [];
+
+type TrackedEvent = Parameters<
+  jest.MockedFunction<typeof analytics.trackEvent>
+>[0];
+
+const tabSwitchedEvents = (): TrackedEvent[] =>
+  (
+    analytics.trackEvent as jest.MockedFunction<typeof analytics.trackEvent>
+  ).mock.calls
+    .map(([event]) => event)
+    .filter((event) => event.properties?.interaction_type === 'tab_switched');
 
 const mockTrackTabRender = (name: string) => {
   mockTabRenderCounts[name] = (mockTabRenderCounts[name] ?? 0) + 1;
@@ -45,13 +63,20 @@ jest.mock('./tabs/RwasTab', () => ({
     return null;
   },
 }));
-jest.mock('./tabs/CryptoTab', () => ({
-  __esModule: true,
-  default: () => {
+jest.mock('./tabs/CryptoTab', () => {
+  const { useExploreActiveTab } = jest.requireActual(
+    './ExploreActiveTabContext',
+  );
+  const CryptoTabStub: React.FC = () => {
     mockTrackTabRender('Crypto');
+    mockCryptoActiveTabLog.push(useExploreActiveTab());
     return null;
-  },
-}));
+  };
+  return {
+    __esModule: true,
+    default: CryptoTabStub,
+  };
+});
 jest.mock('./tabs/SportsTab', () => ({
   __esModule: true,
   default: () => {
@@ -72,21 +97,89 @@ jest.mock('../../Nav/Main/MainNavigator', () => ({
   updateLastTrendingScreen: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-    addListener: mockAddListener,
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      addListener: mockAddListener,
+      setParams: mockSetParams,
+    }),
+    useRoute: () => ({ params: mockRouteParams, name: 'TrendingView' }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => callback(), [callback]);
+    },
+  };
+});
+
+let mockPagerProps:
+  | {
+      initialPage?: number;
+      onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+      onPageScrollStateChanged?: (e: {
+        nativeEvent: { pageScrollState: 'idle' | 'dragging' | 'settling' };
+      }) => void;
+    }
+  | undefined;
+let mockPagerInitialPage: number | undefined;
+
+const settlePager = (): void => {
+  const onPageScrollStateChanged = mockPagerProps?.onPageScrollStateChanged;
+  if (!onPageScrollStateChanged) {
+    throw new Error(
+      'settlePager: pager mock not wired — did react-native-tab-view stop forwarding onPageScrollStateChanged?',
+    );
+  }
+  act(() => {
+    onPageScrollStateChanged({
+      nativeEvent: { pageScrollState: 'idle' },
+    });
+  });
+};
+
+const swipeToPage = (position: number): void => {
+  const onPageSelected = mockPagerProps?.onPageSelected;
+  if (!onPageSelected) {
+    throw new Error(
+      'swipeToPage: pager mock not wired — did react-native-tab-view stop forwarding onPageSelected?',
+    );
+  }
+  act(() => {
+    onPageSelected({ nativeEvent: { position } });
+  });
+};
+
+jest.mock('react-native-pager-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockPagerView = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        initialPage?: number;
+        onPageSelected?: (e: { nativeEvent: { position: number } }) => void;
+        testID?: string;
+      },
+      _ref: React.Ref<unknown>,
+    ) => {
+      mockPagerProps = props;
+      mockPagerInitialPage = props.initialPage;
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+  MockPagerView.displayName = 'MockPagerView';
+  return { __esModule: true, default: MockPagerView };
+});
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
-import { ExploreFeed } from './TrendingView';
+import { EXPLORE_TAB_DEFINITIONS, ExploreFeed } from './TrendingView';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   selectChainId,
@@ -276,9 +369,13 @@ describe('TrendingView', () => {
     mockUseIsGlassSurfaceEnabled.mockReturnValue(false);
     mockUseIsExploreHeaderRefreshEnabled.mockReturnValue(false);
     mockAddListener.mockReturnValue(jest.fn());
+    mockRouteParams = {};
+    mockPagerProps = undefined;
+    mockPagerInitialPage = undefined;
     for (const key of Object.keys(mockTabRenderCounts)) {
       delete mockTabRenderCounts[key];
     }
+    mockCryptoActiveTabLog.length = 0;
 
     mockUseSelector.mockImplementation(createMockSelectorImplementation());
   });
@@ -485,6 +582,36 @@ describe('TrendingView', () => {
   });
 
   describe('tab switching', () => {
+    const lastActiveTabSeenByCrypto = (): string | undefined =>
+      mockCryptoActiveTabLog[mockCryptoActiveTabLog.length - 1];
+
+    it('renders the tab bar and pages under the explore-tabs testIDs', () => {
+      const { getByTestId } = renderTrendingView();
+
+      expect(getByTestId('explore-tabs')).toBeOnTheScreen();
+      expect(getByTestId('explore-tabs-bar')).toBeOnTheScreen();
+      expect(getByTestId('explore-tabs-bar-tab-0')).toBeOnTheScreen();
+      expect(getByTestId('explore-tabs-bar-tab-5')).toBeOnTheScreen();
+    });
+
+    it('pairs EXPLORE_TAB_DEFINITIONS order with EXPLORE_TAB_INDEX', () => {
+      expect(EXPLORE_TAB_DEFINITIONS.map(({ name }) => name)).toEqual([
+        'Now',
+        'Crypto',
+        'Perps',
+        'RWAs',
+        'Sports',
+        'Sites',
+      ]);
+      Object.entries(EXPLORE_TAB_INDEX).forEach(
+        ([constantName, tabIndex]): void => {
+          expect(EXPLORE_TAB_DEFINITIONS[tabIndex]?.name.toLowerCase()).toBe(
+            constantName.toLowerCase(),
+          );
+        },
+      );
+    });
+
     it('does not re-render an inactive tab just because the active tab changed', async () => {
       const { getByTestId } = renderTrendingView();
 
@@ -504,6 +631,194 @@ describe('TrendingView', () => {
       // "Now" isn't a consumer of the active-tab context, so switching away
       // from it must not cause it to re-render.
       expect(mockTabRenderCounts.Now).toBe(nowRenderCountBeforeSwitch);
+    });
+
+    it('fires tab_switched with the previous tab when a bar tab is pressed', () => {
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-2'));
+
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Perps',
+            previous_tab: 'Now',
+          },
+        }),
+      ]);
+      expect(tabSwitchedEvents()[0]?.name).toBe(
+        MetaMetricsEvents.EXPLORE_INTERACTED.category,
+      );
+    });
+
+    it('does not re-fire tab_switched when the active tab is pressed again', () => {
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-2'));
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-2'));
+
+      expect(tabSwitchedEvents()).toHaveLength(1);
+    });
+
+    it('activates a first-time tab press immediately and a revisited tap only after the pager settles', async () => {
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+      await waitFor(() => {
+        expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
+      });
+      expect(lastActiveTabSeenByCrypto()).toBe('Crypto');
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-0'));
+      expect(lastActiveTabSeenByCrypto()).toBe('Crypto');
+
+      settlePager();
+      expect(lastActiveTabSeenByCrypto()).toBe('Now');
+    });
+
+    it('activates a swiped-to tab immediately', () => {
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+      expect(lastActiveTabSeenByCrypto()).toBe('Crypto');
+
+      swipeToPage(EXPLORE_TAB_INDEX.RWAS);
+
+      expect(mockTabRenderCounts.RWAs).toBeGreaterThanOrEqual(1);
+      expect(lastActiveTabSeenByCrypto()).toBe('RWAs');
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Crypto',
+            previous_tab: 'Now',
+          },
+        }),
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'RWAs',
+            previous_tab: 'Crypto',
+          },
+        }),
+      ]);
+    });
+  });
+
+  describe('deep-linked initial tab', () => {
+    it('seeds the pager on the requested tab instead of jumping after mount', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.PERPS,
+        source: 'deeplink',
+      };
+      renderTrendingView();
+
+      expect(mockPagerInitialPage).toBe(EXPLORE_TAB_INDEX.PERPS);
+      expect(mockTabRenderCounts.Perps).toBeGreaterThanOrEqual(1);
+      expect(mockTabRenderCounts.Now).toBeUndefined();
+    });
+
+    it('switches to the requested tab and attributes the switch to the deeplink source', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.SITES,
+        source: 'deeplink',
+      };
+      const { getByTestId } = renderTrendingView();
+
+      expect(mockTabRenderCounts.Sites).toBeGreaterThanOrEqual(1);
+      expect(getByTestId('explore-tabs-bar-tab-5')).toBeOnTheScreen();
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Sites',
+            previous_tab: 'Now',
+            source: 'deeplink',
+          },
+        }),
+      ]);
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: null,
+        source: undefined,
+      });
+    });
+
+    it('reports the seeded tab as previous_tab on the next switch after a sourced deeplink', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.PERPS,
+        source: 'deeplink',
+      };
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+
+      expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Perps',
+            previous_tab: 'Now',
+            source: 'deeplink',
+          },
+        }),
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Crypto',
+            previous_tab: 'Perps',
+          },
+        }),
+      ]);
+    });
+
+    it('reports the seeded tab as previous_tab on the next switch after an unsourced deeplink', () => {
+      mockRouteParams = { initialTab: EXPLORE_TAB_INDEX.PERPS };
+      const { getByTestId } = renderTrendingView();
+
+      fireEvent.press(getByTestId('explore-tabs-bar-tab-1'));
+
+      expect(mockTabRenderCounts.Crypto).toBeGreaterThanOrEqual(1);
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Perps',
+            previous_tab: 'Now',
+          },
+        }),
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Crypto',
+            previous_tab: 'Perps',
+          },
+        }),
+      ]);
+    });
+
+    it('fires the deeplink-attributed switch once when the requested tab is already active', () => {
+      mockRouteParams = {
+        initialTab: EXPLORE_TAB_INDEX.NOW,
+        source: 'deeplink',
+      };
+      renderTrendingView();
+
+      expect(tabSwitchedEvents()).toEqual([
+        expect.objectContaining({
+          properties: {
+            interaction_type: 'tab_switched',
+            tab_name: 'Now',
+            previous_tab: 'Now',
+            source: 'deeplink',
+          },
+        }),
+      ]);
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: null,
+        source: undefined,
+      });
     });
   });
 
