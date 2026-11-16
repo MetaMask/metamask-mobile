@@ -48,7 +48,15 @@ export enum CardMessageBoxType {
   UkMigrationSoft = 'uk_migration_soft',
   UkMigrationRequired = 'uk_migration_required',
   WalletVerificationPending = 'wallet_verification_pending',
+  SetupIncomplete = 'setup_incomplete',
 }
+
+export type CardSetupStep =
+  | 'contact'
+  | 'kyc'
+  | 'expected_spend'
+  | 'funding'
+  | 'rejected';
 
 /**
  * How the `card_provisioning` alert should render. Providers that reconcile
@@ -118,6 +126,7 @@ export type CardFundingTokenWithBalance = CardFundingToken & {
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
   asset?: TokenI;
+  isUnavailable?: boolean;
 };
 
 export interface CardLoginInitiateResponse {

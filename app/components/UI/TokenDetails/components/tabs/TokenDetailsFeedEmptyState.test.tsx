@@ -114,7 +114,9 @@ describe('TokenDetailsFeedEmptyState', () => {
     fireEvent.press(screen.getByText('Create MetaMask Post'));
 
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
-    expect(mockOpenComposer).toHaveBeenCalledWith();
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      composerEntry: 'token_details',
+    });
     expect(
       screen.getByTestId('token-details-feed-empty-megaphone'),
     ).toBeOnTheScreen();

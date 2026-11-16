@@ -80,6 +80,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
   });
 
@@ -89,6 +90,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -99,6 +101,7 @@ describe('useImmersveEnableCard', () => {
 
     expect(result.current.canEnableCard).toBe(true);
     expect(result.current.provisioningView).toBe('hidden');
+    expect(result.current.setupStep).toBe('funding');
     expect(result.current.isKycUnderReview).toBe(false);
 
     act(() => {
@@ -129,6 +132,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -171,6 +175,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: true,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -186,6 +191,52 @@ describe('useImmersveEnableCard', () => {
     expect(mockApproveFunding).not.toHaveBeenCalled();
     expect(mockResumePendingAction).not.toHaveBeenCalled();
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('uses the Money home entrypoint when approval starts outside Card', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const selectors = require('../../../../../../selectors/cardController');
+      if (selector === selectors.selectCardActiveProviderId) {
+        return CardProviderIds.Immersve;
+      }
+      if (selector === selectors.selectImmersveMoneyAccountMode) {
+        return true;
+      }
+      return undefined;
+    });
+    mockUseImmersveCardProvisioning.mockReturnValue({
+      isProvisioning: true,
+      isReconciling: false,
+      pendingAction: { type: 'funding', write: {} as never },
+      resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useImmersveEnableCard(
+        {
+          alerts: [{ type: 'card_provisioning', dismissable: false }],
+        } as never,
+        { navigateFromOutsideCard: true },
+      ),
+    );
+
+    act(() => {
+      result.current.enableCard();
+    });
+
+    expect(mockApproveFunding).toHaveBeenCalledWith(
+      CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+    );
+    expect(mockResumePendingAction).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: CardActions.IMMERSVE_PROVISIONING_RESUME,
+        next_action: 'funding',
+      }),
+    );
   });
 
   it('disables Enable card while a Money account approval is in progress', () => {
@@ -233,6 +284,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'funding', write: {} as never },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -262,6 +314,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: { type: 'pending' },
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -273,6 +326,19 @@ describe('useImmersveEnableCard', () => {
     expect(result.current.canEnableCard).toBe(false);
     expect(result.current.isKycUnderReview).toBe(true);
     expect(result.current.provisioningView).toBe('kyc_under_review');
+    expect(result.current.setupStep).toBeNull();
+  });
+
+  it('passes the poll interval through to provisioning', () => {
+    const data = {
+      alerts: [{ type: 'card_provisioning', dismissable: false }],
+    } as never;
+
+    renderHook(() => useImmersveEnableCard(data, { pollIntervalMs: null }));
+
+    expect(mockUseImmersveCardProvisioning).toHaveBeenCalledWith(data, {
+      pollIntervalMs: null,
+    });
   });
 
   it('enables the card for allowance_revoked and navigates to reapprove mode', () => {
@@ -400,6 +466,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: true,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>
@@ -418,6 +485,7 @@ describe('useImmersveEnableCard', () => {
       isReconciling: false,
       pendingAction: null,
       resumePendingAction: mockResumePendingAction,
+      markCardFlowOpened: jest.fn(),
     });
 
     const { result } = renderHook(() =>

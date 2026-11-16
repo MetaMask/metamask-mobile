@@ -252,6 +252,7 @@ describe('Feature Flag Registry', () => {
         'earnMoneyBalanceAnimationEnabled',
         'earnMoneyCardFlipAnimationEnabled',
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
       ];
 
       for (const flagName of addedFlagNames) {
@@ -271,6 +272,7 @@ describe('Feature Flag Registry', () => {
     it('pins Earn token-details A/B flags to control', () => {
       const abTestFlags = [
         'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton',
+        'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
       ];
 
       for (const flagName of abTestFlags) {

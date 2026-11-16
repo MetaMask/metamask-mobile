@@ -1,7 +1,4 @@
-import type {
-  FeedResponse,
-  FetchFeedOptions,
-} from '@metamask/social-controllers';
+import type { FeedResponse } from '@metamask/social-controllers';
 import Engine from '../../../../core/Engine';
 import type { FeedScope, SocialFeedRequest } from './socialFeedSource';
 
@@ -88,12 +85,9 @@ export const fetchSocialFeedPage = (
   const paging = olderThan ? { limit, olderThan } : { limit };
   switch (request.action) {
     case 'SocialService:fetchFeed': {
-      const { scope, chains, assetIds, ...options } = request.options;
+      const { chains, assetIds, ...options } = request.options;
       return Engine.controllerMessenger.call('SocialService:fetchFeed', {
         ...options,
-        // `fetchFeed` sends the scope as given; the installed types predate
-        // `following_v1`.
-        scope: scope as NonNullable<FetchFeedOptions['scope']>,
         chains: [...chains],
         ...(assetIds ? { assetIds: [...assetIds] } : {}),
         ...paging,

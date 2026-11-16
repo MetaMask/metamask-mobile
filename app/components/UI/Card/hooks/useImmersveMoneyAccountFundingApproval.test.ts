@@ -43,6 +43,7 @@ describe('useImmersveMoneyAccountFundingApproval', () => {
     expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
       delegationAmountHuman: BAANX_MAX_LIMIT,
       entrypoint: CardEntryPoint.SIGN_UP,
+      showSuccessToast: false,
     });
     expect(mockDispatch).toHaveBeenCalledWith(setImmersveFundingSettling(true));
   });
@@ -59,7 +60,32 @@ describe('useImmersveMoneyAccountFundingApproval', () => {
       );
     });
 
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+      delegationAmountHuman: BAANX_MAX_LIMIT,
+      entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      showSuccessToast: false,
+    });
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('forwards a toast hold and still skips the success toast', async () => {
+    const { result } = renderHook(() =>
+      useImmersveMoneyAccountFundingApproval(),
+    );
+    const holdToastsUntil = Promise.resolve();
+
+    await act(async () => {
+      await result.current.approveFunding(CardEntryPoint.SIGN_UP, {
+        holdToastsUntil,
+      });
+    });
+
+    expect(mockConfirmLinkInBackground).toHaveBeenCalledWith({
+      delegationAmountHuman: BAANX_MAX_LIMIT,
+      entrypoint: CardEntryPoint.SIGN_UP,
+      showSuccessToast: false,
+      holdToastsUntil,
+    });
   });
 
   it('reports the controller link as in progress', () => {

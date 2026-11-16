@@ -14,6 +14,10 @@ import {
   type SocialOgImageRequest,
 } from './socialOgImageService';
 import { logSocialOgShare } from './socialOgShareLog';
+import {
+  resolveSocialSharePromoCode,
+  withSocialSharePromoCode,
+} from './socialSharePromoCode';
 import type { SocialLinkOpenGraph } from './socialShareOpenGraph';
 
 const SHORT_LINK_TIMEOUT_MS = 8000;
@@ -38,14 +42,20 @@ export const SOCIAL_SHARE_LINK_MODE = 'branch-short' as SocialShareLinkMode;
 let shareGeneration = 0;
 let activeShareAbort: AbortController | undefined;
 
+/** Share-time values the card body gets from the share flow, not the screen. */
+export interface SocialShareCardContext {
+  /** The sharer's referral code. Absent when they have none. */
+  promoCode?: string;
+}
+
 /**
  * Builds the card body only once the user has tapped share. Resolve to
  * `undefined` when the screen lacks a required field; the generic card is
  * rendered instead.
  */
-export type BuildSocialOgImageRequest = () => Promise<
-  SocialOgImageRequest | undefined
->;
+export type BuildSocialOgImageRequest = (
+  context: SocialShareCardContext,
+) => Promise<SocialOgImageRequest | undefined>;
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
@@ -342,6 +352,7 @@ export const resolveSocialShareImageUrl = async (
   buildRequest: BuildSocialOgImageRequest,
   signal?: AbortSignal,
   timeoutMs: number = OG_IMAGE_TIMEOUT_MS,
+  context: SocialShareCardContext = {},
 ): Promise<string> => {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -349,7 +360,7 @@ export const resolveSocialShareImageUrl = async (
   logSocialOgShare('Resolving card image', { timeoutMs });
   try {
     const work = (async () => {
-      const built = await buildRequest();
+      const built = await buildRequest(context);
       const request = built ?? { kind: 'generic' as const };
       logSocialOgShare(
         built
@@ -397,7 +408,7 @@ export const toSocialBranchDeeplinkPath = (canonicalUrl: string): string => {
 };
 
 const shareLink = (
-  canonicalUrl: string,
+  routeUrl: string,
   openGraph: SocialLinkOpenGraph | undefined,
   onShared?: () => void,
   buildOgImageRequest?: BuildSocialOgImageRequest,
@@ -407,22 +418,31 @@ const shareLink = (
   const controller = new AbortController();
   activeShareAbort = controller;
   const isCurrent = () => generation === shareGeneration;
-  const deeplinkPath = toSocialBranchDeeplinkPath(canonicalUrl);
   logSocialOgShare('Share started', {
     generation,
-    canonicalUrl,
-    deeplinkPath,
+    routeUrl,
     linkMode: SOCIAL_SHARE_LINK_MODE,
     openGraph,
     hasCardBuilder: Boolean(buildOgImageRequest),
   });
 
   return (async () => {
+    const promoCode = await resolveSocialSharePromoCode();
+    if (!isCurrent()) {
+      logSocialOgShare('Share superseded after the promo code step', {
+        generation,
+      });
+      return;
+    }
+    const canonicalUrl = withSocialSharePromoCode(routeUrl, promoCode);
+    const deeplinkPath = toSocialBranchDeeplinkPath(canonicalUrl);
     let preview = openGraph;
     if (openGraph && buildOgImageRequest) {
       const imageUrl = await resolveSocialShareImageUrl(
         buildOgImageRequest,
         controller.signal,
+        undefined,
+        { promoCode },
       );
       if (!isCurrent()) {
         logSocialOgShare('Share superseded after the card step', {
@@ -438,6 +458,8 @@ const shareLink = (
     }
     logSocialOgShare('Preview ready for link generation', {
       generation,
+      canonicalUrl,
+      deeplinkPath,
       linkMode: SOCIAL_SHARE_LINK_MODE,
       preview,
     });

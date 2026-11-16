@@ -9,7 +9,10 @@ import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
 /**
  * Submits the Immersve Money account funding approval in the background.
  *
- * The pending, success and error toasts come from `confirmLinkInBackground`.
+ * The pending and error toasts come from `confirmLinkInBackground`. Success
+ * does not toast: the card is still being created, and Card Home shows that.
+ * Pass `holdToastsUntil` to keep those toasts off screen until the promise
+ * resolves. The KYC screen uses it so linking stays quiet on "You're verified".
  * A successful submission raises `immersveFundingSettling` so Card Home can
  * wait for Immersve to observe the allowance and create the card.
  * `isApproving` follows the controller's in-progress flag, which is set
@@ -23,10 +26,17 @@ export function useImmersveMoneyAccountFundingApproval() {
   });
 
   const approveFunding = useCallback(
-    async (entrypoint: CardEntryPoint | string): Promise<boolean> => {
+    async (
+      entrypoint: CardEntryPoint | string,
+      options?: { holdToastsUntil?: Promise<void> },
+    ): Promise<boolean> => {
       const linked = await confirmLinkInBackground({
         delegationAmountHuman: BAANX_MAX_LIMIT,
         entrypoint,
+        showSuccessToast: false,
+        ...(options?.holdToastsUntil
+          ? { holdToastsUntil: options.holdToastsUntil }
+          : {}),
       });
       if (linked) {
         dispatch(setImmersveFundingSettling(true));

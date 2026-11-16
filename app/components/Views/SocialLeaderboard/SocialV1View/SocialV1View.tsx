@@ -16,8 +16,10 @@ import {
   useNavigation,
   useRoute,
   type NavigationProp,
+  type ParamListBase,
   type RouteProp,
 } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
   useCallback,
@@ -199,6 +201,7 @@ const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
   const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const tabNavigation = useNavigation<BottomTabNavigationProp<ParamListBase>>();
   const route =
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
@@ -501,7 +504,7 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenComposer = useCallback(() => {
     playSelection().catch(() => undefined);
-    openComposer();
+    openComposer({ composerEntry: SocialEvent.ComposerEntry.SOCIAL_FEED });
   }, [openComposer]);
 
   const handleOpenRewards = useCallback(() => {
@@ -526,6 +529,7 @@ const SocialV1ViewContent: React.FC = () => {
       copyTradeOrigin?: CopyTradeOrigin,
       tradeMode: QuickBuyTradeMode = 'buy',
       source?: QuickBuySheetSource,
+      traderAddress?: string,
     ) => {
       const resolvedSource = source ?? quickBuySourceRef.current;
       quickBuySourceRef.current = resolvedSource;
@@ -534,16 +538,37 @@ const SocialV1ViewContent: React.FC = () => {
         copyTradeOrigin,
         features: TOP_TRADERS_QUICK_BUY_FEATURES,
         initialTradeMode: tradeMode,
-        analyticsContext: { source: resolvedSource },
+        analyticsContext: {
+          source: resolvedSource,
+          isCopyTrade: true,
+          ...(traderAddress ? { traderAddress } : {}),
+        },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
       });
     },
     [showQuickBuy],
   );
+  const reopenQuickBuy = useCallback(
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin: CopyTradeOrigin | undefined,
+      tradeMode: QuickBuyTradeMode | undefined,
+      traderAddress?: string,
+    ) => {
+      openQuickBuy(
+        target,
+        copyTradeOrigin,
+        tradeMode,
+        undefined,
+        traderAddress,
+      );
+    },
+    [openQuickBuy],
+  );
   // The Social tab stays mounted under a pushed feed route; only the visible feed may reopen.
   usePostTradeShareReopen(
-    openQuickBuy,
+    reopenQuickBuy,
     isFocused ? PostTradeShareOwner.socialV1Feed : undefined,
   );
   const handleCopyTrade = useCallback(
@@ -562,6 +587,7 @@ const SocialV1ViewContent: React.FC = () => {
         commentId ? { commentId } : undefined,
         'buy',
         source,
+        item.author.address,
       );
     },
     [openQuickBuy],
@@ -697,12 +723,58 @@ const SocialV1ViewContent: React.FC = () => {
     trendingScrollY,
   ]);
 
-  // Marks the next index change as a tap. Pressing the active tab changes nothing.
+  const scrollPageToTop = useCallback(
+    (index: number) => {
+      const pageRef = {
+        trending: trendingPageRef,
+        following: followingPageRef,
+        live: livePageRef,
+        leaderboard: leaderboardPageRef,
+      }[tabOrder[index]];
+      pageRef?.current?.scrollToOffset(0, true);
+    },
+    [tabOrder],
+  );
+
+  // Marks the next index change as a tap. Pressing the active tab instead
+  // scrolls its page back to the top.
   const handleTabPress = useCallback(
     (index: number) => {
       programmaticTabChangeRef.current = index !== activeIndex;
+      if (index === activeIndex) {
+        scrollPageToTop(index);
+      }
     },
-    [activeIndex],
+    [activeIndex, scrollPageToTop],
+  );
+
+  // Re-tapping Social in the bottom nav first scrolls the active page to the
+  // top, then, once it's already there, returns to the first tab. Focus comes
+  // from the last render: the tab's own `tabPress` listener navigates here
+  // synchronously, so `navigation.isFocused()` is already true on a switch.
+  useEffect(
+    () =>
+      tabNavigation.addListener('tabPress', () => {
+        if (!isFocused) {
+          return;
+        }
+        if (scrollY.value > 0) {
+          scrollPageToTop(activeIndex);
+          return;
+        }
+        if (activeIndex !== LANDING_INDEX) {
+          programmaticTabChangeRef.current = true;
+          changeTab(LANDING_INDEX);
+        }
+      }),
+    [
+      activeIndex,
+      changeTab,
+      isFocused,
+      scrollPageToTop,
+      scrollY,
+      tabNavigation,
+    ],
   );
 
   const renderTabBar = useCallback(
@@ -823,7 +895,7 @@ const SocialV1ViewContent: React.FC = () => {
       >
         <SocialFeedPageProviders
           isActive={isFocused && isPageActive}
-          rotatesTraderStats={isPageActive}
+          rotatesTraderStats={isFocused && isPageActive}
         >
           {renderPage(tab, isPageActive, pageRefs[tab])}
         </SocialFeedPageProviders>
