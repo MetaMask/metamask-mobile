@@ -62,6 +62,8 @@ const options = {
 };
 
 describe('PerpsBalanceOrderView', () => {
+  withLighterBuildEnabled();
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest
@@ -236,56 +238,52 @@ describe('PerpsBalanceOrderView', () => {
     }
   });
 
-  describe('with both exchanges', () => {
-    withLighterBuildEnabled();
-
-    it('selects the explicit Lighter market while aggregated', async () => {
-      const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
-      renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
-        ...options,
-        overrides: twoExchange.overrides,
-        streamOverrides: {
-          ...options.streamOverrides,
-          ...twoExchange.streamOverrides,
-          positions: [],
-          prices: options.streamOverrides.prices,
-        },
-        initialParams: {
-          asset: 'ETH',
-          direction: 'long',
-          providerId: 'lighter',
-        },
-      });
-
-      const input = await screen.findByTestId(
-        PerpsProOrderFormSelectorsIDs.SIZE_INPUT,
-      );
-      fireEvent.changeText(input, '10');
-      const submit = screen.getByTestId(
-        PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      await waitFor(() => expect(submit).toBeEnabled());
-      fireEvent.press(submit);
-
-      await waitFor(() =>
-        expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            symbol: 'ETH',
-            providerId: 'lighter',
-          }),
-        ),
-      );
-      await waitFor(
-        () =>
-          expect(
-            screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
-          ).toHaveProp('value', ''),
-        { timeout: 5000 },
-      );
-      expect(
-        Engine.context.PerpsController.depositWithOrder,
-      ).not.toHaveBeenCalled();
+  it('selects the explicit Lighter market while aggregated', async () => {
+    const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      overrides: twoExchange.overrides,
+      streamOverrides: {
+        ...options.streamOverrides,
+        ...twoExchange.streamOverrides,
+        positions: [],
+        prices: options.streamOverrides.prices,
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        providerId: 'lighter',
+      },
     });
+
+    const input = await screen.findByTestId(
+      PerpsProOrderFormSelectorsIDs.SIZE_INPUT,
+    );
+    fireEvent.changeText(input, '10');
+    const submit = screen.getByTestId(
+      PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.press(submit);
+
+    await waitFor(() =>
+      expect(Engine.context.PerpsController.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'ETH',
+          providerId: 'lighter',
+        }),
+      ),
+    );
+    await waitFor(
+      () =>
+        expect(
+          screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+        ).toHaveProp('value', ''),
+      { timeout: 5000 },
+    );
+    expect(
+      Engine.context.PerpsController.depositWithOrder,
+    ).not.toHaveBeenCalled();
   });
 
   it('blocks a Lighter limit order once both take profit and stop loss are set', async () => {
