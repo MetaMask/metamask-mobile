@@ -120,20 +120,37 @@ export async function findRecoveryIdentifier(
 }
 
 /**
+ * Proves `identifier` to escrow and returns the Recovery Secret.
+ * May show a passkey / social sheet — call before Create password UI so submit
+ * does not prompt again. Caller owns the returned bytes and must zero them.
+ *
+ * @param dependencies - The flow's dependencies.
+ * @param identifier - From {@link findRecoveryIdentifier}.
+ * @returns Recovery secret bytes (length {@link RECOVERY_SECRET_LENGTH}).
+ */
+export async function fetchRecoverySecret(
+  dependencies: PasswordlessRecoveryDependencies,
+  identifier: Identifier,
+): Promise<Uint8Array> {
+  return await readRecoverySecret(dependencies, identifier);
+}
+
+/**
  * Recovers the social wallet without its old password and makes
  * `newPassword` the wallet password.
  *
- * Runs after the locked MFA verification. In parallel, it mints the aal2
- * token and opens the TOPRF recovery session, and proves `identifier` to the
- * escrow to read the Recovery Secret. It then recovers the vault keys with
- * the secret, creates the local seedless vault under `newPassword`, makes it
- * the global password, and finally creates the keyring vault.
+ * Runs after the locked MFA verification. Opens the TOPRF recovery session
+ * (held AAL2, no UI) and uses the Recovery Secret — either prefetched via
+ * {@link fetchRecoverySecret} or read here (may prompt passkey). Then sets
+ * the local/global password and restores the keyring vault.
  *
  * @param dependencies - The flow's dependencies.
  * @param params - The parameters.
  * @param params.identifier - From {@link findRecoveryIdentifier}.
  * @param params.newPassword - The new wallet password. Never logged.
  * @param params.restoreVault - Creates the keyring vault from the secrets.
+ * @param params.recoverySecret - Optional secret from {@link fetchRecoverySecret}
+ * so Create password submit skips the escrow passkey sheet.
  * @throws {PasswordlessRecoveryError} With the stage that failed.
  */
 export async function recoverWalletWithoutPassword(
@@ -142,6 +159,7 @@ export async function recoverWalletWithoutPassword(
     identifier,
     newPassword,
     restoreVault,
+    recoverySecret: prefetchedRecoverySecret,
   }: {
     identifier: Identifier;
     newPassword: string;
@@ -149,6 +167,7 @@ export async function recoverWalletWithoutPassword(
       password: string,
       secrets: SecretMetadata[],
     ) => Promise<void>;
+    recoverySecret?: Uint8Array;
   },
 ): Promise<void> {
   const { seedless } = dependencies;
@@ -156,8 +175,11 @@ export async function recoverWalletWithoutPassword(
   let secrets: SecretMetadata[];
   let step = 'reading_secret';
   try {
+    const secretPromise = prefetchedRecoverySecret
+      ? Promise.resolve(prefetchedRecoverySecret)
+      : readRecoverySecret(dependencies, identifier);
     const [secretResult, sessionResult] = await Promise.allSettled([
-      readRecoverySecret(dependencies, identifier),
+      secretPromise,
       openRecoverySession(dependencies),
     ]);
     if (secretResult.status === 'rejected') {

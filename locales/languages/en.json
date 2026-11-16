@@ -11231,14 +11231,31 @@
     "ios_google_login_unsupported_blocking_rehydration_button": "Close"
   },
   "wallet_recovery_mfa": {
+    "header": "Wallet recovery",
     "verify_title": "Verify it's you",
     "verify_description": "Choose a security method to recover your wallet.",
+    "use_passkey": "Use passkey",
+    "or": "or",
+    "method_password": "Password",
+    "method_email": "Email",
+    "method_totp": "Authenticator app",
+    "method_failed": "Verification failed. Try again or choose another method.",
+    "offline_reason": "Connect to the internet to use these methods.",
+    "cant_use_these": "Can't use any of these?",
     "password_description": "Enter your password to continue",
+    "create_password_title": "Create a password",
+    "create_password_description": "Use this password to unlock MetaMask on this device. It doesn’t replace your Secret Recovery Phrase.",
+    "create_password_cta": "Create password",
+    "enter_password_title": "Enter password",
+    "enter_password_biometric_rejected": "Since {{biometryType}} isn't enabled, enter your MetaMask password to unlock this device.",
+    "biometry_fingerprint": "Fingerprint",
     "show_password": "Show password",
     "hide_password": "Hide password",
     "recovery_failed": "We couldn't recover your wallet. Try again or use your old password.",
-    "recovery_password_already_set": "Your new password is set. Unlock your wallet with it."
+    "recovery_password_already_set": "Your new password is set. Unlock your wallet with it.",
+    "confirm_passkey_to_recover": "Confirm with your passkey to recover your wallet"
   },
+
   "password_hint": {
     "title": "Password hint",
     "description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",

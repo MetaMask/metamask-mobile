@@ -795,7 +795,6 @@ export type RootStackParamList = {
   ResetPassword: undefined;
   ContactForm: ContactFormParams | undefined;
   DeveloperOptions: undefined;
-  PasswordlessRecoveryDeveloperOptions: undefined;
   ExperimentalSettings: undefined;
   AesCryptoTestForm: undefined;
   WalletRecovery: undefined;

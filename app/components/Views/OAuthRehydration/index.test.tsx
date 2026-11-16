@@ -219,22 +219,30 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => {
 });
 
 const mockVerifyForSocialLogin = jest.fn();
+const mockListActiveSocialLoginMethods = jest.fn();
 jest.mock('../../../util/identity/mfa', () => ({
   useMfa: () => ({
     credentials: [],
     verifyOrEnroll: jest.fn(),
     enroll: jest.fn(),
+    listActiveSocialLoginMethods: (...args: unknown[]) =>
+      mockListActiveSocialLoginMethods(...args),
     verifyForSocialLogin: (...args: unknown[]) =>
       mockVerifyForSocialLogin(...args),
   }),
 }));
 
 const mockPasswordlessPrepare = jest.fn().mockResolvedValue(false);
+const mockPasswordlessPrefetch = jest.fn().mockResolvedValue(true);
 const mockPasswordlessRecover = jest.fn().mockResolvedValue(undefined);
-jest.mock('./usePasswordlessRecovery', () => ({
+const mockPasswordlessClear = jest.fn();
+jest.mock('../../../core/MfaRecovery/usePasswordlessRecovery', () => ({
   usePasswordlessRecovery: () => ({
     prepare: (...args: unknown[]) => mockPasswordlessPrepare(...args),
+    prefetchForChoosePassword: (...args: unknown[]) =>
+      mockPasswordlessPrefetch(...args),
     recover: (...args: unknown[]) => mockPasswordlessRecover(...args),
+    clear: (...args: unknown[]) => mockPasswordlessClear(...args),
   }),
 }));
 
@@ -302,6 +310,8 @@ describe('OAuthRehydration', () => {
     mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
     mockSelectMfaRecoveryEnabled.mockReturnValue(false);
     mockVerifyForSocialLogin.mockReset();
+    mockListActiveSocialLoginMethods.mockReset();
+    mockListActiveSocialLoginMethods.mockResolvedValue([]);
     mockPasswordlessPrepare.mockReset();
     mockPasswordlessPrepare.mockResolvedValue(false);
     mockPasswordlessRecover.mockReset();
@@ -1572,12 +1582,28 @@ describe('OAuthRehydration', () => {
       mockSelectMoneyEnableMfaFlag.mockReturnValue(true);
     };
 
-    it('holds on loading while locked MFA is in flight', async () => {
+    /** List enrolled methods → verify screen → pick passkey → kit verify. */
+    const completePasskeyVerify = async (
+      getByTestId: (id: string) => unknown,
+    ) => {
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON) as never,
+        );
+      });
+    };
+
+    it('holds on loading while listing enrolled methods', async () => {
       enableMfaFlags();
-      let resolveVerify!: (value: unknown) => void;
-      mockVerifyForSocialLogin.mockReturnValue(
+      let resolveList!: (value: unknown) => void;
+      mockListActiveSocialLoginMethods.mockReturnValue(
         new Promise((resolve) => {
-          resolveVerify = resolve;
+          resolveList = resolve;
         }),
       );
 
@@ -1590,43 +1616,65 @@ describe('OAuthRehydration', () => {
       ).toBeOnTheScreen();
 
       await act(async () => {
-        resolveVerify({ token: 'aal2-token' });
+        resolveList(['passkey']);
       });
 
       await waitFor(() => {
         expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
         ).toBeOnTheScreen();
       });
     });
 
-    it('holds the AAL2 token and continues to password after kit verify', async () => {
+    it('shows only enrolled methods on the custom verify picker', async () => {
       enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        { state: mfaState },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP)).toBeNull();
+      expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
+    });
+
+    it('holds the AAL2 token and continues to password after picker verify', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
       });
 
+      await completePasskeyVerify(getByTestId);
+
       await waitFor(() => {
         expect(
           getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
-      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+      expect(mockVerifyForSocialLogin).toHaveBeenCalledWith(
+        expect.objectContaining({ method: 'passkey' }),
+      );
       expect(
         mockEngine.context.AuthenticationController
           .holdLockedRecoveryVerification,
       ).toHaveBeenCalledWith('aal2-token');
     });
 
-    it('continues to password when locked MFA is skipped', async () => {
+    it('continues to password when no MFA methods are enrolled', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValue(
-        Object.assign(new Error('no methods'), {
-          code: 'credential_not_enrolled',
-        }),
-      );
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
@@ -1637,6 +1685,7 @@ describe('OAuthRehydration', () => {
           getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
+      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
       expect(
         mockEngine.context.AuthenticationController
           .holdLockedRecoveryVerification,
@@ -1662,7 +1711,7 @@ describe('OAuthRehydration', () => {
       expect(
         getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
       ).toBeOnTheScreen();
-      expect(mockVerifyForSocialLogin).not.toHaveBeenCalled();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
@@ -1678,11 +1727,7 @@ describe('OAuthRehydration', () => {
 
     it('unlocks from MFA password step', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValue(
-        Object.assign(new Error('no methods'), {
-          code: 'credential_not_enrolled',
-        }),
-      );
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
       mockUnlockWallet.mockImplementationOnce(
         async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
           if (options.onBeforeNavigate) {
@@ -1717,11 +1762,7 @@ describe('OAuthRehydration', () => {
 
     it('exits recovery when hardware back is pressed from password', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValue(
-        Object.assign(new Error('no methods'), {
-          code: 'credential_not_enrolled',
-        }),
-      );
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
       const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
@@ -1755,11 +1796,7 @@ describe('OAuthRehydration', () => {
           isSeedlessPasswordOutdated: true,
         },
       });
-      mockVerifyForSocialLogin.mockRejectedValue(
-        Object.assign(new Error('no methods'), {
-          code: 'credential_not_enrolled',
-        }),
-      );
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
         <OAuthRehydration />,
@@ -1781,12 +1818,15 @@ describe('OAuthRehydration', () => {
 
     it('skips holding a token when kit verify returns none', async () => {
       enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ credentials: [] });
       mockPasswordlessPrepare.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
       });
+
+      await completePasskeyVerify(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -1811,12 +1851,15 @@ describe('OAuthRehydration', () => {
           isSeedlessPasswordOutdated: true,
         },
       });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
       mockPasswordlessPrepare.mockResolvedValue(true);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
       });
+
+      await completePasskeyVerify(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -1829,6 +1872,7 @@ describe('OAuthRehydration', () => {
 
     it('runs passwordless recover after prepare succeeds', async () => {
       enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
       mockPasswordlessPrepare.mockResolvedValue(true);
       mockPasswordlessRecover.mockImplementation(
@@ -1851,6 +1895,8 @@ describe('OAuthRehydration', () => {
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
         state: mfaState,
       });
+
+      await completePasskeyVerify(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -1882,6 +1928,7 @@ describe('OAuthRehydration', () => {
 
     it('shows the already-set password error when recovery fails while restoring the vault', async () => {
       enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
       mockPasswordlessPrepare.mockResolvedValue(true);
       mockPasswordlessRecover.mockRejectedValue(
@@ -1896,6 +1943,8 @@ describe('OAuthRehydration', () => {
           state: mfaState,
         },
       );
+
+      await completePasskeyVerify(getByTestId);
 
       await waitFor(() => {
         expect(
@@ -1920,6 +1969,7 @@ describe('OAuthRehydration', () => {
 
     it('shows a recovery failed error for earlier passwordless failures', async () => {
       enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
       mockVerifyForSocialLogin.mockResolvedValue({ token: 'aal2-token' });
       mockPasswordlessPrepare.mockResolvedValue(true);
       mockPasswordlessRecover.mockRejectedValue(
@@ -1936,6 +1986,8 @@ describe('OAuthRehydration', () => {
           state: mfaState,
         },
       );
+
+      await completePasskeyVerify(getByTestId);
 
       await waitFor(() => {
         expect(

@@ -9,6 +9,7 @@ import {
 import { bytesToHex } from '@metamask/utils';
 import { RECOVERY_SECRET_LENGTH } from '../Engine/controllers/mfa-recovery-controller/constants';
 import {
+  fetchRecoverySecret,
   findRecoveryIdentifier,
   PasswordlessRecoveryError,
   recoverWalletWithoutPassword,
@@ -184,6 +185,22 @@ describe('findRecoveryIdentifier', () => {
   });
 });
 
+describe('fetchRecoverySecret', () => {
+  it('proves the identifier and returns a copy of the Recovery Secret', async () => {
+    const dependencies = createDependencies();
+
+    const secret = await fetchRecoverySecret(dependencies, PASSKEY);
+
+    expect(
+      dependencies.mfaRecovery.authenticateIdentifier,
+    ).toHaveBeenCalledWith(PASSKEY);
+    expect(secret).toHaveLength(RECOVERY_SECRET_LENGTH);
+    expect(secret).toStrictEqual(
+      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
+    );
+  });
+});
+
 describe('recoverWalletWithoutPassword', () => {
   it('recovers the secrets, sets the new password, then restores the vault', async () => {
     const dependencies = createDependencies();
@@ -234,6 +251,29 @@ describe('recoverWalletWithoutPassword', () => {
       'setLocalPassword',
       'resetPasswordWithVaultKeys',
     ]);
+  });
+
+  it('skips escrow authenticateIdentifier when a Recovery Secret is prefetched', async () => {
+    const dependencies = createDependencies();
+    const restoreVault = jest.fn(async () => undefined);
+    const prefetched = new Uint8Array(RECOVERY_SECRET_LENGTH).fill(3);
+
+    await recoverWalletWithoutPassword(dependencies, {
+      identifier: PASSKEY,
+      newPassword: NEW_PASSWORD,
+      restoreVault,
+      recoverySecret: prefetched,
+    });
+
+    expect(
+      dependencies.mfaRecovery.authenticateIdentifier,
+    ).not.toHaveBeenCalled();
+    expect(dependencies.mfaRecovery.getRecoverySecret).not.toHaveBeenCalled();
+    expect(dependencies.seedless.recoverWithRecoverySecret).toHaveBeenCalled();
+    expect(prefetched).toStrictEqual(
+      new Uint8Array(RECOVERY_SECRET_LENGTH).fill(0),
+    );
+    expect(restoreVault).toHaveBeenCalled();
   });
 
   it('reports recovering_secrets when the escrow read fails', async () => {

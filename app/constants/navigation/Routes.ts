@@ -248,8 +248,6 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     CONTACT_FORM: 'ContactForm',
     DEVELOPER_OPTIONS: 'DeveloperOptions',
-    PASSWORDLESS_RECOVERY_DEVELOPER_OPTIONS:
-      'PasswordlessRecoveryDeveloperOptions',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
     NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',

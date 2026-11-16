@@ -464,6 +464,12 @@ jest.mock('../../util/trace', () => ({
   getTraceContext: (...args: any[]) => mockGetTraceContext(...args),
 }));
 
+jest.mock('../MfaRecovery/ensurePasswordlessRecoverySetup', () => ({
+  ensurePasswordlessRecoverySetup: jest
+    .fn()
+    .mockResolvedValue({ status: 'skipped', reason: 'flag_off' }),
+}));
+
 const mockMultichainAccountGroup = {
   getAccounts: jest.fn().mockReturnValue([
     {

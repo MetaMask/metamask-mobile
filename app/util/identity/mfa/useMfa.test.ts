@@ -149,6 +149,23 @@ describe('useMfa', () => {
     );
   });
 
+  describe('listActiveSocialLoginMethods', () => {
+    it('returns active methods in cost order from social credentials', async () => {
+      const refreshEnrolledCredentials = jest.fn().mockResolvedValue([
+        { id: 'email', type: 'email_otp', status: 'active' },
+        { id: 'pk', type: 'passkey', status: 'active' },
+        { id: 'old', type: 'totp', status: 'disabled' },
+      ]);
+      jest.mocked(createSocialLoginControllerAdapter).mockReturnValue({
+        refreshEnrolledCredentials,
+      } as unknown as MfaControllerAdapter);
+
+      expect(await renderUseMfa().listActiveSocialLoginMethods()).toStrictEqual(
+        ['passkey', 'email_otp'],
+      );
+    });
+  });
+
   describe('verifyForSocialLogin', () => {
     beforeEach(() => {
       mockStartMfaFlow.mockClear();
@@ -174,6 +191,25 @@ describe('useMfa', () => {
         reportError: expect.any(Function),
         trackEvent: expect.any(Function),
       });
+    });
+
+    it('verifies only the requested method from the custom picker', async () => {
+      await renderUseMfa().verifyForSocialLogin({
+        reason,
+        method: 'totp',
+      });
+
+      expect(mockStartMfaFlow).toHaveBeenCalledTimes(1);
+      expect(mockStartMfaFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          request: {
+            kind: 'verifyOrEnroll',
+            methods: ['totp'],
+            verifyWith: ['totp'],
+            verifyOnly: true,
+          },
+        }),
+      );
     });
 
     it('tries the next method when the higher one is not enrolled', async () => {

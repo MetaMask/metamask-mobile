@@ -70,6 +70,7 @@ import {
   type SecretMetadata,
 } from '@metamask/seedless-onboarding-controller';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
+import { ensurePasswordlessRecoverySetup } from '../MfaRecovery/ensurePasswordlessRecoverySetup';
 import { selectAnalyticsId } from '../../selectors/analyticsController';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import {
@@ -1056,6 +1057,11 @@ class AuthenticationService {
 
           // Mark user as existing after successful unlock
           ReduxService.store.dispatch(setExistingUser(true));
+
+          // Existing social wallets: seal Recovery Secret while unlocked and
+          // before home navigation so a passkey sheet is not raced. Soft-fails.
+          // No-op when already sealed, flag off, or not a seedless wallet.
+          await ensurePasswordlessRecoverySetup();
 
           if (onBeforeNavigate) {
             await onBeforeNavigate();
