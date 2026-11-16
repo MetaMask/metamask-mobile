@@ -681,6 +681,31 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.KYC', () => {
+    it('opens the Money account screen and ignores the session id', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.KYC}/fd45a61a-0795-454b-98ed-24d005dba30d`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.KYC}/fd45a61a-0795-454b-98ed-24d005dba30d`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({
+        moneyPath: '?screen=account',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.NOTIFICATIONS_SETTINGS', () => {
     it('calls handleNotificationsSettingsUrl with the path after the action', async () => {
       const notificationsSettingsPath = '?section=price-alerts';

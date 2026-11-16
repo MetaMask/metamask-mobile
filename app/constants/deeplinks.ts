@@ -64,6 +64,11 @@ export enum ACTIONS {
   ON_RAMP = 'on-ramp',
   MONEY = 'money',
   MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
+  /**
+   * `https://link.metamask.io/kyc/:sessionId`. Opens the Money account screen
+   * until that path has its own KYC screen.
+   */
+  KYC = 'kyc',
 }
 
 export const PREFIXES = {
@@ -110,6 +115,7 @@ export const PREFIXES = {
   [ACTIONS.ON_RAMP]: '',
   [ACTIONS.MONEY]: '',
   [ACTIONS.MONEY_ACCOUNT_DEPOSIT]: '',
+  [ACTIONS.KYC]: '',
   [ACTIONS.NOTIFICATIONS_SETTINGS]: '',
   METAMASK: 'metamask://',
 };
