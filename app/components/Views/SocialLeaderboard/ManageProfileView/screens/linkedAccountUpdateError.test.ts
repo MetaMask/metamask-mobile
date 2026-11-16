@@ -5,18 +5,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
 
-const cooldown = (days = 30) =>
-  strings(
-    'social_leaderboard.manage_profile.linked_account_cooldown_time_left',
-    {
-      days,
-    },
-  );
-
 const windowCopy = (days = 30) =>
   strings('social_leaderboard.manage_profile.linked_account_cooldown', {
     days,
   });
+
+const windowCopyFallback = () =>
+  strings('social_leaderboard.manage_profile.linked_account_cooldown_default');
 
 /**
  * The shape `HttpError` from @metamask/controller-utils carries. The preview
@@ -56,20 +51,19 @@ describe('getLinkedAccountUpdateError', () => {
     );
   });
 
-  it('explains the time left when the refusal reports a remainder', () => {
+  it('states a one-day window with the plural key rather than the fallback', () => {
+    expect(getLinkedAccountUpdateError(cooldownError(403, 1))).toBe(
+      windowCopy(1),
+    );
+  });
+
+  it('states a one-day window from the message with the plural key', () => {
     const error = profileApiError(
       ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
-      'ProfileService: failed to update profile: 403: Too soon',
-      [
-        {
-          code: 'RETRY_AFTER',
-          message: 'Too soon',
-          meta: { retry_after_seconds: 3_600 },
-        },
-      ],
+      'ProfileService: failed to update profile: 403: Linked addresses can only be updated once every 1 day',
     );
 
-    expect(getLinkedAccountUpdateError(error)).toBe(cooldown(1));
+    expect(getLinkedAccountUpdateError(error)).toBe(windowCopy(1));
   });
 
   it('matches the message case-insensitively', () => {
@@ -92,7 +86,7 @@ describe('getLinkedAccountUpdateError', () => {
     expect(getLinkedAccountUpdateError(error)).toBe(windowCopy(23));
   });
 
-  it('prefers the time left from the retry detail over the window in the message', () => {
+  it('keeps stating the window when the refusal also reports the time left', () => {
     const error = profileApiError(
       ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
       'ProfileService: failed to update profile: 403: Linked addresses can only be updated once every 30 days',
@@ -105,10 +99,19 @@ describe('getLinkedAccountUpdateError', () => {
       ],
     );
 
-    expect(getLinkedAccountUpdateError(error)).toBe(cooldown(3));
+    expect(getLinkedAccountUpdateError(error)).toBe(windowCopy());
   });
 
-  it('reads the time left from the retry detail when the message has no day count', () => {
+  it('explains the cooldown with the fallback copy when the code has no day count', () => {
+    const error = profileApiError(
+      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
+      'ProfileService: failed to update profile: 403: Too soon',
+    );
+
+    expect(getLinkedAccountUpdateError(error)).toBe(windowCopyFallback());
+  });
+
+  it('explains the cooldown with the fallback copy when only the time left is reported', () => {
     const error = profileApiError(
       ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
       'ProfileService: failed to update profile: 403: Too soon',
@@ -116,21 +119,12 @@ describe('getLinkedAccountUpdateError', () => {
         {
           code: 'RETRY_AFTER',
           message: 'Too soon',
-          meta: { retry_after_seconds: 7 * 86_400 },
+          meta: { retry_after_seconds: 3_600 },
         },
       ],
     );
 
-    expect(getLinkedAccountUpdateError(error)).toBe(cooldown(7));
-  });
-
-  it('explains the cooldown with the policy window when the code has no day count', () => {
-    const error = profileApiError(
-      ProfileApiErrorCode.ProfileLinkedAddressesCooldown,
-      'ProfileService: failed to update profile: 403: Too soon',
-    );
-
-    expect(getLinkedAccountUpdateError(error)).toBe(windowCopy(30));
+    expect(getLinkedAccountUpdateError(error)).toBe(windowCopyFallback());
   });
 
   it('stays quiet for a different code even when the message matches', () => {

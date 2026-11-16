@@ -4,10 +4,7 @@ import {
 } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { extractHttpStatus } from '../../../../../util/social/socialServiceTelemetry';
-import {
-  LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS,
-  LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
-} from '../errors/profileApiErrorMessageKeys';
+import { LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS } from '../errors/profileApiErrorMessageKeys';
 
 /**
  * The Profile API refuses a change inside the cooldown window with
@@ -18,9 +15,7 @@ const LINKED_ADDRESS_COOLDOWN_STATUS = 403;
 
 /** The API's cooldown explanation, capturing the length of the window. */
 const LINKED_ADDRESS_COOLDOWN_PATTERN =
-  /linked addresses can only be updated once every (\d+) days/i;
-
-const SECONDS_PER_DAY = 86_400;
+  /linked addresses can only be updated once every (\d+) days?/i;
 
 /**
  * The message carried by a thrown error, or '' for a value that is not one.
@@ -31,42 +26,23 @@ const getErrorMessage = (error: unknown): string =>
   error instanceof Error ? error.message : '';
 
 /**
- * The time left in the cooldown, from the `RETRY_AFTER` detail. The message
- * carries the full window and does not shrink as the cooldown elapses, so it
- * is not a time left. A refusal without the detail returns null.
- */
-const getCooldownDays = (error: unknown): number | null => {
-  const retryAfterSeconds = findProfileServiceError(error)?.details?.find(
-    (detail) => detail.code === 'RETRY_AFTER',
-  )?.meta?.retry_after_seconds;
-
-  if (typeof retryAfterSeconds === 'number' && retryAfterSeconds > 0) {
-    return Math.ceil(retryAfterSeconds / SECONDS_PER_DAY);
-  }
-
-  return null;
-};
-
-/**
- * The cooldown copy: the time left when the refusal reports it. Otherwise the
- * window the message states, so the user is not told to wait longer than they
- * need to.
+ * The cooldown copy: the window the refusal states, so it never overstates how
+ * long the user must wait. The `RETRY_AFTER` detail is deliberately not used —
+ * it is the time left, which shrinks as the cooldown elapses, and this copy
+ * states the window. A refusal that states no day count uses the fallback key,
+ * which spells out the 30-day policy window.
  */
 const getCooldownCopy = (error: unknown): string => {
-  const days = getCooldownDays(error);
-
-  if (days !== null) {
-    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.timeLeft, { days });
-  }
-
   const serviceError = findProfileServiceError(error);
   const message = serviceError?.message ?? getErrorMessage(error);
   const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
 
-  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.window, {
-    days: fromMessage
-      ? Number(fromMessage)
-      : LINKED_ADDRESS_COOLDOWN_POLICY_DAYS,
+  if (!fromMessage) {
+    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.default);
+  }
+
+  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, {
+    days: Number(fromMessage),
   });
 };
 

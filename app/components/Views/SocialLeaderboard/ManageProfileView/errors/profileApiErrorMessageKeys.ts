@@ -41,19 +41,18 @@ export const PROFILE_FIELD_REJECTION_MESSAGE_KEYS: Partial<
 };
 
 /**
- * Copy for the linked-address cooldown refusal. The two keys state different
- * numbers: `timeLeft` is the time remaining from the `RETRY_AFTER` detail,
- * `window` is the cooldown length the refusal states, or the policy window
- * when it states none.
+ * Copy for the linked-address cooldown refusal. It states the cooldown window,
+ * not the time left: the `RETRY_AFTER` detail shrinks as the cooldown elapses,
+ * so it cannot fill the `{{days}}` in "once every {{days}} days".
+ *
+ * `one` is the fallback for a refusal that states no day count, so it spells
+ * out the 30-day policy window. `other` restates whatever window the refusal
+ * names, which is why it takes `{{days}}`.
  */
 export const LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS = {
-  timeLeft:
-    'social_leaderboard.manage_profile.linked_account_cooldown_time_left',
-  window: 'social_leaderboard.manage_profile.linked_account_cooldown',
+  default: 'social_leaderboard.manage_profile.linked_account_cooldown_default',
+  other: 'social_leaderboard.manage_profile.linked_account_cooldown',
 } as const;
-
-/** The window the API enforces, used when a refusal states no day count. */
-export const LINKED_ADDRESS_COOLDOWN_POLICY_DAYS = 30;
 
 /**
  * Copy for profile save/update failures that are not field-specific. Codes
