@@ -13490,6 +13490,15 @@
     "perps_movers_pill_gainers": "Gainers",
     "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
+    "crypto_tokens_section": "Tokens",
+    "crypto_pills": {
+      "watchlist": "Watchlist",
+      "trending": "Trending",
+      "top_gainers": "Top gainers",
+      "top_losers": "Top losers",
+      "most_traded": "Most traded",
+      "robinhood": "Robinhood"
+    },
     "crypto": "Crypto",
     "stocks": "Stocks",
     "price_change": "Price change",
