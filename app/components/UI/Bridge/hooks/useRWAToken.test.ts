@@ -1026,6 +1026,11 @@ describe('isTokenTradableAt', () => {
     expect(isTokenTradableAt(t, true, NOW)).toBe(false);
   });
 
+  it('returns true when rwaData is present but has no market object', () => {
+    const t = makeToken();
+    expect(isTokenTradableAt(t, true, NOW)).toBe(true);
+  });
+
   it('returns true for a Robinhood-shaped token with unspecified instrument type', () => {
     const t: BridgeToken = {
       address: '0x07c44da0848960bff894f17584db8b2f60b2409e',
