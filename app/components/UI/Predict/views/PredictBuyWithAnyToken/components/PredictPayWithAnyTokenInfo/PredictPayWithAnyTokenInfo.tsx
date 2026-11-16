@@ -13,7 +13,7 @@ import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 import EngineService from '../../../../../../../core/EngineService';
 import { getPredictBuyAllInCost } from '../../../../utils/orders';
-import { selectEvmAssetIdResolver } from '../../../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../../../selectors/assets/assets-controller';
 import { isSameAssetId } from '../../../../../../../util/transactions/payment-token';
 
 interface PredictPayWithAnyTokenInfoProps {
@@ -61,7 +61,7 @@ function PredictPayWithAnyTokenInfoInner({
     usePredictPaymentToken();
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
   const { setPayToken, payToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -188,7 +188,7 @@ function PredictPayWithAnyTokenInfoInner({
       return;
     }
 
-    const selectedAssetId = resolveAssetId({
+    const selectedAssetId = encodeAssetId({
       address: address as Hex,
       chainId: chainId as Hex,
     });
@@ -203,7 +203,7 @@ function PredictPayWithAnyTokenInfoInner({
     isPredictBalanceSelected,
     selectedPaymentToken,
     payToken?.assetId,
-    resolveAssetId,
+    encodeAssetId,
     setPayToken,
   ]);
 

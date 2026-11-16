@@ -52,7 +52,7 @@ import {
 } from '../../utils/perpsPaymentTokenSelection';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -91,7 +91,7 @@ export const PerpsPayTokenIcon = () => {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const displayToken = matchesPerpsBalance
     ? {
         address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,

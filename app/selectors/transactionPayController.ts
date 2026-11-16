@@ -6,7 +6,7 @@ import {
 import { Hex } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
-import { getPaymentTokenEvmAsset } from '../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../util/transactions/payment-token';
 import { selectInternalAccountsById } from './accountsController';
 
 /**
@@ -31,7 +31,7 @@ export function isNoOpQuote(
  * @returns Whether direct submission is safe.
  */
 function isValidatedDirectDeposit(data: TransactionData | undefined): boolean {
-  const paymentToken = getPaymentTokenEvmAsset(data?.paymentToken);
+  const paymentToken = decodePaymentTokenAssetId(data?.paymentToken);
 
   if (!paymentToken) {
     return false;

@@ -12,7 +12,7 @@ import { AssetType } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   evmAssetId,
-  resolveEvmAssetIdMock,
+  encodeEvmAssetIdMock,
 } from '../../__mocks__/pay-token.mock';
 
 jest.mock('react-redux', () => ({
@@ -85,7 +85,7 @@ describe('usePayWithPreferredToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useSelector).mockReturnValue(resolveEvmAssetIdMock);
+    jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
     useAutomaticTransactionPayTokenMock.mockReturnValue(TOKEN_ASSET_MOCK);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({

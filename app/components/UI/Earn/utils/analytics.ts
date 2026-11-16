@@ -4,7 +4,7 @@ import { Hex, Json } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import type { DeepSnakeCaseKeys } from './analytics.types';
-import { getEvmAsset } from '../../../../util/transactions/payment-token';
+import { decodeEvmAssetId } from '../../../../util/transactions/payment-token';
 
 /**
  * Formats a chain ID for analytics tracking.
@@ -67,7 +67,7 @@ export function getMusdConversionQuoteTrackingData(
   const quoteRequest = quote?.request;
 
   const quoteSourceAsset =
-    quoteRequest && getEvmAsset(quoteRequest.sourceAssetId);
+    quoteRequest && decodeEvmAssetId(quoteRequest.sourceAssetId);
   const quotePaymentChainId = quoteSourceAsset?.chainId;
   const quoteOutputChainId = quoteRequest?.targetChainId;
   const quotePaymentTokenAddress = quoteSourceAsset?.address;

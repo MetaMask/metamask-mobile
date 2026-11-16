@@ -30,7 +30,7 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useInsufficientPayTokenBalanceMessageKey } from './useInsufficientPayTokenBalanceMessageKey';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -38,7 +38,7 @@ export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd?: string;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();

@@ -14,7 +14,7 @@ import EngineService from '../../../../../core/EngineService';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionPaymentTokenByTransactionId } from '../../../../../selectors/transactionPayController';
 import { updateTransaction } from '../../../../../util/transaction-controller';
-import { getEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodeEvmAssetId } from '../../../../../util/transactions/payment-token';
 import { syncMoneyAccountWithdrawTransfer } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
@@ -38,7 +38,7 @@ export function useTransactionPayToken(): {
   );
 
   const payTokenAsset = useMemo(
-    () => payToken && getEvmAsset(payToken.assetId),
+    () => payToken && decodeEvmAssetId(payToken.assetId),
     [payToken],
   );
 
@@ -54,7 +54,7 @@ export function useTransactionPayToken(): {
   const setPayToken = useCallback(
     ({ assetId }: PayTokenSelection) => {
       // Mobile only offers EVM payment tokens.
-      const newPayToken = getEvmAsset(assetId);
+      const newPayToken = decodeEvmAssetId(assetId);
 
       if (!newPayToken) {
         throw new Error(`Unsupported payment token: ${assetId}`);

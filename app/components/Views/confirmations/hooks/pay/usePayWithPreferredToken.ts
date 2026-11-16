@@ -10,9 +10,9 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { isMatchingPayToken, payBalanceUsd } from '../../utils/transaction-pay';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
-import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
 import {
-  getPaymentTokenEvmAsset,
+  decodePaymentTokenAssetId,
   isSameAssetId,
 } from '../../../../../util/transactions/payment-token';
 
@@ -39,7 +39,7 @@ export function usePayWithPreferredToken({
   });
 
   const { payToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { availableTokens, hasTokens } = useTransactionPayAvailableTokens();
   const { balanceUsd: liveBalanceUsd } = usePayTokenAccountBalance();
 
@@ -48,12 +48,12 @@ export function usePayWithPreferredToken({
       return undefined;
     }
 
-    const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
     if (
       payToken &&
       payTokenAsset &&
-      isSameAssetId(payToken.assetId, resolveAssetId(automaticToken))
+      isSameAssetId(payToken.assetId, encodeAssetId(automaticToken))
     ) {
       return {
         ...payTokenAsset,
@@ -81,7 +81,7 @@ export function usePayWithPreferredToken({
     availableTokens,
     liveBalanceUsd,
     payToken,
-    resolveAssetId,
+    encodeAssetId,
   ]);
 
   return useMemo(

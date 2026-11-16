@@ -45,7 +45,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
-import { getEvmAsset } from '../../../../../../util/transactions/payment-token';
+import { decodeEvmAssetId } from '../../../../../../util/transactions/payment-token';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -274,7 +274,7 @@ function getNetworkFeeToken({
   transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } {
   const request = quotes?.[0]?.request;
-  const sourceAsset = request && getEvmAsset(request.sourceAssetId);
+  const sourceAsset = request && decodeEvmAssetId(request.sourceAssetId);
   const chainId = sourceAsset?.chainId ?? transactionMeta.chainId;
 
   const address =
