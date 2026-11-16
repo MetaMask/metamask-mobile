@@ -3,6 +3,7 @@ import {
   EARNINGS_RANGES,
   getDailyEarningsPoints,
   getRangeEntries,
+  hasInvalidHistoryEntries,
   sumEarnings,
   type EarningsPoint,
   type EarningsRange,
@@ -140,6 +141,26 @@ describe('earningsHistory', () => {
       ]);
     });
 
+    it('fills missing UTC days with zero values for an explicit range', () => {
+      const entries = [
+        createEntry('2026-11-16T12:00:00.000Z', '3'),
+        createEntry('2026-11-13T12:00:00.000Z', '1'),
+      ];
+
+      const result = getDailyEarningsPoints(entries, '1W');
+
+      expect(result).toHaveLength(7);
+      expect(result).toEqual([
+        { timestamp: '2026-11-10T00:00:00.000Z', amount: 0 },
+        { timestamp: '2026-11-11T00:00:00.000Z', amount: 0 },
+        { timestamp: '2026-11-12T00:00:00.000Z', amount: 0 },
+        { timestamp: '2026-11-13T00:00:00.000Z', amount: 1 },
+        { timestamp: '2026-11-14T00:00:00.000Z', amount: 0 },
+        { timestamp: '2026-11-15T00:00:00.000Z', amount: 0 },
+        { timestamp: '2026-11-16T00:00:00.000Z', amount: 3 },
+      ]);
+    });
+
     it('omits malformed timestamps and non-finite numeric values', () => {
       const entries = [
         createEntry('2026-11-13T12:00:00.000Z', '84.2'),
@@ -167,6 +188,22 @@ describe('earningsHistory', () => {
       expect(result).toEqual([]);
     });
 
+    it('does not throw for null or missing runtime values', () => {
+      const entries = [
+        null,
+        { timestamp: null, interest_earned_usd: '1' },
+        {
+          timestamp: '2026-11-13T12:00:00.000Z',
+          interest_earned_usd: null,
+        },
+        { timestamp: '2026-11-13T12:00:00.000Z' },
+      ] as unknown as InterestHistoryEntry[];
+
+      const result = getDailyEarningsPoints(entries);
+
+      expect(result).toEqual([]);
+    });
+
     it('throws when same-day addition exceeds the finite numeric range', () => {
       const entries = [
         createEntry('2026-11-13T12:00:00.000Z', String(Number.MAX_VALUE)),
@@ -179,6 +216,65 @@ describe('earningsHistory', () => {
       expect(aggregateEntries).toThrow(
         'Historical earnings aggregation exceeded the finite numeric range',
       );
+    });
+  });
+
+  describe('hasInvalidHistoryEntries', () => {
+    it.each([
+      {
+        description: 'null entry',
+        entries: [null],
+      },
+      {
+        description: 'missing timestamp',
+        entries: [{ interest_earned_usd: '1' }],
+      },
+      {
+        description: 'impossible timestamp',
+        entries: [
+          {
+            timestamp: '2026-02-30T12:00:00.000Z',
+            interest_earned_usd: '1',
+          },
+        ],
+      },
+      {
+        description: 'missing amount',
+        entries: [{ timestamp: '2026-11-13T12:00:00.000Z' }],
+      },
+      {
+        description: 'non-string amount',
+        entries: [
+          {
+            timestamp: '2026-11-13T12:00:00.000Z',
+            interest_earned_usd: null,
+          },
+        ],
+      },
+      {
+        description: 'non-finite amount',
+        entries: [
+          {
+            timestamp: '2026-11-13T12:00:00.000Z',
+            interest_earned_usd: 'Infinity',
+          },
+        ],
+      },
+    ])('returns true for $description', ({ entries }) => {
+      const result = hasInvalidHistoryEntries(entries);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when every entry has a valid timestamp and amount', () => {
+      const entries = [
+        createEntry('2026-11-13T12:00:00.000Z', '0'),
+        createEntry('2026-11-14T12:00:00.000Z', '-1.5'),
+      ];
+
+      const result = hasInvalidHistoryEntries(entries);
+
+      expect(result).toBe(false);
     });
   });
 

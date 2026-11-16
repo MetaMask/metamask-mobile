@@ -13,6 +13,9 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,6 +30,7 @@ import EarningsSummary from './EarningsSummary';
 import {
   getDailyEarningsPoints,
   getRangeEntries,
+  hasInvalidHistoryEntries,
   sumEarnings,
   type EarningsRange,
 } from './earningsHistory';
@@ -53,41 +57,39 @@ const MoneyEarningsView = (): React.ReactElement => {
 
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
-  const entries = data?.history;
-
-  const tabs = useMemo(
-    () => [
-      {
-        key: 'earnings',
-        label: strings('money.earnings.tab_earnings'),
-        testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
-      },
-      {
-        key: 'apy',
-        label: strings('money.earnings.tab_apy'),
-        isDisabled: true,
-        testID: MoneyEarningsViewTestIds.TAB_APY,
-      },
-      {
-        key: 'allocation',
-        label: strings('money.earnings.tab_allocation'),
-        isDisabled: true,
-        testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
-      },
-    ],
-    [],
-  );
+  const hasMalformedHistory =
+    data !== undefined && hasInvalidHistoryEntries(data.history);
+  const entries = Array.isArray(data?.history) ? data.history : undefined;
+  const tabs = [
+    {
+      key: 'earnings',
+      label: strings('money.earnings.tab_earnings'),
+      testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
+    },
+    {
+      key: 'apy',
+      label: strings('money.earnings.tab_apy'),
+      isDisabled: true,
+      testID: MoneyEarningsViewTestIds.TAB_APY,
+    },
+    {
+      key: 'allocation',
+      label: strings('money.earnings.tab_allocation'),
+      isDisabled: true,
+      testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
+    },
+  ];
 
   const rangeEntries = useMemo(
     () => getRangeEntries(entries ?? [], selectedRange),
     [entries, selectedRange],
   );
   const chartPoints = useMemo(
-    () => getDailyEarningsPoints(rangeEntries),
-    [rangeEntries],
+    () => getDailyEarningsPoints(rangeEntries, selectedRange),
+    [rangeEntries, selectedRange],
   );
   const hasHistoricalEarnings =
-    !isLoading && !isError && chartPoints.length > 0;
+    !isLoading && !isError && !hasMalformedHistory && chartPoints.length > 0;
   const thirtyDayTotal = useMemo(
     () => sumEarnings(getRangeEntries(entries ?? [], '30D')),
     [entries],
@@ -161,7 +163,7 @@ const MoneyEarningsView = (): React.ReactElement => {
           <EarningsChart
             entries={entries}
             isLoading={isLoading}
-            isError={isError}
+            isError={isError || hasMalformedHistory}
             onRetry={handleRetry}
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}
@@ -177,28 +179,36 @@ const MoneyEarningsView = (): React.ReactElement => {
         </ScrollView>
       ) : null}
       <Box
-        flexDirection={BoxFlexDirection.Row}
         twClassName="gap-3 px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          twClassName="flex-1"
-          onPress={handleWithdraw}
-          testID={MoneyEarningsViewTestIds.WITHDRAW_BUTTON}
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            twClassName="flex-1"
+            onPress={handleWithdraw}
+            testID={MoneyEarningsViewTestIds.WITHDRAW_BUTTON}
+          >
+            {strings('money.earnings.withdraw')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            twClassName="flex-1"
+            onPress={handleAdd}
+            testID={MoneyEarningsViewTestIds.ADD_BUTTON}
+          >
+            {strings('money.earnings.add')}
+          </Button>
+        </Box>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
         >
-          {strings('money.earnings.withdraw')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          twClassName="flex-1"
-          onPress={handleAdd}
-          testID={MoneyEarningsViewTestIds.ADD_BUTTON}
-        >
-          {strings('money.earnings.add')}
-        </Button>
+          {strings('money.earnings.no_lockups')}
+        </Text>
       </Box>
     </Box>
   );

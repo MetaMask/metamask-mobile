@@ -50,7 +50,14 @@ const getDaysInMonth = (year: number, month: number): number => {
   return daysByMonth[month - 1] ?? 0;
 };
 
-const getTimestamp = (entry: InterestHistoryEntry): number | undefined => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const getTimestamp = (entry: unknown): number | undefined => {
+  if (!isRecord(entry) || typeof entry.timestamp !== 'string') {
+    return undefined;
+  }
+
   const calendarDate = ISO_CALENDAR_DATE_PATTERN.exec(entry.timestamp);
   if (!calendarDate) {
     return undefined;
@@ -67,7 +74,11 @@ const getTimestamp = (entry: InterestHistoryEntry): number | undefined => {
   return Number.isFinite(timestamp) ? timestamp : undefined;
 };
 
-const getAmount = (entry: InterestHistoryEntry): number | undefined => {
+const getAmount = (entry: unknown): number | undefined => {
+  if (!isRecord(entry) || typeof entry.interest_earned_usd !== 'string') {
+    return undefined;
+  }
+
   if (entry.interest_earned_usd.trim() === '') {
     return undefined;
   }
@@ -88,6 +99,13 @@ const addEarnings = (total: number, amount: number): number => {
   }
   return result;
 };
+
+export const hasInvalidHistoryEntries = (entries: unknown): boolean =>
+  !Array.isArray(entries) ||
+  entries.some(
+    (entry) =>
+      getTimestamp(entry) === undefined || getAmount(entry) === undefined,
+  );
 
 export const getRangeEntries = (
   entries: InterestHistoryEntry[],
@@ -122,6 +140,7 @@ export const getRangeEntries = (
 
 export const getDailyEarningsPoints = (
   entries: InterestHistoryEntry[],
+  range?: EarningsRange,
 ): EarningsPoint[] => {
   const amountsByDay = entries.reduce<Map<number, number>>((points, entry) => {
     const timestamp = getTimestamp(entry);
@@ -142,7 +161,7 @@ export const getDailyEarningsPoints = (
     return points;
   }, new Map());
 
-  return [...amountsByDay.entries()]
+  const points = [...amountsByDay.entries()]
     .sort(
       ([firstTimestamp], [secondTimestamp]) => firstTimestamp - secondTimestamp,
     )
@@ -150,6 +169,21 @@ export const getDailyEarningsPoints = (
       timestamp: new Date(timestamp).toISOString(),
       amount,
     }));
+
+  if (range === undefined || points.length === 0) {
+    return points;
+  }
+
+  const endDay = Date.parse(points[points.length - 1].timestamp);
+  const startDay = endDay - (RANGE_LENGTHS[range] - 1) * MILLISECONDS_PER_DAY;
+
+  return Array.from({ length: RANGE_LENGTHS[range] }, (_, index) => {
+    const timestamp = startDay + index * MILLISECONDS_PER_DAY;
+    return {
+      timestamp: new Date(timestamp).toISOString(),
+      amount: amountsByDay.get(timestamp) ?? 0,
+    };
+  });
 };
 
 export const sumEarnings = (entries: InterestHistoryEntry[]): number =>

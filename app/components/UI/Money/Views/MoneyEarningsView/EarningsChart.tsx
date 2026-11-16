@@ -78,8 +78,8 @@ const EarningsChart = ({
     [entries, selectedRange],
   );
   const points = useMemo(
-    () => getDailyEarningsPoints(rangeEntries),
-    [rangeEntries],
+    () => getDailyEarningsPoints(rangeEntries, selectedRange),
+    [rangeEntries, selectedRange],
   );
   const total = useMemo(() => sumEarnings(rangeEntries), [rangeEntries]);
   const maximumAmount = useMemo(
@@ -156,6 +156,14 @@ const EarningsChart = ({
         alignItems={BoxAlignItems.End}
         style={tw.style('h-[160px] gap-px')}
         testID={MoneyEarningsViewTestIds.CHART}
+        accessibilityRole="image"
+        accessibilityLabel={strings(
+          'money.earnings.chart_accessibility_label',
+          {
+            range: strings(RANGE_LABEL_KEYS[selectedRange]),
+            total: formatSignedUsd(total),
+          },
+        )}
       >
         {points.map((point, index) => {
           const barHeight =

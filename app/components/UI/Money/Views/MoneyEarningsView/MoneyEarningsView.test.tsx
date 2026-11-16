@@ -228,6 +228,29 @@ describe('MoneyEarningsView', () => {
     expect(mockRefetchHistoricalEarnings).toHaveBeenCalledTimes(1);
   });
 
+  it('displays error content without a summary for malformed history', () => {
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        history: [
+          {
+            timestamp: '2026-11-16T12:00:00.000Z',
+            interest_earned_usd: null,
+          },
+        ] as unknown as InterestHistoryResponse['history'],
+      },
+    });
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
   it('displays empty state without a summary', () => {
     setHistoricalEarningsResult({
       data: { ...historicalEarnings, history: [] },
@@ -257,5 +280,11 @@ describe('MoneyEarningsView', () => {
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON));
 
     expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays the no-lockups footer copy', () => {
+    const { getByText } = renderWithProvider(<MoneyEarningsView />);
+
+    expect(getByText(strings('money.earnings.no_lockups'))).toBeOnTheScreen();
   });
 });
