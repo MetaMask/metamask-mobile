@@ -22,6 +22,9 @@ import { KycRejectedSelectorsIDs } from './KycRejected';
 const mockHydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
+const launchProviderFlow = jest.mocked(
+  Engine.context.KycController.launchProviderFlow,
+);
 
 const kycSession = (
   finalStatus: string,
@@ -138,6 +141,9 @@ describeForPlatforms('KycRejected view', () => {
       view.queryByTestId(KycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
     ).not.toBeOnTheScreen();
 
+    // The shared mock abandons the provider, which pops this screen in the
+    // same turn. A failed launch leaves the SumSub screen up.
+    launchProviderFlow.mockResolvedValue('failed');
     fireEvent.press(view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON));
 
     expect(
