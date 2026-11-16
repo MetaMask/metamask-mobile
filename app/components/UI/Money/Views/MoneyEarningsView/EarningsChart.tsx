@@ -53,6 +53,14 @@ const RANGE_LABEL_KEYS: Record<EarningsRange, string> = {
   '1Y': 'money.earnings.range_1y',
 };
 
+const RANGE_PERIOD_LABEL_KEYS: Record<EarningsRange, string> = {
+  '1W': 'money.earnings.earned_last_7_days',
+  '30D': 'money.earnings.earned_last_30_days',
+  '3M': 'money.earnings.earned_last_3_months',
+  '6M': 'money.earnings.earned_last_6_months',
+  '1Y': 'money.earnings.earned_last_year',
+};
+
 const CHART_HEIGHT = 160;
 const MINIMUM_BAR_HEIGHT = 2;
 
@@ -239,9 +247,6 @@ const EarningsChart = ({
                   )
                 : 0;
           const dateLabel = formatPointDateRange(point);
-          const amountLabel = isAvailable
-            ? formatSignedUsd(point.amount ?? 0)
-            : undefined;
 
           return (
             <Pressable
@@ -251,7 +256,15 @@ const EarningsChart = ({
               testID={MoneyEarningsViewTestIds.CHART_SLOT(index)}
               accessibilityRole="button"
               accessibilityLabel={
-                amountLabel ? `${dateLabel}, ${amountLabel}` : dateLabel
+                isAvailable
+                  ? strings('money.earnings.chart_bucket_accessibility_label', {
+                      date: dateLabel,
+                      amount: formatSignedUsd(point.amount ?? 0),
+                    })
+                  : strings(
+                      'money.earnings.chart_bucket_unavailable_accessibility_label',
+                      { date: dateLabel },
+                    )
               }
               accessibilityState={{
                 selected: isSelected,
@@ -282,14 +295,13 @@ const EarningsChart = ({
 
   return (
     <Box twClassName="gap-4">
-      {!isLoading && !isError && selectedAmount !== undefined ? (
+      {!isLoading &&
+      !isError &&
+      selectedAmount !== undefined &&
+      selectedAmount !== null ? (
         <Box testID={MoneyEarningsViewTestIds.CHART_HEADER}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {selectedRange === '30D'
-              ? strings('money.earnings.earned_last_30_days')
-              : strings('money.earnings.earned_in_range', {
-                  range: strings(RANGE_LABEL_KEYS[selectedRange]),
-                })}
+            {strings(RANGE_PERIOD_LABEL_KEYS[selectedRange])}
           </Text>
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
             {formatSignedUsd(selectedAmount)}

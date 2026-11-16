@@ -1,4 +1,5 @@
 import type {
+  Availability,
   InterestHistoryAvailability,
   InterestHistoryBucket,
   InterestHistoryGranularity,
@@ -164,15 +165,23 @@ const isPerVaultShape = (value: unknown): boolean => {
   return true;
 };
 
+const hasOrderedTimestamps = (start: unknown, end: unknown): boolean => {
+  const startTimestamp = getTimestamp(start);
+  const endTimestamp = getTimestamp(end);
+  return (
+    startTimestamp !== undefined &&
+    endTimestamp !== undefined &&
+    endTimestamp > startTimestamp
+  );
+};
+
 const isBucketShape = (value: unknown): boolean => {
   if (
     !isEarningsShape(value) ||
     !isRecord(value) ||
-    getTimestamp(value.start) === undefined ||
-    getTimestamp(value.end) === undefined ||
     typeof value.start !== 'string' ||
     typeof value.end !== 'string' ||
-    getTimestamp(value.end) <= getTimestamp(value.start) ||
+    !hasOrderedTimestamps(value.start, value.end) ||
     !isNullableFiniteUsd(value.musd_price_usd) ||
     (value.price_as_of !== null &&
       getTimestamp(value.price_as_of) === undefined) ||
@@ -191,9 +200,7 @@ const isRangeShape = (value: unknown): boolean => {
     !isRecord(value) ||
     !isEnumValue(value.range, RANGE_KEYS) ||
     !isEnumValue(value.granularity, GRANULARITIES) ||
-    getTimestamp(value.range_start) === undefined ||
-    getTimestamp(value.range_end) === undefined ||
-    getTimestamp(value.range_end) <= getTimestamp(value.range_start) ||
+    !hasOrderedTimestamps(value.range_start, value.range_end) ||
     !isEnumValue(value.period_status, PERIOD_STATUSES) ||
     !isAvailability(value.availability) ||
     !Array.isArray(value.unavailable_reasons) ||
@@ -324,10 +331,15 @@ export const getBucketDisplayDateRange = (
 export const getRangeEntries = (
   response: InterestHistoryResponse | readonly [],
   range: EarningsRange,
-): InterestHistoryBucket[] =>
-  Array.isArray(response)
-    ? []
-    : (getSelectedRange(response, range)?.buckets ?? []);
+): InterestHistoryBucket[] => {
+  if (Array.isArray(response)) {
+    return [];
+  }
+
+  return (
+    getSelectedRange(response as InterestHistoryResponse, range)?.buckets ?? []
+  );
+};
 
 export const getDailyEarningsPoints = (
   entries: InterestHistoryBucket[],

@@ -31,10 +31,11 @@ import type { MoneyNavigationParamList } from '../../types/navigation';
 import EarningsChart from './EarningsChart';
 import EarningsSummary from './EarningsSummary';
 import {
-  getDailyEarningsPoints,
-  getRangeEntries,
+  getAuthoritativeRangeTotal,
+  getBucketPoints,
+  getSelectedRange,
   hasInvalidHistoryEntries,
-  sumEarnings,
+  isAvailableBucket,
   type EarningsRange,
 } from './earningsHistory';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
@@ -89,20 +90,23 @@ const MoneyEarningsView = (): React.ReactElement => {
     },
   ];
 
-  const rangeEntries = useMemo(
-    () => getRangeEntries(entries ?? [], selectedRange),
+  const selectedRangeData = useMemo(
+    () => getSelectedRange(entries, selectedRange),
     [entries, selectedRange],
   );
   const chartPoints = useMemo(
-    () => getDailyEarningsPoints(rangeEntries, selectedRange),
-    [rangeEntries, selectedRange],
+    () => getBucketPoints(selectedRangeData),
+    [selectedRangeData],
   );
   const thirtyDayTotal = useMemo(
-    () => sumEarnings(getRangeEntries(entries ?? [], '30D')),
+    () =>
+      getAuthoritativeRangeTotal(getSelectedRange(entries, '30D')) ??
+      Number.NaN,
     [entries],
   );
   const oneYearTotal = useMemo(
-    () => sumEarnings(getRangeEntries(entries ?? [], '1Y')),
+    () =>
+      getAuthoritativeRangeTotal(getSelectedRange(entries, '1Y')) ?? Number.NaN,
     [entries],
   );
   const projectedOneYear = useMemo(
@@ -110,16 +114,18 @@ const MoneyEarningsView = (): React.ReactElement => {
     [thirtyDayTotal],
   );
   const hasInvalidProjection = !Number.isFinite(projectedOneYear);
+  const hasUnavailableRange =
+    selectedRangeData !== undefined &&
+    (selectedRangeData.availability.earnings !== 'available' ||
+      selectedRangeData.availability.usd_pricing !== 'available');
   const hasHistoricalEarnings =
     !isLoading &&
     !isError &&
     !hasMalformedHistory &&
     !hasInvalidProjection &&
-    chartPoints.length > 0;
-  const latestTimestamp = useMemo(
-    () => chartPoints.at(-1)?.timestamp,
-    [chartPoints],
-  );
+    Number.isFinite(thirtyDayTotal) &&
+    Number.isFinite(oneYearTotal) &&
+    chartPoints.some(isAvailableBucket);
 
   const handleRetry = useCallback(() => {
     void refetchHistoricalEarnings();
@@ -177,7 +183,12 @@ const MoneyEarningsView = (): React.ReactElement => {
           <EarningsChart
             entries={entries}
             isLoading={isLoading}
-            isError={isError || hasMalformedHistory || hasInvalidProjection}
+            isError={
+              isError ||
+              hasMalformedHistory ||
+              hasInvalidProjection ||
+              hasUnavailableRange
+            }
             onRetry={handleRetry}
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}
@@ -187,7 +198,7 @@ const MoneyEarningsView = (): React.ReactElement => {
               thisMonth={thirtyDayTotal}
               lifetime={oneYearTotal}
               projectedOneYear={projectedOneYear}
-              dataThrough={latestTimestamp}
+              dataThrough={selectedRangeData?.range_end}
             />
           ) : null}
         </ScrollView>

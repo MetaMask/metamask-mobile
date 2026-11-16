@@ -3,6 +3,7 @@ import { fireEvent, type RenderResult } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
+  InterestHistoryAvailability,
   InterestHistoryBucket,
   InterestHistoryRange,
   InterestHistoryResponse,
@@ -22,7 +23,7 @@ const available = {
 const createBucket = (
   start: string,
   interestEarnedUsd: string | null,
-  bucketAvailability = available,
+  bucketAvailability: InterestHistoryAvailability = available,
 ): InterestHistoryBucket => ({
   start,
   end: new Date(Date.parse(start) + 24 * 60 * 60 * 1000).toISOString(),
