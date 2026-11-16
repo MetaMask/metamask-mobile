@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -11,6 +10,9 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaDepositDebugSelectorsIDs = {
   SHEET: 'vba-deposit-debug-sheet',
@@ -39,6 +41,7 @@ const VbaDepositDebugSheet = ({
   onClose,
   onRefresh,
 }: VbaDepositDebugSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleRefresh = useCallback(() => {
@@ -56,9 +59,9 @@ const VbaDepositDebugSheet = ({
       keyboardAvoidingViewEnabled={false}
       testID={VbaDepositDebugSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         {'Deposit debug'}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box gap={3} paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {`Autoramp: ${autorampId ?? 'none'}`}
