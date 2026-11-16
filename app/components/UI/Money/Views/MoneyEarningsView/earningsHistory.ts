@@ -100,13 +100,6 @@ const addEarnings = (total: number, amount: number): number => {
   return result;
 };
 
-export const hasInvalidHistoryEntries = (entries: unknown): boolean =>
-  !Array.isArray(entries) ||
-  entries.some(
-    (entry) =>
-      getTimestamp(entry) === undefined || getAmount(entry) === undefined,
-  );
-
 export const getRangeEntries = (
   entries: InterestHistoryEntry[],
   range: EarningsRange,
@@ -136,6 +129,59 @@ export const getRangeEntries = (
       return day >= startDay && day <= endDay;
     })
     .map(({ entry }) => entry);
+};
+
+const hasAggregationOverflow = (entries: InterestHistoryEntry[]): boolean => {
+  const totalsByDay = new Map<number, number>();
+  let total = 0;
+
+  for (const entry of entries) {
+    const timestamp = getTimestamp(entry);
+    const amount = getAmount(entry);
+
+    if (timestamp === undefined || amount === undefined) {
+      continue;
+    }
+
+    total += amount;
+    if (!Number.isFinite(total)) {
+      return true;
+    }
+
+    const day = getUtcDayStart(timestamp);
+    const dailyTotal = (totalsByDay.get(day) ?? 0) + amount;
+    if (!Number.isFinite(dailyTotal)) {
+      return true;
+    }
+    totalsByDay.set(day, dailyTotal);
+  }
+
+  return EARNINGS_RANGES.some((range) => {
+    let rangeTotal = 0;
+
+    for (const entry of getRangeEntries(entries, range)) {
+      rangeTotal += getAmount(entry) ?? 0;
+      if (!Number.isFinite(rangeTotal)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+};
+
+export const hasInvalidHistoryEntries = (entries: unknown): boolean => {
+  if (
+    !Array.isArray(entries) ||
+    entries.some(
+      (entry) =>
+        getTimestamp(entry) === undefined || getAmount(entry) === undefined,
+    )
+  ) {
+    return true;
+  }
+
+  return hasAggregationOverflow(entries);
 };
 
 export const getDailyEarningsPoints = (
