@@ -15,6 +15,8 @@ const account: LinkableSocialAccount = {
   address: '0x0000000000000000000000000000000000000001',
   balanceLabel: '$10',
   linkedAddresses: [],
+  accountGroup: null,
+  walletTitle: '',
 };
 
 const renderPicker = (
