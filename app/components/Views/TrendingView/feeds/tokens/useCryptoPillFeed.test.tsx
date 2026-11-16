@@ -185,6 +185,35 @@ describe('useCryptoPillFeed', () => {
     expect(requestedPaths).toContain('/v3/tokens/popular');
   });
 
+  it('waits for the watchlist query before prefetching when the watchlist pill is active', async () => {
+    mockIsWatchlistEnabled = true;
+    mockedUseTokenWatchlistQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    } as never);
+
+    const { rerender, result } = renderFeed({ activePillKey: 'watchlist' });
+
+    await waitFor(() => {
+      expect(result.current.results.watchlist.isLoading).toBe(true);
+    });
+    expect(mockedFetchCryptoPillTokens).not.toHaveBeenCalled();
+
+    mockedUseTokenWatchlistQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    } as never);
+    rerender({ activePillKey: 'watchlist' });
+
+    await waitFor(() => {
+      expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(5);
+    });
+  });
+
   it('falls back to the popular request for a chain pill whose trending request is empty', async () => {
     renderFeed({ activePillKey: 'trending' });
 

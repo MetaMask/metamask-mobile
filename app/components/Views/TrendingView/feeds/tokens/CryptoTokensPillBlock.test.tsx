@@ -276,6 +276,33 @@ describe('CryptoTokensPillBlock', () => {
 
       expect(queryByTestId('crypto-tokens-pill-trending')).toBeNull();
     });
+
+    it('keeps a pill visible with its cached data when a background refetch fails', () => {
+      const results = makeResults({
+        trending: { data: [makeToken('BTC')], isLoading: false, isError: true },
+      });
+      const { getByTestId } = renderBlock(results);
+
+      expect(getByTestId('crypto-tokens-pill-trending')).toBeTruthy();
+    });
+
+    it('resets the parent selection when the selected pill becomes hidden', () => {
+      const { getByTestId, queryByTestId, rerender } = renderBlock();
+
+      act(() => {
+        fireEvent.press(getByTestId('crypto-tokens-pill-top_gainers'));
+      });
+      expect(getByTestId('token-row-SOL')).toBeTruthy();
+
+      const errored = makeResults({
+        top_gainers: { data: undefined, isLoading: false, isError: true },
+      });
+      arrange(errored);
+      rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
+
+      expect(queryByTestId('token-row-SOL')).toBeNull();
+      expect(getByTestId('token-row-WNEW')).toBeTruthy();
+    });
   });
 
   describe('watchlist flag gating', () => {

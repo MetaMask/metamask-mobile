@@ -54,10 +54,11 @@ export interface CryptoPillFeed {
 
 /**
  * Shared visibility contract for the crypto pill section: watchlist-style
- * pills and still-loading pills are visible, errored pills are hidden, and
- * loaded pills must return at least `minItems` tokens. Used by CryptoTab to
- * decide whether the tokens section renders at all and by the pill block to
- * decide which pills to show.
+ * pills and still-loading pills are visible, pills that errored without
+ * data are hidden (a failed background refetch keeps the cached data
+ * visible), and loaded pills must return at least `minItems` tokens. Used
+ * by CryptoTab to decide whether the tokens section renders at all and by
+ * the pill block to decide which pills to show.
  */
 export const getVisibleCryptoPills = (
   results: Record<string, CryptoPillFeedResult>,
@@ -66,10 +67,28 @@ export const getVisibleCryptoPills = (
   getCryptoPillOrder(isWatchlistEnabled).filter((pill) => {
     const result = results[pill.key];
     if (!result) return false;
-    if (result.isError) return false;
+    if (result.isError) {
+      return result.data !== undefined && result.data.length >= pill.minItems;
+    }
     if (result.data === undefined) return true;
     return result.data.length >= pill.minItems;
   });
+
+/**
+ * The pill the section actually displays: the user's selection while it is
+ * still visible, otherwise the first visible pill, otherwise `fallbackKey`.
+ * Shared so CryptoTab's pull-to-refresh and the block's rendering target
+ * the same pill.
+ */
+export const getEffectiveActiveCryptoPillKey = (
+  activePillKey: CryptoPillKey | undefined,
+  visiblePills: readonly CryptoPillDefinition[],
+  fallbackKey: CryptoPillKey,
+): CryptoPillKey =>
+  activePillKey !== undefined &&
+  visiblePills.some((pill) => pill.key === activePillKey)
+    ? activePillKey
+    : (visiblePills[0]?.key ?? fallbackKey);
 
 interface CryptoPillQueryDescriptor {
   key: CryptoPillKey;
@@ -218,10 +237,11 @@ export const useCryptoPillFeed = ({
       : tokenPillResults[activePillKey];
 
   const activeLoaded =
-    activePillKey === CRYPTO_WATCHLIST_PILL.key ||
-    activeResult === undefined ||
-    activeResult.data !== undefined ||
-    activeResult.isError;
+    activePillKey === CRYPTO_WATCHLIST_PILL.key
+      ? !watchlistQuery.isLoading
+      : activeResult === undefined ||
+        activeResult.data !== undefined ||
+        activeResult.isError;
 
   useEffect(() => {
     if (prefetchStarted || !activeLoaded) {

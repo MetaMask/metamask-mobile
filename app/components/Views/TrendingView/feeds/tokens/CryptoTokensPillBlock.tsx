@@ -27,7 +27,11 @@ import {
   type CryptoPillDefinition,
   type CryptoPillKey,
 } from './cryptoPillConfig';
-import { getVisibleCryptoPills, useCryptoPillFeed } from './useCryptoPillFeed';
+import {
+  getEffectiveActiveCryptoPillKey,
+  getVisibleCryptoPills,
+  useCryptoPillFeed,
+} from './useCryptoPillFeed';
 
 const TrendingTokensSingleSkeleton: React.FC = () => <TrendingTokensSkeleton />;
 
@@ -88,7 +92,11 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   const isUserKeyVisible =
     activePillKey !== undefined &&
     visiblePills.some((pill) => pill.key === activePillKey);
-  const effectiveActiveKey = isUserKeyVisible ? activePillKey : firstVisibleKey;
+  const effectiveActiveKey = getEffectiveActiveCryptoPillKey(
+    activePillKey,
+    visiblePills,
+    firstVisibleKey,
+  );
 
   useEffect(() => {
     if (

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -30,6 +30,7 @@ import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import CryptoTokensPillBlock from '../feeds/tokens/CryptoTokensPillBlock';
 import {
+  getEffectiveActiveCryptoPillKey,
   getVisibleCryptoPills,
   useCryptoPillFeed,
 } from '../feeds/tokens/useCryptoPillFeed';
@@ -152,16 +153,28 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const [activeCryptoPillKey, setActiveCryptoPillKey] =
     useState<CryptoPillKey>();
+  const [feedActivePillKey, setFeedActivePillKey] = useState<CryptoPillKey>();
   const defaultCryptoPillKey = useMemo(
     () => getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
     [isWatchlistEnabled],
   );
   const tokensFeed = useCryptoPillFeed({
-    activePillKey: activeCryptoPillKey ?? defaultCryptoPillKey,
+    activePillKey: feedActivePillKey ?? defaultCryptoPillKey,
     refresh,
   });
-  const showTokensSection =
-    getVisibleCryptoPills(tokensFeed.results, isWatchlistEnabled).length > 0;
+  const visibleCryptoPills = useMemo(
+    () => getVisibleCryptoPills(tokensFeed.results, isWatchlistEnabled),
+    [tokensFeed.results, isWatchlistEnabled],
+  );
+  const showTokensSection = visibleCryptoPills.length > 0;
+  const effectiveActiveCryptoPillKey = getEffectiveActiveCryptoPillKey(
+    activeCryptoPillKey,
+    visibleCryptoPills,
+    defaultCryptoPillKey,
+  );
+  useEffect(() => {
+    setFeedActivePillKey(effectiveActiveCryptoPillKey);
+  }, [effectiveActiveCryptoPillKey]);
 
   const showCryptoPerps =
     isPerpsEnabled && (cryptoPerps.isLoading || cryptoPerps.data.length > 0);
