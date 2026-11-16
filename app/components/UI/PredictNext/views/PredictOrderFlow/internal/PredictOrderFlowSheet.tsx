@@ -14,6 +14,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { v4 as uuidv4 } from 'uuid';
 import {
   BottomSheet,
   Box,
@@ -50,6 +51,7 @@ import type {
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
+  PredictOrderReview,
   PredictOutcomeSide,
   PredictVenueId,
 } from '../../../types';
@@ -152,11 +154,7 @@ export const PredictOrderFlowSheet = ({
   const [phase, setPhase] = useState<SubmitPhase>('input');
   const [receipt, setReceipt] = useState<PredictOrderReceipt | null>(null);
   const [isRechecking, setIsRechecking] = useState(false);
-  // A Commit failure that returned no Receipt: the operation may or may not
-  // exist, so the approval step stays and keeps this Preview for observation
-  // even after local expiry. Re-approval re-POSTs the same idempotent
-  // Preview reference. A fresh quote is the sole next step only when the
-  // venue confirms `preview_expired` before creating an operation.
+  // Unknown submissions retain their preview and expose observe-only refresh.
   const [commitError, setCommitError] = useState<PredictError | null>(null);
   // A Commit rejected as `preview_expired` marks the quote expired even when
   // the client clock disagrees: the venue is authoritative.
@@ -321,6 +319,7 @@ export const PredictOrderFlowSheet = ({
     setQuoteError(null);
     setCommitError(null);
     const timeout = setTimeout(() => {
+      const idempotencyKey = uuidv4();
       // A buy amount is the maximum spend, fees included: the backend sizes
       // the quote so its total debit never exceeds it.
       const params: PredictOrderPreviewParams =
@@ -330,12 +329,14 @@ export const PredictOrderFlowSheet = ({
               side: intent.side,
               action: 'buy',
               amount: amount as PredictAmount,
+              idempotencyKey,
             }
           : {
               marketId: intent.marketId,
               side: intent.side,
               action: 'sell',
               contracts: contracts as PredictAmount,
+              idempotencyKey,
             };
       service
         .requestQuote(intent.venueId, params, { signal: quoteAbort.signal })
@@ -394,10 +395,9 @@ export const PredictOrderFlowSheet = ({
 
   const isExpired =
     venueExpired || (preview !== null && isPreviewExpired(preview, now));
-  // After an attempted Commit, keep the original Preview for observation
-  // even if the quote has expired locally. Only a venue `preview_expired`
-  // (commitError stays unset) makes a fresh quote the sole next step.
-  const approvalExpired = commitError === null && isExpired;
+  const isObserving =
+    commitError?.code === PredictErrorCode.ORDER_OUTCOME_UNKNOWN;
+  const approvalExpired = !isObserving && isExpired;
   const canReview =
     phase === 'input' &&
     preview !== null &&
@@ -432,6 +432,36 @@ export const PredictOrderFlowSheet = ({
     setQuoteNonce((nonce) => nonce + 1);
   }, [isStale, releasePresentation]);
 
+  /** The worst case the phone would sign, from the profile's invariant: the
+   * figures the approval shows. Undefined while it is computed or when the
+   * profile refuses the order, which keeps Confirm disabled. */
+  const [signedDisplay, setSignedDisplay] = useState<PredictOrderReview>();
+  useEffect(() => {
+    setSignedDisplay(undefined);
+    if (!preview) {
+      return undefined;
+    }
+    let current = true;
+    service
+      .reviewPreview(intent.venueId, preview.previewId)
+      .then((display) => {
+        if (current) {
+          setSignedDisplay(display);
+        }
+      })
+      .catch((error: unknown) => {
+        Logger.log('PredictNext: the signing profile refused the quote', error);
+        if (current) {
+          // Say why Approve stays disabled: this quote cannot be signed, and
+          // a fresh quote is the way forward.
+          setCommitError(PredictError.from(PredictErrorCode.QUOTE_UNAVAILABLE));
+        }
+      });
+    return () => {
+      current = false;
+    };
+  }, [intent.venueId, preview, service]);
+
   const handleReview = useCallback(() => {
     if (!canReview) {
       return;
@@ -449,6 +479,13 @@ export const PredictOrderFlowSheet = ({
     if (phase !== 'approval' || !preview || isStale) {
       return;
     }
+    if (!signedDisplay) {
+      // Nothing the phone checked can be signed: Confirm stays disabled,
+      // and this is the same refusal if it is reached anyway.
+      setCommitError(PredictError.from(PredictErrorCode.UNKNOWN));
+      setPhase('approval');
+      return;
+    }
     setCommitError(null);
     setPhase('submitting');
     if (!releasePresentationRef.current) {
@@ -464,18 +501,18 @@ export const PredictOrderFlowSheet = ({
       const committed = await service.commitPreview(
         intent.venueId,
         preview.previewId,
+        { kind: 'user-approved' },
       );
       setReceipt(committed);
       setPhase('receipt');
     } catch (error) {
-      // The Commit failed before a Receipt existed, so the operation may or
-      // may not exist. The approval step stays and keeps this Preview for
-      // observation even after local expiry: re-approving re-POSTs the same
-      // idempotent Preview reference. Never a second Order.
+      // The service distinguishes an unsent first attempt from an unknown
+      // outcome. Unknown attempts retain this preview for observation only.
       setPhase('approval');
       if (
         error instanceof PredictError &&
-        error.code === PredictErrorCode.PREVIEW_EXPIRED
+        (error.code === PredictErrorCode.PREVIEW_EXPIRED ||
+          error.code === PredictErrorCode.ORDER_PREVIEW_MISMATCH)
       ) {
         // The venue revalidated the Preview as expired: degrade to the same
         // re-quote affordance as a locally expired quote — never a failure.
@@ -488,16 +525,25 @@ export const PredictOrderFlowSheet = ({
         );
       }
     }
-  }, [handleResolution, intent.venueId, isStale, phase, preview, service]);
+  }, [
+    handleResolution,
+    intent.venueId,
+    isStale,
+    phase,
+    preview,
+    service,
+    signedDisplay,
+  ]);
 
-  /** Observes an unresolved receipt by committing the same Preview again —
-   * idempotent by Preview reference, so it never places a second Order. */
+  /** Observes an unresolved receipt by reading it again; observing never
+   * submits and never signs a Commit. */
   const handleKeepChecking = useCallback(async () => {
     if (!receipt || isStale) {
       return;
     }
     setIsRechecking(true);
     try {
+      // The operation is already committed: this reads its receipt.
       setReceipt(
         await service.commitPreview(intent.venueId, receipt.previewId),
       );
@@ -900,7 +946,9 @@ export const PredictOrderFlowSheet = ({
                   {isStale ? statusMessage : null}
                   <OrderApproval
                     preview={preview}
+                    display={signedDisplay}
                     isExpired={approvalExpired}
+                    isObserving={isObserving}
                     isDisabled={isStale}
                     onApprove={handleCommit}
                     onBack={handleBack}

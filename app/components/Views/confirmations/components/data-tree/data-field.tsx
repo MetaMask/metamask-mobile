@@ -4,7 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { startCase } from 'lodash';
 
 import { strings } from '../../../../../../locales/i18n';
-import { NONE_DATE_VALUE } from '../../utils/date';
+import { NONE_DATE_VALUE, UINT48_MAX } from '../../utils/date';
 import {
   PRIMARY_TYPES_ORDER,
   PRIMARY_TYPES_PERMIT,
@@ -120,6 +120,8 @@ const DataField = memo(
       fieldDisplay =
         intValue === NONE_DATE_VALUE ? (
           <Text>{strings('confirm.none')}</Text>
+        ) : intValue === UINT48_MAX ? (
+          <Text>{strings('confirm.never_expires')}</Text>
         ) : intValue === undefined ? (
           <Text>{value}</Text>
         ) : (

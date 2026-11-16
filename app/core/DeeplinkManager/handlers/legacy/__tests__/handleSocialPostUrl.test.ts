@@ -253,6 +253,26 @@ describe('handleSocialPostUrl', () => {
     expect(mockAddProperties).not.toHaveBeenCalled();
   });
 
+  it('opens the post once the Social terms are accepted', async () => {
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+
+    handleSocialPostUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+    await flushAsync();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+      .calls[0]?.[1];
+    expect(onAccepted).toEqual(expect.any(Function));
+    onAccepted?.();
+    await flushAsync();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({ positionId: 'position-1' }),
+    );
+  });
+
   it('does not open the post when the Social terms are not accepted', async () => {
     jest.mocked(ensureSocialTermsAccepted).mockReturnValue(false);
 

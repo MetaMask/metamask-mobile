@@ -1,5 +1,9 @@
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
@@ -356,6 +360,34 @@ describe('TokenDetailsStickyFooter', () => {
       ).toBeOnTheScreen();
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Buy ETH')).toBeOnTheScreen();
+    });
+
+    it('collapses the trader position sheet after a downward swipe', () => {
+      jest.useFakeTimers();
+      const onToggleExpanded = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId('token-details-sticky-footer-sheet-gesture'),
+          [{ translationY: 200, velocityY: 900 }],
+        );
+      });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+      jest.useRealTimers();
     });
 
     it('collapses the expanded trader position sheet when the overlay is pressed', () => {
