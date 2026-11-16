@@ -1006,12 +1006,27 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       rememberHeldAal2(result.token);
       await continueAfterVerified();
     } catch (error) {
+      // Cancel / fail highest factor (e.g. passkey) → full-page "Verify it's you"
       Logger.log('OAuthRehydration: locked social MFA', {
-        status: 'skipped',
+        status: 'fallback_verify',
         code: getMfaErrorCode(error),
         message: error instanceof Error ? error.message : String(error),
       });
       setPasswordlessUnlock(false);
+      try {
+        const methods = await listActiveSocialLoginMethods();
+        if (methods.length === 0) {
+          setWalletRecoveryStep('password');
+          return;
+        }
+        setFallbackMethods(methods);
+        setWalletRecoveryStep('verify');
+      } catch (listError) {
+        Logger.log('OAuthRehydration: locked MFA list failed', {
+          code: getMfaErrorCode(listError),
+        });
+        setWalletRecoveryStep('password');
+      }
     } finally {
       setWalletRecoveryStep((step) => (step === 'loading' ? 'password' : step));
     }
@@ -1019,6 +1034,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     canOfferSocialMfaVerify,
     lockedMfaReason,
     verifyForSocialLogin,
+    listActiveSocialLoginMethods,
     rememberHeldAal2,
     continueAfterVerified,
   ]);
