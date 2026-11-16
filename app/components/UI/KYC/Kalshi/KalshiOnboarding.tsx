@@ -168,9 +168,7 @@ const KalshiOnboarding = () => {
   const [error, setError] = useState<string>();
   const [terms, setTerms] = useState<KycDisclaimer[]>();
   const step = flowState?.step;
-  // idOS's own step, from kyc-api's answer, says which code it is waiting for.
-  const relayStep = flowState?.relayStep ?? undefined;
-  const screen = deriveKalshiScreen(step, { relayStep, phoneCodeSent });
+  const screen = deriveKalshiScreen(step, { phoneCodeSent });
   const { VendorOnboardingController } = Engine.context;
 
   // Each screen starts with an empty field.

@@ -1,4 +1,4 @@
-import { KYC_CURRENT_STEPS, KYC_STEPS } from '@metamask/kyc-controller';
+import { KYC_STEPS } from '@metamask/kyc-controller';
 import { deriveKalshiScreen } from './kalshiScreen';
 
 const context = { phoneCodeSent: false };
@@ -13,6 +13,8 @@ describe('deriveKalshiScreen', () => {
     ['account_link', 'email'],
     ['account_link_code', 'link_code'],
     ['confirm_identity', 'confirm'],
+    ['identity_email_code', 'email_code'],
+    ['identity_provider', 'sumsub'],
     ['kyc_retry', 'sumsub'],
     ['kyc_pending', 'waiting'],
     ['kyc_rejected', 'rejected'],
@@ -28,55 +30,23 @@ describe('deriveKalshiScreen', () => {
     }
   });
 
-  describe('identity_verification', () => {
-    it('opens SumSub when idOS owes no code', () => {
+  describe('identity_phone', () => {
+    it('asks for the number first', () => {
       expect(
-        deriveKalshiScreen('identity_verification', {
-          ...context,
-          relayStep: KYC_CURRENT_STEPS.kyc,
-        }),
-      ).toBe('sumsub');
-    });
-
-    it('opens SumSub before the relay step is known', () => {
-      expect(deriveKalshiScreen('identity_verification', context)).toBe(
-        'sumsub',
-      );
-    });
-
-    it('asks for the email code idOS is waiting for', () => {
-      expect(
-        deriveKalshiScreen('identity_verification', {
-          ...context,
-          relayStep: KYC_CURRENT_STEPS.emailOtpCollection,
-        }),
-      ).toBe('email_code');
-    });
-
-    it('asks for the phone, then its code', () => {
-      const relayStep = KYC_CURRENT_STEPS.phoneOtpCollection;
-
-      expect(
-        deriveKalshiScreen('identity_verification', {
-          relayStep,
-          phoneCodeSent: false,
-        }),
+        deriveKalshiScreen('identity_phone', { phoneCodeSent: false }),
       ).toBe('phone');
+    });
+
+    it('then for the code, on the same step, once it was sent', () => {
       expect(
-        deriveKalshiScreen('identity_verification', {
-          relayStep,
-          phoneCodeSent: true,
-        }),
+        deriveKalshiScreen('identity_phone', { phoneCodeSent: true }),
       ).toBe('phone_code');
     });
 
-    it('ignores the relay step once kyc-api has moved on', () => {
+    it('forgets the code field once the step moves on', () => {
       expect(
-        deriveKalshiScreen('kyc_pending', {
-          relayStep: KYC_CURRENT_STEPS.emailOtpCollection,
-          phoneCodeSent: false,
-        }),
-      ).toBe('waiting');
+        deriveKalshiScreen('identity_provider', { phoneCodeSent: true }),
+      ).toBe('sumsub');
     });
   });
 });

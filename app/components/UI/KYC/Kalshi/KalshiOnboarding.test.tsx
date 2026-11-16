@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { KYC_CURRENT_STEPS, type KycStep } from '@metamask/kyc-controller';
+import type { KycStep } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -69,7 +69,7 @@ const TERMS = [
   },
 ];
 
-const render = (step?: KycStep, relayStep?: string) =>
+const render = (step?: KycStep) =>
   renderWithProvider(<KalshiOnboarding />, {
     state: {
       engine: {
@@ -79,7 +79,6 @@ const render = (step?: KycStep, relayStep?: string) =>
               ? {
                   kalshi: {
                     step,
-                    relayStep: relayStep ?? null,
                     sessionId: 'sid-1',
                   },
                 }
@@ -114,7 +113,7 @@ describe('KalshiOnboarding', () => {
       'submitEmailCode',
       'resendEmailCode',
     ]) {
-      flow[name].mockResolvedValue('identity_verification');
+      flow[name].mockResolvedValue('identity_provider');
     }
     flow.verifyAccountLink.mockResolvedValue({ step: 'account_link_code' });
     flow.launchProviderFlow.mockResolvedValue('submitted');
@@ -284,15 +283,8 @@ describe('KalshiOnboarding', () => {
   });
 
   describe('identity verification', () => {
-    const identity = (relayStep?: string) =>
-      render('identity_verification', relayStep);
-
-    beforeEach(() => {
-      flow.refreshStep.mockResolvedValue('identity_verification');
-    });
-
     it('asks for the email code idOS is waiting for', async () => {
-      const screen = identity(KYC_CURRENT_STEPS.emailOtpCollection);
+      const screen = render('identity_email_code');
       expect(await screen.findByText('Check your email')).toBeOnTheScreen();
       typeInto(screen, ' 123456 ');
 
@@ -307,7 +299,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('sends a new email code on request', async () => {
-      const screen = identity(KYC_CURRENT_STEPS.emailOtpCollection);
+      const screen = render('identity_email_code');
       await screen.findByText('Check your email');
 
       fireEvent.press(screen.getByTestId(KalshiOnboardingTestIds.SECONDARY));
@@ -318,7 +310,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('asks for the phone, then its code', async () => {
-      const screen = identity(KYC_CURRENT_STEPS.phoneOtpCollection);
+      const screen = render('identity_phone');
       expect(await screen.findByText('Your phone')).toBeOnTheScreen();
       typeInto(screen, '+18888888888');
 
@@ -340,7 +332,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('goes back to the phone field to use another number', async () => {
-      const screen = identity(KYC_CURRENT_STEPS.phoneOtpCollection);
+      const screen = render('identity_phone');
       await screen.findByText('Your phone');
       typeInto(screen, '+18888888888');
       fireEvent.press(primary(screen));
@@ -352,7 +344,7 @@ describe('KalshiOnboarding', () => {
     });
 
     it('records the consents, then launches SumSub', async () => {
-      const screen = identity(KYC_CURRENT_STEPS.kyc);
+      const screen = render('identity_provider');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -374,19 +366,13 @@ describe('KalshiOnboarding', () => {
       ).toBeLessThan(flow.launchProviderFlow.mock.invocationCallOrder[0]);
     });
 
-    it('opens SumSub when idOS has not said what it wants yet', async () => {
-      const screen = identity();
-
-      expect(await screen.findByText('Verify your identity')).toBeOnTheScreen();
-    });
-
     it('does not record consents twice', async () => {
       flow.fetchSessionDisclaimers.mockResolvedValue({
         idOS: [{ key: 'idos', version: '1', consented: true }],
         kycProvider: [{ key: 'sumsub', version: '2', consented: true }],
         credentialReusabilityConsentGiven: false,
       });
-      const screen = identity(KYC_CURRENT_STEPS.kyc);
+      const screen = render('identity_provider');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -397,7 +383,7 @@ describe('KalshiOnboarding', () => {
 
     it('says so when SumSub could not finish', async () => {
       flow.launchProviderFlow.mockResolvedValue('failed');
-      const screen = identity(KYC_CURRENT_STEPS.kyc);
+      const screen = render('identity_provider');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));
@@ -409,7 +395,7 @@ describe('KalshiOnboarding', () => {
 
     it('stays quiet when the user closes SumSub early', async () => {
       flow.launchProviderFlow.mockResolvedValue('abandoned');
-      const screen = identity(KYC_CURRENT_STEPS.kyc);
+      const screen = render('identity_provider');
       await screen.findByText('Verify your identity');
 
       fireEvent.press(primary(screen));

@@ -1,4 +1,4 @@
-import { KYC_CURRENT_STEPS, type KycStep } from '@metamask/kyc-controller';
+import type { KycStep } from '@metamask/kyc-controller';
 
 /**
  * The screens of the Kalshi onboarding flow. kyc-api decides which one the
@@ -23,27 +23,9 @@ export type KalshiScreen =
  * What the phone knows beyond the step.
  */
 export interface KalshiScreenContext {
-  /**
-   * The step of the idOS relay's session, read from the session status. It
-   * says which code idOS wants while the step is `identity_verification`.
-   */
-  relayStep?: string;
   /** The phone code was sent from this screen and is being entered. */
   phoneCodeSent: boolean;
 }
-
-const deriveIdentityScreen = ({
-  relayStep,
-  phoneCodeSent,
-}: KalshiScreenContext): KalshiScreen => {
-  if (relayStep === KYC_CURRENT_STEPS.emailOtpCollection) {
-    return 'email_code';
-  }
-  if (relayStep === KYC_CURRENT_STEPS.phoneOtpCollection) {
-    return phoneCodeSent ? 'phone_code' : 'phone';
-  }
-  return 'sumsub';
-};
 
 /**
  * Picks the screen for the step kyc-api decided.
@@ -67,8 +49,14 @@ export function deriveKalshiScreen(
       return 'link_code';
     case 'confirm_identity':
       return 'confirm';
-    case 'identity_verification':
-      return deriveIdentityScreen(context);
+    case 'identity_email_code':
+      return 'email_code';
+    case 'identity_phone':
+      // The number and its code are one step. The code field follows the
+      // number on the same screen once the code was sent.
+      return context.phoneCodeSent ? 'phone_code' : 'phone';
+    case 'identity_provider':
+      return 'sumsub';
     case 'kyc_retry':
       return 'sumsub';
     case 'kyc_pending':
