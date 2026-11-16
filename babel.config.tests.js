@@ -104,6 +104,10 @@ const newOverrides = [
       // iOS Hermes liveness probe reads HERMES_CDP_ORIGIN at runtime
       'tests/llm-workflow/ios/hermes-health.ts',
       'app/core/apiEnv.ts',
+      // Reads `MM_API_ENV` at runtime through `getApiEnv`, so tests can flip
+      // the cluster per case without the transform baking in the test run's env.
+      'app/components/UI/PredictNext/config/predictClusterUrls.ts',
+      'app/components/UI/PredictNext/config/predictClusterUrls.test.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
