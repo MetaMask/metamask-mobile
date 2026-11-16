@@ -44,6 +44,8 @@ import { useTransactionPayingAccount } from '../transactions/useTransactionPayin
 import { getAddressAccountType } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
+import { buildPaymentTokenMock } from '../../__mocks__/pay-token.mock';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -78,11 +80,15 @@ const CHAIN_ID_MOCK = '0x1';
 const TOKEN_AMOUNT_MOCK = '1.23';
 const PAYING_ACCOUNT_MOCK = '0x1111111111111111111111111111111111111111';
 
-const PAY_TOKEN_MOCK = {
+const PAY_TOKEN_ASSET_MOCK = {
   address: tokenAddress1Mock,
   chainId: CHAIN_ID_MOCK,
-  symbol: 'TST',
 };
+
+const PAY_TOKEN_MOCK = buildPaymentTokenMock({
+  ...PAY_TOKEN_ASSET_MOCK,
+  symbol: 'TST',
+});
 
 const QUOTE_MOCK = {
   dust: {
@@ -245,7 +251,7 @@ describe('useTransactionPayMetrics', () => {
       params: {
         properties: expect.objectContaining({
           mm_pay_token_presented: PAY_TOKEN_MOCK.symbol,
-          mm_pay_chain_presented: PAY_TOKEN_MOCK.chainId,
+          mm_pay_chain_presented: PAY_TOKEN_ASSET_MOCK.chainId,
           mm_pay_payment_token_list_size: 5,
           mm_pay_quote_requested: false,
           mm_pay_quote_loaded: false,
@@ -1602,8 +1608,8 @@ describe('useTransactionPayMetrics', () => {
         {
           pay_token: {
             symbol: PAY_TOKEN_MOCK.symbol,
-            chainId: PAY_TOKEN_MOCK.chainId,
-            address: PAY_TOKEN_MOCK.address,
+            chainId: PAY_TOKEN_ASSET_MOCK.chainId,
+            address: toChecksumHexAddress(PAY_TOKEN_ASSET_MOCK.address),
           },
           amount: Number(TOKEN_AMOUNT_MOCK),
           amount_input_type: null,

@@ -45,6 +45,7 @@ import { useTransactionAccountOverride } from '../transactions/useTransactionAcc
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
+import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -64,6 +65,7 @@ export function useAutomaticTransactionPayToken({
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
   const { payToken, setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -241,10 +243,7 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    setPayToken({
-      address: automaticToken.address,
-      chainId: automaticToken.chainId,
-    });
+    setPayToken({ assetId: resolveAssetId(automaticToken) });
 
     isUpdated.current = transactionId;
 
@@ -262,6 +261,7 @@ export function useAutomaticTransactionPayToken({
     payToken,
     paymentMethods,
     requiredTokens,
+    resolveAssetId,
     setPayToken,
     shouldSelectMoneyAccount,
     tokens,
@@ -318,10 +318,7 @@ export function useAutomaticTransactionPayToken({
 
     isReselectPendingRef.current = false;
 
-    setPayToken({
-      address: automaticToken.address,
-      chainId: automaticToken.chainId,
-    });
+    setPayToken({ assetId: resolveAssetId(automaticToken) });
     log('Re-selected pay token after account change', automaticToken);
   }, [
     accountOverride,
@@ -331,6 +328,7 @@ export function useAutomaticTransactionPayToken({
     from,
     hasFiatPaymentSelected,
     postQuoteTransactionType,
+    resolveAssetId,
     setPayToken,
   ]);
 
@@ -352,10 +350,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
+      setPayToken({ assetId: resolveAssetId(automaticToken) });
       log('Re-selected pay token after money account change', automaticToken);
     }
   }, [
@@ -363,6 +358,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
+    resolveAssetId,
     setPayToken,
     isMoneyPaymentOverride,
   ]);

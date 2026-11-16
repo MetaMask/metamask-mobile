@@ -4,6 +4,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useParams } from '../../../../../../util/navigation/navUtils';
@@ -41,6 +42,8 @@ import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPay
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
+import { selectEvmAssetIdResolver } from '../../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../../util/transactions/payment-token';
 
 export interface PayWithModalParams {
   /**
@@ -65,6 +68,7 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -136,15 +140,20 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
+      // Held tokens carry their `AssetsController` key; allowlisted withdraw
+      // tokens the user does not hold yet are resolved from chain and address.
+      const assetId =
+        token.caipAssetId ??
+        resolveAssetId({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        });
+
       // An explicit token selection always replaces any dedicated payment
       // override (e.g. Money Account). This is deliberately done here rather
       // than when the picker is opened, so closing the picker without
       // choosing a token leaves the previous selection intact.
-      if (
-        payToken &&
-        payToken.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken.chainId.toLowerCase() === token.chainId?.toLowerCase()
-      ) {
+      if (isSameAssetId(payToken?.assetId, assetId)) {
         close(() => {
           clearPaymentOverride();
           if (dismissOnSelectCount > 1) {
@@ -193,10 +202,7 @@ export function PayWithModal() {
           });
         }
 
-        setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        });
+        setPayToken({ assetId });
       };
 
       close(onClosed);
@@ -212,6 +218,7 @@ export function PayWithModal() {
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       payToken,
+      resolveAssetId,
       setPayToken,
       transactionMeta,
     ],

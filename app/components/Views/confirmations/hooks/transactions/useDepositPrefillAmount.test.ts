@@ -4,7 +4,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, type Json } from '@metamask/utils';
-import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   DepositPrefillStatus,
@@ -29,6 +29,10 @@ import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAc
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+} from '../../__mocks__/pay-token.mock';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
@@ -125,20 +129,22 @@ function makeTransactionMeta(
   } as unknown as TransactionMeta;
 }
 
-function makePayToken(overrides?: Partial<EvmPaymentToken>): EvmPaymentToken {
-  return {
+function makePayToken(
+  overrides?: Partial<Parameters<typeof buildPaymentTokenMock>[0]>,
+): TransactionPaymentToken {
+  return buildPaymentTokenMock({
     address: ETHEREUM_USDT_ADDRESS,
     balanceUsd: '1000',
     chainId: CHAIN_ID_MOCK,
     ...overrides,
-  } as EvmPaymentToken;
+  });
 }
 
 /**
  * Sets the pay token together with the reactive balance the hook reads, so a
  * token's `balanceUsd` keeps describing what the wallet holds.
  */
-function setPayTokenWithBalance(payToken?: EvmPaymentToken) {
+function setPayTokenWithBalance(payToken?: TransactionPaymentToken) {
   useTransactionPayTokenMock.mockReturnValue({
     payToken,
   } as ReturnType<typeof useTransactionPayToken>);
@@ -153,7 +159,7 @@ function setupMocks(
     prefilledAmountDefault?: { enabled: boolean };
     prefilledAmountOverrides?: Record<string, { enabled: boolean }>;
     depositLimits?: Record<string, number>;
-    payToken?: EvmPaymentToken | null;
+    payToken?: TransactionPaymentToken | null;
     /** Reactive balance, when it must differ from the pay token snapshot. */
     payBalanceUsd?: number;
     transactionMeta?: TransactionMeta;
@@ -183,7 +189,7 @@ function setupMocks(
   if (resolvedPayToken && !stablecoin) {
     resolvedPayToken = {
       ...resolvedPayToken,
-      address: NON_STABLECOIN_ADDRESS,
+      assetId: evmAssetId(NON_STABLECOIN_ADDRESS, CHAIN_ID_MOCK),
     };
   }
 

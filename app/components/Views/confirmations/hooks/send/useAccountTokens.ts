@@ -8,7 +8,10 @@ import { formatFiat } from '../../utils/fiat';
 import { AssetType, TokenStandard } from '../../types/token';
 import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
-import { getSelectedCurrency } from '../../../../../selectors/assets/assets-controller';
+import {
+  getSelectedCurrency,
+  selectEvmAssetIdResolver,
+} from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 import {
@@ -126,6 +129,7 @@ function useRemoteTokens(
   enrichTokenRequests: EnrichTokenRequest[],
 ): ConfirmationAsset[] {
   const selectedCurrency = useSelector(getSelectedCurrency);
+  const resolveEvmAssetId = useSelector(selectEvmAssetIdResolver);
   const currency = currencyOverride ?? selectedCurrency;
 
   const assetIds = useMemo(
@@ -169,6 +173,10 @@ function useRemoteTokens(
             address: req.address.toLowerCase(),
             balance: '0',
             balanceInSelectedCurrency: zeroFiat,
+            caipAssetId: resolveEvmAssetId({
+              address: req.address as Hex,
+              chainId: req.chainId,
+            }),
             balanceInSelectedCurrencyAmount: 0,
             chainId: req.chainId,
             decimals: data.decimals ?? 18,
@@ -186,6 +194,13 @@ function useRemoteTokens(
           } as ConfirmationAsset;
         })
         .filter((token) => token !== undefined) as ConfirmationAsset[],
-    [enrichTokenRequests, existingKeys, assetIds, tokensByAssetId, zeroFiat],
+    [
+      enrichTokenRequests,
+      existingKeys,
+      assetIds,
+      resolveEvmAssetId,
+      tokensByAssetId,
+      zeroFiat,
+    ],
   );
 }
