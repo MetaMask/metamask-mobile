@@ -53,6 +53,11 @@ import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 const composeOrderService = composePredictNextOrderService;
 
 const PROBE_BUTTON = 'order-flow-probe-open';
+
+// The sheet and its balance-gated chips settle in tens of milliseconds, but a
+// loaded CV shard can stall a single wait past waitFor's 1s default.
+const SHEET_LOAD = { timeout: 5000 };
+
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
 
 interface FetchReply {
@@ -379,7 +384,7 @@ describe('PredictOrderFlow', () => {
   const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
-    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
   };
 
   const flushDebounce = () =>
@@ -866,10 +871,12 @@ describe('PredictOrderFlow', () => {
     /** Opens the sheet and waits for the balance to enable the chips. */
     const openSheetWithBalance = async () => {
       await openSheet();
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
-        ).toBeEnabled(),
+      await waitFor(
+        () =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
+          ).toBeEnabled(),
+        SHEET_LOAD,
       );
     };
 
