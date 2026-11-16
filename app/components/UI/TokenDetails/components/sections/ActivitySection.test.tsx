@@ -482,6 +482,61 @@ describe('ActivitySection', () => {
     mapperSpy.mockRestore();
   });
 
+  it('shows the API receive instead of a same-wallet native send', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xSelfSend')] }],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [
+          {
+            ...makeTransaction('0xSelfSend', 60),
+            type: 'simpleSend',
+            hash: '0xSelfSend',
+            txParams: {
+              from: '0x1111111111111111111111111111111111111111',
+              to: '0x123',
+            },
+          },
+        ],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(queryByTestId('mock-activity-item-0xSelfSend')).toBeNull();
+    expect(getByTestId('mock-api-activity-item-0xSelfSend')).toBeOnTheScreen();
+  });
+
+  it('keeps a simple send from the selected account', () => {
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [
+          {
+            ...makeTransaction('tx-own-send', 60),
+            type: 'simpleSend',
+            txParams: {
+              from: '0x123',
+              to: '0x1111111111111111111111111111111111111111',
+            },
+          },
+        ],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-tx-own-send')).toBeOnTheScreen();
+  });
+
   it('does not render API rows when caipAssetId is null', () => {
     const { useTransactionsQuery } = jest.requireMock(
       '../../../../Views/ActivityList/useTransactionsQuery',

@@ -15,7 +15,10 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { type CaipAssetType, type Hex } from '@metamask/utils';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
@@ -30,6 +33,7 @@ import {
   type GroupedActivityListItem,
 } from '../../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../../util/activity-adapters/adapters/dedup';
+import { areAddressesEqual } from '../../../../../util/address';
 import ActivityListDateHeader from '../../../ActivityListItemRow/ActivityListDateHeader';
 import { ActivityListItemRow } from '../../../ActivityListItemRow/ActivityListItemRow';
 import AssetDetailsActivityListItem from '../../../Transactions/AssetDetailsActivityListItem';
@@ -69,6 +73,7 @@ interface UseGroupedTokenActivityParams {
   assetSymbol: string;
   chainId?: Hex;
   caipAssetId?: CaipAssetType;
+  selectedAddress?: string;
 }
 
 interface GroupedTokenActivityResult {
@@ -81,6 +86,21 @@ interface GroupedTokenActivityResult {
   fetchNextVisiblePage: (options?: {
     minVisibleItems?: number;
   }) => Promise<void | undefined>;
+}
+
+function isOtherAccountSimpleSend(
+  transaction: TransactionMeta,
+  selectedAddress?: string,
+) {
+  const from = transaction.txParams?.from;
+  if (
+    transaction.type !== TransactionType.simpleSend ||
+    !from ||
+    !selectedAddress
+  ) {
+    return false;
+  }
+  return !areAddressesEqual(from, selectedAddress);
 }
 
 /**
@@ -96,6 +116,7 @@ function useGroupedTokenActivity({
   assetSymbol,
   chainId,
   caipAssetId,
+  selectedAddress,
 }: UseGroupedTokenActivityParams): GroupedTokenActivityResult {
   const {
     data: apiEvmTransactions,
@@ -180,8 +201,11 @@ function useGroupedTokenActivity({
       submittedTxs.length > 0
         ? [...submittedTxs].sort((a, b) => b.time - a.time).concat(confirmedTxs)
         : transactions;
-    const filteredTransactions =
-      filterDuplicateOutgoingTransactions(listTransactions);
+    const filteredTransactions = filterDuplicateOutgoingTransactions(
+      listTransactions,
+    ).filter(
+      (transaction) => !isOtherAccountSimpleSend(transaction, selectedAddress),
+    );
 
     // Convert local transactions to ActivityListItems
     const localActivityItemsFromTxs = filteredTransactions.map((transaction) =>
@@ -236,6 +260,7 @@ function useGroupedTokenActivity({
     assetSymbol,
     chainId,
     tokenApiItems,
+    selectedAddress,
   ]);
 
   return {
@@ -307,6 +332,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     confirmedTxs,
     loading: isActivityLoading,
     isNonEvmAsset,
+    selectedAddress,
   } = useTokenTransactions(token);
 
   const accountImportTime = useSelector(
@@ -336,6 +362,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     assetSymbol,
     chainId,
     caipAssetId: isNonEvmAsset ? undefined : (caipAssetId ?? undefined),
+    selectedAddress,
   });
 
   const {
