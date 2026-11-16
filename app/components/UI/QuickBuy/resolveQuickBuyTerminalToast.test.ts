@@ -780,7 +780,7 @@ describe('resolveQuickBuyTerminalToast', () => {
       resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
       const [, params] = (buildQuickBuyToastOptions as jest.Mock).mock.calls[0];
-      expect(params.linkButtonOptions.label).toBe('Post to feed');
+      expect(params.linkButtonOptions.label).toBe('Post');
 
       params.linkButtonOptions.onPress();
 

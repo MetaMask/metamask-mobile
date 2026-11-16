@@ -1543,7 +1543,7 @@
       "error_title": "Couldn't load positions",
       "retry": "Try again",
       "posting": "Posting...",
-      "post_failed": "Couldn't create post. Try again.",
+      "post_failed": "Couldn't post. Check your connection and try again.",
       "linked_account_missing": "Your linked Social account isn't in this wallet.",
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed.",
@@ -1565,7 +1565,7 @@
       "view_activity": "View activity",
       "try_again": "Try again",
       "close": "Close",
-      "post_to_feed": "Post to feed"
+      "post_to_feed": "Post"
     },
     "shell": {
       "subnav": {
@@ -1768,7 +1768,7 @@
     },
     "my_profile": {
       "avatar_accessibility_label": "Your profile avatar",
-      "open_profile": "Open my profile",
+      "open_profile": "Open profile",
       "create_post": "Create post",
       "followers": "followers",
       "following": "following",
@@ -1810,8 +1810,8 @@
       "not_counted_note_one": "1 position not counted in P&L",
       "not_counted_note_other": "{{count}} positions not counted in P&L",
       "not_counted_note_hint": "Scrolls to positions not counted",
-      "empty_open": "No open positions",
-      "empty_closed": "No closed positions",
+      "empty_open": "No open positions yet",
+      "empty_closed": "No closed positions yet",
       "empty_open_tokens": "No open tokens",
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
@@ -6375,7 +6375,7 @@
       "unrealized": "Unrealized",
       "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Hold time",
-      "share_to_feed": "Share to feed",
+      "share_to_feed": "Post to MetaMask",
       "loading": "Loading position",
       "shown_in_usd": "Shown in USD"
     },

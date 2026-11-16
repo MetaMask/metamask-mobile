@@ -2021,7 +2021,7 @@ describe('MyProfileView', () => {
       }),
     );
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.OPEN_TAB));
-    expect(screen.getByText('No open positions')).toBeOnTheScreen();
+    expect(screen.getByText('No open positions yet')).toBeOnTheScreen();
     expect(screen.queryByText('Your feed starts here')).toBeNull();
     expect(
       screen.queryByText('When they share a trade, it will show up here.'),
@@ -2381,7 +2381,7 @@ describe('MyProfileView', () => {
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_EMPTY),
     ).toBeOnTheScreen();
-    expect(screen.getByText('No closed positions')).toBeOnTheScreen();
+    expect(screen.getByText('No closed positions yet')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_ERROR),
     ).toBeNull();
