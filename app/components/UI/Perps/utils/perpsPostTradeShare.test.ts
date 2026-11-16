@@ -7,9 +7,13 @@ import {
   failPerpsPostTradeShare,
   isPerpsPostTradeShareEligible,
   openPerpsPostTradeShareSession,
-  withPerpsFillPrice,
+  withPerpsCloseFill,
 } from './perpsPostTradeShare';
 import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
+import {
+  formatPercent,
+  formatSignedUsd,
+} from '../../SocialFeed/utils/formatters';
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
@@ -292,11 +296,9 @@ describe('perpsPostTradeShare', () => {
         leverage: 5,
         amountUsd: '500',
         entryPrice: '3000',
-        pnlUsd: -25,
-        pnlPercent: -12.5,
       });
 
-    it('builds a close preview with the realized PnL', () => {
+    it('builds a close preview without exit price or PnL before the fill', () => {
       const preview = closePreview();
 
       expect(preview).toEqual(
@@ -306,23 +308,11 @@ describe('perpsPostTradeShare', () => {
           tradeSymbol: 'ETH',
           direction: 'short',
           leverageLabel: '5x',
-          isPnlPositive: false,
         }),
       );
       expect(preview.costLabel).toBeDefined();
       expect(preview.entryPriceLabel).toBeDefined();
-      expect(preview.pnlLabel).toContain('12.5');
-      expect(preview.pnlValueLabel).toMatch(/^-/);
       expect(preview.exitPriceLabel).toBeUndefined();
-    });
-
-    it('leaves the PnL off a close preview without a realized PnL', () => {
-      const preview = buildPerpsClosePostTradePreview({
-        asset: 'ETH',
-        direction: 'long',
-      });
-
-      expect(preview.action).toBe('close');
       expect(preview.pnlLabel).toBeUndefined();
       expect(preview.pnlValueLabel).toBeUndefined();
       expect(preview.isPnlPositive).toBeUndefined();
@@ -345,58 +335,150 @@ describe('perpsPostTradeShare', () => {
       );
     });
 
-    it('writes the fill price as the exit price when a close completes', () => {
+    it('stores the filled preview when a close completes', () => {
       const sessionId = openPerpsPostTradeShareSession({
         asset: 'ETH',
         direction: 'short',
         preview: closePreview(),
       });
-      const entryPriceLabel = closePreview().entryPriceLabel;
+      const filledPreview = {
+        ...closePreview(),
+        exitPriceLabel: '$2,800',
+        pnlValueLabel: '+$20.00',
+      };
 
       completePerpsPostTradeShare(sessionId, {
         orderId: '7',
-        entryPrice: '2800',
+        preview: filledPreview,
       });
 
       const session = getPostTradeShareSession();
       if (session?.product !== 'perps') {
         throw new Error('expected a perps session');
       }
-      expect(session.preview.exitPriceLabel).toBeDefined();
-      expect(session.preview.exitPriceLabel).not.toBe(entryPriceLabel);
-      expect(session.preview.entryPriceLabel).toBe(entryPriceLabel);
+      expect(session.status).toBe('complete');
+      expect(session.preview).toEqual(filledPreview);
     });
   });
 
-  describe('withPerpsFillPrice', () => {
-    const openPreview = {
-      product: 'perps' as const,
-      tokenSymbol: 'ETH',
-      tradeSymbol: 'ETH',
-      tokenAddress: 'ETH',
-      direction: 'long' as const,
+  describe('withPerpsCloseFill', () => {
+    const longPreview = () =>
+      buildPerpsClosePostTradePreview({
+        asset: 'BTC',
+        direction: 'long',
+        amountUsd: '50100',
+        entryPrice: '50000',
+      });
+    // One BTC long entered at $50,000 and quoted at $50,100 before submit.
+    const isolatedLong = {
+      size: '1',
+      entryPrice: '50000',
+      marginUsed: '10100',
+      unrealizedPnl: '100',
+      leverage: { type: 'isolated' as const },
     };
 
-    it('sets the entry price of an open', () => {
-      const preview = withPerpsFillPrice(openPreview, '3200');
-
-      expect(preview.entryPriceLabel).toBeDefined();
-      expect(preview.exitPriceLabel).toBeUndefined();
-    });
-
-    it('sets the exit price of a close', () => {
-      const preview = withPerpsFillPrice(
-        { ...openPreview, action: 'close' },
-        '3200',
-      );
+    it('derives the PnL from a fill that crosses the entry price', () => {
+      const preview = withPerpsCloseFill(longPreview(), {
+        position: isolatedLong,
+        providerId: 'hyperliquid',
+        averagePrice: '49990',
+        filledSize: '1',
+      });
 
       expect(preview.exitPriceLabel).toBeDefined();
-      expect(preview.entryPriceLabel).toBeUndefined();
+      expect(preview.pnlValueLabel).toBe(formatSignedUsd(-10));
+      expect(preview.pnlLabel).toBe(formatPercent(-0.1));
+      expect(preview.isPnlPositive).toBe(false);
     });
 
-    it('keeps the preview when the fill price is unusable', () => {
-      expect(withPerpsFillPrice(openPreview, undefined)).toBe(openPreview);
-      expect(withPerpsFillPrice(openPreview, '0')).toBe(openPreview);
+    it('uses the filled size when the close fills partially', () => {
+      const preview = withPerpsCloseFill(longPreview(), {
+        position: isolatedLong,
+        providerId: 'hyperliquid',
+        averagePrice: '50100',
+        filledSize: '0.5',
+      });
+
+      expect(preview.pnlValueLabel).toBe(formatSignedUsd(50));
+      expect(preview.pnlLabel).toBe(formatPercent(1));
+    });
+
+    it('prices the whole short position when the fill size is missing', () => {
+      const preview = withPerpsCloseFill(longPreview(), {
+        position: { ...isolatedLong, size: '-1' },
+        providerId: 'hyperliquid',
+        averagePrice: '49000',
+        filledSize: undefined,
+      });
+
+      expect(preview.pnlValueLabel).toBe(formatSignedUsd(1000));
+      expect(preview.isPnlPositive).toBe(true);
+    });
+
+    it.each([
+      {
+        mode: 'isolated' as const,
+        marginUsed: '150',
+        expectedPercent: 50,
+      },
+      {
+        mode: 'cross' as const,
+        marginUsed: '100',
+        expectedPercent: 50,
+      },
+    ])(
+      'measures the return on the $100 backing $50 of profit under $mode margin',
+      ({ mode, marginUsed, expectedPercent }) => {
+        const preview = withPerpsCloseFill(longPreview(), {
+          position: {
+            size: '1',
+            entryPrice: '1000',
+            marginUsed,
+            unrealizedPnl: '50',
+            leverage: { type: mode },
+          },
+          providerId: 'hyperliquid',
+          averagePrice: '1050',
+          filledSize: '1',
+        });
+
+        expect(preview.pnlValueLabel).toBe(formatSignedUsd(50));
+        expect(preview.pnlLabel).toBe(formatPercent(expectedPercent));
+      },
+    );
+
+    it('omits the percentage when the backing margin is unknown', () => {
+      const preview = withPerpsCloseFill(longPreview(), {
+        position: isolatedLong,
+        providerId: 'lighter',
+        averagePrice: '50100',
+        filledSize: '1',
+      });
+
+      expect(preview.pnlValueLabel).toBe(formatSignedUsd(100));
+      expect(preview.pnlLabel).toBeUndefined();
+    });
+
+    it('keeps the preview without exit or PnL when the fill price is unusable', () => {
+      const preview = longPreview();
+
+      expect(
+        withPerpsCloseFill(preview, {
+          position: isolatedLong,
+          providerId: 'hyperliquid',
+          averagePrice: undefined,
+          filledSize: '1',
+        }),
+      ).toBe(preview);
+      expect(
+        withPerpsCloseFill(preview, {
+          position: isolatedLong,
+          providerId: 'hyperliquid',
+          averagePrice: '0',
+          filledSize: '1',
+        }),
+      ).toBe(preview);
     });
   });
 });

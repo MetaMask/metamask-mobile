@@ -1,7 +1,9 @@
 import {
+  estimateCloseReceive,
   getPerpsDisplaySymbol,
   type OrderType,
   type PerpsActiveProviderMode,
+  type CloseReceiveEstimateParams,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
@@ -124,8 +126,8 @@ export const buildPerpsPostTradePreview = ({
 });
 
 /**
- * Preview for an order that fully closed a position. The exit price is filled
- * in by {@link completePerpsPostTradeShare} once the close fills.
+ * Preview for an order that fully closes a position. The exit price and P&L
+ * are unknown until the close fills; {@link withPerpsCloseFill} adds them.
  */
 export const buildPerpsClosePostTradePreview = ({
   asset,
@@ -133,8 +135,6 @@ export const buildPerpsClosePostTradePreview = ({
   leverage,
   amountUsd,
   entryPrice,
-  pnlUsd,
-  pnlPercent,
 }: {
   asset: string;
   direction: 'long' | 'short';
@@ -143,47 +143,61 @@ export const buildPerpsClosePostTradePreview = ({
   amountUsd?: string;
   /** Position's average entry price. */
   entryPrice?: string;
-  pnlUsd?: number;
-  pnlPercent?: number;
-}): SocialPostPerpsPreview => {
-  const hasPnl = pnlUsd != null && Number.isFinite(pnlUsd);
-  return {
-    ...buildPerpsPostTradePreview({
-      asset,
-      direction,
-      leverage,
-      amountUsd,
-      entryPrice,
-    }),
-    action: 'close',
-    ...(hasPnl
-      ? {
-          pnlValueLabel: formatSignedUsd(pnlUsd),
-          pnlLabel:
-            pnlPercent != null && Number.isFinite(pnlPercent)
-              ? formatPercent(pnlPercent)
-              : undefined,
-          isPnlPositive: pnlUsd >= 0,
-        }
-      : {}),
-  };
-};
+}): SocialPostPerpsPreview => ({
+  ...buildPerpsPostTradePreview({
+    asset,
+    direction,
+    leverage,
+    amountUsd,
+    entryPrice,
+  }),
+  action: 'close',
+});
 
 /**
- * Applies the order's average fill price to the preview: the entry price of
- * an open, or the exit price of a close. An unusable price keeps the preview.
+ * Applies a filled close to its preview: the exit price, and the P&L realized
+ * on the filled size at that price as a share of the margin backing it. Uses
+ * Core's close calculation, so the backing margin follows the margin mode.
+ * Without a usable fill price the preview is returned without exit or P&L.
  */
-export const withPerpsFillPrice = (
+export const withPerpsCloseFill = (
   preview: SocialPostPerpsPreview,
-  averagePrice: string | undefined,
+  {
+    position,
+    providerId,
+    averagePrice,
+    filledSize,
+  }: {
+    position: CloseReceiveEstimateParams['position'];
+    providerId: PerpsProviderType;
+    averagePrice: string | undefined;
+    filledSize: string | undefined;
+  },
 ): SocialPostPerpsPreview => {
-  const fillPriceLabel = priceLabel(averagePrice);
-  if (!fillPriceLabel) {
+  const exitPriceLabel = priceLabel(averagePrice);
+  if (!exitPriceLabel) {
     return preview;
   }
-  return preview.action === 'close'
-    ? { ...preview, exitPriceLabel: fillPriceLabel }
-    : { ...preview, entryPriceLabel: fillPriceLabel };
+  const { realizedPnl, marginReturned } = estimateCloseReceive({
+    position,
+    providerId,
+    closeSize: filledSize || Math.abs(Number(position.size)),
+    price: averagePrice,
+    feeRate: undefined,
+  });
+  if (realizedPnl === undefined || !Number.isFinite(realizedPnl)) {
+    return { ...preview, exitPriceLabel };
+  }
+  return {
+    ...preview,
+    exitPriceLabel,
+    pnlValueLabel: formatSignedUsd(realizedPnl),
+    pnlLabel:
+      marginReturned !== undefined && marginReturned > 0
+        ? formatPercent((realizedPnl / marginReturned) * 100)
+        : undefined,
+    isPnlPositive: realizedPnl >= 0,
+  };
 };
 
 const formatPerpsPairLabel = (preview: SocialPostPerpsPreview): string => {
@@ -298,16 +312,19 @@ export const failPerpsPostTradeShare = (
  * Moves a pending perps share to complete when the exchange returned an oid.
  * A missing oid clears the open session and returns false, so the sheet does
  * not show Order failed and the caller can fall back to the perps toast. A
- * session the user already closed also returns false.
+ * session the user already closed also returns false. A close passes its
+ * `preview` from {@link withPerpsCloseFill}; an open passes its `entryPrice`.
  */
 export const completePerpsPostTradeShare = (
   sessionId: string | undefined,
   {
     orderId,
     entryPrice,
+    preview,
   }: {
     orderId: string | undefined;
     entryPrice?: string;
+    preview?: SocialPostPerpsPreview;
   },
 ): boolean => {
   if (!sessionId) {
@@ -328,9 +345,14 @@ export const completePerpsPostTradeShare = (
   ) {
     return false;
   }
+  const entryPriceLabel = priceLabel(entryPrice);
   return patchPostTradeShareSession(sessionId, {
     status: 'complete',
     orderId,
-    preview: withPerpsFillPrice(session.preview, entryPrice),
+    preview:
+      preview ??
+      (entryPriceLabel
+        ? { ...session.preview, entryPriceLabel }
+        : session.preview),
   });
 };

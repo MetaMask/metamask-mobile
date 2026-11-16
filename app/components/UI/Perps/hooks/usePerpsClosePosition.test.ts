@@ -20,6 +20,10 @@ import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountA
 import { PERPS_CLOSE_STREAM_CONFIRM_TIMEOUT_MS } from '../constants/perpsConfig';
 import { buildPerpsClosePostTradePreview } from '../utils/perpsPostTradeShare';
 import {
+  formatPercent,
+  formatSignedUsd,
+} from '../../SocialFeed/utils/formatters';
+import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
@@ -1746,8 +1750,6 @@ describe('usePerpsClosePosition', () => {
       leverage: 10,
       amountUsd: '5000',
       entryPrice: '50000',
-      pnlUsd: 100,
-      pnlPercent: 20,
     });
     const closeFullPositionSuccess = mockPerpsToastOptions.positionManagement
       .closePosition.marketClose.full.closeFullPositionSuccess as jest.Mock;
@@ -1770,7 +1772,7 @@ describe('usePerpsClosePosition', () => {
         await result.current
           .handleClosePosition({
             position: mockPosition,
-            postTradeShare: { prompt, preview },
+            postTradeShare: { prompt, preview, providerId: 'hyperliquid' },
           })
           .catch(() => undefined);
       });
@@ -1799,13 +1801,40 @@ describe('usePerpsClosePosition', () => {
         }),
       );
       expect(session?.preview).toEqual(
-        expect.objectContaining({ action: 'close', exitPriceLabel: '$51,000' }),
+        expect.objectContaining({
+          action: 'close',
+          exitPriceLabel: '$51,000',
+          pnlValueLabel: formatSignedUsd(100),
+          pnlLabel: formatPercent(20),
+          isPnlPositive: true,
+        }),
       );
       expect(incrementShareSheetCount).toHaveBeenCalledWith(
         '0xlinked',
         'perps',
       );
       expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('derives the closed PnL from the fill when it crosses the entry price', async () => {
+      await close(
+        { kind: 'share_sheet', countKey },
+        {
+          success: true,
+          orderId: '42',
+          averagePrice: '49990',
+          filledSize: '0.1',
+        },
+      );
+
+      expect(getPostTradeShareSession()?.preview).toEqual(
+        expect.objectContaining({
+          exitPriceLabel: '$49,990',
+          pnlValueLabel: formatSignedUsd(-1),
+          pnlLabel: formatPercent(-0.2),
+          isPnlPositive: false,
+        }),
+      );
     });
 
     it('marks the claim sheet seen after a create profile sheet', async () => {
@@ -1887,6 +1916,7 @@ describe('usePerpsClosePosition', () => {
           postTradeShare: {
             prompt: { kind: 'share_sheet', countKey },
             preview,
+            providerId: 'hyperliquid',
           },
         });
       });

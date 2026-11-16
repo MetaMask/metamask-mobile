@@ -786,33 +786,28 @@ export function usePerpsClosePositionForm(
 
     // A full Hyperliquid market close fills with one order id, so it can be
     // shared like an open. Partial closes leave the position open.
+    const closeProviderId =
+      livePosition.providerId ?? resolveProviderId(activeProvider);
     const canPromptPostTrade =
       isFullClose &&
       effectiveOrderType === 'market' &&
       !isPerpsProModeActive &&
-      (livePosition.providerId ?? resolveProviderId(activeProvider)) ===
-        'hyperliquid' &&
+      closeProviderId === 'hyperliquid' &&
       isPerpsPostTradeShareEligible({ amountUsd: closingValueString });
     const postTradePrompt = canPromptPostTrade
       ? resolvePostTradePrompt('perps')
       : undefined;
-    const realizedPnl = closeEstimate.realizedPnl;
-    const initialMargin = marginUsed - pnl;
     const postTradeShare =
       postTradePrompt && postTradePrompt.kind !== 'none'
         ? {
             prompt: postTradePrompt,
+            providerId: closeProviderId,
             preview: buildPerpsClosePostTradePreview({
               asset: livePosition.symbol,
               direction: isLong ? 'long' : 'short',
               leverage: livePosition.leverage?.value,
               amountUsd: closingValueString,
               entryPrice: livePosition.entryPrice,
-              pnlUsd: realizedPnl,
-              pnlPercent:
-                realizedPnl != null && initialMargin > 0
-                  ? (realizedPnl / initialMargin) * 100
-                  : undefined,
             }),
           }
         : undefined;
@@ -894,8 +889,6 @@ export function usePerpsClosePositionForm(
     isPerpsProModeActive,
     activeProvider,
     resolvePostTradePrompt,
-    marginUsed,
-    pnl,
     isLong,
   ]);
 

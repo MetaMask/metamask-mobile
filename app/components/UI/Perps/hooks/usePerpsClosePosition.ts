@@ -9,6 +9,7 @@ import {
   PERPS_ERROR_CODES,
   type OrderResult,
   type OrdinaryOrderType,
+  type PerpsProviderType,
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
@@ -58,7 +59,7 @@ import {
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
   openPerpsPostTradeShareSession,
-  withPerpsFillPrice,
+  withPerpsCloseFill,
 } from '../utils/perpsPostTradeShare';
 
 interface UsePerpsClosePositionOptions {
@@ -89,10 +90,12 @@ interface ClosePositionParams {
   /**
    * Post-trade prompt for a full market close the caller found eligible.
    * A share or claim sheet replaces the close toasts while it is open.
+   * `preview` has no exit price or P&L; they are derived from the fill.
    */
   postTradeShare?: {
     prompt: PostTradePrompt;
     preview: SocialPostPerpsPreview;
+    providerId: PerpsProviderType;
   };
 }
 
@@ -455,9 +458,17 @@ export const usePerpsClosePosition = (
           const orderId = postTradeShare
             ? getCopyTradeOid(orderType, result)
             : undefined;
+          const filledPreview = postTradeShare
+            ? withPerpsCloseFill(postTradeShare.preview, {
+                position,
+                providerId: postTradeShare.providerId,
+                averagePrice: result.averagePrice,
+                filledSize: result.filledSize,
+              })
+            : undefined;
           const shared = completePerpsPostTradeShare(shareSessionId, {
             orderId,
-            entryPrice: result.averagePrice,
+            preview: filledPreview,
           });
           if (orderId && postTradePrompt?.kind === 'share_sheet') {
             incrementShareSheetCount(
@@ -479,10 +490,9 @@ export const usePerpsClosePosition = (
                   position,
                   marketPrice,
                 );
-              const preview = postTradeShare?.preview;
               showToast(
                 orderId &&
-                  preview &&
+                  filledPreview &&
                   postTradePrompt?.kind === 'post_to_feed_toast'
                   ? {
                       ...successToast,
@@ -495,10 +505,7 @@ export const usePerpsClosePosition = (
                           openPostTradeComposer(
                             buildPerpsPostTradeComposerParams({
                               orderId,
-                              preview: withPerpsFillPrice(
-                                preview,
-                                result.averagePrice,
-                              ),
+                              preview: filledPreview,
                             }),
                           );
                         },

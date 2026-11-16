@@ -2552,17 +2552,20 @@ describe('PerpsClosePositionView', () => {
         expect.objectContaining({
           postTradeShare: {
             prompt: { kind: 'share_sheet', countKey },
+            providerId: 'hyperliquid',
             preview: expect.objectContaining({
               action: 'close',
               product: 'perps',
               tradeSymbol: 'ETH',
               direction: 'long',
               leverageLabel: '3x',
-              isPnlPositive: true,
             }),
           },
         }),
       );
+      const { preview } = handleClosePosition.mock.calls[0][0].postTradeShare;
+      expect(preview.pnlValueLabel).toBeUndefined();
+      expect(preview.exitPriceLabel).toBeUndefined();
     });
 
     it('passes no post-trade share when the resolver returns none', async () => {
