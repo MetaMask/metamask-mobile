@@ -527,6 +527,11 @@ export interface RewardsMoneyViewStateOptions {
    */
   socialV1?: boolean;
   /**
+   * Money account on and a non-UK location, so the Earn rewards mUSD slide
+   * is on screen.
+   */
+  showEarnRewards?: boolean;
+  /**
    * A saved support preference, so Contact support opens the WebView without
    * the consent sheet.
    */
@@ -563,6 +568,7 @@ export function rewardsMoneyViewState({
   glassHeaders = false,
   socialV1 = true,
   supportPreferenceSaved = false,
+  showEarnRewards = false,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = seedReferralMe
@@ -591,6 +597,12 @@ export function rewardsMoneyViewState({
     remoteFeatureFlags.glassHeaders = {
       enabled: true,
       minimumVersion: '1.0.0',
+    };
+  }
+  if (showEarnRewards) {
+    remoteFeatureFlags.moneyEnableMoneyAccount = {
+      enabled: true,
+      minimumVersion: '0.0.0',
     };
   }
   if (socialV1) {
@@ -644,6 +656,14 @@ export function rewardsMoneyViewState({
         backgroundState: {
           ...withMoneyAccountOverrides(account, { includeMoneyAccount }).engine
             .backgroundState,
+          ...(showEarnRewards
+            ? {
+                GeolocationController: {
+                  location: 'US',
+                  status: 'complete',
+                },
+              }
+            : {}),
           AuthenticationController: {
             srpSessionData: {
               [REWARDS_MONEY_KEYRING_ID]: {

@@ -46,6 +46,7 @@ describe('RewardsDashboard copy trading', () => {
   it('shows Earn rewards while Social V1 is off', async () => {
     const { findByTestId, queryByTestId } = renderRewardsDashboard({
       socialV1: false,
+      showEarnRewards: true,
     });
 
     expect(
@@ -60,6 +61,7 @@ describe('RewardsDashboard copy trading', () => {
     const referralMe = referralMeFixture('plain');
     const { findByTestId, queryByTestId } = renderRewardsDashboard({
       socialV1: true,
+      showEarnRewards: true,
       referralMe: {
         ...referralMe,
         localized_text: {
@@ -88,6 +90,7 @@ describe('RewardsDashboard subscription sections', () => {
     const { findByTestId, queryByTestId } = renderRewardsDashboard({
       socialV1: false,
       subscriptionId: null,
+      showEarnRewards: true,
     });
 
     expect(
@@ -108,6 +111,7 @@ describe('RewardsDashboard subscription sections', () => {
     const { findByTestId, queryByTestId } = renderRewardsDashboard({
       socialV1: false,
       subscriptionId: 'sub-1',
+      showEarnRewards: true,
     });
 
     expect(
