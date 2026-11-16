@@ -168,9 +168,8 @@ test('a @PerfHealTest selection lists only the two tagged scenarios', () => {
   const onboarding = discover('onboarding', repoRoot, '@PerfHealTest');
 
   assert.equal(login.status, 0);
-  assert.deepEqual(login.specs.sort(), [
-    'tests/performance/login/scenarios/asset-view.scenario.spec.ts',
-    'tests/performance/login/scenarios/predict-available-balance.scenario.spec.ts',
+  assert.deepEqual(login.specs, [
+    'tests/performance/login/scenarios/scenarios.scenario.spec.ts',
   ]);
   assert.equal(onboarding.status, 0);
   assert.deepEqual(onboarding.specs, []);

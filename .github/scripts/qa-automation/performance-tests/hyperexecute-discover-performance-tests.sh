@@ -63,9 +63,10 @@ found=0
 while IFS= read -r -d '' file; do
   if [[ "$file" == *.scenario.spec.ts ]]; then
     if [[ "$include_heal_test" == true && "$GREP_TAGS" != *@PerformanceShadow* ]]; then
-      # The tag lives in the Markdown, not the thin spec.
-      scenario_md="${file%.spec.ts}.md"
-      if [[ -f "$scenario_md" ]] && grep -q '@PerfHealTest' "$scenario_md"; then
+      # One spec registers every scenario in its directory. The tag lives in
+      # the Markdown, so include the spec when any sibling scenario has it.
+      scenario_dir="$(dirname "$file")"
+      if grep -q '@PerfHealTest' "$scenario_dir"/*.scenario.md; then
         selected=true
       else
         selected=false
