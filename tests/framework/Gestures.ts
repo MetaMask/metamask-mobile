@@ -491,6 +491,13 @@ export default class Gestures {
   }
 
   /**
+   * Whether the soft keyboard is currently shown.
+   */
+  static async isKeyboardShown(): Promise<boolean> {
+    return AppiumGestures.isKeyboardShown();
+  }
+
+  /**
    * Type via the focused iOS soft keyboard by tapping keys (Appium iOS only).
    */
   static async typeViaIosKeyboard(

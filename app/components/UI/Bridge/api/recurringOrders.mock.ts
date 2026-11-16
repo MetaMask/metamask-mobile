@@ -2,11 +2,16 @@ import {
   type RecurringOrder,
   RecurringOrderState,
 } from './recurringOrders.types';
+import { KnownCaipNamespace, toCaipAccountId } from '@metamask/utils';
 
 export const MOCK_RECURRING_WALLET_ADDRESS =
   '0x1234567890123456789012345678901234567890';
-export const MOCK_RECURRING_ACCOUNT =
-  `eip155:1:${MOCK_RECURRING_WALLET_ADDRESS}` as const;
+export const MOCK_RECURRING_ACCOUNT = toCaipAccountId(
+  KnownCaipNamespace.Eip155,
+  '1',
+  MOCK_RECURRING_WALLET_ADDRESS,
+);
+export const MOCK_RECURRING_PROFILE_ID = 'f2a1c0de-0000-4000-8000-000000000001';
 
 const ETHEREUM_ETH = {
   assetId: 'eip155:1/slip44:60',
@@ -55,6 +60,8 @@ interface CreateMockRecurringOrderOptions {
   srcAsset?: RecurringOrder['src']['asset'];
   destAsset?: RecurringOrder['dest']['asset'];
   priceRange?: RecurringOrder['priceRange'];
+  hasAttemptIssue?: boolean;
+  accountAddress?: RecurringOrder['accountAddress'];
 }
 
 function createMockRecurringOrder({
@@ -66,13 +73,16 @@ function createMockRecurringOrder({
   srcAsset = ETHEREUM_ETH,
   destAsset = ETHEREUM_USDC,
   priceRange,
+  hasAttemptIssue = false,
+  accountAddress = MOCK_RECURRING_ACCOUNT,
 }: CreateMockRecurringOrderOptions): RecurringOrder {
   const destinationAmount = 3n * 10n ** BigInt(destAsset.decimals);
 
   return {
     id,
     clientOrderId: `client-${id}`,
-    account: MOCK_RECURRING_ACCOUNT,
+    profileId: MOCK_RECURRING_PROFILE_ID,
+    accountAddress,
     state,
     src: {
       amount: SOURCE_AMOUNT.toString(),
@@ -98,12 +108,15 @@ function createMockRecurringOrder({
     },
     priceRange,
     slippage: 0.5,
+    hasAttemptIssue,
     timingData: {
       createdAt,
-      startsAt: createdAt,
       endsAt,
       expiresAt: '2027-02-28T12:00:00.000Z',
+      ...(filledSwapsCount > 0 ? { startedAt: createdAt } : {}),
+      ...(state === RecurringOrderState.Open ? {} : { closedAt: endsAt }),
     },
+    isCancellable: state === RecurringOrderState.Open,
   };
 }
 
@@ -115,10 +128,11 @@ export const MOCK_RECURRING_OPEN_ORDER = createMockRecurringOrder({
   endsAt: '2026-09-05T12:00:00.000Z',
   priceRange: {
     side: 'dest',
-    currency: 'USD',
+    currency: 'usd',
     min: '1800',
     max: '2200',
   },
+  hasAttemptIssue: true,
 });
 
 export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
@@ -129,6 +143,11 @@ export const MOCK_RECURRING_OPEN_ORDER_2 = createMockRecurringOrder({
   endsAt: '2026-09-06T12:00:00.000Z',
   srcAsset: BNB_CHAIN_BNB,
   destAsset: BNB_CHAIN_USDT,
+  accountAddress: toCaipAccountId(
+    KnownCaipNamespace.Eip155,
+    '56',
+    MOCK_RECURRING_WALLET_ADDRESS,
+  ),
 });
 
 export const MOCK_RECURRING_OPEN_ORDER_3 = createMockRecurringOrder({
@@ -147,7 +166,7 @@ export const MOCK_RECURRING_COMPLETED_ORDER = createMockRecurringOrder({
   endsAt: '2026-08-31T12:00:00.000Z',
   priceRange: {
     side: 'src',
-    currency: 'USD',
+    currency: 'usd',
     min: '1800',
     max: '2200',
   },

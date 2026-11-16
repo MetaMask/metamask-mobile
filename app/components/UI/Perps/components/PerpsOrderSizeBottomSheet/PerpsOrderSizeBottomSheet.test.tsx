@@ -3,6 +3,11 @@ import React from 'react';
 import PerpsOrderSizeBottomSheet from './PerpsOrderSizeBottomSheet';
 import { PerpsOrderSizeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../Base/Keypad', () => {
   const { Pressable, Text, View } = jest.requireActual('react-native');
   return function Keypad({

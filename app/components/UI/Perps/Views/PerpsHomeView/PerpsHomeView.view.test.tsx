@@ -31,6 +31,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { PERPS_MODE_SELECTION_COMPLETED } from '../../../../../constants/storage';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { strings } from '../../../../../../locales/i18n';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   createBtcMarketForViews,
@@ -39,12 +40,15 @@ import {
   createHomeExploreAssignmentForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   getPerpsMarketRowItemSelector,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
+  PerpsProviderLogosSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
 } from '../../Perps.testIds';
 import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
@@ -312,6 +316,208 @@ describe('PerpsHomeView', () => {
       expect(
         screen.getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toHaveTextContent('$180');
+    });
+  });
+
+  describe('exchange logos beside the available balance', () => {
+    const previousLighterFlag = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+
+    const lighterEnabledOverrides = (
+      activeProvider: 'hyperliquid' | 'lighter' | 'aggregated',
+    ): DeepPartial<RootState> => ({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            activeProvider,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsLighterProviderEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const renderFundedHome = (
+      activeProvider: 'hyperliquid' | 'lighter' | 'aggregated',
+      balance = '100',
+    ): ReturnType<typeof renderPerpsHomeView> =>
+      renderPerpsHomeView({
+        overrides: lighterEnabledOverrides(activeProvider),
+        streamOverrides: {
+          account: {
+            ...createFundedAccountForViews(balance),
+            spendableBalance: '40',
+          },
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+    beforeEach(() => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+    });
+
+    afterEach(() => {
+      if (previousLighterFlag === undefined) {
+        delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+      } else {
+        process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = previousLighterFlag;
+      }
+    });
+
+    it('keeps the available line free of exchange logos when Lighter is disabled', async () => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('shows the HyperLiquid logo beside the available balance', async () => {
+      renderFundedHome('hyperliquid');
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW,
+        ),
+      ).toHaveTextContent(
+        `${formatPerpsBalance('40')} ${strings('perps.available')}`,
+      );
+      expect(
+        screen.getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toHaveTextContent(formatPerpsBalance('40'));
+    });
+
+    it('shows the Lighter logo when Lighter is the active provider', async () => {
+      renderFundedHome('lighter');
+
+      expect(
+        await screen.findByLabelText('Lighter', {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeNull();
+    });
+
+    it('shows overlapped Hyperliquid and Lighter logos in aggregated mode', async () => {
+      renderFundedHome('aggregated');
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid, Lighter',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides exchange logos when the balance is empty', async () => {
+      renderPerpsHomeView({
+        overrides: lighterEnabledOverrides('aggregated'),
+        streamOverrides: {
+          account: createFundedAccountForViews('0'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeNull();
+    });
+
+    it('keeps exchange logos visible when privacy mode hides the amount', async () => {
+      const hyperliquidOverrides = lighterEnabledOverrides('hyperliquid');
+
+      renderPerpsHomeView({
+        overrides: {
+          ...hyperliquidOverrides,
+          engine: {
+            backgroundState: {
+              ...hyperliquidOverrides.engine?.backgroundState,
+              PreferencesController: {
+                privacyMode: true,
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          account: {
+            ...createFundedAccountForViews('100'),
+            spendableBalance: '40',
+          },
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(formatPerpsBalance('40'))).toBeNull();
+      expect(screen.queryByText(formatPerpsBalance('100'))).toBeNull();
+      expect(screen.getByText(strings('perps.available'))).toBeOnTheScreen();
     });
   });
 
@@ -906,8 +1112,14 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
       fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
+      // Retry refetches the leaderboard and the viewer profile together, and the
+      // error message stays up until the leaderboard rows arrive.
       expect(
-        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
+        await screen.findByTestId(
+          getTraderRowTestId(topFiveIds[0]),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1146,6 +1358,7 @@ describe('PerpsHomeView', () => {
         expect.objectContaining({
           positionId: feedItems[0].positionId,
           isClosed: true,
+          shareSource: 'perps_home',
         }),
       );
     });

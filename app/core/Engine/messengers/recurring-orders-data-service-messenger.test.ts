@@ -24,7 +24,7 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
       getRecurringOrdersDataServiceMessenger(rootMessenger);
     serviceMessenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringOrders',
-      jest.fn().mockResolvedValue({ orders: [] }),
+      jest.fn().mockResolvedValue({ orders: [], hasNextPage: false }),
     );
 
     const result = await rootMessenger.call(
@@ -32,7 +32,7 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
       { walletAddress: '0x1234' },
     );
 
-    expect(result).toStrictEqual({ orders: [] });
+    expect(result).toStrictEqual({ orders: [], hasNextPage: false });
   });
 
   it('exposes recurring-swaps arguments in query-key order', async () => {
@@ -41,7 +41,9 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
     });
     const serviceMessenger =
       getRecurringOrdersDataServiceMessenger(rootMessenger);
-    const handler = jest.fn().mockResolvedValue({ swaps: [] });
+    const handler = jest
+      .fn()
+      .mockResolvedValue({ swaps: [], hasNextPage: false });
     serviceMessenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringSwaps',
       handler,
@@ -50,16 +52,16 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
     const result = await rootMessenger.call(
       'RecurringOrdersDataService:getRecurringSwaps',
       'order-id',
-      { limit: 20 },
+      { accountAddress: 'eip155:1:0x1234', limit: 20 },
       'swap-cursor',
     );
 
     expect(handler).toHaveBeenCalledWith(
       'order-id',
-      { limit: 20 },
+      { accountAddress: 'eip155:1:0x1234', limit: 20 },
       'swap-cursor',
     );
-    expect(result).toStrictEqual({ swaps: [] });
+    expect(result).toStrictEqual({ swaps: [], hasNextPage: false });
   });
 
   it('exposes recurring-order cancellation to the root messenger', async () => {

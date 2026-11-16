@@ -1551,7 +1551,7 @@ describe('SignUp Component', () => {
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
-        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
         expect.objectContaining({
           email: 'gb@example.com',
           countryKey: 'GB',

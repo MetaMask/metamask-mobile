@@ -2,7 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -14,6 +13,9 @@ import { strings } from '../../../../../../locales/i18n';
 import PerpsSelectionOptionCard from './PerpsSelectionOptionCard';
 import { PerpsSelectionBottomSheetSelectorsIDs } from './PerpsSelectionBottomSheet.testIds';
 import type { PerpsSelectionBottomSheetProps } from './PerpsSelectionBottomSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Bottom sheet that lets the user pick one option from a list of cards and
@@ -32,6 +34,7 @@ const PerpsSelectionBottomSheet: React.FC<PerpsSelectionBottomSheetProps> = ({
   saveButtonLabel,
   testID = PerpsSelectionBottomSheetSelectorsIDs.CONTAINER,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const [draftOptionId, setDraftOptionId] = useState(selectedOptionId);
 
@@ -49,7 +52,8 @@ const PerpsSelectionBottomSheet: React.FC<PerpsSelectionBottomSheetProps> = ({
 
   return (
     <BottomSheet ref={sheetRef} goBack={onClose} testID={testID}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           accessibilityLabel: strings('navigation.close'),
@@ -57,7 +61,7 @@ const PerpsSelectionBottomSheet: React.FC<PerpsSelectionBottomSheetProps> = ({
         }}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box accessible={false} twClassName="px-4 pb-3" gap={4}>
         {description ? (
           <Text

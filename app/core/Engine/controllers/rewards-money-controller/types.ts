@@ -168,6 +168,8 @@ export type ReferralLocalizedTextKey =
   | 'inviteReferralCode'
   | 'inviteDecline'
   | 'inviteAccept'
+  | 'inviteTermsLearnMore'
+  | 'inviteTermsUrl'
   | 'inviteAcceptedEyebrow'
   | 'inviteAcceptedTitle'
   | 'inviteAcceptedBody'

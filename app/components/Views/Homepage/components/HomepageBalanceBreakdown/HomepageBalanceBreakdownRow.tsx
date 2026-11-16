@@ -10,7 +10,6 @@ import {
   ButtonSize,
   ButtonVariant,
   BottomSheet,
-  BottomSheetHeader,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
@@ -42,11 +41,13 @@ import {
   MONEY_BUTTON_TYPES,
   SCREEN_NAMES,
 } from '../../../../UI/Money/constants/moneyEvents';
-import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics';
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -125,6 +126,7 @@ const HomepageBalanceBreakdownRow = ({
   userCurrency,
   onPress,
 }: HomepageBalanceBreakdownRowProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const privacyMode = useSelector(selectPrivacyMode);
   const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
@@ -372,11 +374,14 @@ const HomepageBalanceBreakdownRow = ({
                 onClose={handleErrorSheetClose}
                 testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET(slice.key)}
               >
-                <BottomSheetHeader onClose={handleErrorSheetRequestClose}>
+                <BottomSheetHeaderGlass
+                  isGlass={isGlassHeader}
+                  onClose={handleErrorSheetRequestClose}
+                >
                   <Text variant={TextVariant.HeadingSm}>
                     {strings('balance_breakdown.error.title')}
                   </Text>
-                </BottomSheetHeader>
+                </BottomSheetHeaderGlass>
                 <Box twClassName="px-4 pb-8">
                   <Text
                     color={TextColor.TextAlternative}

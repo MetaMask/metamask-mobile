@@ -19,7 +19,7 @@ import {
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -121,7 +121,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 

@@ -3,7 +3,6 @@ import { Modal, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
@@ -12,6 +11,9 @@ import ModalSafeAreaProvider from '../../../../../component-library/components-t
 import { strings } from '../../../../../../locales/i18n';
 import type { PredictConfiguredVenue } from '../../implementation';
 import { PredictVenueSelectorTestIds } from '../PredictVenueSelector.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const VENUE_LABEL_KEYS: Record<PredictConfiguredVenue, string> = {
   polymarket: 'predict_next.venue_selector.venues.polymarket',
@@ -45,6 +47,7 @@ export const VenueSelectorSheet = ({
   onSelect,
   onClose,
 }: VenueSelectorSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
@@ -78,7 +81,8 @@ export const VenueSelectorSheet = ({
               onClose={onClose}
               testID={PredictVenueSelectorTestIds.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={handleClose}
                 closeButtonProps={{
                   testID: PredictVenueSelectorTestIds.CLOSE_BUTTON,
@@ -86,7 +90,7 @@ export const VenueSelectorSheet = ({
                 }}
               >
                 {strings('predict_next.venue_selector.title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
               <Box twClassName="pb-4">
                 {venues.map((venue) => {
                   const isSelected = venue === activeVenue;

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
@@ -11,6 +11,7 @@ const mockBridgeControllerResetState = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
+  useStore: jest.fn(),
 }));
 
 jest.mock('../analytics', () => {
@@ -77,6 +78,26 @@ jest.mock('../../../../core/Analytics', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   resetBridgeState: () => mockResetBridgeState(),
+  setSourceToken: (payload: unknown) => ({
+    type: 'bridge/setSourceToken',
+    payload,
+  }),
+  setDestToken: (payload: unknown) => ({
+    type: 'bridge/setDestToken',
+    payload,
+  }),
+  setSourceAmount: (payload: unknown) => ({
+    type: 'bridge/setSourceAmount',
+    payload,
+  }),
+  setSourceAmountAsMax: (payload: unknown) => ({
+    type: 'bridge/setSourceAmountAsMax',
+    payload,
+  }),
+  setIsDestTokenManuallySet: (payload: unknown) => ({
+    type: 'bridge/setIsDestTokenManuallySet',
+    payload,
+  }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -98,6 +119,9 @@ describe('useQuickBuyAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useStore as jest.Mock).mockReturnValue({
+      getState: () => ({ bridge: {} }),
+    });
   });
 
   describe('trackAmountSelected', () => {
@@ -510,6 +534,56 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockDispatch).toHaveBeenCalled();
       expect(mockResetBridgeState).toHaveBeenCalled();
+    });
+
+    const mockPriorBridgeInputs = (inputs: Record<string, unknown>) =>
+      (useStore as jest.Mock).mockReturnValue({
+        getState: () => ({ bridge: inputs }),
+      });
+
+    it('restores pre-existing bridge inputs after the reset on unmount', () => {
+      const sourceToken = { address: '0xsrc', chainId: '0x1' };
+      const destToken = { address: '0xdest', chainId: '0x1' };
+      mockPriorBridgeInputs({
+        sourceToken,
+        destToken,
+        sourceAmount: '1.5',
+        isMaxSourceAmount: false,
+        isDestTokenManuallySet: true,
+      });
+      const { unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      unmount();
+
+      expect(mockDispatch.mock.calls.map(([action]) => action)).toEqual([
+        { type: 'bridge/reset' },
+        { type: 'bridge/setSourceToken', payload: sourceToken },
+        { type: 'bridge/setDestToken', payload: destToken },
+        { type: 'bridge/setSourceAmount', payload: '1.5' },
+        { type: 'bridge/setIsDestTokenManuallySet', payload: true },
+      ]);
+    });
+
+    it('restores a max source amount as max on unmount', () => {
+      mockPriorBridgeInputs({
+        sourceAmount: '2',
+        isMaxSourceAmount: true,
+      });
+      const { unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      unmount();
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setSourceAmountAsMax',
+        payload: '2',
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'bridge/setSourceAmount' }),
+      );
     });
 
     it('calls BridgeController.resetState on unmount', () => {

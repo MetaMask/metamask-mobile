@@ -15,10 +15,8 @@ import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selector
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import {
-  useMoneyNavigation,
-  useMoneyDepositNavigation,
-} from '../../hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../hooks/useMoneyHomeNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
@@ -98,9 +96,12 @@ jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyHomeNavigation', () => ({
   __esModule: true,
-  useMoneyNavigation: jest.fn(),
+  useMoneyHomeNavigation: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
+  __esModule: true,
   useMoneyDepositNavigation: jest.fn(),
 }));
 
@@ -159,7 +160,7 @@ const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
 const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
   selectMoneyEnableMoneyAccountFlag,
 );
-const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
+const mockUseMoneyHomeNavigation = jest.mocked(useMoneyHomeNavigation);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 const getMockAccessDecision = () => {
@@ -290,7 +291,7 @@ describe('MoneyBalanceCard', () => {
             : decision.redirect_target,
       });
     });
-    mockUseMoneyNavigation.mockReturnValue({
+    mockUseMoneyHomeNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);

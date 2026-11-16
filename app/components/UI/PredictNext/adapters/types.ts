@@ -11,6 +11,8 @@ import type {
   PredictFeedId,
   PredictMarketHistory,
   PredictMarketHistoryRange,
+  PredictOrderApproval,
+  PredictOrderReview,
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
@@ -20,6 +22,7 @@ import type {
   PredictSearchResults,
   PredictVenueCatalog,
   PredictVenueStatus,
+  PredictUnresolvedOrdersPage,
 } from '../types';
 
 export interface VenuePortfolioAdapter {
@@ -28,7 +31,8 @@ export interface VenuePortfolioAdapter {
     params: FetchPositionsParams,
     options?: PredictReadOptions,
   ): Promise<PredictPositionsPage>;
-  /** Totals over every holding, computed by the backend. */
+  /** Totals over every holding: the backend's holdings totals plus the
+   * Balance. */
   fetchPortfolioSummary(
     options?: PredictReadOptions,
   ): Promise<PredictPortfolioSummary>;
@@ -40,21 +44,36 @@ export interface VenuePortfolioAdapter {
 
 /** Trading is a write-adjacent capability: requests are never cached and
  * never blindly retried. Committing an approved Order Preview is the only
- * placement path; the backend is idempotent by Preview reference, so
- * repeating a Commit observes and reconciles one operation instead of
- * placing another. */
+ * placement path and is signed once; the backend is idempotent by Preview
+ * reference. Observing reads the operation's receipt and never submits. */
 export interface VenueTradingAdapter {
   previewOrder(
     params: PredictOrderPreviewParams,
     options?: PredictReadOptions,
   ): Promise<PredictOrderPreview>;
-  /** Commits an approved Order Preview and returns its canonical Order
-   * Receipt. Sends the Preview reference only; every executable detail is
-   * backend-owned. Safe to repeat for the same `previewId`, never automatic. */
+  /** Checks the pinned Preview and returns its user-facing signing bounds. */
+  reviewOrder(previewId: string): Promise<PredictOrderReview>;
+  /** Revokes all locally pinned quotes without affecting observe-only recovery. */
+  invalidatePreviews(): void;
+  /** Commits only the adapter's pinned quote after explicit user approval.
+   * The adapter owns venue conversion; product callers supply no signed data. */
   commitOrder(
+    previewId: string,
+    approval: PredictOrderApproval,
+    options?: PredictReadOptions,
+  ): Promise<PredictOrderReceipt>;
+  /** The operation's canonical Order Receipt. Never submits; while the
+   * backend reconciles an ambiguous submission it device-signs the venue
+   * order scan. A missing row does not resolve an earlier dispatch. */
+  observeOrder(
     previewId: string,
     options?: PredictReadOptions,
   ): Promise<PredictOrderReceipt>;
+  /** Owner-scoped bearer-only discovery; never signs or submits a mutation. */
+  listUnresolvedOrders(
+    params: FetchPortfolioPageParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictUnresolvedOrdersPage>;
 }
 
 export interface VenueMarketDataAdapter {

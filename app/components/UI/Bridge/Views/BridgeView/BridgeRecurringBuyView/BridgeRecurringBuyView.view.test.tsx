@@ -41,7 +41,7 @@ import {
 } from '../../../api/recurringOrders.mock';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 import {
-  type GetRecurringOrdersResponse,
+  type ListRecurringOrdersResponse,
   RecurringOrderState,
   type RecurringOrder,
 } from '../../../api/recurringOrders.types';
@@ -151,6 +151,18 @@ async function openRecurringTab(
   });
 }
 
+// The native pager never reports that it stopped scrolling in Jest, and the
+// previous tab stays mounted until it does.
+async function settlePager(renderResult: ReturnType<typeof renderBridgeView>) {
+  await act(async () => {
+    fireEvent(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.TABS_CONTENT),
+      'pageScrollStateChanged',
+      { nativeEvent: { pageScrollState: 'idle' } },
+    );
+  });
+}
+
 function assertRecurringOrderSummary(
   renderResult: ReturnType<typeof renderBridgeView>,
   order: RecurringOrder,
@@ -243,7 +255,7 @@ function assertRecurringOrderSummary(
     ),
   ).toBeOnTheScreen();
   expect(
-    summary.getByText(formatRecurringOrderDate(order.timingData.startsAt)),
+    summary.getByText(formatRecurringOrderDate(order.timingData.createdAt)),
   ).toBeOnTheScreen();
   expect(
     summary.getByText(formatRecurringOrderDate(order.timingData.endsAt)),
@@ -700,6 +712,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     fireEvent.press(
       renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB),
     );
+    await settlePager(renderResult);
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(
@@ -1365,8 +1378,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     );
     recurringOrdersRequest.mockClear();
 
-    let resolveRequest!: (response: GetRecurringOrdersResponse) => void;
-    const pendingRequest = new Promise<GetRecurringOrdersResponse>(
+    let resolveRequest!: (response: ListRecurringOrdersResponse) => void;
+    const pendingRequest = new Promise<ListRecurringOrdersResponse>(
       (resolve) => {
         resolveRequest = resolve;
       },
@@ -1386,7 +1399,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toBe(true);
 
     await act(async () => {
-      resolveRequest({ orders: [] });
+      resolveRequest({ orders: [], hasNextPage: false });
       await refreshPromise;
     });
 

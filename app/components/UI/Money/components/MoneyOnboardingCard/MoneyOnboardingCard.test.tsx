@@ -1,12 +1,14 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import BigNumber from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
 } from './MoneyOnboardingCard';
 import { useOnboardingStep } from '../../hooks/useOnboardingStep';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { strings } from '../../../../../../locales/i18n';
@@ -49,10 +51,19 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 
-jest.mock('../MoneyNextBestActionParallax', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../MoneyNextBestActionParallax', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ artboardName }: { artboardName?: string }) =>
+      ReactActual.createElement(View, {
+        testID: 'money-next-best-action-parallax',
+        accessibilityLabel: artboardName,
+      }),
+    PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -65,7 +76,7 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-jest.mock('../../hooks/useMoneyNavigation', () => ({
+jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
@@ -356,6 +367,24 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('step 2 — no card yet', () => {
+    it('renders the static card image and no parallax', () => {
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      const { getByTestId, queryByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(
+        queryByTestId('money-next-best-action-parallax'),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId('money-onboarding-card-step-image').findByType(Image).props,
+      ).toEqual(
+        expect.objectContaining({
+          source: moneyOnboardingStepperStep2,
+          resizeMode: 'contain',
+        }),
+      );
+    });
+
     it('renders the no-card description', () => {
       setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
 

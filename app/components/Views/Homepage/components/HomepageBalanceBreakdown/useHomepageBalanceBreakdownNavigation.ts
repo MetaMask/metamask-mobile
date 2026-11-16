@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useMoneyNavigation } from '../../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../UI/Money/hooks/useMoneyHomeNavigation';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { usePredictEntryActions } from '../../../../UI/PredictNext';
 import { usePerpsNavigationHandlers } from '../../Sections/Perpetuals/hooks/usePerpsNavigationHandlers';
@@ -32,7 +32,7 @@ export function useHomepageBalanceBreakdownNavigation({
 }: UseHomepageBalanceBreakdownNavigationArgs = {}) {
   const navigation = useNavigation();
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
   const { navigateToPerpsHome } = usePerpsNavigationHandlers({
     transactionActiveAbTests,
   });

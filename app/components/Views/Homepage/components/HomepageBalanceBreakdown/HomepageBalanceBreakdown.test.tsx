@@ -96,10 +96,12 @@ jest.mock('../../context/HomepageScrollContext', () => ({
   }),
 }));
 
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
+}));
+jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: () => ({
     navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   }),

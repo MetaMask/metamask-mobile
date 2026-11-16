@@ -11,7 +11,6 @@ import styleSheet from './PermittedNetworksInfoSheet.styles';
 import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Text,
   TextVariant,
@@ -19,8 +18,12 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const PermittedNetworksInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
 
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -40,9 +43,9 @@ const PermittedNetworksInfoSheet = () => {
         style={styles.container}
         testID={PermittedNetworksInfoSheetTestIds.CONTAINER}
       >
-        <BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('permissions.permitted_networks')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <View
           style={styles.descriptionContainer}
           testID={PermittedNetworksInfoSheetTestIds.DESCRIPTION_CONTAINER}
