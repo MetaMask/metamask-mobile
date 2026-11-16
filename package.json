@@ -418,7 +418,7 @@
     "@metamask/money-account-utils": "^2.2.1",
     "@metamask/multichain-account-service": "^14.1.0",
     "@metamask/multichain-api-client": "^0.11.0",
-    "@metamask/multichain-api-middleware": "^4.0.1",
+    "@metamask/multichain-api-middleware": "npm:@metamask-previews/multichain-api-middleware@5.1.0-preview-76b7c67",
     "@metamask/multichain-network-controller": "^4.1.1",
     "@metamask/multichain-transactions-controller": "^8.0.0",
     "@metamask/native-utils": "^0.8.0",
