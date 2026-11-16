@@ -73,10 +73,10 @@ import { BRAZE_BANNER_PLACEMENT_ID } from 'app/core/Braze/constants';
 
 Set these properties on the Braze campaign:
 
-| Property   | Type   | Required | Description                                                                            |
-| ---------- | ------ | -------- | -------------------------------------------------------------------------------------- |
-| `deeplink` | string | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.     |
-| `height`   | number | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent. |
+| Property            | Type    | Required | Description                                                                                                                               |
+| ------------------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `deeplink`          | string  | No       | URL routed through the app deeplink pipeline on tap. See deeplink allowlist below.                                     |
+| `height`            | number  | No       | Banner height in logical pixels. Clamped to 60–240 px; defaults to 120 px when absent.                                 |
 
 ### Interaction model — single CTA per banner
 
