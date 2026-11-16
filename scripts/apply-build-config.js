@@ -4,8 +4,7 @@
  * Runs at workflow runtime (during the "Apply build config" step).
  *
  * Exports: env. Does NOT handle secrets
- * (those are injected via set-secrets-from-config.js from the secrets each workflow
- * step maps explicitly; validate-build-config.js checks that list against builds.yml).
+ * (each workflow step that bundles the app maps the GitHub Secrets it needs in its own env).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod

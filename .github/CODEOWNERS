@@ -80,7 +80,6 @@ certs/certificate.pem                                       @MetaMask/mobile-adm
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
-scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
 
 # DevOps Team
 .github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
