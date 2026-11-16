@@ -38,7 +38,7 @@ import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
 import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
-import { getMaxSendableTronAmount } from '../../../../../core/Multichain/tron';
+import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
 import { CaipAssetType } from '@metamask/snaps-sdk';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../../../../../reducers';
@@ -496,7 +496,7 @@ const BuildQuote = () => {
     walletAddress: selectedAddress,
   });
 
-  const previousTronValidationError = useRef<string | undefined>();
+  const previousTronValidationError = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (
