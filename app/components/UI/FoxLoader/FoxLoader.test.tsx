@@ -4,6 +4,7 @@ import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
 import Logger from '../../../util/Logger';
+import { markStartup } from '../../../core/Performance/startupStageSpans';
 
 let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
@@ -29,6 +30,10 @@ jest.mock('../../../component-library/hooks', () => ({
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
   log: jest.fn(),
+}));
+
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
 }));
 
 const renderFoxLoader = ({
@@ -142,6 +147,16 @@ describe('FoxLoader', () => {
     expect(hideAsync).toHaveBeenCalled();
   });
 
+  it('marks the native splash hidden for the startup recorder once it is hidden', async () => {
+    renderFoxLoader();
+
+    await act(async () => {
+      screen.getByTestId(FoxLoaderSelectorsIDs.STATIC_FOX).props.onLoad();
+    });
+
+    expect(markStartup).toHaveBeenCalledWith('nativeSplashHidden');
+  });
+
   it('logs an error when hideAsync rejects during static fox onLoad', async () => {
     jest.mocked(hideAsync).mockRejectedValueOnce(new Error('hide failed'));
     renderFoxLoader();
@@ -154,6 +169,7 @@ describe('FoxLoader', () => {
       expect.any(Error),
       'Failed to hide splash screen',
     );
+    expect(markStartup).not.toHaveBeenCalled();
   });
 
   it('logs an error when hideAsync rejects while dismissing the loader', async () => {

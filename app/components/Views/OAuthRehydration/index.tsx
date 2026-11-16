@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { BackHandler, TouchableOpacity, Alert } from 'react-native';
+import performance from 'react-native-performance';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -541,6 +542,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     try {
       if (finalLoading) return;
 
+      const handBackAt = performance.now();
       unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
@@ -578,6 +580,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({
             password,
+            handBackAt,
             authPreference: authData,
             onBeforeNavigate: async () => {
               // End unlock/journey spans before the biometric keychain upgrade so
@@ -647,6 +650,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     try {
       if (finalLoading) return;
 
+      const handBackAt = performance.now();
       unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
@@ -666,6 +670,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         async () => {
           await unlockWallet({
             password,
+            handBackAt,
             authPreference: authData,
             onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
           });

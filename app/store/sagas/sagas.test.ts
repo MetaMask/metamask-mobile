@@ -1,7 +1,11 @@
 import { runSaga, type Task } from 'redux-saga';
 import { call, cancel, delay, fork, take } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
-import { UserActionType, checkForDeeplink } from '../../actions/user';
+import {
+  UserActionType,
+  checkForDeeplink,
+  setAppServicesReady,
+} from '../../actions/user';
 import Routes from '../../constants/navigation/Routes';
 import {
   authStateMachine,
@@ -33,6 +37,10 @@ import {
 } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
 import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
+import {
+  markStartup,
+  timeStartupStep,
+} from '../../core/Performance/startupStageSpans';
 import Engine from '../../core/Engine';
 import AppLockService from '../../core/AppLock/AppLockService';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
@@ -204,6 +212,12 @@ jest.mock('../../core/AppLock/AppLockService', () => ({
     stop: jest.fn(),
     isAutoLockPending: jest.fn(() => false),
   },
+}));
+
+const mockStopStartupStep = jest.fn();
+jest.mock('../../core/Performance/startupStageSpans', () => ({
+  markStartup: jest.fn(),
+  timeStartupStep: jest.fn(() => mockStopStartupStep),
 }));
 
 const defaultMockState = {
@@ -379,6 +393,25 @@ describe('startAppServices', () => {
 
     // Verify authentication is requested
     expect(Authentication.tryBiometricUnlock).toHaveBeenCalled();
+  });
+
+  it('marks services ready for the startup recorder and times the service starts', async () => {
+    await expectSaga(startAppServices)
+      .withState({
+        onboarding: { completedOnboarding: false },
+        user: { existingUser: true },
+      })
+      .dispatch({ type: UserActionType.ON_PERSISTED_DATA_LOADED })
+      .dispatch({ type: NavigationActionType.ON_NAVIGATION_READY })
+      .put(setAppServicesReady())
+      .run();
+
+    expect(markStartup).toHaveBeenCalledWith('servicesReady');
+    expect(jest.mocked(timeStartupStep).mock.calls).toEqual([
+      ['post_init_gap', 'startup.post_init.deeplink_manager_ms'],
+      ['post_init_gap', 'startup.post_init.app_state_processor_ms'],
+    ]);
+    expect(mockStopStartupStep).toHaveBeenCalledTimes(2);
   });
 
   // SDKConnect/WC2 initialization starts from the unlocked deeplink saga path.

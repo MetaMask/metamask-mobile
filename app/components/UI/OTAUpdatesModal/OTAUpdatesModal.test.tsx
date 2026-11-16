@@ -8,6 +8,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { flagNextStartupAsJsReload } from '../../../core/Performance/startupStageSpans';
 
 // Mock theme utility
 jest.mock('../../../util/theme', () => ({
@@ -79,7 +80,12 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../core/Performance/startupStageSpans', () => ({
+  flagNextStartupAsJsReload: jest.fn(),
+}));
+
 const mockReloadAsync = reloadAsync as jest.MockedFunction<typeof reloadAsync>;
+const mockFlagNextStartupAsJsReload = jest.mocked(flagNextStartupAsJsReload);
 const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
 >;
@@ -141,6 +147,20 @@ describe('OTAUpdatesModal', () => {
     });
   });
 
+  it('flags the next startup as a JS reload before reloading', async () => {
+    const { getByText } = renderWithProvider(<OTAUpdatesModal />);
+
+    fireEvent.press(getByText('Reload'));
+
+    await waitFor(() => {
+      expect(mockReloadAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(mockFlagNextStartupAsJsReload).toHaveBeenCalledTimes(1);
+    expect(
+      mockFlagNextStartupAsJsReload.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockReloadAsync.mock.invocationCallOrder[0]);
+  });
+
   it('does not reload app when reload button is pressed on Android', async () => {
     (Platform as unknown as { OS: string }).OS = 'android';
 
@@ -151,6 +171,7 @@ describe('OTAUpdatesModal', () => {
     await waitFor(() => {
       expect(mockReloadAsync).not.toHaveBeenCalled();
     });
+    expect(mockFlagNextStartupAsJsReload).not.toHaveBeenCalled();
   });
 
   it('logs error when reloadAsync throws', async () => {

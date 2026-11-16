@@ -18,6 +18,7 @@ import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
+import { dropUnlockToHomepageReadyForDeeplink } from '../../Performance/unlockToHomepageReady';
 import { takePostUnlockResume } from '../../PostUnlockResume';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
@@ -129,6 +130,7 @@ export const navigateToPostUnlockHome = async (): Promise<void> => {
   // resume window. A deeplink wins and drops the resume uncommitted, both when
   // handled here and when still pending for the parse after Home.
   const resume = await takePostUnlockResume();
+  dropUnlockToHomepageReadyForDeeplink();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;

@@ -12,6 +12,7 @@ import { regex } from '../regex';
 import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
+import { flushStartupStageSpans } from '../../core/Performance/startupStageSpans';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
@@ -745,6 +746,7 @@ export async function setupSentry(
 
     // Set EAS update context after Sentry initialization
     setEASUpdateContext();
+    flushStartupStageSpans();
   };
   await init();
 }

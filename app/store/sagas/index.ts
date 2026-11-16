@@ -32,6 +32,10 @@ import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
 import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
+import {
+  markStartup,
+  timeStartupStep,
+} from '../../core/Performance/startupStageSpans';
 import AppConstants from '../../core/AppConstants';
 import {
   CLEAR_ONBOARDING,
@@ -568,16 +572,27 @@ export function* startAppServices() {
   yield call(EngineService.start);
 
   // Start DeeplinkManager and process branch deeplinks
+  const stopDeeplinkManagerStart = timeStartupStep(
+    'post_init_gap',
+    'startup.post_init.deeplink_manager_ms',
+  );
   SharedDeeplinkManager.start();
+  stopDeeplinkManagerStart();
 
   // Start AppStateEventProcessor
+  const stopAppStateProcessorStart = timeStartupStep(
+    'post_init_gap',
+    'startup.post_init.app_state_processor_ms',
+  );
   AppStateEventProcessor.start();
+  stopAppStateProcessorStart();
 
   // Apply vault initialization
   yield call(applyVaultInitialization);
 
   yield call(hydrateSocialTermsAcceptance);
 
+  markStartup('servicesReady');
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 
