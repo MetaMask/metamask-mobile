@@ -383,7 +383,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@appium/support@npm:7.2.9, @appium/support@npm:^7.0.0-rc.1, @appium/support@npm:^7.2.0, @appium/support@npm:^7.2.1, @appium/support@npm:^7.2.2, @appium/support@npm:^7.2.5":
+"@appium/support@npm:7.2.9, @appium/support@npm:^7.0.0-rc.1, @appium/support@npm:^7.2.0, @appium/support@npm:^7.2.1, @appium/support@npm:^7.2.2, @appium/support@npm:^7.2.5, @appium/support@npm:^7.2.9":
   version: 7.2.9
   resolution: "@appium/support@npm:7.2.9"
   dependencies:
@@ -23763,16 +23763,16 @@ __metadata:
   linkType: hard
 
 "appium-ios-device@npm:^3.0.0, appium-ios-device@npm:^3.1.12":
-  version: 3.1.21
-  resolution: "appium-ios-device@npm:3.1.21"
+  version: 3.1.26
+  resolution: "appium-ios-device@npm:3.1.26"
   dependencies:
-    "@appium/support": "npm:^7.2.2"
-    asyncbox: "npm:^6.0.1"
-    axios: "npm:^1.16.0"
+    "@appium/support": "npm:^7.2.9"
+    asyncbox: "npm:^6.4.3"
+    axios: "npm:^1.18.0"
     bplist-creator: "npm:^0.x"
     bplist-parser: "npm:^0.x"
     semver: "npm:^7.0.0"
-  checksum: 10/bf647dfde6abd330bf8a4df7e024124f5be43282a7059b66b746827345e87c395f2bf867295bf795fd8ba5a7dcbaa4bcc197fb36cff53670fe0175483f0dcd00
+  checksum: 10/86567ecd55c15b12df57560fd6db28b092a7724ca32f519933714007f5106c10e333209191670d9930121a0be1ab808da9a8ae7cb6bd7beadc811f68d38c9f6a
   languageName: node
   linkType: hard
 
@@ -24386,7 +24386,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"asyncbox@npm:6.5.0, asyncbox@npm:^6.0.1, asyncbox@npm:^6.1.0, asyncbox@npm:^6.3.0":
+"asyncbox@npm:6.5.0":
   version: 6.5.0
   resolution: "asyncbox@npm:6.5.0"
   dependencies:
@@ -24403,6 +24403,15 @@ __metadata:
     lodash: "npm:^4.17.4"
     source-map-support: "npm:^0.x"
   checksum: 10/a36c5d7ff8915e6994c2cbd18fcfa948a8ac98a5b1148f641a5bb7d0cefbe21f02b6830a0234ea29bc3c4a909962cc378b63b50281d18dcaa64eb4507ce34b1b
+  languageName: node
+  linkType: hard
+
+"asyncbox@npm:^6.0.1, asyncbox@npm:^6.1.0, asyncbox@npm:^6.3.0, asyncbox@npm:^6.4.3":
+  version: 6.6.1
+  resolution: "asyncbox@npm:6.6.1"
+  dependencies:
+    p-limit: "npm:^7.2.0"
+  checksum: 10/b64cc40b6b07965d16bc447c44ef1ed117325bc7f3d454a8626b64fc7812e4b5a57d16eb35a5200ccb8d43e0d273f975cf8ab6a7efac6512d9792584ae90a3b1
   languageName: node
   linkType: hard
 
