@@ -48,7 +48,6 @@ export const mapPerpsOrderInFlightToFeedItem = (
     },
     costLabel: preview.costLabel,
     entryPriceLabel: preview.entryPriceLabel,
-    valueLabel: '',
   };
 
   if (preview.action === 'close') {
@@ -57,7 +56,8 @@ export const mapPerpsOrderInFlightToFeedItem = (
       variant: 'perpsClosed',
       exitPriceLabel: preview.exitPriceLabel,
       pnlLabel: preview.pnlLabel ?? '',
-      pnlValueLabel: preview.pnlValueLabel,
+      // A closed card reads its USD P&L from `valueLabel`, as the feed does.
+      valueLabel: preview.pnlValueLabel ?? '',
       isPnlPositive: preview.isPnlPositive ?? true,
       closedAtMs: timestamp,
     };
@@ -66,6 +66,7 @@ export const mapPerpsOrderInFlightToFeedItem = (
   return {
     ...base,
     variant: 'perpsOpen',
+    valueLabel: '',
     tradeSymbol: preview.tradeSymbol,
     pnlLabel: '',
     isPnlPositive: true,

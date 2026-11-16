@@ -9,7 +9,7 @@ import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShare
 import { strings } from '../../../../../locales/i18n';
 import {
   formatPercent,
-  formatSignedAbbreviatedUsd,
+  formatSignedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from '../../SocialFeed/utils/formatters';
@@ -158,7 +158,7 @@ export const buildPerpsClosePostTradePreview = ({
     action: 'close',
     ...(hasPnl
       ? {
-          pnlValueLabel: formatSignedAbbreviatedUsd(pnlUsd),
+          pnlValueLabel: formatSignedUsd(pnlUsd),
           pnlLabel:
             pnlPercent != null && Number.isFinite(pnlPercent)
               ? formatPercent(pnlPercent)

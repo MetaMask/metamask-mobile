@@ -97,7 +97,7 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
       action: 'close',
       exitPriceLabel: '$3,400.00',
       pnlLabel: '+250.00%',
-      pnlValueLabel: '+$250',
+      pnlValueLabel: '+$250.00',
       isPnlPositive: true,
     };
 
@@ -115,7 +115,7 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
     expect(item.entryPriceLabel).toBe('$3,200.00');
     expect(item.exitPriceLabel).toBe('$3,400.00');
     expect(item.pnlLabel).toBe('+250.00%');
-    expect(item.pnlValueLabel).toBe('+$250');
+    expect(item.valueLabel).toBe('+$250.00');
     expect(item.isPnlPositive).toBe(true);
     expect(item.closedAtMs).toBe(1_700_000_000_000);
   });
@@ -129,5 +129,6 @@ describe('mapPerpsOrderInFlightToFeedItem', () => {
     expect(item.variant).toBe('perpsClosed');
     expect(item.isPnlPositive).toBe(false);
     expect(item.pnlLabel).toBe('');
+    expect(item.valueLabel).toBe('');
   });
 });
