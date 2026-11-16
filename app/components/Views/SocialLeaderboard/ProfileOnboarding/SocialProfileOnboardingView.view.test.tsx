@@ -278,6 +278,10 @@ const storeOlderTermsVersion = async () => {
 const introActionDisabled = (testID: string): boolean =>
   screen.getByTestId(testID).props.accessibilityState?.disabled === true;
 
+// Availability is debounced 400ms and the CV worker can stall for several
+// seconds mid-test, so waits on its result need a budget well above both.
+const AVAILABILITY_CHECK = { timeout: 10000 };
+
 /**
  * Renders onboarding and waits until the existing-profile check settles and
  * the intro actions are enabled.
@@ -1375,22 +1379,18 @@ describe('SocialProfileOnboardingView', () => {
         strings('social_leaderboard.profile_onboarding.username_invalid'),
       ),
     ).not.toBeOnTheScreen();
-    // Availability is debounced 400ms. Wait for the available status — the
-    // assertion subject — with a budget above that debounce.
-    await waitFor(
-      () => {
-        expect(
-          Engine.context.ProfileController.checkUsernameAvailability,
-        ).toHaveBeenCalledWith('hello_');
-        expect(
-          screen.getByText(
-            strings('social_leaderboard.profile_onboarding.username_available'),
-            { exact: true },
-          ),
-        ).toBeOnTheScreen();
-      },
-      { timeout: 3000 },
-    );
+    // Wait for the available status, the assertion subject.
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.checkUsernameAvailability,
+      ).toHaveBeenCalledWith('hello_');
+      expect(
+        screen.getByText(
+          strings('social_leaderboard.profile_onboarding.username_available'),
+          { exact: true },
+        ),
+      ).toBeOnTheScreen();
+    }, AVAILABILITY_CHECK);
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
@@ -1417,15 +1417,12 @@ describe('SocialProfileOnboardingView', () => {
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
 
-    // Availability is debounced 400ms, which leaves too little of findBy's 1s
-    // default on a loaded CV shard. Wait for the unavailable message with a
-    // budget above that debounce.
     fireEvent.changeText(usernameInput, 'hello_');
     expect(
       await screen.findByText(
         'This handle is unavailable. Choose another one.',
         {},
-        { timeout: 3000 },
+        AVAILABILITY_CHECK,
       ),
     ).toBeOnTheScreen();
 
@@ -1448,7 +1445,7 @@ describe('SocialProfileOnboardingView', () => {
       await screen.findByText(
         'This handle is unavailable. Choose another one.',
         {},
-        { timeout: 3000 },
+        AVAILABILITY_CHECK,
       ),
     ).toBeOnTheScreen();
     expect(
