@@ -3,6 +3,7 @@ import { hasProperty } from '@metamask/utils';
 import {
   isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
+  PROVIDER_CONFIG,
   type HyperLiquidErrorDetails,
   type PerpsErrorDetails,
   type PriceMovedErrorDetails,
@@ -54,7 +55,7 @@ function isHyperLiquidErrorDetails(
     isPerpsErrorCodeValue(value.code) &&
     value.code !== PERPS_ERROR_CODES.PRICE_MOVED &&
     hasProperty(value, 'provider') &&
-    value.provider === 'hyperliquid'
+    value.provider === PROVIDER_CONFIG.DefaultProvider
   );
 }
 

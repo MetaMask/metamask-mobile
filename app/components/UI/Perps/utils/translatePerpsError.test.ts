@@ -49,7 +49,7 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import { PERPS_ERROR_CODES, PROVIDER_CONFIG } from '@metamask/perps-controller';
 import {
   translatePerpsError,
   isPerpsErrorCode,
@@ -186,7 +186,7 @@ describe('translatePerpsError', () => {
         errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         errorDetails: {
           code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: 'hyperliquid',
+          provider: PROVIDER_CONFIG.DefaultProvider,
         },
       });
 
@@ -243,7 +243,7 @@ describe('translatePerpsError', () => {
           errorCode,
           errorDetails: {
             code: errorCode,
-            provider: 'hyperliquid' as const,
+            provider: PROVIDER_CONFIG.DefaultProvider,
           },
         };
 
@@ -252,6 +252,21 @@ describe('translatePerpsError', () => {
         expect(result).toBe(expectedMessage);
       },
     );
+
+    it('rejects provider-tagged details from an unrecognized provider', () => {
+      const failure = {
+        error: 'Unclassified venue diagnostic',
+        errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+          provider: 'unrecognized-provider',
+        },
+      };
+
+      const result = translatePerpsError(failure);
+
+      expect(result).toBe('perps.errors.unknownError');
+    });
   });
 
   describe('with Error objects', () => {
@@ -450,7 +465,7 @@ describe('isNoPositionFoundError', () => {
       errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
       errorDetails: {
         code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-        provider: 'hyperliquid' as const,
+        provider: PROVIDER_CONFIG.DefaultProvider,
       },
     };
 
@@ -621,7 +636,7 @@ describe('normalized post-only rejections from Core', () => {
     success: false,
     error: code,
     errorCode: code,
-    errorDetails: { code, provider: 'hyperliquid' as const },
+    errorDetails: { code, provider: PROVIDER_CONFIG.DefaultProvider },
   });
 
   beforeEach(() => {
