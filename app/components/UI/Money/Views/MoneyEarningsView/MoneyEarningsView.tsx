@@ -139,6 +139,7 @@ const MoneyEarningsView = (): React.ReactElement => {
                   isDisabled={isDisabled}
                   onPress={handleTabPress}
                   testID={testID}
+                  accessibilityLabel={label}
                   accessibilityRole="tab"
                   accessibilityState={{
                     selected: isActive,
