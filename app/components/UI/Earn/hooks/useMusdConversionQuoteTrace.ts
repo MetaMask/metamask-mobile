@@ -13,6 +13,7 @@ import {
 } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { getPaymentTokenEvmAsset } from '../../../../util/transactions/payment-token';
 
 /**
  * Hook to trace mUSD conversion quote fetching time.
@@ -25,6 +26,7 @@ export function useMusdConversionQuoteTrace() {
   const quotes = useTransactionPayQuotes();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
 
   const traceIdRef = useRef<string | null>(null);
   const wasLoadingRef = useRef(false);
@@ -44,15 +46,15 @@ export function useMusdConversionQuoteTrace() {
       id: traceIdRef.current,
       tags: {
         transactionId: transactionMeta?.id ?? 'unknown',
-        payTokenAddress: payToken?.address ?? 'unknown',
-        payTokenChainId: payToken?.chainId ?? 'unknown',
+        payTokenAddress: payTokenAsset?.address ?? 'unknown',
+        payTokenChainId: payTokenAsset?.chainId ?? 'unknown',
       },
     });
   }, [
     isMusdConversion,
     transactionMeta?.id,
-    payToken?.address,
-    payToken?.chainId,
+    payTokenAsset?.address,
+    payTokenAsset?.chainId,
   ]);
 
   // End trace when loading finishes (with or without quotes)

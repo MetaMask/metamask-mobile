@@ -9,6 +9,11 @@ import {
 import type { Hex } from '@metamask/utils';
 import { RootState } from '../../reducers';
 import { buildEvmCaip19AssetId } from '../../util/multichain/buildEvmCaip19AssetId';
+import {
+  buildAssetIdIndex,
+  resolveEvmAssetId,
+  type EvmAssetIdResolver,
+} from '../../util/transactions/payment-token';
 import { selectAccountTreeControllerState } from '../multichainAccounts/accountTreeController';
 
 const defaultState = getDefaultAssetsControllerState();
@@ -180,5 +185,18 @@ export const selectErc20MetadataLookup = createSelector(
         ? { symbol: metadata.symbol, decimals: metadata.decimals }
         : undefined;
     };
+  },
+);
+
+/**
+ * Resolves the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * state, for callers that select tokens by chain and address (configured,
+ * persisted or required tokens). State is indexed once per `assetsInfo` change.
+ */
+export const selectEvmAssetIdResolver = createSelector(
+  [getAssetsInfo],
+  (assetsInfo): EvmAssetIdResolver => {
+    const index = buildAssetIdIndex(assetsInfo);
+    return (token) => resolveEvmAssetId(token, index);
   },
 );

@@ -25,6 +25,7 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../../Views/confirmations/ConfirmationView.testIds';
+import { buildPaymentTokenMock } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -98,11 +99,11 @@ describe('PerpsPayRow', () => {
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: '0xusdc',
         chainId: '0xa4b1',
         symbol: 'USDC',
-      },
+      }),
       setPayToken: jest.fn(),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
@@ -144,7 +145,11 @@ describe('PerpsPayRow', () => {
   it('renders pay token symbol when perps balance is not selected', () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' },
+      payToken: buildPaymentTokenMock({
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+      }),
       setPayToken: jest.fn(),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
 
@@ -181,7 +186,11 @@ describe('PerpsPayRow', () => {
 
     it('renders money account label instead of the underlying mUSD pay token', () => {
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: { address: '0xmusd', chainId: '0x279f', symbol: 'mUSD' },
+        payToken: buildPaymentTokenMock({
+          address: '0xmusd',
+          chainId: '0x279f',
+          symbol: 'mUSD',
+        }),
         setPayToken: jest.fn(),
       } as unknown as ReturnType<typeof useTransactionPayToken>);
 
@@ -264,7 +273,7 @@ describe('PerpsPayRow', () => {
       symbol: string;
     }) =>
       mockUseTransactionPayToken.mockReturnValue({
-        payToken: token,
+        payToken: buildPaymentTokenMock(token),
         setPayToken: jest.fn(),
       } as unknown as ReturnType<typeof useTransactionPayToken>);
 

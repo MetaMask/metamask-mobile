@@ -7,6 +7,7 @@ import {
   getAssetsInfo,
   selectAssetsHaveLoadedForSelectedAccountGroup,
   selectErc20MetadataLookup,
+  selectEvmAssetIdResolver,
 } from './assets-controller';
 
 type DeepPartial<T> = T extends object
@@ -297,5 +298,56 @@ describe('selectAssetsHaveLoadedForSelectedAccountGroup', () => {
         }),
       ),
     ).toBe(true);
+  });
+});
+
+describe('selectEvmAssetIdResolver', () => {
+  const USDC_ASSET_ID =
+    'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as CaipAssetType;
+
+  const state = {
+    engine: {
+      backgroundState: {
+        AssetsController: {
+          ...defaultAssetsControllerState,
+          assetsInfo: {
+            [USDC_ASSET_ID]: { type: 'erc20', symbol: 'USDC', decimals: 6 },
+            'eip155:137/slip44:966': {
+              type: 'native',
+              symbol: 'POL',
+              decimals: 18,
+            },
+          },
+        },
+      },
+    },
+  } as unknown as RootState;
+
+  it('resolves an ERC-20 token to its AssetsController key', () => {
+    const resolveAssetId = selectEvmAssetIdResolver(state);
+
+    expect(
+      resolveAssetId({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+      }),
+    ).toBe(USDC_ASSET_ID);
+  });
+
+  it('resolves a native token to the native asset of its chain', () => {
+    const resolveAssetId = selectEvmAssetIdResolver(state);
+
+    expect(
+      resolveAssetId({
+        address: '0x0000000000000000000000000000000000001010',
+        chainId: '0x89',
+      }),
+    ).toBe('eip155:137/slip44:966');
+  });
+
+  it('returns the same resolver while assetsInfo is unchanged', () => {
+    expect(selectEvmAssetIdResolver(state)).toBe(
+      selectEvmAssetIdResolver(state),
+    );
   });
 });

@@ -14,6 +14,7 @@ import {
 } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { buildPaymentTokenMock } from '../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
@@ -62,7 +63,7 @@ describe('useMusdConversionQuoteTrace', () => {
       type: TransactionType.musdConversion,
     } as ReturnType<typeof useTransactionMetadataRequest>);
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { address: '0xtoken', chainId: '0x1' },
+      payToken: buildPaymentTokenMock({ address: '0xtoken', chainId: '0x1' }),
     } as unknown as ReturnType<typeof useTransactionPayToken>);
   });
 

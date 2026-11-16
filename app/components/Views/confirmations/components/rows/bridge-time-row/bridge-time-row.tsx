@@ -16,6 +16,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { getPaymentTokenEvmAsset } from '../../../../../../util/transactions/payment-token';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -29,7 +30,8 @@ export function BridgeTimeRow() {
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
 
-  const isSameChain = payToken?.chainId != null && payToken.chainId === chainId;
+  const payTokenChainId = getPaymentTokenEvmAsset(payToken)?.chainId;
+  const isSameChain = payTokenChainId != null && payTokenChainId === chainId;
 
   const showEstimate =
     (isLoading || Boolean(quotes?.length) || isSameChain) &&

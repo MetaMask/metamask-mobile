@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
 import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
@@ -12,6 +13,8 @@ import { OrderPreview } from '../../../../types';
 import { Hex } from '@metamask/utils';
 import EngineService from '../../../../../../../core/EngineService';
 import { getPredictBuyAllInCost } from '../../../../utils/orders';
+import { selectEvmAssetIdResolver } from '../../../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../../../util/transactions/payment-token';
 
 interface PredictPayWithAnyTokenInfoProps {
   currentValue: number;
@@ -58,6 +61,7 @@ function PredictPayWithAnyTokenInfoInner({
     usePredictPaymentToken();
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
   const { setPayToken, payToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
   const transactionMeta = useTransactionMetadataRequest();
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
@@ -178,22 +182,19 @@ function PredictPayWithAnyTokenInfoInner({
       return;
     }
 
-    const selectedTokenAddress = selectedPaymentToken.address?.toLowerCase();
-    const selectedTokenChainId = selectedPaymentToken.chainId?.toLowerCase();
+    const { address, chainId } = selectedPaymentToken;
 
-    if (!selectedTokenAddress || !selectedTokenChainId) {
+    if (!address || !chainId) {
       return;
     }
 
-    const hasSelectedTokenApplied =
-      payToken?.address?.toLowerCase() === selectedTokenAddress &&
-      payToken?.chainId?.toLowerCase() === selectedTokenChainId;
+    const selectedAssetId = resolveAssetId({
+      address: address as Hex,
+      chainId: chainId as Hex,
+    });
 
-    if (!hasSelectedTokenApplied) {
-      setPayToken({
-        address: selectedPaymentToken.address as Hex,
-        chainId: selectedPaymentToken.chainId as Hex,
-      });
+    if (!isSameAssetId(payToken?.assetId, selectedAssetId)) {
+      setPayToken({ assetId: selectedAssetId });
       EngineService.flushState();
     }
   }, [
@@ -201,8 +202,8 @@ function PredictPayWithAnyTokenInfoInner({
     isMoneyAccountSelected,
     isPredictBalanceSelected,
     selectedPaymentToken,
-    payToken?.address,
-    payToken?.chainId,
+    payToken?.assetId,
+    resolveAssetId,
     setPayToken,
   ]);
 

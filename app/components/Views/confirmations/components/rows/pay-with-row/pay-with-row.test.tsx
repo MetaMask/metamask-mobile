@@ -132,12 +132,10 @@ describe('PayWithRow', () => {
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
         assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
-        address: ADDRESS_MOCK,
         balanceHuman: '0',
         balanceFiat: '$0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: CHAIN_ID_MOCK,
         decimals: 4,
         symbol: 'test',
       },
@@ -474,12 +472,10 @@ describe('PayWithRow', () => {
       jest.mocked(useTransactionPayToken).mockReturnValue({
         payToken: {
           assetId: `eip155:${parseInt(CHAIN_ID_MOCK, 16)}/erc20:${ADDRESS_MOCK}`,
-          address: ADDRESS_MOCK,
           balanceHuman: '0',
           balanceFiat: '$0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: CHAIN_ID_MOCK,
           decimals: 6,
           symbol: 'USDC',
         },

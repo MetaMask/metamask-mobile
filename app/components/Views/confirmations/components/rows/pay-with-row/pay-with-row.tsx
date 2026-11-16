@@ -52,6 +52,7 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { getPaymentTokenEvmAsset } from '../../../../../../util/transactions/payment-token';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -195,10 +196,15 @@ function PayWithRowInteractive() {
     if (hasAccountNoFunds) {
       return null;
     }
+    const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+    const payTokenDisplay =
+      payToken && payTokenAsset
+        ? { ...payTokenAsset, symbol: payToken.symbol }
+        : undefined;
     if (isWithdraw) {
-      return payToken ?? defaultWithdrawToken ?? null;
+      return payTokenDisplay ?? defaultWithdrawToken ?? null;
     }
-    return payToken ?? null;
+    return payTokenDisplay ?? null;
   }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(

@@ -1,12 +1,15 @@
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
 
 export const useMusdPaymentToken = () => {
   const transactionMeta = useTransactionMetadataRequest();
   const { setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
 
   const onPaymentTokenChange = (token: AssetType) => {
     const selectedTokenChainId = token?.chainId;
@@ -37,8 +40,12 @@ export const useMusdPaymentToken = () => {
     }
 
     setPayToken({
-      address: token.address as Hex,
-      chainId: token.chainId as Hex,
+      assetId:
+        token.caipAssetId ??
+        resolveAssetId({
+          address: token.address as Hex,
+          chainId: token.chainId as Hex,
+        }),
     });
   };
 

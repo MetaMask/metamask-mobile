@@ -52,6 +52,7 @@ import {
 } from '../../utils/perpsPaymentTokenSelection';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -90,6 +91,7 @@ export const PerpsPayTokenIcon = () => {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const displayToken = matchesPerpsBalance
     ? {
         address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
@@ -97,9 +99,9 @@ export const PerpsPayTokenIcon = () => {
         networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
       }
     : {
-        address: payToken?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
-        networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
+        address: payTokenAsset?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+        tokenLookupChainId: payTokenAsset?.chainId ?? CHAIN_IDS.MAINNET,
+        networkBadgeChainId: payTokenAsset?.chainId ?? CHAIN_IDS.MAINNET,
       };
 
   const token = useTokenWithBalance(
@@ -199,9 +201,7 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
   // when the selector opens. Comparing identity avoids misclassifying a
   // selection of a different token that shares a symbol as a dismissal. `null`
   // means no selector open is pending.
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
-    : '';
+  const payTokenIdentity = payToken?.assetId ?? '';
   const selectorOpenIdentityRef = useRef<string | null>(null);
 
   const handleClick = useCallback(() => {

@@ -14,7 +14,6 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { BridgeToken } from '../../../../UI/Bridge/types';
 import {
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuoteError,
@@ -39,6 +38,7 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
+import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
 
 const CRYPTO_ACCOUNT_TYPES = new Set<string>(
   Object.values(OnboardingCompletedAccountType),
@@ -58,8 +58,11 @@ export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
+  const automaticPayToken = useRef<
+    { chainId: Hex; symbol: string } | undefined
+  >(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quoteErrorsRef = useRef<Json[]>([]);
   const wasQuoteLoadingRef = useRef(false);
@@ -167,8 +170,8 @@ export function useTransactionPayMetrics() {
       {
         pay_token: {
           symbol: payToken?.symbol ?? null,
-          chainId: payToken?.chainId ?? null,
-          address: payToken?.address ?? null,
+          chainId: payTokenAsset?.chainId ?? null,
+          address: payTokenAsset?.address ?? null,
         },
         amount: sendingValue,
         amount_input_type: inputType ?? null,
@@ -180,8 +183,11 @@ export function useTransactionPayMetrics() {
   }
   wasQuoteLoadingRef.current = isQuoteLoading;
 
-  if (!automaticPayToken.current && payToken) {
-    automaticPayToken.current = payToken;
+  if (!automaticPayToken.current && payToken && payTokenAsset) {
+    automaticPayToken.current = {
+      chainId: payTokenAsset.chainId,
+      symbol: payToken.symbol,
+    };
   }
 
   const needsAccountSelect = hasTransactionType(transactionMeta, [
