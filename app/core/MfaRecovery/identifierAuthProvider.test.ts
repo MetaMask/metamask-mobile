@@ -804,6 +804,34 @@ describe('createOidcIdentifierAuthProvider', () => {
     );
   });
 
+  it('rejects non-string Apple nonce claims', async () => {
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonceAndSeedlessAuth: mockSeedlessLogin(
+        tokenFor(expectedNonce, {
+          iss: 'https://appleid.apple.com',
+          sub: 'apple-sub-1',
+          nonce: 12345,
+        }),
+      ),
+    });
+
+    await expect(
+      provider.getKeyBoundIdentifierLogin({
+        identifier: {
+          type: 'social',
+          namespace: 'https://appleid.apple.com',
+          value: 'apple-sub-1',
+          verifier: null,
+        },
+        proofPublicKey: PROOF_PUBLIC_KEY,
+        requestHash: REQUEST_HASH,
+      }),
+    ).rejects.toThrow(
+      'MFA recovery: ID token nonce does not match the request',
+    );
+  });
+
   it('discovers provider subject when identifier.value is empty', async () => {
     const providerIdToken = tokenFor(expectedNonce);
     const provider = createOidcIdentifierAuthProvider({

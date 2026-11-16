@@ -32,6 +32,13 @@ export type {
   SeedlessPasswordUnlockResult,
 } from './seedlessPasswordUnlockViaMfa';
 
+export { canUseMfaPasswordUnlock } from './canUseMfaPasswordUnlock';
+export { runDevMfaSocialUnlock } from './runDevMfaSocialUnlock';
+export type {
+  RunDevMfaSocialUnlockDeps,
+  RunDevMfaSocialUnlockParams,
+} from './runDevMfaSocialUnlock';
+
 export type {
   Identifier,
   IdentifierSession,

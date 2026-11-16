@@ -29,11 +29,7 @@ import {
   selectSeedlessOnboardingLoginFlow,
 } from '../../../selectors/seedlessOnboardingController';
 import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
-import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
-import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
-import OAuthService from '../../../core/OAuthService/OAuthService';
-import { buildOidcIdentifier } from '../../../core/MfaRecovery';
-import Engine from '../../../core/Engine';
+import { runDevMfaSocialUnlock } from '../../../core/MfaRecovery';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import {
@@ -637,56 +633,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
    * present). Not for production.
    */
   const handleDevMfaSocialUnlock = useCallback(async () => {
-    if (!__DEV__) {
-      return;
-    }
-
-    const hasMfaRecoveryController = Boolean(
-      (Engine.context as { MfaRecoveryController?: unknown })
-        .MfaRecoveryController,
-    );
-    const provider = authConnection as AuthConnection | undefined;
-
-    if (!hasMfaRecoveryController) {
-      Alert.alert('DEV MFA', 'MfaRecoveryController is not on Engine.context');
-      return;
-    }
-    if (!isSeedlessLogin || !provider || !seedlessUserId) {
-      Alert.alert(
-        'DEV MFA',
-        'Need a locked seedless social wallet (authConnection + userId)',
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-      const loginHandler = createLoginHandler(Platform.OS, provider, false, {
-        telegramLoginEnabled: isTelegramLoginEnabled,
-      });
-
-      await OAuthService.handleMfaSeedlessPasswordUnlock(
-        {
-          identifier: buildOidcIdentifier({ authConnection: provider }),
-          expectedSeedlessUserId: seedlessUserId,
-          authConnection: provider,
-          clientId: loginHandler.options.clientId,
-        },
-        true,
-      );
-
-      Alert.alert(
-        'DEV MFA OK',
-        'MfaRecoveryController path succeeded. Enter password to unlock the vault.',
-      );
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(message);
-      Alert.alert('DEV MFA failed', message);
-    } finally {
-      setLoading(false);
-    }
+    await runDevMfaSocialUnlock({
+      authConnection,
+      seedlessUserId,
+      requireSeedlessLoginFlow: true,
+      isSeedlessLogin,
+      telegramLoginEnabled: isTelegramLoginEnabled,
+      setLoading,
+      setError,
+    });
   }, [authConnection, seedlessUserId, isSeedlessLogin, isTelegramLoginEnabled]);
 
   const renderWordmark = (wordmark: React.ReactElement) => (

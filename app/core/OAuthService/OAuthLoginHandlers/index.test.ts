@@ -671,6 +671,47 @@ describe('OAuth login handlers', () => {
 
         await expect(handler.login()).rejects.toThrow('Network error');
       });
+
+      it('forwards caller nonce into AuthRequest extraParams when provided', async () => {
+        const { AuthRequest } = jest.requireMock('expo-auth-session') as {
+          AuthRequest: jest.Mock;
+        };
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({ type: 'success' });
+        const recoveryNonce = `0x${'ab'.repeat(32)}`;
+
+        const handler = createLoginHandler(
+          'android',
+          AuthConnection.Apple,
+          false,
+          { nonce: recoveryNonce },
+        );
+        await handler.login();
+
+        expect(AuthRequest).toHaveBeenCalledWith(
+          expect.objectContaining({
+            extraParams: expect.objectContaining({
+              response_mode: 'form_post',
+              nonce: recoveryNonce,
+            }),
+          }),
+        );
+      });
+
+      it('omits nonce from AuthRequest extraParams when caller nonce is absent', async () => {
+        const { AuthRequest } = jest.requireMock('expo-auth-session') as {
+          AuthRequest: jest.Mock;
+        };
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({ type: 'success' });
+
+        const handler = createLoginHandler('android', AuthConnection.Apple);
+        await handler.login();
+
+        expect(AuthRequest).toHaveBeenCalledWith(
+          expect.objectContaining({
+            extraParams: { response_mode: 'form_post' },
+          }),
+        );
+      });
     });
 
     describe('Android Google handler', () => {

@@ -285,6 +285,38 @@ describe('authenticateSeedlessViaMfaIdentifier', () => {
     ).rejects.toThrow('auth failed');
   });
 
+  it('uses a default message when seedless authenticate errors without error text', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless(),
+    );
+    (
+      OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
+    ).mockResolvedValue({
+      type: OAuthLoginResultType.ERROR,
+      existingUser: false,
+    });
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).rejects.toThrow('Seedless authenticate failed');
+  });
+
+  it('skips userId mismatch check when expectedSeedlessUserId is omitted', async () => {
+    getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
+      sessionWithSeedless(),
+    );
+    (
+      OAuthLoginService.handleSeedlessAuthenticate as jest.Mock
+    ).mockResolvedValue({
+      type: OAuthLoginResultType.SUCCESS,
+      existingUser: true,
+    });
+
+    await expect(
+      authenticateSeedlessViaMfaIdentifier(identifier, { clientId }),
+    ).resolves.toMatchObject({ type: 'success' });
+  });
+
   it('omits account_name when socialLoginEmail is absent', async () => {
     getMockMfaRecoveryController().authenticateIdentifier.mockResolvedValue(
       sessionWithSeedless({

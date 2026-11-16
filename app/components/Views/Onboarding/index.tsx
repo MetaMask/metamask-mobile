@@ -107,7 +107,10 @@ import {
   startOAuthLifecycleTracking,
 } from '../../../core/OAuthService/oauthLifecycleTracking';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
-import { buildOidcIdentifier } from '../../../core/MfaRecovery';
+import {
+  buildOidcIdentifier,
+  canUseMfaPasswordUnlock as evaluateCanUseMfaPasswordUnlock,
+} from '../../../core/MfaRecovery';
 import Engine from '../../../core/Engine';
 import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
@@ -1175,12 +1178,14 @@ const Onboarding = () => {
             (Engine.context as { MfaRecoveryController?: unknown })
               .MfaRecoveryController,
           );
-          const canUseMfaPasswordUnlock =
-            isMoneyMfaEnabledFlag &&
-            !createWallet &&
-            Boolean(seedlessState?.userId) &&
-            seedlessState?.authConnection === provider &&
-            hasMfaRecoveryController;
+          const canUseMfaPasswordUnlock = evaluateCanUseMfaPasswordUnlock({
+            isMoneyMfaEnabled: isMoneyMfaEnabledFlag,
+            createWallet,
+            seedlessUserId: seedlessState?.userId,
+            seedlessAuthConnection: seedlessState?.authConnection,
+            provider,
+            hasMfaRecoveryController,
+          });
 
           try {
             const result = canUseMfaPasswordUnlock
