@@ -421,12 +421,10 @@ describe('CustomAmountInfo', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
         assetId: 'eip155:1/erc20:0x123',
-        address: '0x123',
         balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
       },
@@ -1656,12 +1654,10 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           assetId: 'eip155:1/erc20:0x123',
-          address: '0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'TST',
         },
@@ -1689,12 +1685,10 @@ describe('CustomAmountInfo', () => {
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
             assetId: 'eip155:1/erc20:0x123',
-            address: '0x123',
             balanceHuman: '0',
             balanceFiat: '0',
             balanceRaw: '0',
             balanceUsd: '0',
-            chainId: '0x1',
             decimals: 18,
             symbol: 'TST',
           },
@@ -1742,12 +1736,10 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
           assetId: 'eip155:1/erc20:0x123',
-          address: '0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },

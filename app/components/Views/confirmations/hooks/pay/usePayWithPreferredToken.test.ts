@@ -1,6 +1,8 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { EvmPaymentToken } from '../../../../../util/transactions/payment-token';
+import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { usePayWithPreferredToken } from './usePayWithPreferredToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -8,41 +10,52 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { AssetType } from '../../types/token';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import {
+  evmAssetId,
+  resolveEvmAssetIdMock,
+} from '../../__mocks__/pay-token.mock';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('./useAutomaticTransactionPayToken');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useTransactionPayToken');
 jest.mock('./usePayTokenAccountBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
-const TOKEN_MOCK: EvmPaymentToken = {
-  assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
-  address: '0x1234567890abcdef1234567890abcdef12345678' as Hex,
+const TOKEN_ASSET_MOCK = {
+  address: toChecksumHexAddress(
+    '0x1234567890abcdef1234567890abcdef12345678',
+  ) as Hex,
+  chainId: '0x1' as Hex,
+};
+
+const TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: evmAssetId(TOKEN_ASSET_MOCK.address, TOKEN_ASSET_MOCK.chainId),
   balanceFiat: '$12.34',
   balanceHuman: '12.34',
   balanceRaw: '12340000',
   balanceUsd: '12.34',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'USDC',
 };
 
-const OTHER_TOKEN_MOCK: EvmPaymentToken = {
-  assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-  address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex,
+const OTHER_TOKEN_MOCK: TransactionPaymentToken = {
+  assetId: evmAssetId('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', '0x1'),
   balanceFiat: '$20.00',
   balanceHuman: '20',
   balanceRaw: '20000000',
   balanceUsd: '20',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'POL',
 };
 
 const AVAILABLE_TOKEN_MOCK: AssetType = {
-  address: TOKEN_MOCK.address,
+  address: TOKEN_ASSET_MOCK.address,
   balance: '12.34',
-  chainId: TOKEN_MOCK.chainId,
+  chainId: TOKEN_ASSET_MOCK.chainId,
   decimals: TOKEN_MOCK.decimals,
   balanceInSelectedCurrencyAmount: 12.34,
   fiat: { balance: 12.34 },
@@ -72,10 +85,8 @@ describe('usePayWithPreferredToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    useAutomaticTransactionPayTokenMock.mockReturnValue({
-      address: TOKEN_MOCK.address,
-      chainId: TOKEN_MOCK.chainId,
-    });
+    jest.mocked(useSelector).mockReturnValue(resolveEvmAssetIdMock);
+    useAutomaticTransactionPayTokenMock.mockReturnValue(TOKEN_ASSET_MOCK);
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [AVAILABLE_TOKEN_MOCK],
@@ -104,9 +115,8 @@ describe('usePayWithPreferredToken', () => {
     expect(result.current).toEqual({
       hasTokens: true,
       preferredToken: {
-        address: TOKEN_MOCK.address,
+        ...TOKEN_ASSET_MOCK,
         balanceUsd: TOKEN_MOCK.balanceUsd,
-        chainId: TOKEN_MOCK.chainId,
         symbol: TOKEN_MOCK.symbol,
       },
       selectedToken: TOKEN_MOCK,
@@ -114,10 +124,7 @@ describe('usePayWithPreferredToken', () => {
   });
 
   it('passes an explicit preferred token into automatic token selection', () => {
-    const preferredToken = {
-      address: TOKEN_MOCK.address,
-      chainId: TOKEN_MOCK.chainId,
-    };
+    const preferredToken = TOKEN_ASSET_MOCK;
 
     renderHook(() => usePayWithPreferredToken({ preferredToken }));
 
@@ -146,9 +153,8 @@ describe('usePayWithPreferredToken', () => {
     const { result } = renderHook(() => usePayWithPreferredToken());
 
     expect(result.current.preferredToken).toEqual({
-      address: TOKEN_MOCK.address,
+      ...TOKEN_ASSET_MOCK,
       balanceUsd: '12.34',
-      chainId: TOKEN_MOCK.chainId,
       symbol: TOKEN_MOCK.symbol,
     });
     expect(result.current.selectedToken).toBe(OTHER_TOKEN_MOCK);

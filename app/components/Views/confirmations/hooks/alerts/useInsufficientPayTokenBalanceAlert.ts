@@ -30,6 +30,7 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useInsufficientPayTokenBalanceMessageKey } from './useInsufficientPayTokenBalanceMessageKey';
+import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -37,6 +38,7 @@ export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd?: string;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();
@@ -57,7 +59,7 @@ export function useInsufficientPayTokenBalanceAlert({
   // is actually paid) is the transaction's own chainId.
   const sourceChainId = isPostQuote
     ? (transactionMeta?.chainId ?? '0x0')
-    : (payToken?.chainId ?? '0x0');
+    : (payTokenAsset?.chainId ?? '0x0');
 
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
@@ -83,9 +85,10 @@ export function useInsufficientPayTokenBalanceAlert({
   // source chain. Without the chainId guard, a native destination token would
   // incorrectly suppress the source-network gas insufficiency check.
   const isPayTokenNative =
-    Boolean(payToken) &&
-    payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
-    payToken?.chainId === sourceChainId;
+    Boolean(payTokenAsset) &&
+    payTokenAsset?.address.toLowerCase() ===
+      nativeToken?.address.toLowerCase() &&
+    payTokenAsset?.chainId === sourceChainId;
 
   // For Max, treat the spend amount as the available balance so fiat rounding
   // between a Max snapshot and the live balance cannot false-positive.

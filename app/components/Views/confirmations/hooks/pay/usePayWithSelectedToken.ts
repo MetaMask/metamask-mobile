@@ -1,6 +1,11 @@
 import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { isMatchingPayToken } from '../../utils/transaction-pay';
+import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import {
+  getPaymentTokenEvmAsset,
+  isSameAssetId,
+} from '../../../../../util/transactions/payment-token';
 import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
@@ -26,6 +31,7 @@ export function usePayWithSelectedToken({
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithSelectedTokenResult {
   const { payToken, setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
   const automaticToken = useAutomaticTransactionPayToken({
     preferredToken,
     disable: true,
@@ -35,29 +41,32 @@ export function usePayWithSelectedToken({
     if (!payToken || !automaticToken) {
       return false;
     }
-    return !isMatchingPayToken(payToken, automaticToken);
-  }, [automaticToken, payToken]);
+    return !isSameAssetId(payToken.assetId, resolveAssetId(automaticToken));
+  }, [automaticToken, payToken, resolveAssetId]);
 
   const selectedToken = useMemo<PayWithSelectedToken | undefined>(() => {
-    if (!payToken) {
+    const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+
+    if (!payToken || !payTokenAsset) {
       return undefined;
     }
     return {
-      address: payToken.address,
+      ...payTokenAsset,
       balanceUsd: payToken.balanceUsd,
-      chainId: payToken.chainId,
       symbol: payToken.symbol,
     };
   }, [payToken]);
 
   const selectToken = useCallback(
     (target: SetPayTokenRequest) => {
-      if (payToken && isMatchingPayToken(payToken, target)) {
+      const assetId = resolveAssetId(target);
+
+      if (isSameAssetId(payToken?.assetId, assetId)) {
         return;
       }
-      setPayToken(target);
+      setPayToken({ assetId });
     },
-    [payToken, setPayToken],
+    [payToken, resolveAssetId, setPayToken],
   );
 
   return useMemo(

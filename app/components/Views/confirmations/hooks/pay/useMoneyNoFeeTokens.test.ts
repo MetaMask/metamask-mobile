@@ -22,12 +22,10 @@ const mockUseTransactionMetadataRequest =
 
 const PAY_TOKEN = {
   assetId: 'eip155:1/erc20:0xabc' as const,
-  address: '0xabc' as Hex,
   balanceHuman: '10',
   balanceFiat: '10',
   balanceRaw: '10000',
   balanceUsd: '10',
-  chainId: '0x1' as Hex,
   decimals: 6,
   symbol: 'USDC',
 };
@@ -123,7 +121,7 @@ describe('useMoneyNoFeeTokens', () => {
 
   it('returns false when pay token address does not match any route', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { ...PAY_TOKEN, address: '0xdef' as Hex },
+      payToken: { ...PAY_TOKEN, assetId: 'eip155:1/erc20:0xdef' },
       setPayToken: jest.fn(),
     });
 
@@ -140,7 +138,7 @@ describe('useMoneyNoFeeTokens', () => {
 
   it('returns false when pay token chain does not match any route', () => {
     mockUseTransactionPayToken.mockReturnValue({
-      payToken: { ...PAY_TOKEN, chainId: '0xa' as Hex },
+      payToken: { ...PAY_TOKEN, assetId: 'eip155:10/erc20:0xabc' },
       setPayToken: jest.fn(),
     });
 

@@ -33,7 +33,7 @@ import {
   type ActivityAdapterEnvironment,
 } from './environment';
 import { decodeErc20Transfer } from '../../transactions/erc20-transfer';
-import { getEvmPaymentToken } from '../../transactions/payment-token';
+import { getPaymentTokenEvmAsset } from '../../transactions/payment-token';
 
 const tokenTransferTypes = new Set<TransactionType>([
   TransactionType.tokenMethodTransfer,
@@ -192,13 +192,12 @@ function getEoaFacingMoneyToken(
   environment: ActivityAdapterEnvironment,
 ): TokenAmount | undefined {
   const transaction = transactionGroup.initialTransaction;
-  const paymentToken = getEvmPaymentToken(
-    transactionGroup.transactionPayData?.paymentToken,
-  );
+  const paymentToken = transactionGroup.transactionPayData?.paymentToken;
+  const paymentTokenAsset = getPaymentTokenEvmAsset(paymentToken);
   const tokenAddress =
-    paymentToken?.address ?? transaction.metamaskPay?.tokenAddress;
+    paymentTokenAsset?.address ?? transaction.metamaskPay?.tokenAddress;
   const tokenChainId =
-    paymentToken?.chainId ?? transaction.metamaskPay?.chainId;
+    paymentTokenAsset?.chainId ?? transaction.metamaskPay?.chainId;
   if (
     !tokenAddress ||
     !tokenChainId ||

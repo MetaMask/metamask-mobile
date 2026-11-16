@@ -8,6 +8,7 @@ import {
 import {
   PaymentOverride,
   TransactionFiatPayment,
+  TransactionPaymentToken,
   TransactionPayRequiredToken,
   TransactionPayTotals,
 } from '@metamask/transaction-pay-controller';
@@ -27,7 +28,7 @@ import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 import { isTransactionPayWithdraw } from './transaction';
-import { EvmPaymentToken } from '../../../../util/transactions/payment-token';
+import { isSameAssetId } from '../../../../util/transactions/payment-token';
 
 interface ResolvedPayTokenRequest {
   address: Hex;
@@ -166,7 +167,7 @@ export function getAvailableTokens({
   blockedTokens,
   fiatPayment,
 }: {
-  payToken?: EvmPaymentToken;
+  payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
   blockedTokens?: BlockedTokensListConfig;
@@ -185,9 +186,7 @@ export function getAvailableTokens({
         return false;
       }
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       if (isSelected) {
         return true;
@@ -217,8 +216,7 @@ export function getAvailableTokens({
 
       const isSelected = hasFiatPayment
         ? false
-        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-          payToken?.chainId === token.chainId;
+        : isSameAssetId(payToken?.assetId, token.caipAssetId);
 
       return {
         ...token,

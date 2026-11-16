@@ -5,7 +5,16 @@ import { useTransactionMetadataRequest } from '../../../Views/confirmations/hook
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConversionTransaction';
 import { useMusdPaymentToken } from './useMusdPaymentToken';
+import {
+  evmAssetId,
+  resolveEvmAssetIdMock,
+} from '../../../Views/confirmations/__mocks__/pay-token.mock';
+import { useSelector } from 'react-redux';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock(
   '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
@@ -65,6 +74,7 @@ describe('useMusdPaymentToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue(resolveEvmAssetIdMock);
 
     mockUseTransactionPayToken.mockReturnValue({
       setPayToken: mockSetPayToken,
@@ -106,8 +116,7 @@ describe('useMusdPaymentToken', () => {
         mockReplaceMusdConversionTransactionForPayToken,
       ).not.toHaveBeenCalled();
       expect(mockSetPayToken).toHaveBeenCalledWith({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
+        assetId: evmAssetId(token.address as Hex, token.chainId as Hex),
       });
     });
 
@@ -127,8 +136,7 @@ describe('useMusdPaymentToken', () => {
         mockReplaceMusdConversionTransactionForPayToken,
       ).not.toHaveBeenCalled();
       expect(mockSetPayToken).toHaveBeenCalledWith({
-        address: token.address as Hex,
-        chainId: token.chainId as Hex,
+        assetId: evmAssetId(token.address as Hex, token.chainId as Hex),
       });
     });
 

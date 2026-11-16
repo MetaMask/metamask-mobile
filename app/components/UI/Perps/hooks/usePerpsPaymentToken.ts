@@ -1,9 +1,11 @@
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import Engine from '../../../../core/Engine';
 import { parsePayWithToken } from '../utils/parsePayWithToken';
+import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
 
 export type PerpsPaymentTokenInput =
   | AssetType
@@ -16,6 +18,7 @@ export interface UsePerpsPaymentTokenResult {
 
 export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
   const { setPayToken } = useTransactionPayToken();
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
 
   const onPaymentTokenChange = useCallback(
     (token: PerpsPaymentTokenInput) => {
@@ -25,12 +28,14 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
       Engine.context.PerpsController?.setSelectedPaymentToken?.(parsed);
       if (parsed !== null) {
         setPayToken({
-          address: parsed.address as Hex,
-          chainId: parsed.chainId as Hex,
+          assetId: resolveAssetId({
+            address: parsed.address as Hex,
+            chainId: parsed.chainId as Hex,
+          }),
         });
       }
     },
-    [setPayToken],
+    [resolveAssetId, setPayToken],
   );
   return { onPaymentTokenChange };
 }

@@ -12,7 +12,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Hex } from '@metamask/utils';
 import {
   TransactionType,
   hasTransactionType,
@@ -39,6 +38,7 @@ import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/pr
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
+import { getPaymentTokenEvmAsset } from '../../../../../../../util/transactions/payment-token';
 
 type PredictPayWithRowVariant = 'pill' | 'row';
 
@@ -108,12 +108,13 @@ export function PredictPayWithRow({
   };
 
   const displaySymbol = getDisplaySymbol();
+  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
   const tokenIconAddress = showPredictBalance
     ? POLYGON_PUSD.address
-    : (payToken?.address as Hex | undefined);
+    : payTokenAsset?.address;
   const tokenIconChainId = showPredictBalance
     ? PREDICT_BALANCE_CHAIN_ID
-    : (payToken?.chainId as Hex | undefined);
+    : payTokenAsset?.chainId;
 
   if (variant === 'row') {
     return (
