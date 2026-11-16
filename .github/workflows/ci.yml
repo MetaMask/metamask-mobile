@@ -376,6 +376,8 @@ jobs:
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
           - scripts: lint:changelog
             profile: namespace-profile-metamask-ci-linux-small
+          - scripts: lint:react-compiler
+            profile: namespace-profile-metamask-ci-linux-small
           - scripts: format:check
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
