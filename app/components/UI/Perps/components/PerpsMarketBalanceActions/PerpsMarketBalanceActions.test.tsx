@@ -8,7 +8,9 @@ import {
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsProviderLogosSelectorsIDs,
 } from '../../Perps.testIds';
+import { strings } from '../../../../../../locales/i18n';
 import { usePerpsLiveAccount } from '../../hooks/stream';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import {
   useColorPulseAnimation,
   useBalanceComparison,
@@ -1224,8 +1226,10 @@ describe('PerpsMarketBalanceActions', () => {
       );
 
       expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
-      expect(getByText('perps.available')).toBeOnTheScreen();
-      expect(queryByText('$10.57')).toBeNull();
+      expect(getByText(strings('perps.available'))).toBeOnTheScreen();
+      expect(
+        queryByText(formatPerpsBalance(defaultPerpsAccount.spendableBalance)),
+      ).toBeNull();
       expect(getByText(DOTS_SHORT)).toBeOnTheScreen();
     });
   });

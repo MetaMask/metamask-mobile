@@ -2,8 +2,12 @@ import { useMemo } from 'react';
 import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
-import type { PerpsProviderLogoId } from '../components/PerpsProviderLogos/PerpsProviderLogos.types';
 import { usePerpsProvider } from './usePerpsProvider';
+
+/** Exchange whose mark can be drawn. Aggregated mode resolves to both. */
+export type PerpsProviderLogoId =
+  | typeof PROVIDER_CONFIG.DefaultProvider
+  | typeof PROVIDER_CONFIG.LighterProvider;
 
 const NO_PROVIDER_LOGOS: readonly PerpsProviderLogoId[] = [];
 

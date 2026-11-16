@@ -2,6 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { AvatarNetworkSize } from '@metamask/design-system-react-native';
 
+import {
+  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
+  PERPS_PROVIDER_LOGO_AVATAR_MAX_PX,
+} from '../../constants/perpsUIConfig';
 import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import PerpsProviderLogos, {
   mapPerpsLogoPixelsToAvatarSize,
@@ -14,15 +18,21 @@ import PerpsProviderLogos, {
 
 describe('mapPerpsLogoPixelsToAvatarSize', () => {
   it('maps the available-balance size onto the extra-small avatar', () => {
-    expect(mapPerpsLogoPixelsToAvatarSize(16)).toBe(AvatarNetworkSize.Xs);
+    expect(
+      mapPerpsLogoPixelsToAvatarSize(PERPS_AVAILABLE_BALANCE_LOGO_SIZE),
+    ).toBe(AvatarNetworkSize.Xs);
   });
 
-  it('maps a 32px size onto the medium avatar', () => {
-    expect(mapPerpsLogoPixelsToAvatarSize(32)).toBe(AvatarNetworkSize.Md);
+  it('maps the medium pixel bound onto the medium avatar', () => {
+    expect(
+      mapPerpsLogoPixelsToAvatarSize(PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Md),
+    ).toBe(AvatarNetworkSize.Md);
   });
 
-  it('maps sizes above 40px onto the extra-large avatar', () => {
-    expect(mapPerpsLogoPixelsToAvatarSize(48)).toBe(AvatarNetworkSize.Xl);
+  it('maps sizes above the large bound onto the extra-large avatar', () => {
+    expect(
+      mapPerpsLogoPixelsToAvatarSize(PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Lg + 1),
+    ).toBe(AvatarNetworkSize.Xl);
   });
 });
 

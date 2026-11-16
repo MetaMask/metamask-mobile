@@ -59,7 +59,11 @@ const PerpsAvailableBalanceLabel: React.FC<PerpsAvailableBalanceLabelProps> = ({
       >
         {formatPerpsBalance(spendableBalance)}
       </SensitiveText>
-      <Text variant={variant} color={TextColor.TextAlternative}>
+      <Text
+        variant={variant}
+        color={TextColor.TextAlternative}
+        testID={PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_SUFFIX}
+      >
         {' '}
         {strings('perps.available')}
       </Text>

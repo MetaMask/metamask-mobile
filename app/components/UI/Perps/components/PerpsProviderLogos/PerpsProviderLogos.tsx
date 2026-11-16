@@ -7,30 +7,35 @@ import {
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
 
+import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
 import {
   PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
   PERPS_PROVIDER_LOGO_AVATAR_MAX_PX,
 } from '../../constants/perpsUIConfig';
+import type { PerpsProviderLogoId } from '../../hooks/usePerpsProviderLogoIds';
 import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
-import type {
-  PerpsProviderLogoId,
-  PerpsProviderLogosProps,
-} from './PerpsProviderLogos.types';
+import type { PerpsProviderLogosProps } from './PerpsProviderLogos.types';
 import hyperliquidLogo from './assets/hyperliquid.png';
 import lighterLogo from './assets/lighter.png';
 
 const PROVIDER_LOGOS: Record<PerpsProviderLogoId, number> = {
   // Bundled requires are numbers at runtime. The png declaration is the wider
   // ImageSourcePropType, which AvatarNetwork does not accept.
-  hyperliquid: hyperliquidLogo as number,
-  lighter: lighterLogo as number,
+  [PROVIDER_CONFIG.DefaultProvider]: hyperliquidLogo as number,
+  [PROVIDER_CONFIG.LighterProvider]: lighterLogo as number,
 };
 
 const PROVIDER_LOGO_TEST_IDS: Record<PerpsProviderLogoId, string> = {
-  hyperliquid: PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
-  lighter: PerpsProviderLogosSelectorsIDs.LIGHTER,
+  [PROVIDER_CONFIG.DefaultProvider]: PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+  [PROVIDER_CONFIG.LighterProvider]: PerpsProviderLogosSelectorsIDs.LIGHTER,
 };
+
+function isDrawableLogoId(
+  providerId: string,
+): providerId is PerpsProviderLogoId {
+  return Object.prototype.hasOwnProperty.call(PROVIDER_LOGOS, providerId);
+}
 
 /**
  * Overlap for a stacked pair. 6px at 16px matches the home design and
@@ -89,12 +94,13 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
   testID = PerpsProviderLogosSelectorsIDs.CONTAINER,
   twClassName,
 }) => {
-  if (providerIds.length === 0) {
+  const drawableIds = providerIds.filter(isDrawableLogoId);
+  if (drawableIds.length === 0) {
     return null;
   }
 
   const avatarSize = mapPerpsLogoPixelsToAvatarSize(size);
-  const accessibilityLabel = providerIds
+  const accessibilityLabel = drawableIds
     .map((providerId) => PROVIDER_DISPLAY_INFO[providerId].name)
     .join(', ');
 
@@ -108,7 +114,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
       testID={testID}
       twClassName={twClassName}
     >
-      {providerIds.map((providerId, index) => (
+      {drawableIds.map((providerId, index) => (
         <AvatarNetwork
           key={providerId}
           name={PROVIDER_DISPLAY_INFO[providerId].name}
@@ -119,7 +125,7 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
           twClassName={logoClassName(
             index,
             avatarSize,
-            index < providerIds.length - 1,
+            index < drawableIds.length - 1,
           )}
         />
       ))}
