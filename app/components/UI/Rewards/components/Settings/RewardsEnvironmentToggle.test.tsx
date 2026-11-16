@@ -374,7 +374,7 @@ describe('RewardsEnvironmentToggle', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows the build Money host disabled when Rewards env changes are closed', () => {
+    it('hides the disabled Money host when Rewards env changes are closed', () => {
       mockCall.mockImplementation((action: string) => {
         if (action === 'RewardsController:canChangeRewardsEnvUrl') return false;
         if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
@@ -384,15 +384,15 @@ describe('RewardsEnvironmentToggle', () => {
         return undefined;
       });
 
-      const { getByTestId, getByText, queryByTestId } = render(
+      const { queryByTestId, queryByText, toJSON } = render(
         <RewardsEnvironmentToggle />,
       );
 
-      expect(getByText(MONEY_PRD_URL)).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
+      expect(queryByText(MONEY_PRD_URL)).toBeNull();
       expect(
-        getByTestId('rewards-money-environment-toggle-trigger'),
-      ).toBeDisabled();
-      expect(queryByTestId('rewards-environment-toggle-trigger')).toBeNull();
+        queryByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeNull();
     });
 
     it('shows the build Money host disabled when the env may not be changed', () => {

@@ -248,7 +248,9 @@ const RewardsEnvironmentToggle: React.FC = () => {
     return null;
   }
 
-  if (!canChangeRewards && !currentMoneyEnv) {
+  // Production closes the Rewards selector too. A disabled Money host stays
+  // off that build; other non-local builds show it beside the Rewards field.
+  if (!canChangeRewards && !canChangeMoney) {
     return null;
   }
 
