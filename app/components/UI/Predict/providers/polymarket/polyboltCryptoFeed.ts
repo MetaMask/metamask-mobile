@@ -1,5 +1,8 @@
 import type { CryptoPriceProvider, CryptoPriceUpdate } from '../../types';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
+import { POLYMARKET_PROVIDER_ID } from './constants';
 
 export const POLYBOLT_WS_URL = 'wss://ws-live-v2.polymarket.com/ws';
 
@@ -11,7 +14,8 @@ const MAX_AUTH_FRAMES = 8;
 const MAX_SUBSCRIPTIONS = 64;
 const MAX_BACKOFF_MS = 30_000;
 const BASE_BACKOFF_MS = 1_000;
-// What `price.crypto` serves when a filter names no provider.
+// The provider named for a subscription without a pin. PolyBolt requires a
+// provider on every filter, and TWAP is served by Chainlink only.
 const DEFAULT_CRYPTO_PROVIDER: CryptoPriceProvider = 'chainlink';
 
 export interface PolyBoltCredentials {
@@ -26,7 +30,7 @@ export interface PolyBoltSubscription {
   channel: PolyBoltChannel;
   callerSymbol: string;
   wireSymbol: string;
-  /** Vendor pin on `price.crypto`. Absent follows the server default. */
+  /** Vendor pin on `price.crypto`. Absent means Chainlink. */
   provider?: CryptoPriceProvider;
 }
 
@@ -91,23 +95,43 @@ const subscriptionId = (subscription: PolyBoltSubscription): string =>
     : `${subscription.channel}|${subscription.wireSymbol}`;
 
 /**
- * Builds the `filter` of a subscribe or unsubscribe entry.
+ * Builds the `filter` of a subscribe or unsubscribe entry. PolyBolt rejects a
+ * filter without a provider, so every filter names one.
  *
  * @param channel - PolyBolt channel.
  * @param wireSymbol - Lowercase PolyBolt symbol.
- * @param provider - Vendor pin. TWAP is Chainlink only, so it is not sent there.
+ * @param provider - Vendor pin. Absent, or on TWAP, the filter names Chainlink.
  * @returns The filter object for the wire.
  */
 export const toPolyboltFilter = (
   channel: PolyBoltChannel,
   wireSymbol: string,
   provider?: CryptoPriceProvider,
-): { symbol: string; window_seconds?: 60; provider?: CryptoPriceProvider } => {
+): { symbol: string; window_seconds?: 60; provider: CryptoPriceProvider } => {
   if (channel === 'price.crypto.twap') {
-    return { symbol: wireSymbol, window_seconds: 60 };
+    return {
+      symbol: wireSymbol,
+      window_seconds: 60,
+      provider: DEFAULT_CRYPTO_PROVIDER,
+    };
   }
 
-  return provider ? { symbol: wireSymbol, provider } : { symbol: wireSymbol };
+  return { symbol: wireSymbol, provider: provider ?? DEFAULT_CRYPTO_PROVIDER };
+};
+
+// Searchable in Sentry with the other Predict errors. Callers pass only
+// subscription details, never credentials.
+const reportToSentry = (
+  message: string,
+  data: Record<string, unknown>,
+): void => {
+  Logger.error(new Error(message), {
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    context: { name: 'PolyBoltCryptoFeed', data },
+  });
 };
 
 const compareIds = (left: string, right: string): number =>
@@ -154,6 +178,13 @@ export class PolyBoltCryptoFeed {
   private readonly ownerServed: Set<string> = new Set();
 
   private readonly loggedProviderMismatches: Set<string> = new Set();
+
+  // Set by `chainlink_key_required`: this connection has no usable Chainlink
+  // key, so Chainlink subscriptions are not sent again until a new connection.
+  private chainlinkUnavailable = false;
+
+  // Error codes already reported on this connection, so each logs once.
+  private readonly reportedErrorCodes: Set<string> = new Set();
 
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -270,6 +301,7 @@ export class PolyBoltCryptoFeed {
     subscription: PolyBoltSubscription,
   ): CryptoPriceProvider | undefined {
     return subscription.provider &&
+      subscription.provider !== DEFAULT_CRYPTO_PROVIDER &&
       subscription.channel === 'price.crypto' &&
       !this.ownerServed.has(subscriptionId(subscription))
       ? subscription.provider
@@ -339,6 +371,8 @@ export class PolyBoltCryptoFeed {
     // A symbol's vendor can change between connections, so try each pin again.
     this.pendingPins.clear();
     this.ownerServed.clear();
+    this.chainlinkUnavailable = false;
+    this.reportedErrorCodes.clear();
 
     try {
       this.socket = new WebSocket(POLYBOLT_WS_URL);
@@ -505,12 +539,20 @@ export class PolyBoltCryptoFeed {
     this.sendSubscribe(added);
   }
 
+  /**
+   * Sends every Chainlink subscription, spot and TWAP, in one frame, and each
+   * other vendor's pin in a frame of its own so its ack can be matched to it.
+   * After `chainlink_key_required`, Chainlink subscriptions are not sent again
+   * on this connection.
+   */
   private sendSubscribe(subscriptions: PolyBoltSubscription[]): void {
     const unique = this.uniqueByWireKey(subscriptions);
-    this.sendSubscriptionFrame(
-      'subscribe',
-      unique.filter((subscription) => !this.wireProvider(subscription)),
-    );
+    if (!this.chainlinkUnavailable) {
+      this.sendSubscriptionFrame(
+        'subscribe',
+        unique.filter((subscription) => !this.wireProvider(subscription)),
+      );
+    }
     unique
       .filter((subscription) => this.wireProvider(subscription))
       .forEach((subscription) => {
@@ -596,6 +638,19 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    if (message.code === 'chainlink_key_required') {
+      this.handleChainlinkKeyRequired(message);
+      return;
+    }
+
+    if (message.code === 'provider_required') {
+      // Every filter names a provider, so this is a client bug. Resending the
+      // same frame would fail the same way.
+      this.takePendingPin(message.rid);
+      this.reportErrorOnce(message);
+      return;
+    }
+
     if (message.code === 'auth_required') {
       this.authed = false;
       this.sendAuth();
@@ -653,8 +708,8 @@ export class PolyBoltCryptoFeed {
 
   /**
    * Polymarket's docs disagree on whether a binance pin is honoured, ignored
-   * or rejected. When it is rejected, fall back to the default vendor so the
-   * market keeps a live price.
+   * or rejected. When it is rejected, fall back to Chainlink so the market
+   * keeps a live price.
    */
   private handleBadFilter(message: Record<string, unknown>): void {
     const subscription = this.takePendingPin(message.rid);
@@ -674,11 +729,55 @@ export class PolyBoltCryptoFeed {
         .map((other) => this.wireKey(other)),
     );
     this.ownerServed.add(subscriptionId(subscription));
-    if (!alreadyOnWire.has(this.wireKey(subscription))) {
+    this.logProviderMismatch(subscription, 'none, filter rejected');
+    if (
+      !this.chainlinkUnavailable &&
+      !alreadyOnWire.has(this.wireKey(subscription))
+    ) {
       this.sendSubscriptionFrame('subscribe', [subscription]);
     }
   }
 
+  /**
+   * The connection was authenticated without a valid Chainlink key, so no
+   * Chainlink stream registers on it. The error does not close the socket and
+   * Binance pins keep streaming. Sending Chainlink subscriptions again would
+   * repeat the error, so they wait for a new connection, such as the one a
+   * new key opens.
+   */
+  private handleChainlinkKeyRequired(message: Record<string, unknown>): void {
+    this.takePendingPin(message.rid);
+    this.chainlinkUnavailable = true;
+    this.reportErrorOnce(message);
+  }
+
+  private reportErrorOnce(
+    message: Record<string, unknown>,
+    extra: Record<string, unknown> = {},
+  ): void {
+    const code = String(message.code);
+    if (this.reportedErrorCodes.has(code)) {
+      return;
+    }
+
+    this.reportedErrorCodes.add(code);
+    const details = {
+      code,
+      status: message.status,
+      channel: message.channel,
+      rid: message.rid,
+      ...extra,
+    };
+    DevLogger.log('PolyBoltCryptoFeed: subscription refused', details);
+    reportToSentry(`PolyBoltCryptoFeed: ${code}`, details);
+  }
+
+  /**
+   * Logs once per subscription when a stream comes from another vendor than
+   * it asked for. A pin that falls back this way, because PolyBolt rejected,
+   * ignored or overrode it, also goes to Sentry: the market keeps a price, but
+   * not from the vendor it settles on.
+   */
   private logProviderMismatch(
     subscription: PolyBoltSubscription,
     served: string,
@@ -689,12 +788,19 @@ export class PolyBoltCryptoFeed {
     }
 
     this.loggedProviderMismatches.add(id);
-    DevLogger.log('PolyBoltCryptoFeed: served provider differs from request', {
+    const details = {
       channel: subscription.channel,
       symbol: subscription.wireSymbol,
       requested: subscription.provider ?? DEFAULT_CRYPTO_PROVIDER,
       served,
-    });
+    };
+    DevLogger.log(
+      'PolyBoltCryptoFeed: served provider differs from request',
+      details,
+    );
+    if (details.requested !== DEFAULT_CRYPTO_PROVIDER) {
+      reportToSentry('PolyBoltCryptoFeed: provider pin fell back', details);
+    }
   }
 
   private scheduleAuthRetry(): void {
@@ -784,8 +890,12 @@ export class PolyBoltCryptoFeed {
         return pinned;
       }
 
+      // A Chainlink request shares the unpinned stream, so Chainlink frames
+      // fall through to every subscription on that stream below.
       const requested = candidates.filter(
-        (subscription) => subscription.provider === source,
+        (subscription) =>
+          source !== DEFAULT_CRYPTO_PROVIDER &&
+          subscription.provider === source,
       );
       if (requested.length > 0) {
         return requested;

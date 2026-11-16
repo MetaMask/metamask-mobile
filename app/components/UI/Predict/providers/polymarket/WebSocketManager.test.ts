@@ -3118,7 +3118,11 @@ describe('WebSocketManager', () => {
           subscriptions: [
             {
               channel: 'price.crypto.twap',
-              filter: { symbol: 'btcusd', window_seconds: 60 },
+              filter: {
+                symbol: 'btcusd',
+                window_seconds: 60,
+                provider: 'chainlink',
+              },
             },
           ],
         }),
@@ -3202,7 +3206,12 @@ describe('WebSocketManager', () => {
         .filter((frame) => frame.op === 'subscribe')
         .map((frame) => frame.subscriptions);
       expect(subscriptions).toEqual([
-        [{ channel: 'price.crypto', filter: { symbol: 'btcusd' } }],
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'btcusd', provider: 'chainlink' },
+          },
+        ],
         [
           {
             channel: 'price.crypto',
@@ -3229,7 +3238,7 @@ describe('WebSocketManager', () => {
       });
     });
 
-    it('does not pin Chainlink, the default provider', () => {
+    it('sends one Chainlink stream whether or not the market names Chainlink', () => {
       const manager = WebSocketManager.getInstance();
       manager.useCryptoFeed({
         mode: 'polybolt',
@@ -3247,7 +3256,10 @@ describe('WebSocketManager', () => {
         .filter((frame) => frame.op === 'subscribe');
       expect(subscribeFrames).toHaveLength(1);
       expect(subscribeFrames[0].subscriptions).toEqual([
-        { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+        {
+          channel: 'price.crypto',
+          filter: { symbol: 'btcusd', provider: 'chainlink' },
+        },
       ]);
     });
 
@@ -3260,6 +3272,120 @@ describe('WebSocketManager', () => {
       mockWebSocketInstances.filter((socket) =>
         socket.url.includes('ws-live-data.polymarket.com'),
       );
+
+    it('names Chainlink for 5m, 15m, 4h and 1h markets, keeps Binance pins, and delivers each price', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: polyboltCredentials,
+      });
+      // Options as the market hooks build them from Gamma: 5m and 15m are
+      // Chainlink spot, 4h and the new 1h are Chainlink TWAP, and a 1h market
+      // created before the Chainlink move still settles on Binance.
+      const fiveMinute = jest.fn();
+      const fifteenMinute = jest.fn();
+      const fourHour = jest.fn();
+      const oneHour = jest.fn();
+      const binanceHour = jest.fn();
+      manager.subscribeToCryptoPrices(['btc/usd'], fiveMinute, {
+        provider: 'chainlink',
+      });
+      manager.subscribeToCryptoPrices(['eth/usd'], fifteenMinute);
+      manager.subscribeToCryptoPrices(['btc/usd'], fourHour, {
+        twapWindowSeconds: 60,
+        provider: 'chainlink',
+      });
+      manager.subscribeToCryptoPrices(['sol/usd'], oneHour, {
+        twapWindowSeconds: 60,
+      });
+      manager.subscribeToCryptoPrices(['xrp/usd'], binanceHour, {
+        provider: 'binance',
+      });
+      const socket = openPolyboltSocket();
+
+      const subscribeFrames = socket.send.mock.calls
+        .map(([frame]) => JSON.parse(frame as string))
+        .filter((frame) => frame.op === 'subscribe');
+      expect(subscribeFrames.map((frame) => frame.subscriptions)).toEqual([
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'btcusd', provider: 'chainlink' },
+          },
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'ethusd', provider: 'chainlink' },
+          },
+          {
+            channel: 'price.crypto.twap',
+            filter: {
+              symbol: 'btcusd',
+              window_seconds: 60,
+              provider: 'chainlink',
+            },
+          },
+          {
+            channel: 'price.crypto.twap',
+            filter: {
+              symbol: 'solusd',
+              window_seconds: 60,
+              provider: 'chainlink',
+            },
+          },
+        ],
+        [
+          {
+            channel: 'price.crypto',
+            filter: { symbol: 'xrpusd', provider: 'binance' },
+          },
+        ],
+      ]);
+
+      const point = (
+        channel: string,
+        symbol: string,
+        source: string,
+        value: string,
+      ) => ({
+        v: 1,
+        channel,
+        seq: 1,
+        ts: 1,
+        payload: {
+          symbol,
+          full_accuracy_value: value,
+          timestamp: 1_000,
+          source,
+          ...(channel === 'price.crypto.twap' && { window_seconds: 60 }),
+        },
+      });
+      socket.simulateMessage(point('price.crypto', 'btcusd', 'chainlink', '1'));
+      socket.simulateMessage(point('price.crypto', 'ethusd', 'chainlink', '2'));
+      socket.simulateMessage(
+        point('price.crypto.twap', 'btcusd', 'chainlink', '3'),
+      );
+      socket.simulateMessage(
+        point('price.crypto.twap', 'solusd', 'chainlink', '4'),
+      );
+      socket.simulateMessage(point('price.crypto', 'xrpusd', 'binance', '5'));
+      jest.advanceTimersByTime(250);
+
+      expect(fiveMinute).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'btc/usd', price: 1 }),
+      );
+      expect(fifteenMinute).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'eth/usd', price: 2 }),
+      );
+      expect(fourHour).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'btc/usd', price: 3 }),
+      );
+      expect(oneHour).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'sol/usd', price: 4 }),
+      );
+      expect(binanceHour).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'xrp/usd', price: 5 }),
+      );
+    });
 
     it('closes PolyBolt and resubscribes over RTDS when switched back', () => {
       const manager = WebSocketManager.getInstance();
@@ -3303,7 +3429,10 @@ describe('WebSocketManager', () => {
         expect.objectContaining({
           op: 'unsubscribe',
           subscriptions: [
-            { channel: 'price.crypto', filter: { symbol: 'btcusd' } },
+            {
+              channel: 'price.crypto',
+              filter: { symbol: 'btcusd', provider: 'chainlink' },
+            },
           ],
         }),
       );
@@ -3328,7 +3457,10 @@ describe('WebSocketManager', () => {
         .filter((frame) => frame.op === 'subscribe');
       expect(subscribeFrames).toHaveLength(1);
       expect(subscribeFrames[0].subscriptions).toEqual([
-        { channel: 'price.crypto', filter: { symbol: 'ethusd' } },
+        {
+          channel: 'price.crypto',
+          filter: { symbol: 'ethusd', provider: 'chainlink' },
+        },
       ]);
     });
   });
