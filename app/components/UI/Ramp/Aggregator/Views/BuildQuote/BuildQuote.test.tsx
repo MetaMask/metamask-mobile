@@ -274,6 +274,18 @@ const mockSetSelectedPaymentMethodId = jest.fn();
 const mockSetSelectedAsset = jest.fn();
 const mockSetSelectedFiatCurrencyId = jest.fn();
 
+const mockTronAsset = {
+  ...mockCryptoCurrenciesData[0],
+  network: {
+    ...mockCryptoCurrenciesData[0].network,
+    chainId: 'tron:728126428',
+    chainName: 'Tron',
+    shortName: 'TRX',
+  },
+  symbol: 'TRX',
+  assetId: 'slip44:195',
+};
+
 const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   selectedPaymentMethodId: mockPaymentMethods[0].id,
   selectedRegion: mockRegionsData[0],
@@ -281,7 +293,7 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
   setSelectedAsset: mockSetSelectedAsset,
   selectedFiatCurrencyId: mockFiatCurrenciesData[0].id,
   setSelectedFiatCurrencyId: mockSetSelectedFiatCurrencyId,
-  selectedAddress: '0x2990079bcdee240329a520d2444386fc119da21a',
+  selectedAddress: '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272',
   sdkError: undefined,
   setSelectedPaymentMethodId: mockSetSelectedPaymentMethodId,
   setIntent: mockSetIntent,
@@ -1712,15 +1724,13 @@ describe('BuildQuote View', () => {
       mockUseRampSDKValues.rampType = RampType.SELL;
       mockUseRampSDKValues.isBuy = false;
       mockUseRampSDKValues.isSell = true;
-      mockUseRampSDKValues.selectedAsset = {
-        ...mockUseRampSDKValues.selectedAsset!,
-        network: {
-          ...mockUseRampSDKValues.selectedAsset!.network!,
-          chainId: 'tron:728126428',
-        },
-        assetId: 'slip44:195',
-      };
+      mockUseRampSDKValues.selectedAsset = mockTronAsset;
       mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+      // Update balance to use Tron's 8 decimals
+      mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
+        '5.36385',
+        mockTronAsset.decimals,
+      );
     });
 
     it('discards Max result when user presses another quick amount during Max request', async () => {
@@ -1734,7 +1744,7 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
 
       // Open keypad
-      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      const symbol = mockTronAsset.symbol;
       fireEvent.press(getByRoleButton(`0 ${symbol}`));
 
       // Press Max (100%)
@@ -1752,13 +1762,11 @@ describe('BuildQuote View', () => {
       });
 
       // Amount should be 75% of balance, not the Max result
-      const balanceBN = BigInt(
-        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
-      );
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expected75 = (balanceBN * 75n) / 100n;
       const expectedAmount = fromTokenMinimalUnitString(
         expected75.toString(10),
-        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+        mockTronAsset.decimals,
       );
 
       expect(
@@ -1777,7 +1785,7 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
 
       // Open keypad
-      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      const symbol = mockTronAsset.symbol;
       fireEvent.press(getByRoleButton(`0 ${symbol}`));
 
       // Press Max (100%)
@@ -1795,7 +1803,8 @@ describe('BuildQuote View', () => {
       });
 
       // Amount should be the user's input (5), not the Max result
-      expect(getByRoleButton(new RegExp(`5.*${symbol}`))).toBeTruthy();
+      // Use exact match to ensure it's the typed value, not the fallback 5.36385
+      expect(getByRoleButton(`5 ${symbol}`)).toBeTruthy();
     });
 
     it('falls back to balance-based calculation when Snap returns undefined', async () => {
@@ -1804,7 +1813,7 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
 
       // Open keypad
-      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      const symbol = mockTronAsset.symbol;
       fireEvent.press(getByRoleButton(`0 ${symbol}`));
 
       // Press Max (100%)
@@ -1816,12 +1825,10 @@ describe('BuildQuote View', () => {
       });
 
       // Amount should be 100% of balance (balance-based fallback)
-      const balanceBN = BigInt(
-        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
-      );
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expectedAmount = fromTokenMinimalUnitString(
         balanceBN.toString(10),
-        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+        mockTronAsset.decimals,
       );
 
       expect(
@@ -1835,7 +1842,7 @@ describe('BuildQuote View', () => {
       render(BuildQuote);
 
       // Open keypad
-      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      const symbol = mockTronAsset.symbol;
       fireEvent.press(getByRoleButton(`0 ${symbol}`));
 
       // Press Max (100%)
@@ -1847,12 +1854,10 @@ describe('BuildQuote View', () => {
       });
 
       // Amount should be 100% of balance (balance-based fallback)
-      const balanceBN = BigInt(
-        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
-      );
+      const balanceBN = mockUseBalanceValues.balanceBN as bigint;
       const expectedAmount = fromTokenMinimalUnitString(
         balanceBN.toString(10),
-        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+        mockTronAsset.decimals,
       );
 
       expect(

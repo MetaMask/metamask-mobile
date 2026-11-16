@@ -4,14 +4,13 @@ import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 
 import { useTronAmountValidation } from './useTronAmountValidation';
-import * as tronModule from '../../../../../core/Multichain/tron';
+
+const mockValidateTronTransferAmount = jest.fn();
 
 jest.mock('../../../../../core/Multichain/tron', () => ({
-  validateTronTransferAmount: jest.fn(),
+  ...jest.requireActual('../../../../../core/Multichain/tron'),
+  validateTronTransferAmount: mockValidateTronTransferAmount,
 }));
-
-const mockValidateTronTransferAmount =
-  tronModule.validateTronTransferAmount as jest.Mock;
 
 const mockStore = configureMockStore();
 
