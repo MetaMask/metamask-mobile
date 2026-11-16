@@ -1452,6 +1452,21 @@ describe('Engine', () => {
       );
     });
 
+    it('clears the deposits the funding service remembers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+      const clearStateSpy = jest.spyOn(
+        engine.context.PredictFundingService,
+        'clearState',
+      );
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('waits for the PredictNext account-data purge before resolving', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       let finishPurge: () => void = () => undefined;

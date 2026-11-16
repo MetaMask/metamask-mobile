@@ -19,6 +19,11 @@ import type {
   PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import type {
+  PredictFundingServiceActions,
+  PredictFundingServiceEvents,
+  PredictFundingServiceMessenger,
+} from '../../../components/UI/PredictNext/services/PredictFundingService';
+import type {
   PredictPortfolioServiceActions,
   PredictPortfolioServiceEvents,
   PredictPortfolioServiceMessenger,
@@ -40,6 +45,7 @@ import type {
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { store } from '../../../store';
 import {
+  predictFundingServiceInit,
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
@@ -181,6 +187,39 @@ describe('Predict service initialization', () => {
       { marketId: 'KXTEST-26-A', side: 'yes', amount: '20' } as never,
     );
 
+    await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(call).toHaveBeenCalledWith(
+      'AuthenticationController:getBearerToken',
+    );
+    controller.destroy();
+  });
+
+  it('registers the deposit actions on the Engine root messenger', async () => {
+    const rootMessenger = new Messenger<
+      MockAnyNamespace,
+      PredictFundingServiceActions,
+      PredictFundingServiceEvents
+    >({ namespace: MOCK_ANY_NAMESPACE });
+    const controllerMessenger: PredictFundingServiceMessenger = new Messenger({
+      namespace: 'PredictFundingService',
+      parent: rootMessenger,
+    });
+    const call = jest.fn().mockResolvedValue('test-bearer-token');
+    const request = {
+      ...buildMessengerClientInitRequestMock(
+        rootMessenger as unknown as RootExtendedMessenger,
+      ),
+      controllerMessenger,
+      initMessenger: { call } as never,
+    };
+    const { controller } = predictFundingServiceInit(request);
+
+    const result = rootMessenger.call(
+      'PredictFundingService:listOpenDeposits',
+      'kalshi' as never,
+    );
+
+    // No Predict API URL in tests: the call fails as unavailable.
     await expect(result).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
     expect(call).toHaveBeenCalledWith(
       'AuthenticationController:getBearerToken',
