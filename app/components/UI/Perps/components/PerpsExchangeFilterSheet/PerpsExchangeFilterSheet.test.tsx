@@ -76,17 +76,19 @@ describe('PerpsExchangeFilterSheet', () => {
     expect(rows[1]).toHaveProp('testID', HYPERLIQUID);
   });
 
-  it('renders the exchange logo and tagline for each exchange', () => {
+  it('renders the tagline for each exchange and keeps the logo decorative', () => {
     renderSheet();
 
-    expect(
-      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
-    ).toBeOnTheScreen();
     expect(screen.getByText('Low fee, high leverage')).toBeOnTheScreen();
     expect(screen.getByText('High volume, low slippage')).toBeOnTheScreen();
+    // The logos are decorative (the row announces the exchange name), so they
+    // are hidden from the accessibility tree and not findable.
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+    ).toBeNull();
   });
 
   it('opens with both exchanges checked and Save enabled', () => {
@@ -155,6 +157,17 @@ describe('PerpsExchangeFilterSheet', () => {
 
     expect(mockOnSave).not.toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the logo decorative so the row name is the only announcement', () => {
+    renderSheet();
+
+    const lighterRow = screen.getByTestId(LIGHTER);
+    // The row announces the exchange name once; the inner logo must not add a
+    // second stop with the same name.
+    expect(lighterRow).toHaveProp('accessibilityLabel', 'Lighter');
+    expect(screen.queryByRole('image')).toBeNull();
+    expect(screen.queryByTestId(`${LIGHTER}-logo`)).toBeNull();
   });
 
   it('announces each row name and checked state, updating on toggle', () => {

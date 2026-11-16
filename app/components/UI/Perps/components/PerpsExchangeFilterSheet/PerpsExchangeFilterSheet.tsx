@@ -105,6 +105,7 @@ const PerpsExchangeFilterSheet: React.FC<PerpsExchangeFilterSheetProps> = ({
                 <PerpsProviderLogos
                   providerIds={[providerId]}
                   size={40}
+                  isDecorative
                   testID={`${rowTestID}-logo`}
                 />
               }

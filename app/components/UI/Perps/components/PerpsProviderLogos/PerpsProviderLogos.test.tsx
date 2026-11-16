@@ -80,4 +80,18 @@ describe('PerpsProviderLogos', () => {
       screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
     ).toBeOnTheScreen();
   });
+
+  it('hides the marks from screen readers when decorative', () => {
+    render(<PerpsProviderLogos providerIds={['lighter']} isDecorative />);
+
+    // Hiding the group removes it from the accessibility tree, so neither the
+    // container nor its marks are findable by accessibility or test id.
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+    ).toBeNull();
+    expect(screen.queryByLabelText('Lighter')).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeNull();
+  });
 });
