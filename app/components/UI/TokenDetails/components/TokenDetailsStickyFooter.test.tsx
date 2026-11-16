@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -7,7 +13,13 @@ import {
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { darkTheme } from '@metamask/design-tokens';
+import {
+  LIGHT_MODE_SUCCESS_GREEN,
+  mockTheme,
+  ThemeContext,
+} from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
@@ -69,11 +81,6 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
   __esModule: true,
   default: jest.fn(() => null),
 }));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -151,6 +158,20 @@ const setupSelectorMock = (geolocation?: string) => {
 
 const mockTrackEvent = jest.fn();
 
+// The dialog's sheet has no testID; it is the host view that wraps its drag handle.
+const getSheetShell = (
+  getByTestId: RenderResult['getByTestId'],
+): ReturnType<RenderResult['getByTestId']> => {
+  let node = getByTestId('bottom-sheet-dialog-drag-handle').parent;
+  while (node && (typeof node.type !== 'string' || !node.props.style)) {
+    node = node.parent;
+  }
+  if (!node) {
+    throw new Error('Bottom sheet shell not found');
+  }
+  return node;
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -224,6 +245,35 @@ describe('TokenDetailsStickyFooter', () => {
         queryByTestId('token-details-sticky-footer-surface'),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      ['collapsed', false, darkTheme.colors.background.default],
+      ['expanded', true, darkTheme.colors.background.elevated1],
+    ])(
+      'paints the %s trader position sheet in one color in dark mode',
+      (_state, isExpanded, expectedColor) => {
+        const darkMockTheme = {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        };
+        const { getByTestId } = render(
+          <ThemeContext.Provider value={darkMockTheme}>
+            <TokenDetailsStickyFooter
+              {...defaultProps}
+              traderPositionPnl={{ positionValue: '$103.31', isExpanded }}
+            />
+          </ThemeContext.Provider>,
+        );
+
+        expect(getByTestId('token-details-sticky-footer-surface')).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+        expect(getSheetShell(getByTestId)).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+      },
+    );
 
     it('reports the measured height of the trader position footer', async () => {
       const onFooterLayout = jest.fn();
