@@ -120,6 +120,17 @@ const getErrorInterpolationData = (
     interpolationData.maxSlippage = formatBpsAsPercent(
       errorDetails.maxSlippageBps,
     );
+  } else if (
+    typeof errorCode === 'string' &&
+    (errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE ||
+      errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_FOUND ||
+      errorCode === PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED)
+  ) {
+    const providerId = context?.providerId;
+    interpolationData.providerId =
+      typeof providerId === 'string' && providerId.length > 0
+        ? providerId
+        : 'Unknown';
   } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
     const maxSlippageBps =
       errorInput.maxSlippageBps ??
@@ -713,6 +724,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
+      case PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED:
         errorParams.providerId = context?.providerId || 'Unknown';
         break;
       // Add other error codes that need parameters as they arise
