@@ -2174,7 +2174,9 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('withSocialAccountGate(SocialV1View)');
+        expect(componentName).toBe(
+          'WithUnmountOnTabBlur(withSocialAccountGate(SocialV1View))',
+        );
       },
     );
 
@@ -2186,7 +2188,9 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('withSocialAccountGate(SocialV0View)');
+        expect(componentName).toBe(
+          'WithUnmountOnTabBlur(withSocialAccountGate(SocialV0View))',
+        );
       },
     );
   });
