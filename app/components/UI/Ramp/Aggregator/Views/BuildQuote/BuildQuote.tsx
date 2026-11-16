@@ -147,6 +147,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
+  const maxRequestTokenRef = useRef(0);
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -615,6 +616,9 @@ const BuildQuote = () => {
         newValueAsNumber = Number(pressedKey);
       }
 
+      // Invalidate any in-flight Max request when user manually changes amount
+      maxRequestTokenRef.current = 0;
+
       setAmount(newValue);
       setAmountNumber(newValueAsNumber);
 
@@ -631,6 +635,9 @@ const BuildQuote = () => {
 
   const handleQuickAmountPress = useCallback(
     async ({ value }: QuickAmount) => {
+      // Invalidate any in-flight Max request from a previous quick amount
+      maxRequestTokenRef.current = 0;
+
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
@@ -652,20 +659,34 @@ const BuildQuote = () => {
           const assetReference = selectedAsset?.assetId;
 
           if (assetChainId && assetReference) {
+            // Track this request to detect if user changed amount during the async call
+            const requestToken = Date.now();
+            maxRequestTokenRef.current = requestToken;
+
             try {
               const maxResult = await getMaxSendableTronAmount(fromAccount, {
                 accountId: fromAccount.id,
                 assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
               });
 
-              if (maxResult?.amount) {
+              // Only apply result if user hasn't changed amount since request started
+              if (
+                maxResult?.amount &&
+                maxRequestTokenRef.current === requestToken
+              ) {
                 amountToSet = toTokenMinimalUnit(
                   maxResult.amount,
                   selectedAsset?.decimals ?? 0,
                 );
+              } else {
+                // User changed amount during request, discard this result
+                return;
               }
             } catch {
-              // Fall back to the balance-based calculation
+              // Fall back to the balance-based calculation only if request still valid
+              if (maxRequestTokenRef.current !== requestToken) {
+                return;
+              }
             }
           }
         } else if (

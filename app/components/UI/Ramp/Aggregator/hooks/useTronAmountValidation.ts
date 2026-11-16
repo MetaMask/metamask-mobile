@@ -130,6 +130,10 @@ export function useTronAmountValidation({
       clearTimeout(validationTimeoutRef.current);
     }
 
+    // Invalidate any in-flight requests by bumping the validation ID.
+    // This prevents stale results from overwriting the new state.
+    latestValidationRef.current = Date.now();
+
     if (!enabled || !amount || amount === '0') {
       setValidationError(undefined);
       setIsValidating(false);
@@ -144,6 +148,8 @@ export function useTronAmountValidation({
       if (validationTimeoutRef.current) {
         clearTimeout(validationTimeoutRef.current);
       }
+      // Invalidate on cleanup as well to ensure any in-flight request is ignored
+      latestValidationRef.current = Date.now();
     };
   }, [enabled, amount, validate]);
 

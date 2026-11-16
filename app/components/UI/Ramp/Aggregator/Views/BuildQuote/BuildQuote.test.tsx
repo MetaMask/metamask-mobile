@@ -22,8 +22,12 @@ import {
 import useLimits from '../../hooks/useLimits';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import useBalance from '../../hooks/useBalance';
-import { toTokenMinimalUnit } from '../../../../../../util/number/bigint';
+import {
+  toTokenMinimalUnit,
+  fromTokenMinimalUnitString,
+} from '../../../../../../util/number/bigint';
 import { RampType } from '../../../../../../reducers/fiatOrders/types';
+import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../../util/test/accountsControllerTestUtils';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
@@ -45,6 +49,11 @@ jest.mock('../../../../../../core/Engine', () => ({
   get context() {
     return mockEngineContext;
   },
+}));
+
+jest.mock('../../../../../../core/Multichain/tron', () => ({
+  ...jest.requireActual('../../../../../../core/Multichain/tron'),
+  getMaxSendableTronAmount: jest.fn(),
 }));
 
 const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
@@ -315,6 +324,11 @@ jest.mock('../../hooks/useGasPriceEstimation', () =>
 );
 
 jest.mock('../../hooks/useIntentAmount');
+
+const mockUseOffRampNonEvmEnabled = jest.fn(() => false);
+jest.mock('../../hooks/useOffRampNonEvmEnabled', () =>
+  jest.fn(() => mockUseOffRampNonEvmEnabled()),
+);
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
@@ -1690,6 +1704,98 @@ describe('BuildQuote View', () => {
       tags: {
         rampType: RampType.SELL,
       },
+    });
+  });
+
+  describe('Tron Max quick amount race condition', () => {
+    beforeEach(() => {
+      mockUseRampSDKValues.rampType = RampType.SELL;
+      mockUseRampSDKValues.isBuy = false;
+      mockUseRampSDKValues.isSell = true;
+      mockUseRampSDKValues.selectedAsset = {
+        ...mockUseRampSDKValues.selectedAsset!,
+        network: {
+          ...mockUseRampSDKValues.selectedAsset!.network!,
+          chainId: 'tron:728126428',
+        },
+        assetId: 'slip44:195',
+      };
+      mockUseOffRampNonEvmEnabled.mockReturnValue(true);
+    });
+
+    it('discards Max result when user presses another quick amount during Max request', async () => {
+      let maxResolve: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getMaxSendableTronAmount as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, press 75%
+      fireEvent.press(getByRoleButton('75%'));
+
+      // Resolve Max with a value
+      maxResolve!({ amount: '1000' });
+
+      // Wait for any state updates
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Amount should be 75% of balance, not the Max result
+      const balanceBN = BigInt(
+        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
+      );
+      const expected75 = (balanceBN * 75n) / 100n;
+      const expectedAmount = fromTokenMinimalUnitString(
+        expected75.toString(10),
+        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+      );
+
+      expect(
+        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+      ).toBeTruthy();
+    });
+
+    it('discards Max result when user inputs keypad value during Max request', async () => {
+      let maxResolve: (value: { amount: string }) => void;
+      const maxPromise = new Promise<{ amount: string }>((resolve) => {
+        maxResolve = resolve;
+      });
+
+      (getMaxSendableTronAmount as jest.Mock).mockReturnValue(maxPromise);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // While Max is resolving, user types a number
+      fireEvent.press(getByRoleButton('5'));
+
+      // Resolve Max with a different value
+      maxResolve!({ amount: '1000' });
+
+      // Wait for any state updates
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Amount should be the user's input (5), not the Max result
+      expect(getByRoleButton(new RegExp(`5.*${symbol}`))).toBeTruthy();
     });
   });
 });

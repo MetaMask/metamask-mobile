@@ -451,4 +451,106 @@ describe('useTronAmountValidation', () => {
 
     expect(mockValidateTronTransferAmount).not.toHaveBeenCalled();
   });
+
+  it('ignores stale validation results when amount changes during request', async () => {
+    let firstRequestResolve: (value: unknown) => void;
+    const firstRequestPromise = new Promise((resolve) => {
+      firstRequestResolve = resolve;
+    });
+
+    mockValidateTronTransferAmount.mockImplementationOnce(
+      () => firstRequestPromise,
+    );
+    mockValidateTronTransferAmount.mockResolvedValueOnce({
+      valid: true,
+      errors: [],
+    });
+
+    const store = mockStore(mockState);
+    const { result, rerender } = renderHook(
+      ({ amount }: { amount: string }) =>
+        useTronAmountValidation({
+          enabled: true,
+          amount,
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store), initialProps: { amount: '10' } },
+    );
+
+    // Start first validation
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(true);
+    });
+
+    // Change amount while first request is in flight
+    rerender({ amount: '20' });
+
+    // Resolve the stale first request with an error
+    firstRequestResolve!({
+      valid: false,
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+
+    // Start second validation
+    jest.runAllTimers();
+
+    // The stale result should be ignored
+    await waitFor(() => {
+      expect(result.current.validationError).toBeUndefined();
+    });
+
+    // Second validation completes successfully
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBeUndefined();
+    });
+  });
+
+  it('ignores stale validation results when disabled during request', async () => {
+    let requestResolve: (value: unknown) => void;
+    const requestPromise = new Promise((resolve) => {
+      requestResolve = resolve;
+    });
+
+    mockValidateTronTransferAmount.mockImplementationOnce(() => requestPromise);
+
+    const store = mockStore(mockState);
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) =>
+        useTronAmountValidation({
+          enabled,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store), initialProps: { enabled: true } },
+    );
+
+    // Start validation
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(true);
+    });
+
+    // Disable while request is in flight
+    rerender({ enabled: false });
+
+    // Resolve the stale request with an error
+    requestResolve!({
+      valid: false,
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+
+    // The stale result should be ignored
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBeUndefined();
+    });
+  });
 });
