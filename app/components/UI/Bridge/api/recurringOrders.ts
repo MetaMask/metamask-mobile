@@ -1,8 +1,4 @@
-import {
-  assetIdsMatch,
-  BridgeClientId,
-  getClientHeaders,
-} from '@metamask/bridge-controller';
+import { assetIdsMatch } from '@metamask/bridge-controller';
 import {
   isCaipAccountId,
   isCaipAssetType,
@@ -12,9 +8,8 @@ import {
   parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import { getBaseSemVerVersion } from '../../../../util/version';
 import {
+  createMockPrepareRecurringDelegationResponse,
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_ORDERS,
 } from './recurringOrders.mock';
@@ -25,81 +20,38 @@ import {
   type CancelRecurringOrderQuery,
   type CreateRecurringOrderRequest,
   type CreateRecurringOrderResponse,
+  type GetRecurringOrderQuery,
+  type GetRecurringOrderResponse,
   type GetRecurringOrdersByAssetQuery,
   type GetRecurringOrdersByAssetResponse,
   type ListRecurringOrdersQuery,
   type ListRecurringOrdersResponse,
   type ListRecurringSwapsQuery,
   type ListRecurringSwapsResponse,
-  type RecurringApiError,
-  type RecurringApiErrorCode,
+  type PrepareRecurringDelegationQuery,
+  type PrepareRecurringDelegationResponse,
   type RecurringOrder,
 } from './recurringOrders.types';
 import {
   parseCancelRecurringOrderResponse,
   parseCreateRecurringOrderResponse,
+  parseGetRecurringOrderResponse,
   parseListRecurringOrdersResponse,
   parseListRecurringSwapsResponse,
-  parseRecurringApiError,
+  parsePrepareRecurringDelegationResponse,
 } from './recurringOrders.validators';
-import { getRecurringOrdersBaseUrl } from './getRecurringOrdersBaseUrl';
+import {
+  recurringOrdersApiClient,
+  RecurringApiRequestError,
+} from './recurringOrders.client';
 
-const RECURRING_ORDERS_PATH = '/v2/orders/recurring';
 const DEFAULT_ORDERS_PAGE_LIMIT = 20;
 const DEFAULT_SWAPS_PAGE_LIMIT = 50;
 const MOCK_API_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 500;
 const IS_RECURRING_ORDERS_API_ENABLED = false;
 const cancelledOrderIds = new Set<string>();
 
-export class RecurringApiRequestError extends Error {
-  readonly code: RecurringApiErrorCode;
-  readonly details?: Record<string, unknown>;
-  readonly status: number;
-
-  constructor(status: number, error: RecurringApiError) {
-    super(error.message);
-    this.name = 'RecurringApiRequestError';
-    this.status = status;
-    this.code = error.code;
-    this.details = error.details;
-  }
-}
-
-async function getRecurringHeaders(includeContentType = false) {
-  const bearerToken =
-    await Engine.context.AuthenticationController.getBearerToken();
-
-  return {
-    ...(includeContentType ? { 'Content-Type': 'application/json' } : {}),
-    ...getClientHeaders({
-      clientId: BridgeClientId.MOBILE,
-      clientVersion: getBaseSemVerVersion(),
-      jwt: bearerToken ?? '',
-    }),
-  };
-}
-
-async function throwRecurringApiRequestError(
-  response: Response,
-  operation: string,
-): Promise<never> {
-  try {
-    const error = parseRecurringApiError(await response.json());
-    throw new RecurringApiRequestError(response.status, error);
-  } catch (requestError) {
-    if (requestError instanceof RecurringApiRequestError) {
-      throw requestError;
-    }
-  }
-
-  throw new Error(
-    `${operation}: Request failed with status ${response.status}`,
-  );
-}
-
-function getRecurringOrdersUrl(path = ''): string {
-  return `${getRecurringOrdersBaseUrl()}${RECURRING_ORDERS_PATH}${path}`;
-}
+export { RecurringApiRequestError };
 
 function recurringAssetIdsMatch(left: string, right: string): boolean {
   return (
@@ -158,11 +110,31 @@ function getRecurringOrdersFromMockState(
   }));
 }
 
+export async function prepareRecurringDelegation(
+  query: PrepareRecurringDelegationQuery,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<PrepareRecurringDelegationResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.prepareRecurringDelegation(query);
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  return parsePrepareRecurringDelegationResponse(
+    createMockPrepareRecurringDelegationResponse(query),
+  );
+}
+
 export async function cancelRecurringOrder(
   orderId: string,
   { accountAddress }: CancelRecurringOrderQuery,
   delayMs = MOCK_API_DELAY_MS,
 ): Promise<CancelRecurringOrderResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.cancelRecurringOrder(orderId, {
+      accountAddress,
+    });
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
   const walletAddress = getAccountWalletAddress(accountAddress);
@@ -202,6 +174,10 @@ export async function getRecurringOrders(
   query: ListRecurringOrdersQuery,
   delayMs = MOCK_API_DELAY_MS,
 ): Promise<ListRecurringOrdersResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringOrders(query);
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
   const walletAddress = getAccountWalletAddress(query.accountAddress);
@@ -274,11 +250,41 @@ export async function getRecurringOrdersByAsset(
   return response.orders;
 }
 
+export async function getRecurringOrder(
+  orderId: string,
+  { accountAddress }: GetRecurringOrderQuery,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<GetRecurringOrderResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringOrder(orderId, {
+      accountAddress,
+    });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  const walletAddress = getAccountWalletAddress(accountAddress);
+  const order = getRecurringOrdersFromMockState(accountAddress).find(
+    (candidate) =>
+      candidate.id === orderId &&
+      getAccountWalletAddress(candidate.accountAddress) === walletAddress,
+  );
+
+  if (!order) {
+    throw new Error('order_not_found');
+  }
+
+  return parseGetRecurringOrderResponse(order);
+}
+
 export async function getRecurringSwaps(
   orderId: string,
   query: ListRecurringSwapsQuery,
   delayMs = MOCK_API_DELAY_MS,
 ): Promise<ListRecurringSwapsResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringSwaps(orderId, query);
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
   const orderSwaps = MOCK_RECURRING_SWAPS_BY_ORDER_ID[orderId];
@@ -328,15 +334,5 @@ export async function createRecurringOrder(
     );
   }
 
-  const response = await fetch(getRecurringOrdersUrl(), {
-    method: 'POST',
-    headers: await getRecurringHeaders(true),
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    return throwRecurringApiRequestError(response, 'createRecurringOrder');
-  }
-
-  return parseCreateRecurringOrderResponse(await response.json());
+  return recurringOrdersApiClient.createRecurringOrder(request);
 }

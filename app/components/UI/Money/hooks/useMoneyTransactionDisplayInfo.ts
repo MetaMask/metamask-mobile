@@ -56,8 +56,9 @@ export interface MoneyTransactionDisplayInfo {
   icon: IconName;
   status: MoneyActivityStatus;
   /**
-   * Render the primary amount line for completed VBA deposits and card rows.
-   * Other Money rows show `fiatAmount` only.
+   * Render the primary amount line. Money ledger rows with a dollar amount
+   * leave this unset and show `fiatAmount` only. Pending placeholders,
+   * microdeposits, and in-flight card charges still use it.
    */
   showPrimaryAmount?: boolean;
   /** Optional status text shown beneath a pending amount instead of fiat. */
