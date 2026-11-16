@@ -316,10 +316,9 @@ async function classifyMissingLog(
     return classifyLoglessJob({ steps: data.steps }) === 'infrastructure'
       ? 'infrastructure'
       : 'missing_blob';
-  } catch (error) {
-    if (isRetriableGithubError(error)) {
-      throw error;
-    }
+  } catch {
+    // Without the job record there is no evidence of a lost runner, so the
+    // conservative reading is a real failure whose log is gone.
     return 'missing_blob';
   }
 }
