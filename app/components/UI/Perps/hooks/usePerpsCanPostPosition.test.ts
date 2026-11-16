@@ -98,12 +98,10 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const renderCanPost = ({
   perpsSocialEnabled = true,
-  socialLeaderboardEnabled = true,
   hasSocialProfile = true,
   isSignedIn = true,
 }: {
   perpsSocialEnabled?: boolean;
-  socialLeaderboardEnabled?: boolean;
   hasSocialProfile?: boolean;
   isSignedIn?: boolean;
 } = {}) => {
@@ -119,10 +117,6 @@ const renderCanPost = ({
             [SOCIAL_V1_AB_KEY]: perpsSocialEnabled
               ? SocialV1Variant.Treatment
               : SocialV1Variant.Control,
-            aiSocialLeaderboardEnabled: {
-              enabled: socialLeaderboardEnabled,
-              minimumVersion: '0.0.0',
-            },
           } as Record<string, Json>,
           cacheTimestamp: 0,
         },
@@ -263,7 +257,6 @@ describe('usePerpsCanPostPosition', () => {
 
   it.each([
     ['Perps social is off', { perpsSocialEnabled: false }],
-    ['the Social leaderboard is off', { socialLeaderboardEnabled: false }],
     ['the user is signed out', { isSignedIn: false, hasSocialProfile: false }],
     ['the user has no profile', { hasSocialProfile: false }],
   ])('cannot post when %s', (_, gates) => {
