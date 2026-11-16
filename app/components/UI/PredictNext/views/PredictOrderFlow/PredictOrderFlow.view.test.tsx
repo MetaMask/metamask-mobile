@@ -54,9 +54,9 @@ const composeOrderService = composePredictNextOrderService;
 
 const PROBE_BUTTON = 'order-flow-probe-open';
 
-// The sheet and its balance-gated chips settle in tens of milliseconds, but a
-// loaded CV shard can stall a single wait past waitFor's 1s default.
-const SHEET_LOAD = { timeout: 5000 };
+// The sheet and its balance-gated chips settle in tens of milliseconds, but the
+// CV worker can stall for several seconds mid-test, past waitFor's 1s default.
+const SHEET_LOAD = { timeout: 10000 };
 
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
 
