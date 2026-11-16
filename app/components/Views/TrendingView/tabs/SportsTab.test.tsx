@@ -1,11 +1,14 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
-import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
-import { selectPredictEnabledFlag } from '../../../UI/Predict';
+import {
+  PredictEventValues,
+  selectPredictAvailability,
+} from '../../../UI/PredictNext';
 import SportsTab from './SportsTab';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 
@@ -41,8 +44,8 @@ const mockUsePredictionsFeed = jest.fn<
   data: [],
   isLoading: false,
 }));
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: () => mockUsePredictionsFeed(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: () => mockUsePredictionsFeed(),
 }));
 
 const mockUseSportsMarketsFeed = jest.fn(() => ({
@@ -57,9 +60,12 @@ const mockUseSportsMarketsFeed = jest.fn(() => ({
     fetchMore: jest.fn(),
   },
 }));
-jest.mock('../feeds/predictions/useSportsMarketsFeed', () => ({
-  useSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
-}));
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictSportsMarketsFeed',
+  () => ({
+    usePredictSportsMarketsFeed: () => mockUseSportsMarketsFeed(),
+  }),
+);
 
 jest.mock('../components/HorizontalCarousel', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -95,8 +101,11 @@ describe('SportsTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPredictEnabledFlag) return true;
-      return undefined;
+      if (selector === selectPredictAvailability) return true;
+      // Other selectors, such as Predict's Active Venue, read the default state.
+      return (selector as (state: unknown) => unknown)({
+        engine: { backgroundState },
+      });
     });
     mockUsePredictionsFeed.mockReturnValue({
       data: [{ id: 'sports-market-1' }],

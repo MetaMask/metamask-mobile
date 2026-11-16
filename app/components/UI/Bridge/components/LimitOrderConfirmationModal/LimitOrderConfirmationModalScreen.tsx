@@ -11,6 +11,9 @@ import {
   resetBridgeTokenInputs,
   selectLimitOrderCostTolerance,
   selectLimitOrderMarketComparison,
+  setDestToken,
+  setIsDestTokenManuallySet,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
@@ -32,6 +35,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
+import { BridgeTabKey } from '../../Views/BridgeView/BridgeView.constants';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
@@ -72,7 +76,12 @@ export const LimitOrderConfirmationModalScreen = () => {
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
-  const { setLimitOrdersTab } = useBridgeSession();
+  const {
+    latestSourceBalance,
+    setLimitOrdersTab,
+    setSelectedTab,
+    setRenderedTab,
+  } = useBridgeSession();
   const delegationFee = useEIP7702UpgradeFee();
   const feeTokenValidation = useSentinelFeeTokenValidation({
     chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
@@ -112,6 +121,30 @@ export const LimitOrderConfirmationModalScreen = () => {
 
     return getLimitOrderUsdExchangeRate(currentCurrency, fiatToUsdRate);
   }, [currentCurrency, fiatToUsdRate, trigger]);
+
+  const sourceAtomicBalance = latestSourceBalance?.atomicBalance;
+  const hasInsufficientBalance = useMemo(
+    () =>
+      sourceAtomicBalance !== undefined &&
+      sourceAtomicBalance.lt(params.order.sourceAmount),
+    [sourceAtomicBalance, params.order.sourceAmount],
+  );
+
+  // Limit orders are same-chain, so flipping the pair needs no network switch.
+  const handleSwapIntoSourceTokenPress = useCallback(() => {
+    const { sourceToken, destToken } = params;
+    if (!sourceToken || !destToken) {
+      return;
+    }
+
+    dispatch(resetBridgeTokenInputs());
+    dispatch(setSourceToken(destToken));
+    dispatch(setDestToken(sourceToken));
+    dispatch(setIsDestTokenManuallySet(true));
+    setSelectedTab(BridgeTabKey.Market);
+    setRenderedTab(BridgeTabKey.Market);
+    navigation.goBack();
+  }, [dispatch, navigation, params, setRenderedTab, setSelectedTab]);
 
   const [confirmError, setConfirmError] = useState<LimitOrderConfirmError>();
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
@@ -341,6 +374,11 @@ export const LimitOrderConfirmationModalScreen = () => {
       delegationFee={delegationFee}
       feeToken={feeToken}
       usdExchangeRate={usdExchangeRate}
+      insufficientBalance={
+        hasInsufficientBalance
+          ? { onSwapIntoSourceTokenPress: handleSwapIntoSourceTokenPress }
+          : undefined
+      }
       costTolerance={`${costTolerancePercent}%`}
       goBack={navigation.goBack}
       error={error?.bannerMessage}

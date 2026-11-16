@@ -13,6 +13,7 @@ export const SocialEvent = {
     COPY_TRADE_TAPPED: 'copy_trade_tapped',
     POST_SUBMITTED: 'post_submitted',
     POST_FAILED: 'post_failed',
+    POST_SHARED: 'post_shared',
     GIF_PICKER_OPENED: 'gif_picker_opened',
     STEP_VIEWED: 'step_viewed',
     USERNAME_SHUFFLED: 'username_shuffled',
@@ -66,6 +67,18 @@ export const SocialEvent = {
     EXPLORE_STOCKS: 'explore_stocks',
     PERPS_HOME: 'perps_home',
     PERP_ASSET_SCREEN: 'perp_asset_screen',
+    /**
+     * Feed tab that started a Social V1 action. Valid on Social Screen Viewed
+     * and Social UI Interaction only — not on leaderboard, profile, onboarding,
+     * trader-feed, or What's Happening events.
+     */
+    SOCIAL_TRENDING: 'social_trending',
+    SOCIAL_FOLLOWING: 'social_following',
+    SOCIAL_LIVE_TRADES: 'social_live_trades',
+  },
+  ShareDestination: {
+    EXTERNAL: 'external',
+    METAMASK_POST: 'metamask_post',
   },
   Outcome: {
     CONTENT: 'content',
@@ -128,6 +141,7 @@ export type SocialFilterValue =
   | EventValue<'ProfileAsset'>;
 export type SocialReactionType = EventValue<'Reaction'>;
 export type SocialEventSource = EventValue<'Source'>;
+export type SocialShareDestination = EventValue<'ShareDestination'>;
 export interface SocialScreenViewedProperties {
   screen_name: SocialScreenName;
   tab_name?: SocialTabName;
@@ -151,6 +165,10 @@ export interface SocialUIInteractionProperties {
   trade_type?: SocialTradeType;
   step?: SocialOnboardingStep;
   item_position?: number;
+  /** Only sent with `post_shared`. */
+  share_destination?: SocialShareDestination;
+  /** Only sent on the terms step. */
+  terms_version?: string;
 }
 export const getSocialReactionType = (
   emoji: string,

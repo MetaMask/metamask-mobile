@@ -10,6 +10,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -40,7 +41,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';

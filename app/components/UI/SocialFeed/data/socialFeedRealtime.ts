@@ -1,4 +1,5 @@
 import type {
+  AuthorComment,
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
@@ -27,6 +28,12 @@ export interface SocialFeedRow extends TraderFeedRow {
   realtimeEventId?: string;
   feedItemId: string;
   revision?: number;
+  /**
+   * The HTTP engagement this row last reconciled with. A fold takes the
+   * server's engagement again only once this reference changes, so loading
+   * another page or patching another post keeps the live socket counts.
+   */
+  serverEngagement?: AuthorComment['engagement'];
 }
 
 export interface PendingRealtimeEvent {
@@ -55,10 +62,47 @@ export const rememberEvictedRevision = (
   }
 };
 
+const resolveRealtimeAuthorComment = (
+  realtime: AuthorComment | null | undefined,
+  known: AuthorComment | null | undefined,
+): AuthorComment | null | undefined => {
+  if (realtime === undefined) {
+    return known;
+  }
+  if (realtime !== null && known != null && realtime.uid === known.uid) {
+    if (realtime.engagement === known.engagement) {
+      return realtime;
+    }
+    return {
+      ...realtime,
+      engagement: {
+        ...realtime.engagement,
+        userReaction: known.engagement.userReaction,
+      },
+    };
+  }
+  return realtime;
+};
+
+const resolveRefreshedAuthorComment = (
+  realtime: AuthorComment | null | undefined,
+  known: AuthorComment | null | undefined,
+): AuthorComment | null | undefined => {
+  if (realtime != null && known != null && realtime.uid === known.uid) {
+    return {
+      ...realtime,
+      engagement: known.engagement,
+    };
+  }
+  return resolveRealtimeAuthorComment(realtime, known);
+};
+
 /**
  * Full realtime events are normalized by Core and can hydrate a row without
- * an HTTP snapshot. An existing HTTP row is still used to preserve any
- * client-side enrichment that the event does not carry.
+ * an HTTP snapshot. The event's data overrides the HTTP row's fields, except
+ * `authorComment`: an explicit null clears the Call, while an absent one keeps
+ * the HTTP row's Call. When both comments have the same UID, the realtime
+ * aggregate reactions are kept while the known viewer reaction is preserved.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
@@ -66,6 +110,10 @@ export const mergeRealtimeFeedItem = (
 ): CoreFeedItem => ({
   ...current,
   ...event.data,
+  authorComment: resolveRealtimeAuthorComment(
+    event.data.authorComment,
+    current?.authorComment,
+  ),
   eventId: event.eventId,
   revision: event.revision,
   occurredAt: event.occurredAt,
@@ -127,6 +175,7 @@ export const applyRealtimeEventToRow = (
         : undefined,
     feedItemId: event.feedItemId,
     revision: event.revision,
+    serverEngagement: row?.core.authorComment?.engagement,
   };
 };
 
@@ -151,10 +200,32 @@ export interface FoldedRealtimeRows {
   changed: boolean;
 }
 
+const reconcileWithServer = (
+  row: SocialFeedRow,
+  serverRow: TraderFeedRow,
+): SocialFeedRow => {
+  const serverEngagement = serverRow.core.authorComment?.engagement;
+  if (row.serverEngagement === serverEngagement) {
+    return row;
+  }
+  return {
+    ...row,
+    core: {
+      ...row.core,
+      authorComment: resolveRefreshedAuthorComment(
+        row.core.authorComment,
+        serverRow.core.authorComment,
+      ),
+    },
+    serverEngagement,
+  };
+};
+
 /**
  * Moves socket-only rows the server now returns out of the socket list, and
  * forgets revisions the server caught up with or no longer loads. A socket
- * copy newer than the server copy is kept as a revision of the loaded post.
+ * copy newer than the server copy is kept as a revision of the loaded post,
+ * taking the server's engagement only when the server copy's changed.
  */
 export const foldRealtimeRows = (
   socketRows: readonly SocialFeedRow[],
@@ -166,7 +237,10 @@ export const foldRealtimeRows = (
   revisedRows.forEach((row, feedItemId) => {
     const serverRow = serverRowsById.get(feedItemId);
     if (serverRow && isNewerThanServer(row, serverRow)) {
-      nextRevised.set(feedItemId, row);
+      const nextRow = reconcileWithServer(row, serverRow);
+      nextRevised.set(feedItemId, nextRow);
+      changed =
+        changed || nextRow.core.authorComment !== row.core.authorComment;
     } else {
       changed = true;
     }
@@ -179,7 +253,8 @@ export const foldRealtimeRows = (
     }
     changed = true;
     if (isNewerThanServer(row, serverRow)) {
-      nextRevised.set(row.feedItemId, row);
+      // A socket-only copy has no HTTP core: an absent Call keeps the server's.
+      nextRevised.set(row.feedItemId, reconcileWithServer(row, serverRow));
     }
     return false;
   });

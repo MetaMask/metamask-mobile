@@ -8,11 +8,8 @@ import React, {
 import { View, Dimensions } from 'react-native';
 import Modal from 'react-native-modal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { ButtonIconSize, IconName } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import TradingViewChart, {
   type TradingViewChartRef,
@@ -29,6 +26,8 @@ import PerpsAdvancedChart from '../PerpsAdvancedChart/PerpsAdvancedChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import PerpsCandlestickChartIntervalSelector from '../PerpsCandlestickChartIntervalSelector/PerpsCandlestickChartIntervalSelector';
 import { styleSheet } from './PerpsChartFullscreenModal.styles';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
@@ -77,6 +76,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
@@ -256,7 +256,8 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
               onIntervalChange={onIntervalChange}
               style={styles.intervalSelectorWrapper}
             />
-            <ButtonIcon
+            <ButtonIconGlass
+              isCapsule={isBrandRefresh}
               iconName={IconName.Close}
               size={ButtonIconSize.Md}
               onPress={handleClose}

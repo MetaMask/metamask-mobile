@@ -34,11 +34,13 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
+import PendingMoneyReferralInvite from '../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
 import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
+import ProSubscriptionPaymentMonitor from '../../Views/ProSubscription/components/ProSubscriptionPaymentMonitor/ProSubscriptionPaymentMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -365,7 +367,7 @@ const Main = (props) => {
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE).catch(() => undefined);
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
@@ -404,6 +406,7 @@ const Main = (props) => {
         <RampOrders />
         <EarnTransactionMonitor />
         <MoneyTransactionMonitor />
+        <ProSubscriptionPaymentMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
@@ -411,6 +414,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PendingMoneyReferralInvite />
         <PushNotificationOnboardingRoot />
         <CliLoginPushNudgeListener />
       </View>

@@ -29,9 +29,9 @@ import {
   getActivityDetailsViewParams,
 } from '../../../../tests/component-view/renderers/activity';
 import Engine from '../../../core/Engine';
-import { mapPredictActivity } from '../../../util/activity-adapters';
+import { mapPredictActivity } from '../../UI/PredictNext/activity/internal/legacy/mapPredictActivity';
 import type { PredictActivity } from '../../UI/Predict/types';
-import { formatPredictDate } from './templates/PredictDetails/PredictDetails.types';
+import { formatPredictDate } from '../../UI/PredictNext/activity/internal/legacy/details/PredictDetails.types';
 import {
   ActivityDetailsSelectorsIDs,
   getActivityDetailsStepIconTestId,

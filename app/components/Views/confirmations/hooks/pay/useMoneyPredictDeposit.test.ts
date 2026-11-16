@@ -9,11 +9,13 @@ import {
   ConfirmationLoader,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
+import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
 
 const mockDepositWithConfirmation = jest
   .fn()
   .mockResolvedValue({ result: Promise.resolve('0xhash') });
 const mockNavigateToConfirmation = jest.fn();
+const mockAssertMoneyAccountAccessible = jest.fn();
 
 jest.mock('../../../../UI/Predict/hooks/usePredictTrading', () => ({
   usePredictTrading: jest.fn(),
@@ -21,6 +23,13 @@ jest.mock('../../../../UI/Predict/hooks/usePredictTrading', () => ({
 
 jest.mock('../useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountAvailability', () => ({
+  ...jest.requireActual(
+    '../../../../UI/Money/hooks/useMoneyAccountAvailability',
+  ),
+  useMoneyAccountAvailability: jest.fn(),
 }));
 
 jest.mock(
@@ -41,6 +50,12 @@ jest.mock('../../../../../util/Logger', () => ({
 describe('useMoneyPredictDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAssertMoneyAccountAccessible.mockImplementation(() => undefined);
+    (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
+      accessBlockReason: undefined,
+      isMoneyAccountAccessible: true,
+      assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
+    });
     (usePredictTrading as jest.Mock).mockReturnValue({
       deposit: mockDepositWithConfirmation,
     });
@@ -53,6 +68,36 @@ describe('useMoneyPredictDeposit', () => {
   });
 
   const render = () => renderHookWithProvider(() => useMoneyPredictDeposit());
+
+  it.each([
+    ['feature disabled', 'feature_disabled'],
+    ['geo-blocked', 'geo_blocked'],
+  ] as const)(
+    'rejects a deposit when Money is %s before navigation',
+    async (_label, reason) => {
+      mockAssertMoneyAccountAccessible.mockImplementation(() => {
+        throw Object.assign(new Error('Money account access blocked'), {
+          reason,
+        });
+      });
+      (useMoneyAccountAvailability as jest.Mock).mockReturnValue({
+        accessBlockReason: reason,
+        isMoneyAccountAccessible: false,
+        assertMoneyAccountAccessible: mockAssertMoneyAccountAccessible,
+      });
+
+      const { result } = render();
+
+      await expect(
+        act(async () => {
+          await result.current.initiatePredictDeposit();
+        }),
+      ).rejects.toMatchObject({ reason });
+
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    },
+  );
 
   it('returns isEnabled false when flag is disabled', () => {
     const { result } = render();

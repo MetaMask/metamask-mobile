@@ -135,6 +135,8 @@ describe('findUsableAutorampForActivity', () => {
 describe('useNeobankAutorampActivity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete (Engine.context as unknown as { RampsController?: unknown })
+      .RampsController;
   });
 
   it('shares the polling subscription across mounted consumers', async () => {
@@ -171,6 +173,64 @@ describe('useNeobankAutorampActivity', () => {
 
     first.unmount();
     second.unmount();
+    jest.useRealTimers();
+  });
+
+  it('prefers the controller refresh so the dedupe record is updated', async () => {
+    jest.useFakeTimers();
+    setupPollingHook();
+    const refreshAutorampTransactions = jest
+      .fn()
+      .mockResolvedValue([
+        { id: 'tx-1', autorampId: 'ar-1', status: 'Completed' },
+      ]);
+    const listAutorampTransactions = jest.fn();
+    Object.assign(Engine.context, {
+      RampsController: { refreshAutorampTransactions },
+      NeoBankService: { listAutorampTransactions },
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    const { unmount } = renderHook(
+      () => useNeobankAutorampActivity('0xwallet'),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(refreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
+    });
+    expect(listAutorampTransactions).not.toHaveBeenCalled();
+    unmount();
+    jest.useRealTimers();
+  });
+
+  it('falls back to the raw service when the controller has no refresh method', async () => {
+    jest.useFakeTimers();
+    setupPollingHook();
+    const listAutorampTransactions = jest
+      .fn()
+      .mockResolvedValue([
+        { id: 'tx-1', autorampId: 'ar-1', status: 'Pending' },
+      ]);
+    Object.assign(Engine.context, {
+      RampsController: {},
+      NeoBankService: { listAutorampTransactions },
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    const { unmount } = renderHook(
+      () => useNeobankAutorampActivity('0xwallet'),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(listAutorampTransactions).toHaveBeenCalledWith('ar-1');
+    });
+    unmount();
     jest.useRealTimers();
   });
 

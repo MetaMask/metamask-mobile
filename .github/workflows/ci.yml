@@ -65,13 +65,20 @@ concurrency:
     }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
+permissions: {}
+
 jobs:
   get_requirements:
     name: Get workflow and job requirements
+    permissions:
+      contents: read
+      pull-requests: read
     uses: ./.github/workflows/get-requirements.yml
 
   check-diff:
     name: Check diff
+    permissions:
+      contents: read
     # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
     # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
     # macos/ios-build concurrency.
@@ -216,6 +223,8 @@ jobs:
 
   dedupe:
     name: Dedupe
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -278,6 +287,8 @@ jobs:
 
   git-safe-dependencies:
     name: Run `@lavamoat/git-safe-dependencies`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -333,6 +344,8 @@ jobs:
 
   scripts:
     name: Run `${{ matrix.scripts }}`
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -425,6 +438,8 @@ jobs:
   # paths: #33370 reverted it because cross-file and type-aware rules go stale.
   lint-shards:
     name: Run lint (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -499,6 +514,7 @@ jobs:
   # Shard jobs are `Run lint (N)` and do not use that name.
   lint:
     name: Run `lint`
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -586,6 +602,8 @@ jobs:
   # needing to know anything about what (if anything) reacts to it.
   dependency-audit:
     name: Dependency audit (advisory)
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1059,6 +1077,8 @@ jobs:
 
   check-workflows:
     name: Check workflows
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1103,6 +1123,8 @@ jobs:
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
     name: Prepare CI JS dependencies
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1147,6 +1169,8 @@ jobs:
 
   unit-tests:
     name: Unit tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1227,6 +1251,8 @@ jobs:
   # We need to merge unit, component view, and integration tests into a
   # single coverage report so the PR coverage threshold calculation is accurate.
   merge-unit-and-component-view-tests:
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1443,6 +1469,8 @@ jobs:
 
   component-view-tests:
     name: Component view tests (${{ matrix.shard }})
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -1514,6 +1542,8 @@ jobs:
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
   integration-tests:
+    permissions:
+      contents: read
     # Renders exactly as GitHub's own matrix suffix did for `name: Integration tests`
     # with a single `shard` axis, so the `Integration tests (1)` / `(2)` required
     # checks keep reporting. Spelling it out is load-bearing: the auto-suffix joins
@@ -1727,6 +1757,10 @@ jobs:
 
   prepare-e2e-timings:
     name: 'Prepare E2E Timings'
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
     # Run in parallel with the build jobs — it is a lightweight API call (~30s).
     # Fetches qa-stats timings once (merge-base preferred, latest-main fallback)
     # and uploads them as a run-scoped artifact so every shard and every re-run
@@ -1979,6 +2013,8 @@ jobs:
 
   sonar-cloud:
     name: SonarCloud analysis
+    permissions:
+      contents: read
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
@@ -2195,6 +2231,8 @@ jobs:
 
   check-all-jobs-pass:
     name: Check all jobs pass
+    permissions:
+      contents: read
     # Run the aggregate gate even when optional dependencies are skipped.
     # The composite action decides which skipped jobs are acceptable.
     if: ${{ always() && !cancelled() }}
@@ -2254,6 +2292,7 @@ jobs:
 
   log-merge-group-failure:
     name: Log merge group failure
+    permissions: {}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&

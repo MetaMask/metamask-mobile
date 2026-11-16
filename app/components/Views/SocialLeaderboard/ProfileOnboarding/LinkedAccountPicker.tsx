@@ -27,6 +27,7 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useTheme } from '../../../../util/theme';
 import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
+import TradingActivityBenefits from '../shared/TradingActivityBenefits';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 const styles = StyleSheet.create({
@@ -37,13 +38,6 @@ const styles = StyleSheet.create({
     maxHeight: 420,
   },
 });
-
-const BENEFIT_KEYS = [
-  'social_leaderboard.profile_onboarding.link_account_benefit_trades',
-  'social_leaderboard.profile_onboarding.link_account_benefit_fees',
-  'social_leaderboard.profile_onboarding.link_account_benefit_private',
-  'social_leaderboard.profile_onboarding.link_account_benefit_follow',
-] as const;
 
 interface LinkedAccountPickerProps {
   accounts: LinkableSocialAccount[];
@@ -147,25 +141,10 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
           />
         </Box>
 
-        <Box gap={3}>
-          {BENEFIT_KEYS.map((key) => (
-            <Box
-              key={key}
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Start}
-              gap={3}
-            >
-              <Icon
-                name={IconName.Check}
-                size={IconSize.Md}
-                color={IconColor.SuccessDefault}
-              />
-              <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-                {strings(key)}
-              </Text>
-            </Box>
-          ))}
-        </Box>
+        <TradingActivityBenefits
+          isTradingActivityShown={shareTradingActivity}
+          testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_BENEFITS}
+        />
       </Box>
 
       <Text

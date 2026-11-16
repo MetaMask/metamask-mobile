@@ -104,7 +104,7 @@ export const TOKEN_BALANCE_URL = `https://support.metamask.io/troubleshooting/wh
 export const TESTNET_ETH_SCAMS_URL = `https://support.metamask.io/privacy-and-security/staying-safe-in-web3/testnet-eth-scams/${MOBILE_UTM}`;
 
 // Policies
-export const CONSENSYS_PRIVACY_POLICY = 'https://consensys.net/privacy-policy/';
+export const CONSENSYS_PRIVACY_POLICY = 'https://metamask.com/privacy-notice';
 
 // Keystone
 export const KEYSTONE_SUPPORT = 'https://keyst.one/mmm';

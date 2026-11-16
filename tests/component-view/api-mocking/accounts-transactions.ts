@@ -8,6 +8,7 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -37,26 +38,36 @@ const defaultPageInfo = {
   endCursor: undefined as string | undefined,
 };
 
+const buildTransactionsResponse = (
+  transactions: MockAccountsApiTransaction[],
+) => ({
+  data: transactions,
+  pageInfo: {
+    ...defaultPageInfo,
+    count: transactions.length,
+  },
+});
+
 export function setupAccountsTransactionsApiMock(
   transactions: MockAccountsApiTransaction[],
 ): void {
   clearAllNockMocks();
   disableNetConnect();
 
+  const body = buildTransactionsResponse(transactions);
+
   nock(ACCOUNTS_API_ORIGIN)
     .persist()
     .get(TRANSACTIONS_PATH)
     .query(true)
-    .reply(200, {
-      data: transactions,
-      pageInfo: {
-        ...defaultPageInfo,
-        count: transactions.length,
-      },
-    });
+    .reply(200, body);
+
+  // Same payload as nock. undici fetch is not always settled by the interceptor.
+  stubFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH, body);
 }
 
 export function clearAccountsTransactionsApiMocks(): void {
+  restoreFetchPath(ACCOUNTS_API_ORIGIN, TRANSACTIONS_PATH);
   // Re-enable net connect so later suites in the same Jest worker are not left
   // blocked by disableNetConnect from setup.
   teardownNock();

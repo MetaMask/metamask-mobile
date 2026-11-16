@@ -7,10 +7,7 @@ import {
 import type { SharedValue } from 'react-native-reanimated';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
-import type {
-  PositionSheetLevel,
-  PositionSheetMarker,
-} from '../hooks/usePositionSheetData';
+import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
 import PositionSheetChart from './PositionSheetChart';
 
 const PRICES: TokenPrice[] = [
@@ -28,11 +25,6 @@ const MARKER: PositionSheetMarker = {
   tooltipLabel: 'Bought @ $110',
 };
 
-const LEVELS: PositionSheetLevel[] = [
-  { kind: 'entry', price: 110, label: 'Entry · 2h ago', valueLabel: '$110' },
-  { kind: 'current', price: 120, label: 'Current', valueLabel: '$120' },
-];
-
 const lineProgress = { value: 1 } as SharedValue<number>;
 
 const renderChart = (
@@ -45,7 +37,6 @@ const renderChart = (
       isLoading={false}
       isTrendPositive
       markers={[MARKER]}
-      levels={LEVELS}
       timeAxisLabels={['Mon', 'Wed', 'Fri', 'Sun']}
       lineProgress={lineProgress}
       overlayStyle={undefined}
@@ -64,22 +55,12 @@ const renderChart = (
 };
 
 describe('PositionSheetChart', () => {
-  it('draws the line with a pill pair per level and a marker per fill', () => {
+  it('draws the line and a marker per fill', () => {
     renderChart();
 
     expect(
       screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_LINE),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(
-        `${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-entry`,
-      ),
-    ).toHaveTextContent('Entry · 2h ago');
-    expect(
-      screen.getByTestId(
-        `${PositionDetailsSheetSelectorsIDs.CHART_LEVEL}-current-value`,
-      ),
-    ).toHaveTextContent('$120');
     expect(
       screen.getByTestId(
         `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,

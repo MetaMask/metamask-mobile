@@ -22,6 +22,7 @@ import {
   PredictOutcomeToken,
   PredictMarketGame,
   type PredictFeePolicy,
+  type CryptoPriceProvider,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -992,6 +993,40 @@ const parseEventPriceToBeat = (
     : undefined;
 };
 
+const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
+
+const isHostOf = (host: string, domain: string): boolean =>
+  host === domain || host.endsWith(`.${domain}`);
+
+/**
+ * Reads the vendor a market settles against from its Gamma resolution source.
+ * Settlement, not the series length, decides the vendor: on Gamma the hourly
+ * and daily crypto up/down series resolve on binance.com USDT pairs, while the
+ * 5m, 15m and 4h series resolve on data.chain.link streams.
+ *
+ * @param event - Gamma event.
+ * @param markets - The event's markets. Their own source wins over the event's.
+ * @returns The settlement vendor, or undefined when it is neither of the two.
+ */
+export const parseCryptoPriceProvider = (
+  event: Pick<PolymarketApiEvent, 'resolutionSource'>,
+  markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
+): CryptoPriceProvider | undefined => {
+  const source =
+    markets.find((market) => market.resolutionSource)?.resolutionSource ??
+    event.resolutionSource;
+  const host = source?.trim().match(RESOLUTION_SOURCE_HOST)?.[1]?.toLowerCase();
+  if (!host) {
+    return undefined;
+  }
+
+  if (isHostOf(host, 'binance.com')) {
+    return 'binance';
+  }
+
+  return isHostOf(host, 'chain.link') ? 'chainlink' : undefined;
+};
+
 const parseTwapWindowSeconds = (
   markets: PolymarketApiMarket[],
 ): 30 | 60 | undefined => {
@@ -1193,6 +1228,7 @@ export const parsePolymarketEvents = (
 
       const priceToBeat = parseEventPriceToBeat(event);
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
+      const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
 
       return [
         {
@@ -1217,6 +1253,7 @@ export const parsePolymarketEvents = (
           game,
           ...(priceToBeat !== undefined && { priceToBeat }),
           ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+          ...(cryptoPriceProvider && { cryptoPriceProvider }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,

@@ -1,16 +1,24 @@
 import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   Box,
-  HeaderStandardAnimated,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIconSize,
   IconName,
   Text,
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
+import { useHeaderGlassInset } from '../../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
@@ -28,6 +36,7 @@ import {
   type PredictVenueCapabilities,
 } from '../../capabilities';
 import { useNextVenueId } from '../../implementation';
+import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -76,6 +85,10 @@ const PredictHomeView = ({
   const isFocused = useIsFocused();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
   const {
     visibleKeys,
     onViewportLayout,
@@ -190,26 +203,35 @@ const PredictHomeView = ({
 
   return (
     <Box twClassName="flex-1 bg-default" testID={PredictHomeTestIds.HOME}>
-      <HeaderStandardAnimated
+      <HeaderStandardAnimatedGlass
+        isGlass={isGlassHeader}
+        onLayout={handleHeaderLayout}
         includesTopInset
         title={homeTitle}
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endButtonIconProps={
-          isVenueSearchSupported(capabilities)
-            ? [
-                {
-                  iconName: IconName.Search,
-                  onPress: openSearch,
-                  testID: PredictHomeTestIds.SEARCH,
-                  accessibilityLabel: strings(
-                    'predict_next.search.placeholder',
-                  ),
-                  accessibilityRole: 'button',
-                },
-              ]
-            : undefined
+        endAccessory={
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            <PredictVenueSelectorButton
+              variant={isGlassHeader ? 'glass' : 'standard'}
+            />
+            {isVenueSearchSupported(capabilities) ? (
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
+                size={ButtonIconSize.Md}
+                iconName={IconName.Search}
+                onPress={openSearch}
+                testID={PredictHomeTestIds.SEARCH}
+                accessibilityLabel={strings('predict_next.search.placeholder')}
+                accessibilityRole="button"
+              />
+            ) : null}
+          </Box>
         }
         {...(navigation.canGoBack()
           ? {
@@ -220,6 +242,7 @@ const PredictHomeView = ({
       />
       <Reanimated.ScrollView
         testID={PredictHomeTestIds.SCROLL}
+        contentContainerStyle={{ paddingTop: headerInset }}
         onScroll={onScroll}
         onLayout={onViewportLayout}
         // The animated handler above only reads contentOffset, so these plain

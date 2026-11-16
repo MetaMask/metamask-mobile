@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react-native';
 import { ScrollView } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
+import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderBridgeViewWithRecurringOrderDetails,
@@ -37,6 +38,9 @@ import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsVie
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
 import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
 import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 async function openInProgressOrderDetails(
   renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
@@ -83,6 +87,10 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   const showToast = jest.fn();
 
   beforeEach(() => {
+    netInfoMock.__setMockNetInfo({
+      type: 'wifi',
+      isInternetReachable: true,
+    });
     setupRecurringOrdersDataServiceMock();
     showToast.mockClear();
     ToastService.toastRef = {
@@ -95,6 +103,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    netInfoMock.__resetMockNetInfo();
     ToastService.resetForTesting();
   });
 

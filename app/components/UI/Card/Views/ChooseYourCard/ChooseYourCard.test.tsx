@@ -16,6 +16,11 @@ const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: mockAddProperties,
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -120,6 +125,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: () => null,
     Box: ({
       children,

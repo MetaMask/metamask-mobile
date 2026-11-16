@@ -20,6 +20,8 @@ import {
   type AuthenticationControllerMessenger,
   type AuthenticationControllerState,
 } from '@metamask/profile-sync-controller/auth';
+import { BaseController } from '@metamask/base-controller';
+import { AssetsController } from '@metamask/assets-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import {
   Messenger,
@@ -906,35 +908,77 @@ describe('logs :: generateStateLogs', () => {
       });
     });
 
-    it('exports full AssetsController state even when its metadata excludes fields', () => {
-      const assetsControllerState = {
-        assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
-        assetsBalance: {
-          'account-1': { 'eip155:1/slip44:60': { amount: '1.5' } },
-        },
-        assetsPrice: { 'eip155:1/slip44:60': { price: 3000 } },
-        customAssets: { 'account-1': ['eip155:1/erc20:0xabc'] },
-        assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
-        selectedCurrency: 'usd',
-        assetsLoadingStatus: { isLoading: false },
-      };
-      Reflect.set(Engine.context, 'AssetsController', {
-        metadata: {
-          assetsInfo: stateLogsMetadata(false),
-          assetsBalance: stateLogsMetadata(false),
-          assetsPrice: stateLogsMetadata(false),
-          customAssets: stateLogsMetadata(false),
-          assetPreferences: stateLogsMetadata(false),
-          selectedCurrency: stateLogsMetadata(false),
-          assetsLoadingStatus: stateLogsMetadata(true),
-        },
+    const getAssetsControllerMetadata = () => {
+      let capturedMetadata: Record<string, unknown> | undefined;
+      class MetadataExtractor extends BaseController<never, never, never> {
+        constructor(opts: { metadata: Record<string, unknown> }) {
+          super(opts as never);
+          capturedMetadata = opts.metadata;
+          throw new Error('METADATA_EXTRACTED');
+        }
+      }
+
+      Object.setPrototypeOf(AssetsController, MetadataExtractor);
+      try {
+        // eslint-disable-next-line no-new
+        new (AssetsController as unknown as new (opts: unknown) => unknown)({
+          messenger: {
+            registerActionHandler: () => undefined,
+            registerInitialEventPayload: () => undefined,
+          },
+        });
+      } catch (error) {
+        if ((error as Error).message !== 'METADATA_EXTRACTED') {
+          throw error;
+        }
+      } finally {
+        Object.setPrototypeOf(AssetsController, BaseController);
+      }
+
+      return capturedMetadata;
+    };
+
+    it('exports AssetsController asset fields using real controller metadata', () => {
+      const metadata = getAssetsControllerMetadata();
+      expect(metadata).toMatchObject({
+        assetsInfo: expect.objectContaining({ includeInStateLogs: true }),
+        assetsBalance: expect.objectContaining({ includeInStateLogs: true }),
+        assetsPrice: expect.objectContaining({ includeInStateLogs: true }),
+        customAssets: expect.objectContaining({ includeInStateLogs: true }),
+        assetPreferences: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
+        selectedCurrency: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
+        assetsLoadingStatus: expect.objectContaining({
+          includeInStateLogs: true,
+        }),
       });
 
-      const logs = generateParsedLogs({
-        AssetsController: assetsControllerState,
-      });
+      Reflect.set(Engine.context, 'AssetsController', { metadata });
 
-      expect(logs.AssetsController).toStrictEqual(assetsControllerState);
+      try {
+        const assetsControllerState = {
+          assetsInfo: { 'eip155:1/slip44:60': { symbol: 'ETH', decimals: 18 } },
+          assetsBalance: {
+            'account-1': { 'eip155:1/slip44:60': { amount: '1.5' } },
+          },
+          assetsPrice: { 'eip155:1/slip44:60': { price: 3000 } },
+          customAssets: { 'account-1': ['eip155:1/erc20:0xabc'] },
+          assetPreferences: { 'eip155:1/erc20:0xdef': { hidden: true } },
+          selectedCurrency: 'usd',
+          assetsLoadingStatus: { isLoading: false },
+        };
+
+        const logs = generateParsedLogs({
+          AssetsController: assetsControllerState,
+        });
+
+        expect(logs.AssetsController).toStrictEqual(assetsControllerState);
+      } finally {
+        Reflect.deleteProperty(Engine.context, 'AssetsController');
+      }
     });
 
     it('keeps controller state unchanged when the controller has no metadata', () => {

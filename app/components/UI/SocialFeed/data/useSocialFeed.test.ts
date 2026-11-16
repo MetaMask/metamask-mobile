@@ -651,6 +651,7 @@ describe('useSocialFeed', () => {
         realtime: {
           pendingNewCount: 3,
           revealPending: jest.fn(),
+          hasPendingUpdate: () => false,
           entrances: createSocialFeedEntrances(),
         },
       };

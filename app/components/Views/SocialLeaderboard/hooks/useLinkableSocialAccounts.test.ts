@@ -4,25 +4,16 @@ import {
   selectInternalAccountsById,
   selectInternalEvmAccounts,
 } from '../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectBalanceForAllWalletsAndChains } from '../../../../selectors/assets/balances';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
 import { selectVisibleAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/manageAccounts';
-import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
 import { renderShortAddress } from '../../../../util/address';
 import { useLinkableSocialAccounts } from './useLinkableSocialAccounts';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useGetFormattedTokensPerChain', () => ({
-  useGetFormattedTokensPerChain: () => ({}),
-}));
-
-jest.mock('../../../hooks/useGetTotalFiatBalanceCrossChains', () => ({
-  useGetTotalFiatBalanceCrossChains: jest.fn(),
 }));
 
 const EVM_ADDRESS_1 = '0x1111111111111111111111111111111111111111';
@@ -65,21 +56,58 @@ interface SelectorValues {
   accountsById: Record<string, unknown>;
   accountSections: unknown[];
   seedAddressByGroupId: Record<string, string>;
+  accountToGroupMap?: Record<string, { id: string }>;
+  allBalances?: {
+    wallets: Record<
+      string,
+      {
+        groups: Record<
+          string,
+          {
+            groupId: string;
+            totalBalanceInUserCurrency: number;
+            userCurrency: string;
+          }
+        >;
+      }
+    >;
+  };
 }
+
+const buildWallet = (
+  entries: { groupId: string; total: number; currency?: string }[],
+) => ({
+  wallets: {
+    'wallet-1': {
+      groups: Object.fromEntries(
+        entries.map(({ groupId, total, currency = 'usd' }) => [
+          groupId,
+          {
+            groupId,
+            totalBalanceInUserCurrency: total,
+            userCurrency: currency,
+          },
+        ]),
+      ),
+    },
+  },
+});
 
 const mockSelectors = ({
   evmAccounts,
   accountsById,
   accountSections,
   seedAddressByGroupId,
+  accountToGroupMap = {},
+  allBalances = { wallets: {} },
 }: SelectorValues) => {
   const values = new Map<unknown, unknown>([
     [selectInternalEvmAccounts, evmAccounts],
     [selectInternalAccountsById, accountsById],
     [selectVisibleAccountGroupsByWallet, accountSections],
     [selectAllAccountGroupIconSeedAddresses, seedAddressByGroupId],
-    [selectEVMEnabledNetworks, []],
-    [selectCurrentCurrency, 'usd'],
+    [selectBalanceForAllWalletsAndChains, allBalances],
+    [selectAccountToGroupMap, accountToGroupMap],
   ]);
   (useSelector as jest.Mock).mockImplementation((selector) =>
     values.get(selector),
@@ -122,13 +150,13 @@ const defaultSelectors: SelectorValues = {
 describe('useLinkableSocialAccounts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useGetTotalFiatBalanceCrossChains as jest.Mock).mockReturnValue({
-      [EVM_ADDRESS_1]: { totalFiatBalance: 12.5 },
-    });
   });
 
-  it('names each row after its account group and resolves it to the EVM account', () => {
-    mockSelectors(defaultSelectors);
+  it('labels each row with its account group total', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      allBalances: buildWallet([{ groupId: 'group-1', total: 12.5 }]),
+    });
 
     const { result } = renderHook(() => useLinkableSocialAccounts());
 
@@ -142,6 +170,55 @@ describe('useLinkableSocialAccounts', () => {
         `${SOLANA_MAINNET}:${GROUP_1_SOLANA_ADDRESS}`,
       ],
     });
+  });
+
+  it('counts every address in the group, not only its EVM address', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      allBalances: buildWallet([{ groupId: 'group-1', total: 100 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('$100.00');
+  });
+
+  it('leaves the label blank for a zero balance', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      allBalances: buildWallet([{ groupId: 'group-1', total: 0 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('');
+  });
+
+  it('leaves the label blank when the group has no balance entry yet', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      allBalances: { wallets: {} },
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current.map((account) => account.balanceLabel)).toEqual([
+      '',
+      '',
+    ]);
+  });
+
+  it('uses the balance currency rather than the display currency setting', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      allBalances: buildWallet([
+        { groupId: 'group-1', total: 12.5, currency: 'eur' },
+      ]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toContain('€');
   });
 
   it('falls back to the short address when neither the group nor the account has a name', () => {
@@ -178,5 +255,18 @@ describe('useLinkableSocialAccounts', () => {
       'Internal One',
       renderShortAddress(EVM_ADDRESS_2),
     ]);
+  });
+
+  it('still resolves a balance through the account-to-group map on that fallback', () => {
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [],
+      accountToGroupMap: { [evmAccount1.id]: { id: 'group-1' } },
+      allBalances: buildWallet([{ groupId: 'group-1', total: 42 }]),
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current[0].balanceLabel).toBe('$42.00');
   });
 });

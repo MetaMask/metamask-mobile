@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { invalidateModerationStatus } from '../moderationApi';
 import { patchFeedCommentEngagementInCache } from '../utils/patchFeedCommentEngagementInCache';
 import { useFeedPostReaction } from './useFeedPostReaction';
 
@@ -10,6 +11,12 @@ jest.mock('../utils/patchFeedCommentEngagementInCache', () => ({
 }));
 
 jest.mock('../commentReactionApi');
+
+jest.mock('../moderationApi', () => ({
+  invalidateModerationStatus: jest.fn(() => Promise.resolve()),
+}));
+
+const mockInvalidateModerationStatus = jest.mocked(invalidateModerationStatus);
 
 const mockReactToComment = jest.mocked(reactToComment);
 const mockRemoveCommentReaction = jest.mocked(removeCommentReaction);
@@ -84,7 +91,7 @@ describe('useFeedPostReaction', () => {
     expect(result.current.userReaction).toBeNull();
   });
 
-  it('toggles locally without calling the API when the post has no Call id', async () => {
+  it('does not change reactions or call the API when the post has no Call id', async () => {
     const queryClient = new QueryClient();
     const { result } = renderHook(
       () => useFeedPostReaction(undefined, [], null),
@@ -97,10 +104,8 @@ describe('useFeedPostReaction', () => {
 
     expect(mockReactToComment).not.toHaveBeenCalled();
     expect(mockRemoveCommentReaction).not.toHaveBeenCalled();
-    expect(result.current.reactions).toStrictEqual([
-      { emotion: '🔥', count: 1 },
-    ]);
-    expect(result.current.userReaction).toBe('🔥');
+    expect(result.current.reactions).toStrictEqual([]);
+    expect(result.current.userReaction).toBeNull();
   });
 
   it('restores the previous reactions when the request fails', async () => {
@@ -117,6 +122,25 @@ describe('useFeedPostReaction', () => {
 
     expect(result.current.reactions).toStrictEqual([]);
     expect(result.current.userReaction).toBeNull();
+    expect(mockInvalidateModerationStatus).not.toHaveBeenCalled();
+  });
+
+  it('refetches the moderation status when the reaction is refused with a 403', async () => {
+    const queryClient = new QueryClient();
+    mockReactToComment.mockRejectedValue(
+      Object.assign(new Error('forbidden'), { httpStatus: 403 }),
+    );
+    const { result } = renderHook(
+      () => useFeedPostReaction('comment-1', [], null),
+      { wrapper: wrapper(queryClient) },
+    );
+
+    await act(async () => {
+      await result.current.pickEmotion('😂');
+    });
+
+    expect(mockInvalidateModerationStatus).toHaveBeenCalled();
+    expect(result.current.reactions).toStrictEqual([]);
   });
 
   it('reseeds from refreshed feed props for the same Call id', () => {

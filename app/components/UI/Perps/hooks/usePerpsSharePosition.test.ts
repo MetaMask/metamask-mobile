@@ -271,6 +271,20 @@ describe('usePerpsSharePosition', () => {
     );
   });
 
+  it('loads the Social profile with the canonical profile id of a merged session', async () => {
+    mockGetSessionProfile.mockResolvedValue({
+      profileId: 'session-profile-id',
+      canonicalProfileId: 'canonical-profile-id',
+    });
+    renderWithGates({ hasSocialProfile: false });
+
+    await waitFor(() =>
+      expect(mockFetchAndUpdateProfile).toHaveBeenCalledWith(
+        'canonical-profile-id',
+      ),
+    );
+  });
+
   it('opens the PnL hero card immediately while the profile lookup from screen load is still running', async () => {
     const profileLookup = createDeferred<typeof socialProfile>();
     mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);

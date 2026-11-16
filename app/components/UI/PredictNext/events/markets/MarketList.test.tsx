@@ -56,6 +56,37 @@ describe('MarketList', () => {
     expect(children[1]).toHaveTextContent('Future variant');
   });
 
+  it('spaces every pair of rows by default', () => {
+    render(
+      <MarketList
+        data={['a', 'b', 'c']}
+        keyExtractor={(item) => item}
+        renderItem={(item) => <Text>{item}</Text>}
+      />,
+    );
+
+    expect(screen.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(2);
+  });
+
+  it('skips the gap between rows the caller keeps flush', () => {
+    const isSeparated = jest.fn(
+      (leading: string, trailing: string) =>
+        !(leading === 'a' && trailing === 'b'),
+    );
+    render(
+      <MarketList
+        data={['a', 'b', 'c']}
+        keyExtractor={(item) => item}
+        renderItem={(item) => <Text>{item}</Text>}
+        isSeparated={isSeparated}
+      />,
+    );
+
+    expect(screen.getAllByTestId(MarketListTestIds.SEPARATOR)).toHaveLength(1);
+    expect(isSeparated).toHaveBeenCalledWith('a', 'b');
+    expect(isSeparated).toHaveBeenCalledWith('b', 'c');
+  });
+
   it('uses a caller-supplied test ID', () => {
     render(
       <MarketList

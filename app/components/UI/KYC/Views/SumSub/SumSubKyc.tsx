@@ -10,7 +10,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -21,6 +20,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useLaunchSumSub } from '../../hooks/useLaunchSumSub';
 import type { VbaIdentityVerificationCompletion } from './types';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaSumSubKycSelectorsIDs = {
   CONTAINER: 'vba-sumsub-kyc-container',
@@ -45,6 +47,7 @@ interface VbaSumSubKycProps {
 }
 
 const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
@@ -82,7 +85,9 @@ const VbaSumSubKyc = ({ onSubmitted }: VbaSumSubKycProps) => {
       testID={VbaSumSubKycSelectorsIDs.CONTAINER}
     >
       {isLaunching ? null : (
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           onBack={handleBack}
           backButtonProps={{
             testID: VbaSumSubKycSelectorsIDs.BACK_BUTTON,

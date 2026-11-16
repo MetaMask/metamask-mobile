@@ -63,26 +63,28 @@ const FilterChipSection = <T extends string>({
       >
         {strings(titleKey)}
       </Text>
-      <FilterButtonGroup
-        value={value}
-        onChange={handleChange}
-        variant={FilterButtonVariant.Secondary}
-        twClassName="mt-2 gap-2"
-      >
-        {options.map((option) => (
-          <FilterButton
-            key={option.id}
-            value={option.id}
-            size={FilterButtonSize.Lg}
-            isSelected={option.id === value}
-            testID={`${testID}-${option.id}`}
-          >
-            {option.leadingEmoji
-              ? `${option.leadingEmoji} ${strings(option.labelKey)}`
-              : strings(option.labelKey)}
-          </FilterButton>
-        ))}
-      </FilterButtonGroup>
+      <Box twClassName="mt-2" testID={`${testID}-controls`}>
+        <FilterButtonGroup
+          value={value}
+          onChange={handleChange}
+          variant={FilterButtonVariant.Secondary}
+          twClassName="gap-2"
+        >
+          {options.map((option) => (
+            <FilterButton
+              key={option.id}
+              value={option.id}
+              size={FilterButtonSize.Sm}
+              isSelected={option.id === value}
+              testID={`${testID}-${option.id}`}
+            >
+              {option.leadingEmoji
+                ? `${option.leadingEmoji} ${strings(option.labelKey)}`
+                : strings(option.labelKey)}
+            </FilterButton>
+          ))}
+        </FilterButtonGroup>
+      </Box>
     </Box>
   );
 };

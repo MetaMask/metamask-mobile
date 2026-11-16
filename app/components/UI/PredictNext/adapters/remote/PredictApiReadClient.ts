@@ -319,6 +319,13 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
+    // A write aborted while its token resolved must not go out: the token
+    // may already belong to whoever replaced the Predict User.
+    if (options?.signal?.aborted) {
+      const aborted = new Error('The request was aborted.');
+      aborted.name = 'AbortError';
+      throw aborted;
+    }
     return this.#post(segments, body, bearerToken, options);
   }
 

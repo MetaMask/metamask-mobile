@@ -7,6 +7,7 @@ import { moneyFormatUsd } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { formatCardAmount } from '../../Card/utils/cardTransactionAmount';
+import { isUnsuccessfulCardTransactionStatus } from '../../Card/utils/cardTransactionDisplayInfo';
 
 const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.transaction.purchase',
@@ -64,5 +65,12 @@ export function accountsApiActivityDisplayInfo(
     ...base,
     description: enrichment.merchant?.name ?? base.description,
     fiatAmount: secondaryAmount,
+    // A declined or reversed purchase can still settle on-chain, so the
+    // Accounts-API row is indistinguishable from a successful spend — the
+    // data service only sees the transfer. The card provider holds the real
+    // outcome, so let the enrichment override the status.
+    status: isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? 'failed'
+      : base.status,
   };
 }

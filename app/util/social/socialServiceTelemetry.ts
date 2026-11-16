@@ -40,7 +40,8 @@ export type SocialEndpoint =
   | 'blocked_profiles'
   | 'block'
   | 'unblock'
-  | 'blocked_content';
+  | 'blocked_content'
+  | 'moderation_status';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

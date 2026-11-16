@@ -57,7 +57,6 @@ describe('Remote Feature Flags Helper', () => {
       };
       const disabledFlagNames = [
         'mobileUxBftcOnsolidation',
-        'earnHomeSectionEnabled',
         'earnExploreSectionEnabled',
         'earnTradeMenuRowRedesignEnabled',
         'earnMoneyAssetOverviewFooterCtaEnabled',

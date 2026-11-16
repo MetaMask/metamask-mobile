@@ -367,6 +367,11 @@ export interface UserResponse {
   mailingUsState?: string | null; // Required for US users
   contactVerificationId?: string | null;
   createdAt?: string | null;
+  /**
+   * Card processor for this account. Known values are `galileo` and
+   * `monavate`, compared exactly. Omitted responses fail a processor rule.
+   */
+  cardProvider?: string;
 }
 
 // Country type definition

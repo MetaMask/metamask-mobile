@@ -118,14 +118,17 @@ describe('useImmersveResumeOnboarding', () => {
       });
     });
 
-    it('does not record onboarding started when the user is already authenticated', async () => {
+    it('records onboarding started when the user is already authenticated and has no card', async () => {
       const { result } = renderHook(() => useImmersveResumeOnboarding());
 
       await act(async () => {
         await result.current({ ...PARAMS, alreadyAuthenticated: true });
       });
 
-      expect(mockRecordProviderOnboardingStarted).not.toHaveBeenCalled();
+      expect(mockRecordProviderOnboardingStarted).toHaveBeenCalledWith({
+        provider: 'immersve',
+        address: '0xabc',
+      });
     });
 
     it('records active, not onboarding, when a fresh SIWE finds an existing card', async () => {

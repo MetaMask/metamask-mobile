@@ -36,7 +36,6 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   HelpText,
   HelpTextSeverity,
   Icon,
@@ -85,6 +84,9 @@ import {
   LIQUIDATION_DISTANCE_DECIMALS,
   TP_SL_VIEW_CONFIG,
 } from '../../constants/perpsConfig';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 /**
  * Await a dismissal that may never call back.
@@ -256,6 +258,7 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
 
   const isSheet = variant === 'sheet';
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -1588,7 +1591,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       edges={['bottom']}
       testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={strings('perps.tpsl.title')}
         onBack={handleBack}

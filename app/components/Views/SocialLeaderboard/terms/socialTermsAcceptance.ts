@@ -44,7 +44,12 @@ export const acceptSocialTerms = (): Promise<void> => {
   return StorageWrapper.setItem(SOCIAL_TERMS_ACCEPTED, SOCIAL_TERMS_VERSION);
 };
 
-/** Dev/QA only (wired to the Developer options reset button). */
+/**
+ * Clears the in-process acceptance and the MMKV key.
+ *
+ * Wallet reset calls this so the next identity is asked again. Developer
+ * options uses the same helper.
+ */
 export const resetSocialTermsAcceptance = (): Promise<void> => {
   hasAcceptedThisSession = false;
   return StorageWrapper.removeItem(SOCIAL_TERMS_ACCEPTED);

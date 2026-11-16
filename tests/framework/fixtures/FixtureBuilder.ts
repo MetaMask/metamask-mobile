@@ -67,6 +67,7 @@ import type {
 import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
+import { applyStateLogOmittedFields } from './state-log-omitted-fields.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -2426,6 +2427,15 @@ class FixtureBuilder {
         _persist: { version: -1, rehydrated: true },
       },
     });
+    return this;
+  }
+
+  /**
+   * Seeds controller fields whose metadata excludes them from state logs.
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withStateLogOmittedFields() {
+    applyStateLogOmittedFields(this.fixture.state.engine.backgroundState);
     return this;
   }
 

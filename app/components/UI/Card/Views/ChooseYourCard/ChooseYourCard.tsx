@@ -28,7 +28,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import {
   useCardHeaderHandlers,
@@ -50,6 +49,9 @@ import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../ReviewOrder';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export type ChooseYourCardFlow = 'onboarding' | 'upgrade' | 'home';
 
@@ -86,6 +88,7 @@ const ChooseYourCard = () => {
   // 'upgrade' / 'home' are user-initiated entries, so show a back button.
   const headerMode: CardHeaderMode = flow === 'onboarding' ? 'none' : 'back';
   const headerHandlers = useCardHeaderHandlers(headerMode);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   // Arrow bounce animation for swipe indicator
   useEffect(() => {
@@ -385,7 +388,9 @@ const ChooseYourCard = () => {
       testID={ChooseYourCardSelectors.CONTAINER}
     >
       {headerMode !== 'none' && (
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}

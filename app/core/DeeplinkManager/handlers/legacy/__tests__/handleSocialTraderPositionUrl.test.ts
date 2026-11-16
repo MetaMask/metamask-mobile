@@ -311,6 +311,18 @@ describe('handleSocialTraderPositionUrl', () => {
     });
   });
 
+  it('includes deduplication_id on the notification click when the push URL has one', () => {
+    handleSocialTraderPositionUrl({
+      actionPath:
+        '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy',
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      notification_subtype: 'follow_newtrade_buy',
+      deduplication_id: 'dedup-1',
+    });
+  });
+
   it('omits notification_template_variant from the analytics event when the param is absent', () => {
     handleSocialTraderPositionUrl({
       actionPath:
@@ -320,6 +332,9 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockAddProperties).toHaveBeenCalledWith({
       notification_subtype: 'follow_newtrade_buy',
     });
+    expect(mockAddProperties.mock.calls[0]?.[0]).not.toHaveProperty(
+      'deduplication_id',
+    );
   });
 
   it('falls back to social leaderboard on navigation errors', () => {

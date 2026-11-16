@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
+import { mockTheme } from '../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
@@ -193,18 +194,36 @@ describe('Amount', () => {
 
     const { getByRole, getByTestId, getByText } = renderComponent();
 
+    const tokenFontSize = getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2);
+
     expect(getByRole('text', { name: '0 LONGTOKEN' })).toBeOnTheScreen();
     expect(
       StyleSheet.flatten(getByText('LONGTOKEN').props.style),
     ).toMatchObject({
-      fontSize: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
+      fontSize: tokenFontSize,
+      lineHeight: tokenFontSize,
     });
 
     fireEvent.press(getByTestId('fiat_toggle'));
 
+    const fiatFontSize = getFontSizeForInputLength(4 + 'USD'.length + 2);
+
     expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
     expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
-      fontSize: getFontSizeForInputLength(4 + 'USD'.length + 2),
+      fontSize: fiatFontSize,
+      lineHeight: fiatFontSize,
+    });
+  });
+
+  it('sizes the cursor to the Hero amount', () => {
+    const { getByTestId } = renderComponent();
+    const fontSize = getFontSizeForInputLength(1 + 'ETH'.length + 2);
+
+    expect(getByTestId('send-amount-cursor')).toHaveStyle({
+      backgroundColor: mockTheme.colors.text.muted,
+      height: Math.round(fontSize * 0.95),
+      marginHorizontal: 0,
+      width: 1,
     });
   });
 

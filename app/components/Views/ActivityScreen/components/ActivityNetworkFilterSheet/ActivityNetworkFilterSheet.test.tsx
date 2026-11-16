@@ -10,6 +10,8 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockOnCloseBottomSheet = jest.fn();
 const mockOnNetworkSelect = jest.fn();
+const mockUseParams = jest.fn();
+const mockUseNetworkFilterOptions = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -22,22 +24,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
     (root: string, routeName: string) => (params?: unknown) =>
       [root, { screen: routeName, params }] as const,
-  useParams: () => ({
-    selectedNetwork: null,
-    onNetworkSelect: mockOnNetworkSelect,
-  }),
+  useParams: () => mockUseParams(),
 }));
 
 jest.mock('../../hooks/useNetworkFilterOptions', () => ({
-  useNetworkFilterOptions: () => [
-    {
-      id: 'eip155:59144',
-      name: 'Linea',
-      caipChainId: 'eip155:59144',
-      isSelected: false,
-      imageSource: { uri: 'linea' },
-    },
-  ],
+  useNetworkFilterOptions: (...args: unknown[]) =>
+    mockUseNetworkFilterOptions(...args),
 }));
 
 jest.mock(
@@ -139,6 +131,31 @@ describe('ActivityNetworkFilterSheet', () => {
     mockOnCloseBottomSheet.mockClear();
     mockOnNetworkSelect.mockClear();
     mockCanGoBack.mockReturnValue(true);
+    mockUseParams.mockReturnValue({
+      selectedNetwork: null,
+      onNetworkSelect: mockOnNetworkSelect,
+    });
+    mockUseNetworkFilterOptions.mockReturnValue([
+      {
+        id: 'eip155:59144',
+        name: 'Linea',
+        caipChainId: 'eip155:59144',
+        isSelected: false,
+        imageSource: { uri: 'linea' },
+      },
+    ]);
+  });
+  it('restricts the options to the enabledChainIds param', () => {
+    const enabledChainIds = ['eip155:1', 'eip155:59144'];
+    mockUseParams.mockReturnValue({
+      selectedNetwork: null,
+      onNetworkSelect: mockOnNetworkSelect,
+      enabledChainIds,
+    });
+
+    render(<ActivityNetworkFilterSheet />);
+
+    expect(mockUseNetworkFilterOptions).toHaveBeenCalledWith(enabledChainIds);
   });
   it('renders the network filter sheet', () => {
     render(<ActivityNetworkFilterSheet />);

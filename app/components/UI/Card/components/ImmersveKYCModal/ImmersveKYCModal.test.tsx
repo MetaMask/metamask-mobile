@@ -12,6 +12,11 @@ import ImmersveKYCModal, {
 const mockGoBack = jest.fn();
 const mockRequestMultiple = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
@@ -40,6 +45,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   const ActualReact = jest.requireActual('react');
   const { Text: RNText, TouchableOpacity } = jest.requireActual('react-native');
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Text: ({
       children,
       testID,

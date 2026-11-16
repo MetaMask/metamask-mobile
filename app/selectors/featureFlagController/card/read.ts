@@ -12,6 +12,7 @@ import {
 } from './defaults';
 import type {
   CardFeatureFlag,
+  CardProvisioningFacts,
   CardProviderChain,
   CardProviderChains,
   CardProviderFlagKeys,
@@ -19,6 +20,10 @@ import type {
   CardUkMigrationFlag,
   CardUkMigrationState,
   ImmersveProgramConfig,
+  ProvisioningDevice,
+  ProvisioningPlatform,
+  ProvisioningWallet,
+  ResolvedProvisioningWallet,
 } from './types';
 
 /**
@@ -454,4 +459,239 @@ export function getCardUkMigrationUpdateBadgeSeverity(
   }
 
   return 'info';
+}
+
+/**
+ * Remote keys for the nested provisioning flags. Sibling of
+ * {@link CARD_PROVIDER_FLAGS}: Baanx is not a `card<Provider>` switch.
+ */
+export const CARD_PROVISIONING_FLAG_KEYS: Record<string, string> = {
+  [CardProviderIds.Baanx]: 'cardBaanxProvisioning',
+  [CardProviderIds.Immersve]: 'cardImmersveProvisioning',
+};
+
+/**
+ * Wallets this build can offer. A `samsung_pay` leaf is parsed, then dropped,
+ * until the Samsung Pay work adds it here.
+ */
+export const IMPLEMENTED_PROVISIONING_WALLETS: readonly ProvisioningWallet[] = [
+  'apple_wallet',
+  'google_wallet',
+];
+
+/** Shared empty result so a miss does not allocate. */
+export const NO_PROVISIONING_WALLETS: readonly ResolvedProvisioningWallet[] =
+  Object.freeze([]);
+
+const PROVISIONING_WALLET_ORDER: readonly ProvisioningWallet[] = [
+  'apple_wallet',
+  'google_wallet',
+  'samsung_pay',
+];
+
+const PROVISIONING_WALLETS_BY_PLATFORM: Record<
+  ProvisioningPlatform,
+  readonly ProvisioningWallet[]
+> = {
+  ios: ['apple_wallet'],
+  android: ['google_wallet', 'samsung_pay'],
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * A rollout envelope is `{ value: object }` without its own `enabled` boolean.
+ * A flag object that already has `enabled` is left alone, same as
+ * `normalizeCardUkMigrationFlag` detecting a nested `value`.
+ */
+const unwrapProvisioningFlag = (raw: unknown): unknown => {
+  if (!isPlainObject(raw) || typeof raw.enabled === 'boolean') {
+    return raw;
+  }
+  if ('value' in raw && isNonEmptyObject(raw.value)) {
+    return raw.value;
+  }
+  return raw;
+};
+
+const isProvisioningFlagShape = (value: unknown): boolean =>
+  isPlainObject(value) &&
+  typeof value.enabled === 'boolean' &&
+  typeof value.minimumVersion === 'string' &&
+  isPlainObject(value.countries);
+
+const findCountryRule = (
+  countries: Record<string, unknown>,
+  countryCode: string | undefined,
+): unknown => {
+  if (!countryCode) {
+    return undefined;
+  }
+  const wanted = countryCode.toUpperCase();
+  for (const [key, rule] of Object.entries(countries)) {
+    if (key.toUpperCase() === wanted) {
+      return rule;
+    }
+  }
+  return undefined;
+};
+
+const readEligibility = (value: unknown): Record<string, unknown> | 'fail' => {
+  if (value === undefined) {
+    return {};
+  }
+  return isPlainObject(value) ? value : 'fail';
+};
+
+const isNonEmptyStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every((entry) => typeof entry === 'string');
+
+/**
+ * Country rules first, then each key present on the wallet leaf. An unknown
+ * key, or a `cardProcessors` list that misses the fact, fails closed.
+ */
+const eligibilityPasses = (
+  countryEligibility: unknown,
+  leafEligibility: unknown,
+  cardProcessor: string | undefined,
+): boolean => {
+  const countryRules = readEligibility(countryEligibility);
+  const leafRules = readEligibility(leafEligibility);
+  if (countryRules === 'fail' || leafRules === 'fail') {
+    return false;
+  }
+
+  const merged = { ...countryRules, ...leafRules };
+  for (const [key, rule] of Object.entries(merged)) {
+    if (key !== 'cardProcessors') {
+      return false;
+    }
+    if (
+      !isNonEmptyStringArray(rule) ||
+      cardProcessor === undefined ||
+      !rule.includes(cardProcessor)
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const readSamsungDevices = (
+  leaf: Record<string, unknown>,
+): ProvisioningDevice[] | null => {
+  const { devices } = leaf;
+  if (!Array.isArray(devices)) {
+    return ['phone', 'watch'];
+  }
+  const kept = devices.filter(
+    (entry): entry is ProvisioningDevice =>
+      entry === 'phone' || entry === 'watch',
+  );
+  return kept.length > 0 ? kept : null;
+};
+
+const isWalletLeaf = (
+  value: unknown,
+): value is { enabled: boolean; minimumVersion: string } & Record<
+  string,
+  unknown
+> =>
+  isPlainObject(value) &&
+  typeof value.enabled === 'boolean' &&
+  typeof value.minimumVersion === 'string';
+
+const keepProvisioningWallet = (
+  wallet: ProvisioningWallet,
+  platformRule: Record<string, unknown>,
+  countryEligibility: unknown,
+  cardProcessor: string | undefined,
+  allowed: readonly ProvisioningWallet[],
+  implementedWallets: readonly ProvisioningWallet[],
+): ResolvedProvisioningWallet | null => {
+  if (!allowed.includes(wallet) || !implementedWallets.includes(wallet)) {
+    return null;
+  }
+  const leaf = platformRule[wallet];
+  if (!isWalletLeaf(leaf)) {
+    return null;
+  }
+  if (
+    validatedVersionGatedFeatureFlag({
+      enabled: leaf.enabled,
+      minimumVersion: leaf.minimumVersion,
+    }) !== true
+  ) {
+    return null;
+  }
+  if (!eligibilityPasses(countryEligibility, leaf.eligibility, cardProcessor)) {
+    return null;
+  }
+  if (wallet !== 'samsung_pay') {
+    return { wallet };
+  }
+  const devices = readSamsungDevices(leaf);
+  return devices ? { wallet, devices } : null;
+};
+
+/**
+ * Wallets a provider may offer for these facts.
+ *
+ * A valid flag wins, including when it resolves to no wallets. Absence or an
+ * unparseable top-level value offers nothing. `implementedWallets` defaults to
+ * {@link IMPLEMENTED_PROVISIONING_WALLETS}; tests and the Samsung Pay work pass
+ * a wider set to exercise `devices`.
+ */
+export function resolveCardProvisioningWallets(
+  flags: CardRemoteFeatureFlags,
+  providerId: string,
+  facts: CardProvisioningFacts,
+  implementedWallets: readonly ProvisioningWallet[] = IMPLEMENTED_PROVISIONING_WALLETS,
+): readonly ResolvedProvisioningWallet[] {
+  const flagKey = CARD_PROVISIONING_FLAG_KEYS[providerId];
+  if (!flagKey) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const unwrapped = unwrapProvisioningFlag(flags?.[flagKey]);
+  if (!isProvisioningFlagShape(unwrapped)) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  if (validatedVersionGatedFeatureFlag(unwrapped) !== true) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const countries = (unwrapped as { countries: Record<string, unknown> })
+    .countries;
+  const countryRule = findCountryRule(countries, facts.countryCode);
+  if (!isPlainObject(countryRule) || countryRule.enabled !== true) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const platformRule = countryRule[facts.platform];
+  if (!isPlainObject(platformRule)) {
+    return NO_PROVISIONING_WALLETS;
+  }
+
+  const allowed = PROVISIONING_WALLETS_BY_PLATFORM[facts.platform];
+  const kept: ResolvedProvisioningWallet[] = [];
+  for (const wallet of PROVISIONING_WALLET_ORDER) {
+    const resolved = keepProvisioningWallet(
+      wallet,
+      platformRule,
+      countryRule.eligibility,
+      facts.cardProcessor,
+      allowed,
+      implementedWallets,
+    );
+    if (resolved) {
+      kept.push(resolved);
+    }
+  }
+
+  return kept.length > 0 ? kept : NO_PROVISIONING_WALLETS;
 }

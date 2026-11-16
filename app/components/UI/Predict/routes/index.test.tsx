@@ -34,6 +34,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../selectors/featureFlags', () => ({
+  ...jest.requireActual('../selectors/featureFlags'),
   selectPredictWithAnyTokenEnabledFlag: () =>
     mockSelectPredictWithAnyTokenEnabledFlag(),
   selectPredictPortfolioEnabledFlag: () =>

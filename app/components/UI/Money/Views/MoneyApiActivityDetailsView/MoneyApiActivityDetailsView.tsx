@@ -14,7 +14,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -65,6 +64,8 @@ import { getMerchantCategoryLabel } from '../../../Card/utils/merchantCategoryLa
 import {
   cardTransactionDisplayInfo,
   formatCardTransactionStatus,
+  getCardTransactionStatusColor,
+  isUnsuccessfulCardTransactionStatus,
 } from '../../../Card/utils/cardTransactionDisplayInfo';
 import { getCardDeclineReasonLabel } from '../../../Card/utils/moneyAccountCardTransaction';
 import { formatNetworkFeeLabel } from '../../../Card/utils/cardTransactionAmount';
@@ -76,6 +77,8 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../../Card/util/vedaToken';
 import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 
 /** Hero asset for Money Activity card details — always the Money Account token. */
 const MONEY_ACCOUNT_HERO_TOKEN = {
@@ -452,6 +455,14 @@ function MoneySettledCardDetailsContent({
     [activity, enrichment],
   );
 
+  // The on-chain transfer settled, so the Accounts-API row alone always reads
+  // as completed. When the card provider reports the purchase as declined or
+  // reversed, its outcome is the truthful one.
+  const unsuccessfulStatus =
+    enrichment && isUnsuccessfulCardTransactionStatus(enrichment.status)
+      ? enrichment.status
+      : undefined;
+
   return (
     <MoneyCardDetailsContent
       display={display}
@@ -464,10 +475,22 @@ function MoneySettledCardDetailsContent({
         enrichment?.feeAmount,
         MONEY_ACCOUNT_DISPLAY_SYMBOL,
       )}
-      statusLabel={strings('money.api_activity_details.completed')}
-      statusColor={TextColor.SuccessDefault}
+      statusLabel={
+        unsuccessfulStatus
+          ? formatCardTransactionStatus(unsuccessfulStatus)
+          : strings('money.api_activity_details.completed')
+      }
+      statusColor={
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : TextColor.SuccessDefault
+      }
       amountColor={
-        display.isIncoming ? TextColor.SuccessDefault : TextColor.TextDefault
+        unsuccessfulStatus
+          ? getCardTransactionStatusColor(unsuccessfulStatus)
+          : display.isIncoming
+            ? TextColor.SuccessDefault
+            : TextColor.TextDefault
       }
       explorerChainId={activity.chainId}
       explorerTxHash={activity.hash}
@@ -482,6 +505,7 @@ interface MoneyApiActivityDetailsContentProps {
 function MoneyApiActivityDetailsContent({
   activity,
 }: MoneyApiActivityDetailsContentProps) {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const { networkName, networkImage } = useNetworkInfo(activity.chainId);
   const handleBack = useGoBack();
@@ -509,7 +533,9 @@ function MoneyApiActivityDetailsContent({
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
@@ -642,6 +668,7 @@ interface NeobankBankTransferDetailsContentProps {
 function NeobankBankTransferDetailsContent({
   activity,
 }: NeobankBankTransferDetailsContentProps) {
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
   const tw = useTailwind();
   const handleBack = useGoBack();
 
@@ -692,7 +719,9 @@ function NeobankBankTransferDetailsContent({
 
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}

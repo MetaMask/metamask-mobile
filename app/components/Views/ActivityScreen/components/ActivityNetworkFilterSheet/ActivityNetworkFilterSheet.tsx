@@ -34,6 +34,8 @@ enum NetworkOption {
 export interface ActivityNetworkFilterSheetParams {
   selectedNetwork?: CaipChainId[] | null;
   onNetworkSelect: (chainIds: CaipChainId[] | null) => void;
+  /** Only these networks are offered when given. */
+  enabledChainIds?: CaipChainId[];
 }
 
 export const createActivityNetworkFilterNavDetails =
@@ -47,9 +49,12 @@ const styles = StyleSheet.create({ optionsList: { paddingBottom: 16 } });
 /** ROOT_MODAL_FLOW network filter; writes via onNetworkSelect. */
 const ActivityNetworkFilterSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { selectedNetwork: initialSelectedNetwork, onNetworkSelect } =
-    useParams<ActivityNetworkFilterSheetParams>();
-  const networks = useNetworkFilterOptions();
+  const {
+    selectedNetwork: initialSelectedNetwork,
+    onNetworkSelect,
+    enabledChainIds,
+  } = useParams<ActivityNetworkFilterSheetParams>();
+  const networks = useNetworkFilterOptions(enabledChainIds);
 
   const [selectedNetwork, setSelectedNetwork] = useState<
     CaipChainId[] | null | NetworkOption

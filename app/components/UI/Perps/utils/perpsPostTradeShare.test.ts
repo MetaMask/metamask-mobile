@@ -4,8 +4,10 @@ import {
   canPromptPerpsPostTrade,
   completePerpsPostTradeShare,
   failPerpsPostTradeShare,
+  isPerpsPostTradeShareEligible,
   openPerpsPostTradeShareSession,
 } from './perpsPostTradeShare';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
@@ -16,6 +18,35 @@ const copyTradeOrigin = { commentId: 'comment-1', asset: 'ETH' };
 describe('perpsPostTradeShare', () => {
   afterEach(() => {
     clearPostTradeShareSession();
+  });
+
+  describe('isPerpsPostTradeShareEligible', () => {
+    it('returns false when leveraged value is below the minimum', () => {
+      const result = isPerpsPostTradeShareEligible({
+        amountUsd: '5',
+        leverage: 1,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when leverage brings the value to the minimum', () => {
+      const result = isPerpsPostTradeShareEligible({
+        amountUsd: '5',
+        leverage: 2,
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true at the minimum value without leverage', () => {
+      const result = isPerpsPostTradeShareEligible({
+        amountUsd: String(MIN_POST_TRADE_SHARE_USD),
+        leverage: 1,
+      });
+
+      expect(result).toBe(true);
+    });
   });
 
   it('prompts only for Hyperliquid market orders', () => {
@@ -94,6 +125,38 @@ describe('perpsPostTradeShare', () => {
     ).toBe(false);
   });
 
+  it('keeps a low-value copy-trade on the normal toast path', () => {
+    const sessionId = beginPerpsPostTradeShare({
+      copyTradeOrigin,
+      orderType: 'market',
+      activeProvider: 'hyperliquid',
+      asset: 'ETH',
+      direction: 'long',
+      leverage: 1,
+      amountUsd: '5',
+    });
+
+    expect(sessionId).toBeUndefined();
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
+  it('opens a share for a leveraged copy-trade that reaches the minimum', () => {
+    const sessionId = beginPerpsPostTradeShare({
+      copyTradeOrigin,
+      orderType: 'market',
+      activeProvider: 'hyperliquid',
+      asset: 'ETH',
+      direction: 'long',
+      leverage: 2,
+      amountUsd: '5',
+    });
+
+    expect(sessionId).toBeDefined();
+    expect(getPostTradeShareSession()).toEqual(
+      expect.objectContaining({ product: 'perps', variant: 'share' }),
+    );
+  });
+
   it('completes a pending session with the order id', () => {
     const sessionId = beginPerpsPostTradeShare({
       copyTradeOrigin,
@@ -163,6 +226,8 @@ describe('perpsPostTradeShare', () => {
       activeProvider: 'hyperliquid',
       asset: 'ETH',
       direction: 'long',
+      leverage: 1,
+      amountUsd: '100',
     });
 
     expect(failPerpsPostTradeShare(sessionId)).toBe(true);

@@ -9,7 +9,6 @@ import {
   formatSignedUsd,
   formatTokenAmount,
   formatTradeUnitPrice,
-  formatUsd,
 } from '../../../../UI/SocialFeed/utils/formatters';
 import {
   getPerpPositionDirection,
@@ -20,11 +19,6 @@ import { toUnitPrice } from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem'
 import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import { useTraderPositionData } from '../../TraderPositionView/useTraderPositionData';
 import { mapTradesToMarkers } from '../../TraderPositionView/utils/tradeMarkers';
-import {
-  deriveChartLevels,
-  type ChartLevel,
-  type ChartLevelKind,
-} from '../utils/chartLevels';
 import {
   buildTimeAxisLabels,
   deriveDailyChangePercent,
@@ -38,14 +32,6 @@ import { usePerpsSheetPrices } from './usePerpsSheetPrices';
 
 const TIME_AXIS_LABEL_COUNT = 4;
 
-const LEVEL_LABEL_KEYS: Record<ChartLevelKind, string> = {
-  entry: 'social_leaderboard.position_sheet.level.entry',
-  exit: 'social_leaderboard.position_sheet.level.exit',
-  current: 'social_leaderboard.position_sheet.level.current',
-  takeProfit: 'social_leaderboard.position_sheet.level.take_profit',
-  stopLoss: 'social_leaderboard.position_sheet.level.stop_loss',
-};
-
 const DIRECTION_KEYS: Record<PerpDirection, string> = {
   long: 'social_leaderboard.trader_position.long',
   short: 'social_leaderboard.trader_position.short',
@@ -58,11 +44,6 @@ export interface PositionSheetMarker {
   intent: 'enter' | 'exit';
   timestampMs: number;
   tooltipLabel: string;
-}
-
-export interface PositionSheetLevel extends ChartLevel {
-  label: string;
-  valueLabel: string;
 }
 
 export interface PositionSheetData {
@@ -81,7 +62,6 @@ export interface PositionSheetData {
   timeAxisLabels: string[];
   isTrendPositive: boolean;
   markers: PositionSheetMarker[];
-  levels: PositionSheetLevel[];
 
   /** Spot values read as market cap when one is known, otherwise as price. */
   isMarketCapMode: boolean;
@@ -91,6 +71,8 @@ export interface PositionSheetData {
   marketCap: number | undefined;
 
   summaryTitle: string;
+  /** `40x Short` on a perp. Absent on spot. */
+  summaryTagLabel: string | undefined;
   summarySubtitle: string;
   pnlPercentLabel: string;
   pnlValueLabel: string;
@@ -101,6 +83,36 @@ const sumEntryTokens = (position: Position): number =>
   (position.trades ?? [])
     .filter((trade) => trade.intent === 'enter')
     .reduce((total, trade) => total + Math.abs(trade.tokenAmount), 0);
+
+const tradeTimesMs = (position: Position): number[] =>
+  (position.trades ?? []).flatMap((trade) => {
+    const time = tradeTimestampToMs(trade.timestamp);
+    return Number.isFinite(time) && time > 0 ? [time] : [];
+  });
+
+const statusAtMs = (
+  position: Position & { firstTradeAt?: number | null },
+  isClosed: boolean,
+): number | undefined => {
+  if (isClosed) {
+    if (position.lastTradeAt > 0) {
+      return tradeTimestampToMs(position.lastTradeAt);
+    }
+    const times = tradeTimesMs(position);
+    return times.length > 0 ? Math.max(...times) : undefined;
+  }
+  if (position.firstTradeAt != null && position.firstTradeAt > 0) {
+    return tradeTimestampToMs(position.firstTradeAt);
+  }
+  const times = tradeTimesMs(position);
+  return times.length > 0 ? Math.min(...times) : undefined;
+};
+
+const AGE_CAPTION_KEYS = {
+  opened: 'social_leaderboard.feed.position_card.opened_ago',
+  closed: 'social_leaderboard.feed.position_card.closed_ago',
+  sold: 'social_leaderboard.feed.position_card.sold_ago',
+} as const;
 
 /**
  * Everything the position sheet renders, derived from one `Position`.
@@ -209,29 +221,6 @@ export function usePositionSheetData(
     perpDirection,
   ]);
 
-  const levels = useMemo((): PositionSheetLevel[] => {
-    if (!position) return [];
-    return deriveChartLevels({
-      position,
-      isClosed: base.isClosed,
-      isPerp,
-      currentPrice,
-    }).map((level) => {
-      const name = strings(LEVEL_LABEL_KEYS[level.kind]);
-      return {
-        ...level,
-        label:
-          level.timestampMs !== undefined
-            ? strings('social_leaderboard.position_sheet.level.with_age', {
-                level: name,
-                age: formatFeedPostAge(level.timestampMs, nowMs),
-              })
-            : name,
-        valueLabel: formatValue(level.price),
-      };
-    });
-  }, [position, base.isClosed, isPerp, currentPrice, formatValue, nowMs]);
-
   const symbol = base.symbol;
   const assetName =
     position?.tokenName && position.tokenName !== position.tokenSymbol
@@ -240,24 +229,35 @@ export function usePositionSheetData(
 
   const summaryTitle = useMemo(() => {
     if (!position) return '';
-    if (isPerp) {
-      const meta = [
-        leverage ? `${leverage}x` : undefined,
-        perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      return meta ? `${symbol} \u00b7 ${meta}` : symbol;
-    }
     const amount = base.isClosed
       ? sumEntryTokens(position)
-      : Math.abs(position.positionAmount);
+      : Math.abs(
+          isPerp
+            ? (position.positionAmountWithLeverage ?? position.positionAmount)
+            : position.positionAmount,
+        );
     return `${formatTokenAmount(amount)} ${symbol}`;
-  }, [position, isPerp, leverage, perpDirection, symbol, base.isClosed]);
+  }, [position, isPerp, symbol, base.isClosed]);
 
-  const summaryValue = base.isClosed
-    ? (position?.boughtUsd ?? position?.costBasis)
-    : (base.positionValue ?? position?.costBasis);
+  const summaryTagLabel = useMemo(() => {
+    if (!isPerp) return undefined;
+    const label = [
+      leverage ? `${leverage}x` : undefined,
+      perpDirection ? strings(DIRECTION_KEYS[perpDirection]) : undefined,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    return label || undefined;
+  }, [isPerp, leverage, perpDirection]);
+
+  const summarySubtitle = useMemo(() => {
+    if (!position) return '';
+    const atMs = statusAtMs(position, base.isClosed);
+    if (atMs == null) return '';
+    const age = formatFeedPostAge(atMs, nowMs);
+    const caption = !base.isClosed ? 'opened' : isPerp ? 'closed' : 'sold';
+    return strings(AGE_CAPTION_KEYS[caption], { age });
+  }, [position, base.isClosed, isPerp, nowMs]);
   const firstChartPrice = prices.at(0)?.[1];
   const lastChartPrice = prices.at(-1)?.[1];
   const isTrendPositive =
@@ -282,14 +282,14 @@ export function usePositionSheetData(
     timeAxisLabels: buildTimeAxisLabels(chartWindow, TIME_AXIS_LABEL_COUNT),
     isTrendPositive,
     markers,
-    levels,
     isMarketCapMode,
     formatValue,
     currentPrice,
     dailyChangePercent: deriveDailyChangePercent(prices, nowMs),
     marketCap,
     summaryTitle,
-    summarySubtitle: formatUsd(summaryValue),
+    summaryTagLabel,
+    summarySubtitle,
     pnlPercentLabel: formatPercent(base.pnlPercent),
     pnlValueLabel: formatSignedUsd(base.pnlValue),
     isPnlPositive: base.isPnlPositive,

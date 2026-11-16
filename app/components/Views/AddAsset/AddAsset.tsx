@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -18,6 +18,8 @@ import NetworkListBottomSheet from './components/NetworkListBottomSheet/NetworkL
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TokenView from './Views/TokenView/TokenView';
 import NFTView from './Views/NFTView/NFTView';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 export interface AddAssetParams {
   assetType: 'token' | 'collectible';
@@ -27,6 +29,7 @@ export interface AddAssetParams {
 }
 
 const AddAsset = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
 
@@ -56,7 +59,9 @@ const AddAsset = () => {
       testID={`add-${assetType}-screen`}
     >
       {/* Header */}
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings(
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}

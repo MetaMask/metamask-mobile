@@ -6,23 +6,33 @@ import React, {
   useState,
 } from 'react';
 import { LayoutChangeEvent } from 'react-native';
-import {
+import Animated, {
   runOnJS,
   useAnimatedReaction,
+  useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AnimationDuration } from '@metamask/design-tokens';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandardAnimated,
   Text,
   // TextFieldSearch, // TODO(activity-redesign): restore with the unified list + filtering
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import Routes from '../../../constants/navigation/Routes';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import {
@@ -49,6 +59,7 @@ import {
   type ActivityScreenParams,
 } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../selectors/bridge/featureFlags';
 import {
   navigateWithDetails,
   useParams,
@@ -66,12 +77,20 @@ import {
   setPerpsAggregateFillsPreference,
 } from '../../UI/Perps/utils/perpsFillDisplayStorage';
 
+// Far enough past any screen edge to hide a chip copy without fading it.
+const HIDDEN_CHIPS_OFFSET = -10000;
+
 const ActivityScreen = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
+
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
 
   const handleTitleLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -102,7 +121,14 @@ const ActivityScreen = () => {
     () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
 
-  const networkOptions = useNetworkFilterOptions();
+  const limitOrderChainIds = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  )?.enabledChainIds;
+  const networkFilterChainIds =
+    typeFilter === ActivityTypeFilter.LimitOrders
+      ? limitOrderChainIds
+      : undefined;
+  const networkOptions = useNetworkFilterOptions(networkFilterChainIds);
   const trackFilterClicked = useTrackFilterClicked();
 
   // TODO(activity-redesign): restore with the search input.
@@ -110,12 +136,22 @@ const ActivityScreen = () => {
   //   setSearchQuery('');
   // }, []);
 
-  const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
-    setTypeFilter(filter);
-    if (filter !== ActivityTypeFilter.Perps) {
-      setPerpsFilter(PerpsActivityFilter.Trades);
-    }
-  }, []);
+  const handleSelectTypeFilter = useCallback(
+    (filter: ActivityTypeFilter) => {
+      setTypeFilter(filter);
+      if (filter !== ActivityTypeFilter.Perps) {
+        setPerpsFilter(PerpsActivityFilter.Trades);
+      }
+      if (filter === ActivityTypeFilter.LimitOrders && limitOrderChainIds) {
+        setNetworkFilter((current) =>
+          current?.every((chainId) => limitOrderChainIds.includes(chainId))
+            ? current
+            : null,
+        );
+      }
+    },
+    [limitOrderChainIds],
+  );
 
   useEffect(() => {
     if (
@@ -211,9 +247,10 @@ const ActivityScreen = () => {
       createActivityNetworkFilterNavDetails({
         selectedNetwork: networkFilter,
         onNetworkSelect: handleSelectNetwork,
+        enabledChainIds: networkFilterChainIds,
       }),
     );
-  }, [navigation, networkFilter, handleSelectNetwork]);
+  }, [navigation, networkFilter, handleSelectNetwork, networkFilterChainIds]);
 
   const handleOpenPerpsSheet = useCallback(() => {
     navigateWithDetails(
@@ -299,16 +336,40 @@ const ActivityScreen = () => {
   }, []);
 
   const [isFilterBarPinned, setIsFilterBarPinned] = useState(false);
-
-  useAnimatedReaction(
+  const isPinned = useDerivedValue(
     () =>
       titleSectionHeight.value > 0 && scrollY.value >= titleSectionHeight.value,
+  );
+  const pinnedFilterBarHeight = useSharedValue(0);
+  const backdropExtension = useSharedValue(0);
+  const handlePinnedFilterBarLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      pinnedFilterBarHeight.value = event.nativeEvent.layout.height;
+    },
+    [pinnedFilterBarHeight],
+  );
+
+  useAnimatedReaction(
+    () => isPinned.value,
     (pinned, previous) => {
       if (pinned !== previous) {
+        backdropExtension.value = withTiming(
+          pinned ? pinnedFilterBarHeight.value : 0,
+          { duration: AnimationDuration.Fast },
+        );
         runOnJS(setIsFilterBarPinned)(pinned);
       }
     },
   );
+
+  // Glass swaps the chip copies on the UI thread; off-screen, not faded, since iOS drops glass under animated opacity.
+  const pinnedCopyStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: isPinned.value ? 0 : HIDDEN_CHIPS_OFFSET }],
+  }));
+  const inListCopyStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: isPinned.value ? HIDDEN_CHIPS_OFFSET : 0 }],
+  }));
+  const isInListCopyHidden = isGlassHeader && isFilterBarPinned;
 
   const activityListHeader = useMemo(
     () => (
@@ -333,14 +394,79 @@ const ActivityScreen = () => {
           */}
         </Box>
 
-        <AssetListControlBar
-          typeChip={typeChip}
-          secondaryChip={secondaryChip}
-          aggregatedToggle={aggregatedToggle}
-        />
+        {/* On glass the pinned copy has no background, so this copy hides while pinned. */}
+        <Animated.View
+          style={isGlassHeader ? inListCopyStyle : undefined}
+          pointerEvents={isInListCopyHidden ? 'none' : 'auto'}
+          accessibilityElementsHidden={isInListCopyHidden}
+          importantForAccessibility={
+            isInListCopyHidden ? 'no-hide-descendants' : 'auto'
+          }
+        >
+          <AssetListControlBar
+            typeChip={typeChip}
+            secondaryChip={secondaryChip}
+            aggregatedToggle={aggregatedToggle}
+            isGlass={isGlassHeader}
+          />
+        </Animated.View>
       </Box>
     ),
-    [handleTitleLayout, typeChip, secondaryChip, aggregatedToggle],
+    [
+      handleTitleLayout,
+      typeChip,
+      secondaryChip,
+      aggregatedToggle,
+      isGlassHeader,
+      isInListCopyHidden,
+      inListCopyStyle,
+    ],
+  );
+
+  const solidPinnedFilterBar = isFilterBarPinned ? (
+    <Box twClassName="absolute top-0 left-0 right-0 bg-default">
+      {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
+      <Box twClassName="pb-4">
+        <TextFieldSearch
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder={strings('activity_view.search_placeholder')}
+          onPressClearButton={handleClearSearch}
+        />
+      </Box>
+      */}
+      <AssetListControlBar
+        typeChip={typeChip}
+        secondaryChip={secondaryChip}
+        aggregatedToggle={aggregatedToggle}
+        suppressTestIDs
+      />
+    </Box>
+  ) : null;
+
+  // Always mounted and a layer above the header, so it shows without a React round trip.
+  const glassPinnedFilterBar = (
+    <Animated.View
+      style={[
+        tw.style('absolute left-0 right-0 z-20'),
+        { top: headerInset },
+        pinnedCopyStyle,
+      ]}
+      onLayout={handlePinnedFilterBarLayout}
+      pointerEvents={isFilterBarPinned ? 'box-none' : 'none'}
+      accessibilityElementsHidden={!isFilterBarPinned}
+      importantForAccessibility={
+        isFilterBarPinned ? 'auto' : 'no-hide-descendants'
+      }
+    >
+      <AssetListControlBar
+        typeChip={typeChip}
+        secondaryChip={secondaryChip}
+        aggregatedToggle={aggregatedToggle}
+        suppressTestIDs
+        isGlass
+      />
+    </Animated.View>
   );
 
   return (
@@ -351,7 +477,10 @@ const ActivityScreen = () => {
         testID={ActivityScreenSelectorsIDs.SAFE_AREA_VIEW}
       >
         <Box twClassName="flex-1 bg-default">
-          <HeaderStandardAnimated
+          <HeaderStandardAnimatedGlass
+            isGlass={isGlassHeader}
+            onLayout={handleHeaderLayout}
+            backdropExtension={backdropExtension}
             testID={ActivityScreenSelectorsIDs.HEADER}
             includesTopInset
             title={strings('activity_view.title')}
@@ -371,6 +500,7 @@ const ActivityScreen = () => {
               ref={activityListRef}
               header={activityListHeader}
               scrollY={scrollY}
+              contentTopInset={headerInset}
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
               subFilterKinds={subFilterKinds}
@@ -379,27 +509,10 @@ const ActivityScreen = () => {
               entryPoint={entryPoint}
             />
 
-            {isFilterBarPinned ? (
-              <Box twClassName="absolute top-0 left-0 right-0 bg-default">
-                {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
-                <Box twClassName="pb-4">
-                  <TextFieldSearch
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder={strings('activity_view.search_placeholder')}
-                    onPressClearButton={handleClearSearch}
-                  />
-                </Box>
-                */}
-                <AssetListControlBar
-                  typeChip={typeChip}
-                  secondaryChip={secondaryChip}
-                  aggregatedToggle={aggregatedToggle}
-                  suppressTestIDs
-                />
-              </Box>
-            ) : null}
+            {isGlassHeader ? null : solidPinnedFilterBar}
           </Box>
+
+          {isGlassHeader ? glassPinnedFilterBar : null}
         </Box>
       </SafeAreaView>
     </ErrorBoundary>

@@ -89,7 +89,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -358,6 +361,11 @@ jest.mock('../../hooks', () => {
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
     usePerpsQuotedFeeReservation: jest.fn(),
+    usePerpsFeeDisplayAbTest: jest.fn(() => ({
+      feeDisplayMode: 'dollar',
+      variantName: 'control',
+      isActive: false,
+    })),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
@@ -646,6 +654,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
 let mockProfileTradingActivityPrivate = false;
@@ -677,56 +686,73 @@ jest.mock(
 );
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: jest.fn(() => jest.fn()),
-  useSelector: jest.fn((selector) => {
-    // reselect selectors do not carry their export name in `toString()`, so
-    // match this one by identity.
-    const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
-      '../../selectors/featureFlags',
-    );
-    if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
-      return mockTradeWithAnyTokenEnabled;
-    }
-    const { selectSelectedInternalAccountByScope } = jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accounts',
-    );
-    if (selector === selectSelectedInternalAccountByScope) {
-      return () => mockSelectedEvmAccount;
-    }
-    const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
-      '../../../../../selectors/profileController',
-    );
-    if (selector === selectIsProfileTradingActivityPrivate) {
-      return mockProfileTradingActivityPrivate;
-    }
-    if (
-      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
-      selector.toString().includes('perpsAdvancedChart')
-    ) {
-      return mockPerpsAdvancedChartEnabled;
-    }
-    if (selector.toString().includes('selectTokenList')) {
-      return {};
-    }
-    if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
-      return false;
-    }
-    if (selector.toString().includes('selectPaymentOverrideByTransactionId')) {
-      return mockPaymentOverride;
-    }
-    if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
-      return {};
-    }
-    if (
-      selector.toString().includes('selectSelectedAccountGroupInternalAccounts')
-    ) {
-      return [];
-    }
-    return null;
-  }),
-}));
+jest.mock('react-redux', () => {
+  const orderBookByUnit = {
+    usd: { currency: 'usd', metric: 'total' },
+    asset: { currency: 'base', metric: 'total' },
+  };
+
+  return {
+    ...jest.requireActual('react-redux'),
+    useDispatch: jest.fn(() => jest.fn()),
+    useSelector: jest.fn((selector) => {
+      // reselect selectors do not carry their export name in `toString()`, so
+      // match this one by identity.
+      const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
+        '../../selectors/featureFlags',
+      );
+      const { selectPerpsOrderBookPreferences } = jest.requireActual(
+        '../../selectors/perpsController',
+      );
+      if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
+        return mockTradeWithAnyTokenEnabled;
+      }
+      if (selector === selectPerpsOrderBookPreferences) {
+        return orderBookByUnit[mockPerpsSizeDenomination];
+      }
+      const { selectSelectedInternalAccountByScope } = jest.requireActual(
+        '../../../../../selectors/multichainAccounts/accounts',
+      );
+      if (selector === selectSelectedInternalAccountByScope) {
+        return () => mockSelectedEvmAccount;
+      }
+      const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+        '../../../../../selectors/profileController',
+      );
+      if (selector === selectIsProfileTradingActivityPrivate) {
+        return mockProfileTradingActivityPrivate;
+      }
+      if (
+        selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+        selector.toString().includes('perpsAdvancedChart')
+      ) {
+        return mockPerpsAdvancedChartEnabled;
+      }
+      if (selector.toString().includes('selectTokenList')) {
+        return {};
+      }
+      if (selector.toString().includes('selectIsIpfsGatewayEnabled')) {
+        return false;
+      }
+      if (
+        selector.toString().includes('selectPaymentOverrideByTransactionId')
+      ) {
+        return mockPaymentOverride;
+      }
+      if (selector.toString().includes('selectTokensByChainIdAndAddress')) {
+        return {};
+      }
+      if (
+        selector
+          .toString()
+          .includes('selectSelectedAccountGroupInternalAccounts')
+      ) {
+        return [];
+      }
+      return null;
+    }),
+  };
+});
 
 // Rewards feature flag removed - rewards are always enabled
 
@@ -1369,6 +1395,7 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -5576,6 +5603,8 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Control/treatment fee-row behavior is covered in PerpsOrderView.view.test.tsx.
+
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {
       // Arrange - Rewards are always enabled
@@ -7170,7 +7199,7 @@ describe('PerpsOrderView', () => {
 
     it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
       jest.useFakeTimers();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const view = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Nothing before the 1s debounce window elapses.
       act(() => {
@@ -7201,11 +7230,26 @@ describe('PerpsOrderView', () => {
           [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
           [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
 
+      mockPerpsSizeDenomination = 'asset';
+      act(() => {
+        view.rerender(<PerpsOrderView />);
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(1);
+
       jest.useRealTimers();
     });
+
+    // Full-screen vs Trade-sheet size_unit, including a saved coin unit before
+    // the price can project it, is covered in PerpsOrderView.view.test.tsx
+    // against the real sheet and settings store.
 
     it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
       // Quote request in flight (custom pay token selected by default).

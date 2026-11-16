@@ -37,7 +37,10 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -51,13 +54,19 @@ import {
 } from './index.types';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { getEvmNetworkConfigurationsByHexChainId } from './utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
-export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.NETWORK_MANAGER,
-);
+export interface NetworkManagerParams {
+  /** Set only when opened from the Tokens list; used for analytics. */
+  searchQuery?: string;
+}
+
+export const createNetworkManagerNavDetails =
+  createNavigationDetails<NetworkManagerParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.NETWORK_MANAGER,
+  );
 
 const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,
@@ -74,6 +83,7 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 };
 
 const NetworkManager = () => {
+  const { searchQuery } = useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
@@ -127,20 +137,10 @@ const NetworkManager = () => {
    * Convert CAIP network configurations to hex-based format for RpcSelectionModal
    * Filter only EVM networks as RPC selection is only supported for EVM
    */
-  const evmNetworkConfigurations = useMemo(() => {
-    const evmConfigs: Record<string, NetworkConfiguration> = {};
-    Object.entries(networkConfigurations).forEach(([caipChainId, config]) => {
-      if (
-        !isNonEvmChainId(caipChainId as CaipChainId) &&
-        'rpcEndpoints' in config
-      ) {
-        const parsedCaipChainId = parseCaipChainId(caipChainId as CaipChainId);
-        const hexChainId = toHex(parsedCaipChainId.reference);
-        evmConfigs[hexChainId] = config as NetworkConfiguration;
-      }
-    });
-    return evmConfigs;
-  }, [networkConfigurations]);
+  const evmNetworkConfigurations = useMemo(
+    () => getEvmNetworkConfigurationsByHexChainId(networkConfigurations),
+    [networkConfigurations],
+  );
 
   const containerStyle = useMemo(
     () => [
@@ -366,6 +366,7 @@ const NetworkManager = () => {
               openModal={openModal}
               dismissModal={dismissModal}
               openRpcModal={openRpcModal}
+              searchQuery={searchQuery}
             />
             <CustomNetworkSelector
               {...customTabProps}

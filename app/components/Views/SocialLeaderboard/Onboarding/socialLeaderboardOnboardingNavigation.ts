@@ -73,6 +73,42 @@ export const getFollowTradingHomeRoute = ():
   | typeof Routes.SOCIAL.V0 =>
   isSocialV1Treatment() ? Routes.SOCIAL.V1 : Routes.SOCIAL.V0;
 
+/**
+ * Whether ProfileController already has a created Social profile.
+ *
+ * Reads persisted state synchronously, the same way the terms gate does. An
+ * empty `profileId` is the saved "not created" state, not a profile that is
+ * still loading.
+ */
+const hasCreatedSocialProfile = (): boolean => {
+  try {
+    const profileId =
+      ReduxService.store.getState().engine.backgroundState.ProfileController
+        ?.profile?.profileId;
+    return Boolean(profileId?.trim());
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Social V1 entry gate. Accepted terms do not open Social when no profile has
+ * been created. Opens the normal profile onboarding route, without
+ * `termsOnly`, so a user who already accepted the terms is not asked again.
+ *
+ * @param navigate - The caller's navigate function.
+ * @returns `true` when the caller may continue into Social.
+ */
+const ensureSocialProfileCreated = (
+  navigate: SocialLeaderboardNavigate,
+): boolean => {
+  if (!isSocialV1Treatment() || hasCreatedSocialProfile()) {
+    return true;
+  }
+  navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  return false;
+};
+
 const toHomeRouteParams = (
   params: SocialLeaderboardViewParams | undefined,
 ): SocialLeaderboardViewParams | undefined => {
@@ -91,8 +127,8 @@ const toHomeRouteParams = (
 
 /**
  * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
- * the current flow, after the first-time onboarding gate. Perps uses this so
- * Social stays inside the Perps flow.
+ * the current flow, after the first-time onboarding gate. The control arm of
+ * `navigateToSocialLeaderboard` uses this.
  *
  * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.
@@ -102,6 +138,9 @@ export const pushSocialLeaderboard = (
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
+  if (!ensureSocialProfileCreated(navigate)) {
     return;
   }
   if (shouldShowSocialLeaderboardOnboarding()) {
@@ -132,6 +171,9 @@ export const navigateToSocialLeaderboard = (
   if (!ensureSocialTermsAccepted(navigate)) {
     return;
   }
+  if (!ensureSocialProfileCreated(navigate)) {
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
     navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
     return;
@@ -154,6 +196,9 @@ export const navigateToSocialTab = (
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (isSocialV1Treatment() && !ensureSocialTermsAccepted(navigate)) {
+    return;
+  }
+  if (!ensureSocialProfileCreated(navigate)) {
     return;
   }
   if (shouldShowSocialLeaderboardOnboarding()) {

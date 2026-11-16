@@ -1475,6 +1475,9 @@ describe('Engine', () => {
       jest
         .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
         .mockRejectedValue(new Error('purge failed'));
+      jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
 
       await expect(engine.resetState()).resolves.toBeUndefined();
 
@@ -1482,6 +1485,64 @@ describe('Engine', () => {
         expect.objectContaining({ message: 'purge failed' }),
         'Engine: failed to clear cached PredictNext account data',
       );
+    });
+
+    it('resets PredictNext device auth when the account-data purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+      const resetSpy = jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(resetSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('forgets the Venue Selection Preference and the last Active Venue', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: 'kalshi',
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(engine.context.PredictVenueController.state).toMatchObject({
+        venueSelectionPreference: null,
+        lastActiveVenue: null,
+      });
+    });
+
+    it('forgets the Venue history when the PredictNext purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: null,
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+
+      await engine.resetState();
+
+      expect(
+        engine.context.PredictVenueController.state.venueSelectionPreference,
+      ).toBeNull();
     });
   });
 

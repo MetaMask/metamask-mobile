@@ -14,7 +14,6 @@ import {
   BoxAlignItems,
   Card,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -40,6 +39,9 @@ import {
   ManageProfileFieldName,
   type ManageProfileFieldUpdate,
 } from './ManageProfileField.types';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const SECTION_TITLE_PROPS = {
   variant: TextVariant.BodySm,
@@ -80,6 +82,7 @@ const EMPTY_PROFILE: Profile = {
 };
 
 const ManageProfile = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'ManageProfile'>>();
@@ -141,7 +144,9 @@ const ManageProfile = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ManageProfileSelectorsIDs.SAFE_AREA}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('manage_profile.header')}
         onBack={handleBack}
         includesTopInset

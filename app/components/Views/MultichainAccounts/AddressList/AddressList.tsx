@@ -25,7 +25,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import MultichainAccountsHeader from '../shared/MultichainAccountsHeader';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import {
@@ -152,12 +152,14 @@ export const AddressList = () => {
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getHeaderCompactStandardNavbarOptions({
-          title,
-          onBack: () => navigation.goBack(),
-          backButtonProps: { testID: AddressListIds.GO_BACK },
-          includesTopInset: true,
-        }),
+        header: () => (
+          <MultichainAccountsHeader
+            title={title}
+            onBack={() => navigation.goBack()}
+            backButtonProps={{ testID: AddressListIds.GO_BACK }}
+            includesTopInset
+          />
+        ),
         headerShown: true,
       });
     }

@@ -51,6 +51,29 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+let mockGlassHeadersEnabled = false;
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => mockGlassHeadersEnabled,
+}));
+
+const mockHeaderStandardGlassProps = jest.fn();
+jest.mock(
+  '../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const ActualHeaderStandardGlass = jest.requireActual(
+      '../../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlassProps(props);
+        return ReactActual.createElement(ActualHeaderStandardGlass, props);
+      },
+    };
+  },
+);
+
 jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
   startMfaFlow: jest.fn(),
 }));
@@ -134,6 +157,33 @@ describe('MfaMethodDetails', () => {
     jest.clearAllMocks();
     mockStartMfaFlow.mockResolvedValue({ credentials: [], token });
     mockRemove.mockResolvedValue();
+    mockGlassHeadersEnabled = false;
+  });
+
+  it('renders the plain header when glass headers are disabled', () => {
+    renderDetails({ method: 'email_otp', index: 0 }, [email, passkey]);
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGlass: false,
+        isFloating: false,
+        includesTopInset: true,
+      }),
+    );
+  });
+
+  it('renders the glass header in the layout when glass headers are enabled', () => {
+    mockGlassHeadersEnabled = true;
+
+    renderDetails({ method: 'email_otp', index: 0 }, [email, passkey]);
+
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGlass: true,
+        isFloating: false,
+        includesTopInset: true,
+      }),
+    );
   });
 
   it('describes the email and what it protects', () => {

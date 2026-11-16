@@ -1,8 +1,10 @@
 import {
+  isSpotPostTradeShareEligible,
   POST_TRADE_SHARE_SHEET_LIMIT,
   resolvePostTradePrompt,
   type ResolvePostTradePromptInput,
 } from './resolvePostTradePrompt';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 const input = (
   overrides: Partial<ResolvePostTradePromptInput> = {},
@@ -15,6 +17,30 @@ const input = (
   shareSheetCount: 0,
   hasSeenClaimSheet: false,
   ...overrides,
+});
+
+describe('isSpotPostTradeShareEligible', () => {
+  it('returns true at the minimum postable trade value', () => {
+    const amountUsd = MIN_POST_TRADE_SHARE_USD;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true above the minimum postable trade value', () => {
+    const amountUsd = MIN_POST_TRADE_SHARE_USD + 0.5;
+
+    const result = isSpotPostTradeShareEligible(amountUsd);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for non-finite amounts', () => {
+    const result = isSpotPostTradeShareEligible(Number.NaN);
+
+    expect(result).toBe(false);
+  });
 });
 
 describe('resolvePostTradePrompt', () => {

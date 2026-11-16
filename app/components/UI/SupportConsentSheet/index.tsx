@@ -21,6 +21,7 @@ import {
   setDataSharingPreference,
   setShouldShowConsentSheet,
 } from '../../../actions/security';
+import { SUPPORT_CONSENT_SHEET_TEST_IDS } from './SupportConsentSheet.testIds';
 
 export interface SupportConsentSheetParams {
   onConfirm: () => void;
@@ -69,10 +70,13 @@ const SupportConsentSheet = () => {
   };
 
   return (
-    <BottomSheet goBack={navigation.goBack} testID="support-consent-sheet">
+    <BottomSheet
+      goBack={navigation.goBack}
+      testID={SUPPORT_CONSENT_SHEET_TEST_IDS.CONTAINER}
+    >
       <BottomSheetHeader
         onClose={handleDismiss}
-        closeButtonProps={{ testID: 'support-consent-sheet-close-button' }}
+        closeButtonProps={{ testID: SUPPORT_CONSENT_SHEET_TEST_IDS.CLOSE }}
       >
         {strings('support_consent.title')}
       </BottomSheetHeader>
@@ -84,19 +88,19 @@ const SupportConsentSheet = () => {
         onChange={setSavePreference}
         label={strings('support_consent.save_preference')}
         twClassName="px-4 pb-4"
-        testID="support-consent-sheet-save-preference-checkbox"
+        testID={SUPPORT_CONSENT_SHEET_TEST_IDS.SAVE_PREFERENCE}
       />
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
         primaryButtonProps={{
           children: strings('support_consent.confirm'),
           onPress: handleConfirm,
-          testID: 'support-consent-sheet-confirm-button',
+          testID: SUPPORT_CONSENT_SHEET_TEST_IDS.CONFIRM,
         }}
         secondaryButtonProps={{
           children: strings('support_consent.reject'),
           onPress: handleReject,
-          testID: 'support-consent-sheet-reject-button',
+          testID: SUPPORT_CONSENT_SHEET_TEST_IDS.REJECT,
         }}
       />
     </BottomSheet>

@@ -87,7 +87,7 @@ const PopularTraderCard: React.FC<PopularTraderCardProps> = ({
         <Box alignItems={BoxAlignItems.Center} gap={3}>
           <TraderAvatar
             imageUrl={trader.avatarUri}
-            address={trader.address}
+            address={trader.id}
             size={AVATAR_SIZE}
             testID={getPopularTraderCardAvatarTestId(trader.id)}
           />

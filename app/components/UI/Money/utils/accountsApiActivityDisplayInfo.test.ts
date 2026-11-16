@@ -120,4 +120,66 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.description).toBe('Coffee Shop');
     expect(info.fiatAmount).toBe('-R$27.50');
   });
+
+  describe('status', () => {
+    const settledEnrichment = (
+      status: CardTransactionStatus,
+    ): CardTransaction => ({
+      id: 'baanx-1',
+      providerId: 'baanx',
+      timestamp: card.time,
+      status,
+      type: CardTransactionType.Purchase,
+      isDebit: true,
+      billingAmount: { value: '5.38', currency: 'USD' },
+      fundingSources: [{ txHash: card.hash }],
+    });
+
+    it('marks a card row as confirmed when there is no enrichment', () => {
+      expect(accountsApiActivityDisplayInfo(card).status).toBe('confirmed');
+    });
+
+    it.each([
+      ['declined', CardTransactionStatus.Failed],
+      ['reversed', CardTransactionStatus.Reversed],
+    ])(
+      'marks a settled but %s card purchase as failed',
+      (_label, status: CardTransactionStatus) => {
+        // The purchase settled on-chain, so the Accounts-API row looks like
+        // any successful spend — only the provider knows it did not stand.
+        const info = accountsApiActivityDisplayInfo(
+          card,
+          settledEnrichment(status),
+        );
+
+        expect(info.status).toBe('failed');
+      },
+    );
+
+    it.each([
+      ['completed', CardTransactionStatus.Completed],
+      ['pending', CardTransactionStatus.Pending],
+    ])(
+      'leaves a %s card purchase confirmed',
+      (_label, status: CardTransactionStatus) => {
+        // A pending authorization that already settled on-chain is final for
+        // the Money row; it must not regress into a spinner.
+        const info = accountsApiActivityDisplayInfo(
+          card,
+          settledEnrichment(status),
+        );
+
+        expect(info.status).toBe('confirmed');
+      },
+    );
+
+    it('does not apply a failed enrichment to a refund row', () => {
+      const info = accountsApiActivityDisplayInfo(
+        refund,
+        settledEnrichment(CardTransactionStatus.Failed),
+      );
+
+      expect(info.status).toBe('confirmed');
+    });
+  });
 });

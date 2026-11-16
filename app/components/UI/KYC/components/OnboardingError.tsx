@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconName,
   ListItem,
   ListItemVariant,
@@ -17,6 +16,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const VbaOnboardingErrorSelectorsIDs = {
   CONTAINER: 'vba-onboarding-error-container',
@@ -98,6 +100,7 @@ const VbaOnboardingError = ({
   backButtonTestID = VbaOnboardingErrorSelectorsIDs.BACK_BUTTON,
   onBack,
 }: VbaOnboardingErrorProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -149,7 +152,9 @@ const VbaOnboardingError = ({
       edges={['right', 'bottom', 'left']}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{
           testID: backButtonTestID,

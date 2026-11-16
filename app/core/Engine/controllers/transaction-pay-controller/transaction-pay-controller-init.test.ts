@@ -104,6 +104,12 @@ describe('Transaction Pay Controller Init', () => {
     expect(getStrategies).toBeUndefined();
   });
 
+  it('identifies the client as mobile', () => {
+    const clientId = testConstructorOption('clientId');
+
+    expect(clientId).toBe('mobile');
+  });
+
   it('wires Polymarket callbacks into the controller', () => {
     const polymarketCallbacksMock = { __polymarketCallbacks: true };
     jest

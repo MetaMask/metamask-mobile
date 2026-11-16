@@ -11,12 +11,13 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import Share from 'react-native-share';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
@@ -63,7 +64,8 @@ const AccountActions = () => {
   const { colors } = useTheme();
   const styles = styleSheet(colors);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { navigate } = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { navigate } = navigation;
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { networkSupporting7702Present } = useEIP7702Networks(
@@ -71,6 +73,10 @@ const AccountActions = () => {
   );
 
   const [blockingModalVisible, setBlockingModalVisible] = useState(false);
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const controllers = useMemo(() => {
     const { KeyringController, PreferencesController } = Engine.context;
@@ -313,7 +319,7 @@ const AccountActions = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.actionsContainer}>
         <AccountAction
           actionTitle={strings('account_actions.edit_name')}

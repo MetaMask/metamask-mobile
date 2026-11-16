@@ -9,7 +9,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -20,6 +19,9 @@ import {
 } from '../../../hooks/useCardHeaderHandlers';
 import PinDots from './PinDots';
 import { SetCardPinSelectors } from '../SetCardPin.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PinEntryLayoutProps {
   testID?: string;
@@ -71,6 +73,7 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
 }) => {
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers(headerMode);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const resolvedHeaderHandlers =
     headerMode === 'back' && onBackPress
       ? { ...headerHandlers, onBack: onBackPress }
@@ -83,7 +86,9 @@ const PinEntryLayout: React.FC<PinEntryLayoutProps> = ({
       edges={['bottom']}
       accessibilityLabel={accessibilityLabel}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...resolvedHeaderHandlers}

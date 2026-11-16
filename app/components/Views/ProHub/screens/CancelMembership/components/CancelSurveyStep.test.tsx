@@ -1,4 +1,5 @@
 import React from 'react';
+import { Provider } from 'react-redux';
 import { render, fireEvent } from '@testing-library/react-native';
 import { CANCELLATION_REASONS } from '@metamask/subscription-controller';
 import CancelSurveyStep from './CancelSurveyStep';
@@ -9,6 +10,8 @@ import {
 } from '../CancelMembership.testIds';
 import { CANCEL_REASONS } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
+import type { RootState } from '../../../../../../reducers';
+import configureStore from '../../../../../../util/test/configureStore';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 
@@ -34,7 +37,11 @@ const renderStep = (
     errorMessage: null,
     ...overrides,
   };
-  const utils = render(<CancelSurveyStep {...props} />);
+  const utils = render(
+    <Provider store={configureStore({} as RootState)}>
+      <CancelSurveyStep {...props} />
+    </Provider>,
+  );
   return { ...utils, props };
 };
 
@@ -153,7 +160,12 @@ describe('CancelSurveyStep', () => {
       );
 
       rerender(
-        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[0].id} />,
+        <Provider store={configureStore({} as RootState)}>
+          <CancelSurveyStep
+            {...props}
+            selectedReasonId={CANCEL_REASONS[0].id}
+          />
+        </Provider>,
       );
 
       expect(getAllByRole('radio').map((item) => item.props.testID)).toEqual(

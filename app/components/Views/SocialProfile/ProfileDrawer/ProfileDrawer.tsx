@@ -11,7 +11,6 @@ import {
   BoxAlignItems,
   ButtonIconVariant,
   FontWeight,
-  HeaderBase,
   IconName,
   Skeleton,
   Text,
@@ -43,10 +42,12 @@ import {
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../../selectors/notifications';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { useQRScanner } from '../../../hooks/useQRScanner';
 import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import ProfileDrawerMenuRow from './ProfileDrawerMenuRow';
+import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
 
 const formatProfileHandle = (profile: MySocialProfile): string => {
   const raw = profile.handle.trim() || profile.displayName.trim();
@@ -58,6 +59,10 @@ const formatProfileHandle = (profile: MySocialProfile): string => {
 
 const ProfileDrawer = () => {
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const headerButtonVariant = isGlassHeader
+    ? undefined
+    : ButtonIconVariant.Filled;
   const navigation = useNavigation<AppNavigationProp>();
   const { openQRScanner } = useQRScanner();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -194,7 +199,9 @@ const ProfileDrawer = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ProfileDrawerSelectorsIDs.SAFE_AREA}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         // HeaderBase has no horizontal padding, so the buttons would sit flush
         // against the screen edge.
@@ -202,7 +209,7 @@ const ProfileDrawer = () => {
         testID={ProfileDrawerSelectorsIDs.HEADER}
         startButtonIconProps={{
           iconName: IconName.Close,
-          variant: ButtonIconVariant.Filled,
+          variant: headerButtonVariant,
           onPress: handleClose,
           accessibilityLabel: strings('profile_drawer.close'),
           testID: ProfileDrawerSelectorsIDs.CLOSE_BUTTON,
@@ -210,7 +217,7 @@ const ProfileDrawer = () => {
         endButtonIconProps={[
           {
             iconName: IconName.QrCode,
-            variant: ButtonIconVariant.Filled,
+            variant: headerButtonVariant,
             onPress: openQRScanner,
             accessibilityLabel: strings('profile_drawer.scan'),
             testID: ProfileDrawerSelectorsIDs.SCAN_BUTTON,

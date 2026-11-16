@@ -56,7 +56,7 @@ const SocialFeedLiveButton: React.FC<SocialFeedLiveButtonProps> = ({
   return (
     <Button
       variant={ButtonVariant.Secondary}
-      size={ButtonSize.Sm}
+      size={ButtonSize.Md}
       onPress={handlePress}
       testID={SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON}
       accessibilityLabel={label}

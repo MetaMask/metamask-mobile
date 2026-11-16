@@ -14,7 +14,6 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  HeaderStandard,
   IconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
@@ -32,6 +31,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ImmersveKYCModalParams {
   url: string;
@@ -141,6 +143,7 @@ const isAnyPermissionBlocked = (
  * iOS presents the hosted page with no injected script.
  */
 const ImmersveKYCModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
   const navigation = useNavigation();
   const tw = useTailwind();
@@ -464,7 +467,9 @@ const ImmersveKYCModal: React.FC = () => {
       ]}
       testID="immersve-kyc-container"
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={() => closeModal('dismiss')}
         backButtonProps={{ testID: 'immersve-kyc-back-button' }}
         twClassName="bg-background-default"

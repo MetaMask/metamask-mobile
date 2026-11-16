@@ -14,8 +14,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -39,6 +37,8 @@ import {
 } from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
 import { getMembershipDetails } from './Membership.utils';
+import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -167,6 +167,7 @@ const MembershipActionRow = ({
 const Membership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { top } = useSafeAreaInsets();
   const subscription = useSelector(selectMoneyAccountPlusSubscription);
   const plusPricing = useSelector(selectMoneyAccountPlusPricing);
@@ -221,16 +222,16 @@ const Membership = () => {
       style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
       testID={MembershipTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={MembershipTestIds.BACK_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: MembershipTestIds.BACK_BUTTON,
+        }}
       />
 
       <ScrollView

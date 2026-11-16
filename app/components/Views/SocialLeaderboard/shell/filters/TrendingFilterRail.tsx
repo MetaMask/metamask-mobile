@@ -4,6 +4,7 @@ import {
   BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
+  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
@@ -97,7 +98,12 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
             <ButtonIcon
               iconName={IconName.Filter}
               size={ButtonIconSize.Lg}
-              iconProps={{ size: IconSize.Lg }}
+              iconProps={{
+                size: IconSize.Lg,
+                color: isFilterActive
+                  ? IconColor.IconInverse
+                  : IconColor.IconDefault,
+              }}
               onPress={
                 onOpenFilters
                   ? () => {
@@ -113,8 +119,8 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
               accessibilityState={{ selected: isFilterActive }}
               twClassName={
                 isFilterActive
-                  ? 'rounded-full bg-primary-muted'
-                  : 'rounded-full bg-background-muted'
+                  ? 'rounded-full bg-icon-default'
+                  : 'rounded-full bg-muted'
               }
             />
           </Box>

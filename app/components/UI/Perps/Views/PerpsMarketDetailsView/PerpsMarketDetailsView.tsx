@@ -85,6 +85,7 @@ import {
 import PerpsMarketHeader, {
   createLiteMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
+import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
@@ -212,7 +213,10 @@ import {
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import { getMarketHoursStatus, isEquityAsset } from '../../utils/marketHours';
-import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
+import {
+  resolvePerpsSocialOrderSource,
+  toPerpsEntryAttribution,
+} from '../../utils/perpsAnalyticsAttribution';
 import { refreshLightweightChartViewport } from '../../utils/refreshLightweightChartViewport';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -300,6 +304,7 @@ const resolveAccountSectionState = (
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   generationTrigger = 'initial',
+  edgeInsets,
 }) => {
   // Use centralized navigation hook for all Perps navigation
   const {
@@ -462,6 +467,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
+  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+    edgeInsets,
+    isServiceInterruptionBannerEnabled,
+  );
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -591,6 +600,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
   const [refreshing, setRefreshing] = useState(false);
+  // iOS loses a progressViewOffset set before the refresh control attaches, so it waits for the first layout.
+  const [isScrollLaidOut, setIsScrollLaidOut] = useState(false);
+  const handleScrollLayout = useCallback(() => setIsScrollLaidOut(true), []);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
@@ -1244,7 +1256,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           direction,
           asset: market.symbol,
           ...(market.providerId ? { providerId: market.providerId } : {}),
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          source: resolvePerpsSocialOrderSource(
+            source,
+            PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          ),
           ...(source_section ? { source_section } : {}),
           chartLibrary,
           defaultSzDecimals: marketData?.szDecimals,
@@ -1263,6 +1278,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       navigation,
       track,
       navigateToOrder,
+      source,
       source_section,
       transactionActiveAbTests,
       market?.symbol,
@@ -2023,6 +2039,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     );
   }
 
+  const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
+
   return (
     <View
       style={styles.mainContainer}
@@ -2032,7 +2050,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           its title row once the content is scrolled. Outer flag guard avoids
           mounting the padded wrapper (and banner hooks) when disabled. */}
       {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2">
+        <Box twClassName="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
           <PerpsServiceInterruptionBanner
             scrollY={scrollYShared}
             testID={
@@ -2042,23 +2060,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </Box>
       )}
 
-      <PerpsMarketHeader
-        market={market}
-        testIDs={createLiteMarketHeaderTestIDs()}
-        onBackPress={handleBackPress}
-        onIdentityPress={handleMarketListPress}
-        onFavoritePress={handleFavoritePress}
-        isFavorite={isWatchlist}
-        mode={isPerpsProModeEnabled ? perpsMode : undefined}
-        onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
-        enableHaptics={perpsMode === PerpsMode.Pro}
-        enableModeHaptics={isPerpsProModeEnabled}
-        scrollY={scrollYShared}
-        priceSectionHeight={titleSectionHeightSv}
-        currentPrice={syncedChartCurrentPrice}
-      />
-
       <View style={styles.scrollableContentContainer}>
+        <PerpsMarketHeader
+          market={market}
+          testIDs={createLiteMarketHeaderTestIDs()}
+          onBackPress={handleBackPress}
+          onIdentityPress={handleMarketListPress}
+          onFavoritePress={handleFavoritePress}
+          isFavorite={isWatchlist}
+          mode={isPerpsProModeEnabled ? perpsMode : undefined}
+          onModeChange={
+            isPerpsProModeEnabled ? handlePerpsModeChange : undefined
+          }
+          enableHaptics={perpsMode === PerpsMode.Pro}
+          enableModeHaptics={isPerpsProModeEnabled}
+          scrollY={scrollYShared}
+          priceSectionHeight={titleSectionHeightSv}
+          currentPrice={syncedChartCurrentPrice}
+          topInset={headerTopInset}
+        />
         <Animated.ScrollView
           ref={scrollViewRef}
           style={styles.mainContentScrollView}
@@ -2067,10 +2087,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+          onLayout={handleScrollLayout}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              progressViewOffset={isScrollLaidOut ? headerInset : 0}
+            />
           }
         >
+          {/* A spacer, not contentInset: iOS drops a reused ScrollView's contentInset (fixed in RN 0.88). */}
+          {headerInset > 0 && (
+            <View
+              style={{ height: headerInset }}
+              testID={PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER}
+            />
+          )}
           <PerpsMarketSummary
             symbol={market.symbol}
             currentPrice={syncedChartCurrentPrice}
@@ -2261,11 +2293,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </Text>
             </Text>
           </View>
+          {edgeInsets && !hasActionsFooter && (
+            <View
+              style={{ height: edgeInsets.bottom }}
+              testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+            />
+          )}
         </Animated.ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}
-      {hasLongShortButtons && !isTradingHalted && (
+      {hasActionsFooter && (
         <View style={styles.actionsFooter}>
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (
@@ -2359,6 +2397,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 </DSButton>
               )}
             </View>
+          )}
+          {edgeInsets && (
+            <View
+              style={{ height: edgeInsets.bottom }}
+              testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+            />
           )}
         </View>
       )}

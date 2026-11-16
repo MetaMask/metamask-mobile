@@ -6,7 +6,6 @@ import { useSelector } from 'react-redux';
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -22,8 +21,11 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { LinkedSocialAccountSelectorsIDs } from './LinkedSocialAccount.testIds';
 import AccountSelectRow from './AccountSelectRow';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const LinkedSocialAccount = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -58,7 +60,9 @@ const LinkedSocialAccount = () => {
       style={tw.style('flex-1 bg-default')}
       testID={LinkedSocialAccountSelectorsIDs.SAFE_AREA}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('manage_profile.linked_social_account')}
         onBack={handleBack}
         includesTopInset

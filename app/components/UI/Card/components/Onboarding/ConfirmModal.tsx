@@ -66,7 +66,7 @@ const ConfirmModal = () => {
   const renderDescription = () => (
     <Text
       variant={TextVariant.BodyMd}
-      twClassName="text-center text-alternative px-6"
+      twClassName="text-center text-alternative"
       testID="confirm-modal-description"
     >
       {description}

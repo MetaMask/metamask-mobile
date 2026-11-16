@@ -19,6 +19,7 @@ import {
   createSocialFeedEntrances,
   type SocialFeedEntrances,
 } from './socialFeedEntrances';
+import { acquireSocialRealtime } from './socialRealtimeLease';
 import {
   SOCIAL_FEED_REALTIME_BUFFER_SIZE,
   SOCIAL_FEED_REVEAL_BATCH_SIZE,
@@ -39,6 +40,8 @@ export interface SocialFeedRealtimeState {
   pendingNewCount: number;
   /** Applies every held-back post at once. */
   revealPending: () => void;
+  /** True while an update to this post is held back, so the shown copy is stale. */
+  hasPendingUpdate: (feedItemId: string) => boolean;
   entrances: SocialFeedEntrances;
 }
 
@@ -361,19 +364,14 @@ export const useSocialFeedRealtime = (
       return undefined;
     }
 
-    let cancelled = false;
     const removeListener = realtimeService.addListener(handleEvent);
     const removeReconnectListener =
       realtimeService.addReconnectListener(markCatchUp);
-    realtimeService
-      .setScopes([realtimeScope])
-      .then(() => (cancelled ? undefined : realtimeService.setActive(true)))
-      .catch(noop);
+    const release = acquireSocialRealtime(realtimeScope);
     return () => {
-      cancelled = true;
       removeListener();
       removeReconnectListener();
-      realtimeService.setActive(false).catch(noop);
+      release();
     };
   }, [active, handleEvent, markCatchUp, realtimeScope]);
 
@@ -593,13 +591,19 @@ export const useSocialFeedRealtime = (
     setRevealRequested(true);
   }, []);
 
+  const hasPendingUpdate = useCallback(
+    (feedItemId: string) => storeRef.current.pending.has(feedItemId),
+    [],
+  );
+
   const realtime = useMemo<SocialFeedRealtimeState>(
     () => ({
       pendingNewCount: visiblePendingNewCount,
       revealPending,
+      hasPendingUpdate,
       entrances,
     }),
-    [entrances, revealPending, visiblePendingNewCount],
+    [entrances, hasPendingUpdate, revealPending, visiblePendingNewCount],
   );
 
   return realtimeScope ? { posts, realtime } : null;

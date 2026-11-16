@@ -35,6 +35,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { View, type LayoutChangeEvent, type ScrollView } from 'react-native';
+import type { EdgeInsets } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -84,6 +85,7 @@ import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
+import { usePerpsMarketHeaderInsets } from '../../components/PerpsMarketHeader/usePerpsMarketHeaderInsets';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
@@ -228,6 +230,8 @@ const PerpsProOrderBookColumn = ({
 
 interface PerpsProMarketViewProps {
   generationTrigger?: 'initial' | 'market_switch' | 'mode_switch';
+  /** Set when the screen runs under the status bar and home indicator. */
+  edgeInsets?: Pick<EdgeInsets, 'top' | 'bottom'>;
 }
 
 const resolveProMarketSectionState = (
@@ -268,6 +272,7 @@ const resolveProMarketSource = (
  */
 const PerpsProMarketView = ({
   generationTrigger = 'initial',
+  edgeInsets,
 }: PerpsProMarketViewProps) => {
   const { styles } = useStyles(createStyles, {});
   const { playSelection } = useHaptics();
@@ -285,6 +290,7 @@ const PerpsProMarketView = ({
       : activeProvider);
   const source = route.params?.source;
   const sourceSection = route.params?.source_section;
+  const buttonLocation = route.params?.button_location;
   // Set by entry points that already carry a trade intent (e.g. spot token
   // details Long/Short), so the inline form opens on the right side.
   const initialDirection = route.params?.direction;
@@ -426,6 +432,10 @@ const PerpsProMarketView = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
+  const { headerTopInset, headerInset } = usePerpsMarketHeaderInsets(
+    edgeInsets,
+    isServiceInterruptionBannerEnabled,
+  );
   const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
@@ -509,8 +519,12 @@ const PerpsProMarketView = ({
       ...(sourceSection && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
       }),
+      ...(buttonLocation && {
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]: buttonLocation,
+      }),
     }),
     [
+      buttonLocation,
       chartAnalyticsProperties,
       isServiceInterruptionBannerEnabled,
       market?.symbol,
@@ -664,123 +678,139 @@ const PerpsProMarketView = ({
           its title row once the content is scrolled. Outer flag guard avoids
           mounting the padded wrapper (and banner hooks) when disabled. */}
       {isServiceInterruptionBannerEnabled && (
-        <Box twClassName="px-4 pb-2">
+        <Box twClassName="px-4 pb-2" style={{ paddingTop: edgeInsets?.top }}>
           <PerpsServiceInterruptionBanner
             scrollY={scrollY}
             testID={PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
           />
         </Box>
       )}
-      <PerpsMarketHeader
-        market={{ ...market, symbol: market.symbol }}
-        testIDs={createProMarketHeaderTestIDs()}
-        mode={perpsMode}
-        onBackPress={handleBackPress}
-        onIdentityPress={handleMarketListPress}
-        onWalletPress={handleWalletPress}
-        onFavoritePress={handleFavoritePress}
-        isFavorite={isWatchlist}
-        onModeChange={handlePerpsModeChange}
-        enableHaptics
-        scrollY={scrollY}
-        priceSectionHeight={titleSectionHeightSv}
-        currentPrice={syncedChartCurrentPrice}
-      />
-      <Animated.ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
-        showsVerticalScrollIndicator={false}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      >
-        <PerpsProChartPanel
-          symbol={market.symbol}
-          selectedCandlePeriod={selectedCandlePeriod}
-          isAdvancedChartEnabled={isAdvancedChartEnabled}
-          configuredChartLibrary={configuredChartLibrary}
-          effectiveChartLibrary={effectiveChartLibrary}
-          marketContextKey={marketContextKey}
-          isMarketContextReady={isMarketContextReady}
-          onCandlePeriodChange={handleProCandlePeriodChange}
-          onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
-          onChartError={handleChartError}
+      <Box twClassName="flex-1">
+        <PerpsMarketHeader
+          market={{ ...market, symbol: market.symbol }}
+          testIDs={createProMarketHeaderTestIDs()}
+          mode={perpsMode}
+          onBackPress={handleBackPress}
+          onIdentityPress={handleMarketListPress}
+          onWalletPress={handleWalletPress}
+          onFavoritePress={handleFavoritePress}
+          isFavorite={isWatchlist}
+          onModeChange={handlePerpsModeChange}
+          enableHaptics
+          scrollY={scrollY}
+          priceSectionHeight={titleSectionHeightSv}
           currentPrice={syncedChartCurrentPrice}
-          onLatestPriceChange={setAdvancedChartCurrentPrice}
-          onResolvedStateChange={handleChartResolvedStateChange}
-          marketId={market.id}
-          onFreshDelivery={() =>
-            setChartDeliveryRevision((revision) => revision + 1)
-          }
-          onSummaryLayout={handleMarketSummaryLayout}
+          topInset={headerTopInset}
         />
-        {/* The chart's own height (`PerpsProChartPanel`) animates when
-            expanded/collapsed above this point — wrap everything that would
-            otherwise jump when that happens so it slides into place. */}
-        <Animated.View
-          layout={LinearTransition.duration(AnimationDuration.Fast)}
+        <Animated.ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          testID={PerpsProMarketViewSelectorsIDs.SCROLL_VIEW}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="interactive"
+          keyboardShouldPersistTaps="handled"
+          onScroll={onScroll}
+          scrollEventThrottle={16}
         >
-          <PerpsProMarketStatsBar
-            symbol={market.symbol}
-            nextFundingTime={market.nextFundingTime}
-            fundingIntervalHours={market.fundingIntervalHours}
-            onResolvedStateChange={handleStatsResolvedStateChange}
-          />
-          {/* Provider wraps BOTH columns (not just the form) so an order-book
-              row tap can drive the form's Limit price / order type via shared
-              context (TAT-3643). Keyed by symbol so form state resets when the
-              market changes. */}
-          <PerpsOrderProvider
-            key={currentMarketIdentityKey}
-            initialAsset={market.symbol}
-            initialDirection={initialDirection}
-            fallbackAmount=""
-          >
-            <PerpsProMarketLayout
-              isOrderBookCollapsed={isOrderBookCollapsed}
-              orderBookPosition={orderBookPosition}
-              orderForm={
-                // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
-                // to support deep-link trade-detail entries that may only carry
-                // partial data. PerpsProMarketView is only reachable via full-market
-                // navigation; the !market?.symbol guard above validates the minimum
-                // required field at runtime.
-                <PerpsProOrderFormPanel
-                  market={market as PerpsMarketData}
-                  isScreenFocused={isScreenFocused}
-                  isOrderBookCollapsed={isOrderBookCollapsed}
-                  onExpandOrderBook={handleExpandOrderBook}
-                  onRequestScrollBy={handleRequestScrollBy}
-                  scrollViewRef={scrollViewRef}
-                />
-              }
-              orderBook={
-                <PerpsProOrderBookColumn
-                  symbol={market.symbol}
-                  marketPrice={marketPrice}
-                  isMarketContextReady={isMarketContextReady}
-                  marketContextKey={marketSectionContextKey}
-                  onCollapse={handleCollapseOrderBook}
-                  onResolvedStateChange={handleOrderBookResolvedStateChange}
-                />
-              }
+          {headerInset > 0 && (
+            <View
+              style={{ height: headerInset }}
+              testID={PerpsProMarketViewSelectorsIDs.HEADER_SPACER}
             />
-          </PerpsOrderProvider>
-          <SectionDivider marginVertical={0} />
-          <PerpsProPositionsPanel
+          )}
+          <PerpsProChartPanel
             symbol={market.symbol}
+            selectedCandlePeriod={selectedCandlePeriod}
+            isAdvancedChartEnabled={isAdvancedChartEnabled}
+            configuredChartLibrary={configuredChartLibrary}
+            effectiveChartLibrary={effectiveChartLibrary}
+            marketContextKey={marketContextKey}
             isMarketContextReady={isMarketContextReady}
-            marketContextKey={userSectionContextKey}
-            onSelectMarket={handleSelectMarket}
-            onHistoryPress={handleHistoryPress}
-            onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
-            isScreenFocused={isScreenFocused}
+            onCandlePeriodChange={handleProCandlePeriodChange}
+            onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
+            onChartError={handleChartError}
+            currentPrice={syncedChartCurrentPrice}
+            onLatestPriceChange={setAdvancedChartCurrentPrice}
+            onResolvedStateChange={handleChartResolvedStateChange}
+            marketId={market.id}
+            onFreshDelivery={() =>
+              setChartDeliveryRevision((revision) => revision + 1)
+            }
+            onSummaryLayout={handleMarketSummaryLayout}
           />
-        </Animated.View>
-      </Animated.ScrollView>
+          {/* The chart's own height (`PerpsProChartPanel`) animates when
+              expanded/collapsed above this point — wrap everything that would
+              otherwise jump when that happens so it slides into place. */}
+          <Animated.View
+            layout={LinearTransition.duration(AnimationDuration.Fast)}
+          >
+            <PerpsProMarketStatsBar
+              symbol={market.symbol}
+              nextFundingTime={market.nextFundingTime}
+              fundingIntervalHours={market.fundingIntervalHours}
+              onResolvedStateChange={handleStatsResolvedStateChange}
+            />
+            {/* Provider wraps BOTH columns (not just the form) so an order-book
+                row tap can drive the form's Limit price / order type via shared
+                context (TAT-3643). Keyed by symbol so form state resets when the
+                market changes. */}
+            <PerpsOrderProvider
+              key={currentMarketIdentityKey}
+              initialAsset={market.symbol}
+              initialDirection={initialDirection}
+              fallbackAmount=""
+            >
+              <PerpsProMarketLayout
+                isOrderBookCollapsed={isOrderBookCollapsed}
+                orderBookPosition={orderBookPosition}
+                orderForm={
+                  // PerpsMarketDetails accepts PerpsMarketData | Partial<PerpsMarketData>
+                  // to support deep-link trade-detail entries that may only carry
+                  // partial data. PerpsProMarketView is only reachable via full-market
+                  // navigation; the !market?.symbol guard above validates the minimum
+                  // required field at runtime.
+                  <PerpsProOrderFormPanel
+                    market={market as PerpsMarketData}
+                    isScreenFocused={isScreenFocused}
+                    isOrderBookCollapsed={isOrderBookCollapsed}
+                    onExpandOrderBook={handleExpandOrderBook}
+                    onRequestScrollBy={handleRequestScrollBy}
+                    scrollViewRef={scrollViewRef}
+                    scrollViewTopInset={headerInset}
+                  />
+                }
+                orderBook={
+                  <PerpsProOrderBookColumn
+                    symbol={market.symbol}
+                    marketPrice={marketPrice}
+                    isMarketContextReady={isMarketContextReady}
+                    marketContextKey={marketSectionContextKey}
+                    onCollapse={handleCollapseOrderBook}
+                    onResolvedStateChange={handleOrderBookResolvedStateChange}
+                  />
+                }
+              />
+            </PerpsOrderProvider>
+            <SectionDivider marginVertical={0} />
+            <PerpsProPositionsPanel
+              symbol={market.symbol}
+              isMarketContextReady={isMarketContextReady}
+              marketContextKey={userSectionContextKey}
+              onSelectMarket={handleSelectMarket}
+              onHistoryPress={handleHistoryPress}
+              onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
+              isScreenFocused={isScreenFocused}
+            />
+          </Animated.View>
+          {edgeInsets && (
+            <View
+              style={{ height: edgeInsets.bottom }}
+              testID={PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER}
+            />
+          )}
+        </Animated.ScrollView>
+      </Box>
       <CandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={() => setIsMoreCandlePeriodsVisible(false)}

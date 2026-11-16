@@ -78,7 +78,11 @@ describe('LeaderboardShellTabPage', () => {
         source: { kind: 'all', assetClass: 'all' },
         location: 'social_leaderboard',
         showViewerRow: true,
-        filters: { timeframe: '7d', ranking: 'pnl', cohort: 'all' },
+        filters: {
+          timeframe: '30d',
+          ranking: 'pnl',
+          cohort: 'all',
+        },
       }),
     );
     expect(

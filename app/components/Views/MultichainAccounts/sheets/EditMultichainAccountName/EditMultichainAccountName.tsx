@@ -16,7 +16,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextField,
@@ -31,6 +30,8 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RootState } from '../../../../../reducers';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useTheme } from '../../../../../util/theme';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RootNavigationParamList extends ParamListBase {
   EditMultichainAccountName: {
@@ -44,6 +45,7 @@ type EditMultichainAccountNameRouteProp = RouteProp<
 >;
 
 export const EditMultichainAccountName = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
@@ -112,7 +114,9 @@ export const EditMultichainAccountName = () => {
 
   return (
     <SafeAreaView edges={['left', 'right']} style={containerStyle}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={accountGroup?.metadata?.name || 'Account Group'}
         onBack={() => navigation.goBack()}

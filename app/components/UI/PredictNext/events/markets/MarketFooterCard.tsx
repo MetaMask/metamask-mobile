@@ -12,7 +12,11 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictTeam } from '../../types';
-import type { GameSelectionQuote } from '../game';
+import {
+  getGameTeamOrder,
+  type GameSelection,
+  type GameSelectionQuote,
+} from '../game';
 import { formatAskPrice } from '../shared/formatting';
 import { isOutcomeTradeable } from '../shared/tradeable';
 import { MarketFooterCardTestIds } from './MarketFooterCard.testIds';
@@ -100,6 +104,21 @@ export const MarketFooterCard = ({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const inverseText = colors.overlay.inverse;
+  const teams: Record<
+    GameSelection,
+    { team: PredictTeam; quote: GameSelectionQuote; fallbackColor: string }
+  > = {
+    away: {
+      team: game.awayTeam,
+      quote: awayQuote,
+      fallbackColor: colors.info.default,
+    },
+    home: {
+      team: game.homeTeam,
+      quote: homeQuote,
+      fallbackColor: colors.success.default,
+    },
+  };
 
   return (
     <Box
@@ -107,24 +126,21 @@ export const MarketFooterCard = ({
       twClassName="flex-row gap-[10px] px-4 pt-2"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
-      <FooterButton
-        selection="away"
-        quote={awayQuote}
-        label={teamAbbreviation(game.awayTeam)}
-        accessibilityName={game.awayTeam.name}
-        backgroundColor={game.awayTeam.primaryColor ?? colors.info.default}
-        textColor={inverseText}
-        onOrder={onOrder}
-      />
-      <FooterButton
-        selection="home"
-        quote={homeQuote}
-        label={teamAbbreviation(game.homeTeam)}
-        accessibilityName={game.homeTeam.name}
-        backgroundColor={game.homeTeam.primaryColor ?? colors.success.default}
-        textColor={inverseText}
-        onOrder={onOrder}
-      />
+      {getGameTeamOrder(game).map((selection) => {
+        const { team, quote, fallbackColor } = teams[selection];
+        return (
+          <FooterButton
+            key={selection}
+            selection={selection}
+            quote={quote}
+            label={teamAbbreviation(team)}
+            accessibilityName={team.name}
+            backgroundColor={team.primaryColor ?? fallbackColor}
+            textColor={inverseText}
+            onOrder={onOrder}
+          />
+        );
+      })}
       {drawQuote ? (
         <FooterButton
           selection="draw"

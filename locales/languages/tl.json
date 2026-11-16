@@ -131,7 +131,7 @@
       "title": "Hindi sapat ang mga pondo"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "Wala ka pang mga pondo sa iyong Money account na maipapadala. Maglagay muna ng mga pondo."
     },
     "fiat_buy_amount_limit": {
       "title": "Wala sa saklaw ang halaga"
@@ -1152,7 +1152,8 @@
       "moonpay_privacy_policy_link": "Patakaran sa Pagkapribado ng MoonPay",
       "moonpay_terms_link": "Mga Tuntunin at Kundisyon ng MoonPay",
       "powered_by": "Pinapagana ng",
-      "button": "Kunin ang mga detalye ng account"
+      "button": "Kunin ang mga detalye ng account",
+      "feature_arrives_title_pix": "Darating sa loob ng ilang segundo"
     },
     "verify_identity": {
       "title": "I-verify ang pagkakakilanlan mo",
@@ -1170,7 +1171,21 @@
       "terms_sheet_description": "Para i-verify ang pagkakakilanlan mo, ibabahagi nang ligtas ang impormasyon mo sa mga tagapag-verify sa ibaba. Suriin ang mga patakaran at tuntunin nila bago magpatuloy.",
       "metamask_privacy_policy": "Patakaran sa Pagkapribado ng MetaMask",
       "metamask_terms": "Mga Tuntunin at Kundisyon ng MetaMask",
-      "terms_sheet_button": "Sumang-ayon at simulan ang pag-verify"
+      "terms_sheet_button": "Sumang-ayon at simulan ang pag-verify",
+      "subtitle": "Tumatagal ito nang ilang minuto. Kakailanganin mo ng ID na inisyu ng gobyerno.",
+      "step_indicator": "Hakbang {{current}} ng {{total}}",
+      "partner_title": "Ka-partner namin ang idOS para i-verify ang iyong pagkakakilanlan.",
+      "benefit_reuse_title": "I-verify nang isang beses, gamitin muli mamaya.",
+      "benefit_reuse_description": "Ligtas na iniimbak ng MetaMask ang naka-encrypt na kopya ng iyong na-verify na pagkakakilanlan, kaya makakapag-sign up ka nang mas mabilis sa ibang mga partner.",
+      "benefit_control_title": "Kontrolado mo ang iyong data.",
+      "benefit_control_description": "Ibinabahagi lang namin ang na-verify mo na pagkakakilanlan sa partner kapag sumang-ayon ka.",
+      "benefit_delete_title": "Tanggalin anumang oras.",
+      "benefit_delete_description": "Tanggalin ang na-verify mo na pagkakakilanlan anumang oras sa Mga Setting.",
+      "agreement": "Sa pagpapatuloy, sumasang-ayon ako sa MetaMask {{termsOfUse}}, kinikilala ang MetaMask {{privacyNotice}} at pinahihintulutan ang MetaMask na iimbak at ilipat ang impormasyon ko sa idOS.",
+      "agreement_terms_of_use": "Mga Tuntunin ng Paggamit",
+      "agreement_privacy_notice": "Patakaran sa Pagkapribado",
+      "agree_and_continue_button": "Sumang-ayon at Magpatuloy",
+      "learn_more": "Matuto pa."
     },
     "kyc_email": {
       "error_title": "Hindi masimulan ang pag-verify",
@@ -1190,7 +1205,9 @@
     "kyc_taking_longer": {
       "title": "Bini-verify ang iyong pagkakakilanlan",
       "description": "Natatapos ang karamihan ng mga pag-check nang humigit-kumulang 10 segundo. Puwede kang bumalik sa ibang pagkakataon, ipapaalam namin sa iyo kapag natapos na ang pag-check.",
-      "button": "Bumalik sa ibang pagkakataon"
+      "button": "Bumalik sa ibang pagkakataon",
+      "description_few_minutes": "Natatapos ang karamihan ng pag-check sa loob ng ilang minuto. Puwede kang bumalik sa ibang pagkakataon. Ipapaalam namin sa iyo kapag nakumpleto na ito.",
+      "done_button": "Tapos na"
     },
     "identity_verified": {
       "title": "Na-verify ang pagkakakilanlan",
@@ -1198,8 +1215,8 @@
       "button": "Magpatuloy"
     },
     "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
+      "title": "Ginagawa ang iyong account...",
+      "description": "Karamihan sa mga account ay nagagawa kaagad.",
       "awaiting_provider": "Naghihintay na aprubahan ng MoonPay ang iyong account"
     },
     "kyc_rejected": {
@@ -1253,7 +1270,7 @@
     "vba_details": {
       "title": "Magdagdag ng pera gamit ang Pix",
       "description": "Magdagdag ng mga pondo nang direkta mula sa bangko mo. Karaniwang dumarating ang mga pondo mo sa Money account mo sa loob ng ilang minuto.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure": "Ang mga serbisyong virtual asset sa Brazil ay ipinagkakaloob ng kinokontrol na third-party provider.",
       "provider_disclosure_link": "Matuto pa.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix key",
@@ -1271,6 +1288,25 @@
       "load_error": "Hindi ma-refresh ang deposito. Subukan ulit.",
       "setup_error": "Hindi makagawa ng iyong account.",
       "retry": "Subukang muli"
+    },
+    "partner_terms": {
+      "title": "Ang aming mga partner sa pag-verify",
+      "description": "Bini-verify ng idOS ang iyong pagkakakilanlan. Iniuugnay ng idOS ang Sumsub para kumpletuhin ang pag-verify.",
+      "section_title": "Mga tuntunin at pagkapribado",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "Kinikilala ko na ang aking personal na data ay ipoproseso gaya ng inilarawan sa {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Angkop lang sa mga residente ng US: Kinukumpirma ko na nabasa ko ang {{privacyNotice}} at ibinibigay ang aking pahintulot sa pagproseso ng aking impormasyon ng biometric at mga pagkakakilanlan ng biometric gaya ng inilarawan sa {{biometricsConsent}}.",
+      "sumsub_notice": "Abiso sa Pagproseso ng Personal na Data ng Sumsub",
+      "sumsub_privacy_notice": "Patakaran sa Pagkapribado",
+      "sumsub_biometrics_consent": "Pahintulot sa Pagproseso ng Biometrics ng Sumsub",
+      "biometric_consent": "Tahasan ang pahintulot ko sa idOS Association sa pagproseso ng mga imahe ng aking mukha at ng biometric data na nakuha mula sa mga iyon para i-verify ang aking pagkakakilanlan, gaya ng inilarawan sa {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "Abiso sa Pagkapribado ng idOS",
+      "agreement": "Sa pag-tap sa Sumasang-ayon at magpatuloy, sumasang-ayon ako sa {{termsAndConditions}}.",
+      "agreement_terms": "Mga Tuntunin at Kundisyon ng idOS",
+      "scroll_to_continue_button": "I-scroll para magpatuloy",
+      "agree_to_consent_above_button": "Sumang-ayon sa pahintulot sa itaas",
+      "button": "Sumang-ayon at magpatuloy"
     }
   },
   "social": {
@@ -1280,9 +1316,9 @@
   },
   "social_leaderboard": {
     "account_disabled": {
-      "title": "Your account is temporarily disabled",
-      "reason": "Reason: {{reason}}",
-      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "title": "Pansamantalang naka-disable ang iyong account",
+      "reason": "Dahilan: {{reason}}",
+      "contact_support_description": "Kontakin ang suporta sa {{email}} o sa app para sa tulong.",
       "contact_support": "Kontakin ang suporta"
     },
     "entry_options": {
@@ -1447,7 +1483,8 @@
         "buy": "Bumili",
         "sell": "Magbenta",
         "closed_ago": "Nakasara · {{age}}",
-        "sold_ago": "Naibenta · {{age}}"
+        "sold_ago": "Naibenta · {{age}}",
+        "opened_ago": "Binuksan · {{age}}"
       }
     },
     "translation": {
@@ -1523,7 +1560,7 @@
         "kols": "Mga KOL"
       },
       "filters": {
-        "title": "Custom filters",
+        "title": "Filter",
         "show_results": "Ilapat",
         "apply": "Ilapat",
         "reset": "I-reset",
@@ -1637,21 +1674,21 @@
     "position_flags": {
       "insider": "Alokasyon para sa insider - hindi kasama",
       "developer": "Tagagawa ng kontrata - hindi kasama",
-      "excluded": "Hindi kasama sa PnL",
+      "excluded": "Hindi kasama sa P&L",
       "short": {
         "insider": "Insider",
         "creator": "Creator",
-        "excluded": "Excluded"
+        "excluded": "Hindi kasama"
       },
       "accessibility": {
-        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
-        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
-        "direction_up": "up",
-        "direction_down": "down",
-        "direction_flat": "unchanged",
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, hindi ibinilang sa P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, hindi ibinilang sa P&L, {{reason}}",
+        "direction_up": "itaas",
+        "direction_down": "ibaba",
+        "direction_flat": "hindi nabago",
         "reason_insider": "insider",
         "reason_creator": "creator",
-        "reason_excluded": "excluded"
+        "reason_excluded": "hindi kasama"
       }
     },
     "trader_profile": {
@@ -1723,7 +1760,7 @@
       "posts": "Mga post",
       "section_tokens": "Mga Token",
       "section_perpetuals": "Perpetuals",
-      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_in_pnl": "Hindi ibinilang sa P&L",
       "empty_open": "Walang mga bukas na posisyon",
       "empty_closed": "Walang nakasarang posisyon",
       "empty_open_tokens": "Walang open token",
@@ -1731,13 +1768,25 @@
       "empty_open_perps": "Walang nakabukas na perp",
       "empty_closed_perps": "Walang nakasarang perp",
       "empty_title": "Wala pang mga post",
-      "joined": "Sumali {{time}}",
+      "joined": "Sumali {{time}} na ang nakalipas",
       "x_link": "X",
       "load_profile_error": "Hindi mai-load ang iyong profile.",
       "no_profile_title": "Gawin ang profile mo",
       "no_profile_description": "Mag-claim ng username para lumabas sa feed.",
       "create_profile": "Gumawa ng profile",
-      "retry": "Subukang muli"
+      "retry": "Subukang muli",
+      "not_counted_section_a11y_one": "Hindi ibinilang sa P&L, 1 posisyon. Alamin kung bakit",
+      "not_counted_section_a11y_other": "Hindi ibinilang sa P&L, {{count}} (na) posisyon. Alamin kung bakit",
+      "not_counted_sheet_title": "Bakit hindi ibinibilang ang ilang posisyon",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "Nakuha ng trader na ito ang token mula sa alokasyon bago ito naging pampubliko.",
+      "not_counted_sheet_insider_body_owner": "Nakuha mo ang token mula sa alokasyon bago ito naging pampubliko.",
+      "not_counted_sheet_developer_label": "Creator ng kontrata",
+      "not_counted_sheet_developer_body": "Ang trade na ito ang nag-deploy ng kontrata ng token.",
+      "not_counted_sheet_developer_body_owner": "Ikaw ang nag-deploy ng kontrata ng token.",
+      "not_counted_sheet_unsupported_label": "Hindi sinusuportahang token",
+      "not_counted_sheet_unsupported_body": "Hindi namin masusubaybayan ang P&L para sa mga hindi sinusuportahang token gaya ng mga deposito sa mga lending pool.",
+      "not_counted_sheet_dismiss": "Nakuha ko"
     },
     "terms": {
       "title": "Na-update ang aming Mga Tuntunin sa Paggamit",
@@ -1820,8 +1869,8 @@
       "linked_social_account": "Naka-link na social media account",
       "save": "I-save",
       "save_error": "Hindi ma-save ang mga pagbabago. Suriin ang koneksyon mo at subukan ulit.",
-      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
-      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "bio_prohibited": "Hindi magagamit ang ilan sa mga bio na ito. I-edit at subukan muli.",
+      "display_name_unavailable": "Hindi available ang pangalan na ito. Subukan ang iba.",
       "username_unavailable": "Hindi available ang handle na ito. Pumili ng iba.",
       "username_too_short": "Gumamit ng kahit {{min}} (na) character lang.",
       "username_too_long": "Gumamit ng hanggang {{max}} (na) character.",
@@ -1832,7 +1881,8 @@
       "trading_activity_footnote": "Nalalapat kaagad ang mga pagbabago. Mananatiling nakikita ang iyong pagkakakilanlan at content sa social media kahit na may mga pagbabago. ",
       "trading_activity_info": "Higit pang impormasyon sa aktibidad ng pag-trade mo",
       "linked_account_footnote": "Ipapakita sa feed at leaderboard mo ang mga trade na ginawa gamit ang account na ito.",
-      "avatar_accessibility_label": "Avatar ng profile mo"
+      "avatar_accessibility_label": "Avatar ng profile mo",
+      "linked_account_cooldown": "Maaari mo lang palitan ang iyong naka-link na account kada {{days}} (na) araw."
     },
     "position_sheet": {
       "title": "Trade ni {{username}}",
@@ -1840,9 +1890,9 @@
       "following": "Following",
       "today": "Ngayong araw",
       "market_cap_suffix": "(MC)",
-      "posts_tab": "Posts ({{count}})",
-      "transactions_tab": "Transactions ({{count}})",
-      "no_posts": "No posts on this trade yet",
+      "posts_tab": "Mga Post ({{count}})",
+      "transactions_tab": "Mga Transaksyon ({{count}})",
+      "no_posts": "Wala pang mga post sa trade na ito",
       "level": {
         "entry": "Pagpasok",
         "exit": "Umalis",
@@ -1875,7 +1925,9 @@
         "spot_added": "Bumili ng higit pa",
         "spot_reduced": "Nagbenta ng ilan",
         "spot_closed": "Ibinenta lahat"
-      }
+      },
+      "open_asset_accessibility_hint": "Binubuksan ang page ng asset",
+      "open_market_accessibility_hint": "Binubuksan ang mga detalye ng market"
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -2664,7 +2716,8 @@
       "updating_your_order": "Ina-update ang iyong order",
       "order_updated": "Na-update na ang order",
       "order_update_failed": "Hindi na-update ang order",
-      "order_update_failed_subtitle": "bukas pa rin ang order mo sa dating presyo at sukat nito."
+      "order_update_failed_subtitle": "bukas pa rin ang order mo sa dating presyo at sukat nito.",
+      "order_update_post_only_would_cross": "Kinansela ang order mo dahil magko-cross sa spread ang bagong presyo. I-place ito muli na may ibang presyo o bilang order na non-post-only."
     },
     "slippage": {
       "config_title": "Itakda ang slippage",
@@ -2994,7 +3047,9 @@
       "marginValidation": {
         "exceedsMaxRemovable": "Sobra ang halaga sa pinakamalaking margin na pwedeng alisin",
         "insufficientMargin": "Walang sapat na margin ang posisyon para sa pagbabawas na ito"
-      }
+      },
+      "postOnlyWindow": "Pansamantalang ipinagbabawal ang pagti-trade pagkatapos mag-upgrade ng network at magbabalik sa ilang sandali. Subukan muli pagkalipas ng ilang minuto.",
+      "postOnlyWouldCross": "Magko-cross ang presyo sa spread, kaya hindi nai-place ang order na post-only. Ayusin ang presyo o gumamit ng order na non-post-only."
     },
     "position": {
       "title": "Mga Posisyon",
@@ -3667,7 +3722,7 @@
     "tp_on_chart": "TP sa Chart",
     "sl_on_chart": "SL sa Chart",
     "pnl_hero_card": {
-      "title": "PnL Hero Card",
+      "title": "P&L Hero Card",
       "header_title": "I-share ang iyong trade",
       "share_button": "Ibahagi",
       "share_message_without_referral_code": "Mag-trade ng {{asset}} perps sa MetaMask.",
@@ -3742,8 +3797,8 @@
     "unavailable_in_region": "Hindi available sa rehiyon mo",
     "home_title": "Mga prediksyon",
     "venue_selector": {
-      "button_label": "Choose a prediction market",
-      "title": "Prediction market",
+      "button_label": "Pumili ng market ng prediksyon",
+      "title": "Market ng prediksyon",
       "venues": {
         "polymarket": "Polymarket",
         "kalshi": "Kalshi"
@@ -3758,24 +3813,32 @@
       "your_positions": "Mga position mo",
       "game_lines": "Mga Linya ng Laro",
       "outcomes": "Mga kinalabasan",
-      "view_all_markets": "View all {{count}} markets",
+      "view_all_markets": "Tingnan ang lahat ng {{count}} (na) market",
       "market_layout": {
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Kabuuang puntos",
-        "team_total": "Team total",
-        "player_props": "Player props",
-        "anytime_touchdown": "Anytime touchdown",
-        "rushing_yards": "Rushing yards",
-        "receiving_yards": "Receiving yards",
-        "passing_yards": "Passing yards",
-        "full_game": "Full game",
+        "team_total": "Kabuuan ng team",
+        "player_props": "Props ng player",
+        "anytime_touchdown": "Touchdown anumang oras",
+        "rushing_yards": "Mga rushing yard",
+        "receiving_yards": "Mga receiving yard",
+        "passing_yards": "Mga passing yard",
+        "full_game": "Buong laro",
         "first_half": "1st half",
         "second_half": "2nd half",
         "q1": "1st quarter",
         "q2": "2nd quarter",
         "q3": "3rd quarter",
         "q4": "4th quarter"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}}% para manalo",
+        "buy": "Bumili ng {{price}}",
+        "buy_price_unavailable": "Bumili, hindi available ang presyo",
+        "holding": "{{shares}} mga share sa {{price}}",
+        "holding_shares": "{{shares}} (na) share"
       }
     },
     "search": {
@@ -3864,7 +3927,7 @@
       "refresh": "I-refresh",
       "retry": "Subukang muli",
       "review": "Suriin ang order",
-      "venue_changed": "Your prediction market changed. Close this order to continue."
+      "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy."
     },
     "order_approval": {
       "title": "Suriin ang order mo",
@@ -3897,8 +3960,12 @@
       "requote": "Subukang muli"
     },
     "order_notification": {
-      "not_placed_title": "Order not placed",
-      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+      "not_placed_title": "Hindi nai-place ang order",
+      "not_placed_description": "Walang natira sa iyong balanse. Kumuha ng bagong quote para subukan muli."
+    },
+    "home_section": {
+      "position_info": "{{costBasis}} sa {{outcome}} para manalo ng {{payout}}",
+      "pnl_unavailable": "Hindi available"
     }
   },
   "predict": {
@@ -4663,8 +4730,8 @@
     "sort_name": "Pangalan",
     "sort_high_to_low": "Mataas Pababa",
     "sort_low_to_high": "Mababa Pataas",
-    "sort_a_to_z": "A to Z",
-    "sort_z_to_a": "Z to A",
+    "sort_a_to_z": "A hanggang Z",
+    "sort_z_to_a": "Z hanggang A",
     "sort_apply": "Ilapat",
     "sort_reset": "I-reset",
     "add_to_get_started": "Magdagdag ng crypto upang makapagsimula",
@@ -4806,7 +4873,7 @@
       "all": "Lahat ng uri",
       "transactions": "Mga Transaksyon",
       "buy_sell": "Bumili/Magbenta",
-      "limit_orders": "Limit orders",
+      "limit_orders": "Mga limit order",
       "perps": "Perps",
       "predictions": "Mga prediksyon",
       "metamask_card": "Card"
@@ -4851,7 +4918,7 @@
         "action": "Magdagdag ng pondo"
       },
       "limit_orders": {
-        "description": "Your filled limit orders will show up here.",
+        "description": "Ang na-fill mo na mga limit order ay makikita rito.",
         "action": "Ipagpalit ang mga token"
       },
       "metamask_card": {
@@ -5226,7 +5293,7 @@
     "card_update_badge": "I-update",
     "settings": "Mga Setting",
     "networks": "Mga Network",
-    "log_out": "Mag-log out",
+    "log_out": "I-lock",
     "notifications": "Mga notipikasyon",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Sumali sa MetaMask Orange",
@@ -6173,7 +6240,7 @@
     "balance": "balanse. Basahin ang artikulo ng suporta",
     "position_pnl": {
       "your_position": "Posisyon mo",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "Unrealised P&L",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6357,28 +6424,28 @@
   },
   "token_details_v1": {
     "security_pill": {
-      "screened": "Screened",
+      "screened": "Nasala",
       "flags": {
         "one": "{{count}} flag",
-        "other": "{{count}} flags"
+        "other": "{{count}} (na) flag"
       },
       "high_risk": "Mataas na panganib",
-      "unscreened": "Unscreened",
+      "unscreened": "Hindi nasala",
       "pending": "Nakabinbin",
-      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+      "accessibility_label": "Seguridad: {{verdict}}. Buksan ang tab ng Seguridad"
     },
     "social": {
-      "website": "Open website",
-      "x": "Open on X",
-      "telegram": "Open on Telegram",
-      "search_on_x": "Search on X",
-      "copy_address": "Copy contract address {{address}}"
+      "website": "Buksan ang website",
+      "x": "Buksan sa X",
+      "telegram": "Buksan sa Telegram",
+      "search_on_x": "Hanapin sa X",
+      "copy_address": "Kopyahin ang address ng kontrata {{address}}"
     },
     "age": {
-      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "accessibility_label": "Tagal ng token {{age}}. Matuto tungkol sa tagal ng token.",
       "explainer": {
         "title": "Tagal ng token",
-        "description": "Time since token creation. Seconds, minutes, hours, then days."
+        "description": "Oras mula nang gawin ang token. Ilang segundo, minuto, oras, pagkatapos ay araw."
       }
     },
     "stats": {
@@ -6388,66 +6455,66 @@
       "holders": "Mga Holder",
       "top_10": "Top 10",
       "liquidity_to_market_cap": "Liq/MC",
-      "tax": "Tax",
+      "tax": "Buwis",
       "high_low_24h": "24h high/low",
       "circulating_supply": "Umiikot na supply",
-      "explain": "{{stat}}. Learn what this means",
+      "explain": "{{stat}}. Matuto kung anong ibig sabihin nito",
       "explainers": {
         "market_cap": {
           "title": "Market capitalization",
-          "description": "Current market capitalization of the circulating token supply."
+          "description": "Kasalukuyang market capitalization ng umiikot na supply ng token."
         },
         "liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token's trading pools."
+          "title": "Kabuuang liquidity",
+          "description": "Value na kasalukuyang available sa mga trading pool ng token."
         },
         "volume_24h": {
           "title": "24-hour trading volume",
-          "description": "Value traded over the last 24 hours."
+          "description": "Value na na-trade sa nakalipas na 24 na oras."
         },
         "holders": {
           "title": "Mga Holder",
-          "description": "Number of unique addresses holding this token."
+          "description": "Bilang ng mga natatanging address na may hawak sa token na ito."
         },
         "top_10": {
           "title": "Nangungunang 10 na holder",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+          "description": "Share na hawak ng nangungunang 10 wallet, hindi kasama ang mga pool, router, at mga burn na address."
         },
         "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+          "title": "Liquidity sa market capitalization",
+          "description": "Ang kabuuang liquidity ay hinahati ng market cap. Ito ay nakapag-iisang istatistika, hindi bahagi ng Blockaid verdict."
         },
         "tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          "title": "Buwis sa pagbili at pagbebenta",
+          "description": "Mga bayarin sa pagbili at pagbebenta na iniulat para sa mga EVM token. Ang nawawalang data ay hindi nangangahulugan na walang bayarin."
         },
         "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          "title": "24-hour high at low",
+          "description": "Pinakamataas at pinakamababang presyo na na-trade sa nakalipas na 24 na oras, ipinakita sa order na iyon."
         },
         "circulating_supply": {
           "title": "Umiikot na supply",
-          "description": "Amount of this token currently circulating."
+          "description": "Dami ng token na ito na kasalukuyang umiikot."
         },
         "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
+          "title": "Pool ng liquidity ng mga token na na-burn o naka-lock",
+          "description": "Bahagi ng pangunahing pool ng liquidity na na-burn o naka-lock."
         },
         "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
+          "title": "Pangunahing pool",
+          "description": "Ang pangunahing trading pool na inulat para sa token na ito."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
+          "title": "Mga flag sa volume",
+          "description": "Lalabas ang mga flag na ito kapag na-detect ng Blockaid ang mga palatandaan ng artipisyal na aktibidad sa pagti-trade, gaya ng wash trading o pekeng volume."
         },
         "listed_on_exchange": {
           "title": "Nakalista sa palitan",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          "description": "Kung iuulat man ng Blockaid ang token bilang nakalista sa nangungunang centralized exchange."
         },
         "created": {
           "title": "Ginawa",
-          "description": "Date the token contract was created, when reported by its source."
+          "description": "Petsa nang nilikha ang kontrata ng token, kapag iniulat ng pinagmulan nito."
         }
       }
     },
@@ -6479,40 +6546,40 @@
       "title": "Aktibidad ng {{symbol}}"
     },
     "security_tab": {
-      "explain": "What does {{term}} mean?",
-      "contract_details_link": "See all contract security checks",
+      "explain": "Ano ang ibig sabihin ng {{term}}?",
+      "contract_details_link": "Tingnan ang lahat ng pagsusuri sa seguridad ng kontrata",
       "sections": {
         "contract": "Kontrata",
-        "contract_checks": "Contract checks",
-        "additional_checks": "Additional checks",
+        "contract_checks": "Mga pagsusuri sa kontrata",
+        "additional_checks": "Mga karagdagang pagsusuri",
         "holders": "Mga Holder",
         "liquidity": "Liquidity",
         "trading": "Trading",
         "origin": "Pinagmulan"
       },
       "checks": {
-        "no_honeypot": "No honeypot",
-        "contract_verified": "Contract verified",
-        "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "is_mintable": "Is mintable"
+        "no_honeypot": "Walang honeypot",
+        "contract_verified": "Na-verify ang kontrata",
+        "renounced": "Na-renounce",
+        "no_blacklist": "Walang blacklist",
+        "is_mintable": "Pwedeng i-mint"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Honeypot not detected",
-          "fail": "Honeypot detected"
+          "pass": "Hindi na-detect ang honeypot",
+          "fail": "Natukoy ang honeypot"
         },
         "contract_verified": {
           "pass": "Oo",
           "fail": "Hindi"
         },
         "renounced": {
-          "pass": "Renounced",
-          "fail": "Not renounced"
+          "pass": "Na-renounce",
+          "fail": "Hindi na-renounce"
         },
         "no_blacklist": {
-          "pass": "No controls",
-          "fail": "Control detected"
+          "pass": "Walang mga kontrol",
+          "fail": "Na-detect ang kontrol"
         },
         "is_mintable": {
           "pass": "Oo",
@@ -6522,127 +6589,127 @@
       "values": {
         "yes": "Oo",
         "no": "Hindi",
-        "none_detected": "None detected",
+        "none_detected": "Walang na-detect",
         "detected": {
-          "one": "{{count}} detected",
-          "other": "{{count}} detected"
+          "one": "{{count}} ang natukoy",
+          "other": "{{count}} ang na-detect"
         }
       },
       "risk_banner": {
-        "one": "We found {{count}} risk",
-        "other": "We found {{count}} risks"
+        "one": "{{count}} panganib ang nahanap namin",
+        "other": "{{count}} (na) panganib ang nahanap namin"
       },
       "risks": {
         "default": {
-          "title": "Risk detected"
+          "title": "Na-detect ang panganib"
         },
         "known_malicious": {
           "title": "Kilalang mapaminsala",
-          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+          "description": "Natukoy ng Blockaid ang mapaminsalang aktibidad o nakompromisong kontrata ng token."
         },
         "dangerous_contract_behavior": {
-          "title": "Dangerous contract behavior",
-          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+          "title": "Mapanganib na gawi ng kontrata",
+          "description": "Ang kontrata ay naglalaman ng kahina-hinalang code, mga privileged backdoor, o gawi na iba mula sa inaasahang operasyon nito."
         },
         "impersonation_risk": {
-          "title": "Impersonation risk",
-          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+          "title": "Panganib sa pagpapanggap",
+          "description": "Maaaring gayahin ng token na ito ang pangalan, simbolo, branding, o mga katangiang tumutukoy sa lehitimong token."
         },
         "rug_pull": {
-          "title": "Rug pull detected",
-          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+          "title": "Na-detect ang rug pull",
+          "description": "Natukoy ng Blockaid na ang mga creator ng token ay may history sa pag-oorganisa ng mga pakanang mapaminsalang rug pull at honeypot."
         },
         "exit_scam_risk": {
-          "title": "Exit scam risk",
-          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+          "title": "Umalis sa panganib ng scam",
+          "description": "Iminumungkahi ng gawi ng creator o insider ang panganib ng pag-withdraw ng value na makapipinsala sa mga holder."
         },
         "high_token_fees": {
-          "title": "High token fees",
-          "description": "The token's transfer, buy, or sell fees are unusually high."
+          "title": "Mataas na bayarin sa token",
+          "description": "Hindi pangkaraniwan ang taas ng bayarin sa paglilipat, pagbili o pagbebenta ng token."
         },
         "low_liquidity_risk": {
-          "title": "Low liquidity risk",
-          "description": "Limited liquidity could make the token price volatile."
+          "title": "Mababang panganib sa liquidity",
+          "description": "Nagbabago-bago ang presyo ng token dahil sa limitadong liquidity."
         },
         "concentrated_ownership": {
-          "title": "Concentrated ownership",
-          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+          "title": "Concentrated na pagmamay-ari",
+          "description": "Isang maliit na grupo ng mga holder ang may kontrol sa malaking bahagi ng supply, na nagpapataas sa panganib ng pagmamanipula sa presyo at sapilitang pagbebenta."
         },
         "wash_trading": {
-          "title": "Wash trading activity",
-          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+          "title": "Aktibidad na wash trading",
+          "description": "Maaaring pinapalobo ng mga artipisyal na trade o trading account ang aktibidad o volume ng token."
         },
         "sniped_at_launch": {
-          "title": "Sniped at launch",
-          "description": "One or more wallets acquired supply in the same block as the token's creation."
+          "title": "Na-snipe habang inilulunsad",
+          "description": "Isa o higit pang wallet ang nakakuha ng supply sa parehong block habang ginagawa ang token."
         },
         "suspicious_creator": {
-          "title": "Suspicious creator",
-          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+          "title": "Kahina-hinalang creator",
+          "description": "Dinadagdagan ng reputasyon ng creator o ng bakas ng pagpopondo sa token ang mga karagdagang alalahanin sa panganib."
         },
         "sanctioned_creator": {
           "title": "Pinarusahang creator",
-          "description": "The token's creator is sanctioned by a government or financial institution."
+          "description": "Ang creator ng token ay pinagbabawalan ng gobyerno o ng institusyong pinansyal."
         },
         "suspicious_airdrop": {
           "title": "Kahina-hinalang airdrop",
-          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+          "description": "Ang aktibidad na onchain airdrop o metadata ng token ay maaaring mapanlinlang o parang spam."
         },
         "liquidity_withdrawal_risk": {
-          "title": "Liquidity withdrawal risk",
-          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+          "title": "Panganib na pag-withdraw sa liquidity",
+          "description": "Maaaring pahintulutan ang operator ng hindi sapat na naka-lock na liquidity o naka-unlock na paglilipat na i-withdraw ang liquidity."
         }
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now",
+        "age_clause": "· na-update {{count}} minuto ang nakalipas",
+        "age_clause_just_now": "na-update ngayon lang",
         "explainer": {
-          "title": "Security verification",
-          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+          "title": "Pag-verify sa seguridad",
+          "description": "Ang mga pagsusuri sa pag-verify ng seguridad ay kinukumpleto ng Blockaid batay sa history onchain. Ibinabahagi ang mga iyon para lang sa iyong impormasyon at hindi pagpapayo sa pinansyal, legal o pamumuhunan. Ang pag-verify ay hindi pag-eendorso ng MetaMask."
         }
       },
       "stats": {
         "holders": "Mga Holder",
         "top_ten": "Top 10",
-        "total_liquidity": "Total liquidity",
+        "total_liquidity": "Kabuuang liquidity",
         "liquidity_to_market_cap": "Liq/MC",
-        "lp_burned_locked": "LP burned/locked",
-        "primary_pool": "Primary pool",
-        "buy_sell_tax": "Buy/sell tax",
-        "volume_flags": "Volume flags",
+        "lp_burned_locked": "LP na na-burn/naka-lock",
+        "primary_pool": "Pangunahing pool",
+        "buy_sell_tax": "Buwis sa pagbili/pagbebenta",
+        "volume_flags": "Mga flag sa volume",
         "listed_on_exchange": "Nakalista sa palitan",
         "created": "Ginawa"
       },
       "holders": {
         "top_ten": "Top 10",
-        "remaining": "Remaining holders"
+        "remaining": "Mga natitirang holder"
       },
       "explainers": {
         "no_honeypot": {
-          "title": "No honeypot",
-          "description": "Whether the token can be sold."
+          "title": "Walang honeypot",
+          "description": "Kung maibebenta ba ang token."
         },
         "contract_verified": {
-          "title": "Contract verified",
-          "description": "Whether the contract source is reported as verified."
+          "title": "Na-verify ang kontrata",
+          "description": "Kung ang pinagmulan ba ng kontrata ay naiulat bilang na-verify."
         },
         "renounced": {
-          "title": "Renounced",
-          "description": "Whether contract ownership has been renounced."
+          "title": "Na-renounce",
+          "description": "Kung ang pagmamay-ari ba ng kontrata ay na-renounce."
         },
         "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
+          "title": "Walang blacklist",
+          "description": "Kung ang address ba ay maaaring i-block sa pag-trade."
         },
         "is_mintable": {
-          "title": "Is mintable",
-          "description": "Whether a token can mint additional supply."
+          "title": "Pwedeng i-mint",
+          "description": "Kung ang token ba ay pwedeng i-mint para sa karagdagang supply."
         }
       }
     },
     "contract_security": {
-      "title": "Contract security"
+      "title": "Seguridad ng kontrata"
     },
     "tab_placeholder": "Paparating na"
   },
@@ -9543,8 +9610,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "title": "I-convert sa mga digital na dolyar",
+        "description": "Magpadala ng BRL, USD, o EUR mula sa iyong bangko at mUSD ang matatanggap sa iyong Money account. Walang babayaran.",
         "cta": "Magsimula"
       },
       "account_is_ready": {
@@ -9567,6 +9634,11 @@
         "description": "Hindi kami makapag-alok ng mga bank transfer sa pagkakataong ito. Kontakina ng suporta para sa tulong.",
         "cta": "Matuto pa.",
         "dismiss": "I-dismiss"
+      },
+      "identity_verified": {
+        "title": "Na-verify ang pagkakakilanlan",
+        "description": "Tapos, kunin ang mga detalye ng iyong virtual account para magdagdag ng mga pondo mula sa iyong bangko.",
+        "cta": "Kunin ang mga detalye ng account"
       }
     },
     "first_time_deposit": {
@@ -9698,7 +9770,8 @@
       "add_musd": "Magdagdag ng mUSD",
       "receive_external": "Panlabas na address",
       "coming_soon": "Paparating na",
-      "new_badge": "Bago"
+      "new_badge": "Bago",
+      "no_fees": "Walang babayaran"
     },
     "more_sheet": {
       "title": "Higit pa",
@@ -9817,9 +9890,9 @@
     "transaction": {
       "deposited": "Naideposito",
       "bank_transfer": "Bank transfer",
-      "microdeposit": "Verification deposit",
-      "microdeposit_from": "From {{name}}",
-      "microdeposit_from_bank": "From your bank",
+      "microdeposit": "Pag-verify sa deposito",
+      "microdeposit_from": "Mula kay {{name}}",
+      "microdeposit_from_bank": "Mula sa iyong bangko",
       "received": "Natanggap",
       "sent": "Nagpadala",
       "card_transaction": "Transaksyon sa card",
@@ -10253,7 +10326,7 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_deposit_header": "Add to MetaMask Money",
+      "money_account_deposit_header": "Idagdag sa MetaMask Money",
       "money_account_send": "Ipadala"
     },
     "sub_title": {
@@ -10276,12 +10349,6 @@
       "predict_deposit": {
         "transaction_fee": "Isu-swap namin ang mga token mo para sa pUSD sa Polygon, ang network na ginamit ng Predictions. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
       },
-      "perps_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "Magsu-swap ang MetaMask ng token na gusto mo para sa iyo. Walang hihinging bayad sa MetaMask kapag nag-swap ka sa mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Kasama sa mga bayarin sa pag-convert ng mUSD ang mga bayad sa network at posible ring kasama ang mga bayarin sa provider. Walang hihinging bayad sa MetaMask kapag nag-convert ka sa mUSD."
       },
@@ -10294,7 +10361,13 @@
       "title": {
         "transaction_fee": "Mga bayad sa transaksyon"
       },
-      "network_fee": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo."
+      "network_fee": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo.",
+      "perps_withdraw": {
+        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
+      }
     },
     "spending_cap": "Limitasyon sa paggastos",
     "withdraw": "I-withdraw",
@@ -10393,7 +10466,7 @@
     "available_balance": "Available na balanse: ",
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
-    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
+    "deposit_edit_amount_convert_token": "I-convert sa {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
     "deposit_edit_amount_money_account_send": "Ipadala",
     "deposit_edit_amount_musd_conversion": "I-convert sa mUSD",
@@ -10528,8 +10601,8 @@
       "order_created_description": "Ipapaalam namin sa iyo kapag na-fill na ito.",
       "order_canceled_title": "Kinansela ang order",
       "usd_price_notice": "Ipinapakita ang mga presyo sa iyong piniling currency, pero nai-place ang iyong order sa USD batay sa rate ng palitan at paggawa ng order. Kasalukuyang rate: 1 USD = {{rate}} {{currency}}.",
-      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
-      "swap_into_token": "Swap into {{symbol}}",
+      "insufficient_balance_warning": "Ang balanse ng iyong {{symbol}} ay masyadong mababa para i-fill ang order na ito. Kung masyado pa rin itong mababa kapag natugunan ang kondisyon para ma-trigger mo, hindi papasok ang order.",
+      "swap_into_token": "I-swap sa {{symbol}}",
       "activity_title_filled": "Nai-swap ang {{source}} sa {{dest}}",
       "activity_title_expired": "ang {{source}} papunta sa {{dest}} ay nag-expire",
       "activity_title_canceled": "ang {{source}} papunta sa {{dest}} ay nakansela",
@@ -10548,8 +10621,8 @@
       "confirm": "Kumpirmahin",
       "preview_order": "I-preview ang Order",
       "confirm_title": "Kumpirmahin ang umuulit na order",
-      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
-      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "unsupported_fee_token_pair": "Hindi available ang mga umuulit na swap para sa pares ng token na ito. Para magpatuloy, palitan ang kahit isang token ng: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Hindi mai-load ang bayad sa sinusuportahang token. Pakisubukan muli.",
       "try_again": "Subukang muli",
       "order_created_toast_title": "Nagawa na ang order",
       "order_created_toast_body": "Ipapaalam namin sa iyo kapag na-fill na ito.",
@@ -10562,9 +10635,9 @@
       "expires_after": "Mag-e-expire pagkalipas ng",
       "slippage_all_orders": "Slippage (lahat ng order)",
       "est_network_fee_per_order": "Tinantyang bayad sa network (kada order)",
-      "account_upgrade_fee": "Account upgrade fee",
-      "account_upgrade_fee_info_title": "Account upgrade fee",
-      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
+      "account_upgrade_fee": "Bayad sa pag-upgrade ng account",
+      "account_upgrade_fee_info_title": "Bayad sa pag-upgrade ng account",
+      "account_upgrade_fee_info_body": "Ang pag-upgrade sa smart account ay pagpapahintulot sa iyo na isagawa ang mga umuulit na pag-swap. Gaya ng lahat ng aksyon na nasa chain, mayroon itong maliit na bayad sa network.",
       "got_it": "Nakuha ko",
       "repeat_info_title": "Ulitin ang mga order",
       "repeat_info_body": "Ginagawa naming random ang iyong mga order sa tiyempo at laki, nang sa gayon walang sinusundan na nahuhulaang pattern ang iyong mga swap.",
@@ -10572,7 +10645,7 @@
       "max_is": "Ang pinakamataas ay {{max}}",
       "price_range": {
         "label": "Saklaw ng presyo",
-        "input_label": "Price range (optional)",
+        "input_label": "Saklaw ng presyo (opsyonal)",
         "not_set": "Hindi nakatakda",
         "token": "Token",
         "price": "Presyo",
@@ -10809,7 +10882,7 @@
     "quote_stream_complete_rwa_market_unavailable": "Ang market para sa asset na ito ay hindi available sa kasalukuyan. Subukan muli mamaya.",
     "max": "Max",
     "approval_needed": "Inaaprubahan ang token para sa pag-swap.",
-    "tooltip_accessibility_hint": "Shows more information",
+    "tooltip_accessibility_hint": "Ipinapakita ang higit pang impormasyon",
     "approval_tooltip_title": "Ibigay ang eksaktong access",
     "approval_tooltip_content": "Pinapayagan mo ang pag-access sa tinukoy na halaga, {{amount}} {{symbol}}. Hindi ia-access ng kontrata ang anumang karagdagang pondo.",
     "minimum_received": "Pinakamababang natanggap",
@@ -12541,7 +12614,7 @@
       "total_participants": "Kabuuang bilang ng mga kalahok",
       "total_volume": "Kabuuang dami",
       "top_return": "Nangungunang return",
-      "top_pnl": "Nangungunang PnL",
+      "top_pnl": "Nangungunang P&L",
       "total_yield": "Kabuuang yield",
       "total_winners": "Kabuuang nanalo"
     },
@@ -12651,7 +12724,7 @@
       "performance_title": "Performance",
       "label_rank": "Rank",
       "label_your_rank": "Rank mo",
-      "label_pnl": "PnL",
+      "label_pnl": "P&L",
       "label_volume": "Volume",
       "label_notional_volume": "Notional na dami",
       "pending": "Nakabinbin",
@@ -12667,7 +12740,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} ang kinakailangan",
       "stats_qualified_title": "Kwalipikado ka",
-      "stats_qualified_description": "Patuloy na mag-trade para mas mapaganda ang PnL mo at makaakyat ka sa leaderboard bago matapos ang kumpetisyon.",
+      "stats_qualified_description": "Patuloy na mag-trade para mapaganda ang P&L mo at makaakyat sa leaderboard bago matapos ang kumpetisyon.",
       "stats_qualify_for_rank_title": "Kwalipikado sa leaderboard",
       "stats_qualify_for_rank_description": "Mag-trade ng {{notionalRemaining}} pang notional na dami para maging kwalipikado.",
       "stats_error_title": "Hindi nai-load ang mga stat",
@@ -12681,7 +12754,7 @@
       "label_your_rank": "Rank mo",
       "label_roi": "ROI (naibawas na ang mga bayarain)",
       "label_total_volume": "Kabuuang dami",
-      "label_pnl": "RnL (naibawas na ang mga bayarain)",
+      "label_pnl": "P&L (naibawas na ang mga bayarain)",
       "predict_now_cta": "I-predict ngayon",
       "positions_title": "Iyong mga prediction",
       "positions_open_section": "Bukas",
@@ -13490,16 +13563,16 @@
       }
     },
     "payment": {
-      "processing_title": "Processing payment",
+      "processing_title": "Bayad sa pagpoproseso",
       "processing_body": "Posibleng magtagal ito nang ilang minuto.",
-      "active_title": "Your membership is active",
-      "view_membership": "View membership",
+      "active_title": "Aktibo ang membership mo",
+      "view_membership": "Tingnan ang membership",
       "failed_title": "Pumalya ang pagbabayad",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "Ilipat ang mga pondo sa iyong Money account para mapanatili ang access sa iyong mga benepisyo.",
       "try_again": "Subukang muli"
     },
     "success": {
-      "title": "You just leveled up",
+      "title": "Nag-level up ka na",
       "description": "Oras na para magsimulang matuto.",
       "cta": "Magpatuloy"
     }

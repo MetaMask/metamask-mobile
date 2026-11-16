@@ -29,7 +29,10 @@ export interface TraderAvatarProps {
    * shared placeholder URLs fall through to the address-derived Maskicon.
    */
   imageUrl?: string | null;
-  /** Wallet address used to derive the Maskicon fallback. */
+  /**
+   * Seed for the Maskicon fallback. Social rows pass the profile id so a
+   * trader with no wallet address still gets a distinct icon.
+   */
   address?: string;
   /** Avatar diameter in pixels. */
   size: number;

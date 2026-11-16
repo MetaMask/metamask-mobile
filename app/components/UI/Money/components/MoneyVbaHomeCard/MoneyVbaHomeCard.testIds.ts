@@ -26,6 +26,12 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     DESCRIPTION: 'money-vba-account-ready-card-description',
     CTA_BUTTON: 'money-vba-account-ready-card-cta-button',
   },
+  identity_verified: {
+    CONTAINER: 'money-vba-identity-verified-card-container',
+    TITLE: 'money-vba-identity-verified-card-title',
+    DESCRIPTION: 'money-vba-identity-verified-card-description',
+    CTA_BUTTON: 'money-vba-identity-verified-card-cta-button',
+  },
   kyc_pending: {
     CONTAINER: 'money-vba-kyc-pending-card-container',
     TITLE: 'money-vba-kyc-pending-card-title',
@@ -46,3 +52,9 @@ export const MONEY_VBA_HOME_CARD_TEST_IDS: Record<
     DISMISS_BUTTON: 'money-vba-kyc-decision-card-dismiss-button',
   },
 };
+
+/** Test IDs for the optional Rive hero (`MoneyVbaHomeCardHeroAnimation`). */
+export const MONEY_VBA_HOME_CARD_HERO_TEST_IDS = {
+  RIVE: 'money-vba-home-card-hero-rive',
+  FALLBACK: 'money-vba-home-card-hero-fallback',
+} as const;

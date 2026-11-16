@@ -14,6 +14,7 @@ export { filterSocialV1FeedPosts } from './filterSocialV1FeedPosts';
 export { filterLeaderboardTraders } from './filterLeaderboardTraders';
 export {
   DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
   MARKET_CAP_RANGE,
   VOLUME_24H_RANGE,
   TYPE_OPTIONS,

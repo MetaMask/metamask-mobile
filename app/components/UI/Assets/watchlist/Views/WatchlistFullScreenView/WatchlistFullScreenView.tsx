@@ -7,11 +7,9 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   Button,
-  ButtonIcon,
   ButtonIconSize,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   IconName,
   Text,
   TextVariant,
@@ -31,6 +29,10 @@ import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import WatchlistSearchContent from './WatchlistSearchContent';
 import { useWatchlistEditDraft } from './useWatchlistEditDraft';
 import styleSheet from './WatchlistFullScreenView.styles';
+import { useSelector } from 'react-redux';
+import ButtonIconGlass from '../../../../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
@@ -43,6 +45,7 @@ interface WatchlistFullViewRouteParams {
 }
 
 const WatchlistFullScreenView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -131,7 +134,8 @@ const WatchlistFullScreenView = () => {
 
     return (
       <View style={styles.headerEndActions}>
-        <ButtonIcon
+        <ButtonIconGlass
+          isCapsule={isGlassHeader}
           iconName={IconName.Search}
           size={ButtonIconSize.Md}
           onPress={handleSearchPress}
@@ -153,6 +157,7 @@ const WatchlistFullScreenView = () => {
       </View>
     );
   }, [
+    isGlassHeader,
     handleDonePress,
     handleEditPress,
     handleSearchPress,
@@ -223,7 +228,9 @@ const WatchlistFullScreenView = () => {
       testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
     >
       {!isSearchMode ? (
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           onBack={isEditMode ? undefined : handleBack}
           backButtonProps={

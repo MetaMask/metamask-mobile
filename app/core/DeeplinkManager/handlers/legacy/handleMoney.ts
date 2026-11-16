@@ -1,5 +1,6 @@
 /* eslint-disable jsdoc/check-indentation */
 import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -7,11 +8,7 @@ import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import {
-  hasMinimumRequiredVersion,
-  isVersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../util/remoteFeatureFlag';
+import { isVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import {
   selectRawRemoteFeatureFlags,
   selectRemoteFeatureFlags,
@@ -75,8 +72,7 @@ const getMoneyAccountFlagStatus = (
     selectRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
 
   if (!Array.isArray(rawFlag)) {
-    // Standard flags must use the resolved selector to match Money stack registration.
-    return validatedVersionGatedFeatureFlag(resolvedFlag)
+    return selectMoneyEnableMoneyAccountFlag(state)
       ? MoneyAccountFlagStatus.Enabled
       : MoneyAccountFlagStatus.Disabled;
   }
@@ -94,8 +90,7 @@ const getMoneyAccountFlagStatus = (
     return MoneyAccountFlagStatus.NotInRollout; // in the "disabled" cohort
   }
 
-  // In the "enabled" cohort, but still version-gated
-  return hasMinimumRequiredVersion(resolvedFlag.minimumVersion)
+  return selectMoneyEnableMoneyAccountFlag(state)
     ? MoneyAccountFlagStatus.Enabled
     : MoneyAccountFlagStatus.Disabled;
 };

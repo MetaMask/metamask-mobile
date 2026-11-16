@@ -137,7 +137,7 @@ describe('Confirm Title', () => {
         });
 
         expect(
-          getByText(strings('confirm.title.money_account_add_money')),
+          getByText(strings('confirm.title.money_account_deposit_header')),
         ).toBeOnTheScreen();
         expect(
           queryByText(

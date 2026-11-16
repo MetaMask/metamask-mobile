@@ -7,7 +7,6 @@ import {
   AvatarAccountSize,
   AvatarAccountVariant,
   FontWeight,
-  HeaderBase,
   Icon,
   IconColor,
   IconName,
@@ -36,7 +35,9 @@ import {
   selectAccountToGroupMap,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+import HeaderBaseGlass from '../../../../../../component-library/components-temp/HeaderBaseGlass';
 
 /** Matches legacy {@link HEADERBASE_TITLE_TEST_ID} for stable E2E/unit queries. */
 const HEADER_BASE_TITLE_TEST_ID = 'header-title';
@@ -65,6 +66,7 @@ export const BaseAccountDetails = ({
   children,
 }: BaseAccountDetailsProps) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
@@ -104,7 +106,9 @@ export const BaseAccountDetails = ({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         style={styles.header}
         textProps={{ testID: HEADER_BASE_TITLE_TEST_ID }}
         startButtonIconProps={{
@@ -114,7 +118,7 @@ export const BaseAccountDetails = ({
         }}
       >
         {account.metadata.name}
-      </HeaderBase>
+      </HeaderBaseGlass>
       <ScrollView
         style={styles.container}
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}

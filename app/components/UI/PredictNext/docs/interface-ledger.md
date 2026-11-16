@@ -12,7 +12,9 @@ This ledger covers PredictNext's internal canonical contract. The interface expo
 - `PredictEvent` is returned within a Feed and by `getEvent`, and contains one or more `PredictMarket` values.
 - Feed pagination uses `{ venueId, id, title, events, nextCursor? }`; cursors are opaque.
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
-- `PredictMarket.group` is optional backend-owned presentation metadata. Mobile supports `marketSelector` groups with a key, Market type, numeric option, and optional display order. Unknown group types remain standard Markets, and mobile never derives group values.
+- `PredictMarket.group` is optional backend-owned presentation metadata. Mobile supports `marketSelector` groups with a key, Market type (including `team_total`), numeric option, and optional display order, and `choice` groups with a key and optional display order. Unknown group types remain standard Markets, and mobile never derives group values.
+- `PredictMarket.layout` is optional backend-owned Event screen placement (tab › section › optional subgroup, each a key and order). Unknown keys parse; a malformed layout is dropped without rejecting the Market (PRED-1426).
+- Game winner quotes come from the full-game moneyline `choice` Markets (layout `moneyline › full_game`), falling back to ungrouped Markets for Events without them.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
 - Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend and its exact complementary No probability.

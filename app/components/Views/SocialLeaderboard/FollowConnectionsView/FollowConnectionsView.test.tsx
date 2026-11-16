@@ -19,7 +19,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
-const mockIsFollowing = jest.fn((id: string) => id === 'trader-1');
+const mockIsFollowing = jest.fn(
+  (id: string, _knownFollowing?: boolean) => id === 'trader-1',
+);
 const mockRefreshFollowing = jest.fn().mockResolvedValue(undefined);
 const mockRefreshFollowers = jest.fn().mockResolvedValue(undefined);
 const mockRefreshMutuals = jest.fn().mockResolvedValue(undefined);
@@ -56,18 +58,19 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../../../hooks/useFollowToggle', () => ({
   useFollowToggleMany: () => ({
-    isFollowing: (id: string) => mockIsFollowing(id),
+    isFollowing: (id: string, knownFollowing?: boolean) =>
+      mockIsFollowing(id, knownFollowing),
     toggleFollow: mockToggleFollow,
   }),
 }));
 
-const mockUseSessionProfileId = jest.fn(() => ({
+const mockUseSocialProfileId = jest.fn(() => ({
   profileId: undefined as string | undefined,
   isLoading: false,
 }));
 
-jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
-  useSessionProfileId: () => mockUseSessionProfileId(),
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => mockUseSocialProfileId(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -121,7 +124,7 @@ describe('FollowConnectionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { initialTab: 'followers' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: undefined,
       isLoading: false,
     });
@@ -261,6 +264,31 @@ describe('FollowConnectionsView', () => {
         traderAddress: '0x1111111111111111111111111111111111111111',
         traderUsername: 'Signal Scout',
       }),
+      true,
+    );
+  });
+
+  it('marks owner following rows as known-followed', () => {
+    mockRouteParams = { initialTab: 'following' };
+
+    renderWithProvider(<FollowConnectionsView />);
+
+    expect(mockIsFollowing).toHaveBeenCalledWith('trader-2', true);
+  });
+
+  it('does not mark another trader following rows as known-followed', () => {
+    mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
+
+    renderWithProvider(<FollowConnectionsView />);
+    fireEvent.press(
+      screen.getByTestId(getConnectionFollowButtonTestId('trader-2')),
+    );
+
+    expect(mockIsFollowing).toHaveBeenCalledWith('trader-2', false);
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-2',
+      expect.objectContaining({ source: 'trader_profile' }),
+      false,
     );
   });
 
@@ -340,7 +368,7 @@ describe('FollowConnectionsView', () => {
 
   it('hides Follow on the signed-in viewer row in another trader followers list', () => {
     mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });
@@ -377,7 +405,7 @@ describe('FollowConnectionsView', () => {
 
   it('opens owner profile chrome when the viewer row is tapped', () => {
     mockRouteParams = { initialTab: 'followers', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });
@@ -435,7 +463,7 @@ describe('FollowConnectionsView', () => {
 
   it('hides Follow on the signed-in viewer row in another trader following list', () => {
     mockRouteParams = { initialTab: 'following', addressOrId: '0xabc' };
-    mockUseSessionProfileId.mockReturnValue({
+    mockUseSocialProfileId.mockReturnValue({
       profileId: 'me-profile',
       isLoading: false,
     });

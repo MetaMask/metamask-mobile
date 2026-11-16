@@ -11,7 +11,6 @@ import {
 import {
   Box,
   FontWeight,
-  HeaderStandard,
   SectionDivider,
   Text,
   TextVariant,
@@ -57,6 +56,9 @@ import {
   getLimitOrderActivityTransaction,
   getLimitOrderActivityUsdValue,
 } from './SwapsLimitOrderActivityPage.utils';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 function LimitOrderFeesAndTotal({
   chainId,
@@ -129,6 +131,7 @@ function LimitOrderFeesAndTotal({
 }
 
 function SwapsLimitOrderActivityPage() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { order } = useParams<SwapsLimitOrderActivityPageRouteParams>();
@@ -183,7 +186,9 @@ function SwapsLimitOrderActivityPage() {
       testID={SwapsLimitOrderActivityPageSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={getLimitOrderActivityTitle(
             order.state,

@@ -131,7 +131,7 @@
       "title": "Fondos insuficientes"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "Aún no tienes fondos en tu cuenta Money para realizar envíos. Primero, añade fondos."
     },
     "fiat_buy_amount_limit": {
       "title": "Monto fuera del rango"
@@ -1152,7 +1152,8 @@
       "moonpay_privacy_policy_link": "la Política de privacidad de MoonPay",
       "moonpay_terms_link": "los Términos y condiciones de MoonPay",
       "powered_by": "Impulsado por",
-      "button": "Obtener datos de la cuenta"
+      "button": "Obtener datos de la cuenta",
+      "feature_arrives_title_pix": "Llega en segundos"
     },
     "verify_identity": {
       "title": "Verifica tu identidad",
@@ -1170,7 +1171,21 @@
       "terms_sheet_description": "Para verificar tu identidad, tu información se compartirá de forma segura con los proveedores que se indican a continuación. Revisa sus políticas y términos antes de continuar.",
       "metamask_privacy_policy": "Política de privacidad de MetaMask",
       "metamask_terms": "Términos y condiciones de MetaMask",
-      "terms_sheet_button": "Aceptar e iniciar la verificación"
+      "terms_sheet_button": "Aceptar e iniciar la verificación",
+      "subtitle": "Esto suele llevar unos minutos. Necesitarás un documento de identidad oficial.",
+      "step_indicator": "Paso {{current}} de {{total}}",
+      "partner_title": "Nos asociamos con idOS para verificar tu identidad.",
+      "benefit_reuse_title": "Verifica una vez, reutiliza después.",
+      "benefit_reuse_description": "MetaMask almacena de forma segura una copia cifrada de tu identidad verificada, para que puedas registrarte con otros socios con mayor rapidez.",
+      "benefit_control_title": "Tú controlas tus datos.",
+      "benefit_control_description": "Compartimos tu identidad verificada con un socio solo cuando tú das tu consentimiento.",
+      "benefit_delete_title": "Eliminar en cualquier momento.",
+      "benefit_delete_description": "Elimina tu identidad verificada en cualquier momento desde la configuración.",
+      "agreement": "Al continuar, acepto los {{termsOfUse}} de MetaMask, reconozco el {{privacyNotice}} de MetaMask y doy mi consentimiento para que MetaMask almacene y transfiera mi información a idOS.",
+      "agreement_terms_of_use": "Términos de uso",
+      "agreement_privacy_notice": "Aviso de privacidad",
+      "agree_and_continue_button": "Aceptar y continuar",
+      "learn_more": "Conozca más"
     },
     "kyc_email": {
       "error_title": "No se pudo iniciar la verificación",
@@ -1190,7 +1205,9 @@
     "kyc_taking_longer": {
       "title": "Verificando tu identidad",
       "description": "La mayoría de las verificaciones tardan alrededor de 10 segundos. Puedes volver más tarde; te avisaremos cuando tu verificación haya finalizado.",
-      "button": "Vuelve más tarde"
+      "button": "Vuelve más tarde",
+      "description_few_minutes": "La mayoría de las verificaciones finalizan en unos minutos. Puedes volver más tarde. Te avisaremos cuando esté completo.",
+      "done_button": "Hecho"
     },
     "identity_verified": {
       "title": "Identidad verificada",
@@ -1198,8 +1215,8 @@
       "button": "Continuar"
     },
     "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
+      "title": "Creando tu cuenta...",
+      "description": "La mayoría de las cuentas se crean al instante.",
       "awaiting_provider": "Esperando a que MoonPay apruebe tu cuenta"
     },
     "kyc_rejected": {
@@ -1253,7 +1270,7 @@
     "vba_details": {
       "title": "Agrega dinero con Pix",
       "description": "Agrega fondos directamente desde tu banco. Por lo general, los fondos se acreditan en tu Money Account en cuestión de minutos.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure": "Un proveedor externo regulado presta los servicios de activos virtuales en Brasil.",
       "provider_disclosure_link": "Conozca más",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Clave Pix",
@@ -1271,6 +1288,25 @@
       "load_error": "No se pudo actualizar el depósito. Volveremos a intentarlo.",
       "setup_error": "No se pudo crear tu cuenta.",
       "retry": "Inténtalo de nuevo"
+    },
+    "partner_terms": {
+      "title": "Nuestros socios de verificación",
+      "description": "idOS verifica tu identidad. idOS involucra a Sumsub para completar la verificación.",
+      "section_title": "Términos y privacidad",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "Reconozco que mis datos personales serán tratados conforme a lo descrito en el {{notice}}.",
+      "sumsub_acknowledgement_us_residents": " Aplicable únicamente a residentes de EE. UU.: Confirmo que he leído el {{privacyNotice}} y doy mi consentimiento para el procesamiento de mi información biométrica e identificadores biométricos como se describe en el {{biometricsConsent}}.",
+      "sumsub_notice": "Aviso de Sumsub sobre el tratamiento de datos personales",
+      "sumsub_privacy_notice": "Aviso de privacidad",
+      "sumsub_biometrics_consent": "Consentimiento de procesamiento biométrico de Sumsub",
+      "biometric_consent": "Doy mi consentimiento explícito para que idOS Association procese mis imágenes faciales y los datos biométricos derivados de ellas con el fin de verificar mi identidad, tal como se describe en el {{privacyNotice}}.",
+      "biometric_consent_privacy_notice": "Aviso de privacidad de idOS",
+      "agreement": "Al tocar Aceptar y continuar, acepto los {{termsAndConditions}}.",
+      "agreement_terms": "Términos y condiciones de idOS",
+      "scroll_to_continue_button": "Desplázate para continuar",
+      "agree_to_consent_above_button": "Aceptar el consentimiento anterior",
+      "button": "Aceptar y continuar"
     }
   },
   "social": {
@@ -1280,9 +1316,9 @@
   },
   "social_leaderboard": {
     "account_disabled": {
-      "title": "Your account is temporarily disabled",
-      "reason": "Reason: {{reason}}",
-      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "title": "Tu cuenta está temporalmente deshabilitada",
+      "reason": "Motivo: {{reason}}",
+      "contact_support_description": "Ponte en contacto con el soporte en {{email}} o en la aplicación para obtener ayuda.",
       "contact_support": "Contactar a soporte"
     },
     "entry_options": {
@@ -1447,7 +1483,8 @@
         "buy": "Comprar",
         "sell": "Vender",
         "closed_ago": "Cerrada · {{age}}",
-        "sold_ago": "Vendida · {{age}}"
+        "sold_ago": "Vendida · {{age}}",
+        "opened_ago": "Abierta · {{age}}"
       }
     },
     "translation": {
@@ -1640,18 +1677,18 @@
       "excluded": "Excluida de P&L (ganancias y pérdidas)",
       "short": {
         "insider": "Insider",
-        "creator": "Creator",
-        "excluded": "Excluded"
+        "creator": "Creador",
+        "excluded": "Excluído"
       },
       "accessibility": {
-        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
-        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
-        "direction_up": "up",
-        "direction_down": "down",
-        "direction_flat": "unchanged",
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, no se incluye en el P&L, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, no se incluye en el P&L, {{reason}}",
+        "direction_up": "arriba",
+        "direction_down": "abajo",
+        "direction_flat": "sin cambios",
         "reason_insider": "insider",
-        "reason_creator": "creator",
-        "reason_excluded": "excluded"
+        "reason_creator": "creador",
+        "reason_excluded": "excluído"
       }
     },
     "trader_profile": {
@@ -1723,7 +1760,7 @@
       "posts": "Publicaciones",
       "section_tokens": "Tokens",
       "section_perpetuals": "Contratos perpetuos",
-      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_in_pnl": "No se incluye en P&L",
       "empty_open": "No hay posiciones abiertas",
       "empty_closed": "No hay posiciones cerradas",
       "empty_open_tokens": "No hay tokens abiertos",
@@ -1731,13 +1768,25 @@
       "empty_open_perps": "No hay perps abiertos",
       "empty_closed_perps": "No hay perps cerrados",
       "empty_title": "Aún no hay publicaciones",
-      "joined": "Se unió: {{time}}",
+      "joined": "Se unió hace {{time}}",
       "x_link": "X",
       "load_profile_error": "No se pudo cargar tu perfil.",
       "no_profile_title": "Crea tu perfil",
       "no_profile_description": "Reserva un nombre de usuario para que aparezca en el feed.",
       "create_profile": "Crear perfil",
-      "retry": "Inténtalo de nuevo"
+      "retry": "Inténtalo de nuevo",
+      "not_counted_section_a11y_one": "No se incluye en P&L, 1 posición. Aprende por qué",
+      "not_counted_section_a11y_other": "No se incluyen en P&L; {{count}} posiciones. Descubre por qué",
+      "not_counted_sheet_title": "Por qué no se incluyen algunas posiciones",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "Este trader obtuvo el token a partir de una asignación previa a su lanzamiento público.",
+      "not_counted_sheet_insider_body_owner": "Obtuviste el token a partir de una asignación previa a su lanzamiento público.",
+      "not_counted_sheet_developer_label": "Creador de contrato",
+      "not_counted_sheet_developer_body": "Este trader implementó el contrato del token.",
+      "not_counted_sheet_developer_body_owner": "Implementaste el contrato del token.",
+      "not_counted_sheet_unsupported_label": "Token no compatible",
+      "not_counted_sheet_unsupported_body": "No podemos realizar un seguimiento de las pérdidas y ganancias de tokens no admitidos, como depósitos en pools de préstamos.",
+      "not_counted_sheet_dismiss": "Entendido"
     },
     "terms": {
       "title": "Revisa nuestros Términos de Uso",
@@ -1820,8 +1869,8 @@
       "linked_social_account": "Cuenta de redes sociales vinculada",
       "save": "Guardar",
       "save_error": "No se pudieron guardar los cambios. Comprueba tu conexión e inténtalo de nuevo.",
-      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
-      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "bio_prohibited": "Parte de esta biografía no se puede utilizar. Edita y vuelve a intentarlo.",
+      "display_name_unavailable": "Este nombre no está disponible. Prueba algo diferente.",
       "username_unavailable": "Este nombre de usuario no está disponible. Elige otro.",
       "username_too_short": "Usa al menos {{min}} caracteres.",
       "username_too_long": "Usa como máximo {{max}} caracteres.",
@@ -1832,7 +1881,8 @@
       "trading_activity_footnote": "Los cambios se aplican de inmediato. Tu identidad y tu contenido de redes sociales seguirán siendo visibles de cualquier forma.",
       "trading_activity_info": "Más información sobre la actividad de trading",
       "linked_account_footnote": "Las operaciones realizadas con esta cuenta aparecerán en tu feed y en la clasificación.",
-      "avatar_accessibility_label": "Tu avatar de perfil"
+      "avatar_accessibility_label": "Tu avatar de perfil",
+      "linked_account_cooldown": "Solo puedes cambiar tu cuenta vinculada una vez cada {{days}} días."
     },
     "position_sheet": {
       "title": "Operación de {{username}}",
@@ -1840,9 +1890,9 @@
       "following": "Siguiendo",
       "today": "Hoy",
       "market_cap_suffix": "(CB)",
-      "posts_tab": "Posts ({{count}})",
-      "transactions_tab": "Transactions ({{count}})",
-      "no_posts": "No posts on this trade yet",
+      "posts_tab": "Publica ({{count}})",
+      "transactions_tab": "Transacciones ({{count}})",
+      "no_posts": "Aún no hay publicaciones sobre esta operación",
       "level": {
         "entry": "Entrada",
         "exit": "Salir",
@@ -1875,7 +1925,9 @@
         "spot_added": "Compró más",
         "spot_reduced": "Vendió una parte",
         "spot_closed": "Vendió todo"
-      }
+      },
+      "open_asset_accessibility_hint": "Abre la página de activos",
+      "open_market_accessibility_hint": "Abre detalles del mercado"
     },
     "trader_position": {
       "market_cap": "Capitalización bursátil",
@@ -2664,7 +2716,8 @@
       "updating_your_order": "Actualizando tu orden",
       "order_updated": "Orden actualizada",
       "order_update_failed": "Error al actualizar la orden",
-      "order_update_failed_subtitle": "Tu orden sigue vigente al precio y cantidad anteriores."
+      "order_update_failed_subtitle": "Tu orden sigue vigente al precio y cantidad anteriores.",
+      "order_update_post_only_would_cross": "Tu orden se canceló porque el nuevo precio cruzaría el diferencial. Vuelve a realizarlo con un precio diferente o como una orden que no sea solo de publicación."
     },
     "slippage": {
       "config_title": "Establecer deslizamiento",
@@ -2994,7 +3047,9 @@
       "marginValidation": {
         "exceedsMaxRemovable": "El importe excede el margen máximo extraíble",
         "insufficientMargin": "La posición no tiene margen suficiente para esta reducción"
-      }
+      },
+      "postOnlyWindow": "El trading está temporalmente restringido después de una actualización de la red y se reanudará en breve. Inténtalo de nuevo en unos minutos.",
+      "postOnlyWouldCross": "Este precio atravesaría el diferencial, por lo que la orden de tipo «post-only» no se ha cursado. Ajusta el precio o utiliza una orden que no sea de tipo «post-only»."
     },
     "position": {
       "title": "Posiciones",
@@ -3667,7 +3722,7 @@
     "tp_on_chart": "TG en el gráfico",
     "sl_on_chart": "LP en el gráfico",
     "pnl_hero_card": {
-      "title": "Tarjeta PnL Hero",
+      "title": "Tarjeta P&L Hero",
       "header_title": "Comparte tu operación",
       "share_button": "Compartir",
       "share_message_without_referral_code": "Opera con contratos perpetuos de {{asset}} en MetaMask.",
@@ -3742,8 +3797,8 @@
     "unavailable_in_region": "No está disponible en tu región",
     "home_title": "Predicciones",
     "venue_selector": {
-      "button_label": "Choose a prediction market",
-      "title": "Prediction market",
+      "button_label": "Elige un mercado de predicción",
+      "title": "Mercado de predicción",
       "venues": {
         "polymarket": "Polymarket",
         "kalshi": "Kalshi"
@@ -3758,24 +3813,32 @@
       "your_positions": "Tus posiciones",
       "game_lines": "Líneas de juego",
       "outcomes": "Resultados",
-      "view_all_markets": "View all {{count}} markets",
+      "view_all_markets": "Ver todos los {{count}} mercados",
       "market_layout": {
         "moneyline": "Línea de dinero",
         "spread": "Diferencial",
         "total_points": "Puntos totales",
-        "team_total": "Team total",
-        "player_props": "Player props",
-        "anytime_touchdown": "Anytime touchdown",
-        "rushing_yards": "Rushing yards",
-        "receiving_yards": "Receiving yards",
-        "passing_yards": "Passing yards",
-        "full_game": "Full game",
-        "first_half": "1st half",
-        "second_half": "2nd half",
-        "q1": "1st quarter",
-        "q2": "2nd quarter",
-        "q3": "3rd quarter",
-        "q4": "4th quarter"
+        "team_total": "Total del equipo",
+        "player_props": "Apuestas de jugadores",
+        "anytime_touchdown": "Anotación en cualquier momento",
+        "rushing_yards": "Yardas por carrera",
+        "receiving_yards": "Yardas por recepción",
+        "passing_yards": "Yardas por pase",
+        "full_game": "Juego completo",
+        "first_half": "1.er tiempo",
+        "second_half": "2.° tiempo",
+        "q1": "1er cuarto",
+        "q2": "2.° cuarto",
+        "q3": "3er cuarto",
+        "q4": "4.° cuarto"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "{{percent}} % para ganar",
+        "buy": "Comprar {{price}}",
+        "buy_price_unavailable": "Comprar, precio no disponible",
+        "holding": "{{shares}} acciones a {{price}}",
+        "holding_shares": "{{shares}} acciones"
       }
     },
     "search": {
@@ -3864,7 +3927,7 @@
       "refresh": "Actualizar",
       "retry": "Inténtalo de nuevo",
       "review": "Revisar la orden",
-      "venue_changed": "Your prediction market changed. Close this order to continue."
+      "venue_changed": "Tu mercado de predicción cambió. Cierra esta orden para continuar."
     },
     "order_approval": {
       "title": "Revisa tu orden",
@@ -3897,8 +3960,12 @@
       "requote": "Inténtalo de nuevo"
     },
     "order_notification": {
-      "not_placed_title": "Order not placed",
-      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+      "not_placed_title": "Orden no colocada",
+      "not_placed_description": "No salió nada de tu saldo. Obtén una nueva cotización para intentarlo nuevamente."
+    },
+    "home_section": {
+      "position_info": "{{costBasis}} en {{outcome}} para ganar {{payout}}",
+      "pnl_unavailable": "No disponible"
     }
   },
   "predict": {
@@ -4663,8 +4730,8 @@
     "sort_name": "Nombre",
     "sort_high_to_low": "De máximo a mínimo",
     "sort_low_to_high": "De mínimo a máximo",
-    "sort_a_to_z": "A to Z",
-    "sort_z_to_a": "Z to A",
+    "sort_a_to_z": "De la A a la Z",
+    "sort_z_to_a": "De la Z a la A",
     "sort_apply": "Aplicar",
     "sort_reset": "Restablecer",
     "add_to_get_started": "Agregue cripto para comenzar",
@@ -4806,7 +4873,7 @@
       "all": "Todos los tipos",
       "transactions": "Transacciones",
       "buy_sell": "Compra/Venta",
-      "limit_orders": "Limit orders",
+      "limit_orders": "Órdenes límitadas",
       "perps": "Perps",
       "predictions": "Predicciones",
       "metamask_card": "Tarjeta"
@@ -4851,7 +4918,7 @@
         "action": "Agregar fondos"
       },
       "limit_orders": {
-        "description": "Your filled limit orders will show up here.",
+        "description": "Tus órdenes limitadas completadas aparecerán aquí.",
         "action": "Canjear tokens"
       },
       "metamask_card": {
@@ -5226,7 +5293,7 @@
     "card_update_badge": "Actualizar",
     "settings": "Configuración",
     "networks": "Redes",
-    "log_out": "Cerrar sesión",
+    "log_out": "Bloquear",
     "notifications": "Notificaciones",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "Únete a MetaMask Orange",
@@ -6173,7 +6240,7 @@
     "balance": "saldo. Consulte el artículo de soporte",
     "position_pnl": {
       "your_position": "Tu posición",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "P&L no realizado",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6357,97 +6424,97 @@
   },
   "token_details_v1": {
     "security_pill": {
-      "screened": "Screened",
+      "screened": "Analizado",
       "flags": {
-        "one": "{{count}} flag",
-        "other": "{{count}} flags"
+        "one": "{{count}} alerta",
+        "other": "{{count}} alertas"
       },
       "high_risk": "Riesgo alto",
-      "unscreened": "Unscreened",
+      "unscreened": "Sin analizar",
       "pending": "Pendiente",
-      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+      "accessibility_label": "Seguridad: {{verdict}}. Abrir la pestaña Seguridad"
     },
     "social": {
-      "website": "Open website",
-      "x": "Open on X",
-      "telegram": "Open on Telegram",
-      "search_on_x": "Search on X",
-      "copy_address": "Copy contract address {{address}}"
+      "website": "Abrir sitio web",
+      "x": "Abrir en X",
+      "telegram": "Abrir en Telegram",
+      "search_on_x": "Buscar en X",
+      "copy_address": "Copiar dirección del contrato {{address}}"
     },
     "age": {
-      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "accessibility_label": "Antigüedad del token: {{age}}. Obtén más información sobre la antigüedad del token.",
       "explainer": {
         "title": "Antigüedad del token",
-        "description": "Time since token creation. Seconds, minutes, hours, then days."
+        "description": "Tiempo desde la creación del token. Segundos, minutos, horas y luego días."
       }
     },
     "stats": {
       "market_cap": "MCap",
       "liquidity": "Liquidez",
-      "volume_24h": "24h Vol",
+      "volume_24h": "Vol. 24h",
       "holders": "Titulares",
       "top_10": "Top 10",
       "liquidity_to_market_cap": "Liq/MC",
-      "tax": "Tax",
-      "high_low_24h": "24h high/low",
+      "tax": "Tarifa",
+      "high_low_24h": "Máx/mín 24 h",
       "circulating_supply": "Suministro circulante",
-      "explain": "{{stat}}. Learn what this means",
+      "explain": "{{stat}}. Descubre qué significa esto",
       "explainers": {
         "market_cap": {
-          "title": "Market capitalization",
-          "description": "Current market capitalization of the circulating token supply."
+          "title": "Capitalización de mercado",
+          "description": "Capitalización de mercado actual de la oferta de tokens en circulación."
         },
         "liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token's trading pools."
+          "title": "Liquidez total",
+          "description": "Valor actualmente disponible en los pools de trading del token."
         },
         "volume_24h": {
-          "title": "24-hour trading volume",
-          "description": "Value traded over the last 24 hours."
+          "title": "Volumen de trading de 24 horas",
+          "description": "Valor negociado en las últimas 24 horas."
         },
         "holders": {
           "title": "Titulares",
-          "description": "Number of unique addresses holding this token."
+          "description": "Número de direcciones únicas que poseen este token."
         },
         "top_10": {
           "title": "Los 10 principales titulares",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+          "description": "Porcentaje en posesión de las 10 principales billeteras, excluyendo pools, routers y direcciones de quema."
         },
         "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+          "title": "Liquidez respecto a la capitalización de mercado",
+          "description": "Liquidez total dividida por cap. de mercado. Esta es una estadística independiente, no forma parte del veredicto de Blockaid."
         },
         "tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          "title": "Tarifa de compra y venta",
+          "description": "Comisiones de compra y venta indicadas para los tokens de EVM. La ausencia de datos no implica que las comisiones sean cero."
         },
         "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          "title": "Máximos y mínimos de 24 horas",
+          "description": "Precios negociados más altos y más bajos en las últimas 24 horas, mostrados en ese orden."
         },
         "circulating_supply": {
           "title": "Suministro circulante",
-          "description": "Amount of this token currently circulating."
+          "description": "Cantidad de este token actualmente en circulación."
         },
         "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
+          "title": "Tokens del pool de liquidez quemados o bloqueados",
+          "description": "Porción de la liquidez del pool principal que ha sido quemada o bloqueada."
         },
         "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
+          "title": "Pool principal",
+          "description": "El principal pool de trading que se informó sobre este token."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
+          "title": "Alertas de volumen",
+          "description": "Estas alertas aparecen cuando Blockaid detecta indicios de actividad de trading artificial, como el *wash trading* o el volumen ficticio."
         },
         "listed_on_exchange": {
           "title": "Listado en el cambio",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          "description": "Indica si Blockaid reporta que el token cotiza en un exchange centralizado principal."
         },
         "created": {
           "title": "Creado",
-          "description": "Date the token contract was created, when reported by its source."
+          "description": "Fecha en la que se creó el contrato del token, según lo indicado por su fuente."
         }
       }
     },
@@ -6479,40 +6546,40 @@
       "title": "Actividad de {{symbol}}"
     },
     "security_tab": {
-      "explain": "What does {{term}} mean?",
-      "contract_details_link": "See all contract security checks",
+      "explain": "¿Qué significa {{term}}?",
+      "contract_details_link": "Ver todos los controles de seguridad del contrato",
       "sections": {
         "contract": "Contrato",
-        "contract_checks": "Contract checks",
-        "additional_checks": "Additional checks",
+        "contract_checks": "Controles de contrato",
+        "additional_checks": "Controles adicionales",
         "holders": "Titulares",
         "liquidity": "Liquidez",
         "trading": "Trading",
         "origin": "Origen"
       },
       "checks": {
-        "no_honeypot": "No honeypot",
-        "contract_verified": "Contract verified",
-        "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "is_mintable": "Is mintable"
+        "no_honeypot": "Sin señuelo",
+        "contract_verified": "Contrato verificado",
+        "renounced": "Sin administrador",
+        "no_blacklist": "Sin controles de bloqueo",
+        "is_mintable": "Es acuñable"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Honeypot not detected",
-          "fail": "Honeypot detected"
+          "pass": "No se detectó un señuelo",
+          "fail": "Se detectó un señuelo"
         },
         "contract_verified": {
           "pass": "Sí",
           "fail": "No"
         },
         "renounced": {
-          "pass": "Renounced",
-          "fail": "Not renounced"
+          "pass": "Sin administrador",
+          "fail": "Sin renuncia"
         },
         "no_blacklist": {
-          "pass": "No controls",
-          "fail": "Control detected"
+          "pass": "Sin controles",
+          "fail": "Se detectó un control"
         },
         "is_mintable": {
           "pass": "Sí",
@@ -6522,127 +6589,127 @@
       "values": {
         "yes": "Sí",
         "no": "No",
-        "none_detected": "None detected",
+        "none_detected": "No se detectó ninguno",
         "detected": {
-          "one": "{{count}} detected",
-          "other": "{{count}} detected"
+          "one": "{{count}} detectado",
+          "other": "{{count}} detectados"
         }
       },
       "risk_banner": {
-        "one": "We found {{count}} risk",
-        "other": "We found {{count}} risks"
+        "one": "Encontramos {{count}} riesgo",
+        "other": "Encontramos {{count}} riesgos"
       },
       "risks": {
         "default": {
-          "title": "Risk detected"
+          "title": "Se detectó un riesgo"
         },
         "known_malicious": {
           "title": "Malicioso confirmado",
-          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+          "description": "Blockaid ha identificado actividad maliciosa conocida o un contrato de token comprometido."
         },
         "dangerous_contract_behavior": {
-          "title": "Dangerous contract behavior",
-          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+          "title": "Comportamiento contractual peligroso",
+          "description": "El contrato contiene código sospechoso, puertas traseras privilegiadas o comportamiento que difiere de su funcionamiento esperado."
         },
         "impersonation_risk": {
-          "title": "Impersonation risk",
-          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+          "title": "Riesgo de suplantación",
+          "description": "Este token puede imitar el nombre, el símbolo, la marca o las propiedades de identificación de un token legítimo."
         },
         "rug_pull": {
-          "title": "Rug pull detected",
-          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+          "title": "Se detectó un tirón de alfombra",
+          "description": "Blockaid ha identificado que los creadores de tokens tienen un historial de orquestar esquemas maliciosos de tirón de alfombra y señuelos."
         },
         "exit_scam_risk": {
-          "title": "Exit scam risk",
-          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+          "title": "Salir del riesgo de estafa",
+          "description": "El comportamiento de los creadores o de personas con información privilegiada sugiere el riesgo de extraer valor a costa de los titulares."
         },
         "high_token_fees": {
-          "title": "High token fees",
-          "description": "The token's transfer, buy, or sell fees are unusually high."
+          "title": "Comisiones elevadas por token",
+          "description": "Las tarifas de transferencia, compra o venta del token son inusualmente altas."
         },
         "low_liquidity_risk": {
-          "title": "Low liquidity risk",
-          "description": "Limited liquidity could make the token price volatile."
+          "title": "Bajo riesgo de liquidez",
+          "description": "Una liquidez limitada podría hacer que el precio del token sea volátil."
         },
         "concentrated_ownership": {
-          "title": "Concentrated ownership",
-          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+          "title": "Propiedad concentrada",
+          "description": "Un pequeño grupo de tenedores controla una gran parte de la oferta, lo que aumenta el riesgo de manipulación de precios y presión de venta."
         },
         "wash_trading": {
-          "title": "Wash trading activity",
-          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+          "title": "Actividad de wash trading",
+          "description": "Es posible que operaciones o cuentas de trading artificiales estén inflando la actividad o el volumen del token."
         },
         "sniped_at_launch": {
-          "title": "Sniped at launch",
-          "description": "One or more wallets acquired supply in the same block as the token's creation."
+          "title": "Sniping en el lanzamiento",
+          "description": "Una o más billeteras obtuvieron suministro en el mismo bloque en el que se creó el token."
         },
         "suspicious_creator": {
-          "title": "Suspicious creator",
-          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+          "title": "Creador sospechoso",
+          "description": "La reputación del creador o la trayectoria de financiación del token plantean preocupaciones de riesgo adicionales."
         },
         "sanctioned_creator": {
           "title": "Creador sancionado",
-          "description": "The token's creator is sanctioned by a government or financial institution."
+          "description": "El creador del token está sancionado por un gobierno o una institución financiera."
         },
         "suspicious_airdrop": {
           "title": "Airdrop sospechoso",
-          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+          "description": "La actividad de airdrop o los metadatos del token en la cadena pueden ser engañosos o similares al spam."
         },
         "liquidity_withdrawal_risk": {
-          "title": "Liquidity withdrawal risk",
-          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+          "title": "Riesgo de retiro de liquidez",
+          "description": "Una liquidez bloqueada insuficiente o un desbloqueo de migración podrían permitir al operador retirar liquidez."
         }
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now",
+        "age_clause": "· actualizado hace {{count}} min",
+        "age_clause_just_now": "· actualizado hace un momento",
         "explainer": {
-          "title": "Security verification",
-          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+          "title": "Verificación de seguridad",
+          "description": "Blockaid completa las comprobaciones de verificación de seguridad en función del historial en cadena. Se comparten únicamente para tu información y no constituyen asesoramiento financiero, legal o de inversión. La verificación no es un respaldo por parte de MetaMask."
         }
       },
       "stats": {
         "holders": "Titulares",
         "top_ten": "Top 10",
-        "total_liquidity": "Total liquidity",
+        "total_liquidity": "Liquidez total",
         "liquidity_to_market_cap": "Liq/MC",
-        "lp_burned_locked": "LP burned/locked",
-        "primary_pool": "Primary pool",
-        "buy_sell_tax": "Buy/sell tax",
-        "volume_flags": "Volume flags",
+        "lp_burned_locked": "LP quemado/bloqueado",
+        "primary_pool": "Pool principal",
+        "buy_sell_tax": "Impuesto de compra/venta",
+        "volume_flags": "Alertas de volumen",
         "listed_on_exchange": "Listado en el cambio",
         "created": "Creado"
       },
       "holders": {
         "top_ten": "Top 10",
-        "remaining": "Remaining holders"
+        "remaining": "Titulares restantes"
       },
       "explainers": {
         "no_honeypot": {
-          "title": "No honeypot",
-          "description": "Whether the token can be sold."
+          "title": "Sin señuelo",
+          "description": "Indicar si el token se puede vender."
         },
         "contract_verified": {
-          "title": "Contract verified",
-          "description": "Whether the contract source is reported as verified."
+          "title": "Contrato verificado",
+          "description": "Indicar si la fuente del contrato se informa como verificada."
         },
         "renounced": {
-          "title": "Renounced",
-          "description": "Whether contract ownership has been renounced."
+          "title": "Sin administrador",
+          "description": "Indicar si se ha renunciado a la titularidad del contrato."
         },
         "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
+          "title": "Sin controles de bloqueo",
+          "description": "Indicar si se puede bloquear el trading de una dirección."
         },
         "is_mintable": {
-          "title": "Is mintable",
-          "description": "Whether a token can mint additional supply."
+          "title": "Es acuñable",
+          "description": "Indica si un token puede acuñar suministro adicional."
         }
       }
     },
     "contract_security": {
-      "title": "Contract security"
+      "title": "Seguridad del contrato"
     },
     "tab_placeholder": "Próximamente"
   },
@@ -9543,8 +9610,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "title": "Convertir a dólares digitales",
+        "description": "Envía BRL, USD o EUR desde tu banco y obtén mUSD en tu cuenta Money. Sin tarifas.",
         "cta": "Comenzar"
       },
       "account_is_ready": {
@@ -9567,6 +9634,11 @@
         "description": "Por el momento, no podemos ofrecer transferencias bancarias. Ponte en contacto con Soporte para recibir ayuda.",
         "cta": "Conozca más",
         "dismiss": "Ignorar"
+      },
+      "identity_verified": {
+        "title": "Identidad verificada",
+        "description": "A continuación, obtén los detalles de tu cuenta virtual para agregar fondos de tu banco.",
+        "cta": "Obtener datos de la cuenta"
       }
     },
     "first_time_deposit": {
@@ -9698,7 +9770,8 @@
       "add_musd": "Agregar mUSD",
       "receive_external": "Dirección externa",
       "coming_soon": "Próximamente",
-      "new_badge": "Nuevo"
+      "new_badge": "Nuevo",
+      "no_fees": "Sin comisiones"
     },
     "more_sheet": {
       "title": "Más",
@@ -9817,9 +9890,9 @@
     "transaction": {
       "deposited": "Depositado",
       "bank_transfer": "Transferencia bancaria",
-      "microdeposit": "Verification deposit",
-      "microdeposit_from": "From {{name}}",
-      "microdeposit_from_bank": "From your bank",
+      "microdeposit": "Depósito de verificación",
+      "microdeposit_from": "De {{name}}",
+      "microdeposit_from_bank": "Desde tu banco",
       "received": "Recibido",
       "sent": "Enviado",
       "card_transaction": "Transacción con tarjeta",
@@ -10253,7 +10326,7 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_deposit_header": "Add to MetaMask Money",
+      "money_account_deposit_header": "Añadir a MetaMask Money",
       "money_account_send": "Enviar"
     },
     "sub_title": {
@@ -10276,12 +10349,6 @@
       "predict_deposit": {
         "transaction_fee": "Canjearemos tus tokens por pUSD en Polygon, la red que usa Predicciones. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask realizará el canje por el token que desees. No se aplica ninguna tarifa de MetaMask al canjear a mUSD."
-      },
       "musd_conversion": {
         "transaction_fee": "Las tarifas de conversión a mUSD incluyen costos de red y pueden incluir tarifas del proveedor. No se aplica ninguna tarifa de MetaMask al convertir a mUSD."
       },
@@ -10294,7 +10361,13 @@
       "title": {
         "transaction_fee": "Tarifas de transacción"
       },
-      "network_fee": "Las tarifas de red dependen de qué tan ocupada esté la red y de qué tan compleja sea tu transacción."
+      "network_fee": "Las tarifas de red dependen de qué tan ocupada esté la red y de qué tan compleja sea tu transacción.",
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask canjeará el token que desees por ti."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask canjeará el token que desees por ti."
+      }
     },
     "spending_cap": "Límite de gasto",
     "withdraw": "Retirar",
@@ -10393,7 +10466,7 @@
     "available_balance": "Saldo disponible: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Agregar fondos",
-    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
+    "deposit_edit_amount_convert_token": "Convertir {{symbol}}",
     "deposit_edit_amount_predict_withdraw": "Retirar",
     "deposit_edit_amount_money_account_send": "Enviar",
     "deposit_edit_amount_musd_conversion": "Convertir a mUSD",
@@ -10528,8 +10601,8 @@
       "order_created_description": "Te avisaremos cuando se ejecute.",
       "order_canceled_title": "Orden cancelada",
       "usd_price_notice": "Los precios se muestran en la moneda seleccionada, pero la orden se realiza en USD según el tipo de cambio vigente al momento de crearla. Tipo de cambio actual: 1 USD = {{rate}} {{currency}}.",
-      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
-      "swap_into_token": "Swap into {{symbol}}",
+      "insufficient_balance_warning": "Tu saldo de {{symbol}} es demasiado bajo para completar esta orden. Si todavía es demasiado bajo cuando se cumple la condición de activación, la orden no se ejecutará.",
+      "swap_into_token": "Canjear a {{symbol}}",
       "activity_title_filled": "Se canjeó {{source}} a {{dest}}",
       "activity_title_expired": "{{source}} a {{dest}} ha caducado",
       "activity_title_canceled": "{{source}} a {{dest}} se ha cancelado",
@@ -10548,8 +10621,8 @@
       "confirm": "Confirmar",
       "preview_order": "Previsualizar orden",
       "confirm_title": "Confirmar orden recurrente",
-      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
-      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "unsupported_fee_token_pair": "Los canjes recurrentes no están disponibles para este par de tokens. Para continuar, cambia al menos un token por: {{supportedTokens}}",
+      "fee_tokens_unavailable": "No se pudieron cargar los tokens de tarifas admitidos. Inténtalo de nuevo.",
       "try_again": "Inténtalo de nuevo",
       "order_created_toast_title": "Orden creada",
       "order_created_toast_body": "Te avisaremos cuando se ejecute.",
@@ -10562,9 +10635,9 @@
       "expires_after": "Vence después de",
       "slippage_all_orders": "Deslizamiento (todas las órdenes)",
       "est_network_fee_per_order": "Tarifa de red est. (por orden)",
-      "account_upgrade_fee": "Account upgrade fee",
-      "account_upgrade_fee_info_title": "Account upgrade fee",
-      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
+      "account_upgrade_fee": "Tarifa de actualización de cuenta",
+      "account_upgrade_fee_info_title": "Tarifa de actualización de cuenta",
+      "account_upgrade_fee_info_body": "Actualizar a una cuenta inteligente te permite ejecutar canjes recurrentes. Como todas las acciones en cadena, esto tiene una pequeña tarifa de red.",
       "got_it": "Entendido",
       "repeat_info_title": "Repetir órdenes",
       "repeat_info_body": "Aleatorizamos el momento y el tamaño de tus órdenes, por lo que tus canjes no siguen un patrón predecible.",
@@ -10572,7 +10645,7 @@
       "max_is": "El máximo es {{max}}",
       "price_range": {
         "label": "Rango de precio",
-        "input_label": "Price range (optional)",
+        "input_label": "Rango de precios (opcional)",
         "not_set": "No se estableció",
         "token": "Token",
         "price": "Precio",
@@ -10809,7 +10882,7 @@
     "quote_stream_complete_rwa_market_unavailable": "El mercado de este activo no está disponible en este momento. Inténtalo de nuevo más tarde.",
     "max": "Máx.",
     "approval_needed": "Aprueba el token para el canje.",
-    "tooltip_accessibility_hint": "Shows more information",
+    "tooltip_accessibility_hint": "Muestra más información",
     "approval_tooltip_title": "Conceder acceso exacto",
     "approval_tooltip_content": "Permitirás el acceso a la cantidad especificada, {{amount}} {{symbol}}. El contrato no accederá a fondos adicionales.",
     "minimum_received": "Mínimo recibido",
@@ -12667,7 +12740,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "Se requiere ${{amount}}",
       "stats_qualified_title": "Estás calificado",
-      "stats_qualified_description": "Sigue operando para mejorar tu P&L (ganancias y pérdidas) y subir en la clasificación antes de que termine la competencia.",
+      "stats_qualified_description": "Sigue operando para mejorar tu P&L y subir en la clasificación antes de que termine la competencia.",
       "stats_qualify_for_rank_title": "Clasifícate para la tabla de posiciones",
       "stats_qualify_for_rank_description": "Opera {{notionalRemaining}} más en volumen nocional para poder participar.",
       "stats_error_title": "No se pueden cargar las estadísticas",
@@ -13490,16 +13563,16 @@
       }
     },
     "payment": {
-      "processing_title": "Processing payment",
+      "processing_title": "Procesando el pago",
       "processing_body": "Esto puede tardar unos minutos.",
-      "active_title": "Your membership is active",
-      "view_membership": "View membership",
+      "active_title": "Tu membresía está activa",
+      "view_membership": "Ver membresía",
       "failed_title": "Pago fallido",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "Mueve fondos a tu cuenta Money para mantener el acceso a tus beneficios.",
       "try_again": "Inténtalo de nuevo"
     },
     "success": {
-      "title": "You just leveled up",
+      "title": "Acabas de subir de nivel",
       "description": "Es hora de empezar a ganar.",
       "cta": "Continuar"
     }

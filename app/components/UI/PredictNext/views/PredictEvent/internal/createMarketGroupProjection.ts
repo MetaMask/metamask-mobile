@@ -1,18 +1,16 @@
 import { PREDICT_MARKET_TYPES } from '../../../constants';
-import type {
-  PredictMarket,
-  PredictMarketGroup,
-  PredictMarketOption,
-} from '../../../types';
+import type { PredictMarket } from '../../../types';
+import {
+  hasConsistentLines,
+  isMarketSelectorMarket,
+  type MarketSelectorMarket,
+} from './marketSelectorGroup';
 
 type SupportedMarketType =
   (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES];
 
-type GroupedMarket = PredictMarket & {
-  group: PredictMarketGroup & {
-    marketType: SupportedMarketType;
-    option: PredictMarketOption;
-  };
+type GroupedMarket = MarketSelectorMarket & {
+  group: MarketSelectorMarket['group'] & { marketType: SupportedMarketType };
 };
 
 export interface StandardMarketProjection {
@@ -38,8 +36,6 @@ interface GroupCandidate {
   outputKey: string;
   marketType: SupportedMarketType;
   markets: { market: GroupedMarket; index: number }[];
-  optionValues: Set<number>;
-  isValid: boolean;
 }
 
 function getProjectionGroupKey(market: GroupedMarket): string {
@@ -47,15 +43,10 @@ function getProjectionGroupKey(market: GroupedMarket): string {
 }
 
 function isSupportedMarket(market: PredictMarket): market is GroupedMarket {
-  const group = market.group;
   return (
-    group !== undefined &&
-    group.key.trim().length > 0 &&
-    group.groupType === 'marketSelector' &&
-    (group.marketType === PREDICT_MARKET_TYPES.TOTAL ||
-      group.marketType === PREDICT_MARKET_TYPES.SPREAD) &&
-    group.option?.type === 'number' &&
-    Number.isFinite(group.option.value)
+    isMarketSelectorMarket(market) &&
+    (market.group.marketType === PREDICT_MARKET_TYPES.TOTAL ||
+      market.group.marketType === PREDICT_MARKET_TYPES.SPREAD)
   );
 }
 
@@ -96,27 +87,19 @@ export function createMarketGroupProjection(
         outputKey: group.key,
         marketType: group.marketType,
         markets: [{ market, index }],
-        optionValues: new Set([group.option.value]),
-        isValid: true,
       });
       return;
     }
 
-    // Kalshi has one market per team for each spread magnitude.
-    const hasDuplicateOption =
-      group.marketType !== PREDICT_MARKET_TYPES.SPREAD &&
-      existing.optionValues.has(group.option.value);
     existing.markets.push({ market, index });
-    existing.optionValues.add(group.option.value);
-    existing.isValid =
-      existing.isValid &&
-      existing.marketType === group.marketType &&
-      !hasDuplicateOption;
   });
 
   const invalidGroupKeys = new Set(
     [...candidates.entries()]
-      .filter(([, candidate]) => !candidate.isValid)
+      .filter(
+        ([, candidate]) =>
+          !hasConsistentLines(candidate.markets.map(({ market }) => market)),
+      )
       .map(([key]) => key),
   );
   const groupEntries = new Map<string, GroupedMarketProjection>();

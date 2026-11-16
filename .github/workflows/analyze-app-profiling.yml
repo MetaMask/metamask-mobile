@@ -22,9 +22,17 @@
 #   Findings also get an optional proposal from the pinned
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
 #   only sees Evidence JSON from this job; it does not classify.
-#   A finding is not filed as a GitHub issue. The verdict, including that
-#   proposal when one was produced, is sent as a Slack DM to UEYQL2PEV.
-#   An all-clear, a manual digest, and the Monday report are not sent.
+#   Each finding on `main` opens a GitHub issue (bug-report template,
+#   `team-*` label of the owning scenario) with that scenario's Hermes
+#   `.cpuprofile` attached. That label is the team tag: the existing issue
+#   sync copies the issue into the owning team's Jira project with the same
+#   labels. A finding whose issue is still open is added to it as a comment,
+#   with the new capture attached, and linked from Slack instead of being
+#   opened again. Several scenarios crossing in one run each open their own
+#   issue. The verdict, including the proposal when one was produced, is
+#   posted to #metamask-performance (C07KB8HRZ4J). A newly opened bug mentions
+#   the owning team's Slack group. An all-clear, a manual digest, and the
+#   Monday report are not sent.
 #   The Monday report can still list issues that were already opened; it
 #   does not open or comment on any.
 # - After a *manually dispatched* performance run: full digest in the Actions
@@ -35,9 +43,10 @@
 #   one-line brief and link each. Stable scenarios are omitted. The report is
 #   the Actions summary and the analysis artifact.
 #
-# The only Slack post is that finding DM. It uses `SLACK_BOT_TOKEN`, which
-# authenticates as the metamask-wallet-platform-bot Slack app. Channels stay
-# quiet. Nightly, RC, and dependency-audit workflows still use the same secret.
+# The only Slack post is that finding message. It uses `SLACK_BOT_TOKEN`,
+# which authenticates as the metamask-wallet-platform-bot Slack app, the
+# same bot these reports used before. Nightly, RC, and dependency-audit
+# workflows still use that secret.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -155,9 +164,8 @@ jobs:
       contents: read
       actions: read
       pull-requests: read
-      # Read-only. Issue filing is paused; the Monday report only lists
-      # issues that already exist.
-      issues: read
+      # Scheduled findings on main open or comment on tracking issues.
+      issues: write
     if: >-
       inputs.performance_run_id == '' ||
       (inputs.performance_result == 'success' &&
@@ -209,8 +217,9 @@ jobs:
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ inputs.performance_run_id == '' && (github.event_name == 'schedule' || inputs.weekly == true) }}
           SCHEDULED_EXCEPTION: ${{ inputs.performance_event == 'schedule' }}
-          # Issue filing is paused. --github-issues on the weekly path only
-          # lists issues already opened; it does not create or comment.
+          # Issues are opened only for scheduled runs of `main`. The Monday
+          # report only reads issues, so it always lists them.
+          SCHEDULED_EXCEPTION_BRANCH: ${{ github.ref_name }}
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
@@ -235,6 +244,9 @@ jobs:
             ARGS+=(--run "${RUN_ID}")
             if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
               ARGS+=(--scheduled-exception)
+              if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then
+                ARGS+=(--github-issues)
+              fi
             fi
           fi
           if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then
@@ -396,24 +408,24 @@ jobs:
             --style markdown --optional
           cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
 
-      # Only a scheduled finding writes issue-dm.md. All-clear, manual, and
-      # Monday runs leave the file absent, so this posts nothing.
-      - name: DM issue verdict
+      # Only a scheduled finding writes performance-channel.md. All-clear,
+      # manual, and Monday runs leave the file absent, so this posts nothing.
+      - name: Post finding to performance channel
         continue-on-error: true
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_TARGET: UEYQL2PEV
+          SLACK_TARGET: C07KB8HRZ4J
           SLACK_PLAIN: '1'
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           GITHUB_RUN_LABEL: Analysis run
         run: |
           set -euo pipefail
-          if [ ! -s /tmp/analyze-app-profiling/issue-dm.md ]; then
-            echo "No issue verdict to send"
+          if [ ! -s /tmp/analyze-app-profiling/performance-channel.md ]; then
+            echo "No finding to send"
             exit 0
           fi
           node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
-            /tmp/analyze-app-profiling/issue-dm.md
+            /tmp/analyze-app-profiling/performance-channel.md
 
   report-scenario-upload-failure:
     name: Report scenario artifact upload failure

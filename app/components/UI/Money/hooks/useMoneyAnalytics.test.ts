@@ -491,7 +491,7 @@ describe('useMoneyAnalytics', () => {
 
       result.current.trackCampaignTriggered({
         campaign_name:
-          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+          MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH_ATOKENS,
         campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
       });
 
@@ -501,7 +501,7 @@ describe('useMoneyAnalytics', () => {
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
           campaign_name:
-            MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH,
+            MONEY_ACCOUNT_CAMPAIGN_NAMES.MONEY_ACCOUNT_EARN_ONE_TAP_OUTREACH_ATOKENS,
           campaign_platform: MONEY_ACCOUNT_CAMPAIGN_PLATFORMS.BRAZE,
         }),
       );

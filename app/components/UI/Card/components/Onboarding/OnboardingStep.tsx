@@ -1,18 +1,16 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useCardHeaderHandlers,
   type CardHeaderMode,
 } from '../../hooks/useCardHeaderHandlers';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface OnboardingStepProps {
   title: string;
@@ -26,7 +24,7 @@ interface OnboardingStepProps {
    */
   stickyActions?: boolean;
   /**
-   * Controls the in-screen header rendered via HeaderStandard.
+   * Controls the in-screen header rendered via HeaderStandardGlass.
    * Navigator headers are hidden; onboarding screens own their header chrome.
    */
   headerMode?: CardHeaderMode;
@@ -49,6 +47,7 @@ const OnboardingStep = ({
 }: OnboardingStepProps) => {
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers(headerMode);
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const resolvedHeaderHandlers =
     headerMode === 'back' && onBackPress
       ? { ...headerHandlers, onBack: onBackPress }
@@ -60,7 +59,9 @@ const OnboardingStep = ({
     }
 
     return (
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...resolvedHeaderHandlers}

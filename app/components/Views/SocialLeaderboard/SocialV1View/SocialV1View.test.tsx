@@ -1,6 +1,12 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -52,6 +58,13 @@ jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
+}));
+
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
 }));
 
 jest.mock('../hooks/useOpenSocialPostComposer', () => ({
@@ -400,6 +413,7 @@ describe('SocialV1View', () => {
         showMockedFields: true,
         isActive: true,
         onCopyTrade: expect.any(Function),
+        requireSocialProfile: true,
         performance: expect.objectContaining({ tab: 'trending' }),
         testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
         scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
@@ -437,10 +451,23 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
+
+    const composerButton = screen
+      .UNSAFE_getAllByType(ButtonIcon)
+      .find(
+        (node) => node.props.testID === SocialV1ViewSelectorsIDs.PLUS_BUTTON,
+      );
+
+    expect(composerButton?.props.iconName).toBe(IconName.FeedPost);
+    expect(composerButton?.props.size).toBe(ButtonIconSize.Md);
+    expect(composerButton?.props.iconProps).toEqual({
+      color: IconColor.IconDefault,
+    });
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
@@ -514,18 +541,17 @@ describe('SocialV1View', () => {
       });
     });
 
-    it('pins the new post on top of Following', () => {
+    it('does not pin the new post on Following', () => {
       renderWithProvider(<SocialV1View />);
       fireEvent.press(
         screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
       );
 
-      const followingCards = within(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-      ).getAllByTestId(/^social-v1-feed-card-/);
-      expect(followingCards[0].props.testID).toBe(
-        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
-      );
+      expect(
+        within(
+          screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+        ).queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
     });
 
     it('stays on Trending, without the post, when no post was just written', () => {

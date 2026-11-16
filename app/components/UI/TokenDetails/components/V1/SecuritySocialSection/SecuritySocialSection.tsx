@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityMetadata } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import { formatAddress } from '../../../../../../util/address';
 import { useCopyTokenContractAddress } from '../../../hooks/useCopyTokenContractAddress';
 import {
   SecurityPill,
@@ -46,18 +47,6 @@ export interface SecuritySocialSectionProps {
 const openUrl = (url: string) => {
   Linking.openURL(url).catch(() => null);
 };
-
-/**
- * Renders an address as `0x...1933`.
- *
- * Deliberately shorter than the app-wide `formatAddress(_, 'short')`, which
- * keeps five characters each side: this chip shares one wrapping row with the
- * verdict pill and the social buttons, so the address gives up width to keep
- * the row on a single line. The full address still reaches the clipboard and
- * the accessibility label.
- */
-const truncateAddress = (address: string) =>
-  `${address.slice(0, 2)}...${address.slice(-4)}`;
 
 /**
  * Row below the Token Details V1 header: the security verdict pill, the
@@ -165,7 +154,7 @@ export const SecuritySocialSection: React.FC<SecuritySocialSectionProps> = ({
           })}
           testID={SecuritySocialSectionSelectors.COPY_ADDRESS}
         >
-          {truncateAddress(contractAddress)}
+          {formatAddress(contractAddress, 'short')}
         </ButtonBase>
       ) : null}
     </Box>

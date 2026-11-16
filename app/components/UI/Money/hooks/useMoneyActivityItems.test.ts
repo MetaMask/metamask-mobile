@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -21,6 +21,7 @@ import type {
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
+import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
@@ -35,6 +36,7 @@ import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
 jest.mock('./useMoneyVbaTransfers');
+jest.mock('./useMoneyMicrodeposits');
 jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
 }));
@@ -51,6 +53,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
+const mockUseMoneyMicrodeposits = jest.mocked(useMoneyMicrodeposits);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
 const mockUseSelector = jest.mocked(useSelector);
@@ -269,6 +272,29 @@ describe('mergeMoneyActivity', () => {
     expect(forward).toEqual(['0xaaa', '0xccc', 'zzz']);
     expect(reversed).toEqual(forward);
   });
+
+  it('merges bank microdeposits into the feed by time', () => {
+    const items = mergeMoneyActivity(
+      [onchainTx('a', 100)],
+      [],
+      [],
+      [],
+      [
+        {
+          id: 'micro|0.34|USD|CHASE',
+          amount: '0.34',
+          currencyCode: 'USD',
+          counterpartyName: 'CHASE',
+          time: 200,
+        },
+      ],
+    );
+
+    expect(items.map((i) => [i.kind, i.id, i.time])).toEqual([
+      ['microdeposit', 'micro|0.34|USD|CHASE', 200],
+      ['onchain', 'a', 100],
+    ]);
+  });
 });
 
 describe('buildMoneyActivityBuckets', () => {
@@ -302,6 +328,36 @@ describe('buildMoneyActivityBuckets', () => {
     expect(
       buckets[MoneyActivityFilter.Deposits].map((item) => item.id),
     ).toEqual(['pending', 'failed']);
+    expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
+    expect(buckets[MoneyActivityFilter.Purchases]).toEqual([]);
+  });
+
+  it('shows microdeposits in All and Deposits only, even below the watermark', () => {
+    // Microdeposits are fetched whole, so there is no un-fetched page they
+    // could pop in above, and the watermark must not hide them.
+    const buckets = buildMoneyActivityBuckets(
+      { all: [], deposits: [], transfers: [] },
+      [],
+      500,
+      [],
+      [],
+      [
+        {
+          id: 'micro-1',
+          amount: '0.34',
+          currencyCode: 'USD',
+          counterpartyName: 'CHASE',
+          time: 100,
+        },
+      ],
+    );
+
+    expect(buckets[MoneyActivityFilter.All].map((i) => i.id)).toEqual([
+      'micro-1',
+    ]);
+    expect(buckets[MoneyActivityFilter.Deposits].map((i) => i.id)).toEqual([
+      'micro-1',
+    ]);
     expect(buckets[MoneyActivityFilter.Transfers]).toEqual([]);
     expect(buckets[MoneyActivityFilter.Purchases]).toEqual([]);
   });
@@ -528,6 +584,11 @@ describe('useMoneyActivityItems', () => {
       data: undefined,
       refetch: jest.fn().mockResolvedValue(undefined),
     } as never);
+    mockUseMoneyMicrodeposits.mockReturnValue({
+      microdeposits: [],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
     mockUseCardTransactionIndex.mockReturnValue(defaultIndexResult);
     mockUseCardCapabilities.mockReturnValue(null);
     mockEnrichmentFlags();
@@ -686,6 +747,62 @@ describe('useMoneyActivityItems', () => {
       isLoading: true,
       refetch: jest.fn(),
     } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
+
+    expect(result.current.isSettling).toBe(true);
+  });
+
+  it('merges microdeposits into All and Deposits', () => {
+    mockUseMoneyMicrodeposits.mockReturnValue({
+      microdeposits: [
+        {
+          id: 'micro-1',
+          amount: '0.34',
+          currencyCode: 'USD',
+          counterpartyName: 'CHASE',
+          time: 900,
+        },
+      ],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((item) => item.id),
+    ).toContain('micro-1');
+    expect(
+      result.current.buckets[MoneyActivityFilter.Deposits].map(
+        (item) => item.id,
+      ),
+    ).toContain('micro-1');
+  });
+
+  it('refetches microdeposits with the feed', () => {
+    const refetchMicrodeposits = jest.fn();
+    mockUseMoneyMicrodeposits.mockReturnValue({
+      microdeposits: [],
+      isLoading: false,
+      refetch: refetchMicrodeposits,
+    });
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    expect(refetchMicrodeposits).toHaveBeenCalled();
+  });
+
+  it('keeps the empty feed settling while microdeposits load', () => {
+    mockUseMoneyMicrodeposits.mockReturnValue({
+      microdeposits: [],
+      isLoading: true,
+      refetch: jest.fn(),
+    });
 
     const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
 

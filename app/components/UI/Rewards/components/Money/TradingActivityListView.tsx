@@ -10,7 +10,6 @@ import {
   Box,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconColor,
   IconName,
   TabEmptyState,
@@ -23,6 +22,9 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import TradingActivityListSkeleton from './TradingActivityListSkeleton';
 import type { UseCursorPaginatedListResult } from '../../hooks/useCursorPaginatedList';
 import { strings } from '../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const TRADING_ACTIVITY_LIST_EMPTY_TEST_ID =
   'trading-activity-list-empty';
@@ -76,6 +78,7 @@ function TradingActivityListView<T extends { id: string }>({
   emptyOnAction,
   header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const {
@@ -194,7 +197,9 @@ function TradingActivityListView<T extends { id: string }>({
         style={tw.style('flex-1 bg-default')}
         testID={testIDs.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={title}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

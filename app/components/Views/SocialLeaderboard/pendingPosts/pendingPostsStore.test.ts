@@ -128,9 +128,9 @@ describe('pendingPostsStore', () => {
         nowMs: NOW,
       });
 
-      dismissSettledPendingPosts('following', NOW + 1_000);
+      dismissSettledPendingPosts('posts', NOW + 30_000);
 
-      expect(getPendingPostsSnapshot()[0].dismissedOn.following).toBe(false);
+      expect(getPendingPostsSnapshot()[0].dismissedOn.posts).toBe(false);
     });
 
     it('releases an unconfirmed entry past the confirmation window', () => {

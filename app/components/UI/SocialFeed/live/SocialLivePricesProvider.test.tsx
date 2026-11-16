@@ -57,6 +57,11 @@ jest.mock('react-redux', () => ({
 }));
 
 const ETH_ASSET = 'eip155:1/slip44:60';
+const DEFAULT_POLL_MS = 4000;
+const RARE_POLL_MS = 8000;
+const INITIAL_SETTLE_MS = 1000;
+/** Fake timers run a 0 ms timeout scheduled mid-tick one millisecond later. */
+const ZERO_DELAY_LAG_MS = 1;
 const ETH_CHANNEL = `market-data.v1.${ETH_ASSET}.1m.usd`;
 
 interface ProbeCard {
@@ -65,11 +70,15 @@ interface ProbeCard {
   y: number;
 }
 
+const mockMeasureInWindow = jest.fn();
 const fakeRef = (y: number) => ({
   current: {
     measureInWindow: (
       callback: (x: number, y: number, width: number, height: number) => void,
-    ) => callback(0, y, 360, 100),
+    ) => {
+      mockMeasureInWindow();
+      callback(0, y, 360, 100);
+    },
   } as unknown as View,
 });
 
@@ -311,6 +320,7 @@ describe('SocialLivePricesProvider', () => {
   });
 
   it('reduces motion on LOW hardware only', () => {
+    mockNetworkTier = 'WIFI';
     mockGetHardwareTier.mockReturnValue(null);
     const { unmount } = renderProvider([]);
     expect(context?.reduceMotion).toBe(false);
@@ -320,6 +330,93 @@ describe('SocialLivePricesProvider', () => {
     renderProvider([]);
 
     expect(context?.reduceMotion).toBe(true);
+  });
+
+  it('keeps motion on LOW hardware while the network tier is unknown', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockNetworkTier = null;
+
+    renderProvider([]);
+
+    expect(context?.reduceMotion).toBe(false);
+  });
+
+  it('keeps a null hardware tier off reduced motion over slow cellular', () => {
+    mockGetHardwareTier.mockReturnValue(null);
+    mockNetworkTier = 'SLOW_CELLULAR';
+
+    renderProvider([]);
+
+    expect(context?.reduceMotion).toBe(false);
+  });
+
+  it('keeps full motion on HIGH hardware over slow cellular', () => {
+    mockGetHardwareTier.mockReturnValue('HIGH');
+    mockNetworkTier = 'SLOW_CELLULAR';
+
+    renderProvider([]);
+
+    expect(context?.reduceMotion).toBe(false);
+  });
+
+  it('polls visible cards at the rare interval on LOW hardware over slow cellular', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockNetworkTier = 'SLOW_CELLULAR';
+    renderProvider([{ id: 'a', key: 'perp:BTC', y: 100 }]);
+    act(() => {
+      jest.advanceTimersByTime(INITIAL_SETTLE_MS);
+    });
+    mockMeasureInWindow.mockClear();
+
+    act(() => {
+      jest.advanceTimersByTime(RARE_POLL_MS - INITIAL_SETTLE_MS - 1);
+    });
+    expect(mockMeasureInWindow).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1 + ZERO_DELAY_LAG_MS);
+    });
+    expect(mockMeasureInWindow).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the default poll on HIGH hardware over slow cellular', () => {
+    mockGetHardwareTier.mockReturnValue('HIGH');
+    mockNetworkTier = 'SLOW_CELLULAR';
+    renderProvider([{ id: 'a', key: 'perp:BTC', y: 100 }]);
+    act(() => {
+      jest.advanceTimersByTime(INITIAL_SETTLE_MS);
+    });
+    mockMeasureInWindow.mockClear();
+
+    act(() => {
+      jest.advanceTimersByTime(DEFAULT_POLL_MS - INITIAL_SETTLE_MS - 1);
+    });
+    expect(mockMeasureInWindow).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1 + ZERO_DELAY_LAG_MS);
+    });
+    expect(mockMeasureInWindow).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the default poll on LOW hardware while the network tier is unknown', () => {
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockNetworkTier = null;
+    renderProvider([{ id: 'a', key: 'perp:BTC', y: 100 }]);
+    act(() => {
+      jest.advanceTimersByTime(INITIAL_SETTLE_MS);
+    });
+    mockMeasureInWindow.mockClear();
+
+    act(() => {
+      jest.advanceTimersByTime(DEFAULT_POLL_MS - INITIAL_SETTLE_MS - 1);
+    });
+    expect(mockMeasureInWindow).not.toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(1 + ZERO_DELAY_LAG_MS);
+    });
+    expect(mockMeasureInWindow).toHaveBeenCalledTimes(1);
   });
 
   it('releases everything on unmount', async () => {

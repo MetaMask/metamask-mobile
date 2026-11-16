@@ -7,6 +7,7 @@ import type {
   PredictTimestamp,
 } from '../../../types';
 import {
+  appendLiveEndpoint,
   appendLiveQuoteTrail,
   PREDICT_LIVE_QUOTE_TRAIL_LIMIT,
   useLiveQuoteTrail,
@@ -247,5 +248,50 @@ describe('appendLiveQuoteTrail', () => {
     ];
 
     expect(appendLiveQuoteTrail([], trail)).toEqual(trail);
+  });
+});
+
+describe('appendLiveEndpoint', () => {
+  it('ends the history at the last traded price', () => {
+    expect(
+      appendLiveEndpoint(
+        history,
+        quoted('0.72', '2026-09-17T10:40:35.885Z'),
+        'yes',
+      ),
+    ).toEqual([
+      ...history,
+      { time: Date.parse('2026-09-17T10:40:35.885Z'), value: 0.72 },
+    ]);
+  });
+
+  it('complements the yes-side price for the no side', () => {
+    expect(
+      appendLiveEndpoint(
+        history,
+        quoted('0.72', '2026-09-17T10:40:35.885Z'),
+        'no',
+      ).at(-1),
+    ).toEqual({ time: Date.parse('2026-09-17T10:40:35.885Z'), value: 0.28 });
+  });
+
+  it('keeps the history when the quote is not newer than it', () => {
+    expect(
+      appendLiveEndpoint(
+        history,
+        quoted('0.72', '2026-09-17T10:00:00.000Z'),
+        'yes',
+      ),
+    ).toBe(history);
+  });
+
+  it('keeps the history for a Market that has never traded', () => {
+    expect(
+      appendLiveEndpoint(
+        history,
+        quoted(undefined, '2026-09-17T10:40:35.885Z'),
+        'yes',
+      ),
+    ).toBe(history);
   });
 });

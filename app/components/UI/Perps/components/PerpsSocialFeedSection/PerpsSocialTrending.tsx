@@ -61,7 +61,6 @@ const PerpsSocialTrending: React.FC = () => {
         positionId: post.position.positionId,
         position: post.position,
         author: post.item.author,
-        comment: post.item.comment,
         isClosed:
           post.item.variant === 'perpsClosed' ||
           post.item.variant === 'spotClosed',

@@ -13,6 +13,7 @@ import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../components/Money/ClaimableRe
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { renderRewardsMoneyDashboard } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   CLAIMABLE_EARNINGS_SUMMARY,
@@ -154,5 +155,38 @@ describe('RewardsMoneyDashboard settings', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
     ).toBeOnTheScreen();
+  });
+});
+
+describe('RewardsMoneyDashboard glass header', () => {
+  it('floats the header over the content when glass headers are on', async () => {
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'plain',
+      moneyControllerEnabled: true,
+      subscriptionId: 'sub-1',
+      glassHeaders: true,
+    });
+
+    expect(await findByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the solid header when glass headers are off', async () => {
+    const { findByTestId, queryByTestId } = renderRewardsMoneyDashboard({
+      persona: 'plain',
+      moneyControllerEnabled: true,
+    });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
   });
 });

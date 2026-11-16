@@ -31,6 +31,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 const mockOpenSupportWithConsent = jest.fn();
 const mockGetBetaSupportUrl = jest.fn();
+const mockSelectGlassHeadersEnabled = jest.fn(() => false);
 
 jest.mock('../../../../util/notifications/constants/config', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => true),
@@ -41,6 +42,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => mockSelectGlassHeadersEnabled(),
 }));
 
 jest.mock('../../../hooks/useSupportConsent', () => ({
@@ -86,12 +91,9 @@ jest.mock('../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-const mockUsePlusAccess = jest.fn(() => ({
-  isPlusSubscriber: false,
-  isPlusAccessUnknown: false,
-}));
-jest.mock('../../../../hooks/usePlusAccess', () => ({
-  usePlusAccess: () => mockUsePlusAccess(),
+const mockUseHasProMembership = jest.fn(() => false);
+jest.mock('../../../../hooks/useHasProMembership', () => ({
+  useHasProMembership: () => mockUseHasProMembership(),
 }));
 
 const mockTrackButtonClicked = jest.fn();
@@ -136,15 +138,13 @@ const stateWithNotifications = (
 describe('ProfileDrawer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectGlassHeadersEnabled.mockReturnValue(false);
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
-    mockUsePlusAccess.mockReturnValue({
-      isPlusSubscriber: false,
-      isPlusAccessUnknown: false,
-    });
+    mockUseHasProMembership.mockReturnValue(false);
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -162,6 +162,19 @@ describe('ProfileDrawer', () => {
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('uses transparent icon buttons for glass headers', () => {
+    mockSelectGlassHeadersEnabled.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    expect(getByTestId(ProfileDrawerSelectorsIDs.CLOSE_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
+    expect(getByTestId(ProfileDrawerSelectorsIDs.SCAN_BUTTON)).toHaveStyle({
+      backgroundColor: 'transparent',
+    });
   });
 
   it('insets the header buttons from the screen edges', () => {
@@ -592,20 +605,24 @@ describe('ProfileDrawer', () => {
       ).toBeNull();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: false,
-        isPlusAccessUnknown: true,
-      });
+      mockUseHasProMembership.mockReturnValue(false);
 
-      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
 
       expect(
-        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
-      ).toBeNull();
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
@@ -638,10 +655,7 @@ describe('ProfileDrawer', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
-      mockUsePlusAccess.mockReturnValue({
-        isPlusSubscriber: true,
-        isPlusAccessUnknown: false,
-      });
+      mockUseHasProMembership.mockReturnValue(true);
 
       const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 

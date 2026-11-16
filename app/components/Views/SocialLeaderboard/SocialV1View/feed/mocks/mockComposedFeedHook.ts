@@ -19,8 +19,7 @@ import { wrapMockFeedPosts } from '../../../../../UI/SocialFeed/mocks/wrapMockFe
  * baseline feed so those tests can key off known ids.
  */
 export const mockUseSocialV1Feed = (
-  tab: SocialV1FeedTab = 'trending',
-  { ownerProfileId }: { ownerProfileId?: string } = {},
+  _tab: SocialV1FeedTab = 'trending',
 ): UseSocialV1FeedResult => {
   const entries = useSyncExternalStore(
     subscribePendingPosts,
@@ -30,7 +29,7 @@ export const mockUseSocialV1Feed = (
   const { pinnedPosts, posts } = overlayPendingPosts(
     'following',
     entries,
-    tab === 'following' ? ownerProfileId : undefined,
+    undefined,
     wrapMockFeedPosts(),
   );
 

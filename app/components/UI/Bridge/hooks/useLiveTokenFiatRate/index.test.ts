@@ -50,8 +50,8 @@ function createBar(close: number): OHLCVBar {
   };
 }
 
-function mockLatestBar(bar: OHLCVBar | null) {
-  mockUseOHLCVRealtime.mockReturnValue({ latestBar: bar });
+function mockLatestBar(bar: OHLCVBar | null, isLoading = false) {
+  mockUseOHLCVRealtime.mockReturnValue({ latestBar: bar, isLoading });
 }
 
 describe('useLiveTokenFiatRate', () => {

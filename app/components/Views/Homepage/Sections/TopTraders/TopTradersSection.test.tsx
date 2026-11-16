@@ -130,7 +130,6 @@ jest.mock(
       mockNavigateToSocialLeaderboard(...args),
   }),
 );
-
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),

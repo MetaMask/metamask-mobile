@@ -173,7 +173,7 @@ const PriceRangeRow = ({
           color={TextColor.TextAlternative}
           twClassName="flex-1"
         >
-          {strings('bridge.recurring.price_range.label')}
+          {strings('bridge.recurring.price_range.input_label')}
         </Text>
         <Box
           flexDirection={BoxFlexDirection.Row}

@@ -1,5 +1,4 @@
 import type { Json } from '@metamask/utils';
-import { getVersion } from 'react-native-device-info';
 import { handleMoney } from '../handleMoney';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux';
@@ -8,6 +7,7 @@ import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user';
 import { selectIsMoneyAccountGeoEligible } from '../../../../../components/UI/Money/selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../../../components/UI/Money/selectors/featureFlags';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectRawRemoteFeatureFlags,
@@ -18,10 +18,6 @@ import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../../../lib/Money/f
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
-
-jest.mock('react-native-device-info', () => ({
-  getVersion: jest.fn().mockReturnValue('8.0.1'),
-}));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -42,6 +38,10 @@ jest.mock('../../../../../reducers/user', () => ({
 
 jest.mock('../../../../../components/UI/Money/selectors/eligibility', () => ({
   selectIsMoneyAccountGeoEligible: jest.fn(),
+}));
+
+jest.mock('../../../../../components/UI/Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
 }));
 
 jest.mock(
@@ -142,8 +142,8 @@ describe('handleMoney', () => {
     } as unknown as typeof NavigationService.navigation;
 
     jest.mocked(ReduxService.store.getState).mockReturnValue(mockState);
-    jest.mocked(getVersion).mockReturnValue('8.0.1');
     setMoneyAccountFlags();
+    jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(true);
     jest.mocked(selectIsMoneyAccountGeoEligible).mockReturnValue(true);
     jest.mocked(selectMoneyOnboardingSeen).mockReturnValue(true);
     jest
@@ -152,6 +152,7 @@ describe('handleMoney', () => {
   });
 
   it('navigates to disabled deeplink modal when type 1 flag is disabled', () => {
+    jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(false);
     setMoneyAccountFlags({
       rawFlag: disabledFlag,
       resolvedFlag: disabledFlag,
@@ -165,8 +166,8 @@ describe('handleMoney', () => {
     );
   });
 
-  it('navigates to disabled deeplink modal when type 1 flag minimum version fails', () => {
-    jest.mocked(getVersion).mockReturnValue('7.0.0');
+  it('navigates to disabled deeplink modal when canonical selector disables an enabled standard flag', () => {
+    jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(false);
     setMoneyAccountFlags({
       rawFlag: enabledFlag,
       resolvedFlag: enabledFlag,
@@ -194,8 +195,8 @@ describe('handleMoney', () => {
     );
   });
 
-  it('navigates to disabled deeplink modal when rollout enabled cohort minimum version fails', () => {
-    jest.mocked(getVersion).mockReturnValue('7.0.0');
+  it('navigates to disabled deeplink modal when canonical selector disables an enabled rollout cohort', () => {
+    jest.mocked(selectMoneyEnableMoneyAccountFlag).mockReturnValue(false);
     setMoneyAccountFlags({
       rawFlag: [enabledRolloutFlag, disabledRolloutFlag],
       resolvedFlag: enabledFlag,

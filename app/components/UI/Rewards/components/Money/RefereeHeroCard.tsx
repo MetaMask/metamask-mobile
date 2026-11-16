@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxFlexDirection,
@@ -7,6 +9,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import type {
   ReferralLocalizedText,
   ReferredByView,
@@ -15,7 +19,8 @@ import { useMoneyHeroEntries } from '../../hooks/useMoneyHeroEntries';
 import MoneyHeroErrorBanner from './MoneyHeroErrorBanner';
 import MoneyHeroIdentityHeader from './MoneyHeroIdentityHeader';
 import MoneyMetricCard from './MoneyMetricCard';
-import { SHOW_TRADING_COMMISSIONS } from './constants';
+import { refereeMoneySections } from '../../../../../reducers/rewardsMoney/selectors';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { fillOfferEndsIn } from './fillOfferEndsIn';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
 import {
@@ -53,6 +58,22 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
   referredBy,
   localizedText,
 }) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
+  const commissionsInfoDescription = localizedText.copyTradingInfoDescription;
+  const openCommissionsInfo = useCallback(() => {
+    if (!commissionsInfoDescription) {
+      return;
+    }
+    navigation.navigate(Routes.MODAL.REWARDS_INFO_SHEET_MODAL, {
+      title: localizedText.tradingCommissionsSection,
+      description: commissionsInfoDescription,
+    });
+  }, [
+    commissionsInfoDescription,
+    localizedText.tradingCommissionsSection,
+    navigation,
+  ]);
   const {
     referralMeEntry,
     earningsSummary,
@@ -63,10 +84,19 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
     retryLoading,
   } = useMoneyHeroEntries(profileId);
   const referralCode = referredBy?.referral_code?.trim() ?? '';
-  const offerEndsIn = fillOfferEndsIn(
-    localizedText,
-    referralMeEntry?.data?.earn_rates?.cashback_earning_end,
-  );
+  const sections = refereeMoneySections(referralMeEntry?.data?.roles);
+  const showSocialRewards = showTradingCommissions && sections.socialRewards;
+  // Cashback copy wins whenever rebates are on, including a combo with
+  // COPY_TRADING. A copy-trading-only sharer has no cashback end date, and
+  // no identity header: the commissions card's info icon already carries
+  // the copy-trading description.
+  const copyTradingOnly = sections.socialRewards && !sections.tradingRebates;
+  const offerEndsIn = copyTradingOnly
+    ? null
+    : fillOfferEndsIn(
+        localizedText,
+        referralMeEntry?.data?.earn_rates?.cashback_earning_end,
+      );
 
   return (
     <Box
@@ -84,43 +114,49 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
           }
         />
       ) : null}
-      <Box
-        twClassName="rounded-2xl bg-muted py-4"
-        testID={REFEREE_HERO_CARD_TEST_IDS.IDENTITY}
-      >
-        <MoneyHeroIdentityHeader
-          title={localizedText.invitedBenefitTitle}
-          offerEndsIn={offerEndsIn}
-          offerEndsTestID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
-          termsTitle={localizedText.termsTitle}
-          termsTestID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
-          titleRowClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
-        />
-        {referralCode ? (
-          <>
-            <Box twClassName="h-px bg-border-muted" />
-            <Box
-              twClassName="mt-4 px-4"
-              testID={REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
+      {copyTradingOnly && !referralCode ? null : (
+        <Box
+          twClassName="rounded-2xl bg-muted py-4"
+          testID={REFEREE_HERO_CARD_TEST_IDS.IDENTITY}
+        >
+          {copyTradingOnly ? null : (
+            <MoneyHeroIdentityHeader
+              title={localizedText.invitedBenefitTitle}
+              offerEndsIn={offerEndsIn}
+              offerEndsTestID={REFEREE_HERO_CARD_TEST_IDS.OFFER_ENDS_IN}
+              termsTitle={localizedText.termsTitle}
+              termsTestID={REFEREE_HERO_CARD_TEST_IDS.TERMS_INFO_BUTTON}
+              titleRowClassName={referralCode ? 'px-4 pb-4' : 'px-4'}
+            />
+          )}
+          {referralCode ? (
+            <>
+              {copyTradingOnly ? null : (
+                <Box twClassName="h-px bg-border-muted" />
+              )}
+              <Box
+                twClassName={copyTradingOnly ? 'px-4' : 'mt-4 px-4'}
+                testID={REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY}
               >
-                {localizedText.invitedReferredBy}
-              </Text>
-              <Text
-                variant={TextVariant.HeadingLg}
-                testID={REFEREE_HERO_CARD_TEST_IDS.REFERRAL_CODE}
-              >
-                {referralCode}
-              </Text>
-            </Box>
-          </>
-        ) : null}
-      </Box>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {localizedText.invitedReferredBy}
+                </Text>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  testID={REFEREE_HERO_CARD_TEST_IDS.REFERRAL_CODE}
+                >
+                  {referralCode}
+                </Text>
+              </Box>
+            </>
+          ) : null}
+        </Box>
+      )}
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-        {SHOW_TRADING_COMMISSIONS ? (
+        {showSocialRewards ? (
           <MoneyMetricCard
             iconName={IconName.Copy}
             label={localizedText.tradingCommissionsSection}
@@ -132,25 +168,30 @@ const RefereeHeroCard: React.FC<RefereeHeroCardProps> = ({
             }
             caption={localizedText.recordedEarnings}
             isLoading={isEarningsLoading}
+            onInfoPress={
+              commissionsInfoDescription ? openCommissionsInfo : undefined
+            }
             testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL}
           />
         ) : null}
-        <MoneyMetricCard
-          iconName={IconName.Coin}
-          label={localizedText.tradingRebates}
-          amount={
-            unavailableAmount ??
-            formatMusdBaseUnits(
-              selfEarnedLifetime(
-                earningsSummary,
-                'REFERRAL_TRADE_FEE_CASHBACK',
-              ),
-            )
-          }
-          caption={localizedText.recordedEarnings}
-          isLoading={isEarningsLoading}
-          testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL}
-        />
+        {sections.tradingRebates ? (
+          <MoneyMetricCard
+            iconName={IconName.Coin}
+            label={localizedText.tradingRebates}
+            amount={
+              unavailableAmount ??
+              formatMusdBaseUnits(
+                selfEarnedLifetime(
+                  earningsSummary,
+                  'REFERRAL_TRADE_FEE_CASHBACK',
+                ),
+              )
+            }
+            caption={localizedText.recordedEarnings}
+            isLoading={isEarningsLoading}
+            testID={REFEREE_HERO_CARD_TEST_IDS.TRADING_REBATES_TOTAL}
+          />
+        ) : null}
       </Box>
     </Box>
   );

@@ -3,7 +3,7 @@ import { AccessibilityInfo, ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import {
   TransactionParams,
@@ -68,6 +68,8 @@ import {
 } from '../../../../../../core/Multichain/tron';
 
 import { RAMPS_SEND } from '../../constants';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface SendTransactionParams {
   orderId?: string;
@@ -96,6 +98,7 @@ function getTronValidationErrorMessage(
 }
 
 function SendTransaction() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SendTransactionParams>();
   const dispatch = useDispatch();
@@ -423,7 +426,9 @@ function SendTransaction() {
   if (!order || !orderData?.cryptoCurrency) {
     return (
       <ScreenLayout>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'send-transaction-back-button' }}
@@ -447,7 +452,9 @@ function SendTransaction() {
 
   return (
     <ScreenLayout>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleHeaderBack}
         backButtonProps={{ testID: 'send-transaction-back-button' }}

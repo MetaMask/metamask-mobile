@@ -1,4 +1,5 @@
 import FixtureBuilder from './FixtureBuilder';
+import { STATE_LOG_SEEDED_MARKERS } from './state-log-omitted-fields';
 import defaultFixture from './json/default-fixture.json';
 
 /**
@@ -94,5 +95,47 @@ describe('FixtureBuilder legacy asset controllers', () => {
         marketData: {},
       });
     });
+  });
+});
+
+describe('FixtureBuilder state log fields', () => {
+  it('seeds every marker for fields excluded from state logs', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+
+    const serialized = JSON.stringify(fixture.state.engine.backgroundState);
+
+    for (const marker of STATE_LOG_SEEDED_MARKERS) {
+      expect(serialized).toContain(marker);
+    }
+  });
+
+  it('keeps existing card controller fields while seeding excluded ones', () => {
+    const fixture = new FixtureBuilder().withStateLogOmittedFields().build();
+    const card = fixture.state.engine.backgroundState.CardController as {
+      activeProviderId: string;
+      providerUserId: string;
+    };
+
+    expect(card.activeProviderId).toBe('baanx');
+    expect(card.providerUserId).toBe('state-export-card-user');
+  });
+
+  it('keeps existing rewards money fields while seeding excluded ones', () => {
+    const builder = new FixtureBuilder();
+    const background = (
+      builder as unknown as {
+        fixture: {
+          state: { engine: { backgroundState: Record<string, unknown> } };
+        };
+      }
+    ).fixture.state.engine.backgroundState;
+    background.RewardsMoneyController = { existingField: 'kept' };
+
+    const fixture = builder.withStateLogOmittedFields().build();
+    const rewardsMoney = fixture.state.engine.backgroundState
+      .RewardsMoneyController as Record<string, unknown>;
+
+    expect(rewardsMoney.existingField).toBe('kept');
+    expect(rewardsMoney.referralMe).toBeDefined();
   });
 });

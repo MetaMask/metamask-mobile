@@ -121,7 +121,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `dollar_pnl` (optional): P&L in dollars (number, used for pnl_hero_card screen)
 - `percent_pnl` (optional): P&L as percentage (number, used for pnl_hero_card screen)
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
-- `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
+- `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking)). Pro `asset_details` Screen Viewed (`PerpsProMarketView`) forwards this from the route when the entry point set it.
 - `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `market_insights_displayed` (optional): Whether market insights content is displayed on the screen (boolean, used for asset_details screen)
 - `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
@@ -167,8 +167,9 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
   - **Discovery section header values** _(`PERPS_EVENT_VALUE.BUTTON_CLICKED`)_: `'watchlist'` | `'top_movers'` | `'whats_happening'`
   - **Market list filter values:** `'all'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'watchlist'` (used with `interaction_type = market_list_filter`)
-- `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
+- `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'` | `'perps_section_header'`
   - **Legacy discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — formerly the magnifying-glass button on the asset details screen. That button was replaced by the market-list arrow, which now reports `button_location = 'perp_market_details'` with `button_clicked = 'market_list'`.
+  - **Wallet-home section header** _(Mobile-local `PERPS_SECTION_HEADER_BUTTON_LOCATION`)_: `'perps_section_header'` — separates the Perps section header from other `source = home_section` taps. Not yet in `PERPS_EVENT_VALUE.BUTTON_LOCATION`. Pro `asset_details` Screen Viewed forwards the route value.
 - `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -188,7 +189,14 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `completion_duration_tutorial` (optional): Time spent in tutorial (number)
 - `steps_viewed` (optional): Number of tutorial steps viewed (number)
 - `view_occurrences` (optional): Number of times tutorial was viewed (number)
+- `size_unit` (optional): Order-size denomination on Place Order taps: `'usd' | 'coin'`. _(local constant `PERPS_ANALYTICS_SIZE_UNIT`; `@metamask/perps-controller` `PERPS_EVENT_PROPERTY` does not export this key as of 22.0.0)_. Pro and the Lite Trade sheet send the unit on screen. A saved coin choice still sends `'usd'` until a positive price can project it, and while a USD edit started before that price is open. Full-screen Lite always sends `'usd'` because that form has no coin toggle.
 - `active_ab_tests` (optional): Canonical A/B test assignment array injected automatically via `app/util/analytics/abTestAnalyticsRegistry.ts` when a registered test is active (see [`docs/ab-testing.md`](../ab-testing.md))
+
+### Perp Transaction Considered
+
+Lite emits `Perp Transaction Considered` once a filled order form settles.
+
+- `size_unit`: `'usd' | 'coin'` _(local constant `PERPS_ANALYTICS_SIZE_UNIT`; not on `PERPS_EVENT_PROPERTY` as of `@metamask/perps-controller` 22.0.0)_. Same Place Order rule, including the pre-price USD window.
 
 ### 3. PERPS_TRADE_TRANSACTION
 

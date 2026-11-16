@@ -31,7 +31,7 @@ import {
 import Engine from '../../../../core/Engine';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import MultichainAccountsHeader from '../shared/MultichainAccountsHeader';
 import { strings } from '../../../../../locales/i18n';
 import {
   useParams,
@@ -157,12 +157,14 @@ export const PrivateKeyList = () => {
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getHeaderCompactStandardNavbarOptions({
-          title,
-          onBack: () => navigation.goBack(),
-          backButtonProps: { testID: PrivateKeyListIds.GO_BACK },
-          includesTopInset: true,
-        }),
+        header: () => (
+          <MultichainAccountsHeader
+            title={title}
+            onBack={() => navigation.goBack()}
+            backButtonProps={{ testID: PrivateKeyListIds.GO_BACK }}
+            includesTopInset
+          />
+        ),
         headerShown: true,
       });
     }

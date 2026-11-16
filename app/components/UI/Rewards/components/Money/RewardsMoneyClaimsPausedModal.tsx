@@ -16,7 +16,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatMusdBaseUnits } from '../../utils/formatUtils';
+import {
+  formatMusdBaseUnits,
+  isPositiveBaseUnits,
+} from '../../utils/formatUtils';
 
 export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
@@ -96,19 +99,29 @@ const TOTAL_ROWS: {
     key: 'claimable',
     label: (labels) => labels.availableToClaim,
   },
+  { key: 'pending', label: (labels) => labels.pending },
   { key: 'held', label: (labels) => labels.held },
   { key: 'blocked', label: (labels) => labels.blocked },
   { key: 'voided', label: (labels) => labels.voided },
-  { key: 'pending', label: (labels) => labels.pending },
   { key: 'claimed', label: (labels) => labels.claimed },
 ];
+
+/** Held, blocked, and voided stay off the sheet when they are zero. */
+const HIDE_WHEN_ZERO = new Set<ClaimsPausedAmountKey>([
+  'held',
+  'blocked',
+  'voided',
+]);
 
 const ClaimsPausedTotalsRows: React.FC<{
   totals: ClaimsPausedTotals;
   labels: ClaimsPausedLabels;
 }> = ({ totals, labels }) => (
   <>
-    {TOTAL_ROWS.map((row) => (
+    {TOTAL_ROWS.filter(
+      (row) =>
+        !HIDE_WHEN_ZERO.has(row.key) || isPositiveBaseUnits(totals[row.key]),
+    ).map((row) => (
       <KeyValueRow
         key={row.key}
         variant={KeyValueRowVariant.Summary}

@@ -16,7 +16,6 @@ import {
   ButtonVariant,
   ButtonSize,
   TextButton,
-  HeaderStandard,
   Icon,
   IconColor,
   IconSize,
@@ -129,6 +128,8 @@ import {
 } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -254,6 +255,8 @@ const CardHome = () => {
   useApplePaySplashPrompt({
     canAddToWallet,
     isPushProvisioningLoading,
+    countryCode: data?.walletProvisioning?.countryCode,
+    cardProcessor: data?.walletProvisioning?.cardProcessor,
   });
   const applePayLearnMoreUrl = useSelector(selectApplePayLearnMoreUrl);
   const handleLearnMoreAboutApplePay = useCallback(() => {
@@ -573,14 +576,9 @@ const CardHome = () => {
   const canUnlinkMoneyAccount = useMemo(() => {
     if (!primaryToken?.isMoneyAccountEntry) return false;
 
-    const tokenMoneyAccountAddress = primaryToken.walletAddress;
-    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
-    return Boolean(
-      tokenMoneyAccountAddress &&
-        activeMoneyAccountAddress &&
-        tokenMoneyAccountAddress.toLowerCase() ===
-          activeMoneyAccountAddress.toLowerCase(),
-    );
+    const tokenAddress = primaryToken.walletAddress?.toLowerCase();
+    const activeAddress = primaryMoneyAccount?.address?.toLowerCase();
+    return Boolean(tokenAddress && tokenAddress === activeAddress);
   }, [
     primaryMoneyAccount?.address,
     primaryToken?.isMoneyAccountEntry,
@@ -628,6 +626,7 @@ const CardHome = () => {
   ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
 
   const arrival = useCardArrivalAnimation({
     fromCardOnboarding: !!route.params?.fromCardOnboarding,
@@ -643,7 +642,9 @@ const CardHome = () => {
   if (isError) {
     return (
       <Box twClassName="flex-1 bg-background-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           twClassName="bg-background-default"
           {...headerHandlers}
@@ -684,7 +685,9 @@ const CardHome = () => {
   // --- Main render ---
   return (
     <Box twClassName="flex-1 bg-background-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

@@ -8,6 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
+import { Pressable } from 'react-native';
 import TraderAvatar from '../../../../SocialFeed/components/TraderAvatar';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import {
@@ -15,20 +16,15 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../../../SocialFeed/utils/formatters';
+import { TokenDetailsIds } from '../../../testIds';
 
 /** Matches the avatar size on the Social V1 feed's identity row. */
 const AVATAR_SIZE = 32;
 
-export const TokenHolderRowSelectorsIDs = {
-  CONTAINER: 'token-holder-row',
-  NAME: 'token-holder-row-name',
-  FOLLOWERS: 'token-holder-row-followers',
-  POSITION_VALUE: 'token-holder-row-position-value',
-  PNL_PERCENT: 'token-holder-row-pnl-percent',
-} as const;
-
 export interface TokenHolderRowProps {
   row: TraderFeedRow;
+  /** Makes the whole row pressable. Unset leaves the row inert. */
+  onPress?: () => void;
 }
 
 /**
@@ -39,7 +35,7 @@ export interface TokenHolderRowProps {
  * unrealized P&L percent beneath it is colored. The agreed design drops the
  * rank medal, win-rate tag and follow button the old leaderboard row had.
  */
-const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
+const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row, onPress }) => {
   const { item, core } = row;
   // Left in USD for now, as the API prices it. Converting to the viewer's
   // currency is a deliberate follow-up, not an oversight.
@@ -50,13 +46,13 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
     : '';
   const pnlLabel = item.hasPnlData ? formatPercent(core.pnlPercent) : '';
 
-  return (
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={3}
       twClassName="px-4 py-2"
-      testID={TokenHolderRowSelectorsIDs.CONTAINER}
+      testID={TokenDetailsIds.holderRow.CONTAINER}
     >
       <TraderAvatar
         imageUrl={item.avatarUri}
@@ -70,7 +66,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          testID={TokenHolderRowSelectorsIDs.NAME}
+          testID={TokenDetailsIds.holderRow.NAME}
         >
           {item.username}
         </Text>
@@ -78,7 +74,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
           numberOfLines={1}
-          testID={TokenHolderRowSelectorsIDs.FOLLOWERS}
+          testID={TokenDetailsIds.holderRow.FOLLOWERS}
         >
           {formatFollowerCountLabel(core.actor.followerCount)}
         </Text>
@@ -89,7 +85,7 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
-            testID={TokenHolderRowSelectorsIDs.POSITION_VALUE}
+            testID={TokenDetailsIds.holderRow.POSITION_VALUE}
           >
             {valueLabel}
           </Text>
@@ -100,13 +96,27 @@ const TokenHolderRow: React.FC<TokenHolderRowProps> = ({ row }) => {
             twClassName={
               item.isPnlPositive ? 'text-success-default' : 'text-error-default'
             }
-            testID={TokenHolderRowSelectorsIDs.PNL_PERCENT}
+            testID={TokenDetailsIds.holderRow.PNL_PERCENT}
           >
             {pnlLabel}
           </Text>
         ) : null}
       </Box>
     </Box>
+  );
+
+  if (!onPress) {
+    return content;
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      testID={TokenDetailsIds.holderRow.PRESS}
+    >
+      {content}
+    </Pressable>
   );
 };
 

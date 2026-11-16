@@ -159,7 +159,8 @@ describe('EmptyShellTabPage profile navigation', () => {
         positionId: 'position-1',
         position,
         author: livePost.item.author,
-        comment: livePost.item.comment,
+        isSnapshotLive: false,
+        orderSource: 'social_trending',
       }),
     );
   });

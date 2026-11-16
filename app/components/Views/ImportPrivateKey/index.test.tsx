@@ -170,6 +170,34 @@ describe('ImportPrivateKey', () => {
   });
 
   describe('goNext function', () => {
+    it('submits the private key when the keyboard return key is pressed', async () => {
+      mockImportAccountFromPrivateKey.mockResolvedValue(true);
+
+      const { getByTestId } = renderScreen(
+        ImportPrivateKey,
+        { name: 'ImportPrivateKey' },
+        { state: initialState },
+      );
+
+      const privateKeyInput = getByTestId(
+        ImportAccountFromPrivateKeyIDs.PRIVATE_KEY_INPUT_BOX,
+      );
+
+      expect(privateKeyInput.props.submitBehavior).toBe('blurAndSubmit');
+
+      fireEvent.changeText(
+        privateKeyInput,
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+      );
+      fireEvent(privateKeyInput, 'submitEditing');
+
+      await waitFor(() => {
+        expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        );
+      });
+    });
+
     it('shows error alert when private key is empty', async () => {
       const { getByTestId } = renderScreen(
         ImportPrivateKey,

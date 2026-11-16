@@ -353,9 +353,11 @@ jobs:
         if: ${{ needs.prepare.outputs.should_cache == 'true' }}
         env:
           BUILD_NAME: ${{ inputs.build_name }}
+          PLATFORM: ${{ matrix.platform }}
+          DEPS_HASH: ${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}
         run: |
           NODE_VERSION=$(node --version | sed 's/v//')
-          KEY="node-modules-${{ env.CACHE_GENERATION }}-${BUILD_NAME}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          KEY="node-modules-${CACHE_GENERATION}-${BUILD_NAME}-${PLATFORM}-${RUNNER_OS}-${NODE_VERSION}-${DEPS_HASH}"
           echo "key=${KEY}" >> "$GITHUB_OUTPUT"
           echo "Cache key: ${KEY}"
 
@@ -394,10 +396,12 @@ jobs:
 
       - name: Extract tarball (preserves symlinks)
         if: ${{ needs.prepare.outputs.should_cache != 'true' }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
         run: |
           echo "📦 Extracting tarball..."
-          tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst
-          rm node-modules-${{ matrix.platform }}.tar.zst
+          tar --use-compress-program 'zstd -d' -xf "node-modules-${PLATFORM}.tar.zst"
+          rm "node-modules-${PLATFORM}.tar.zst"
           echo "✅ Tarball extracted"
 
       - name: Verify artifacts and symlinks
@@ -705,7 +709,9 @@ jobs:
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
-        run: node scripts/rename-artifacts.js ${{ matrix.platform }}
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: node scripts/rename-artifacts.js "${PLATFORM}"
 
       # Upload build artifacts (only if build succeeded)
       - name: Upload iOS simulator app

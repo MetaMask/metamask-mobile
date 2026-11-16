@@ -5,7 +5,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
@@ -17,7 +20,6 @@ import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
-import { getFontSizeForInputLength } from '../../Views/BuildQuote/getFontSizeForInputLength';
 import Text, {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,

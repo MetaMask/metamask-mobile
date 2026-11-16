@@ -61,12 +61,9 @@ export interface PendingPostsOverlay {
 /**
  * Splits `serverPosts` and the store into what `surface` renders.
  *
- * Following keeps a post pinned even once its feed returns it, because that
- * feed is ordered by trade time and the real row can land far down the list;
- * it is released by the next user refresh. The Posts tab is ordered by comment
- * time, so there the real row takes over as soon as it arrives. Either way a
- * pinned post hides the server row for its position, which still carries the
- * older comment until the feed worker links the new one.
+ * Only the Posts tab shows a local copy. It stands in until that feed returns
+ * the same comment, and it hides the stale row for its position meanwhile.
+ * Following shows whatever the API returned, in the feed's own order.
  */
 export const overlayPendingPosts = (
   surface: PendingPostSurface,
@@ -80,12 +77,15 @@ export const overlayPendingPosts = (
   const servedCommentIds = new Set(
     serverPosts.flatMap((post) => (post.commentId ? [post.commentId] : [])),
   );
-  const pinned = entries.filter(
-    (entry) =>
-      entry.ownerProfileId === ownerProfileId &&
-      !entry.dismissedOn[surface] &&
-      (surface === 'following' || !servedCommentIds.has(entry.commentId)),
-  );
+  const pinned =
+    surface === 'posts'
+      ? entries.filter(
+          (entry) =>
+            entry.ownerProfileId === ownerProfileId &&
+            !entry.dismissedOn.posts &&
+            !servedCommentIds.has(entry.commentId),
+        )
+      : [];
   if (pinned.length === 0) {
     return { pinnedPosts: [], posts: serverPosts };
   }

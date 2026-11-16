@@ -9,6 +9,7 @@ import {
   internalAccount1,
   internalAccount2,
 } from '../../util/test/accountsControllerTestUtils';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -57,7 +58,7 @@ describe('Migration #59 - Fix crasher related to undefined selectedAccount on Ac
 
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });
@@ -149,7 +150,7 @@ describe('Migration #59 - Fix crasher related to undefined selectedAccount on Ac
     };
 
     await migrate(oldState);
-    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+    expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
       `Migration 59: selectedAccount will be undefined because firstAccount.id is undefined.`,
     );
   });

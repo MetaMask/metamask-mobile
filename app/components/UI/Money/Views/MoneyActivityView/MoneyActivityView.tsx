@@ -17,11 +17,11 @@ import {
   BoxJustifyContent,
   Button,
   ButtonBaseSize,
-  ButtonFilter,
   ButtonIconSize,
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FilterButton,
   IconName,
   Text,
   TextColor,
@@ -36,6 +36,7 @@ import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFla
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
@@ -159,6 +160,10 @@ const MoneyActivityView = () => {
     });
 
   useMountEffect(trackScreenViewed);
+
+  // Same one-shot autoramp transaction read as Money Home. The controller
+  // dedupes, so opening this screen after Home fires no duplicate events.
+  useVbaTransactionRefresh();
 
   const {
     buckets,
@@ -337,8 +342,8 @@ const MoneyActivityView = () => {
         style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
-        <ButtonFilter
-          isActive={isActive(MoneyActivityFilter.All)}
+        <FilterButton
+          isSelected={isActive(MoneyActivityFilter.All)}
           size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
@@ -350,9 +355,9 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_ALL}
         >
           {strings(FILTER_LABEL_KEYS.all)}
-        </ButtonFilter>
-        <ButtonFilter
-          isActive={isActive(MoneyActivityFilter.Deposits)}
+        </FilterButton>
+        <FilterButton
+          isSelected={isActive(MoneyActivityFilter.Deposits)}
           size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
@@ -364,9 +369,9 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_DEPOSITS}
         >
           {strings(FILTER_LABEL_KEYS.deposits)}
-        </ButtonFilter>
-        <ButtonFilter
-          isActive={isActive(MoneyActivityFilter.Transfers)}
+        </FilterButton>
+        <FilterButton
+          isSelected={isActive(MoneyActivityFilter.Transfers)}
           size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
@@ -378,9 +383,9 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
-        </ButtonFilter>
-        <ButtonFilter
-          isActive={isActive(MoneyActivityFilter.Purchases)}
+        </FilterButton>
+        <FilterButton
+          isSelected={isActive(MoneyActivityFilter.Purchases)}
           size={ButtonBaseSize.Md}
           onPress={() =>
             handleFilterPress(
@@ -392,7 +397,7 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
         >
           {strings(FILTER_LABEL_KEYS.purchases)}
-        </ButtonFilter>
+        </FilterButton>
       </ScrollView>
 
       {isSettling ? (

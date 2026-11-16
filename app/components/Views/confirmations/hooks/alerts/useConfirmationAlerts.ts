@@ -13,6 +13,7 @@ import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
+import { useTransactionDepositLimitAlert } from './useTransactionDepositLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
@@ -43,6 +44,10 @@ function useTransactionAlerts(): Alert[] {
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
   const fiatBuyLimitAlert = useFiatBuyLimitAlert();
+  // Reads the pending keypad amount from confirmation context, so the max
+  // deposit cap is captured in alert metrics even when the user backs out
+  // without ever committing the over-cap amount.
+  const depositLimitAlert = useTransactionDepositLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
@@ -66,6 +71,7 @@ function useTransactionAlerts(): Alert[] {
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
       ...fiatBuyLimitAlert,
+      ...depositLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
@@ -87,6 +93,7 @@ function useTransactionAlerts(): Alert[] {
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
       fiatBuyLimitAlert,
+      depositLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,

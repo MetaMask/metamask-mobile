@@ -300,7 +300,7 @@ const OnboardingInterestQuestionnaire = () => {
       </ScrollView>
 
       <FooterGlass
-        twClassName="pt-2 pb-2"
+        twClassName="py-2"
         primaryButtonProps={{
           children: strings('onboarding_interest_questionnaire.done'),
           onPress: onNext,

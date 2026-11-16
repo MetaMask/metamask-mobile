@@ -244,6 +244,9 @@ const OrderSummary = ({
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
+  feeDisplayMode,
+  takerFeeRate,
+  makerFeeRate,
 }: PerpsProOrderSummaryProps) => (
   <Box twClassName="w-full gap-1" testID={ids.SUMMARY}>
     {twapSummary ? (
@@ -331,6 +334,9 @@ const OrderSummary = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
           fontWeight={FontWeight.Medium}
+          feeDisplayMode={feeDisplayMode}
+          takerFeeRate={takerFeeRate}
+          makerFeeRate={makerFeeRate}
         />
       }
       keyEndButtonIconProps={buttonIcon(

@@ -1,5 +1,6 @@
 export const PredictOrderFlowTestIds = {
   SHEET: 'predict-order-flow-sheet',
+  VENUE_CHANGED: 'predict-order-flow-venue-changed',
   OUTCOME_LABEL: 'predict-order-flow-outcome-label',
   TO_WIN: 'predict-order-flow-to-win',
   AMOUNT_INPUT: 'predict-order-flow-amount-input',

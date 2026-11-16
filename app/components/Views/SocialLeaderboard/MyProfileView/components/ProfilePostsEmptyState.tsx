@@ -15,11 +15,8 @@ export interface ProfilePostsEmptyStateProps {
 }
 
 /**
- * One centered line for an empty profile tab.
- *
- * The line uses the same type and box as the Open/Closed empty copy. The
- * spacer above it stands in for that tab's filter row (32px small filter
- * button plus 12px bottom padding) so the sentence lands in the same place.
+ * One centered line for an empty profile tab. The line uses the same type and
+ * box as the Open and Closed empty copy.
  */
 const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   message,
@@ -29,7 +26,6 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
     twClassName="w-full"
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >
-    <Box twClassName="h-8 mb-3" />
     <Box alignItems={BoxAlignItems.Center} twClassName="px-4 py-8">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {message ?? strings('social_leaderboard.my_profile.empty_title')}

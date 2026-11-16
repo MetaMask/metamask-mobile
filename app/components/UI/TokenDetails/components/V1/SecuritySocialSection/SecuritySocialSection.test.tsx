@@ -145,7 +145,7 @@ describe('SecuritySocialSection', () => {
       />,
     );
 
-    expect(getByText('0x...1933')).toBeOnTheScreen();
+    expect(getByText('0x69825...11933')).toBeOnTheScreen();
   });
 
   // The chip only ever shows four characters, so the full address has to stay

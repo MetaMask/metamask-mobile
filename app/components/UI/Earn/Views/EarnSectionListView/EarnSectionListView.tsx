@@ -24,7 +24,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -85,6 +84,8 @@ import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import DottedUnderline from '../../../DottedUnderline';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const EarnSectionListSkeleton = () => (
   <Box testID={EARN_SECTION_LIST_TEST_IDS.LIST_LOADING} twClassName="px-4">
@@ -238,6 +239,7 @@ const MoneyProjection = ({
  * Displays the Earn eligible assets and Money projections.
  */
 const EarnSectionListView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<EarnScreensStackParamList, 'EarnSearchList'>>();
@@ -664,7 +666,9 @@ const EarnSectionListView = () => {
         style={{ paddingTop: insets.top }}
         testID={EARN_SECTION_LIST_TEST_IDS.HEADER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           onBack={handleBack}
           backButtonProps={{
             testID: EARN_SECTION_LIST_TEST_IDS.HEADER_BACK_BUTTON,

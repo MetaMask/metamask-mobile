@@ -55,11 +55,11 @@ export type UsernameStatus =
   | 'available';
 
 /** Server rule: letters, numbers, and underscores; edges allowed. */
-const USERNAME_PATTERN = /^[a-z0-9_]+$/;
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]+$/;
 export const MIN_USERNAME_LENGTH = 3;
 
 export const normalizeUsername = (value: string): string =>
-  value.trim().replace(/^@+/, '').toLowerCase();
+  value.trim().replace(/^@+/, '');
 
 export const getUsernameStatus = (value: string): UsernameStatus => {
   const username = normalizeUsername(value);
@@ -81,6 +81,7 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
 
 export const displayNameFromUsername = (value: string): string =>
   normalizeUsername(value)
+    .toLowerCase()
     .split('_')
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))

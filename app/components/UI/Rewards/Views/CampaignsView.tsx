@@ -10,7 +10,6 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  HeaderStandard,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -25,6 +24,9 @@ import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * CampaignsView displays all campaigns organized by status:
@@ -33,6 +35,7 @@ import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccount
  * - Previous (complete)
  */
 const CampaignsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
@@ -115,7 +118,9 @@ const CampaignsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_VIEW}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.campaigns_view.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

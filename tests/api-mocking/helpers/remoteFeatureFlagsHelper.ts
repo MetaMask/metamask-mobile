@@ -77,10 +77,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
-  earnHomeSectionEnabled: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
   earnExploreSectionEnabled: {
     enabled: false,
     minimumVersion: '0.0.0',
@@ -126,6 +122,22 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // value and pin the pre-sync homepage/controller path for smoke tests.
   defiControllerV2: {
     enabled: false,
+  },
+  // Prod serves BRL on to every user at a version the E2E build meets. Keep
+  // the registry at the prod values and keep new VBA signups closed in smoke.
+  moneyMovementNeobankBrl: {
+    enabled: false,
+    minimumVersion: '8.19.0',
+    currency: 'BRL',
+    regions: ['BR'],
+    layout: 'Pix',
+  },
+  moneyMovementNeobankUsd: {
+    enabled: false,
+    minimumVersion: '8.19.0',
+    currency: 'USD',
+    regions: ['US'],
+    layout: 'UsBank',
   },
 };
 

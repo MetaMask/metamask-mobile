@@ -3,20 +3,26 @@ import {
   BottomSheetHeader,
   Box,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   Checkbox,
+  IconName,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   ScrollView,
   useWindowDimensions,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,23 +33,38 @@ const SCROLL_END_THRESHOLD = 20;
 /** Body height as a share of the window, matching the design. */
 const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
+const WEBVIEW_SCROLL_NOT_END_EVENT = 'social-terms-scroll-not-end';
 const TERMS_BASE_URL = 'https://metamask.com';
 
+/**
+ * Android composites WebView above later siblings. Elevation keeps this
+ * overlay tappable on top of the hosted terms page.
+ */
+const SCROLL_TO_BOTTOM_BUTTON_STYLE: StyleProp<ViewStyle> = { elevation: 8 };
+
 const WEBVIEW_SCROLL_END_JS = `(function () {
+  var atEnd = false;
   function check() {
     var scrollHeight = document.documentElement.scrollHeight;
-    if (
+    var next =
       scrollHeight > 0 &&
-      window.scrollY + window.innerHeight + ${SCROLL_END_THRESHOLD} >= scrollHeight
-    ) {
-      window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_END_EVENT}');
+      window.scrollY + window.innerHeight + ${SCROLL_END_THRESHOLD} >= scrollHeight;
+    if (next === atEnd) {
+      return;
     }
+    atEnd = next;
+    window.ReactNativeWebView.postMessage(
+      next ? '${WEBVIEW_SCROLL_END_EVENT}' : '${WEBVIEW_SCROLL_NOT_END_EVENT}'
+    );
   }
   window.addEventListener('scroll', check);
   window.addEventListener('load', check);
   check();
 })();
 true;`;
+
+const WEBVIEW_SCROLL_TO_END_JS =
+  "window.scrollTo({ top: Math.max(document.body.scrollHeight, document.documentElement.scrollHeight), behavior: 'smooth' }); true;";
 
 const getUrlOrigin = (url: string): string | null => {
   try {
@@ -87,7 +108,8 @@ const isAtEnd = ({
 
 /**
  * Social Supplemental Terms consent sheet. The user must scroll to the end
- * before the checkbox enables, and check it before Agree enables.
+ * before the checkbox enables, and check it before Agree enables. A circular
+ * button jumps to that end and hides while the end is already on screen.
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   uri,
@@ -96,16 +118,22 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onClose,
 }) => {
   const { height: windowHeight } = useWindowDimensions();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const webViewRef = useRef<WebView>(null);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
+  const [isNearBottom, setIsNearBottom] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
+  const showsHostedTerms = Boolean(uri || html);
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
   const handleScroll = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<ScrollMetrics>) => {
-      if (isAtEnd(nativeEvent)) {
+      const atEnd = isAtEnd(nativeEvent);
+      setIsNearBottom(atEnd);
+      if (atEnd) {
         markReachedEnd();
       }
     },
@@ -113,8 +141,9 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   );
 
   // Native WebView metrics can report a viewport-sized document before it
-  // loads, so only a real scroll counts here. Short documents are covered by
-  // the injected script, which reads the loaded document height.
+  // loads, or after a small scroll, so they must not hide the jump button.
+  // Only a real scroll counts toward the accept gate. The injected script,
+  // which reads the loaded document height, is what shows and hides the button.
   const handleWebViewScroll = useCallback(
     ({ nativeEvent }: NativeSyntheticEvent<ScrollMetrics>) => {
       if (nativeEvent.contentOffset.y > 0 && isAtEnd(nativeEvent)) {
@@ -123,6 +152,14 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
     },
     [markReachedEnd],
   );
+
+  const scrollToBottom = useCallback(() => {
+    if (showsHostedTerms) {
+      webViewRef.current?.injectJavaScript(WEBVIEW_SCROLL_TO_END_JS);
+      return;
+    }
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+  }, [showsHostedTerms]);
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     setViewportHeight(event.nativeEvent.layout.height);
@@ -135,6 +172,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         viewportHeight > 0 &&
         contentHeight <= viewportHeight + SCROLL_END_THRESHOLD
       ) {
+        setIsNearBottom(true);
         markReachedEnd();
       }
     },
@@ -144,7 +182,12 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const handleWebViewMessage = useCallback(
     (event: { nativeEvent: { data: string } }) => {
       if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {
+        setIsNearBottom(true);
         markReachedEnd();
+        return;
+      }
+      if (event.nativeEvent.data === WEBVIEW_SCROLL_NOT_END_EVENT) {
+        setIsNearBottom(false);
       }
     },
     [markReachedEnd],
@@ -167,10 +210,11 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       </BottomSheetHeader>
       <Box
         style={{ height: windowHeight * BODY_HEIGHT_RATIO }}
-        twClassName="border-b border-muted"
+        twClassName="relative border-b border-muted"
       >
-        {uri || html ? (
+        {showsHostedTerms ? (
           <WebView
+            ref={webViewRef}
             source={
               html
                 ? { html, baseUrl: 'https://metamask.com' }
@@ -187,6 +231,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           />
         ) : (
           <ScrollView
+            ref={scrollViewRef}
             onScroll={handleScroll}
             onLayout={handleLayout}
             onContentSizeChange={handleContentSizeChange}
@@ -201,6 +246,22 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
               {strings('social_leaderboard.terms.placeholder_body')}
             </Text>
           </ScrollView>
+        )}
+        {isNearBottom ? null : (
+          <ButtonIcon
+            iconName={IconName.ArrowDown}
+            size={ButtonIconSize.Lg}
+            variant={ButtonIconVariant.Floating}
+            onPress={scrollToBottom}
+            accessibilityLabel={strings(
+              'social_leaderboard.terms.scroll_to_bottom',
+            )}
+            accessibilityRole="button"
+            hitSlop={12}
+            testID={SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON}
+            twClassName="absolute bottom-4 right-4 z-10"
+            style={SCROLL_TO_BOTTOM_BUTTON_STYLE}
+          />
         )}
       </Box>
       <Box twClassName="px-4 pt-4 pb-6 gap-4">

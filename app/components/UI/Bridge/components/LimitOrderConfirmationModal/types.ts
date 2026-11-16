@@ -4,6 +4,7 @@ import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
 import type { LimitOrderTriggerInput } from '../../utils/limitOrders/getLimitOrderTriggerParams';
 import type { LimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
+import type { InsufficientBalanceBannerProps } from './InsufficientBalanceBanner/types';
 
 /**
  * Market comparison shown under the trigger price, e.g. "(-5% from market)".
@@ -99,6 +100,7 @@ export interface LimitOrderConfirmationModalProps
    * placed at the USD equivalent of the price on screen.
    */
   usdExchangeRate?: LimitOrderUsdExchangeRate;
+  insufficientBalance?: InsufficientBalanceBannerProps['insufficientBalance'];
   primaryButton: {
     onPress: () => void;
     label: string;

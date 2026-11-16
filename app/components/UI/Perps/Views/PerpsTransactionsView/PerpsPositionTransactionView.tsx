@@ -11,7 +11,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -39,8 +38,11 @@ import {
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 const PerpsPositionTransactionView: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -67,7 +69,12 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -188,7 +195,9 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         title={transaction?.fill?.shortTitle || ''}
         onBack={() => navigation.goBack()}
         includesTopInset

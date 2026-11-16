@@ -131,7 +131,7 @@
       "title": "자금 부족"
     },
     "money_account_no_funds": {
-      "message": "You don't have funds in your Money account to send yet. Add funds first."
+      "message": "아직 Money Account에 보낼 자금이 없습니다. 먼저 자금을 추가하세요."
     },
     "fiat_buy_amount_limit": {
       "title": "금액 허용 범위 초과"
@@ -1152,7 +1152,8 @@
       "moonpay_privacy_policy_link": "MoonPay 개인정보 처리방침",
       "moonpay_terms_link": "MoonPay 이용약관",
       "powered_by": "제공자:",
-      "button": "계정 정보 확인"
+      "button": "계정 정보 확인",
+      "feature_arrives_title_pix": "몇 초 내로 도착"
     },
     "verify_identity": {
       "title": "본인 인증",
@@ -1170,7 +1171,21 @@
       "terms_sheet_description": "본인 인증을 위해 입력하신 정보가 아래 서비스 제공업체에 안전하게 공유됩니다. 계속 진행하기 전에 해당 업체의 정책과 약관을 확인하세요.",
       "metamask_privacy_policy": "MetaMask 개인정보 처리방법",
       "metamask_terms": "MetaMask 이용약관",
-      "terms_sheet_button": "동의하고 인증 시작"
+      "terms_sheet_button": "동의하고 인증 시작",
+      "subtitle": "일반적으로 몇 분 정도 소요됩니다. 정부에서 발급한 신분증이 필요합니다.",
+      "step_indicator": "{{current}} 단계/{{total}} 단계",
+      "partner_title": "당사는 본인 인증을 위해 idOS와 협력합니다.",
+      "benefit_reuse_title": "한 번 인증하고, 나중에 다시 사용하세요.",
+      "benefit_reuse_description": "MetaMask는 인증된 신원 정보의 암호화된 사본을 안전하게 보관하므로, 다른 파트너사 서비스에 더 빠르게 가입할 수 있습니다.",
+      "benefit_control_title": "데이터 통제권은 사용자에게 있습니다.",
+      "benefit_control_description": "사용자가 동의한 경우에만 인증된 신원 정보를 파트너사와 공유합니다.",
+      "benefit_delete_title": "언제든지 삭제하세요.",
+      "benefit_delete_description": "설정에서 언제든지 인증된 신원 정보를 삭제할 수 있습니다.",
+      "agreement": "계속 진행함으로써 본인은 MetaMask {{termsOfUse}}에 동의하고, MetaMask {{privacyNotice}}을(를) 확인했으며, MetaMask가 내 정보를 저장하고 idOS로 전송하는 것에 동의합니다.",
+      "agreement_terms_of_use": "이용약관",
+      "agreement_privacy_notice": "개인정보 처리 안내",
+      "agree_and_continue_button": "동의 및 계속",
+      "learn_more": "자세히 알아보세요."
     },
     "kyc_email": {
       "error_title": "인증을 시작하지 못했습니다",
@@ -1190,7 +1205,9 @@
     "kyc_taking_longer": {
       "title": "본인 인증 중",
       "description": "대부분의 인증은 약 10초 내에 완료됩니다. 나중에 다시 확인하셔도 됩니다. 인증이 완료되면 알려드리겠습니다.",
-      "button": "나중에 다시 확인"
+      "button": "나중에 다시 확인",
+      "description_few_minutes": "대부분의 확인 절차는 몇 분 내에 완료됩니다. 나중에 다시 확인하셔도 됩니다. 완료되면 알려드리겠습니다.",
+      "done_button": "완료"
     },
     "identity_verified": {
       "title": "본인 인증 완료",
@@ -1198,8 +1215,8 @@
       "button": "계속"
     },
     "creating_account": {
-      "title": "Creating your account...",
-      "description": "Most accounts are created instantly.",
+      "title": "계정 생성 중...",
+      "description": "대부분의 계정은 즉시 생성됩니다.",
       "awaiting_provider": "MoonPay의 계정 승인을 기다리는 중"
     },
     "kyc_rejected": {
@@ -1253,7 +1270,7 @@
     "vba_details": {
       "title": "Pix로 자금 추가",
       "description": "은행에서 직접 자금을 추가하세요. 일반적으로 몇 분 내에 Money account로 예치됩니다.",
-      "provider_disclosure": "Virtual asset services in Brazil are provided by a regulated third-party provider.",
+      "provider_disclosure": "브라질의 가상자산 서비스는 규제 기관의 승인을 받은 외부 업체를 통해 제공됩니다.",
       "provider_disclosure_link": "자세히 알아보세요.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Pix 키",
@@ -1271,6 +1288,25 @@
       "load_error": "예치 정보를 새로고침하지 못했습니다. 다시 시도하겠습니다.",
       "setup_error": "계정을 생성할 수 없습니다.",
       "retry": "다시 시도"
+    },
+    "partner_terms": {
+      "title": "인증 파트너사",
+      "description": "idOS가 본인 인증을 진행합니다. idOS는 인증 완료를 위해 Sumsub을 활용합니다.",
+      "section_title": "약관 및 개인정보 보호",
+      "idos_group_title": "idOS",
+      "sumsub_group_title": "Sumsub",
+      "sumsub_acknowledgement": "본인은 {{notice}}에 설명된 대로 개인정보가 처리된다는 점을 확인했습니다.",
+      "sumsub_acknowledgement_us_residents": " 미국 거주자에게만 해당: 본인은 {{privacyNotice}}을(를) 읽었으며, {{biometricsConsent}}에 설명된 대로 바이오메트릭 정보 및 바이오메트릭 식별자를 처리하는 것에 동의합니다.",
+      "sumsub_notice": "Sumsub 개인정보 처리 고지",
+      "sumsub_privacy_notice": "개인정보 처리 안내",
+      "sumsub_biometrics_consent": "Sumsub 바이오메트릭 정보 처리 동의",
+      "biometric_consent": "본인은 본인 인증을 위해 {{privacyNotice}}에 설명된 대로 idOS Association이 얼굴 이미지와 이로부터 파생된 바이오메트릭 데이터를 처리하는 것에 명시적으로 동의합니다.",
+      "biometric_consent_privacy_notice": "idOS 개인정보 처리방침",
+      "agreement": "동의 및 계속을 탭하면 {{termsAndConditions}}에 동의하게 됩니다.",
+      "agreement_terms": "idOS 이용약관",
+      "scroll_to_continue_button": "스크롤하여 계속하기",
+      "agree_to_consent_above_button": "위 사항에 동의합니다",
+      "button": "동의하고 계속하기"
     }
   },
   "social": {
@@ -1280,9 +1316,9 @@
   },
   "social_leaderboard": {
     "account_disabled": {
-      "title": "Your account is temporarily disabled",
-      "reason": "Reason: {{reason}}",
-      "contact_support_description": "Contact support at {{email}} or in the app for help.",
+      "title": "계정이 일시적으로 비활성화되었습니다",
+      "reason": "사유: {{reason}}",
+      "contact_support_description": "도움이 필요하면 {{email}} 또는 앱 내 고객지원으로 문의하세요.",
       "contact_support": "지원팀에 문의"
     },
     "entry_options": {
@@ -1447,7 +1483,8 @@
         "buy": "매수",
         "sell": "매도",
         "closed_ago": "청산 · {{age}} 전",
-        "sold_ago": "매도 · {{age}} 전"
+        "sold_ago": "매도 · {{age}} 전",
+        "opened_ago": "발급됨 · {{age}}"
       }
     },
     "translation": {
@@ -1639,19 +1676,19 @@
       "developer": "계약 생성자 - 제외됨",
       "excluded": "손익에서 제외됨",
       "short": {
-        "insider": "Insider",
-        "creator": "Creator",
-        "excluded": "Excluded"
+        "insider": "내부자",
+        "creator": "발행 주체",
+        "excluded": "제외됨"
       },
       "accessibility": {
-        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, not counted in P&L, {{reason}}",
-        "not_counted_without_change": "{{symbol}}, {{value}}, not counted in P&L, {{reason}}",
-        "direction_up": "up",
-        "direction_down": "down",
-        "direction_flat": "unchanged",
-        "reason_insider": "insider",
-        "reason_creator": "creator",
-        "reason_excluded": "excluded"
+        "not_counted": "{{symbol}}, {{value}}, {{direction}} {{percent}}, 손익에 합산되지 않음, {{reason}}",
+        "not_counted_without_change": "{{symbol}}, {{value}}, 손익에 합산되지 않음, {{reason}}",
+        "direction_up": "상승",
+        "direction_down": "하락",
+        "direction_flat": "변동 없음",
+        "reason_insider": "내부자",
+        "reason_creator": "발행 주체",
+        "reason_excluded": "제외됨"
       }
     },
     "trader_profile": {
@@ -1723,7 +1760,7 @@
       "posts": "게시물",
       "section_tokens": "토큰",
       "section_perpetuals": "영구계약",
-      "not_counted_in_pnl": "Not counted in P&L",
+      "not_counted_in_pnl": "손익에 합산되지 않음",
       "empty_open": "열린 포지션 없음",
       "empty_closed": "청산된 포지션 없음",
       "empty_open_tokens": "미청산 토큰 없음",
@@ -1731,13 +1768,25 @@
       "empty_open_perps": "미청산 무기한 선물 없음",
       "empty_closed_perps": "청산된 무기한 선물 없음",
       "empty_title": "아직 게시물이 없습니다",
-      "joined": "{{time}}에 가입",
+      "joined": "{{time}} 전 가입",
       "x_link": "X",
       "load_profile_error": "프로필을 불러올 수 없습니다.",
       "no_profile_title": "프로필 생성",
       "no_profile_description": "사용자 이름을 등록하여 피드에 표시되도록 하세요.",
       "create_profile": "프로필 생성",
-      "retry": "다시 시도"
+      "retry": "다시 시도",
+      "not_counted_section_a11y_one": "손익에 합산되지 않음, 포지션 1개. 이유 알아보기",
+      "not_counted_section_a11y_other": "손익에 합산되지 않음, 포지션 {{count}}개. 이유 알아보기",
+      "not_counted_sheet_title": "일부 포지션이 합산되지 않는 이유",
+      "not_counted_sheet_insider_label": "내부자",
+      "not_counted_sheet_insider_body": "이 트레이더는 토큰이 공개되기 전에 토큰을 배정받았습니다.",
+      "not_counted_sheet_insider_body_owner": "토큰이 공개되기 전에 토큰을 배정받았습니다.",
+      "not_counted_sheet_developer_label": "계약 생성자",
+      "not_counted_sheet_developer_body": "이 트레이더가 토큰의 계약을 배포했습니다.",
+      "not_counted_sheet_developer_body_owner": "토큰의 계약을 배포했습니다.",
+      "not_counted_sheet_unsupported_label": "지원되지 않는 토큰",
+      "not_counted_sheet_unsupported_body": "렌딩 풀 예치금과 같이 지원되지 않는 토큰의 손익은 추적할 수 없습니다.",
+      "not_counted_sheet_dismiss": "확인"
     },
     "terms": {
       "title": "이용약관이 개정되었습니다",
@@ -1820,8 +1869,8 @@
       "linked_social_account": "연결된 소셜 계정",
       "save": "저장",
       "save_error": "변경 사항을 저장할 수 없습니다. 연결을 확인하고 다시 시도하세요.",
-      "bio_prohibited": "Some of this bio can’t be used. Edit and try again.",
-      "display_name_unavailable": "This name isn’t available. Try something different.",
+      "bio_prohibited": "소개 글에 사용할 수 없는 내용이 포함되어 있습니다. 수정 후 다시 시도하세요.",
+      "display_name_unavailable": "사용할 수 없는 이름입니다. 다른 이름을 입력해 보세요.",
       "username_unavailable": "이 사용자 이름은 사용할 수 없습니다. 다른 이름을 선택하세요.",
       "username_too_short": "{{min}}자 이상이어야 합니다.",
       "username_too_long": "{{max}}자 이하여야 합니다.",
@@ -1832,7 +1881,8 @@
       "trading_activity_footnote": "변경 사항은 즉시 적용됩니다. 설정과 관계없이 신원 정보와 소셜 콘텐츠는 계속 표시됩니다.",
       "trading_activity_info": "거래 활동에 관한 자세한 정보",
       "linked_account_footnote": "이 계정에서 실행한 거래가 피드와 순위표에 표시됩니다.",
-      "avatar_accessibility_label": "내 프로필 아바타"
+      "avatar_accessibility_label": "내 프로필 아바타",
+      "linked_account_cooldown": "연결된 계정은 {{days}}일에 한 번만 변경할 수 있습니다."
     },
     "position_sheet": {
       "title": "{{username}}님의 거래",
@@ -1840,9 +1890,9 @@
       "following": "팔로우 중",
       "today": "오늘",
       "market_cap_suffix": "(MC)",
-      "posts_tab": "Posts ({{count}})",
-      "transactions_tab": "Transactions ({{count}})",
-      "no_posts": "No posts on this trade yet",
+      "posts_tab": "게시물 ({{count}})",
+      "transactions_tab": "트랜잭션 ({{count}})",
+      "no_posts": "아직 이 거래에 대한 게시물이 없습니다",
       "level": {
         "entry": "진입",
         "exit": "종료",
@@ -1875,7 +1925,9 @@
         "spot_added": "추가 매수",
         "spot_reduced": "일부 매도",
         "spot_closed": "전량 매도"
-      }
+      },
+      "open_asset_accessibility_hint": "자산 페이지 열기",
+      "open_market_accessibility_hint": "시장 상세 정보 열기"
     },
     "trader_position": {
       "market_cap": "시가총액",
@@ -2396,7 +2448,7 @@
       "trigger_price": "트리거 가격",
       "liquidation_price": "청산 가격",
       "fees": "수수료",
-      "fees_taker_maker": "Taker {{taker}}% / Maker {{maker}}%",
+      "fees_taker_maker": "테이커 {{taker}}% / 메이커 {{maker}}%",
       "estimated_points": "예상 포인트",
       "market": "시장",
       "limit": "한도",
@@ -2664,7 +2716,8 @@
       "updating_your_order": "주문 업데이트 중",
       "order_updated": "주문 업데이트 완료",
       "order_update_failed": "주문 업데이트 실패",
-      "order_update_failed_subtitle": "기존 가격 및 수량으로 주문이 미체결 상태로 유지됩니다."
+      "order_update_failed_subtitle": "기존 가격 및 수량으로 주문이 미체결 상태로 유지됩니다.",
+      "order_update_post_only_would_cross": "새로운 가격이 스프레드를 교차하므로 주문이 취소되었습니다. 다른 가격으로 다시 주문하거나 포스트 온리 옵션을 해제하고 주문하세요."
     },
     "slippage": {
       "config_title": "슬리피지 설정",
@@ -2994,7 +3047,9 @@
       "marginValidation": {
         "exceedsMaxRemovable": "금액이 인출 가능한 최대 마진을 초과합니다",
         "insufficientMargin": "포지션 내 마진이 부족해 축소할 수 없습니다"
-      }
+      },
+      "postOnlyWindow": "네트워크 업그레이드 후 거래가 일시적으로 제한되었으며 곧 재개됩니다. 몇 분 후에 다시 시도하세요.",
+      "postOnlyWouldCross": "이 가격은 스프레드를 교차하므로 포스트 온리 주문이 접수되지 않았습니다. 가격을 조정하거나 포스트 온리 옵션을 해제하고 주문하세요."
     },
     "position": {
       "title": "포지션",
@@ -3667,7 +3722,7 @@
     "tp_on_chart": "차트 상 익절",
     "sl_on_chart": "차트 상 손절",
     "pnl_hero_card": {
-      "title": "손익 히어로 카드",
+      "title": "손익 대표 카드",
       "header_title": "거래 공유",
       "share_button": "공유",
       "share_message_without_referral_code": "MetaMask에서 {{asset}} 무기한 선물을 거래하세요.",
@@ -3742,8 +3797,8 @@
     "unavailable_in_region": "회원님의 지역에서 사용할 수 없습니다",
     "home_title": "예측",
     "venue_selector": {
-      "button_label": "Choose a prediction market",
-      "title": "Prediction market",
+      "button_label": "예측 시장 선택",
+      "title": "예측 시장",
       "venues": {
         "polymarket": "Polymarket",
         "kalshi": "Kalshi"
@@ -3758,24 +3813,32 @@
       "your_positions": "내 포지션",
       "game_lines": "경기 라인",
       "outcomes": "결과",
-      "view_all_markets": "View all {{count}} markets",
+      "view_all_markets": "시장 {{count}}개 모두 보기",
       "market_layout": {
         "moneyline": "머니라인",
         "spread": "스프레드",
         "total_points": "총 포인트",
-        "team_total": "Team total",
-        "player_props": "Player props",
-        "anytime_touchdown": "Anytime touchdown",
-        "rushing_yards": "Rushing yards",
-        "receiving_yards": "Receiving yards",
-        "passing_yards": "Passing yards",
-        "full_game": "Full game",
-        "first_half": "1st half",
-        "second_half": "2nd half",
-        "q1": "1st quarter",
-        "q2": "2nd quarter",
-        "q3": "3rd quarter",
-        "q4": "4th quarter"
+        "team_total": "팀 총득점",
+        "player_props": "선수 기록 베팅",
+        "anytime_touchdown": "애니타임 터치다운",
+        "rushing_yards": "러싱 야드",
+        "receiving_yards": "리시빙 야드",
+        "passing_yards": "패싱 야드",
+        "full_game": "전체 경기",
+        "first_half": "전반전",
+        "second_half": "후반전",
+        "q1": "1쿼터",
+        "q2": "2쿼터",
+        "q3": "3쿼터",
+        "q4": "4쿼터"
+      },
+      "position": {
+        "title": "{{side}} · {{name}}",
+        "chance_to_win": "승리 확률 {{percent}}%",
+        "buy": "{{price}} 구매",
+        "buy_price_unavailable": "매수, 가격 정보 없음",
+        "holding": "{{price}}에 {{shares}}주",
+        "holding_shares": "{{shares}}주"
       }
     },
     "search": {
@@ -3864,7 +3927,7 @@
       "refresh": "새로 고침",
       "retry": "다시 시도",
       "review": "주문 검토",
-      "venue_changed": "Your prediction market changed. Close this order to continue."
+      "venue_changed": "예측 시장이 변경되었습니다. 계속하려면 이 주문을 닫으세요."
     },
     "order_approval": {
       "title": "주문 검토",
@@ -3897,8 +3960,12 @@
       "requote": "다시 시도"
     },
     "order_notification": {
-      "not_placed_title": "Order not placed",
-      "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+      "not_placed_title": "주문 접수 안 됨",
+      "not_placed_description": "잔액은 차감되지 않았습니다. 최신 시세를 불러와 다시 시도하세요."
+    },
+    "home_section": {
+      "position_info": "{{outcome}}에 {{costBasis}} 베팅하여 {{payout}} 획득",
+      "pnl_unavailable": "사용 불가"
     }
   },
   "predict": {
@@ -4663,8 +4730,8 @@
     "sort_name": "이름",
     "sort_high_to_low": "높은 순",
     "sort_low_to_high": "낮은 순",
-    "sort_a_to_z": "A to Z",
-    "sort_z_to_a": "Z to A",
+    "sort_a_to_z": "알파벳순 (오름차순)",
+    "sort_z_to_a": "알파벳순 (내림차순)",
     "sort_apply": "적용",
     "sort_reset": "재설정",
     "add_to_get_started": "암호화폐를 추가하여 시작하세요",
@@ -4806,7 +4873,7 @@
       "all": "모든 유형",
       "transactions": "트랜잭션",
       "buy_sell": "매수/매도",
-      "limit_orders": "Limit orders",
+      "limit_orders": "지정가 주문",
       "perps": "무기한 선물",
       "predictions": "예측",
       "metamask_card": "카드"
@@ -4851,7 +4918,7 @@
         "action": "자금 추가"
       },
       "limit_orders": {
-        "description": "Your filled limit orders will show up here.",
+        "description": "체결된 지정가 주문이 여기에 표시됩니다.",
         "action": "토큰 스왑"
       },
       "metamask_card": {
@@ -5226,7 +5293,7 @@
     "card_update_badge": "업데이트",
     "settings": "설정",
     "networks": "네트워크",
-    "log_out": "로그아웃",
+    "log_out": "잠금",
     "notifications": "알림",
     "metamask_orange": "MetaMask Orange",
     "join_metamask_orange": "MetaMask Orange 가입",
@@ -6173,7 +6240,7 @@
     "balance": "불러올 수 없습니다. 지원 문서를 확인하고",
     "position_pnl": {
       "your_position": "내 포지션",
-      "unrealised": "Unrealised PNL",
+      "unrealised": "미실현 손익",
       "average_cost": "Average cost",
       "realized": "Realized",
       "realized_pnl": "Realized P&L",
@@ -6357,97 +6424,97 @@
   },
   "token_details_v1": {
     "security_pill": {
-      "screened": "Screened",
+      "screened": "보안 검사 완료",
       "flags": {
-        "one": "{{count}} flag",
-        "other": "{{count}} flags"
+        "one": "주의 항목 {{count}}개",
+        "other": "주의 항목 {{count}}개"
       },
       "high_risk": "고위험",
-      "unscreened": "Unscreened",
+      "unscreened": "보안 검사 전",
       "pending": "보류 중",
-      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+      "accessibility_label": "보안: {{verdict}}. 보안 탭 열기"
     },
     "social": {
-      "website": "Open website",
-      "x": "Open on X",
-      "telegram": "Open on Telegram",
-      "search_on_x": "Search on X",
-      "copy_address": "Copy contract address {{address}}"
+      "website": "웹사이트 열기",
+      "x": "X에서 열기",
+      "telegram": "Telegram에서 열기",
+      "search_on_x": "X에서 검색",
+      "copy_address": "계약 주소 {{address}} 복사"
     },
     "age": {
-      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "accessibility_label": "토큰 생성 경과 시간 {{age}}. 토큰 생성 경과 시간 알아보기.",
       "explainer": {
         "title": "토큰 생성 후 경과 시간",
-        "description": "Time since token creation. Seconds, minutes, hours, then days."
+        "description": "토큰이 생성된 후 경과한 시간입니다. 초, 분, 시간, 일 단위로 표시됩니다."
       }
     },
     "stats": {
-      "market_cap": "MCap",
+      "market_cap": "시가총액",
       "liquidity": "유동성",
-      "volume_24h": "24h Vol",
+      "volume_24h": "24시간 거래량",
       "holders": "보유자",
-      "top_10": "Top 10",
-      "liquidity_to_market_cap": "Liq/MC",
-      "tax": "Tax",
-      "high_low_24h": "24h high/low",
+      "top_10": "상위 10개",
+      "liquidity_to_market_cap": "유동성/시총",
+      "tax": "세금",
+      "high_low_24h": "24시간 고가/저가",
       "circulating_supply": "순환 공급",
-      "explain": "{{stat}}. Learn what this means",
+      "explain": "{{stat}}. 의미 알아보기",
       "explainers": {
         "market_cap": {
-          "title": "Market capitalization",
-          "description": "Current market capitalization of the circulating token supply."
+          "title": "시가총액",
+          "description": "현재 유통 중인 토큰 공급량의 시가총액입니다."
         },
         "liquidity": {
-          "title": "Total liquidity",
-          "description": "Value currently available in the token's trading pools."
+          "title": "총 유동성",
+          "description": "현재 토큰의 거래 풀에서 이용 가능한 가치입니다."
         },
         "volume_24h": {
-          "title": "24-hour trading volume",
-          "description": "Value traded over the last 24 hours."
+          "title": "24시간 거래량",
+          "description": "지난 24시간 동안 거래된 가치입니다."
         },
         "holders": {
           "title": "보유자",
-          "description": "Number of unique addresses holding this token."
+          "description": "이 토큰을 보유한 고유 주소의 수입니다."
         },
         "top_10": {
           "title": "상위 보유자 10인",
-          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+          "description": "풀, 라우터, 소각 주소를 제외한 상위 10개 지갑의 보유 비중입니다."
         },
         "liquidity_to_market_cap": {
-          "title": "Liquidity to market capitalization",
-          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+          "title": "유동성 대비 시가총액 비율",
+          "description": "총 유동성을 시가총액으로 나눈 값입니다. 이는 독립적인 통계 지표이며 Blockaid 판정 결과에 포함되지 않습니다."
         },
         "tax": {
-          "title": "Buy and sell tax",
-          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+          "title": "매수 및 매도 세금",
+          "description": "EVM 토큰에 대해 보고된 매수 및 매도 수수료입니다. 데이터가 없다고 해서 수수료가 0인 것은 아닙니다."
         },
         "high_low_24h": {
-          "title": "24-hour high and low",
-          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+          "title": "24시간 고가 및 저가",
+          "description": "지난 24시간 동안 거래된 최고가와 최저가로, 해당 순서대로 표시됩니다."
         },
         "circulating_supply": {
           "title": "순환 공급",
-          "description": "Amount of this token currently circulating."
+          "description": "현재 유통 중인 이 토큰의 수량입니다."
         },
         "lp_burned_locked": {
-          "title": "Liquidity pool tokens burned or locked",
-          "description": "Share of the primary pool liquidity that is burned or locked."
+          "title": "소각되거나 잠겨 있는 유동성 풀 토큰",
+          "description": "소각되거나 잠겨 있는 주요 풀 유동성의 비중입니다."
         },
         "primary_pool": {
-          "title": "Primary pool",
-          "description": "The main trading pool reported for this token."
+          "title": "주요 풀",
+          "description": "이 토큰에 대해 보고된 메인 거래 풀입니다."
         },
         "volume_flags": {
-          "title": "Volume flags",
-          "description": "These flags appear when Blockaid detects signs of artificial trading activity, like wash trading or fake volume."
+          "title": "거래량 주의 항목",
+          "description": "자전거래나 허위 거래량 등 인위적인 거래 활동 징후가 Blockaid에 감지되면 표시되는 주의 항목입니다."
         },
         "listed_on_exchange": {
           "title": "거래소 상장",
-          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+          "description": "Blockaid에서 이 토큰이 주요 중앙화 거래소에 상장된 것으로 보고되었는지 여부입니다."
         },
         "created": {
           "title": "생성됨",
-          "description": "Date the token contract was created, when reported by its source."
+          "description": "출처에서 보고된 토큰 계약 생성일입니다."
         }
       }
     },
@@ -6479,40 +6546,40 @@
       "title": "{{symbol}} 활동"
     },
     "security_tab": {
-      "explain": "What does {{term}} mean?",
-      "contract_details_link": "See all contract security checks",
+      "explain": "{{term}}은(는) 무슨 뜻인가요?",
+      "contract_details_link": "계약 보안 검사 모두 보기",
       "sections": {
         "contract": "계약",
-        "contract_checks": "Contract checks",
-        "additional_checks": "Additional checks",
+        "contract_checks": "계약 검사",
+        "additional_checks": "추가 검사",
         "holders": "보유자",
         "liquidity": "유동성",
         "trading": "트레이드",
         "origin": "원본"
       },
       "checks": {
-        "no_honeypot": "No honeypot",
-        "contract_verified": "Contract verified",
-        "renounced": "Renounced",
-        "no_blacklist": "No blacklist",
-        "is_mintable": "Is mintable"
+        "no_honeypot": "허니팟 없음",
+        "contract_verified": "계약 검증됨",
+        "renounced": "소유권 포기됨",
+        "no_blacklist": "블랙리스트 없음",
+        "is_mintable": "추가 발행 가능"
       },
       "check_values": {
         "no_honeypot": {
-          "pass": "Honeypot not detected",
-          "fail": "Honeypot detected"
+          "pass": "허니팟 감지되지 않음",
+          "fail": "허니팟 감지됨"
         },
         "contract_verified": {
           "pass": "예",
           "fail": "아니요"
         },
         "renounced": {
-          "pass": "Renounced",
-          "fail": "Not renounced"
+          "pass": "소유권 포기됨",
+          "fail": "소유권 포기되지 않음"
         },
         "no_blacklist": {
-          "pass": "No controls",
-          "fail": "Control detected"
+          "pass": "제어 권한 없음",
+          "fail": "제어 권한 감지됨"
         },
         "is_mintable": {
           "pass": "예",
@@ -6522,127 +6589,127 @@
       "values": {
         "yes": "예",
         "no": "아니요",
-        "none_detected": "None detected",
+        "none_detected": "감지된 항목 없음",
         "detected": {
-          "one": "{{count}} detected",
-          "other": "{{count}} detected"
+          "one": "{{count}}개 감지됨",
+          "other": "{{count}}개 감지됨"
         }
       },
       "risk_banner": {
-        "one": "We found {{count}} risk",
-        "other": "We found {{count}} risks"
+        "one": "위험 요소 {{count}}개가 발견되었습니다",
+        "other": "위험 요소 {{count}}개가 발견되었습니다"
       },
       "risks": {
         "default": {
-          "title": "Risk detected"
+          "title": "위험 요소 감지됨"
         },
         "known_malicious": {
           "title": "악성으로 알려짐",
-          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+          "description": "Blockaid가 알려진 악성 활동 또는 손상된 토큰 계약을 확인했습니다."
         },
         "dangerous_contract_behavior": {
-          "title": "Dangerous contract behavior",
-          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+          "title": "위험한 계약 동작",
+          "description": "계약에 의심스러운 코드, 권한 백도어 또는 예상되는 작동 방식과 다른 동작이 포함되어 있습니다."
         },
         "impersonation_risk": {
-          "title": "Impersonation risk",
-          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+          "title": "사칭 위험",
+          "description": "이 토큰은 정상적인 토큰의 이름, 심볼, 브랜딩 또는 식별 속성을 모방했을 수 있습니다."
         },
         "rug_pull": {
-          "title": "Rug pull detected",
-          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+          "title": "러그 풀 감지됨",
+          "description": "Blockaid가 토큰 발행 주체에 악의적인 러그 풀 및 허니팟 사기를 주도한 이력이 있음을 확인했습니다."
         },
         "exit_scam_risk": {
-          "title": "Exit scam risk",
-          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+          "title": "먹튀 사기 위험",
+          "description": "발행 주체 또는 내부자의 행동으로 볼 때 보유자에게 피해를 주면서 자금을 빼낼 위험이 있습니다."
         },
         "high_token_fees": {
-          "title": "High token fees",
-          "description": "The token's transfer, buy, or sell fees are unusually high."
+          "title": "높은 토큰 수수료",
+          "description": "토큰의 전송, 매수 또는 매도 수수료가 비정상적으로 높습니다."
         },
         "low_liquidity_risk": {
-          "title": "Low liquidity risk",
-          "description": "Limited liquidity could make the token price volatile."
+          "title": "낮은 유동성 위험",
+          "description": "제한된 유동성으로 인해 토큰 가격 변동성이 커질 수 있습니다."
         },
         "concentrated_ownership": {
-          "title": "Concentrated ownership",
-          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+          "title": "소유권 집중",
+          "description": "소수의 보유자 그룹이 공급량의 큰 비중을 통제하고 있어 가격 조작 및 매도 압력 위험이 높습니다."
         },
         "wash_trading": {
-          "title": "Wash trading activity",
-          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+          "title": "자전거래 활동",
+          "description": "인위적인 거래나 거래 계정이 토큰의 활동량이나 거래량을 부풀리고 있을 수 있습니다."
         },
         "sniped_at_launch": {
-          "title": "Sniped at launch",
-          "description": "One or more wallets acquired supply in the same block as the token's creation."
+          "title": "출시 직후 물량 선점됨",
+          "description": "토큰이 생성된 블록에서 하나 이상의 지갑이 공급량을 매집했습니다."
         },
         "suspicious_creator": {
-          "title": "Suspicious creator",
-          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+          "title": "의심스러운 발행 주체",
+          "description": "발행 주체의 평판이나 토큰의 자금 조달 경로에서 추가적인 위험 우려가 제기됩니다."
         },
         "sanctioned_creator": {
           "title": "제재 대상 크리에이터",
-          "description": "The token's creator is sanctioned by a government or financial institution."
+          "description": "토큰 발행 주체가 정부 또는 금융 기관의 제재 대상입니다."
         },
         "suspicious_airdrop": {
           "title": "의심스러운 에어드롭",
-          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+          "description": "토큰의 온체인 에어드롭 활동이나 메타데이터가 기만적이거나 스팸성일 수 있습니다."
         },
         "liquidity_withdrawal_risk": {
-          "title": "Liquidity withdrawal risk",
-          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+          "title": "유동성 회수 위험",
+          "description": "잠겨 있는 유동성이 부족하거나 마이그레이션 잠금 해제로 인해 운영자가 유동성을 회수할 수 있습니다."
         }
       },
       "checks_meta": {
         "attribution": "Blockaid",
-        "age_clause": "· updated {{count}} min ago",
-        "age_clause_just_now": "· updated just now",
+        "age_clause": "· {{count}}분 전에 업데이트됨",
+        "age_clause_just_now": "· 방금 업데이트됨",
         "explainer": {
-          "title": "Security verification",
-          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+          "title": "보안 검사",
+          "description": "보안 검사는 온체인 기록을 바탕으로 Blockaid에서 수행합니다. 이 정보는 참고용으로만 제공되며 재무, 법률 또는 투자 자문이 아닙니다. 보안 검사는 MetaMask의 보증을 의미하지 않습니다."
         }
       },
       "stats": {
         "holders": "보유자",
-        "top_ten": "Top 10",
-        "total_liquidity": "Total liquidity",
-        "liquidity_to_market_cap": "Liq/MC",
-        "lp_burned_locked": "LP burned/locked",
-        "primary_pool": "Primary pool",
-        "buy_sell_tax": "Buy/sell tax",
-        "volume_flags": "Volume flags",
+        "top_ten": "상위 10개",
+        "total_liquidity": "총 유동성",
+        "liquidity_to_market_cap": "유동성/시총",
+        "lp_burned_locked": "소각/잠금된 LP",
+        "primary_pool": "주요 풀",
+        "buy_sell_tax": "매수/매도 세금",
+        "volume_flags": "거래량 주의 항목",
         "listed_on_exchange": "거래소 상장",
         "created": "생성됨"
       },
       "holders": {
-        "top_ten": "Top 10",
-        "remaining": "Remaining holders"
+        "top_ten": "상위 10개",
+        "remaining": "나머지 보유자"
       },
       "explainers": {
         "no_honeypot": {
-          "title": "No honeypot",
-          "description": "Whether the token can be sold."
+          "title": "허니팟 없음",
+          "description": "토큰 매도 가능 여부입니다."
         },
         "contract_verified": {
-          "title": "Contract verified",
-          "description": "Whether the contract source is reported as verified."
+          "title": "계약 검증됨",
+          "description": "계약 소스 코드가 검증된 것으로 보고되었는지 여부입니다."
         },
         "renounced": {
-          "title": "Renounced",
-          "description": "Whether contract ownership has been renounced."
+          "title": "소유권 포기됨",
+          "description": "계약 소유권이 포기되었는지 여부입니다."
         },
         "no_blacklist": {
-          "title": "No blacklist",
-          "description": "Whether an address can be blocked from trading."
+          "title": "블랙리스트 없음",
+          "description": "특정 주소의 거래를 차단할 수 있는지 여부입니다."
         },
         "is_mintable": {
-          "title": "Is mintable",
-          "description": "Whether a token can mint additional supply."
+          "title": "추가 발행 가능",
+          "description": "토큰을 추가로 발행할 수 있는지 여부입니다."
         }
       }
     },
     "contract_security": {
-      "title": "Contract security"
+      "title": "계약 보안"
     },
     "tab_placeholder": "곧 추가 예정"
   },
@@ -9543,8 +9610,8 @@
     },
     "vba_home_card": {
       "get_started": {
-        "title": "Convert to digital dollars",
-        "description": "Send BRL, USD, or EUR from your bank and get mUSD in your Money account. No fees.",
+        "title": "디지털 달러로 환전",
+        "description": "은행에서 BRL, USD 또는 EUR를 송금하고 Money Account로 mUSD를 받으세요. 수수료는 없습니다.",
         "cta": "시작하기"
       },
       "account_is_ready": {
@@ -9567,6 +9634,11 @@
         "description": "현재 은행 송금 서비스를 제공할 수 없습니다. 도움이 필요하면 지원팀에 문의해 주세요.",
         "cta": "자세히 알아보세요.",
         "dismiss": "해지"
+      },
+      "identity_verified": {
+        "title": "본인 인증 완료",
+        "description": "다음으로, 은행에서 자금을 추가하기 위해 가상계좌 정보를 확인하세요.",
+        "cta": "계정 정보 확인"
       }
     },
     "first_time_deposit": {
@@ -9698,7 +9770,8 @@
       "add_musd": "mUSD 추가",
       "receive_external": "외부 주소",
       "coming_soon": "곧 추가 예정",
-      "new_badge": "신규"
+      "new_badge": "신규",
+      "no_fees": "수수료 없음"
     },
     "more_sheet": {
       "title": "더 보기",
@@ -9817,9 +9890,9 @@
     "transaction": {
       "deposited": "입금됨",
       "bank_transfer": "은행 송금",
-      "microdeposit": "Verification deposit",
-      "microdeposit_from": "From {{name}}",
-      "microdeposit_from_bank": "From your bank",
+      "microdeposit": "인증 입금",
+      "microdeposit_from": "보낸 사람: {{name}}",
+      "microdeposit_from_bank": "내 은행에서",
       "received": "받음",
       "sent": "보낸",
       "card_transaction": "카드 거래",
@@ -10253,7 +10326,7 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_deposit_header": "Add to MetaMask Money",
+      "money_account_deposit_header": "MetaMask Money에 추가",
       "money_account_send": "전송"
     },
     "sub_title": {
@@ -10276,12 +10349,6 @@
       "predict_deposit": {
         "transaction_fee": "'예측'에서 사용하는 Polygon 네트워크를 통해 회원님의 토큰을 pUSD로 스왑합니다. 스왑 제공업체는 수수료를 부과할 수 있으나 MetaMask의 경우 수수료가 없습니다."
       },
-      "perps_withdraw": {
-        "transaction_fee": "MetaMask가 원하는 토큰으로 스왑해 드립니다. mUSD로 스왑할 때 MetaMask 수수료는 적용되지 않습니다."
-      },
-      "predict_withdraw": {
-        "transaction_fee": "MetaMask가 원하는 토큰으로 스왑해 드립니다. mUSD로 스왑할 때 MetaMask 수수료는 적용되지 않습니다."
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD 환전 수수료에는 네트워크 비용이 포함되며 제공업체 수수료가 포함될 수 있습니다. mUSD로 환전할 때 MetaMask 수수료는 적용되지 않습니다."
       },
@@ -10294,7 +10361,13 @@
       "title": {
         "transaction_fee": "트랜잭션 수수료"
       },
-      "network_fee": "네트워크 수수료는 네트워크의 혼잡도와 트랜잭션의 복잡성에 따라 달라집니다."
+      "network_fee": "네트워크 수수료는 네트워크의 혼잡도와 트랜잭션의 복잡성에 따라 달라집니다.",
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask가 원하는 토큰으로 스왑해 드립니다."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask가 원하는 토큰으로 스왑해 드립니다."
+      }
     },
     "spending_cap": "지출 한도",
     "withdraw": "출금",
@@ -10393,7 +10466,7 @@
     "available_balance": "사용 가능한 잔액: ",
     "edit_amount_done": "계속",
     "deposit_edit_amount_done": "자금 추가",
-    "deposit_edit_amount_convert_token": "Convert {{symbol}}",
+    "deposit_edit_amount_convert_token": "{{symbol}} 환전",
     "deposit_edit_amount_predict_withdraw": "출금",
     "deposit_edit_amount_money_account_send": "전송",
     "deposit_edit_amount_musd_conversion": "mUSD로 전환",
@@ -10528,8 +10601,8 @@
       "order_created_description": "체결되면 알려드리겠습니다.",
       "order_canceled_title": "주문 취소 완료",
       "usd_price_notice": "가격은 선택한 통화로 표시되지만 주문은 생성 시점의 환율을 기준으로 USD로 제출됩니다. 현재 환율: 1 USD = {{rate}} {{currency}}.",
-      "insufficient_balance_warning": "Your {{symbol}} balance is too low to fill this order. If it’s still too low when your trigger condition is met, the order won’t go through.",
-      "swap_into_token": "Swap into {{symbol}}",
+      "insufficient_balance_warning": "{{symbol}} 잔액이 부족하여 이 주문을 체결할 수 없습니다. 트리거 조건이 충족되었을 때도 잔액이 부족하면 주문이 실행되지 않습니다.",
+      "swap_into_token": "{{symbol}}(으)로 스왑",
       "activity_title_filled": "{{source}}을(를) {{dest}}(으)로 스왑함",
       "activity_title_expired": "{{source}}에서 {{dest}}(으)로 전환 만료됨",
       "activity_title_canceled": "{{source}}에서 {{dest}}(으)로 전환 취소됨",
@@ -10548,8 +10621,8 @@
       "confirm": "컨펌",
       "preview_order": "주문 미리보기",
       "confirm_title": "반복 주문 컨펌",
-      "unsupported_fee_token_pair": "Recurring swaps aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
-      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "unsupported_fee_token_pair": "이 토큰 페어는 정기 스왑을 지원하지 않습니다. 계속하려면 최소 하나의 토큰을 다음 토큰으로 변경하세요. {{supportedTokens}}",
+      "fee_tokens_unavailable": "지원되는 수수료 토큰을 불러올 수 없습니다. 다시 시도하세요.",
       "try_again": "다시 시도",
       "order_created_toast_title": "주문 생성됨",
       "order_created_toast_body": "체결되면 알려드리겠습니다.",
@@ -10562,9 +10635,9 @@
       "expires_after": "다음 기간 후 만료",
       "slippage_all_orders": "슬리피지(전체 주문)",
       "est_network_fee_per_order": "예상 네트워크 수수료(개별 주문)",
-      "account_upgrade_fee": "Account upgrade fee",
-      "account_upgrade_fee_info_title": "Account upgrade fee",
-      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute recurring swaps. Like all on-chain actions, this has a small network fee.",
+      "account_upgrade_fee": "계정 업그레이드 수수료",
+      "account_upgrade_fee_info_title": "계정 업그레이드 수수료",
+      "account_upgrade_fee_info_body": "스마트 계정으로 업그레이드하면 정기 스왑을 실행할 수 있습니다. 모든 온체인 작업과 마찬가지로 소액의 네트워크 수수료가 발생합니다.",
       "got_it": "컨펌",
       "repeat_info_title": "반복 주문",
       "repeat_info_body": "주문의 시점과 규모를 무작위로 조정하여 스왑이 예측 가능한 패턴에 따라 실행되지 않도록 합니다.",
@@ -10572,7 +10645,7 @@
       "max_is": "최댓값은 {{max}}입니다",
       "price_range": {
         "label": "가격 범위",
-        "input_label": "Price range (optional)",
+        "input_label": "가격 범위 (선택 사항)",
         "not_set": "설정되지 않음",
         "token": "토큰",
         "price": "가격",
@@ -10809,7 +10882,7 @@
     "quote_stream_complete_rwa_market_unavailable": "이 자산의 마켓은 현재 사용할 수 없습니다. 나중에 다시 시도하세요.",
     "max": "최대",
     "approval_needed": "토큰의 스왑 사용 권한을 승인합니다.",
-    "tooltip_accessibility_hint": "Shows more information",
+    "tooltip_accessibility_hint": "추가 정보 표시",
     "approval_tooltip_title": "정확한 접근 권한 부여",
     "approval_tooltip_content": "지정된 금액, {{amount}} {{symbol}}에만 접근을 허용합니다. 계약은 추가 자금에 접근하지 않습니다.",
     "minimum_received": "최소 수령 금액",
@@ -12667,7 +12740,7 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "${{amount}} 필요함",
       "stats_qualified_title": "자격 충족",
-      "stats_qualified_description": "대회 종료 전까지 계속 거래해 손익을 개선하고 리더보드 순위도 올려보세요.",
+      "stats_qualified_description": "대회가 끝나기 전에 계속 거래하여 손익을 높이고 리더보드 순위를 올려보세요.",
       "stats_qualify_for_rank_title": "리더보드 자격 얻기",
       "stats_qualify_for_rank_description": "참가 자격을 획득하려면 명목 거래량 기준으로 {{notionalRemaining}}만큼 더 거래해야 합니다.",
       "stats_error_title": "통계를 불러올 수 없음",
@@ -12681,7 +12754,7 @@
       "label_your_rank": "내 등급",
       "label_roi": "ROI(수수료 차감 후)",
       "label_total_volume": "총 거래량",
-      "label_pnl": "손익(수수료 차감 후)",
+      "label_pnl": "손익 (수수료 차감 후)",
       "predict_now_cta": "지금 예측하기",
       "positions_title": "내 예측",
       "positions_open_section": "미체결",
@@ -13490,16 +13563,16 @@
       }
     },
     "payment": {
-      "processing_title": "Processing payment",
+      "processing_title": "결제 처리 중",
       "processing_body": "몇 분 정도 소요될 수 있습니다.",
-      "active_title": "Your membership is active",
-      "view_membership": "View membership",
+      "active_title": "멤버십이 활성화되었습니다",
+      "view_membership": "멤버십 보기",
       "failed_title": "결제 실패",
-      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "failed_body": "혜택을 계속 이용하려면 Money Account로 송금하세요.",
       "try_again": "다시 시도"
     },
     "success": {
-      "title": "You just leveled up",
+      "title": "방금 레벨업했습니다",
       "description": "이제 적립을 시작해 보세요.",
       "cta": "계속"
     }

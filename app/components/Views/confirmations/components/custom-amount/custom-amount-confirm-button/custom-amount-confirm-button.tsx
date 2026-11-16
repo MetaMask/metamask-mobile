@@ -24,6 +24,7 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function CustomAmountConfirmButton({
   isDisabled,
@@ -87,9 +88,18 @@ export function CustomAmountConfirmButton({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const { payToken } = useTransactionPayToken();
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
     return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    if (payToken?.symbol) {
+      return strings('confirm.deposit_edit_amount_convert_token', {
+        symbol: payToken.symbol,
+      });
+    }
   }
 
   if (

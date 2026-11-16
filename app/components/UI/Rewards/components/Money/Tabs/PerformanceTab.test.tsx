@@ -6,6 +6,7 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
+  ReferralRole,
 } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -15,6 +16,17 @@ import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
 import PerformanceTab from './PerformanceTab';
 import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
+
+jest.mock('../../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock(
+  '../../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
+  () => ({
+    navigateToSocialLeaderboard: jest.fn(),
+  }),
+);
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
 
 const mockNavigate = jest.fn();
@@ -56,6 +68,9 @@ const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
+  copyTradingEmptyDescription:
+    'You can earn rewards from sharing a trade. Start sharing to earn today!',
+  copyTradingEmptyAction: 'Start sharing',
   tradingActivityEmptyAction: 'Start trading',
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
@@ -121,6 +136,7 @@ const renderTab = (
     funnelLoading = false,
     funnelData = { enrolled: 12, earning_generating: 5 },
     active = true,
+    roles,
   }: {
     commissions?: CommissionEntryView[];
     rebates?: LedgerEarningEntryDto[];
@@ -130,6 +146,7 @@ const renderTab = (
     funnelLoading?: boolean;
     funnelData?: { enrolled: number; earning_generating: number } | null;
     active?: boolean;
+    roles?: ReferralRole[];
   } = {},
 ) => {
   (useReferralFunnel as jest.Mock).mockReturnValue({
@@ -159,6 +176,7 @@ const renderTab = (
               error: false,
               data: {
                 localized_text: LOCALIZED_TEXT,
+                roles,
               } as ReferralMeDto,
             },
           },
@@ -244,6 +262,36 @@ describe('PerformanceTab', () => {
     });
   });
 
+  it('hides commissions and skips that read for a cashback experiment member', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['CASHBACK_EXPERIMENT'],
+    });
+
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+  });
+
+  it('hides rebates and skips that read for a copy-trading sharer', () => {
+    const { queryByTestId, getByTestId } = renderTab('referee', {
+      roles: ['COPY_TRADING'],
+    });
+
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
+    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: true,
+    });
+    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
+      enabled: false,
+    });
+  });
+
   it('does not fetch while another Money tab is selected', () => {
     renderTab('referrer', { active: false });
 
@@ -259,7 +307,7 @@ describe('PerformanceTab', () => {
   });
 
   it('shows an empty message in rebates when there are no rows', () => {
-    const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
+    const { getByText, getByTestId, queryByRole, queryByTestId } = renderTab(
       'referee',
       {
         commissions: [],
@@ -274,8 +322,13 @@ describe('PerformanceTab', () => {
       getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY),
     ).toBeOnTheScreen();
     expect(
-      getAllByText('Your activity is empty now. Start trading to earn today!'),
-    ).toHaveLength(2);
+      getByText(
+        'You can earn rewards from sharing a trade. Start sharing to earn today!',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText('Your activity is empty now. Start trading to earn today!'),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
     ).toBeOnTheScreen();

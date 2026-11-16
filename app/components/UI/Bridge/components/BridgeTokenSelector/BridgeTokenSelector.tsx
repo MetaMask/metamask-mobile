@@ -52,7 +52,6 @@ import {
   Box,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -100,6 +99,8 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useSwapsFeatureId } from '../../hooks/useSwapsFeatureId';
 import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -1149,6 +1150,7 @@ export const BridgeTokenSelectorContent: React.FC<
 };
 
 export const BridgeTokenSelector: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
@@ -1169,7 +1171,9 @@ export const BridgeTokenSelector: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
         includesTopInset

@@ -32,12 +32,6 @@ describe('Success', () => {
       expect(getByTestId(SuccessTestIds.ICON_PLACEHOLDER)).toBeOnTheScreen();
     });
 
-    it('renders the title from i18n', () => {
-      const { getByTestId } = renderSuccess();
-
-      expect(getByTestId(SuccessTestIds.TITLE)).toBeOnTheScreen();
-    });
-
     it('renders the description from i18n', () => {
       const { getByTestId } = renderSuccess();
 

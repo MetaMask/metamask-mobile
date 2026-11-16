@@ -12,6 +12,11 @@ import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import SelectHardwareTestIds from './SelectHardware.testIds';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));

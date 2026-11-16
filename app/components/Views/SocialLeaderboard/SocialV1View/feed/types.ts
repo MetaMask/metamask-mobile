@@ -7,8 +7,8 @@ export type SocialV1FeedTab = 'trending' | 'following';
 export interface UseSocialV1FeedResult {
   posts: SocialV1FeedPost[];
   /**
-   * The viewer's own new posts, to render above `posts` regardless of sort or
-   * filters. Following only; always empty on Trending.
+   * Kept for the list chrome. The feed no longer pins a local post here;
+   * Following shows a new post only when the API returns it.
    */
   pinnedPosts: SocialV1FeedPost[];
   isLoading: boolean;

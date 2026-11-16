@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
 import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
@@ -13,7 +13,12 @@ import VbaAccountCreateErrorAdapter from './modules/AccountCreateErrorAdapter';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
+import {
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+  type VbaOnboardingRootParams,
+} from './routes';
+import { useFocusMoneyTabBelow } from './hooks/useFocusMoneyTabBelow';
 import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -66,7 +71,7 @@ const InstrumentedOnboardingError = withScreenPerformance(
   VBA_SCREEN_CONTENT_STATE.ERROR,
 );
 
-const VbaOnboardingNavigator = () => (
+const VbaOnboardingStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
@@ -114,5 +119,28 @@ const VbaOnboardingNavigator = () => (
     />
   </Stack.Navigator>
 );
+
+const FocusMoneyTabBelow = () => {
+  useFocusMoneyTabBelow();
+  return null;
+};
+
+interface VbaOnboardingNavigatorProps {
+  route?: { params?: VbaOnboardingRootParams };
+}
+
+const VbaOnboardingNavigator = ({ route }: VbaOnboardingNavigatorProps) => {
+  // Read once on open, so a later reset of this route cannot drop the request.
+  const [focusMoneyTabBelow] = useState(
+    Boolean(route?.params?.focusMoneyTabBelow),
+  );
+
+  return (
+    <>
+      {focusMoneyTabBelow ? <FocusMoneyTabBelow /> : null}
+      <VbaOnboardingStack />
+    </>
+  );
+};
 
 export default VbaOnboardingNavigator;
