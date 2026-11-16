@@ -227,6 +227,22 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
+  it('persists session metadata to the launch input artifacts dir (MM_ARTIFACTS_DIR)', async () => {
+    manager.setWorkflowContext({
+      config: { environment: 'prod', artifactsDir: 'custom-artifacts' },
+    } as WorkflowContext);
+
+    await manager.launch({
+      ...createLaunchInput(),
+      artifactsDir: '/tmp/host-artifacts',
+    });
+
+    expect(mockWriteSessionMetadata).toHaveBeenCalledWith(
+      '/tmp/host-artifacts',
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
+    );
+  });
+
   it('completes the launch even when session metadata persistence fails', async () => {
     mockWriteSessionMetadata.mockRejectedValueOnce(new Error('disk full'));
 

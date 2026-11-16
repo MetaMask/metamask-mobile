@@ -310,7 +310,11 @@ interface PredictFeed {
   presentation of the backend option only. It does not change the canonical
   signed value or define a second ordering rule.
 - A missing or unsupported group falls back to the standard Market
-  presentation. Malformed known group fields fail runtime validation.
+  presentation. A malformed group, such as a `marketSelector` without an
+  `option`, with a non-numeric `option.value` or with an empty `marketType`, is
+  dropped (logged in dev) and the Market still parses as a standard Market,
+  because a group is presentation only. One bad line never fails the Event;
+  its other Markets keep their groups.
 - `marketType: 'team_total'` is a `marketSelector` line picker per Team: one
   group per Team, each with its Over/Under lines. The layout projection makes
   one line-picker card per Team.
@@ -324,9 +328,19 @@ interface PredictFeed {
   sends lines ascending. Its card is titled with `label` and the selected
   line ("Josh Jacobs: 60+") and shows the line's chance, Yes and No, and a
   picker of its lines. It knows nothing about the sport, stat or unit. The Event
-  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs · 60+".
-  Screens that read a Position's `context.outcomeLabel` (Home, Portfolio,
-  Activity) show the Outcome label alone, "Yes" or "No".
+  screen's Order flow names the Outcome with its line: "Yes · Josh Jacobs · 60+",
+  formatted from the catalog Market's group.
+- Screens that name an account entry (Position, Trade or Settlement) take its
+  name from the entry's context, never from an Event read: the Home,
+  Portfolio and Activity rows and details, the Portfolio Cash Out sheet, and
+  the Event screen's Position cards. An entry's `context.outcomeLabel` alone
+  can be ambiguous (a threshold line's is only "Yes" or "No"), so the backend
+  also sends `context.marketLabels`: ordered, display-ready parts naming the
+  Market beyond its Outcome, such as `["Josh Jacobs", "60+"]`. Mobile joins
+  `[outcomeLabel, ...marketLabels]` with " · " ("Yes · Josh Jacobs · 60+") and
+  does no per-group-type formatting; the backend owns that. An entry without
+  `marketLabels` shows the Outcome label alone. See
+  [the entry context](canonical-portfolio-activity-catalog-contract.md#shared-catalog-context).
 - `Market.layout` is optional. The backend places a Market on the Event screen
   as tab › section › optional subgroup, each a key and an `order` among its
   siblings. Unknown keys are valid. A malformed `layout` is dropped and the

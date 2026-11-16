@@ -6,6 +6,7 @@ import type { SocialV1FeedAuthor } from '../types';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { SocialTraderIdentityRowSelectorsIDs } from './SocialTraderIdentityRow.testIds';
+import { X_TRUST_MARK_TEST_ID } from './XTrustMark';
 
 jest.mock('./TraderAvatar', () => {
   const { View: MockView } = jest.requireActual('react-native');
@@ -127,6 +128,36 @@ describe('SocialTraderIdentityRow', () => {
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');
+  });
+
+  it('renders the X mark when the author is connected to X', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={{ ...dolphinAuthor(), xHandle: 'DrrrCrypto' }}
+        handle="cented"
+        timestampMs={Date.now()}
+        recyclingKey="row-x"
+        onMorePress={onMorePress}
+        onIdentityPress={jest.fn()}
+        testIDs={{ identityPress: 'identity-press' }}
+      />,
+    );
+
+    expect(screen.getByTestId(X_TRUST_MARK_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('omits the X mark when the author has no X handle', () => {
+    renderWithProvider(
+      <SocialTraderIdentityRow
+        author={dolphinAuthor()}
+        handle="cented"
+        timestampMs={Date.now()}
+        recyclingKey="row-no-x"
+        onMorePress={onMorePress}
+      />,
+    );
+
+    expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
   });
 
   it('omits the stat line when the trader has no stats', () => {

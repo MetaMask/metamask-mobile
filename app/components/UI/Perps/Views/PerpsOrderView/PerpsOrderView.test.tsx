@@ -54,6 +54,7 @@ import {
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+import { endTrace, TraceName } from '../../../../../util/trace';
 import {
   useBottomSafeAreaInset,
   usePerpsLiveAccount,
@@ -511,6 +512,11 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   })),
 }));
 
+const mockRejectBeforeForm = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../Views/confirmations/hooks/useConfirmReject', () => ({
+  useConfirmReject: () => ({ onReject: mockRejectBeforeForm }),
+}));
+
 jest.mock(
   '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
   () => ({
@@ -657,7 +663,6 @@ let mockTradeWithAnyTokenEnabled = false;
 let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
-let mockProfileTradingActivityPrivate = false;
 const mockResolvePostTradePrompt = jest.fn();
 
 jest.mock(
@@ -716,12 +721,6 @@ jest.mock('react-redux', () => {
       if (selector === selectSelectedInternalAccountByScope) {
         return () => mockSelectedEvmAccount;
       }
-      const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
-        '../../../../../selectors/profileController',
-      );
-      if (selector === selectIsProfileTradingActivityPrivate) {
-        return mockProfileTradingActivityPrivate;
-      }
       if (
         selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
         selector.toString().includes('perpsAdvancedChart')
@@ -774,6 +773,7 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
     PerpsOrderView: 'Perps Order View',
+    PerpsTradeSheetInteractive: 'Perps Trade Sheet Interactive',
   },
   TraceOperation: {
     UIStartup: 'ui.startup',
@@ -1085,6 +1085,16 @@ jest.mock(
           testID: 'perps-trade-sheet',
         });
       },
+      PerpsTradeSheetFrame: ({ children }: { children: React.ReactNode }) =>
+        children,
+      PerpsTradeSheetPlaceholder: ({ onLayout }: { onLayout: () => void }) => {
+        ReactActual.useEffect(() => {
+          onLayout();
+        }, [onLayout]);
+        return ReactActual.createElement(View, {
+          testID: 'perps-trade-sheet-placeholder',
+        });
+      },
     };
   },
 );
@@ -1340,6 +1350,13 @@ global.requestAnimationFrame = jest.fn((cb) => {
   return 1;
 });
 
+// The trade sheet mounts the order form one frame after its placeholder lays
+// out; run that frame synchronously so sheet tests see the form after render.
+const runFrameSynchronously = (cb: FrameRequestCallback) => {
+  cb(0);
+  return 1;
+};
+
 function applyDefaultHookMocks() {
   (usePerpsOrderForm as jest.Mock).mockImplementation(
     mockDefaultUsePerpsOrderForm,
@@ -1384,9 +1401,11 @@ describe('PerpsOrderView', () => {
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
+    (global.requestAnimationFrame as jest.Mock).mockImplementation(
+      runFrameSynchronously,
+    );
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
-    mockProfileTradingActivityPrivate = false;
     (usePerpsOrderValidation as jest.Mock).mockReturnValue({
       isValid: true,
       errors: [],
@@ -1433,7 +1452,19 @@ describe('PerpsOrderView', () => {
         canGoBack: mockParentCanGoBack,
         goBack: mockParentGoBack,
       }),
-      addListener: jest.fn(() => jest.fn()),
+      // The full-screen order view defers non-critical work until its push
+      // transition ends; tests render it with the transition already finished.
+      addListener: jest.fn(
+        (
+          event: string,
+          listener: (e: { data: { closing: boolean } }) => void,
+        ) => {
+          if (event === 'transitionEnd') {
+            listener({ data: { closing: false } });
+          }
+          return jest.fn();
+        },
+      ),
     });
 
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
@@ -1522,6 +1553,38 @@ describe('PerpsOrderView', () => {
         positionSize: '0.0037',
       },
     });
+  });
+
+  it('ends the interactive trace when dismissed before the deferred form mounts', () => {
+    jest.mocked(global.requestAnimationFrame).mockImplementation(() => 1);
+    useTradeSheetRoute();
+
+    const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACEHOLDER),
+    ).toBeOnTheScreen();
+
+    unmount();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PerpsTradeSheetInteractive,
+      data: { success: false, reason: 'dismissed_before_interactive' },
+    });
+    expect(mockRejectBeforeForm).toHaveBeenCalledWith(undefined, true);
+  });
+
+  it('keeps the order view span open across re-renders before data is ready', () => {
+    jest.mocked(global.requestAnimationFrame).mockImplementation(() => 1);
+
+    const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    rerender(<PerpsOrderView />);
+
+    expect(endTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.PerpsOrderView,
+        data: expect.objectContaining({ success: false }),
+      }),
+    );
   });
 
   it('renders the order view', async () => {
@@ -3416,6 +3479,60 @@ describe('PerpsOrderView', () => {
       // this same tap only flushes and bails, it does not place the order.
       expect(mockSetAmount).toHaveBeenCalledWith('55');
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Keypad Done clamp', () => {
+    it('clamps against the current max, not the max captured at mount', () => {
+      // The view is wrapped in React.memo; the clamp must read the latest
+      // maxPossibleAmount instead of a mount-time closure (max = 0 before the
+      // account loads), which used to reset the typed amount to 0 on Done.
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 0,
+        }),
+      );
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          maxPossibleAmount: 1000,
+        }),
+      );
+      rerender(<PerpsOrderView />);
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).not.toHaveBeenCalledWith('0');
+    });
+
+    it('still clamps a typed amount above the current max on Done', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          // orderForm.amount defaults to '11', above this max.
+          maxPossibleAmount: 5,
+        }),
+      );
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-amount-display'));
+      fireEvent.press(screen.getByTestId('keypad-key-1'));
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.KEYPAD_DONE),
+      );
+
+      expect(mockSetAmount).toHaveBeenLastCalledWith('5');
     });
   });
 
@@ -7452,33 +7569,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
 
-    it('keeps the normal toasts for a copied market order from a private profile', async () => {
-      mockProfileTradingActivityPrivate = true;
-      const showToast = jest.fn();
-      (usePerpsToasts as jest.Mock).mockReturnValue({
-        ...mockDefaultUsePerpsToasts(),
-        showToast,
-      });
-      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn().mockResolvedValue({ success: true }),
-        isPlacing: false,
-      });
-      useTradeSheetRoute({
-        stayOnCurrentScreen: true,
-        copyTradeOrigin,
-      });
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      await act(async () => {
-        getMockTradeScreenProps().onSubmit();
-      });
-
-      expect(getPostTradeShareSession()).toBeNull();
-      expect(showToast).toHaveBeenCalled();
-    });
-
-    it('keeps the normal toasts for a copied market order below $10 margin', async () => {
-      mockOrderSize('50', 10);
+    it('keeps the normal toasts for a copied market order below $10 position size', async () => {
+      mockOrderSize('9', 10);
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),
@@ -7749,8 +7841,22 @@ describe('PerpsOrderView', () => {
       expect(getPostTradeShareSession()).toBeNull();
     });
 
-    it('uses the normal toast for a share sheet when margin is below $10', async () => {
+    it('opens a share sheet when position size reaches $10 even though margin is below it', async () => {
       mockOrderSize('50', 10);
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({ variant: 'share', status: 'pending' }),
+      );
+    });
+
+    it('uses the normal toast for a share sheet when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({
         kind: 'share_sheet',
         countKey,
@@ -7764,8 +7870,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).toHaveBeenCalled();
     });
 
-    it('does not open create profile or mark it seen when margin is below $10', async () => {
-      mockOrderSize('50', 10);
+    it('does not open create profile or mark it seen when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
       const showToast = await submitOrder();
@@ -7776,8 +7882,8 @@ describe('PerpsOrderView', () => {
       expect(showToast).toHaveBeenCalled();
     });
 
-    it('uses the confirmed toast without Post to feed when margin is below $10', async () => {
-      mockOrderSize('50', 10);
+    it('uses the confirmed toast without Post to feed when position size is below $10', async () => {
+      mockOrderSize('9', 10);
       mockResolvePostTradePrompt.mockReturnValue({
         kind: 'post_to_feed_toast',
       });

@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
 import { selectReferralMeLocalizedText } from '../../../../reducers/rewardsMoney/selectors';
@@ -45,6 +46,7 @@ const RewardsTradingCommissionsView: React.FC = () => {
       renderItem={renderItem}
       emptyDescription={localizedText?.copyTradingEmptyDescription ?? ''}
       emptyActionLabel={localizedText?.copyTradingEmptyAction}
+      emptyIconName={IconName.People}
       emptyOnAction={openSocialTab}
     />
   );

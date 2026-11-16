@@ -6,7 +6,6 @@ import { View, ActivityIndicator } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonSize,
@@ -46,6 +45,9 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -64,6 +66,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   isFiltered = false,
   enableHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<AppNavigationProp>();
@@ -294,12 +297,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
           {title}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator
@@ -321,12 +325,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
           {title}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.emptyContainer}>
             <Text
@@ -349,12 +354,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onClose={onClose}
       testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="py-2">
         <Box paddingHorizontal={4}>
@@ -411,6 +417,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
             testIDs={{
               feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
+              marginValue: PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+              receiveValue:
+                PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
             }}
           />
         )}

@@ -225,7 +225,7 @@ const selectAssetsByAccountGroupId = createSelector(
           continue;
         }
 
-        const parsed = parseCaipAsset(typedAssetId);
+        const parsed = parseCaipAsset(typedAssetId, metadata);
 
         if (!parsed) {
           continue;
@@ -537,7 +537,10 @@ function decorateAsset({
  * needs. Returns `undefined` for IDs that cannot be parsed rather than
  * throwing, so one malformed entry cannot break the whole list.
  */
-function parseCaipAsset(assetId: CaipAssetType): ParsedCaipAsset | undefined {
+function parseCaipAsset(
+  assetId: CaipAssetType,
+  metadata: AssetMetadata,
+): ParsedCaipAsset | undefined {
   try {
     const {
       chainId: caipChainId,
@@ -547,7 +550,10 @@ function parseCaipAsset(assetId: CaipAssetType): ParsedCaipAsset | undefined {
 
     const [namespace, reference] = caipChainId.split(':');
     const isEvm = namespace === 'eip155';
-    const isNative = assetNamespace === 'slip44' || assetNamespace === 'native';
+    const isNative =
+      assetNamespace === 'slip44' ||
+      assetNamespace === 'native' ||
+      metadata.type === 'native';
 
     // EVM consumers compare against hex chain IDs; non-EVM keep CAIP form.
     const chainId = isEvm ? toHex(reference) : caipChainId;

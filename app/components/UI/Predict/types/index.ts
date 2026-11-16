@@ -164,9 +164,13 @@ export type PredictMarket = {
   isHighlighted?: boolean;
   priceToBeat?: number;
   twapWindowSeconds?: CryptoTwapWindowSeconds;
+  /** Vendor the market settles against, read from its Gamma resolution source. */
+  cryptoPriceProvider?: CryptoPriceProvider;
 };
 
 export type CryptoTwapWindowSeconds = 30 | 60;
+
+export type CryptoPriceProvider = 'chainlink' | 'binance';
 
 export type PredictSeries = {
   id: string;
@@ -342,6 +346,8 @@ export interface CryptoPriceUpdate {
 
 export interface CryptoPriceSubscriptionOptions {
   twapWindowSeconds?: CryptoTwapWindowSeconds;
+  /** Vendor to stream. Omit for the feed default, Chainlink. */
+  provider?: CryptoPriceProvider;
 }
 
 export interface OrderbookLevel {

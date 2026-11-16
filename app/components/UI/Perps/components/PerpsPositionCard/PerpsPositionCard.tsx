@@ -328,8 +328,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             gap={2}
             twClassName={isTabsVariant ? 'mt-1 mb-2' : 'mb-2'}
           >
+            {/* Accessible cards expose each label with its value natively. */}
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.PNL_CARD}
             >
               <Text
@@ -357,6 +359,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
             <Card
               twClassName="flex-1 bg-background-section rounded-lg p-3 border-0 gap-1"
+              accessible
               testID={PerpsPositionCardSelectorsIDs.RETURN_CARD}
             >
               <Text

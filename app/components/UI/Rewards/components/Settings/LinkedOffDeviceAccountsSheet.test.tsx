@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import LinkedOffDeviceAccountsSheet from './LinkedOffDeviceAccountsSheet';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
+import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockNavigate = jest.fn();
@@ -318,6 +319,9 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
+    // isBetaBuild is fixed when the app is built, so the view harness cannot
+    // switch the beta and release support URLs. The modal route itself is
+    // covered in RewardsSettingsView.view.test.tsx.
     // On a beta build, getBetaSupportUrl() resolves to the Intercom beta URL, so
     // "let us know" opens it directly rather than through the consent flow.
     it('navigates to the SimpleWebview with the beta support URL when "let us know" is pressed on a beta build', () => {
@@ -331,11 +335,12 @@ describe('LinkedOffDeviceAccountsSheet', () => {
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: 'https://intercom.help/internal-beta-testing/en/',
           title: 'app_settings.contact_support',
+          isModal: false,
         },
       });
       expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
@@ -382,11 +387,12 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       const [openWebview] = mockOpenSupportWithConsent.mock.calls[0];
       openWebview(METAMASK_SUPPORT_URL);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: METAMASK_SUPPORT_URL,
           title: 'app_settings.contact_support',
+          isModal: false,
         },
       });
     });

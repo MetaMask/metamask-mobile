@@ -1,6 +1,9 @@
 import { AccountsController } from '@metamask/accounts-controller';
 import { PreferencesControllerMessenger } from '@metamask/preferences-controller';
-import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import {
+  CodefiTokenPricesServiceV2,
+  type TokensController,
+} from '@metamask/assets-controllers';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
@@ -8,20 +11,19 @@ import { preferencesControllerInit } from '../controllers/preferences-controller
 import type { PreferencesControllerWithSavedGasFees } from '../controllers/preferences-controller-types';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
-import { analyticsControllerInit } from '../controllers/analytics-controller/analytics-controller-init';
-import type { AnalyticsController } from '@metamask/analytics-controller';
+import { tokensControllerInit } from '../controllers/tokens-controller-init';
 import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 
 jest.mock('../controllers/preferences-controller-init');
-jest.mock('../controllers/analytics-controller/analytics-controller-init');
+jest.mock('../controllers/tokens-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initMessengerClients', () => {
   const mockPreferencesControllerInit = jest.mocked(preferencesControllerInit);
-  const mockAnalyticsControllerInit = jest.mocked(analyticsControllerInit);
+  const mockTokensControllerInit = jest.mocked(tokensControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -31,7 +33,7 @@ describe('initMessengerClients', () => {
         wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
           PreferencesController: mockPreferencesControllerInit,
-          AnalyticsController: mockAnalyticsControllerInit,
+          TokensController: mockTokensControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedMessenger<MockAnyNamespace>({
@@ -59,8 +61,8 @@ describe('initMessengerClients', () => {
     mockPreferencesControllerInit.mockReturnValue({
       controller: {} as unknown as PreferencesControllerWithSavedGasFees,
     });
-    mockAnalyticsControllerInit.mockReturnValue({
-      controller: {} as unknown as AnalyticsController,
+    mockTokensControllerInit.mockReturnValue({
+      controller: {} as unknown as TokensController,
     });
   });
 
@@ -71,19 +73,17 @@ describe('initMessengerClients', () => {
     expect(
       controllers.messengerClientsByName.PreferencesController,
     ).toBeDefined();
-    expect(
-      controllers.messengerClientsByName.AnalyticsController,
-    ).toBeDefined();
+    expect(controllers.messengerClientsByName.TokensController).toBeDefined();
   });
 
   it('initializes function including initMessenger', () => {
     const request = buildModularizedControllerRequest();
     initMessengerClients(request);
 
-    const analyticsControllerInitMessenger =
-      mockAnalyticsControllerInit.mock.calls[0][0].initMessenger;
+    const tokensControllerInitMessenger =
+      mockTokensControllerInit.mock.calls[0][0].initMessenger;
 
-    expect(analyticsControllerInitMessenger).toBeDefined();
+    expect(tokensControllerInitMessenger).toBeDefined();
   });
 
   it('throws when controller is not found', async () => {

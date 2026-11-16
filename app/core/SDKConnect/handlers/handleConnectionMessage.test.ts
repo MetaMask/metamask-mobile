@@ -336,6 +336,14 @@ describe('handleConnectionMessage', () => {
         },
       });
     });
+
+    it('does not forward the request when the permission check rejects', async () => {
+      await handleConnectionMessage({ message, engine: Engine, connection });
+
+      expect(mockHandleCustomRpcCalls).not.toHaveBeenCalled();
+      expect(mockAdd).not.toHaveBeenCalled();
+      expect(mockBackgroundBridgeOnMessage).not.toHaveBeenCalled();
+    });
   });
 
   describe('Handling custom RPC calls', () => {

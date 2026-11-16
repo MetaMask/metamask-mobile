@@ -75,11 +75,20 @@ means:
 - **Manual testing steps**: contains real steps, or an explicit `N/A` with a
   short reason. The stock Gherkin example from the template is not a real
   manual testing section.
-  - **Why**: reviewers who do not have context on the change need to test it
-    with minimal effort. Consider the reviewer as completely new to the topic.
-  - **Format**: Gherkin, so that testing steps are consistent across PRs.
-  - **Content**: include any required setup or preconditions, then provide
-    clear step-by-step instructions with no implied steps.
+  - **Why**: reviewers and release validators who do not have context on the
+    change need to reproduce it without asking the author. Write for someone
+    new to the topic.
+  - **Format**: Gherkin. One behavior per Scenario. Use a Background block for
+    setup shared by several scenarios. Use When, followed by And lines, as an
+    ordered list of concrete tester actions, with the same detail a numbered
+    list would give.
+  - **Given / And**: state setup a teammate could not work out on their own
+    (feature flags or remote config, build type, test account or wallet type,
+    network, balances or test data).
+  - **Then / And**: put each expected outcome on its own line, including side
+    effects such as Activity entries and balance changes.
+  - **Actions**: describe what the user does. Leave out low-level UI mechanics
+    such as pixel positions or "tap the blue button top right".
 - **Screenshots / Recordings**: contains actual evidence when the change is
   user-facing, or an explicit `N/A` when it is not. An empty `Before` / `After`
   section is ambiguous and is not considered complete.

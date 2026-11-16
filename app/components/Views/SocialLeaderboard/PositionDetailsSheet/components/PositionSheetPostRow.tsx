@@ -16,7 +16,7 @@ import { formatFeedPostAge } from '../../../../UI/SocialFeed/utils/formatters';
 import { splitKlipyGifFromCommentText } from '../../../../UI/SocialFeed/utils/klipyGifComment';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 
-const AVATAR_SIZE = 32;
+const AVATAR_SIZE = 40;
 
 interface PositionSheetPostRowProps {
   post: AuthorComment;

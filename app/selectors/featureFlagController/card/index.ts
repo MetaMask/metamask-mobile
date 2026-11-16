@@ -58,6 +58,7 @@ export {
   readImmersveFundingChannels,
   resolveCardProviderForCountry,
   resolveCardProvisioningWallets,
+  immersveFundingChannelForCountry,
   resolveImmersveFundingChannel,
   resolveCardUkMigrationState,
   type CardRemoteFeatureFlags,
@@ -236,6 +237,19 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
       remoteFeatureFlags?.cardForgotPasswordFeature as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/** Selects the Baanx email-code sign-in flow. Off keeps email and password. */
+export const selectCardBaanxPasswordlessLoginEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardBaanxPasswordlessLogin as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 

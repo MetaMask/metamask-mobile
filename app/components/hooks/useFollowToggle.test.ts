@@ -10,6 +10,7 @@ import {
   resetFollowingSyncForTests,
   syncFollowingState,
 } from '../../util/social/followingSync';
+import { FOLLOWING_FEED_QUERY_KEY_PREFIXES } from '../UI/SocialFeed/data/socialFeedQueries';
 import {
   resetFollowToggleSharedStateForTests,
   useFollowToggle,
@@ -108,6 +109,7 @@ describe('useFollowToggle', () => {
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockTrack.mockReset();
   });
 
@@ -198,6 +200,56 @@ describe('useFollowToggle', () => {
       expect(mockInvalidateQueries).toHaveBeenCalledWith({
         queryKey: ['SocialService:fetchTraderFollowing'],
       });
+    });
+
+    it('invalidates the following feed after a successful follow', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
+      );
+    });
+
+    it('invalidates the following feed after a successful unfollow', async () => {
+      selectorState.followingProfileIds = ['trader-1'];
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
+      );
+    });
+
+    it('keeps the follow and reports the failure when the following feed invalidation rejects', async () => {
+      mockInvalidateQueries.mockImplementation(({ queryKey }) =>
+        FOLLOWING_FEED_QUERY_KEY_PREFIXES.includes(queryKey)
+          ? Promise.reject(new Error('feed boom'))
+          : Promise.resolve(),
+      );
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow();
+      });
+
+      expect(result.current.isFollowing).toBe(true);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            surface: 'follow',
+            operation: 'invalidate_following_feed',
+            endpoint: 'feed',
+          }),
+        }),
+      );
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {

@@ -1661,7 +1661,7 @@ describe('handleUniversalLink', () => {
         createPredictDeeplinkIntent as jest.MockedFunction<
           typeof createPredictDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,

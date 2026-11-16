@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   LedgerEntryDto,
@@ -734,6 +735,11 @@ describe('EarningsTab', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
     });
+    expect(
+      within(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.Activity);
   });
 
   it('uses the copy-trading empty copy and opens the social leaderboard for a copy-trading-only sharer', () => {
@@ -758,6 +764,11 @@ describe('EarningsTab', () => {
       Routes.MODAL.ROOT_MODAL_FLOW,
       expect.anything(),
     );
+    expect(
+      within(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_EMPTY)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
   });
 
   it('keeps the trading empty copy for a cashback-experiment member', () => {

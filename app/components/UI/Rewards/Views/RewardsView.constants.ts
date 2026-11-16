@@ -45,8 +45,6 @@ export const REWARDS_VIEW_SELECTORS = {
   CLAIM_MODAL_EMAIL_INPUT: 'rewards-view-claim-modal-email-input',
   CLAIM_MODAL_TELEGRAM_INPUT: 'rewards-view-claim-modal-telegram-input',
   CLAIM_BUTTON: 'rewards-view-claim-button',
-  SKIP_BUTTON: 'rewards-view-skip-button',
-  NEXT_BUTTON: 'rewards-view-next-button',
   SEASON_STATUS_LEVEL: 'rewards-view-season-status-level',
   SEASON_STATUS_TIER_NAME: 'rewards-view-season-status-tier-name',
   SEASON_STATUS_POINTS: 'rewards-view-season-status-points',

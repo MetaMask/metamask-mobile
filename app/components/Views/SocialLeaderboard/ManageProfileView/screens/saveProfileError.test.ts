@@ -4,8 +4,8 @@ import { getProfileSaveError } from './saveProfileError';
 const BIO_PROHIBITED = strings(
   'social_leaderboard.manage_profile.bio_prohibited',
 );
-const DISPLAY_NAME_UNAVAILABLE = strings(
-  'social_leaderboard.manage_profile.display_name_unavailable',
+const DISPLAY_NAME_INVALID = strings(
+  'social_leaderboard.errors.display_name_invalid',
 );
 
 /** The shape `HttpError` from @metamask/controller-utils carries. */
@@ -21,7 +21,7 @@ describe('getProfileSaveError', () => {
 
   it('names the reason when the server refuses a display name', () => {
     expect(getProfileSaveError(httpError(400), 'displayName')).toBe(
-      DISPLAY_NAME_UNAVAILABLE,
+      DISPLAY_NAME_INVALID,
     );
   });
 

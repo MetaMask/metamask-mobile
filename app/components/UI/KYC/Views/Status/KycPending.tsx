@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -13,36 +12,25 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
-import VbaIllustration, {
-  VbaIllustrationSource,
+import KycIllustration, {
+  KycIllustrationSource,
 } from '../../components/Illustration';
 
-export const VbaKycPendingSelectorsIDs = {
-  CONTAINER: 'vba-kyc-pending-container',
-  ILLUSTRATION: 'vba-kyc-pending-illustration',
-  COME_BACK_LATER_BUTTON: 'vba-kyc-pending-come-back-later-button',
+export const KycPendingSelectorsIDs = {
+  CONTAINER: 'kyc-pending-container',
+  ILLUSTRATION: 'kyc-pending-illustration',
+  COME_BACK_LATER_BUTTON: 'kyc-pending-come-back-later-button',
 } as const;
 
-const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
+const KycPending = ({ onLeave }: { onLeave: () => void }) => {
   useTrackKycResultViewed('pending');
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleComeBackLater = useCallback(() => {
-    onLeave?.();
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation, onLeave]);
+    onLeave();
+  }, [onLeave]);
 
   return (
     <SafeAreaView
@@ -51,29 +39,27 @@ const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
     >
       <ScrollView
         contentContainerStyle={tw.style('flex-grow justify-center px-4 py-4')}
-        testID={VbaKycPendingSelectorsIDs.CONTAINER}
+        testID={KycPendingSelectorsIDs.CONTAINER}
       >
         <Box alignItems={BoxAlignItems.Center}>
           <Box
             twClassName="mb-[24px]"
-            testID={VbaKycPendingSelectorsIDs.ILLUSTRATION}
+            testID={KycPendingSelectorsIDs.ILLUSTRATION}
           >
-            <VbaIllustration
-              source={VbaIllustrationSource.scanner}
+            <KycIllustration
+              source={KycIllustrationSource.scanner}
               twClassName="h-[104px] w-[149px]"
             />
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-            {strings('virtual_bank_account.kyc_taking_longer.title')}
+            {strings('kyc.kyc_taking_longer.title')}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mt-[4px] text-center"
           >
-            {strings(
-              'virtual_bank_account.kyc_taking_longer.description_few_minutes',
-            )}
+            {strings('kyc.kyc_taking_longer.description_few_minutes')}
           </Text>
         </Box>
       </ScrollView>
@@ -83,13 +69,13 @@ const VbaKycPending = ({ onLeave }: { onLeave?: () => void }) => {
           size={ButtonSize.Lg}
           isFullWidth
           onPress={handleComeBackLater}
-          testID={VbaKycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
+          testID={KycPendingSelectorsIDs.COME_BACK_LATER_BUTTON}
         >
-          {strings('virtual_bank_account.kyc_taking_longer.done_button')}
+          {strings('kyc.kyc_taking_longer.done_button')}
         </Button>
       </Box>
     </SafeAreaView>
   );
 };
 
-export default VbaKycPending;
+export default KycPending;

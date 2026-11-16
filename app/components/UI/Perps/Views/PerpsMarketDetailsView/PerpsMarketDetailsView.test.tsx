@@ -6257,21 +6257,44 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-    it('insets the scroll content below the header on iOS so the refresh spinner clears it', () => {
+    // A reused iOS scroll view drops its contentInset, which left the content under the header on reopen.
+    it('reserves the header height with a spacer on iOS, not a contentInset', () => {
       withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
 
-      const { getByTestId, queryByTestId } = renderLite({ edgeInsets });
+      const { getByTestId } = renderLite({ edgeInsets });
       const scrollView = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
       );
 
       // Status bar (47) plus the 64px header.
-      expect(scrollView).toHaveProp('contentInset', { top: 111 });
-      expect(scrollView).toHaveProp('contentOffset', { x: 0, y: -111 });
       expect(
-        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER),
-      ).toBeNull();
+        within(scrollView).getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.HEADER_SPACER,
+        ),
+      ).toHaveStyle({ height: 111 });
+      expect(scrollView).not.toHaveProp('contentInset');
+      expect(scrollView).not.toHaveProp('contentOffset');
       expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    // iOS drops a progressViewOffset set before the refresh control attaches to the scroll view.
+    it('offsets the refresh spinner below the header once the scroll view is laid out', () => {
+      withSelectors(new Map([[selectPerpsBrandRefreshEnabled, true]]));
+
+      const { getByTestId } = renderLite({ edgeInsets });
+      const getOffset = () =>
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW).props
+          .refreshControl.props.progressViewOffset;
+
+      expect(getOffset()).toBe(0);
+
+      fireEvent(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+        'layout',
+        { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 800 } } },
+      );
+
+      expect(getOffset()).toBe(111);
     });
 
     it('reserves the header height with a spacer on Android', () => {

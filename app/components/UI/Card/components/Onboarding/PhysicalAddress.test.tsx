@@ -79,6 +79,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 
 // Mock OnboardingStep component
 jest.mock('./OnboardingStep', () => {
+  const { mockRenderFooterButtons } = jest.requireActual(
+    './testUtils/mockOnboardingStepFooter',
+  );
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -87,12 +90,14 @@ jest.mock('./OnboardingStep', () => {
     title,
     description,
     formFields,
-    actions,
+    ...footerProps
   }: {
     title: string;
     description: string;
     formFields: React.ReactNode;
-    actions: React.ReactNode;
+    primaryButtonProps?: Record<string, unknown>;
+    secondaryButtonProps?: Record<string, unknown>;
+    tertiaryButtonProps?: Record<string, unknown>;
   }) =>
     React.createElement(
       View,
@@ -108,7 +113,11 @@ jest.mock('./OnboardingStep', () => {
         { testID: 'onboarding-step-form-fields' },
         formFields,
       ),
-      React.createElement(View, { testID: 'onboarding-step-actions' }, actions),
+      React.createElement(
+        View,
+        { testID: 'onboarding-step-actions' },
+        mockRenderFooterButtons(footerProps),
+      ),
     );
 });
 
@@ -155,9 +164,19 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box,
     Label,
     Text,
+    HelpText: Text,
+    TextButton: Text,
+    HelpTextSeverity: { Danger: 'danger' },
+    TextColor: {
+      TextDefault: 'TextDefault',
+      TextAlternative: 'TextAlternative',
+    },
+    FontWeight: { Medium: '500' },
     Icon,
     Button,
     TextVariant: {
