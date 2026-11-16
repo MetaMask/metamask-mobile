@@ -252,18 +252,15 @@ const HomepageBalanceBreakdownRow = ({
           width={60}
         />
       ) : moneyApy !== undefined ? (
-        <Box
+        <Text
+          color={TextColor.SuccessDefault}
+          fontWeight={FontWeight.Medium}
           testID={HomepageBalanceBreakdownTestIds.APY}
-          twClassName="shrink-0 rounded-md bg-success-muted px-1.5 py-0.5"
+          twClassName="shrink-0"
+          variant={TextVariant.BodySm}
         >
-          <Text
-            color={TextColor.SuccessDefault}
-            fontWeight={FontWeight.Medium}
-            variant={TextVariant.BodySm}
-          >
-            {apyLabel}
-          </Text>
-        </Box>
+          {apyLabel}
+        </Text>
       ) : null}
     </Box>
   );

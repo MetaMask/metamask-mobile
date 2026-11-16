@@ -408,6 +408,25 @@ describe('HomepageBalanceBreakdown', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('separates the allocation rows from the content above with a divider', () => {
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROWS_DIVIDER),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the Money APY as plain success text without a tag background', () => {
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    const apy = getByTestId(HomepageBalanceBreakdownTestIds.APY);
+
+    expect(apy).toHaveStyle({ color: mockTheme.colors.success.default });
+    expect(apy).not.toHaveStyle({
+      backgroundColor: mockTheme.colors.success.muted,
+    });
+  });
+
   it('renders an amount-only aggregate delta without a legacy percentage', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
