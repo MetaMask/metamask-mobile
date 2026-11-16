@@ -453,7 +453,7 @@ describe('useTronAmountValidation', () => {
   });
 
   it('ignores stale validation results when amount changes during request', async () => {
-    let firstRequestResolve: (value: unknown) => void;
+    let firstRequestResolve!: (value: unknown) => void;
     const firstRequestPromise = new Promise((resolve) => {
       firstRequestResolve = resolve;
     });
@@ -490,7 +490,7 @@ describe('useTronAmountValidation', () => {
     rerender({ amount: '20' });
 
     // Resolve the stale first request with an error
-    firstRequestResolve!({
+    firstRequestResolve({
       valid: false,
       errors: [{ code: 'InsufficientBalance' }],
     });
@@ -511,7 +511,7 @@ describe('useTronAmountValidation', () => {
   });
 
   it('ignores stale validation results when disabled during request', async () => {
-    let requestResolve: (value: unknown) => void;
+    let requestResolve!: (value: unknown) => void;
     const requestPromise = new Promise((resolve) => {
       requestResolve = resolve;
     });
@@ -542,7 +542,7 @@ describe('useTronAmountValidation', () => {
     rerender({ enabled: false });
 
     // Resolve the stale request with an error
-    requestResolve!({
+    requestResolve({
       valid: false,
       errors: [{ code: 'InsufficientBalance' }],
     });

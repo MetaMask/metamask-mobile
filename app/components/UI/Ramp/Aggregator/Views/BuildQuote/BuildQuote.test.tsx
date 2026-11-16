@@ -1724,7 +1724,7 @@ describe('BuildQuote View', () => {
     });
 
     it('discards Max result when user presses another quick amount during Max request', async () => {
-      let maxResolve: (value: { amount: string }) => void;
+      let maxResolve!: (value: { amount: string }) => void;
       const maxPromise = new Promise<{ amount: string }>((resolve) => {
         maxResolve = resolve;
       });
@@ -1744,7 +1744,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton('75%'));
 
       // Resolve Max with a value
-      maxResolve!({ amount: '1000' });
+      maxResolve({ amount: '1000' });
 
       // Wait for any state updates
       await act(async () => {
@@ -1767,7 +1767,7 @@ describe('BuildQuote View', () => {
     });
 
     it('discards Max result when user inputs keypad value during Max request', async () => {
-      let maxResolve: (value: { amount: string }) => void;
+      let maxResolve!: (value: { amount: string }) => void;
       const maxPromise = new Promise<{ amount: string }>((resolve) => {
         maxResolve = resolve;
       });
@@ -1787,7 +1787,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton('5'));
 
       // Resolve Max with a different value
-      maxResolve!({ amount: '1000' });
+      maxResolve({ amount: '1000' });
 
       // Wait for any state updates
       await act(async () => {
