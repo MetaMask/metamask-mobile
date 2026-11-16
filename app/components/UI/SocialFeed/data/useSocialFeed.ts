@@ -211,6 +211,9 @@ export const useSocialFeed = (
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
+    // Drop the pages as soon as the feed unmounts. Leaving a Social tab frees
+    // its posts instead of keeping them in memory for the default five minutes.
+    gcTime: 0,
     // A stale refetch reloads every loaded page and moves rows under a reader
     // who scrolled down; realtime refreshes through its catch-up instead.
     ...(resolvedStaleTime !== undefined
