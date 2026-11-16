@@ -774,13 +774,13 @@ const retryContext = hasPR
   : WORKFLOW_EVENT === 'push' && HEAD_BRANCH.startsWith('release/')
     ? 'release-push'
     : 'observation';
-const hasRetryLabel = checkRetryLabel(prNumber);
+const prHasRetryLabel = checkRetryLabel(prNumber);
 // Phase 1 (stealth mode): PRs require retry-ci label for any retry.
 // Release pushes get one automatic retry since they have no PR/label.
 const retryBudget = getRetryBudget({
   attempt: ATTEMPT,
   context: retryContext,
-  hasRetryLabel,
+  hasRetryLabel: prHasRetryLabel,
   isRetryable,
   automaticRetryLimit: retryContext === 'release-push' ? 2 : 1,
 });
@@ -800,7 +800,7 @@ const willRetry = retryBudget.willRetry;
 // the label funds retries through attempt 4, consuming the label each time.
 // Release pushes retry automatically once without a label.
 //
-// Note: hasRetryLabel implies hasPR (can't have a label without a PR),
+// Note: prHasRetryLabel implies hasPR (can't have a label without a PR),
 // so the retryable=*,hasPR=false,hasLabel=true combination never occurs.
 //
 // resolveDecision() returns:
@@ -874,7 +874,7 @@ function resolveDecision(
 const { key: decision, label: decisionLabel } = resolveDecision(
   isRetryable,
   hasPR,
-  hasRetryLabel,
+  prHasRetryLabel,
   retryBudget,
   prNumber,
 );
@@ -886,7 +886,7 @@ if (atRetryCiLimit && isRetryable) {
 } else {
   console.log(
     prNumber
-      ? `PR #${prNumber}: retry-ci label ${hasRetryLabel ? 'present' : 'absent'}, retry-mode=${retryBudget.retryMode} → will-retry=${willRetry}`
+      ? `PR #${prNumber}: retry-ci label ${prHasRetryLabel ? 'present' : 'absent'}, retry-mode=${retryBudget.retryMode} → will-retry=${willRetry}`
       : retryContext === 'release-push'
         ? `Release branch ${HEAD_BRANCH}: retry-mode=${retryBudget.retryMode} → will-retry=${willRetry}`
         : `No originating PR for event '${WORKFLOW_EVENT}' → will-retry=false`,
@@ -902,7 +902,7 @@ if (GITHUB_OUTPUT) {
     GITHUB_OUTPUT,
     [
       `is-retryable=${isRetryable}`,
-      `has-retry-label=${hasRetryLabel}`,
+      `has-retry-label=${prHasRetryLabel}`,
       `will-retry=${willRetry}`,
       `consume-retry-label=${retryBudget.consumeRetryLabel}`,
       `retry-mode=${retryBudget.retryMode}`,
