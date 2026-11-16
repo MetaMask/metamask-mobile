@@ -22,7 +22,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const mockToast = jest.mocked(toast);
 
-const mockMarkPrePromptShown = jest.fn().mockResolvedValue(undefined);
 const mockDismissPrePrompt = jest.fn();
 const mockRequestPushPermission = jest.fn();
 const mockEnableNotificationsInBackground = jest.fn();
@@ -35,6 +34,7 @@ const mockTrackOsPromptResponse = jest.fn();
 const mockIdentifyMarketingConsent = jest.fn();
 const mockIdentifyPushNotificationsEnabled = jest.fn();
 const mockOnComplete = jest.fn();
+const mockOnUserAnswered = jest.fn();
 
 jest.mock(
   '../../../../util/notifications/hooks/usePushPermissionNotificationSetup',
@@ -98,6 +98,7 @@ jest.mock('./NewUserSheet', () => ({
     onClose: (hasPendingAction?: boolean) => void;
     onYes: () => void;
     onNotNow: () => void;
+    onUserAnswered: () => void;
   }) => {
     const MockReact = jest.requireActual('react');
     const { Pressable: MockPressable, View: MockView } =
@@ -117,11 +118,17 @@ jest.mock('./NewUserSheet', () => ({
           }),
           MockReact.createElement(MockPressable, {
             testID: 'mock-push-permission-yes',
-            onPress: props.onYes,
+            onPress: () => {
+              props.onUserAnswered();
+              props.onYes();
+            },
           }),
           MockReact.createElement(MockPressable, {
             testID: 'mock-push-permission-not-now',
-            onPress: props.onNotNow,
+            onPress: () => {
+              props.onUserAnswered();
+              props.onNotNow();
+            },
           }),
         )
       : null;
@@ -134,6 +141,7 @@ jest.mock('./ExistingUserSheet', () => ({
     isVisible: boolean;
     onConfirm: () => void;
     onNotNow: () => void;
+    onUserAnswered: () => void;
   }) => {
     const MockReact = jest.requireActual('react');
     const { Pressable: MockPressable, View: MockView } =
@@ -145,18 +153,24 @@ jest.mock('./ExistingUserSheet', () => ({
           { testID: 'mock-marketing-consent-sheet' },
           MockReact.createElement(MockPressable, {
             testID: 'mock-marketing-consent-confirm',
-            onPress: props.onConfirm,
+            onPress: () => {
+              props.onUserAnswered();
+              props.onConfirm();
+            },
           }),
           MockReact.createElement(MockPressable, {
             testID: 'mock-marketing-consent-not-now',
-            onPress: props.onNotNow,
+            onPress: () => {
+              props.onUserAnswered();
+              props.onNotNow();
+            },
           }),
         )
       : null;
   },
 }));
 
-const renderPushNotificationOnboarding = ({
+const buildOnboarding = ({
   isVisible = true,
   nativeOsPermissionEnabled = false,
   prePromptVariant = 'push_permission',
@@ -164,24 +178,27 @@ const renderPushNotificationOnboarding = ({
   isVisible?: boolean;
   nativeOsPermissionEnabled?: boolean | null;
   prePromptVariant?: PushPrePromptVariant;
-} = {}) =>
-  renderWithProvider(
-    <PushNotificationOnboarding
-      dismissPrePrompt={mockDismissPrePrompt}
-      isVisible={isVisible}
-      markPrePromptShown={mockMarkPrePromptShown}
-      nativeOsPermissionEnabled={nativeOsPermissionEnabled}
-      onComplete={mockOnComplete}
-      prePromptVariant={prePromptVariant}
-    />,
-    {
-      state: {
-        security: {
-          dataCollectionForMarketing: false,
-        },
+} = {}) => (
+  <PushNotificationOnboarding
+    dismissPrePrompt={mockDismissPrePrompt}
+    isVisible={isVisible}
+    nativeOsPermissionEnabled={nativeOsPermissionEnabled}
+    onComplete={mockOnComplete}
+    onUserAnswered={mockOnUserAnswered}
+    prePromptVariant={prePromptVariant}
+  />
+);
+
+const renderPushNotificationOnboarding = (
+  props: Parameters<typeof buildOnboarding>[0] = {},
+) =>
+  renderWithProvider(buildOnboarding(props), {
+    state: {
+      security: {
+        dataCollectionForMarketing: false,
       },
     },
-  );
+  });
 
 const expectNotificationsOnToast = () => {
   expect(mockToast).toHaveBeenCalledWith(
@@ -252,6 +269,7 @@ describe('PushNotificationOnboarding', () => {
     jest.clearAllMocks();
     Platform.OS = 'ios';
     mockEnableMarketingConsent.mockResolvedValue(undefined);
+    mockOnUserAnswered.mockResolvedValue(undefined);
     mockRequestPushPermission.mockResolvedValue(false);
     mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockCanOsPromptForPushPermission.mockReturnValue(true);
@@ -260,13 +278,14 @@ describe('PushNotificationOnboarding', () => {
     mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
   });
 
-  it('marks the prompt as shown when the push permission sheet renders', async () => {
+  it('records an impression without consuming the prompt', async () => {
     renderPushNotificationOnboarding();
 
     await waitFor(() => {
-      expect(mockMarkPrePromptShown).toHaveBeenCalledTimes(1);
+      expect(mockTrackPrePromptViewed).toHaveBeenCalledWith('push_permission');
     });
     expect(mockTrackPrePromptViewed).toHaveBeenCalledWith('push_permission');
+    expect(mockOnUserAnswered).not.toHaveBeenCalled();
   });
 
   it('does not render or mark shown when not visible', () => {
@@ -275,7 +294,18 @@ describe('PushNotificationOnboarding', () => {
     });
 
     expect(queryByTestId('mock-push-permission-sheet')).toBeNull();
-    expect(mockMarkPrePromptShown).not.toHaveBeenCalled();
+    expect(mockOnUserAnswered).not.toHaveBeenCalled();
+  });
+
+  it('records another impression when an unanswered presentation resumes', () => {
+    const view = renderWithProvider(buildOnboarding());
+
+    view.rerender(buildOnboarding({ isVisible: false }));
+    view.rerender(buildOnboarding());
+
+    expect(mockTrackPrePromptViewed).toHaveBeenCalledTimes(2);
+    expect(mockOnUserAnswered).not.toHaveBeenCalled();
+    expect(mockOnComplete).not.toHaveBeenCalled();
   });
 
   it('requests OS permission, grants marketing consent, and starts background setup with push when Yes is pressed', async () => {
@@ -304,6 +334,9 @@ describe('PushNotificationOnboarding', () => {
     expectNotificationsOnToast();
     expect(mockOnComplete.mock.invocationCallOrder[0]).toBeLessThan(
       mockEnableNotificationsInBackground.mock.invocationCallOrder[0],
+    );
+    expect(mockOnUserAnswered.mock.invocationCallOrder[0]).toBeLessThan(
+      mockEnableMarketingConsent.mock.invocationCallOrder[0],
     );
   });
 
@@ -476,6 +509,33 @@ describe('PushNotificationOnboarding', () => {
       expect(mockOnComplete).toHaveBeenCalledWith('engage');
     });
     expect(mockDismissPrePrompt).toHaveBeenCalledTimes(1);
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+  });
+
+  it('does not reopen an answered sheet when home returns during the permission request', async () => {
+    let finish: (enabled: boolean) => void = () => undefined;
+    mockRequestPushPermission.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        finish = resolve;
+      }),
+    );
+    const view = renderPushNotificationOnboarding();
+    fireEvent.press(view.getByTestId('mock-push-permission-yes'));
+    fireEvent.press(view.getByTestId('mock-push-permission-action-close'));
+    await waitFor(() =>
+      expect(mockRequestPushPermission).toHaveBeenCalledTimes(1),
+    );
+
+    view.rerender(buildOnboarding({ isVisible: false }));
+    view.rerender(buildOnboarding());
+
+    expect(
+      view.queryByTestId('mock-push-permission-sheet'),
+    ).not.toBeOnTheScreen();
+    expect(mockOnUserAnswered).toHaveBeenCalledTimes(1);
+    expect(mockOnComplete).not.toHaveBeenCalled();
+    finish(true);
+    await waitFor(() => expect(mockOnComplete).toHaveBeenCalledWith('engage'));
     expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
   });
 

@@ -66,7 +66,7 @@ interface MoneyMetaMaskCardProps {
   onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
-   * Metal card image and 3% cashback copy.
+   * Metal card image.
    */
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
@@ -105,12 +105,10 @@ interface MoneyMetaMaskCardProps {
 const CardRow = ({
   isMetalCard,
   cardName,
-  cashbackPercentage,
   testID,
 }: {
   isMetalCard: boolean;
   cardName: string;
-  cashbackPercentage: string;
   testID: string;
 }) => (
   <Box
@@ -126,20 +124,9 @@ const CardRow = ({
       twClassName="gap-4"
     >
       <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
-      <Box twClassName="gap-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {cardName}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-        >
-          {strings('money.metamask_card.cashback', {
-            percentage: cashbackPercentage,
-          })}
-        </Text>
-      </Box>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {cardName}
+      </Text>
     </Box>
   </Box>
 );
@@ -179,14 +166,6 @@ const LinkContent = ({
   const subtitle = hasApy
     ? strings('money.metamask_card.link_subtitle', { apy })
     : strings('money.metamask_card.link_subtitle_no_apy');
-  const cashbackBullet = (
-    <CheckBullet
-      text={strings('money.metamask_card.link_bullet_cashback', {
-        percentage: showMetalCard ? '3' : '1',
-      })}
-      testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
-    />
-  );
   const apyBullet = hasApy ? (
     <CheckBullet
       text={strings('money.metamask_card.link_bullet_apy', { apy })}
@@ -204,13 +183,14 @@ const LinkContent = ({
         {subtitle}
       </Text>
       {hideCardImage ? (
-        <Box
-          twClassName="gap-2"
-          testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
-        >
-          {cashbackBullet}
-          {apyBullet}
-        </Box>
+        apyBullet ? (
+          <Box
+            twClassName="gap-2"
+            testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+          >
+            {apyBullet}
+          </Box>
+        ) : null
       ) : (
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -222,10 +202,9 @@ const LinkContent = ({
             isMetalCard={showMetalCard}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
-          <Box twClassName="gap-2 flex-1 justify-center">
-            {cashbackBullet}
-            {apyBullet}
-          </Box>
+          {apyBullet ? (
+            <Box twClassName="gap-2 flex-1 justify-center">{apyBullet}</Box>
+          ) : null}
         </Box>
       )}
     </Box>
@@ -275,15 +254,6 @@ const ManageContent = ({
             {cardBalance}
           </SensitiveText>
         )}
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-        >
-          {strings('money.metamask_card.cashback', {
-            percentage: showMetalCard ? '3' : '1',
-          })}
-        </Text>
       </Box>
     </Box>
   </Box>
@@ -614,7 +584,6 @@ const MoneyMetaMaskCard = ({
         <CardRow
           isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
-          cashbackPercentage="1"
           testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
         />
       </>

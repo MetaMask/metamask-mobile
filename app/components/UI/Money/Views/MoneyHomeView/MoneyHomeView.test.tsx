@@ -205,14 +205,28 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
   __esModule: true,
   default: () => null,
   PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
-  PARALLAX_ARTBOARD_CARD: 'Parallax Block 2',
 }));
 
 // Animated Rive card thumbnail pulls in device sensors; not exercised here.
-jest.mock('../../components/MoneyCardTiltAnimation', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../components/MoneyCardTiltAnimation', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isMetalCard,
+      testID,
+    }: {
+      isMetalCard?: boolean;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(View, {
+        testID: `${testID ?? 'money-card-tilt'}-${
+          isMetalCard ? 'metal' : 'virtual'
+        }`,
+      }),
+  };
+});
 
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: () => ({
@@ -4768,7 +4782,7 @@ describe('MoneyHomeView', () => {
   });
 
   describe('hasMetalCard selector wiring', () => {
-    it('uses 3% cashback copy in link mode when user holds a Metal card', () => {
+    it('uses the metal card image in link mode when the user holds a Metal card', () => {
       mockSelectIsCardholder.mockReturnValue(true);
       mockSelectHasMetalCard.mockReturnValue(true);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
@@ -4787,9 +4801,14 @@ describe('MoneyHomeView', () => {
         reset: jest.fn(),
       } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
-      const { getByText } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByText } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
-      expect(getByText('Get 3% mUSD back')).toBeOnTheScreen();
+      expect(
+        getByTestId(`${MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}-metal`),
+      ).toBeOnTheScreen();
+      expect(queryByText(/mUSD back/)).not.toBeOnTheScreen();
     });
   });
 

@@ -31,6 +31,7 @@ import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.tes
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { TraceName } from '../../../../util/trace';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeRecurringBuyFeatureFlags,
@@ -805,11 +806,13 @@ describe('TokenDetails', () => {
     });
   });
 
-  describe('Swap/Buy sticky buttons', () => {
-    it('renders Money Earn CTA when eligible', () => {
+  describe('Money deposit footer CTA', () => {
+    it('renders with the localized APY label when visible', () => {
       mockUseMoneyAssetOverviewCtas.mockReturnValue({
         apyPercent: 4,
-        footerLabelLocalized: 'Earn 4% APY',
+        footerLabelLocalized: strings('money.asset_overview.cta.earn_apy', {
+          apy: 4,
+        }),
         isBalanceCtaLoading: false,
         isBalanceCtaVisible: false,
         isFooterCtaEligible: true,
@@ -820,11 +823,16 @@ describe('TokenDetails', () => {
         projectedEarningsFormatted: '$4.00',
       });
 
-      const { getByTestId } = render(<TokenDetails />);
+      const { getByTestId, getByText } = render(<TokenDetails />);
 
       expect(getByTestId('money-asset-overview-footer-cta')).toBeOnTheScreen();
+      expect(
+        getByText(strings('money.asset_overview.cta.earn_apy', { apy: 4 })),
+      ).toBeOnTheScreen();
     });
+  });
 
+  describe('Swap/Buy sticky buttons', () => {
     it('shows sticky buttons when token is loaded', () => {
       const { getByTestId, getByText, queryByTestId } = render(
         <TokenDetails />,

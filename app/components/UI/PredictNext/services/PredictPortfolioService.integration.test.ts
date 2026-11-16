@@ -13,7 +13,28 @@ import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const POSITIONS_PATH = '/v1/venues/kalshi/positions';
 const SUMMARY_PATH = '/v1/venues/kalshi/portfolio/summary';
+const BALANCE_PATH = '/v1/venues/kalshi/balance';
 const ACTIVITY_PATH = '/v1/venues/kalshi/activity';
+
+/**
+ * The Portfolio Summary the client sees for a holdings half and a Balance:
+ * the backend serves the holdings totals, the client adds the Balance route's
+ * value. Derived from the fixture's own full Summary so the components stay
+ * one source of truth.
+ */
+const holdingsHalf = ({
+  availableBalance: _availableBalance,
+  totalValue: _totalValue,
+  ...holdings
+}: Record<string, unknown>): Record<string, unknown> => holdings;
+
+const balanceOf = (
+  summary: Record<string, unknown>,
+): Record<string, unknown> => ({
+  venueId: summary.venueId,
+  currency: summary.currency,
+  available: summary.availableBalance,
+});
 
 const position = {
   venueId: 'kalshi',
@@ -245,7 +266,8 @@ describe('PredictNext account-scoped Portfolio reads', () => {
               ? multiPageHoldings.secondPage
               : multiPageHoldings.firstPage,
           }),
-          [SUMMARY_PATH]: { body: multiPageHoldings.summary },
+          [SUMMARY_PATH]: { body: holdingsHalf(multiPageHoldings.summary) },
+          [BALANCE_PATH]: { body: balanceOf(multiPageHoldings.summary) },
         }),
       );
 
@@ -280,6 +302,7 @@ describe('PredictNext account-scoped Portfolio reads', () => {
         'https://predict.example/v1/venues/kalshi/positions?limit=2',
         'https://predict.example/v1/venues/kalshi/positions?limit=2&cursor=opaque-positions-cursor',
         'https://predict.example/v1/venues/kalshi/portfolio/summary',
+        'https://predict.example/v1/venues/kalshi/balance',
       ]);
     });
 
@@ -306,7 +329,8 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       const harness = buildPredictNextIntegrationHarness(
         routePredictApi({
           [POSITIONS_PATH]: { body: missingQuote.positions },
-          [SUMMARY_PATH]: { body: missingQuote.summary },
+          [SUMMARY_PATH]: { body: holdingsHalf(missingQuote.summary) },
+          [BALANCE_PATH]: { body: balanceOf(missingQuote.summary) },
         }),
       );
 
@@ -378,12 +402,19 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       expect(harness.fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('rejects a Summary whose total is not the sum of its parts', async () => {
+    it('rejects a holdings Summary it cannot read', async () => {
+      // The client composes the total from the holdings half and the
+      // Balance, so a served total can never disagree with its parts. What
+      // remains rejecting is a holdings half the contract cannot read.
       const harness = buildPredictNextIntegrationHarness(
         routePredictApi({
           [SUMMARY_PATH]: {
-            body: { ...multiPageHoldings.summary, totalValue: '153.49' },
+            body: {
+              ...holdingsHalf(multiPageHoldings.summary),
+              positionsValue: 'half past three',
+            },
           },
+          [BALANCE_PATH]: { body: balanceOf(multiPageHoldings.summary) },
         }),
       );
 
@@ -398,26 +429,30 @@ describe('PredictNext account-scoped Portfolio reads', () => {
     });
 
     it('refreshes a cached Summary when its family is invalidated', async () => {
-      let summaryBody: unknown = missingQuote.summary;
+      let summary = missingQuote.summary;
       const harness = buildPredictNextIntegrationHarness(
-        routePredictApi({ [SUMMARY_PATH]: () => ({ body: summaryBody }) }),
+        routePredictApi({
+          [SUMMARY_PATH]: () => ({ body: holdingsHalf(summary) }),
+          [BALANCE_PATH]: () => ({ body: balanceOf(summary) }),
+        }),
       );
       await harness.messenger.call(
         'PredictPortfolioService:getPortfolioSummary',
         KALSHI_VENUE_ID,
       );
-      summaryBody = multiPageHoldings.summary;
+      summary = multiPageHoldings.summary;
 
       await harness.portfolioService.invalidateQueries({
         queryKey: portfolioQueryFamilies(KALSHI_VENUE_ID)[3],
       });
-      const summary = await harness.messenger.call(
+      const refreshed = await harness.messenger.call(
         'PredictPortfolioService:getPortfolioSummary',
         KALSHI_VENUE_ID,
       );
 
-      expect(summary).toEqual(multiPageHoldings.summary);
-      expect(harness.fetchMock).toHaveBeenCalledTimes(2);
+      expect(refreshed).toEqual(multiPageHoldings.summary);
+      // One holdings read and one Balance read, then the same again.
+      expect(harness.fetchMock).toHaveBeenCalledTimes(4);
     });
   });
 

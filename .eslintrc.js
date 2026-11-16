@@ -196,9 +196,16 @@ module.exports = {
           },
         ],
 
-        // Fast checks. These do not need type information. Warn, rather than
-        // error, so new hits from main do not fail CI. The options match the
-        // shared config. Change them to error once the migration is complete.
+        // Fast checks. These do not need type information. The options match
+        // the shared config.
+        //
+        // no-wrapper-object-types and prefer-enum-initializers are errors in
+        // @metamask/eslint-config-typescript, so this file does not set them.
+        // Their existing hits are in eslint-suppressions.json.
+        // no-empty-object-type is an error in that package too, and stays a
+        // warning here: its hits are interface aliases and generic defaults
+        // such as Props = {}. The style rules and no-unused-vars stay
+        // warnings for now.
         '@typescript-eslint/explicit-function-return-type': 'warn',
         '@typescript-eslint/naming-convention': [
           'warn',
@@ -276,8 +283,6 @@ module.exports = {
             ignoreRestSiblings: true,
           },
         ],
-        '@typescript-eslint/no-wrapper-object-types': 'warn',
-        '@typescript-eslint/prefer-enum-initializers': 'warn',
         // Slow type checks. The shared ESLint config turns these on, but they
         // need type information, so they stay off through the ESLint 9
         // upgrade. Turn them on in Oxlint and park existing hits in
@@ -1067,10 +1072,9 @@ module.exports = {
     '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
-    // Fast checks. rules-of-hooks is an error; existing hits are in
-    // eslint-suppressions.json. no-loss-of-precision warns for now.
+    // rules-of-hooks is an error from @react-native/eslint-config. Existing
+    // hits are in eslint-suppressions.json.
     'react-hooks/rules-of-hooks': 'error',
-    'no-loss-of-precision': 'warn',
   },
 
   ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
