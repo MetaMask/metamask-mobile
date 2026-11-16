@@ -42,14 +42,19 @@ jest.mock('../AccountSelector', () => {
       label,
       isAccountAllowed,
     }: {
-      onAccountSelected: (address: string) => void;
+      onAccountSelected: (account: { id: string; address: string }) => void;
       selectedAddress?: string;
       label?: string;
       isAccountAllowed?: (account: unknown) => boolean;
     }) => (
       <TouchableOpacity
         testID="account-selector"
-        onPress={() => onAccountSelected('0xSelectedAddress')}
+        onPress={() =>
+          onAccountSelected({
+            id: 'selected-account-id',
+            address: '0xSelectedAddress',
+          })
+        }
       >
         <Text testID="account-selector-label">{label ?? 'To'}</Text>
         <Text testID="account-selector-address">
@@ -99,23 +104,6 @@ const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
 const SELECTED_ACCOUNT_ID_MOCK = 'selected-account-id';
 
-const selectedAccountStateMock = {
-  engine: {
-    backgroundState: {
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            [SELECTED_ACCOUNT_ID_MOCK]: {
-              id: SELECTED_ACCOUNT_ID_MOCK,
-              address: '0xSelectedAddress',
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
 );
@@ -127,7 +115,6 @@ function render() {
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
-      selectedAccountStateMock,
     ),
   });
 }
