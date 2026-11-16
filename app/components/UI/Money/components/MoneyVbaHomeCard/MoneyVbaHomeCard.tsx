@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet } from 'react-native';
+import { Image, StyleSheet, type TextStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
@@ -42,6 +42,7 @@ import {
   MONEY_URLS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import MarketingMomentTitle from '../../../MarketingMomentTitle';
 import {
   MONEY_VBA_HOME_CARD_CONFIG,
   type MoneyVbaHomeCardVariant,
@@ -71,10 +72,28 @@ const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
 /**
+ * StepperCard titles are DisplayMd + the hero face with `leading-[32px]`.
+ * MarketingMomentTitle paints its own DisplayMd classes in `style`, which
+ * wins over `twClassName`, so this line box replaces that tighter leading,
+ * tracking, and clip padding. Unsupported locales still fall back inside
+ * MarketingMomentTitle.
+ */
+const VBA_HOME_CARD_TITLE_METRICS: TextStyle = {
+  lineHeight: 32,
+  letterSpacing: 0,
+  paddingTop: 0,
+  paddingBottom: 0,
+  marginBottom: 0,
+};
+
+/**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, identity_verified, account_is_ready, kyc_pending,
- * finish_verification, kyc_decision); all per-variant differences — copy, analytics names, CTA
- * treatment, hero art and optional Rive hero — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
+ * finish_verification, kyc_decision). Every title uses
+ * {@link MarketingMomentTitle} at DisplayMd so Grotzec locales get the hero
+ * face and other locales fall back. Remaining per-variant differences — copy,
+ * analytics names, CTA treatment, hero art and optional Rive hero — live in
+ * {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
  * The card variant is chosen by {@link useVbaHomeCard}. The CTA hydrates while
  * this card remains visible, then opens the resolved onboarding destination.
@@ -294,14 +313,14 @@ const MoneyVbaHomeCard = ({
         )}
       </LinearGradient>
       <Box twClassName="gap-1 py-4">
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
+        <MarketingMomentTitle
+          variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
+          style={VBA_HOME_CARD_TITLE_METRICS}
           testID={testIds.TITLE}
         >
           {strings(`${config.i18nPrefix}.title`)}
-        </Text>
+        </MarketingMomentTitle>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
