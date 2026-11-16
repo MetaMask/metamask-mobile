@@ -26,8 +26,11 @@ let restoreMoneyHomeStore: (() => void) | undefined;
 let restoreMoneyHomeKycState: (() => void) | undefined;
 
 /**
- * Puts back the `ReduxService.store` and the Engine `KycController.state` that
- * were in place before the last Money home render.
+ * Puts back the Engine `KycController.state` from before the last Money home
+ * render, and the previous `ReduxService.store` when one already existed.
+ *
+ * When no store existed before the render, the last test store stays.
+ * `ReduxService` cannot clear a store.
  *
  * Registered automatically below, including when a test throws. Safe to call
  * again: a second call is a no-op.
@@ -55,6 +58,8 @@ const bindMoneyHomeStore = (store: ReduxStore): void => {
   ReduxService.store = store;
   restoreMoneyHomeStore = (): void => {
     restoreMoneyHomeStore = undefined;
+    // When no store existed, the last test store stays. ReduxService
+    // cannot clear a store.
     if (previousStore) {
       ReduxService.store = previousStore;
     }
@@ -123,12 +128,16 @@ export function renderMoneyHomeVbaCard(
     .build();
 
   const kycController = Engine.context.KycController as unknown as {
-    state: { sessionStatus: MoneyHomeKycSession };
+    state?: { sessionStatus: MoneyHomeKycSession };
   };
   restoreMoneyHomeKycState?.();
   const previousKycState = kycController.state;
   kycController.state = { sessionStatus };
   restoreMoneyHomeKycState = (): void => {
+    if (previousKycState === undefined) {
+      delete kycController.state;
+      return;
+    }
     kycController.state = previousKycState;
   };
 
