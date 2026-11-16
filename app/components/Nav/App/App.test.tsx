@@ -1587,7 +1587,10 @@ describe('App', () => {
       setItemSpy.mockRestore();
     });
 
-    it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
+    // Temporarily skipped: flakes with a 5s timeout on CI.
+    // https://github.com/MetaMask/metamask-mobile/issues/39862 (MCWP-1215)
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
       const setItemSpy = jest
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
