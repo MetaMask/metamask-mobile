@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import Success from './Success';
 import { SuccessTestIds } from './Success.testIds';
@@ -18,6 +19,10 @@ const renderSuccess = (props?: {
 describe('Success', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -73,6 +78,29 @@ describe('Success', () => {
       const { queryByTestId } = renderSuccess();
 
       expect(queryByTestId(SuccessTestIds.CONTINUE_ERROR)).toBeNull();
+    });
+
+    it('announces the continue error', () => {
+      const message = strings('pro_subscription.success.continue_error');
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+
+      renderSuccess({ continueError: message });
+
+      expect(announceSpy).toHaveBeenCalledWith(message);
+    });
+
+    it('does not announce a continue error before a failure', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+
+      renderSuccess();
+
+      expect(announceSpy).not.toHaveBeenCalled();
     });
   });
 
