@@ -33,13 +33,16 @@ import {
 } from '../components/Filters';
 import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { useFollowedTraders } from '../NotificationPreferences/hooks/useFollowedTraders';
 import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
-import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import { filterSocialV1FeedPosts } from '../shell/filters/filterSocialV1FeedPosts';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import type { SocialShellFilters } from '../shell/filters/types';
+import FollowingEmptyContent, {
+  type FollowingEmptyMode,
+} from './components/FollowingEmptyContent';
 
 const { Filter, Interaction, Screen, Tab } = SocialEvent;
 
@@ -53,14 +56,6 @@ const byMostReactions = (
   left: SocialV1FeedPost,
   right: SocialV1FeedPost,
 ): number => totalReactions(right) - totalReactions(left);
-
-// Cancels the padding above the slot so the copy starts 48px under the
-// filter row.
-const FOLLOWING_EMPTY_STATE = (
-  <Box twClassName="-mt-2">
-    <SocialV1FeedEmptyState tab="following" />
-  </Box>
-);
 
 export interface FollowingViewProps {
   isActive?: boolean;
@@ -106,6 +101,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const [isFeedEmpty, setIsFeedEmpty] = useState(false);
 
   useEffect(() => {
     if (isActive) {
@@ -122,6 +118,33 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     }),
     [],
   );
+
+  const resolveFollows = hasBeenActive && isFeedEmpty && !isFilterActive;
+  const {
+    traders: followedTraders,
+    isLoading: followsLoading,
+    error: followsError,
+  } = useFollowedTraders({ enabled: resolveFollows });
+  const followsNobody =
+    resolveFollows &&
+    !followsLoading &&
+    !followsError &&
+    followedTraders.length === 0;
+  const emptyMode: FollowingEmptyMode = (() => {
+    if (!resolveFollows) {
+      return 'no-posts';
+    }
+    if (followsLoading) {
+      return 'loading';
+    }
+    if (followsError || followedTraders.length > 0) {
+      return 'no-posts';
+    }
+    return 'suggestions';
+  })();
+  const handleListStateChange = useCallback((state: { showEmpty: boolean }) => {
+    setIsFeedEmpty(state.showEmpty);
+  }, []);
 
   const filterPost = useCallback(
     (post: SocialV1FeedPost) =>
@@ -171,8 +194,11 @@ const FollowingView: React.FC<FollowingViewProps> = ({
     [performance],
   );
 
-  const renderHeader = useCallback(
-    () => (
+  const renderHeader = useCallback(() => {
+    if (followsNobody) {
+      return null;
+    }
+    return (
       <SocialTabFilterBar
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
@@ -182,9 +208,8 @@ const FollowingView: React.FC<FollowingViewProps> = ({
       >
         <FeedSortFilterSelector value={feedSort} onPress={openSortSheet} />
       </SocialTabFilterBar>
-    ),
-    [feedSort, isFilterActive, onOpenFilters, openSortSheet],
-  );
+    );
+  }, [feedSort, followsNobody, isFilterActive, onOpenFilters, openSortSheet]);
 
   const emptyState = useMemo(
     () =>
@@ -195,9 +220,9 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           />
         </Box>
       ) : (
-        FOLLOWING_EMPTY_STATE
+        <FollowingEmptyContent mode={emptyMode} />
       ),
-    [isFilterActive, onClearFilters],
+    [emptyMode, isFilterActive, onClearFilters],
   );
 
   return (
@@ -211,6 +236,7 @@ const FollowingView: React.FC<FollowingViewProps> = ({
           isActive={isActive}
           scrollMode="virtualized"
           renderHeader={renderHeader}
+          onListStateChange={handleListStateChange}
           filterPost={filterPost}
           comparePosts={feedSort === 'popular' ? byMostReactions : undefined}
           emptyState={emptyState}

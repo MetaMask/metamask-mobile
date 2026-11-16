@@ -47,6 +47,7 @@ interface ProfileOnboardingIntroAnimationProps {
    * still loading, and while the animation is skipped.
    */
   onStepChange?: (step: number) => void;
+  paused?: boolean;
 }
 
 /**
@@ -57,7 +58,7 @@ interface ProfileOnboardingIntroAnimationProps {
  */
 const ProfileOnboardingIntroAnimation: React.FC<
   ProfileOnboardingIntroAnimationProps
-> = ({ fallback, onStepChange }) => {
+> = ({ fallback, onStepChange, paused = false }) => {
   const tw = useTailwind();
   const { themeAppearance } = useTheme();
   const skipAnimation = !useProfileOnboardingRiveEnabled();
@@ -82,6 +83,11 @@ const ProfileOnboardingIntroAnimation: React.FC<
     }
   }, [loadError]);
   const { riveViewRef, setHybridRef } = useRive();
+  useEffect(() => {
+    if (!riveViewRef) return;
+    const playback = paused ? riveViewRef.pause() : riveViewRef.play();
+    playback.catch(() => undefined);
+  }, [paused, riveViewRef]);
   const { value: currentStep } = useRiveNumber(
     PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP,
     instance,
@@ -150,7 +156,7 @@ const ProfileOnboardingIntroAnimation: React.FC<
           artboardName={PROFILE_ONBOARDING_RIVE_ARTBOARD}
           stateMachineName={PROFILE_ONBOARDING_RIVE_STATE_MACHINE}
           dataBind={instance}
-          autoPlay
+          autoPlay={!paused}
           fit={Fit.Contain}
           alignment={Alignment.Center}
           style={tw.style('h-full w-full')}

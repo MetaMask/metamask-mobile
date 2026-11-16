@@ -2051,6 +2051,42 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }
 
   const hasActionsFooter = hasLongShortButtons && !isTradingHalted;
+  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  // One FlashList scrolls every tab. The disclaimer stays inside Overview
+  // and Top traders, which unmount on Feed. A list footer would be recycled
+  // and paint that label when the next page loads.
+  const isFeedTabActive = isFeedScroller && activeSocialTab === 'feed';
+  const bottomInsetSpacer = edgeInsets && !hasActionsFooter && (
+    <View
+      style={{ height: edgeInsets.bottom }}
+      testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
+    />
+  );
+
+  const riskDisclaimer = (
+    <>
+      <View
+        style={styles.chromeBlock}
+        testID={PerpsMarketDetailsViewSelectorsIDs.RISK_DISCLAIMER}
+      >
+        <Text
+          style={styles.riskDisclaimer}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+        >
+          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            onPress={handleTradingViewPress}
+          >
+            TradingView.
+          </Text>
+        </Text>
+      </View>
+      {bottomInsetSpacer}
+    </>
+  );
 
   // Built once per render of this view and returned unchanged by
   // `renderScreenContent`, so the list's own re-renders (page loads, age tick)
@@ -2209,6 +2245,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             onOverviewLayout={handleAboutContainerLayout}
             onOverviewVisibilityChange={setAboutTrackingEnabled}
             onTabChange={setActiveSocialTab}
+            footer={isFeedScroller ? riskDisclaimer : undefined}
             overview={
               <PerpsHomeSectionList
                 sections={[
@@ -2233,32 +2270,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         </>
       )}
 
-      <View style={styles.chromeBlock}>
-        <Text
-          style={styles.riskDisclaimer}
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-        >
-          {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            onPress={handleTradingViewPress}
-          >
-            TradingView.
-          </Text>
-        </Text>
-      </View>
-      {edgeInsets && !hasActionsFooter && (
-        <View
-          style={{ height: edgeInsets.bottom }}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
-        />
-      )}
+      {isFeedScroller ? null : riskDisclaimer}
     </>
   );
-  const renderScreenContent = () => screenContent;
-  const isFeedScroller = isPerpsSocialEnabled && feedAssetIds !== null;
+  const renderScreenContent = (): React.ReactNode => screenContent;
 
   return (
     <View
@@ -2318,6 +2333,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               pageRef={feedPageRef}
               scrollTestID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
             />
+            {isFeedTabActive ? bottomInsetSpacer : null}
           </View>
         ) : (
           <Animated.ScrollView

@@ -282,6 +282,9 @@ jest.mock('../../app/core/Engine', () => {
         fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
         disconnectX: jest.fn().mockResolvedValue(undefined),
       },
+      ProfileService: {
+        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+      },
       GeolocationController: {
         state: {
           location: 'US',

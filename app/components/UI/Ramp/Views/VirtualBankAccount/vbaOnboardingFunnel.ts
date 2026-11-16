@@ -62,10 +62,12 @@ export const VBA_ONBOARDING_MODULES: readonly VbaOnboardingModule[] = [
  *
  * A rejected applicant opens the failure screen. Rejection is terminal, so
  * that screen contacts support instead of requesting another SumSub token.
- * An applicant UKYC asked to retry before the provider flow was (re)submitted
- * opens the same screen, and Try again relaunches Sumsub. Routing that retry
- * straight into identity verification from every entry point dropped the user
- * back into the provider, so closing Sumsub looked like it had done nothing.
+ * An applicant UKYC asked to retry opens the same screen, whether or not the
+ * provider flow was already submitted, and Try again relaunches Sumsub. The
+ * provider flow stays `submitted` after the first upload, so a retry decided
+ * after it (for example a rejected proof of address) must not skip this
+ * screen. Routing it straight into identity verification reopened the upload
+ * with no reason and no way out, and every rejected upload repeated that loop.
  *
  * @param snapshot - Facts from hydrate.
  * @returns The next module or status destination.
@@ -76,11 +78,8 @@ export const getVbaDestinationForSnapshot = (
   if (!snapshot) {
     return 'error';
   }
-  if (
-    snapshot.kycStatus === 'rejected' ||
-    (snapshot.kycStatus === 'retry' &&
-      snapshot.providerFlowStatus !== 'submitted')
-  ) {
+
+  if (snapshot.kycStatus === 'rejected' || snapshot.kycStatus === 'retry') {
     return 'kycRejected';
   }
 
@@ -104,8 +103,7 @@ export const getVbaDestinationForSnapshot = (
 
   if (
     snapshot.kycStatus === 'pending' ||
-    (snapshot.providerFlowStatus === 'submitted' &&
-      snapshot.kycStatus !== 'retry')
+    snapshot.providerFlowStatus === 'submitted'
   ) {
     return 'kycPending';
   }

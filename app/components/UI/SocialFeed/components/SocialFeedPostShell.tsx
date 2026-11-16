@@ -78,8 +78,6 @@ export interface SocialFeedPostShellProps {
    * pass this so they cannot copy their own trade.
    */
   showCopyTrade?: boolean;
-  /** Clock for the relative timestamp. Defaults to `Date.now()`. */
-  now?: number;
 }
 
 interface ShellCopyTradeTracking {
@@ -95,35 +93,46 @@ const useShellCopyTrade = (
   post: SocialV1FeedPost,
   onSpotCopyTrade: SocialFeedPostShellProps['onCopyTrade'],
   { postAnalytics, notifyCopy, notifyBlocked }: ShellCopyTradeTracking,
-  getCopyTradeBlockedReason: () => SocialBlockedReason | null,
+  getCopyTradeBlockedReason: (
+    onAccepted?: () => void,
+  ) => SocialBlockedReason | null,
 ) => {
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
     post.commentId,
   );
-  const allowCopyTrade = useCallback(() => {
-    const blockedReason = getCopyTradeBlockedReason();
-    if (blockedReason) {
-      notifyBlocked?.(postAnalytics, blockedReason);
-      return false;
-    }
-    notifyCopy?.(postAnalytics);
-    return true;
-  }, [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics]);
+  const allowCopyTrade = useCallback(
+    (onAccepted?: () => void) => {
+      const blockedReason = getCopyTradeBlockedReason(onAccepted);
+      if (blockedReason) {
+        notifyBlocked?.(postAnalytics, blockedReason);
+        return false;
+      }
+      notifyCopy?.(postAnalytics);
+      return true;
+    },
+    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics],
+  );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
-  const handleSpotCopyTrade = useCallback(() => {
-    if (!allowCopyTrade()) {
-      return;
-    }
-    onSpotCopyTrade?.(post.item, post.commentId);
-  }, [allowCopyTrade, onSpotCopyTrade, post.item, post.commentId]);
-  const handlePerpsCopyTrade = useCallback(() => {
-    if (!allowCopyTrade()) {
-      return;
-    }
-    onPerpsCopyTrade?.();
-  }, [allowCopyTrade, onPerpsCopyTrade]);
+  const handleSpotCopyTrade = useCallback(
+    function copySpot(): void {
+      if (!allowCopyTrade(copySpot)) {
+        return;
+      }
+      onSpotCopyTrade?.(post.item, post.commentId);
+    },
+    [allowCopyTrade, onSpotCopyTrade, post.item, post.commentId],
+  );
+  const handlePerpsCopyTrade = useCallback(
+    function copyPerps(): void {
+      if (!allowCopyTrade(copyPerps)) {
+        return;
+      }
+      onPerpsCopyTrade?.();
+    },
+    [allowCopyTrade, onPerpsCopyTrade],
+  );
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade && handlePerpsCopyTrade
@@ -255,7 +264,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   requireSocialTerms = false,
   requireSocialProfile = false,
   showCopyTrade = true,
-  now,
 }) => {
   const tracked = useSocialFeedTracking();
   const { location } = useSocialFeedSurface();
@@ -271,23 +279,26 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const ensureSocialTermsForInteraction = useCallback(
-    () => !requireSocialTerms || ensureSocialTermsAccepted(),
+    (onAccepted?: () => void) =>
+      !requireSocialTerms || ensureSocialTermsAccepted(onAccepted),
     [ensureSocialTermsAccepted, requireSocialTerms],
   );
-  const getCopyTradeBlockedReason =
-    useCallback((): SocialBlockedReason | null => {
-      if (!ensureSocialTermsForInteraction()) {
+  const getCopyTradeBlockedReason = useCallback(
+    (onAccepted?: () => void): SocialBlockedReason | null => {
+      if (!ensureSocialTermsForInteraction(onAccepted)) {
         return SocialEvent.BlockedReason.TERMS;
       }
       if (requireSocialProfile && !ensureSocialProfileOnboarding()) {
         return SocialEvent.BlockedReason.PROFILE_ONBOARDING;
       }
       return null;
-    }, [
+    },
+    [
       ensureSocialProfileOnboarding,
       ensureSocialTermsForInteraction,
       requireSocialProfile,
-    ]);
+    ],
+  );
   const postAnalytics = useMemo(() => socialFeedPostAnalytics(post), [post]);
   const optionsTarget = useMemo(
     () => ({
@@ -303,12 +314,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     sheet: optionsSheet,
     isHidden,
   } = useSocialEntryOptions(optionsTarget);
-  const openOptions = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
-      return;
-    }
-    openEntryOptions();
-  }, [ensureSocialTermsForInteraction, openEntryOptions]);
+  const openOptions = useCallback(
+    function open(): void {
+      if (!ensureSocialTermsForInteraction(open)) {
+        return;
+      }
+      openEntryOptions();
+    },
+    [ensureSocialTermsForInteraction, openEntryOptions],
+  );
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -365,33 +379,36 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const chips = visibleReactions(reactions);
   const canReact = Boolean(post.commentId);
 
-  const openPicker = useCallback(() => {
-    if (
-      !ensureSocialTermsForInteraction() ||
-      !ensureSocialProfileOnboarding()
-    ) {
-      return;
-    }
+  const openPicker = useCallback(
+    function open(): void {
+      if (
+        !ensureSocialTermsForInteraction(open) ||
+        !ensureSocialProfileOnboarding()
+      ) {
+        return;
+      }
 
-    reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
-      setPickerAnchor({ x, y, width, height });
-      setPickerVisible(true);
-      notifyPicker?.();
-    });
-  }, [
-    ensureSocialProfileOnboarding,
-    ensureSocialTermsForInteraction,
-    notifyPicker,
-  ]);
+      reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
+        setPickerAnchor({ x, y, width, height });
+        setPickerVisible(true);
+        notifyPicker?.();
+      });
+    },
+    [
+      ensureSocialProfileOnboarding,
+      ensureSocialTermsForInteraction,
+      notifyPicker,
+    ],
+  );
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
   }, []);
 
   const toggleEmotion = useCallback(
-    (emotion: string) => {
+    function toggle(emotion: string): void {
       if (
-        !ensureSocialTermsForInteraction() ||
+        !ensureSocialTermsForInteraction(() => toggle(emotion)) ||
         !ensureSocialProfileOnboarding() ||
         isPending
       ) {
@@ -423,33 +440,39 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     [toggleEmotion],
   );
 
-  const handleIdentityPress = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
-      return;
-    }
-    tracked.onAuthorTap?.(postAnalytics);
-    onAuthorPress?.(post);
-  }, [
-    ensureSocialTermsForInteraction,
-    onAuthorPress,
-    post,
-    postAnalytics,
-    tracked,
-  ]);
+  const handleIdentityPress = useCallback(
+    function pressIdentity(): void {
+      if (!ensureSocialTermsForInteraction(pressIdentity)) {
+        return;
+      }
+      tracked.onAuthorTap?.(postAnalytics);
+      onAuthorPress?.(post);
+    },
+    [
+      ensureSocialTermsForInteraction,
+      onAuthorPress,
+      post,
+      postAnalytics,
+      tracked,
+    ],
+  );
 
-  const handlePositionPress = useCallback(() => {
-    if (!ensureSocialTermsForInteraction()) {
-      return;
-    }
-    tracked.onPositionTap?.(postAnalytics);
-    onPositionPress?.(post);
-  }, [
-    ensureSocialTermsForInteraction,
-    onPositionPress,
-    post,
-    postAnalytics,
-    tracked,
-  ]);
+  const handlePositionPress = useCallback(
+    function pressPosition(): void {
+      if (!ensureSocialTermsForInteraction(pressPosition)) {
+        return;
+      }
+      tracked.onPositionTap?.(postAnalytics);
+      onPositionPress?.(post);
+    },
+    [
+      ensureSocialTermsForInteraction,
+      onPositionPress,
+      post,
+      postAnalytics,
+      tracked,
+    ],
+  );
 
   if (isHidden) {
     return null;
@@ -470,7 +493,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         handle={post.authorHandle}
         imageUrl={post.authorImageUrl}
         timestampMs={post.timestampMs}
-        now={now}
         recyclingKey={post.id}
         onMorePress={openOptions}
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
@@ -506,7 +528,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
                 item={post.item}
                 onCopyTrade={copyTradeHandler}
                 showCopyTrade={showCopyTrade}
-                now={now}
               />
             </Pressable>
           ) : (
@@ -514,7 +535,6 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
               item={post.item}
               onCopyTrade={copyTradeHandler}
               showCopyTrade={showCopyTrade}
-              now={now}
             />
           )}
 
