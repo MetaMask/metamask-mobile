@@ -137,7 +137,7 @@ export function useTronAmountValidation({
     }
 
     validationTimeoutRef.current = setTimeout(() => {
-      validate();
+      void validate();
     }, VALIDATION_DEBOUNCE_MS);
 
     return () => {

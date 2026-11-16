@@ -286,4 +286,169 @@ describe('useTronAmountValidation', () => {
       expect(result.current.isValidating).toBe(false);
     });
   });
+
+  it('clears error when amount becomes zero', async () => {
+    mockValidateTronTransferAmount.mockResolvedValue({
+      valid: false,
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+
+    const store = mockStore(mockState);
+    const { result, rerender } = renderHook(
+      ({ amount }: { amount: string }) =>
+        useTronAmountValidation({
+          enabled: true,
+          amount,
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store), initialProps: { amount: '100' } },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.validationError).toBe('Insufficient funds');
+    });
+
+    rerender({ amount: '0' });
+
+    await waitFor(() => {
+      expect(result.current.validationError).toBeUndefined();
+      expect(result.current.isValidating).toBe(false);
+    });
+  });
+
+  it('clears error when disabled', async () => {
+    mockValidateTronTransferAmount.mockResolvedValue({
+      valid: false,
+      errors: [{ code: 'InsufficientBalance' }],
+    });
+
+    const store = mockStore(mockState);
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) =>
+        useTronAmountValidation({
+          enabled,
+          amount: '100',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store), initialProps: { enabled: true } },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.validationError).toBe('Insufficient funds');
+    });
+
+    rerender({ enabled: false });
+
+    await waitFor(() => {
+      expect(result.current.validationError).toBeUndefined();
+      expect(result.current.isValidating).toBe(false);
+    });
+  });
+
+  it('shows generic error for unknown error code', async () => {
+    mockValidateTronTransferAmount.mockResolvedValue({
+      valid: false,
+      errors: [{ code: 'UnknownError' }],
+    });
+
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBe('Invalid value');
+    });
+  });
+
+  it('handles missing wallet address gracefully', async () => {
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: undefined,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBeUndefined();
+    });
+
+    expect(mockValidateTronTransferAmount).not.toHaveBeenCalled();
+  });
+
+  it('handles missing asset chain ID gracefully', async () => {
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: undefined,
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBeUndefined();
+    });
+
+    expect(mockValidateTronTransferAmount).not.toHaveBeenCalled();
+  });
+
+  it('handles missing asset reference gracefully', async () => {
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: undefined,
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+      expect(result.current.validationError).toBeUndefined();
+    });
+
+    expect(mockValidateTronTransferAmount).not.toHaveBeenCalled();
+  });
 });
