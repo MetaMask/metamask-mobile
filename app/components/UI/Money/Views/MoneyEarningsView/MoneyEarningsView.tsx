@@ -55,6 +55,8 @@ const MoneyEarningsView = (): React.ReactElement => {
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const entries = data?.history;
+  const hasHistoricalEarnings =
+    !isLoading && !isError && entries !== undefined && entries.length > 0;
 
   const tabs = useMemo<TabItem[]>(
     () => [
@@ -147,12 +149,14 @@ const MoneyEarningsView = (): React.ReactElement => {
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}
           />
-          <EarningsSummary
-            thisMonth={thirtyDayTotal}
-            lifetime={oneYearTotal}
-            projectedOneYear={projectedOneYear}
-            dataThrough={latestTimestamp}
-          />
+          {hasHistoricalEarnings ? (
+            <EarningsSummary
+              thisMonth={thirtyDayTotal}
+              lifetime={oneYearTotal}
+              projectedOneYear={projectedOneYear}
+              dataThrough={latestTimestamp}
+            />
+          ) : null}
         </ScrollView>
       ) : null}
       <Box
