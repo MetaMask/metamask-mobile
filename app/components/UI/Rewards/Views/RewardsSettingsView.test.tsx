@@ -44,8 +44,12 @@ jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
     __esModule: true,
     default: function MockRewardSettingsAccountGroupList({
       onRequestOptOut,
+      offDeviceAccounts,
+      onOpenOffDeviceSheet,
     }: {
       onRequestOptOut?: () => void;
+      offDeviceAccounts?: unknown[];
+      onOpenOffDeviceSheet?: () => void;
     }) {
       const ReactActual = jest.requireActual('react');
       return ReactActual.createElement(
@@ -56,6 +60,12 @@ jest.mock('../components/Settings/RewardSettingsAccountGroupList', () => {
           ? ReactActual.createElement(TouchableOpacity, {
               testID: 'trigger-opt-out',
               onPress: onRequestOptOut,
+            })
+          : null,
+        offDeviceAccounts && offDeviceAccounts.length > 0
+          ? ReactActual.createElement(TouchableOpacity, {
+              testID: 'rewards-info-banner',
+              onPress: onOpenOffDeviceSheet,
             })
           : null,
       );
@@ -107,27 +117,6 @@ const mockUseLinkedOffDeviceAccounts = jest.fn<OffDeviceAccount[], []>(
 jest.mock('../hooks/useLinkedOffDeviceAccounts', () => ({
   useLinkedOffDeviceAccounts: () => mockUseLinkedOffDeviceAccounts(),
 }));
-
-// Mock RewardsInfoBanner — pressable element that calls onConfirm
-jest.mock('../components/RewardsInfoBanner', () => {
-  const ReactActual = jest.requireActual('react');
-  const { TouchableOpacity } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      onConfirm,
-      testID,
-    }: {
-      onConfirm?: () => void;
-      testID?: string;
-      [key: string]: unknown;
-    }) =>
-      ReactActual.createElement(TouchableOpacity, {
-        testID: testID ?? 'rewards-info-banner',
-        onPress: onConfirm,
-      }),
-  };
-});
 
 // Mock OptOutConfirmationSheet — exposes confirm and close buttons for interaction tests
 const mockOptout = jest.fn();
