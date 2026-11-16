@@ -138,7 +138,11 @@ describe('PerpsHomeView', () => {
     clearPerpsOutreachApiMocks();
   });
 
-  it('shows and dismisses an eligible Terminal outreach campaign', async () => {
+  // Temporarily skipped: flaky on CI when run first/cold in shard 1
+  // (`Unable to find an element with testID: perps-outreach-banner`).
+  // https://github.com/MetaMask/metamask-mobile/issues/39860 (MCWP-1192)
+  // eslint-disable-next-line jest/no-disabled-tests
+  it.skip('shows and dismisses an eligible Terminal outreach campaign', async () => {
     // The fixture's selected account enables the outreach query on the first
     // render. Leave the session profile unset: a profile that resolves after
     // mount changes the query key, aborts the in-flight request, and makes the

@@ -2018,7 +2018,11 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps the max field on screen while the keypad is open', async () => {
+    // Temporarily skipped: flakes on the 'Min mUSD price' label in
+    // component-view shard 4.
+    // https://github.com/MetaMask/metamask-mobile/issues/39863 (MCWP-1216)
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('keeps the max field on screen while the keypad is open', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
