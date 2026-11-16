@@ -95,8 +95,6 @@ const MoneyEarningsView = (): React.ReactElement => {
     () => getDailyEarningsPoints(rangeEntries, selectedRange),
     [rangeEntries, selectedRange],
   );
-  const hasHistoricalEarnings =
-    !isLoading && !isError && !hasMalformedHistory && chartPoints.length > 0;
   const thirtyDayTotal = useMemo(
     () => sumEarnings(getRangeEntries(entries ?? [], '30D')),
     [entries],
@@ -109,6 +107,13 @@ const MoneyEarningsView = (): React.ReactElement => {
     () => Math.max(0, thirtyDayTotal) * 12,
     [thirtyDayTotal],
   );
+  const hasInvalidProjection = !Number.isFinite(projectedOneYear);
+  const hasHistoricalEarnings =
+    !isLoading &&
+    !isError &&
+    !hasMalformedHistory &&
+    !hasInvalidProjection &&
+    chartPoints.length > 0;
   const latestTimestamp = useMemo(
     () => chartPoints.at(-1)?.timestamp,
     [chartPoints],
@@ -170,7 +175,7 @@ const MoneyEarningsView = (): React.ReactElement => {
           <EarningsChart
             entries={entries}
             isLoading={isLoading}
-            isError={isError || hasMalformedHistory}
+            isError={isError || hasMalformedHistory || hasInvalidProjection}
             onRetry={handleRetry}
             selectedRange={selectedRange}
             onRangeChange={setSelectedRange}

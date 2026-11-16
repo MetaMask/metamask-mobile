@@ -300,6 +300,30 @@ describe('MoneyEarningsView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('displays retryable error without a summary for projection overflow', () => {
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        history: [
+          {
+            timestamp: '2026-11-16T12:00:00.000Z',
+            interest_earned_usd: String(Number.MAX_VALUE),
+          },
+        ],
+      },
+    });
+
+    const { getByText, getByTestId, queryByText, queryByTestId } =
+      renderWithProvider(<MoneyEarningsView />);
+
+    expect(getByTestId(MoneyEarningsViewTestIds.ERROR)).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings.retry'))).toBeOnTheScreen();
+    expect(queryByText(/Infinity/)).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
   it('displays empty state without a summary', () => {
     setHistoricalEarningsResult({
       data: { ...historicalEarnings, history: [] },
