@@ -531,6 +531,18 @@ describe('SocialFeedPositionCard', () => {
     expect(within(row).getByText('\u2014')).toBeOnTheScreen();
   });
 
+  it('formats an open hold from its start and the supplied instant', () => {
+    const now = new Date('2026-07-09T12:00:00Z').getTime();
+    const item = mockOpenPerpsFeedItem({
+      holdTimeLabel: '1d 18h',
+      holdStartedAtMs: now - 3 * HOUR,
+    });
+
+    renderWithProvider(<PositionCardBody item={item} now={now} />);
+
+    expect(statValue(item.id, 'holdTime')).toBe('3h');
+  });
+
   it('renders a share spot card with entry, hold time, and copy trade', () => {
     const item = {
       ...mockOpenSpotFeedItem({

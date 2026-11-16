@@ -5,10 +5,7 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
-import {
-  HeaderStandard,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -57,6 +54,8 @@ import {
 } from '../../utils';
 import { trace, TraceName, endTrace } from '../../../../../util/trace';
 import useTronStakeApy from '../../hooks/useTronStakeApy';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -97,6 +96,7 @@ export interface EarnTokenListProps {
 }
 
 const EarnTokenList = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   // Start polling lending networks when this component mounts and stops when it unmounts
   // This is currently the main component that needs data cross chain on boot
   useEarnNetworkPolling();
@@ -384,7 +384,9 @@ const EarnTokenList = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={
           params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

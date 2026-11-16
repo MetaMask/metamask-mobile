@@ -7,6 +7,7 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
   FilterButton,
   FilterButtonGroup,
   FilterButtonSize,
@@ -73,6 +74,9 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
     openPositions.length === 0 &&
     closedPositions.length === 0;
   const showPostEmptyCopy = tab === 'open' || bothEmpty;
+  const isListEmpty = positions.length === 0;
+  const showHiddenPositionLink =
+    !(error && isListEmpty) && !(isLoading && isListEmpty);
 
   const openTokens = useMemo(
     () => openPositions.filter((position) => !isPerpPosition(position)),
@@ -251,7 +255,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                 ) : isLoading && positions.length === 0 ? (
                   SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
                 ) : positions.length === 0 ? (
-                  <Box twClassName="items-center px-4 py-8">
+                  <Box twClassName="items-center px-4 pt-8">
                     <TabEmptyState
                       description={
                         showPostEmptyCopy
@@ -264,16 +268,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                       }}
                       twClassName="bg-transparent"
                       testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
-                    >
-                      {showPostEmptyCopy ? (
-                        <TextButton
-                          onPress={handleShowHiddenPositionInfo}
-                          testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
-                        >
-                          {strings('social_leaderboard.composer.empty_help')}
-                        </TextButton>
-                      ) : null}
-                    </TabEmptyState>
+                    />
                   </Box>
                 ) : tab === 'open' ? (
                   renderOpenSections()
@@ -281,6 +276,24 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                   renderClosedList()
                 )}
               </ScrollView>
+              {showHiddenPositionLink ? (
+                <Box
+                  alignItems={
+                    isListEmpty ? BoxAlignItems.Center : BoxAlignItems.Start
+                  }
+                  testID={
+                    AddPositionBottomSheetSelectorsIDs.EMPTY_HELP_CONTAINER
+                  }
+                  twClassName="px-4 pt-2 pb-4"
+                >
+                  <TextButton
+                    onPress={handleShowHiddenPositionInfo}
+                    testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
+                  >
+                    {strings('social_leaderboard.composer.empty_help')}
+                  </TextButton>
+                </Box>
+              ) : null}
             </BottomSheet>
             {isHiddenPositionInfoOpen ? (
               <HiddenPositionInfo onDismiss={handleHideHiddenPositionInfo} />

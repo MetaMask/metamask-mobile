@@ -12,6 +12,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -27,6 +29,7 @@ import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testId
 export interface PositionSheetPriceHeaderProps {
   assetName: string;
   isPerp: boolean;
+  leverage: number | undefined;
   /** Already formatted price, or market cap when one is known. */
   valueLabel: string | undefined;
   /** When true, the figure is market cap and shows the (MC) label. */
@@ -43,6 +46,7 @@ export interface PositionSheetPriceHeaderProps {
 const PositionSheetPriceHeader = ({
   assetName,
   isPerp,
+  leverage,
   valueLabel,
   isMarketCapMode,
   changePercent,
@@ -53,14 +57,16 @@ const PositionSheetPriceHeader = ({
   const hasChange =
     changePercent !== undefined && Number.isFinite(changePercent);
   const isChangePositive = (changePercent ?? 0) >= 0;
+  const leverageLabel = isPerp && leverage ? `${leverage}x` : undefined;
   const changeLabel = hasChange ? formatPercent(changePercent) : undefined;
   const marketCapSuffix = isMarketCapMode
     ? strings('social_leaderboard.position_sheet.market_cap_suffix')
     : undefined;
   // One label, because the whole header is the button. A label on the
-  // pressable otherwise replaces the price and the change.
+  // pressable otherwise replaces the price, change, and leverage.
   const accessibilityLabel = [
     assetName,
+    leverageLabel,
     valueLabel,
     marketCapSuffix,
     changeLabel,
@@ -101,6 +107,11 @@ const PositionSheetPriceHeader = ({
             >
               {assetName}
             </Text>
+            {isPerp && leverage ? (
+              <Box alignItems={BoxAlignItems.Center}>
+                <Tag severity={TagSeverity.Neutral}>{`${leverage}x`}</Tag>
+              </Box>
+            ) : null}
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Sm}

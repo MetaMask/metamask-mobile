@@ -8,10 +8,12 @@ import {
   selectNeobankMarkets,
   isVbaGeoBypassEnabled,
   selectMoneyOnboardingStepperAnimationEnabled,
+  selectMoneySplashEnabled,
   selectProSubscriptionEnabled,
   SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY,
   MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
   MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
+  MONEY_ENABLE_SPLASH_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
@@ -571,6 +573,51 @@ describe('Money Account feature flag selectors', () => {
       const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc(
         {},
       );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneySplashEnabled', () => {
+    it('exposes the client-config flag key for registry alignment', () => {
+      expect(MONEY_ENABLE_SPLASH_FLAG_KEY).toBe('moneyEnableSplash');
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectMoneySplashEnabled.resultFunc({
+        [MONEY_ENABLE_SPLASH_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is false', () => {
+      const result = selectMoneySplashEnabled.resultFunc({
+        [MONEY_ENABLE_SPLASH_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneySplashEnabled.resultFunc({
+        [MONEY_ENABLE_SPLASH_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent (safe default)', () => {
+      const result = selectMoneySplashEnabled.resultFunc({});
 
       expect(result).toBe(false);
     });

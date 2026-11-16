@@ -137,6 +137,39 @@ const LabelledChoiceCard = ({
   return <ChoiceMarketGroupCard {...props} describeRow={describeRow} />;
 };
 
+/** Market types a line picker renders; any other type lists every line. */
+const LINE_PICKER_MARKET_TYPES: ReadonlySet<string> = new Set([
+  PREDICT_MARKET_TYPES.SPREAD,
+  PREDICT_MARKET_TYPES.TOTAL,
+  PREDICT_MARKET_TYPES.THRESHOLD,
+  PREDICT_MARKET_TYPES.TEAM_TOTAL,
+]);
+
+/**
+ * Market ids {@link EventMarketLayoutCard} prices for this card: the one
+ * Market of a standard card, every row of a choice card, the selected line of
+ * a line picker (its other lines show only their line value), and every line
+ * of a market type with no picker, which renders as standard cards.
+ */
+export const getLayoutCardMarketIds = (
+  card: MarketLayoutCard,
+  selectedMarketId?: PredictMarket['id'],
+): PredictMarket['id'][] => {
+  if (card.type === 'standard') {
+    return [card.market.id];
+  }
+  if (
+    card.type === 'choice' ||
+    !LINE_PICKER_MARKET_TYPES.has(card.marketType)
+  ) {
+    return card.markets.map((market) => market.id);
+  }
+  const selectedMarket =
+    card.markets.find((market) => market.id === selectedMarketId) ??
+    card.markets[0];
+  return selectedMarket ? [selectedMarket.id] : [];
+};
+
 /**
  * Renders one projected card with the component for its group's shape. Line
  * pickers have no title or rules button: the section header names them. A

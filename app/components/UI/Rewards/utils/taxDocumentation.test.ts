@@ -15,6 +15,7 @@ import {
   isPreWebhookTaxForm,
   isTaxFlowEnabled,
   PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
+  UNCONFIRMED_TAX_FORM_SUBMISSION,
   resolveTaxFormUrl,
   taxFormSubmissionStillWaiting,
   taxFormSubmittedSnapshot,
@@ -479,6 +480,21 @@ describe('tax form submission snapshot', () => {
     expect(taxSheetForClaim(openForm, null)).toEqual(taxSheetFor(openForm));
   });
 
+  it('matches a null stored_at snapshot when the read omits stored_at', () => {
+    const read = taxMe({
+      next_action: 'OPEN_FORM',
+      reason: 'NO_FORM',
+    });
+
+    expect(read.stored_at).toBeUndefined();
+    expect(
+      taxFormSubmissionStillWaiting(
+        { ...PRE_WEBHOOK_TAX_FORM_SNAPSHOT, stored_at: null },
+        read,
+      ),
+    ).toBe(true);
+  });
+
   it('treats every open-form read as a form the payee can submit', () => {
     expect(isOpenFormTaxMe(openForm)).toBe(true);
     expect(
@@ -524,6 +540,29 @@ describe('tax form submission snapshot', () => {
       titleKey: 'taxFormPendingTitle',
       descriptionKey: 'taxFormPendingDescription',
     });
+    const storedAgain = taxMe({
+      next_action: 'OPEN_FORM',
+      reason: 'TIN_NOT_MATCHED',
+      stored_at: '2026-11-09T18:00:00.000Z',
+    });
+    expect(taxFormSubmissionStillWaiting(submitted, storedAgain)).toBe(false);
+    expect(
+      taxFormSubmissionStillWaiting(UNCONFIRMED_TAX_FORM_SUBMISSION, mismatch),
+    ).toBe(true);
+    expect(
+      taxFormSubmissionStillWaiting(
+        UNCONFIRMED_TAX_FORM_SUBMISSION,
+        taxMe({
+          state: 'COMPLETE_OR_VERIFIED',
+          next_action: 'NONE',
+          reason: null,
+          cleared: true,
+        }),
+      ),
+    ).toBe(false);
+    expect(taxSheetForClaim(storedAgain, submitted)).toEqual(
+      taxSheetFor(storedAgain),
+    );
     expect(
       taxSheetForClaim(
         taxMe({

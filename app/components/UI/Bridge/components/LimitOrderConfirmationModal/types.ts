@@ -1,3 +1,4 @@
+import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
@@ -65,10 +66,18 @@ export interface LimitOrderConfirmationModalParams {
    * rate shown in the notice at the time it is created.
    */
   triggerInput: LimitOrderTriggerInput;
+  /**
+   * Entry point the user opened the swaps flow from, reported as the
+   * `location` of the order's analytics events.
+   */
+  location: MetaMetricsSwapsEventSource;
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends Omit<LimitOrderConfirmationModalParams, 'order' | 'triggerInput'> {
+  extends Omit<
+    LimitOrderConfirmationModalParams,
+    'order' | 'triggerInput' | 'location'
+  > {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.

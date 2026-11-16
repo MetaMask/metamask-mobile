@@ -210,11 +210,14 @@ describe('OnboardingSheet', () => {
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
-          url: AppConstants.URLS.TERMS_OF_USE_URL,
-          title: strings('onboarding.terms_of_use'),
-          hideShareButton: true,
-          useGlassHeader: true,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: AppConstants.URLS.TERMS_OF_USE_URL,
+            title: strings('onboarding.terms_of_use'),
+            hideShareButton: true,
+            useGlassHeader: true,
+          },
         });
       });
 
@@ -224,11 +227,14 @@ describe('OnboardingSheet', () => {
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
-          url: AppConstants.URLS.PRIVACY_NOTICE,
-          title: strings('onboarding.privacy_notice'),
-          hideShareButton: true,
-          useGlassHeader: true,
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: AppConstants.URLS.PRIVACY_NOTICE,
+            title: strings('onboarding.privacy_notice'),
+            hideShareButton: true,
+            useGlassHeader: true,
+          },
         });
       });
     });

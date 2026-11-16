@@ -164,13 +164,32 @@ describe('buildSocialTradeOgImageRequest', () => {
     expect(trade?.marketIconUrl).toBeUndefined();
   });
 
-  it('sends the trader avatar and no promo code', () => {
+  it('sends the trader avatar and no promo code when the sharer has none', () => {
     const request = buildSocialTradeOgImageRequest(
       tradeInput({ avatarUrl: 'foxicon://pirate/background2' }),
     );
 
     const trade = request?.kind === 'trade' ? request.trade : undefined;
     expect(trade?.avatarUrl).toBe('foxicon://pirate/background2');
+    expect(trade?.promoCode).toBeUndefined();
+    expect(JSON.stringify(request)).not.toContain('promoCode');
+  });
+
+  it('sends the sharer promo code, normalized', () => {
+    const request = buildSocialTradeOgImageRequest(
+      tradeInput({ promoCode: ' 8f3a21 ' }),
+    );
+
+    const trade = request?.kind === 'trade' ? request.trade : undefined;
+    expect(trade?.promoCode).toBe('8F3A21');
+  });
+
+  it('leaves out a malformed promo code', () => {
+    const request = buildSocialTradeOgImageRequest(
+      tradeInput({ promoCode: 'NOT-A-CODE' }),
+    );
+
+    const trade = request?.kind === 'trade' ? request.trade : undefined;
     expect(trade?.promoCode).toBeUndefined();
   });
 
@@ -289,6 +308,33 @@ describe('buildSocialProfileOgImageRequest', () => {
     const card = request?.kind === 'profile' ? request.profile : undefined;
     expect(card?.handle).toBe('@dip_spicy_maxi');
     expect(card?.pnl30dUsd).toBeUndefined();
+  });
+
+  it('sends the sharer promo code when there is one', () => {
+    const request = buildSocialProfileOgImageRequest({
+      traderId: 'trader-1',
+      username: 'dip_spicy_maxi',
+      profile,
+      closedPositions: [],
+      nowMs,
+      promoCode: '8F3A21',
+    });
+
+    const card = request?.kind === 'profile' ? request.profile : undefined;
+    expect(card?.promoCode).toBe('8F3A21');
+  });
+
+  it('leaves the promo code out of the body when the sharer has none', () => {
+    const request = buildSocialProfileOgImageRequest({
+      traderId: 'trader-1',
+      username: 'dip_spicy_maxi',
+      profile,
+      closedPositions: [],
+      nowMs,
+      promoCode: '',
+    });
+
+    expect(JSON.stringify(request)).not.toContain('promoCode');
   });
 
   it('returns undefined before the profile loads', () => {

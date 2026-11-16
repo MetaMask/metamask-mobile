@@ -8,6 +8,8 @@ import type { PredictFeedId } from '../types';
 export const NFL_FEED_SCREEN_ID = 'sports-football-nfl';
 export const NCAA_FEED_SCREEN_ID = 'sports-football-ncaa';
 export const POLITICS_FEED_SCREEN_ID = 'politics';
+export const SPORTS_FEED_SCREEN_ID = 'sports';
+export const TRENDING_FEED_SCREEN_ID = 'trending';
 
 type FeedScreenTabKeys = typeof PREDICT_SURFACE_FEED_KEYS.nextFeedScreenTabs;
 
@@ -44,6 +46,24 @@ export const FEED_SCREENS = {
     tabs: [
       { id: 'games', label: 'Games' },
       { id: 'props', label: 'Props' },
+    ],
+  },
+  /** The Sports Category: one tab per league, each on that league's Games
+   * Feed. Props stay on the league Feed Screens Home's previews open. */
+  [SPORTS_FEED_SCREEN_ID]: {
+    title: 'Sports',
+    tabs: [
+      { id: 'nfl', label: 'NFL' },
+      { id: 'ncaaf', label: 'NCAAF' },
+    ],
+  },
+  /** What Home's Trending carousel opens: the Feeds its Games come from,
+   * one tab per league. */
+  [TRENDING_FEED_SCREEN_ID]: {
+    title: 'Trending',
+    tabs: [
+      { id: 'nfl', label: 'NFL' },
+      { id: 'ncaaf', label: 'NCAAF' },
     ],
   },
   [POLITICS_FEED_SCREEN_ID]: {

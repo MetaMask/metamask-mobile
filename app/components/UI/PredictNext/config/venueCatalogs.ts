@@ -6,7 +6,8 @@
 
 /**
  * Kalshi V1: American football discovery, search, and buy and sell, plus the
- * Politics topic Feeds (Trump, Congress, Iran). No Claim (Kalshi settles
+ * Politics topic Feeds (Trump, Congress, Iran). The Categories are Sports and
+ * Politics; `politics` is the Politics Category's Feed, which for V1 is Trump. No Claim (Kalshi settles
  * automatically) and no Deposit or Withdraw until the funding slices
  * (PRED-1161, PRED-1163) ship real implementations. `sports` is the Venue's
  * general sports discovery Feed, which for V1 is NFL Games. Each Politics key
@@ -22,10 +23,12 @@ export const KALSHI_STATIC_VENUE_CATALOG = {
     'nfl-props': 'sports-football-nfl-win-totals',
     'college-football-games': 'sports-football-ncaa-games',
     'college-football-props': 'sports-football-ncaa-win-totals',
+    politics: 'politics-trump',
     'politics-trump': 'politics-trump',
     'politics-congress': 'politics-congress',
     'politics-iran': 'politics-iran',
   },
+  categories: ['sports', 'politics'],
   searchSupported: true,
 } as const;
 

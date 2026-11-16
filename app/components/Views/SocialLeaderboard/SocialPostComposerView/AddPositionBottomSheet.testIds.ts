@@ -6,6 +6,8 @@ export const AddPositionBottomSheetSelectorsIDs = {
   CLOSED_TAB: 'social-post-composer-add-position-closed-tab',
   EMPTY: 'social-post-composer-add-position-empty',
   EMPTY_HELP: 'social-post-composer-add-position-empty-help',
+  EMPTY_HELP_CONTAINER:
+    'social-post-composer-add-position-empty-help-container',
   ERROR: 'social-post-composer-add-position-error',
   RETRY: 'social-post-composer-add-position-retry',
   TOKENS_SECTION: 'social-post-composer-add-position-tokens',

@@ -117,6 +117,7 @@ export const AddressList = () => {
               toast({
                 title: strings('notifications.address_copied_to_clipboard'),
                 hasNoTimeout: false,
+                showCloseButton: false,
               });
             },
           }}

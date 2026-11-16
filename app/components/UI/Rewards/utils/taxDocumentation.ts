@@ -2,6 +2,7 @@ import type {
   EarningsSummaryDto,
   ReferralLocalizedTextKey,
   SummaryTotalsDto,
+  TaxDocumentationReason,
   TaxFormSubmittedSnapshot,
   TaxFormTokenDto,
   TaxMeDto,
@@ -111,123 +112,156 @@ const determinationInfo = (): TaxDocumentationSheet => ({
   descriptionKey: DETERMINATION_DESCRIPTION,
 });
 
+type TaxNextAction = TaxMeDto['next_action'];
+type TaxReason = TaxMeDto['reason'];
+
+function clearedRenewalSheet(
+  nextAction: TaxNextAction,
+  reason: TaxReason,
+): TaxDocumentationSheet {
+  if (reason != null) {
+    return determinationInfo();
+  }
+  if (nextAction === 'ANSWER_ATTESTATION') {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxRenewalAttestationDescription',
+    );
+  }
+  if (nextAction === 'OPEN_FORM') {
+    return openForm('taxRenewalFormDescription', null, false);
+  }
+  return determinationInfo();
+}
+
+function heldRenewalSheet(
+  nextAction: TaxNextAction,
+  reason: TaxReason,
+): TaxDocumentationSheet {
+  if (nextAction === 'ANSWER_ATTESTATION' && reason === 'ATTESTATION_EXPIRED') {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxAttestationExpiredDescription',
+    );
+  }
+  if (nextAction === 'OPEN_FORM' && reason === 'FORM_EXPIRED') {
+    return openForm('taxFormExpiredDescription', reason, false);
+  }
+  return determinationInfo();
+}
+
+function actionRequiredSheet(
+  nextAction: TaxNextAction,
+  reason: TaxReason,
+  canChangeAnswer: boolean,
+): TaxDocumentationSheet {
+  if (nextAction === 'ANSWER_ATTESTATION' && reason === 'NO_ATTESTATION') {
+    return question(
+      'attestation',
+      'taxAttestationTitle',
+      'taxAttestationDescription',
+    );
+  }
+  if (
+    nextAction === 'ANSWER_US_ACTIVITY' &&
+    reason === 'US_ACTIVITY_ANSWER_REQUIRED'
+  ) {
+    return question(
+      'us_activity',
+      'taxUsActivityTitle',
+      'taxUsActivityDescription',
+    );
+  }
+  if (nextAction !== 'OPEN_FORM') {
+    return determinationInfo();
+  }
+  const descriptionKey = reason ? OPEN_FORM_DESCRIPTIONS[reason] : undefined;
+  if (!descriptionKey) {
+    return determinationInfo();
+  }
+  return openForm(
+    descriptionKey,
+    reason,
+    reason === 'NO_FORM' && canChangeAnswer,
+  );
+}
+
+const PENDING_REVIEW_REASONS = new Set<TaxDocumentationReason>([
+  'FORM_PENDING',
+  'TIN_NOT_MATCHED',
+  'REVIEW_PENDING',
+  'EXPIRY_UNKNOWN',
+]);
+
+function underReviewSheet(reason: TaxReason): TaxDocumentationSheet {
+  if (reason != null && PENDING_REVIEW_REASONS.has(reason)) {
+    return pendingInfo();
+  }
+  if (reason === 'US_ACTIVITY_BLOCKED') {
+    return {
+      kind: 'contact',
+      titleKey: 'taxContactUsTitle',
+      descriptionKey: 'taxUsActivityBlockedDescription',
+    };
+  }
+  if (reason === 'GATE_OFF') {
+    return { kind: 'none' };
+  }
+  return determinationInfo();
+}
+
 /**
  * The one map from `GET /tax/me` to a sheet. An unknown state, action, or
  * reason uses the determination info sheet.
  */
 export function taxSheetFor(taxMe: TaxMeDto): TaxDocumentationSheet {
   const { state, next_action: nextAction, reason, cleared } = taxMe;
-  const canChangeAnswer = taxMe.can_change_answer === true;
 
-  if (
-    state === 'COMPLETE_OR_VERIFIED' &&
-    nextAction === 'NONE' &&
-    reason == null
-  ) {
-    return { kind: 'none' };
-  }
-
-  if (state === 'RENEWAL_REQUIRED' && cleared) {
-    if (nextAction === 'ANSWER_ATTESTATION' && reason == null) {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxRenewalAttestationDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM' && reason == null) {
-      return openForm('taxRenewalFormDescription', null, false);
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'RENEWAL_REQUIRED' && !cleared) {
-    if (
-      nextAction === 'ANSWER_ATTESTATION' &&
-      reason === 'ATTESTATION_EXPIRED'
-    ) {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxAttestationExpiredDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM' && reason === 'FORM_EXPIRED') {
-      return openForm('taxFormExpiredDescription', reason, false);
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'ACTION_REQUIRED') {
-    if (nextAction === 'ANSWER_ATTESTATION' && reason === 'NO_ATTESTATION') {
-      return question(
-        'attestation',
-        'taxAttestationTitle',
-        'taxAttestationDescription',
-      );
-    }
-    if (
-      nextAction === 'ANSWER_US_ACTIVITY' &&
-      reason === 'US_ACTIVITY_ANSWER_REQUIRED'
-    ) {
-      return question(
-        'us_activity',
-        'taxUsActivityTitle',
-        'taxUsActivityDescription',
-      );
-    }
-    if (nextAction === 'OPEN_FORM') {
-      const descriptionKey = reason
-        ? OPEN_FORM_DESCRIPTIONS[reason]
-        : undefined;
-      if (!descriptionKey) {
-        return determinationInfo();
-      }
-      return openForm(
-        descriptionKey,
+  switch (state) {
+    case 'COMPLETE_OR_VERIFIED':
+      return nextAction === 'NONE' && reason == null
+        ? { kind: 'none' }
+        : determinationInfo();
+    case 'RENEWAL_REQUIRED':
+      return cleared
+        ? clearedRenewalSheet(nextAction, reason)
+        : heldRenewalSheet(nextAction, reason);
+    case 'ACTION_REQUIRED':
+      return actionRequiredSheet(
+        nextAction,
         reason,
-        reason === 'NO_FORM' && canChangeAnswer,
+        taxMe.can_change_answer === true,
       );
-    }
-    return determinationInfo();
-  }
-
-  if (state === 'UNDER_REVIEW' && nextAction === 'NONE') {
-    if (
-      reason === 'FORM_PENDING' ||
-      reason === 'TIN_NOT_MATCHED' ||
-      reason === 'REVIEW_PENDING' ||
-      reason === 'EXPIRY_UNKNOWN'
-    ) {
-      return pendingInfo();
-    }
-    if (reason === 'FORM_NOT_AVAILABLE') {
+    case 'UNDER_REVIEW':
+      return nextAction === 'NONE'
+        ? underReviewSheet(reason)
+        : determinationInfo();
+    default:
       return determinationInfo();
-    }
-    if (reason === 'US_ACTIVITY_BLOCKED') {
-      return {
-        kind: 'contact',
-        titleKey: 'taxContactUsTitle',
-        descriptionKey: 'taxUsActivityBlockedDescription',
-      };
-    }
-    if (reason === 'GATE_OFF') {
-      return { kind: 'none' };
-    }
-    return determinationInfo();
   }
-
-  return determinationInfo();
 }
 
 /**
- * The snapshot used when a submit's status read fails and no open-form
- * read is cached. The first form, before any webhook, is this read.
+ * The open-form read that exists before any form is stored. A successful
+ * read with this `stored_at` of null is a real baseline.
  */
 export const PRE_WEBHOOK_TAX_FORM_SNAPSHOT: TaxFormSubmittedSnapshot = {
   state: 'ACTION_REQUIRED',
   next_action: 'OPEN_FORM',
   reason: 'NO_FORM',
+  stored_at: null,
+};
+
+/**
+ * Written only when both status reads threw. It keeps Claim on Pending
+ * review and is not a `stored_at` baseline: the next successful open-form
+ * read replaces it.
+ */
+export const UNCONFIRMED_TAX_FORM_SUBMISSION: TaxFormSubmittedSnapshot = {
+  ...PRE_WEBHOOK_TAX_FORM_SNAPSHOT,
+  confirmed: false,
 };
 
 /** True only for the open-form read that exists before Taxbit's status webhook. */
@@ -254,13 +288,18 @@ export function taxFormSubmittedSnapshot(
     state: taxMe.state,
     next_action: taxMe.next_action,
     reason: taxMe.reason,
+    stored_at: taxMe.stored_at ?? null,
   };
 }
 
 /**
  * The form was submitted and `tax/me` has not moved off that snapshot.
  * The snapshot is whatever open-form read was current at submit. A null
- * marker, or any changed field, means Claim follows `taxSheetFor`.
+ * marker, a changed status, or a new `stored_at` means Claim follows
+ * `taxSheetFor`. A missing `stored_at` is a snapshot from before the field
+ * and compares as no stored form. An unconfirmed marker has no baseline:
+ * any open-form read is still waiting, and the caller replaces the marker
+ * from that read.
  */
 export function taxFormSubmissionStillWaiting(
   submitted: TaxFormSubmittedSnapshot | null,
@@ -269,11 +308,15 @@ export function taxFormSubmissionStillWaiting(
   if (!submitted) {
     return false;
   }
+  if (submitted.confirmed === false) {
+    return isOpenFormTaxMe(taxMe);
+  }
   const current = taxFormSubmittedSnapshot(taxMe);
   return (
     submitted.state === current.state &&
     submitted.next_action === current.next_action &&
-    submitted.reason === current.reason
+    submitted.reason === current.reason &&
+    (submitted.stored_at ?? null) === current.stored_at
   );
 }
 
@@ -426,6 +469,13 @@ const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([
   'exp',
 ]);
 
+function readTaxFormEnv(): { override?: string; metamaskEnvironment?: string } {
+  return {
+    override: process.env.REWARDS_TAX_FORM_URL,
+    metamaskEnvironment: process.env.METAMASK_ENVIRONMENT,
+  };
+}
+
 /**
  * The page the WebView may open. An https URL from copy wins. A
  * `REWARDS_TAX_FORM_URL` override wins only on a local run, and only for
@@ -434,13 +484,12 @@ const LOCAL_TAX_FORM_ENVIRONMENTS = new Set([
  */
 export function resolveTaxFormUrl(
   localizedUrl: string | undefined,
-  env: { override?: string; metamaskEnvironment?: string } = {
-    override: process.env.REWARDS_TAX_FORM_URL,
-    metamaskEnvironment: process.env.METAMASK_ENVIRONMENT,
-  },
+  env?: { override?: string; metamaskEnvironment?: string },
 ): string | null {
-  const localRun = LOCAL_TAX_FORM_ENVIRONMENTS.has(env.metamaskEnvironment);
-  const override = env.override?.trim() ?? '';
+  const { override: rawOverride, metamaskEnvironment } =
+    env ?? readTaxFormEnv();
+  const localRun = LOCAL_TAX_FORM_ENVIRONMENTS.has(metamaskEnvironment);
+  const override = rawOverride?.trim() ?? '';
   const candidate = (
     localRun && override.length > 0 ? override : (localizedUrl ?? '')
   ).trim();

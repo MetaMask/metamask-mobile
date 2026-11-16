@@ -67,6 +67,9 @@ export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
 export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
+export const selectMoneySplashSeen = (state: RootState) =>
+  state.user?.moneySplashSeen ?? false;
+
 /**
  * Selects the moneyEarnBannerDismissedTokens state
  */
@@ -113,3 +116,9 @@ export const selectAppInstallEventFired = (state: RootState) =>
  */
 export const selectPendingAppInstall = (state: RootState) =>
   state.user?.pendingAppInstall ?? null;
+
+/**
+ * Selects whether the Swaps Limit tab has been opened
+ */
+export const selectBridgeLimitTabSeen = (state: RootState) =>
+  state.user?.bridgeLimitTabSeen ?? false;
