@@ -3,6 +3,8 @@ import {
   addEventListener as addNetInfoEventListener,
   type NetInfoState,
 } from '@react-native-community/netinfo';
+import Logger from '../Logger';
+import { ensureError } from '../errorUtils';
 import { computeLatencyBucket } from './computeLatencyBucket';
 import {
   computeNetworkTier,
@@ -31,7 +33,14 @@ function setBucket(next: LatencyBucket): void {
     return;
   }
   bucket = next;
-  listeners.forEach((listener) => listener());
+  listeners.forEach((listener) => {
+    // A throwing subscriber must not reject the caller's `fetch`.
+    try {
+      listener();
+    } catch (error) {
+      Logger.error(ensureError(error), 'latencyStore: listener threw');
+    }
+  });
 }
 
 /** Drops every sample and returns the bucket to `UNKNOWN`. */
@@ -96,7 +105,13 @@ export function getLatencyThresholds(): LatencyThresholds {
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
 ): void {
-  thresholds = LATENCY_THRESHOLDS[hardwareTier ?? 'MID'];
+  const nextThresholds = LATENCY_THRESHOLDS[hardwareTier ?? 'MID'];
+  if (nextThresholds !== thresholds) {
+    // Samples were bucketed against the old row, and in-flight ones were
+    // classified with it, so start over.
+    thresholds = nextThresholds;
+    clearLatencySamples();
+  }
   if (isMonitoring) {
     return;
   }
