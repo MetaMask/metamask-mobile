@@ -4,6 +4,7 @@ import {
   getDailyEarningsPoints,
   getRangeEntries,
   sumEarnings,
+  type EarningsPoint,
   type EarningsRange,
 } from './earningsHistory';
 
@@ -68,6 +69,21 @@ describe('earningsHistory', () => {
       const result = getRangeEntries(entries, '1W');
 
       expect(result).toEqual(entries.slice(0, 3));
+    });
+
+    it('rejects impossible calendar dates when choosing the newest timestamp', () => {
+      const validEntries = [
+        createEntry('2026-02-28T12:00:00.000Z'),
+        createEntry('2026-02-27T12:00:00.000Z'),
+      ];
+      const entries = [
+        ...validEntries,
+        createEntry('2026-02-30T12:00:00.000Z'),
+      ];
+
+      const result = getRangeEntries(entries, '1W');
+
+      expect(result).toEqual(validEntries);
     });
 
     it('includes every entry on UTC boundary dates', () => {
@@ -150,6 +166,20 @@ describe('earningsHistory', () => {
 
       expect(result).toEqual([]);
     });
+
+    it('throws when same-day addition exceeds the finite numeric range', () => {
+      const entries = [
+        createEntry('2026-11-13T12:00:00.000Z', String(Number.MAX_VALUE)),
+        createEntry('2026-11-13T13:00:00.000Z', String(Number.MAX_VALUE)),
+      ];
+
+      const aggregateEntries = (): EarningsPoint[] =>
+        getDailyEarningsPoints(entries);
+
+      expect(aggregateEntries).toThrow(
+        'Historical earnings aggregation exceeded the finite numeric range',
+      );
+    });
   });
 
   describe('sumEarnings', () => {
@@ -175,6 +205,19 @@ describe('earningsHistory', () => {
       const result = sumEarnings(entries);
 
       expect(result).toBe(10);
+    });
+
+    it('throws when total addition exceeds the finite numeric range', () => {
+      const entries = [
+        createEntry('2026-11-13T12:00:00.000Z', String(Number.MAX_VALUE)),
+        createEntry('2026-11-14T12:00:00.000Z', String(Number.MAX_VALUE)),
+      ];
+
+      const totalEntries = (): number => sumEarnings(entries);
+
+      expect(totalEntries).toThrow(
+        'Historical earnings aggregation exceeded the finite numeric range',
+      );
     });
   });
 });
