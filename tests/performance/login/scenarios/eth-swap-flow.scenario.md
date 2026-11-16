@@ -4,6 +4,22 @@ Tags: @PerformanceShadow
 Team: @swap-bridge-dev-team
 Platforms: Android
 
+## Hints
+
+- WalletViewSelectorsIDs
+- QuoteViewSelectorIDs
+- keypad-key-0
+- keypad-key-1
+- keypad-key-2
+- keypad-key-3
+- keypad-key-4
+- keypad-key-5
+- keypad-key-6
+- keypad-key-7
+- keypad-key-8
+- keypad-key-9
+- keypad-key-dot
+
 ## Steps
 
 1. Secret: Log in to the wallet

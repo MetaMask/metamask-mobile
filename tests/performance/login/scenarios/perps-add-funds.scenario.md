@@ -6,6 +6,14 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/perps-add-funds.spec.ts. Production flags are fetched before login (scenarioTest); [if: perps-gtm-onboarding] is resolvePerpsGtmOnboardingModalEnabled, resolved after the Perps tap and before the clock, as in the original. Like the original it stops when the fee is shown; nothing is submitted. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE("perps")
+- perps-tutorial-skip-button
+- custom-amount-input
+- keypad
+
 ## Steps
 
 1. Secret: Log in to the wallet

@@ -6,6 +6,10 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/launch-times/warm-start-login-to-wallet.spec.ts. The password goes in through LoginView.enterPassword and LoginView.tapLoginButton in the Secret step (never shown to the model); the clock starts when tapLoginButton returns, as in the original. The end is WalletView.accountIcon in the performance suite (wallet-account-name-button or account-picker). -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+
 ## Steps
 
 1. Secret: Log in to the wallet without profiling

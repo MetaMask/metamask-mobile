@@ -48,15 +48,27 @@ Platforms: Android
   picks and code verifies. Pinned checks are never written to the cache.
 - Keep `@PerformanceShadow`. `@Performance` and `@System` are rejected so a
   scenario never lands in scheduled CI by accident.
+- `## Hints` lists testIDs the model may use. A line names a module
+  (`WalletViewSelectorsIDs` spreads that module's string ids), one constant
+  (`WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE("tokens")`), the `keypad`
+  group, or a literal id (`asset-ETH`). The values are read from the
+  `*.testIds` modules when the test loads.
+- A scenario that needs its own code (a `Secret:` step that is not login,
+  a skip, or a required secret) is registered in `scenarioOptions.ts` next
+  to the Markdown, keyed by the file name. Adding a scenario is the `.md`
+  and, after a run, the learned `.scenario.cache.json`.
 
 ## Running on TestMu
 
-Only `tests/playwright.scenario-shadow.config.ts` runs scenarios. In CI they
-run on TestMu HyperExecute when a run selects `@PerformanceShadow`: the
-`run-performance-shadow-tests` PR label, or a manual dispatch of
-`run-performance-e2e-manual.yml` with `performance_tags='["@PerformanceShadow"]'`.
-The schedule and the full-suite `run-performance-tests` label do not run them.
-CI uploads the caches the agent writes as part of the test-results artifact.
+Scenarios are projects in `tests/playwright.testmu.config.ts` (and the local
+emulator project in `tests/playwright.config.ts`). Each project's grep is
+`@PerformanceShadow`, which replaces the config's `@Performance` grep, and
+the other projects ignore `scenarios/`. In CI they run on TestMu HyperExecute
+when a run selects `@PerformanceShadow`: the `run-performance-shadow-tests`
+PR label, or a manual dispatch of `run-performance-e2e-manual.yml` with
+`performance_tags='["@PerformanceShadow"]'`. The schedule and the full-suite
+`run-performance-tests` label do not run them. CI uploads the caches the
+agent writes as part of the test-results artifact.
 
 Locally:
 
@@ -66,7 +78,7 @@ TESTMU_ANDROID_APP_URL=lt://<app-id> \
 ANTHROPIC_API_KEY=... \
 ANTHROPIC_BASE_URL=... ANTHROPIC_MODEL=... \
 E2E_PASSWORD=... \
-yarn playwright test --config tests/playwright.scenario-shadow.config.ts \
+yarn playwright test --config tests/playwright.testmu.config.ts \
   --project scenario-shadow-testmu-android
 ```
 
@@ -189,7 +201,7 @@ then finds the real element outside the window and saves it for next time.
 
 - `[check: code=balance-stable]` ends an Expect step with a wait the original
   runs in code (`WalletView.waitForBalanceToStabilize`). Shared waits live in
-  `CODE_CHECKS` in `scenarioTest.ts`; a spec can add its own (`codeChecks`).
+  `CODE_CHECKS` in `tests/framework/scenario-agent/scenarioTest.ts`; a spec can add its own (`codeChecks`).
 - `[if: perps-gtm-onboarding]` runs a step only when the original's own `if`
   holds (`resolvePerpsGtmOnboardingModalEnabled`, flags fetched before login).
   Every step of a timer must carry the same condition; a skipped timer is not
@@ -203,8 +215,9 @@ then finds the real element outside the window and saves it for next time.
   `test.skip` (no device session), used for skipped originals and for
   real-funds flows that need explicit approval.
 - Onboarding scenarios live in `tests/performance/onboarding/scenarios/` and run
-  on `scenario-shadow-testmu-android-onboarding(-seedless)`, which use the same
-  app env vars as `playwright.testmu.config.ts`.
+  on `scenario-shadow-testmu-android-onboarding(-seedless)` in
+  `playwright.testmu.config.ts`, which use the same app env vars as the
+  other TestMu projects.
 
 ## Onboarding and seedless scenarios
 

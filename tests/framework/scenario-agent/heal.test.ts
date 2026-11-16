@@ -322,9 +322,9 @@ describe('heal rules', () => {
   });
 
   it.each([
-    'tests/performance/login/scenarios/scenarioTest.ts',
+    'tests/framework/scenario-agent/scenarioTest.ts',
     'tests/performance/login/scenarios/demo.scenario.spec.ts',
-    'tests/playwright.scenario-shadow.config.ts',
+    'tests/playwright.testmu.config.ts',
     '.github/workflows/run-performance-e2e.yml',
   ])('rejects any change to %s', (file) => {
     expect(

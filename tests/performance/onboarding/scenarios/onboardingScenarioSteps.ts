@@ -36,7 +36,7 @@ import { measureCreatePasswordToWalletHome } from '../helpers/seedlessOnboarding
 import { captureOnboardingTtc } from '../helpers/captureOnboardingTtc';
 import { addAppScreenTtcTimer } from '../../utils/readScreenTtc';
 import { requireSecretEnv } from '../../../framework/scenario-agent/scenario';
-import type { ScenarioCodeContext } from '../../login/scenarios/scenarioTest';
+import type { ScenarioCodeContext } from '../../../framework/scenario-agent/scenarioTest';
 import type { OnboardingScreenId } from '../../../../app/hooks/performance/onboardingPerformanceIds';
 
 type Tracker = Parameters<typeof captureOnboardingTtc>[0];

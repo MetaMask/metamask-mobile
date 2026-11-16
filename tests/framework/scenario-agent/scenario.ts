@@ -153,6 +153,13 @@ export interface Scenario {
   tags: string[];
   team: string;
   platforms: ('android' | 'ios')[];
+  /**
+   * `## Hints` tokens. A module name spreads that module's string testIDs;
+   * `Module.member` or `Module.member("arg")` reads one constant. Anything
+   * else is a literal id. Resolved later so the values cannot drift from the
+   * `*.testIds` modules.
+   */
+  hints: string[];
   steps: ScenarioStep[];
   timers: ScenarioTimer[];
 }
@@ -171,17 +178,29 @@ export function parseScenario(markdown: string): Scenario {
   const meta: Record<string, string> = {};
   const steps: ScenarioStep[] = [];
   const timers: ScenarioTimer[] = [];
+  const hints: string[] = [];
   let title = '';
-  let section: 'meta' | 'steps' | 'timers' = 'meta';
+  let section: 'meta' | 'hints' | 'steps' | 'timers' = 'meta';
 
   for (const line of markdown.split(/\r?\n/).map((l) => l.trim())) {
     if (!line || line.startsWith('<!--')) continue;
     if (line.startsWith('# ')) {
       title = line.slice(2).trim();
+    } else if (/^##\s+hints$/i.test(line)) {
+      section = 'hints';
     } else if (/^##\s+steps$/i.test(line)) {
       section = 'steps';
     } else if (/^##\s+timers$/i.test(line)) {
       section = 'timers';
+    } else if (section === 'hints') {
+      const hint = /^[-*]?\s+(.+)$/.exec(line);
+      if (!hint) {
+        problems.push(
+          `Not a hint: "${line}" (write "- WalletViewSelectorsIDs" or "- asset-ETH")`,
+        );
+        continue;
+      }
+      hints.push(hint[1].trim());
     } else if (section === 'meta') {
       const field = /^[-*]?\s*(tags|team|platforms)\s*:\s*(.+)$/i.exec(line);
       if (field) meta[field[1].toLowerCase()] = field[2].trim();
@@ -362,7 +381,7 @@ export function parseScenario(markdown: string): Scenario {
   if (problems.length > 0) {
     throw new Error(`Invalid scenario:\n  - ${problems.join('\n  - ')}`);
   }
-  return { title, tags, team: meta.team, platforms, steps, timers };
+  return { title, tags, team: meta.team, platforms, hints, steps, timers };
 }
 
 /** Missing (or empty) env vars from `names`; only names, never values. */

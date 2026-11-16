@@ -7,6 +7,14 @@ Platforms: Android
 <!-- The original spec (System tag) has no timers, so this scenario has none. -->
 <!-- Like the original, this sends from the account selected after login (Account 1, shown as "Ramon1", 0x19a7…1C94). It needs mainnet ETH for the amount plus the network fee; when that is missing the app's "Insufficient funds" alert stops the run before Confirm. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- RedesignedSendViewSelectorsIDs
+- SendActionViewSelectorsIDs
+- asset-ETH
+- keypad
+
 ## Steps
 
 1. Secret: Log in to the wallet
