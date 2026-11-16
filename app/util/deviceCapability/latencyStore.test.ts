@@ -164,6 +164,48 @@ describe('latencyStore', () => {
     expect(store.getLatencySnapshot()).toBe('SLOW');
   });
 
+  it('re-reads a background import once monitoring starts in the foreground', () => {
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'background',
+    });
+    jest.isolateModules(() => {
+      store = jest.requireActual('./latencyStore');
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+
+    store.startLatencyMonitoring('HIGH');
+    emitNetInfo(netInfoState('wifi'));
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('SLOW');
+  });
+
+  it('re-reads a foreground import once monitoring starts in the background', () => {
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    jest.isolateModules(() => {
+      store = jest.requireActual('./latencyStore');
+    });
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'background',
+    });
+
+    store.startLatencyMonitoring('HIGH');
+    emitNetInfo(netInfoState('wifi'));
+    record(8000);
+    record(8000);
+
+    expect(store.getLatencySnapshot()).toBe('UNKNOWN');
+  });
+
   it('drops a fetch that starts in background and settles after resume', () => {
     emitAppState('background');
     const epochAtStart = store.getLatencySampleEpoch();
