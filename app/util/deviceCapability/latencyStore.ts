@@ -116,6 +116,8 @@ export function startLatencyMonitoring(
     return;
   }
   isMonitoring = true;
+  // Import can happen before this call. The listener only sees later transitions.
+  isBackground = AppState.currentState === 'background';
 
   let previousNetInfoKey: string | undefined;
   addNetInfoEventListener((state: NetInfoState) => {
