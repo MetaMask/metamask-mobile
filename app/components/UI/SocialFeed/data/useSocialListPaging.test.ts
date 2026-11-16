@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import {
   useSocialListPaging,
+  type SocialListPaging,
   type SocialListPagingQuery,
 } from './useSocialListPaging';
 
@@ -24,7 +25,10 @@ const createQuery = (
 const renderPaging = (
   query: SocialListPagingQuery,
   enabled = true,
-): ReturnType<typeof renderHook> & { client: QueryClient } => {
+): {
+  client: QueryClient;
+  result: { current: SocialListPaging };
+} => {
   const client = new QueryClient();
   const wrapper = ({
     children,
@@ -32,12 +36,11 @@ const renderPaging = (
     children: React.ReactNode;
   }): React.ReactElement =>
     React.createElement(QueryClientProvider, { client }, children);
-  return {
-    client,
-    ...renderHook(() => useSocialListPaging(query, queryKey, enabled), {
-      wrapper,
-    }),
-  };
+  const rendered = renderHook(
+    () => useSocialListPaging(query, queryKey, enabled),
+    { wrapper },
+  );
+  return { client, result: rendered.result };
 };
 
 describe('useSocialListPaging', () => {
