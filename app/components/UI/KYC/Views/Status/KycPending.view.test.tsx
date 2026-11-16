@@ -46,7 +46,6 @@ const RouteProbe =
 
 const vendorTermsProbe = RouteProbe(VbaOnboardingRoutes.VENDOR_TERMS);
 const rejectedProbe = RouteProbe(VbaOnboardingRoutes.KYC_REJECTED);
-const identityProbe = RouteProbe(VbaOnboardingRoutes.IDENTITY_VERIFICATION);
 const provisioningProbe = RouteProbe(
   VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
 );
@@ -91,10 +90,6 @@ const OnboardingNavigator = () => (
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
       component={rejectedProbe}
-    />
-    <OnboardingStack.Screen
-      name={VbaOnboardingRoutes.IDENTITY_VERIFICATION}
-      component={identityProbe}
     />
     <OnboardingStack.Screen
       name={VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR}
@@ -322,7 +317,7 @@ describeForPlatforms('VbaKycPending', () => {
   >([
     ['approved', 'ready', Routes.RAMP.VBA_DETAILS],
     ['rejected', 'not_ready', VbaOnboardingRoutes.KYC_REJECTED],
-    ['retry', 'not_ready', VbaOnboardingRoutes.IDENTITY_VERIFICATION],
+    ['retry', 'not_ready', VbaOnboardingRoutes.KYC_REJECTED],
   ])(
     'opens the next screen when KYC is %s and the account is %s',
     async (kycStatus, autorampStatus, route) => {
