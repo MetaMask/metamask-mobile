@@ -1797,5 +1797,67 @@ describe('BuildQuote View', () => {
       // Amount should be the user's input (5), not the Max result
       expect(getByRoleButton(new RegExp(`5.*${symbol}`))).toBeTruthy();
     });
+
+    it('falls back to balance-based calculation when Snap returns undefined', async () => {
+      (getMaxSendableTronAmount as jest.Mock).mockResolvedValue(undefined);
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Wait for the request to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = BigInt(
+        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
+      );
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+      );
+
+      expect(
+        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+      ).toBeTruthy();
+    });
+
+    it('falls back to balance-based calculation when Snap returns empty result', async () => {
+      (getMaxSendableTronAmount as jest.Mock).mockResolvedValue({});
+
+      render(BuildQuote);
+
+      // Open keypad
+      const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
+      fireEvent.press(getByRoleButton(`0 ${symbol}`));
+
+      // Press Max (100%)
+      fireEvent.press(getByRoleButton('Max'));
+
+      // Wait for the request to complete
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      // Amount should be 100% of balance (balance-based fallback)
+      const balanceBN = BigInt(
+        mockUseRampSDKValues.selectedAsset!.balanceDecimal!,
+      );
+      const expectedAmount = fromTokenMinimalUnitString(
+        balanceBN.toString(10),
+        mockUseRampSDKValues.selectedAsset!.decimals ?? 18,
+      );
+
+      expect(
+        getByRoleButton(new RegExp(`${expectedAmount}.*${symbol}`)),
+      ).toBeTruthy();
+    });
   });
 });

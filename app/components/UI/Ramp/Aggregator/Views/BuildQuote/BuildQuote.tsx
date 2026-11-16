@@ -669,18 +669,17 @@ const BuildQuote = () => {
                 assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
               });
 
-              // Only apply result if user hasn't changed amount since request started
-              if (
-                maxResult?.amount &&
-                maxRequestTokenRef.current === requestToken
-              ) {
+              // Discard if user changed amount during request
+              if (maxRequestTokenRef.current !== requestToken) {
+                return;
+              }
+
+              // Use Snap result if available, otherwise fall through to balance-based
+              if (maxResult?.amount) {
                 amountToSet = toTokenMinimalUnit(
                   maxResult.amount,
                   selectedAsset?.decimals ?? 0,
                 );
-              } else {
-                // User changed amount during request, discard this result
-                return;
               }
             } catch {
               // Fall back to the balance-based calculation only if request still valid
