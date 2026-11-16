@@ -1462,6 +1462,27 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(getByText('Extension Wallet (1 account)')).toBeOnTheScreen();
       expect(getByText('Account 1')).toBeOnTheScreen();
       expect(getByText('$94,857.55')).toBeOnTheScreen();
+      const walletHeader = getByTestId(
+        `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_WALLET_ID}-0`,
+      );
+      expect(walletHeader).toHaveProp('accessibilityState', {
+        expanded: true,
+      });
+      fireEvent.press(walletHeader);
+      expect(
+        queryByTestId(
+          `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-0-0`,
+        ),
+      ).toBeNull();
+      expect(walletHeader).toHaveProp('accessibilityState', {
+        expanded: false,
+      });
+      fireEvent.press(walletHeader);
+      expect(
+        getByTestId(
+          `${ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ACCOUNT_ID}-0-0`,
+        ),
+      ).toBeOnTheScreen();
       expect(
         getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_LIST_ID),
       ).toBeOnTheScreen();
