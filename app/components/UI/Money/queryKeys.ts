@@ -32,6 +32,7 @@ export const MoneyAccountApiDataServiceQueryKeys = {
    * Interest earned by a Money Account position for a requested time window.
    */
   FETCH_INTEREST: `${MoneyAccountApiDataService.name}:fetchInterest`,
+  FETCH_INTEREST_HISTORY: `${MoneyAccountApiDataService.name}:fetchInterestHistory`,
   /**
    * Current Accountant exchange rate for a vault (assets per share).
    */
