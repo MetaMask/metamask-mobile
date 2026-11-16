@@ -3,10 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import {
-  renderMoneyHomeVbaCard,
-  restoreMoneyHomeTestState,
-} from '../../../../../../tests/component-view/renderers/moneyHome';
+import { renderMoneyHomeVbaCard } from '../../../../../../tests/component-view/renderers/moneyHome';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -48,7 +45,6 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
   });
 
   afterEach(() => {
-    restoreMoneyHomeTestState();
     hydrateVbaOnboarding.mockReset();
     hydrateVbaOnboarding.mockImplementation(defaultHydrateVbaOnboarding);
     launchProviderFlow.mockReset();
