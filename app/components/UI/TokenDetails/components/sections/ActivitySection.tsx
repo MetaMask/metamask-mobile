@@ -88,21 +88,6 @@ interface GroupedTokenActivityResult {
   }) => Promise<void | undefined>;
 }
 
-function isOtherAccountSimpleSend(
-  transaction: TransactionMeta,
-  selectedAddress?: string,
-) {
-  const from = transaction.txParams?.from;
-  if (
-    transaction.type !== TransactionType.simpleSend ||
-    !from ||
-    !selectedAddress
-  ) {
-    return false;
-  }
-  return !areAddressesEqual(from, selectedAddress);
-}
-
 /**
  * Normalizes and groups token transactions into pending/date sections for
  * the activity row list. Mirrors the adaptation pipeline in the legacy
@@ -216,20 +201,19 @@ function useGroupedTokenActivity({
         item.type === 'receive' && item.hash ? [item.hash.toLowerCase()] : [],
       ),
     );
-    // A same-wallet simpleSend maps as sent and hides the API receive. Drop
-    // that local row only once the receive is loaded; otherwise the transfer
-    // disappears while history is off, loading, failed, or missing the hash.
     const visibleLocalActivity = dedupedTransactions.flatMap(
       (transaction, index) => {
         const activityItem = mappedLocalItems[index];
-        const receiveIsLoaded = Boolean(
-          activityItem.hash &&
-            apiReceiveHashes.has(activityItem.hash.toLowerCase()),
-        );
-        if (
-          isOtherAccountSimpleSend(transaction, selectedAddress) &&
-          receiveIsLoaded
-        ) {
+        const from = transaction.txParams?.from;
+        const sameWalletSendHasReceive =
+          transaction.type === TransactionType.simpleSend &&
+          Boolean(from && selectedAddress) &&
+          !areAddressesEqual(from ?? '', selectedAddress ?? '') &&
+          Boolean(
+            activityItem.hash &&
+              apiReceiveHashes.has(activityItem.hash.toLowerCase()),
+          );
+        if (sameWalletSendHasReceive) {
           return [];
         }
         return [{ transaction, activityItem }];
