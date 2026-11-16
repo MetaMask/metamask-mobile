@@ -255,6 +255,11 @@ const VBA_PROBED_ONBOARDING_ROUTES = Object.values(VbaOnboardingRoutes).filter(
   (name) => name !== VbaOnboardingRoutes.LOADING,
 );
 
+const probedOnboardingScreens = VBA_PROBED_ONBOARDING_ROUTES.map((name) => ({
+  name,
+  Component: createRouteParamsProbe(name),
+}));
+
 const ProbedOnboardingStack = createNativeStackNavigator();
 
 const VbaProbedOnboardingNavigator = () => (
@@ -263,11 +268,11 @@ const VbaProbedOnboardingNavigator = () => (
       name={VbaOnboardingRoutes.LOADING}
       component={VbaOnboardingLoading as unknown as React.ComponentType}
     />
-    {VBA_PROBED_ONBOARDING_ROUTES.map((name) => (
+    {probedOnboardingScreens.map(({ name, Component }) => (
       <ProbedOnboardingStack.Screen
         key={name}
         name={name}
-        component={createRouteParamsProbe(name)}
+        component={Component}
       />
     ))}
   </ProbedOnboardingStack.Navigator>

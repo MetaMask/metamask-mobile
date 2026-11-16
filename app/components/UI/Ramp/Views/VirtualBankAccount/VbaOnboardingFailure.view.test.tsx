@@ -3,7 +3,6 @@ import { fireEvent } from '@testing-library/react-native';
 import type { KycSessionStatus } from '@metamask/kyc-controller';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
-import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import {
@@ -32,6 +31,7 @@ const GEO_COUNTRY_MISMATCH_ERROR =
 const kycPendingProbe = getRouteParamsProbeTestId(
   VbaOnboardingRoutes.KYC_PENDING,
 );
+const errorRouteProbe = getRouteParamsProbeTestId(VbaOnboardingRoutes.ERROR);
 
 const kycSession = (
   finalStatus: string,
@@ -78,6 +78,23 @@ describeForPlatforms('VBA onboarding failure view', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
+    mockReadSessionStatus.mockReset();
+    mockReadSessionStatus.mockReturnValue(null);
+    mockGetSessionStatusForVendor.mockReset();
+    mockGetSessionStatusForVendor.mockResolvedValue(null);
+    mockStartSession.mockReset();
+    mockStartSession.mockImplementation(() =>
+      Promise.resolve(undefined as unknown as KycSessionStatus),
+    );
+    mockHydrateVbaOnboarding.mockReset();
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: false,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'none',
+      autorampStatus: 'not_ready',
+    });
   });
 
   describe('geoCountry mismatch from the Money entry (TRAM-4399)', () => {
@@ -95,9 +112,7 @@ describeForPlatforms('VBA onboarding failure view', () => {
       expect(await view.findByTestId(kycPendingProbe)).toBeOnTheScreen();
       expect(mockKycReset).toHaveBeenCalledTimes(1);
       expect(mockStartSession).toHaveBeenCalledTimes(2);
-      expect(
-        view.queryByText(strings('virtual_bank_account.error.title')),
-      ).toBeNull();
+      expect(view.queryByTestId(errorRouteProbe)).not.toBeOnTheScreen();
     });
 
     it('keeps the stored KYC session and continues onboarding', async () => {
@@ -111,9 +126,7 @@ describeForPlatforms('VBA onboarding failure view', () => {
 
       expect(await view.findByTestId(kycPendingProbe)).toBeOnTheScreen();
       expect(mockKycReset).not.toHaveBeenCalled();
-      expect(
-        view.queryByText(strings('virtual_bank_account.error.title')),
-      ).toBeNull();
+      expect(view.queryByTestId(errorRouteProbe)).not.toBeOnTheScreen();
     });
   });
 });
