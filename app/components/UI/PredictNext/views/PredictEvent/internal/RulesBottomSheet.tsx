@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   FontWeight,
   Text,
@@ -16,6 +15,9 @@ import ModalSafeAreaProvider from '../../../../../../component-library/component
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictMarket, PredictSettlementSource } from '../../../types';
 import { RulesBottomSheetTestIds } from './RulesBottomSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface RulesBottomSheetProps {
   isVisible: boolean;
@@ -43,6 +45,7 @@ const RulesBottomSheet = ({
   settlementSources,
   onClose,
 }: RulesBottomSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const eventRules = eventRulesValue?.trim();
@@ -90,7 +93,8 @@ const RulesBottomSheet = ({
               onClose={onClose}
               testID={RulesBottomSheetTestIds.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={handleClose}
                 closeButtonProps={{
                   testID: RulesBottomSheetTestIds.CLOSE_BUTTON,
@@ -100,7 +104,7 @@ const RulesBottomSheet = ({
                 }}
               >
                 {strings('predict.rules.title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
               <ScrollView
                 style={tw.style('px-4')}
                 contentContainerStyle={tw.style('pb-8')}
