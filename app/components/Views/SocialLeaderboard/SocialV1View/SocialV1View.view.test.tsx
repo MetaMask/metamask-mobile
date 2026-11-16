@@ -279,6 +279,52 @@ describe('SocialV1View copy trade', () => {
     ).toHaveBeenCalled();
   });
 
+  it('hides Copy trade when geolocation is the UK', async () => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        ...eligibleOverrides,
+        engine: {
+          backgroundState: {
+            PerpsController: { isEligible: true },
+            GeolocationController: { location: 'GB', status: 'complete' },
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
+  it('hides Copy trade until geolocation resolves', async () => {
+    renderSocialV1ViewWithRoutes([perpsModalsRoute], {
+      overrides: {
+        ...eligibleOverrides,
+        engine: {
+          backgroundState: {
+            PerpsController: { isEligible: true },
+            GeolocationController: { location: 'UNKNOWN', status: 'loading' },
+          },
+        },
+      },
+    });
+
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    await trendingPage.findByTestId(
+      `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
+    );
+
+    expect(trendingPage.queryByTestId(copyTradeButtonTestId)).toBeNull();
+  });
+
   it('shows the open perp copy-trade card after the feed loads', async () => {
     renderSocialV1ViewWithRoutes([perpsModalsRoute], {
       overrides: eligibleOverrides,

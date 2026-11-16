@@ -2,6 +2,7 @@ import {
   selectGeolocationControllerState,
   selectGeolocationLocation,
   selectGeolocationStatus,
+  selectIsCopyTradeAllowed,
   selectIsUserInAsia,
 } from '.';
 import type { RootState } from '../../reducers';
@@ -124,6 +125,32 @@ describe('geolocationController selectors', () => {
 
     it('returns false when GeolocationController is absent', () => {
       expect(selectIsUserInAsia({} as RootState)).toBe(false);
+    });
+  });
+
+  describe('selectIsCopyTradeAllowed', () => {
+    it('returns true for a completed non-UK location', () => {
+      const state = buildState({ location: 'FR', status: 'complete' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        true,
+      );
+    });
+
+    it('returns false for a completed UK location', () => {
+      const state = buildState({ location: 'GB', status: 'complete' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
+    });
+
+    it('returns false while geolocation is loading', () => {
+      const state = buildState({ location: 'FR', status: 'loading' });
+
+      expect(selectIsCopyTradeAllowed(state as unknown as RootState)).toBe(
+        false,
+      );
     });
   });
 });
