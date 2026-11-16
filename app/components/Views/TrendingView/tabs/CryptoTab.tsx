@@ -29,6 +29,12 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import CryptoTokensPillBlock from '../feeds/tokens/CryptoTokensPillBlock';
+import {
+  getVisibleCryptoPills,
+  useCryptoPillFeed,
+} from '../feeds/tokens/useCryptoPillFeed';
+import { getCryptoPillOrder } from '../feeds/tokens/cryptoPillConfig';
+import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -140,6 +146,14 @@ const CryptoTabContent: React.FC<TabProps> = ({
     withTileExtras: true,
   });
 
+  const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const tokensFeed = useCryptoPillFeed({
+    activePillKey: getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
+    refresh,
+  });
+  const showTokensSection =
+    getVisibleCryptoPills(tokensFeed.results, isWatchlistEnabled).length > 0;
+
   const showCryptoPerps =
     isPerpsEnabled && (cryptoPerps.isLoading || cryptoPerps.data.length > 0);
   const showPredictions =
@@ -148,26 +162,28 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const sections = useMemo((): ExploreSectionItem[] => {
     const items: ExploreSectionItem[] = [];
 
-    items.push({
-      key: 'tokens',
-      isVerticalList: true,
-      content: (
-        <CryptoTokensPillBlock
-          title={strings('trending.crypto_tokens_section')}
-          refresh={refresh}
-          onQuickTrade={
-            quickBuyVariant.showQuickTradeButton
-              ? tokensOnQuickTrade
-              : undefined
-          }
-          tabName="Crypto"
-          headerTestID="section-header-view-all-tokens"
-          idPrefix="tokens"
-          testIdPrefix="crypto-tokens"
-          listTestId="crypto-tokens-list"
-        />
-      ),
-    });
+    if (showTokensSection) {
+      items.push({
+        key: 'tokens',
+        isVerticalList: true,
+        content: (
+          <CryptoTokensPillBlock
+            title={strings('trending.crypto_tokens_section')}
+            refresh={refresh}
+            onQuickTrade={
+              quickBuyVariant.showQuickTradeButton
+                ? tokensOnQuickTrade
+                : undefined
+            }
+            tabName="Crypto"
+            headerTestID="section-header-view-all-tokens"
+            idPrefix="tokens"
+            testIdPrefix="crypto-tokens"
+            listTestId="crypto-tokens-list"
+          />
+        ),
+      });
+    }
 
     if (showCryptoPerps) {
       items.push({
@@ -211,6 +227,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
 
     return items;
   }, [
+    showTokensSection,
     showCryptoPerps,
     isEarnSectionVisible,
     showPredictions,

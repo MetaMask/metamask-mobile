@@ -110,9 +110,13 @@ jest.mock(
   },
 );
 
-jest.mock('./useCryptoPillFeed', () => ({
-  useCryptoPillFeed: jest.fn(),
-}));
+jest.mock('./useCryptoPillFeed', () => {
+  const actual = jest.requireActual('./useCryptoPillFeed');
+  return {
+    ...actual,
+    useCryptoPillFeed: jest.fn(),
+  };
+});
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation

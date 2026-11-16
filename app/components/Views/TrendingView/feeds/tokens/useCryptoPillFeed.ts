@@ -28,6 +28,8 @@ import {
   CRYPTO_CHAIN_PILLS,
   CRYPTO_TOKEN_PILLS,
   CRYPTO_WATCHLIST_PILL,
+  getCryptoPillOrder,
+  type CryptoPillDefinition,
   type CryptoPillKey,
 } from './cryptoPillConfig';
 
@@ -49,6 +51,25 @@ export interface CryptoPillFeed {
   /** Query state per pill key, including the watchlist pill. */
   results: Record<string, CryptoPillFeedResult>;
 }
+
+/**
+ * Shared visibility contract for the crypto pill section: watchlist-style
+ * pills and still-loading pills are visible, errored pills are hidden, and
+ * loaded pills must return at least `minItems` tokens. Used by CryptoTab to
+ * decide whether the tokens section renders at all and by the pill block to
+ * decide which pills to show.
+ */
+export const getVisibleCryptoPills = (
+  results: Record<string, CryptoPillFeedResult>,
+  isWatchlistEnabled: boolean,
+): readonly CryptoPillDefinition[] =>
+  getCryptoPillOrder(isWatchlistEnabled).filter((pill) => {
+    const result = results[pill.key];
+    if (!result) return false;
+    if (result.isError) return false;
+    if (result.data === undefined) return true;
+    return result.data.length >= pill.minItems;
+  });
 
 interface CryptoPillQueryDescriptor {
   key: CryptoPillKey;
@@ -104,25 +125,33 @@ export const useCryptoPillFeed = ({
       descriptor: CryptoPillQueryDescriptor;
       signal?: AbortSignal;
     }): Promise<TrendingAsset[]> => {
-      const primary = filterLowQualityTokens(
-        await fetchCryptoPillTokens({
-          ...descriptor.request,
-          chainIds: descriptor.chainIds,
-          vsCurrency,
-          signal,
-        }),
-      );
-      if (primary.length > 0 || !descriptor.fallback) {
-        return primary;
+      try {
+        const primary = filterLowQualityTokens(
+          await fetchCryptoPillTokens({
+            ...descriptor.request,
+            chainIds: descriptor.chainIds,
+            vsCurrency,
+            signal,
+          }),
+        );
+        if (primary.length > 0 || !descriptor.fallback) {
+          return primary;
+        }
+        return filterLowQualityTokens(
+          await fetchCryptoPillTokens({
+            ...descriptor.fallback,
+            chainIds: descriptor.chainIds,
+            vsCurrency,
+            signal,
+          }),
+        );
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          `ExploreCryptoPillFeed: pill query failed (${descriptor.key})`,
+        );
+        throw error;
       }
-      return filterLowQualityTokens(
-        await fetchCryptoPillTokens({
-          ...descriptor.fallback,
-          chainIds: descriptor.chainIds,
-          vsCurrency,
-          signal,
-        }),
-      );
     },
     [vsCurrency],
   );
@@ -198,18 +227,6 @@ export const useCryptoPillFeed = ({
     }
     setPrefetchStarted(true);
   }, [prefetchStarted, activeLoaded]);
-
-  useEffect(() => {
-    const erroredKeys = descriptors
-      .filter((descriptor) => tokenPillResults[descriptor.key]?.isError)
-      .map((descriptor) => descriptor.key);
-    if (erroredKeys.length > 0) {
-      Logger.error(
-        new Error(erroredKeys.join(', ')),
-        'ExploreCryptoPillFeed: pill query failed',
-      );
-    }
-  }, [descriptors, tokenPillResults]);
 
   const { refetch: refetchWatchlist } = watchlistQuery;
 

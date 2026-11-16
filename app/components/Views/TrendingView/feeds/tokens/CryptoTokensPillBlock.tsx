@@ -28,7 +28,7 @@ import {
   type CryptoPillDefinition,
   type CryptoPillKey,
 } from './cryptoPillConfig';
-import { useCryptoPillFeed } from './useCryptoPillFeed';
+import { getVisibleCryptoPills, useCryptoPillFeed } from './useCryptoPillFeed';
 
 const TrendingTokensSingleSkeleton: React.FC = () => <TrendingTokensSkeleton />;
 
@@ -79,15 +79,8 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   const { results } = useCryptoPillFeed({ activePillKey, refresh });
 
   const visiblePills = useMemo(
-    () =>
-      pills.filter((pill) => {
-        const result = results[pill.key];
-        if (!result) return false;
-        if (result.isError) return false;
-        if (result.data === undefined) return true;
-        return result.data.length >= pill.minItems;
-      }),
-    [pills, results],
+    () => getVisibleCryptoPills(results, isWatchlistEnabled),
+    [isWatchlistEnabled, results],
   );
 
   const firstVisibleKey = visiblePills[0]?.key ?? pills[0]?.key ?? 'trending';

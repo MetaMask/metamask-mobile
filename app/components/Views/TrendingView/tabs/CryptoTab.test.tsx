@@ -5,10 +5,13 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useABTest } from '../../../../hooks/useABTest';
 import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
+import { useCryptoPillFeed } from '../feeds/tokens/useCryptoPillFeed';
+import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
 import {
@@ -30,6 +33,9 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseABTest = useABTest as jest.MockedFunction<typeof useABTest>;
 const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
+const mockUseCryptoPillFeed = useCryptoPillFeed as jest.MockedFunction<
+  typeof useCryptoPillFeed
+>;
 
 interface TileCarouselMockProps {
   testID?: string;
@@ -68,6 +74,14 @@ jest.mock('../feeds/tokens/CryptoTokensPillBlock', () => ({
   __esModule: true,
   default: (props: Record<string, unknown>) => mockCryptoTokensPillBlock(props),
 }));
+
+jest.mock('../feeds/tokens/useCryptoPillFeed', () => {
+  const actual = jest.requireActual('../feeds/tokens/useCryptoPillFeed');
+  return {
+    ...actual,
+    useCryptoPillFeed: jest.fn(),
+  };
+});
 
 jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
   usePredictTrendingFeed: jest.fn(),
@@ -150,6 +164,7 @@ const arrangeMocks = ({
 
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
+    if (selector === selectTokenWatchlistEnabled) return false;
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
@@ -169,6 +184,16 @@ const arrangeMocks = ({
     isLoading: false,
     refetch: jest.fn(),
     defaultSortOptionId: 'priceChange',
+  } as never);
+
+  mockUseCryptoPillFeed.mockReturnValue({
+    results: {
+      trending: {
+        data: [{} as TrendingAsset],
+        isLoading: false,
+        isError: false,
+      },
+    },
   } as never);
 };
 
@@ -309,13 +334,28 @@ describe('CryptoTab — Perps tiles', () => {
 });
 
 describe('CryptoTab — tokens pill block', () => {
-  it('renders the tokens pill block unconditionally', () => {
+  it('renders the tokens section while at least one pill is visible', () => {
     arrangeMocks();
 
     render(<CryptoTab {...defaultTabProps} />);
 
     expect(mockCryptoTokensPillBlock).toHaveBeenCalled();
     expect(screen.getByTestId('explore-section-tokens')).toBeOnTheScreen();
+  });
+
+  it('hides the tokens section entirely when no pill is visible', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: { data: [], isLoading: false, isError: false },
+        top_gainers: { data: undefined, isLoading: false, isError: true },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockCryptoTokensPillBlock).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('explore-section-tokens')).toBeNull();
   });
 
   it('passes the pill block the expected props', () => {
