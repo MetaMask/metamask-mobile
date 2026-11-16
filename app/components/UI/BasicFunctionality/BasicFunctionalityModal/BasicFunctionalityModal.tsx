@@ -163,7 +163,6 @@ const BasicFunctionalityModal = () => {
           >
             {strings('default_settings.sheet.buttons.cancel')}
           </Button>
-          <View style={styles.spacer} />
           <Button
             variant={ButtonVariant.Primary}
             isDisabled={!isChecked}
@@ -200,7 +199,6 @@ const BasicFunctionalityModal = () => {
         >
           {strings('default_settings.sheet.buttons.cancel')}
         </Button>
-        <View style={styles.spacer} />
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

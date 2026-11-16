@@ -14,6 +14,7 @@ import {
 } from '../../../../util/trace';
 import ReduxService from '../../../../core/redux';
 import type { RootState } from '../../../../reducers';
+import { selectFirstQuoteFlushVariant } from './firstQuoteFlushAbTestConfig';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -140,6 +141,18 @@ export const swapQuoteFetchTrace = {
       tags: { feature: SwapFeatureTag.SWAP },
     });
     activeTraceId = id;
+    try {
+      annotateTraceByRequest(
+        { name: TraceName.SwapQuoteFetch, id },
+        {
+          first_quote_flush_variant: selectFirstQuoteFlushVariant(
+            ReduxService.store.getState(),
+          ),
+        },
+      );
+    } catch {
+      // Telemetry only.
+    }
     watchQuotePhases(id, startTime);
     return id;
   },

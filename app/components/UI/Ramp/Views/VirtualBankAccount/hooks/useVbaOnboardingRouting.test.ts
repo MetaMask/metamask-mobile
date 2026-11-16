@@ -6,6 +6,8 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import {
   canOpenPersistedVbaDetails,
   navigateToVbaOnboardingDestination,
+  openAsOnlyOnboardingRoute,
+  openCompletedVbaAccount,
   openVbaAccountSetup,
   openVbaEntry,
   resolveVbaOnboarding,
@@ -425,7 +427,27 @@ describe('useOpenVbaOnboarding', () => {
     );
   });
 
-  it('opens identity verification when KYC status is retry after the provider flow was submitted', async () => {
+  it('opens the retry page when KYC status is retry after the provider flow was submitted', async () => {
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'retry' as const,
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_REJECTED });
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'PUSH' }),
+    );
+  });
+
+  it('re-enters identity verification from the retry page after the provider flow was submitted', async () => {
     const retrySnapshot = {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -438,17 +460,13 @@ describe('useOpenVbaOnboarding', () => {
 
     const { result } = renderHook(() => useOpenVbaOnboarding());
 
-    await result.current();
+    await result.current({ retryRejectedKyc: true });
 
-    expectResetTo({
-      name: VbaOnboardingRoutes.IDENTITY_VERIFICATION,
-      params: {
-        snapshot: {
-          ...retrySnapshot,
-          vendorTermsAcceptedLocally: true,
-        },
-      },
-    });
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
+        snapshot: { ...retrySnapshot, vendorTermsAcceptedLocally: true },
+      }),
+    );
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
@@ -737,7 +755,7 @@ describe('useOpenVbaOnboarding', () => {
     expect(rootDispatch).not.toHaveBeenCalled();
   });
 
-  it('keeps only the active caller and destination on first entry', () => {
+  it('keeps the screens under the caller on first entry', () => {
     const dispatch = jest.fn();
     const parentNavigate = jest.fn();
     const childNavigate = jest.fn();
@@ -768,8 +786,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { key: 'settings-1', name: 'Settings' },
             { key: 'home-1', name: 'Home' },
             {
               name: Routes.RAMP.VBA_ONBOARDING,
@@ -830,8 +849,9 @@ describe('useOpenVbaOnboarding', () => {
       expect.objectContaining({
         type: 'RESET',
         payload: expect.objectContaining({
-          index: 1,
+          index: 2,
           routes: [
+            { name: 'Settings' },
             { name: 'Wallet' },
             {
               key: 'vba-1',
@@ -890,6 +910,83 @@ describe('useOpenVbaOnboarding', () => {
   });
 });
 
+describe('opening a bank account from card home', () => {
+  const cardHomeState = (): {
+    index: number;
+    routeNames: string[];
+    routes: { key: string; name: string }[];
+  } => ({
+    index: 1,
+    routeNames: [
+      'Home',
+      Routes.CARD.ROOT,
+      Routes.RAMP.VBA_ONBOARDING,
+      Routes.RAMP.VBA_DETAILS,
+    ],
+    routes: [
+      { key: 'home-1', name: 'Home' },
+      { key: 'card-1', name: Routes.CARD.ROOT },
+    ],
+  });
+
+  it('keeps wallet home under card home when the account details open', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openCompletedVbaAccount(navigationFromCardHome);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it('keeps wallet home under card home when onboarding opens', () => {
+    const dispatch = jest.fn();
+    const navigationFromCardHome = {
+      dispatch,
+      getState: cardHomeState,
+    } as unknown as AppNavigationProp;
+
+    openAsOnlyOnboardingRoute(
+      navigationFromCardHome,
+      VbaOnboardingRoutes.LOADING,
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 2,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { key: 'card-1', name: Routes.CARD.ROOT },
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [{ name: VbaOnboardingRoutes.LOADING }],
+              },
+            },
+          ],
+        }),
+      }),
+    );
+  });
+});
+
 describe('resolveVbaOnboarding', () => {
   const devGlobal = globalThis as { __DEV__?: boolean };
 
@@ -926,6 +1023,7 @@ describe('resolveVbaOnboarding', () => {
   it.each([
     ['rejected', 'not_started', 'kycRejected'],
     ['retry', 'not_started', 'kycRejected'],
+    ['retry', 'submitted', 'kycRejected'],
     ['pending', 'submitted', 'kycPending'],
   ] as const)(
     'keeps the %s KYC destination for an existing autoramp',

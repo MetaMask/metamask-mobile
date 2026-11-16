@@ -5,14 +5,16 @@ export interface WalletHomeOnboardingPrimaryDeferDecision {
   fundOpensOnramp: boolean;
 }
 
+type FundPrimaryPress = (onLaunchFailure: () => void) => void;
+
 /**
  * Trade / notifications / fund-with-onramp defer checklist advance until the user returns
- * from navigation (or until the fund balance gate passes for on-ramp).
+ * from navigation. Fund-with-onramp requires its final completion marker before advancing.
  */
 export function walletHomeOnboardingPrimaryDeferDecision(args: {
   hasTestOverrides: boolean;
   kind: WalletHomeOnboardingStepKind;
-  onFundPrimaryPress?: () => void;
+  onFundPrimaryPress?: FundPrimaryPress;
   onTradePrimaryPress?: () => void;
   onNotificationsPrimaryPress?: () => void;
 }): WalletHomeOnboardingPrimaryDeferDecision {

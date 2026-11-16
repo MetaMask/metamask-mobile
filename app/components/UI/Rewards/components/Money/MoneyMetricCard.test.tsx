@@ -28,14 +28,20 @@ describe('MoneyMetricCard', () => {
     expect(queryByTestId('metric-card-info')).toBeNull();
     expect(getByText('Referrals')).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('recorded earnings')).toBeOnTheScreen();
+    expect(getByText('Recorded earnings')).toBeOnTheScreen();
+  });
+
+  it('capitalizes only the first letter of the caption', () => {
+    const { getByText } = renderCard({ caption: 'earned in mUSD' });
+
+    expect(getByText('Earned in mUSD')).toBeOnTheScreen();
   });
 
   it('keeps the label and caption when there is no amount', () => {
     const { getByText, queryByText } = renderCard({ amount: null });
 
     expect(getByText('Referrals')).toBeOnTheScreen();
-    expect(getByText('recorded earnings')).toBeOnTheScreen();
+    expect(getByText('Recorded earnings')).toBeOnTheScreen();
     expect(getByText('—')).toBeOnTheScreen();
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
   });

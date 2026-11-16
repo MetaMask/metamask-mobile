@@ -61,3 +61,4 @@ export { default as TopTradersView } from './TopTradersView';
 export { default as FeedView } from './FeedView';
 export { default as PositionDetailsSheet } from './PositionDetailsSheet';
 export { default as TradingSignalsSetupBottomSheet } from './components/TradingSignalsSetupBottomSheet';
+export { default as TraderPreviewSheet } from './TraderPreviewSheet';

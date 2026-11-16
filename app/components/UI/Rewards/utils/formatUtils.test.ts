@@ -54,6 +54,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn(
     (key: string, params: Record<string, string> | undefined) => {
       const t: Record<string, string> = {
+        'rewards.today': 'Today',
         'rewards.events.to': 'to',
         'rewards.events.type.swap': 'Swap',
         'rewards.events.type.referral_action': 'Referral action',
@@ -257,7 +258,7 @@ describe('formatUtils', () => {
     });
 
     it('returns today for the current UTC day', () => {
-      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('today');
+      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('Today');
     });
 
     it('counts whole UTC days', () => {
