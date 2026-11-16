@@ -18,7 +18,8 @@ function toMs(v: DateLike): number | null {
  * Uses the same wraparound logic as the legacy `isTokenTradingOpen` hook:
  * - nextClose > nextOpen → simple window [nextOpen, nextClose)
  * - nextClose < nextOpen → overnight/weekend wrap → open when nowMs < nextClose OR nowMs >= nextOpen
- * - nextOpen/nextClose missing, empty, or unparseable → no window can be computed → open
+ * - nextOpen and nextClose both missing, empty, or unparseable → no schedule is supplied → open
+ * - exactly one of nextOpen/nextClose missing or unparseable → closed
  *
  * Pauses (rwaData.nextPause) block regular-hours trading but do NOT affect off-hours trading.
  */
@@ -31,7 +32,8 @@ function isTokenInRegularHoursAt(
 
   const nextOpenMs = toMs(token.rwaData.market?.nextOpen);
   const nextCloseMs = toMs(token.rwaData.market?.nextClose);
-  if (nextOpenMs == null || nextCloseMs == null) return true;
+  if (nextOpenMs == null && nextCloseMs == null) return true;
+  if (nextOpenMs == null || nextCloseMs == null) return false;
 
   let marketIsOpen: boolean;
   if (nextCloseMs > nextOpenMs) {

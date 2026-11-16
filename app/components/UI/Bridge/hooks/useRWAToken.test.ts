@@ -137,7 +137,7 @@ describe('useRWAToken', () => {
       expect(isOpen).toBe(true);
     });
 
-    it('returns true when market open time is missing', async () => {
+    it('returns false when only market open time is missing', async () => {
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
       });
@@ -151,10 +151,27 @@ describe('useRWAToken', () => {
       });
       const isOpen = await result.current.isTokenTradingOpen(token);
 
+      expect(isOpen).toBe(false);
+    });
+
+    it('returns true when both market open and close times are missing', async () => {
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          market: {
+            nextOpen: null,
+            nextClose: null,
+          },
+        } as unknown as BridgeToken['rwaData'],
+      });
+      const isOpen = await result.current.isTokenTradingOpen(token);
+
       expect(isOpen).toBe(true);
     });
 
-    it('returns true when market close time is invalid', async () => {
+    it('returns false when only market close time is invalid', async () => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2024-01-01T10:00:00.000Z'));
       const { result } = renderHookWithProvider(() => useRWAToken(), {
@@ -170,10 +187,10 @@ describe('useRWAToken', () => {
       });
       const isOpen = await result.current.isTokenTradingOpen(token);
 
-      expect(isOpen).toBe(true);
+      expect(isOpen).toBe(false);
     });
 
-    it('returns true when market open time is invalid', async () => {
+    it('returns false when only market open time is invalid', async () => {
       jest.useFakeTimers();
       jest.setSystemTime(new Date('2024-01-01T10:00:00.000Z'));
       const { result } = renderHookWithProvider(() => useRWAToken(), {
@@ -189,7 +206,7 @@ describe('useRWAToken', () => {
       });
       const isOpen = await result.current.isTokenTradingOpen(token);
 
-      expect(isOpen).toBe(true);
+      expect(isOpen).toBe(false);
     });
 
     it('returns true when market is open without pause window', async () => {
@@ -468,7 +485,7 @@ describe('useRWAToken', () => {
       expect(isOpen).toBe(true);
     });
 
-    it('returns true when market close time is missing', async () => {
+    it('returns false when only market close time is missing', async () => {
       const { result } = renderHookWithProvider(() => useRWAToken(), {
         state: createState(true),
       });
@@ -482,7 +499,24 @@ describe('useRWAToken', () => {
       });
       const isOpen = await result.current.isTokenTradingOpen(token);
 
-      expect(isOpen).toBe(true);
+      expect(isOpen).toBe(false);
+    });
+
+    it('returns false when only market open time is an empty string', async () => {
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          market: {
+            nextOpen: '',
+            nextClose: '2024-01-01T11:00:00.000Z',
+          },
+        } as unknown as BridgeToken['rwaData'],
+      });
+      const isOpen = await result.current.isTokenTradingOpen(token);
+
+      expect(isOpen).toBe(false);
     });
   });
 
@@ -924,6 +958,13 @@ describe('isTokenTradableAt', () => {
       market: { nextOpen: '', nextClose: '' },
     });
     expect(isTokenTradableAt(t, true, NOW)).toBe(true);
+  });
+
+  it('returns false when only market open hour is an empty string', () => {
+    const t = makeToken({
+      market: { nextOpen: '', nextClose: '2024-01-02T17:00:00Z' },
+    });
+    expect(isTokenTradableAt(t, true, NOW)).toBe(false);
   });
 
   it('returns true for a Robinhood-shaped token with unspecified instrument type', () => {
