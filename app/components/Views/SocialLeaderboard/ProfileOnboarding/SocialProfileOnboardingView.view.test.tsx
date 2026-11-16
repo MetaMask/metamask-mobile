@@ -22,6 +22,7 @@ import {
 import React from 'react';
 import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
+import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import Engine from '../../../../core/Engine';
@@ -560,6 +561,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(1);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -2022,6 +2025,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(2);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
