@@ -13,9 +13,7 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Tooltip.styles';
-import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
-import { useSelector } from 'react-redux';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { ConfirmationSheetHeader } from '../sheet-header';
 
 interface TooltipProps {
   content: string | ReactNode;
@@ -44,7 +42,6 @@ export const TooltipModal = ({
   title,
   tooltipTestId = 'tooltip-modal',
 }: TooltipModalProps) => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -71,15 +68,14 @@ export const TooltipModal = ({
             keyboardAvoidingViewEnabled={false}
             onClose={handleSheetClosed}
           >
-            <BottomSheetHeaderGlass
-              isGlass={isGlassHeader}
+            <ConfirmationSheetHeader
               onClose={handleRequestClose}
               closeButtonProps={{
                 testID: `${tooltipTestId}-close-btn`,
               }}
             >
               {title}
-            </BottomSheetHeaderGlass>
+            </ConfirmationSheetHeader>
             <Box twClassName="flex flex-col">
               <View style={styles.modalContent}>
                 {typeof content === 'string' ? (
