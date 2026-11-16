@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import NetInfo, { type NetInfoState } from '@react-native-community/netinfo';
 
 import useNetworkConnectionBanner, {
   SLOW_NETWORK_BANNER_SNOOZE_MS,
@@ -26,11 +27,17 @@ import {
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { IconName } from '../../../component-library/components/Icons/Icon';
+import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
+import { getHardwareTier } from '../../../util/deviceCapability';
 
 jest.mock('@react-navigation/native');
 jest.mock('../useAnalytics/useAnalytics');
 jest.mock('../../../selectors/networkConnectionBanner');
 jest.mock('../../../hooks/useNetworkLatency');
+jest.mock('../../../selectors/featureFlagController/slowNetworkBanner');
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
+}));
 jest.mock('../../../core/Engine/controllers/network-controller/utils', () => ({
   ...jest.requireActual(
     '../../../core/Engine/controllers/network-controller/utils',
@@ -103,6 +110,13 @@ describe('useNetworkConnectionBanner', () => {
     networkMock.mockReturnValue(null);
     latencyMock.mockReturnValue('OK');
     getItemSyncMock.mockReturnValue(null);
+    jest.mocked(selectSlowNetworkBannerEnabled).mockReturnValue(true);
+    jest.mocked(getHardwareTier).mockReturnValue('MID');
+    jest.mocked(NetInfo.fetch).mockResolvedValue({
+      type: 'wifi',
+      isInternetReachable: true,
+      details: null,
+    } as unknown as NetInfoState);
     setItemMock.mockResolvedValue(undefined);
 
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
@@ -277,14 +291,27 @@ describe('useNetworkConnectionBanner', () => {
       );
     });
 
-    it('does not send the RPC banner shown event while the slow banner shows', () => {
+    it('does not send the RPC banner shown event while the slow banner shows', async () => {
       latencyMock.mockReturnValue('SLOW');
       statusMock.mockReturnValue('degraded');
       mockFailedNetwork();
 
       renderHookWithProviders();
+      await act(async () => undefined);
 
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ banner_type: 'degraded' }),
+      );
+    });
+
+    it('is false when the slowNetworkBanner flag is off', () => {
+      jest.mocked(selectSlowNetworkBannerEnabled).mockReturnValue(false);
+      latencyMock.mockReturnValue('SLOW');
+
+      const { result } = renderHookWithProviders();
+
+      expect(result.current.isSlowNetwork).toBe(false);
+      expect(result.current.isVisible).toBe(false);
     });
 
     it('shows the RPC banner once the slow banner is dismissed', () => {
@@ -385,6 +412,142 @@ describe('useNetworkConnectionBanner', () => {
       const { result } = renderHookWithProviders();
 
       expect(result.current.isSlowNetwork).toBe(true);
+    });
+  });
+
+  describe('slow network analytics', () => {
+    const SHOWN_AT_MS = 1_800_000_000_000;
+
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(SHOWN_AT_MS);
+      jest.spyOn(performance, 'now').mockReturnValue(4_200);
+    });
+
+    afterEach(() => {
+      jest.mocked(Date.now).mockRestore();
+      jest.mocked(performance.now).mockRestore();
+    });
+
+    const flushTracking = () => act(async () => undefined);
+
+    it('sends the shown event once with the slow banner properties', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { rerender } = renderHookWithProviders();
+      await flushTracking();
+
+      latencyMock.mockReturnValue('UNKNOWN');
+      rerender(undefined);
+      await flushTracking();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_SHOWN,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        banner_type: 'slow',
+        hardware_tier: 'MID',
+        network_tier: 'WIFI',
+        rpc_status: 'available',
+        seconds_since_app_open: 4,
+        previously_dismissed: false,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks the shown event when the banner was dismissed before', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(
+        String(SHOWN_AT_MS - SLOW_NETWORK_BANNER_SNOOZE_MS - 60_000),
+      );
+
+      renderHookWithProviders();
+      await flushTracking();
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ previously_dismissed: true }),
+      );
+    });
+
+    it('sends unknown tiers when they cannot be read', async () => {
+      jest.mocked(getHardwareTier).mockReturnValue(null);
+      jest.mocked(NetInfo.fetch).mockRejectedValue(new Error('NetInfo'));
+      latencyMock.mockReturnValue('SLOW');
+
+      renderHookWithProviders();
+      await flushTracking();
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hardware_tier: 'UNKNOWN',
+          network_tier: 'UNKNOWN',
+        }),
+      );
+    });
+
+    it('sends the dismissed event with how long the banner was visible', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result } = renderHookWithProviders();
+      await flushTracking();
+
+      jest.mocked(Date.now).mockReturnValue(SHOWN_AT_MS + 3_500);
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+      await flushTracking();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_DISMISSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        banner_type: 'slow',
+        hardware_tier: 'MID',
+        network_tier: 'WIFI',
+        visible_duration_ms: 3_500,
+      });
+    });
+
+    it('sends the cleared event when latency recovers while the banner shows', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { rerender } = renderHookWithProviders();
+      await flushTracking();
+
+      jest.mocked(Date.now).mockReturnValue(SHOWN_AT_MS + 12_000);
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+      await flushTracking();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ visible_duration_ms: 12_000 }),
+      );
+    });
+
+    it('does not send the cleared event when latency recovers after a dismissal', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      const { result, rerender } = renderHookWithProviders();
+      await flushTracking();
+
+      act(() => {
+        result.current.dismissSlowNetwork();
+      });
+      latencyMock.mockReturnValue('OK');
+      rerender(undefined);
+      await flushTracking();
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
+      );
+    });
+
+    it('sends no slow banner events while it is snoozed', async () => {
+      latencyMock.mockReturnValue('SLOW');
+      getItemSyncMock.mockReturnValue(String(SHOWN_AT_MS - 60_000));
+
+      renderHookWithProviders();
+      await flushTracking();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
   });
 
