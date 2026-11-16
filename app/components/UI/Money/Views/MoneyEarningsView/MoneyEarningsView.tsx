@@ -17,8 +17,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
-import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import Tab from '../../../../../component-library/components-temp/Tabs/Tab';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
@@ -55,28 +54,23 @@ const MoneyEarningsView = (): React.ReactElement => {
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const entries = data?.history;
-  const hasHistoricalEarnings =
-    !isLoading && !isError && entries !== undefined && entries.length > 0;
 
-  const tabs = useMemo<TabItem[]>(
+  const tabs = useMemo(
     () => [
       {
         key: 'earnings',
         label: strings('money.earnings.tab_earnings'),
-        content: null,
         testID: MoneyEarningsViewTestIds.TAB_EARNINGS,
       },
       {
         key: 'apy',
         label: strings('money.earnings.tab_apy'),
-        content: null,
         isDisabled: true,
         testID: MoneyEarningsViewTestIds.TAB_APY,
       },
       {
         key: 'allocation',
         label: strings('money.earnings.tab_allocation'),
-        content: null,
         isDisabled: true,
         testID: MoneyEarningsViewTestIds.TAB_ALLOCATION,
       },
@@ -92,6 +86,8 @@ const MoneyEarningsView = (): React.ReactElement => {
     () => getDailyEarningsPoints(rangeEntries),
     [rangeEntries],
   );
+  const hasHistoricalEarnings =
+    !isLoading && !isError && chartPoints.length > 0;
   const thirtyDayTotal = useMemo(
     () => sumEarnings(getRangeEntries(entries ?? [], '30D')),
     [entries],
@@ -130,11 +126,31 @@ const MoneyEarningsView = (): React.ReactElement => {
         onBack={navigation.goBack}
         backButtonProps={{ testID: MoneyEarningsViewTestIds.BACK_BUTTON }}
       />
-      <TabsBar
-        tabs={tabs}
-        activeIndex={tabs.findIndex(({ key }) => key === activeTab)}
-        onTabPress={handleTabPress}
-      />
+      <Box twClassName="px-4">
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6">
+          {tabs.map(({ key, label, isDisabled = false, testID }) => {
+            const isActive = key === activeTab;
+
+            return (
+              <Box key={key}>
+                <Tab
+                  label={label}
+                  isActive={isActive}
+                  isDisabled={isDisabled}
+                  onPress={handleTabPress}
+                  testID={testID}
+                  accessibilityRole="tab"
+                  accessibilityState={{
+                    selected: isActive,
+                    disabled: isDisabled,
+                  }}
+                />
+                {isActive ? <Box twClassName="h-0.5 bg-icon-default" /> : null}
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
       {activeTab === 'earnings' ? (
         <ScrollView
           style={tw.style('flex-1')}
