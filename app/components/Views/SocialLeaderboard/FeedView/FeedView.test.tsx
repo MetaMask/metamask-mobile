@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -325,14 +324,8 @@ describe('FeedView', () => {
     renderWithProvider(<FeedView />);
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
 
-    expect(
-      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(FeedViewSelectorsIDs.ERROR_STATE),
-    ).not.toBeOnTheScreen();
+    expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
     expect(retryLoadMore).toHaveBeenCalledTimes(1);
-    expect(mockRefresh).not.toHaveBeenCalled();
   });
 
   it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {

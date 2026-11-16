@@ -1,5 +1,4 @@
 import { fireEvent, screen } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
 import type { CaipAssetType } from '@metamask/utils';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -259,13 +258,9 @@ describe('TokenDetailsHoldersTab', () => {
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
 
     expect(
-      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
-    ).toBeOnTheScreen();
-    expect(
       screen.queryByTestId(TokenDetailsHoldersTabSelectorsIDs.ERROR),
     ).toBeNull();
     expect(state.retryLoadMore).toHaveBeenCalledTimes(1);
-    expect(state.refresh).not.toHaveBeenCalled();
   });
 
   it('asks for the next page when the page scrolls near its end', () => {

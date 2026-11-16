@@ -17,6 +17,7 @@ import {
   fetchSocialFeedPage,
   getSocialFeedNextPageParam,
 } from './socialFeedQueries';
+import { useSocialListPaging } from './useSocialListPaging';
 import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
@@ -290,45 +291,25 @@ export const useSocialFeed = (
     queryParams: toTelemetryQueryParams(request),
   });
 
+  const hasRequest = Boolean(request);
   const {
-    hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
-    isError,
-    isFetchNextPageError,
-    refetch,
-  } = query;
-
-  // Reaching the end must not retry a failed page on its own: the footer is
-  // still in view, so another automatic fetch would loop. The button retries.
-  const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
-
-  const retryLoadMore = useCallback(() => {
-    if (isFetchNextPageError && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
+    hasNextPage,
+    loadMore,
+    retryLoadMore,
+    isLoadMoreError,
+    surfacedError,
+    refreshFirstPage,
+  } = useSocialListPaging<FeedResponse>(query, queryKey, hasRequest);
 
   const refresh = useCallback(async () => {
     if (!request) {
       return;
     }
-    // Refetch only the first page (the stale list stays visible meanwhile, so
-    // no skeleton flash), dropping any older pages loaded via pagination.
-    queryClient.setQueryData<InfiniteData<FeedResponse>>(queryKey, (old) =>
-      old
-        ? {
-            pages: old.pages.slice(0, 1),
-            pageParams: old.pageParams.slice(0, 1),
-          }
-        : old,
-    );
-    await refetch();
-  }, [queryClient, queryKey, refetch, request]);
+    // Refetch only the first page. The stale list stays visible, so there is
+    // no skeleton flash, and older pages are dropped.
+    await refreshFirstPage();
+  }, [refreshFirstPage, request]);
 
   const live = useSocialFeedRealtime(
     { rows, dataUpdatedAt, refresh },
@@ -348,18 +329,15 @@ export const useSocialFeed = (
     [filterPost, posts],
   );
 
-  const hasRequest = Boolean(request);
   return {
     posts: live ? live.posts : filteredPosts,
     rows,
     isLoading: hasRequest && query.isLoading,
-    isFetchingNextPage: hasRequest && isFetchingNextPage,
-    hasNextPage: hasRequest && hasNextPage === true && !isError,
+    isFetchingNextPage,
+    hasNextPage,
     loadMore,
-    error: hasRequest
-      ? formatSocialQueryErrorMessage(isFetchNextPageError ? null : error)
-      : null,
-    isLoadMoreError: hasRequest && isFetchNextPageError,
+    error: formatSocialQueryErrorMessage(surfacedError),
+    isLoadMoreError,
     retryLoadMore,
     refresh,
     dataUpdatedAt,

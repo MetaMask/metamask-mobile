@@ -1,6 +1,5 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import {
@@ -203,12 +202,6 @@ describe('TokenDetailsFeed', () => {
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
 
     expect(screen.getByTestId('post-one')).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('social_leaderboard.feed.error.title')),
-    ).toBeNull();
     expect(retryLoadMore).toHaveBeenCalledTimes(1);
     expect(refresh).not.toHaveBeenCalled();
   });

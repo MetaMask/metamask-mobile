@@ -1,10 +1,6 @@
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  useInfiniteQuery,
-  useQueryClient,
-  type InfiniteData,
-} from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import type { CaipAssetType } from '@metamask/utils';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import {
@@ -13,6 +9,7 @@ import {
 } from '../../../../../../util/social/socialServiceTelemetry';
 import type { TraderFeedRow } from '../../../../SocialFeed/types';
 import { mapFeedItem } from '../../../../SocialFeed/utils/mapFeedItem';
+import { useSocialListPaging } from '../../../../SocialFeed/data/useSocialListPaging';
 import {
   EMPTY_HOLDERS_PAGE,
   buildTokenHoldersQueryKey,
@@ -72,8 +69,6 @@ export const useTokenHolders = ({
   enabled = true,
 }: UseTokenHoldersOptions): TokenHoldersState => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  const queryClient = useQueryClient();
-
   const queryKey = useMemo(() => buildTokenHoldersQueryKey(assetId), [assetId]);
 
   const query = useInfiniteQuery({
@@ -136,42 +131,14 @@ export const useTokenHolders = ({
   });
 
   const {
-    hasNextPage,
     isFetchingNextPage,
-    fetchNextPage,
-    isError,
-    isFetchNextPageError,
-    refetch,
-  } = query;
-
-  const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage && !isError) {
-      // Fire and forget: the query owns the result, and a failed page is
-      // already surfaced through `isLoadMoreError`. The catch is for an
-      // unexpected rejection only -- without it this is a floating promise.
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
-
-  const retryLoadMore = useCallback(() => {
-    if (isFetchNextPageError && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage().catch(() => undefined);
-    }
-  }, [fetchNextPage, hasNextPage, isFetchNextPageError, isFetchingNextPage]);
-
-  const refresh = useCallback(async () => {
-    // Refetch only the first page (the stale list stays visible meanwhile, so
-    // no skeleton flash), dropping any older pages loaded via pagination.
-    queryClient.setQueryData<InfiniteData<TokenHoldersPage>>(queryKey, (old) =>
-      old
-        ? {
-            pages: old.pages.slice(0, 1),
-            pageParams: old.pageParams.slice(0, 1),
-          }
-        : old,
-    );
-    await refetch();
-  }, [queryClient, queryKey, refetch]);
+    hasNextPage,
+    loadMore,
+    retryLoadMore,
+    isLoadMoreError,
+    surfacedError,
+    refreshFirstPage: refresh,
+  } = useSocialListPaging<TokenHoldersPage>(query, queryKey);
 
   return {
     rows,
@@ -179,10 +146,10 @@ export const useTokenHolders = ({
     isFetching: query.isFetching,
     hasFetched: query.isFetched,
     isFetchingNextPage,
-    hasNextPage: hasNextPage === true && !isError,
+    hasNextPage,
     loadMore,
-    error: formatSocialQueryErrorMessage(isFetchNextPageError ? null : error),
-    isLoadMoreError: isFetchNextPageError,
+    error: formatSocialQueryErrorMessage(surfacedError),
+    isLoadMoreError,
     retryLoadMore,
     refresh,
   };

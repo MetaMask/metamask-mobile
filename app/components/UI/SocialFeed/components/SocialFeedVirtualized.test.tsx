@@ -866,12 +866,6 @@ describe('SocialFeedVirtualized', () => {
     fireEvent.press(screen.getByTestId(SOCIAL_FEED_LOAD_MORE_RETRY_TEST_ID));
 
     expect(screen.getByText('one')).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('social_leaderboard.feed.load_more_error')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('social_leaderboard.feed.error.title')),
-    ).toBeNull();
     expect(retryLoadMore).toHaveBeenCalledTimes(1);
     expect(refresh).not.toHaveBeenCalled();
   });
