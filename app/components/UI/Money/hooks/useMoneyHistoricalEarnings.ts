@@ -18,10 +18,21 @@ export interface InterestHistoryEntry {
   interest_earned_usd: string;
 }
 
+export interface InterestHistoryBucket {
+  start: string;
+  end: string;
+  interest_earned_usd: string | null;
+}
+
+export interface InterestHistoryRange {
+  range: '7d' | '30d' | '90d' | '180d' | '365d';
+  buckets: InterestHistoryBucket[];
+}
+
 export interface InterestHistoryResponse {
   address: string;
   chain_id: number;
-  history: InterestHistoryEntry[];
+  ranges: InterestHistoryRange[];
 }
 
 const getMoneyAccountApiBaseUrl = (): string =>

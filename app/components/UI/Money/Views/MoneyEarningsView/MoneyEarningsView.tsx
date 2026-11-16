@@ -23,7 +23,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Tab from '../../../../../component-library/components-temp/Tabs/Tab';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
-import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
+import {
+  useMoneyHistoricalEarnings,
+  type InterestHistoryResponse,
+} from '../../hooks/useMoneyHistoricalEarnings';
 import type { MoneyNavigationParamList } from '../../types/navigation';
 import EarningsChart from './EarningsChart';
 import EarningsSummary from './EarningsSummary';
@@ -61,11 +64,10 @@ const MoneyEarningsView = (): React.ReactElement => {
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const hasMalformedHistory =
-    data !== undefined &&
-    (!isRecord(data) || hasInvalidHistoryEntries(data.history));
-  const entries =
-    !hasMalformedHistory && isRecord(data) && Array.isArray(data.history)
-      ? data.history
+    data !== undefined && (!isRecord(data) || hasInvalidHistoryEntries(data));
+  const entries: InterestHistoryResponse | undefined =
+    !hasMalformedHistory && isRecord(data)
+      ? (data as InterestHistoryResponse)
       : undefined;
   const tabs = [
     {

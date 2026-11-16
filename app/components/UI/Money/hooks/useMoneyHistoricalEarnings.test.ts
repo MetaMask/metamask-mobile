@@ -36,10 +36,16 @@ const MOCK_CHAIN_ID = 143;
 const MOCK_RESPONSE: InterestHistoryResponse = {
   address: MOCK_ADDRESS.toLowerCase(),
   chain_id: MOCK_CHAIN_ID,
-  history: [
+  ranges: [
     {
-      timestamp: '2026-11-16T00:00:00.000Z',
-      interest_earned_usd: '12.34',
+      range: '30d',
+      buckets: [
+        {
+          start: '2026-11-16T00:00:00.000Z',
+          end: '2026-11-17T00:00:00.000Z',
+          interest_earned_usd: '12.34',
+        },
+      ],
     },
   ],
 };

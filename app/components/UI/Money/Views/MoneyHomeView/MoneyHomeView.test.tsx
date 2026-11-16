@@ -2245,6 +2245,22 @@ describe('MoneyHomeView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('navigates to Money Earnings when its section header is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyEarningsTestIds.HEADER));
+
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledTimes(1);
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  });
+
   it('navigates to Money Activity when its section header is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

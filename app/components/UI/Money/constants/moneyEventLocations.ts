@@ -13,6 +13,7 @@ export enum SCREEN_NAMES {
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
+  MONEY_EARNINGS = 'money_earnings',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
   VBA_ONBOARDING = 'vba_onboarding',
@@ -80,6 +81,7 @@ export enum COMPONENT_NAMES {
 
   // — Earnings —
   MONEY_EARNINGS_SECTION = 'money_earnings_section',
+  MONEY_EARNINGS_SECTION_HEADER = 'money_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_POTENTIAL_EARNINGS_VIEW_HEADER = 'money_potential_earnings_view_header',

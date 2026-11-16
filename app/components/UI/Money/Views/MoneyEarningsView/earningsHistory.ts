@@ -1,4 +1,8 @@
-import type { InterestHistoryEntry } from '../../hooks/useMoneyHistoricalEarnings';
+import type {
+  InterestHistoryEntry,
+  InterestHistoryRange,
+  InterestHistoryResponse,
+} from '../../hooks/useMoneyHistoricalEarnings';
 
 export type EarningsRange = '1W' | '30D' | '3M' | '6M' | '1Y';
 
@@ -17,17 +21,20 @@ export const EARNINGS_RANGES = [
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 
-const RANGE_LENGTHS: Record<EarningsRange, number> = {
-  '1W': 7,
-  '30D': 30,
-  '3M': 90,
-  '6M': 180,
-  '1Y': 365,
-};
-
 const ISO_CALENDAR_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})T/;
 const AGGREGATION_OVERFLOW_ERROR =
   'Historical earnings aggregation exceeded the finite numeric range';
+
+const RANGE_CONFIG: Record<
+  EarningsRange,
+  { apiRange: InterestHistoryRange['range']; days: number }
+> = {
+  '1W': { apiRange: '7d', days: 7 },
+  '30D': { apiRange: '30d', days: 30 },
+  '3M': { apiRange: '90d', days: 90 },
+  '6M': { apiRange: '180d', days: 180 },
+  '1Y': { apiRange: '365d', days: 365 },
+};
 
 const isLeapYear = (year: number): boolean =>
   year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
@@ -101,9 +108,24 @@ const addEarnings = (total: number, amount: number): number => {
 };
 
 export const getRangeEntries = (
-  entries: InterestHistoryEntry[],
+  entries: InterestHistoryEntry[] | InterestHistoryResponse,
   range: EarningsRange,
 ): InterestHistoryEntry[] => {
+  if (!Array.isArray(entries)) {
+    const apiRange = entries.ranges.find(
+      ({ range: candidateRange }) =>
+        candidateRange === RANGE_CONFIG[range].apiRange,
+    );
+
+    return (
+      apiRange?.buckets.flatMap(({ start, interest_earned_usd }) =>
+        interest_earned_usd === null
+          ? []
+          : [{ timestamp: start, interest_earned_usd }],
+      ) ?? []
+    );
+  }
+
   const validEntries = entries
     .map((entry) => ({ entry, timestamp: getTimestamp(entry) }))
     .filter(
@@ -121,7 +143,8 @@ export const getRangeEntries = (
     ...validEntries.map(({ timestamp }) => timestamp),
   );
   const endDay = getUtcDayStart(newestTimestamp);
-  const startDay = endDay - (RANGE_LENGTHS[range] - 1) * MILLISECONDS_PER_DAY;
+  const startDay =
+    endDay - (RANGE_CONFIG[range].days - 1) * MILLISECONDS_PER_DAY;
 
   return validEntries
     .filter(({ timestamp }) => {
@@ -171,17 +194,67 @@ const hasAggregationOverflow = (entries: InterestHistoryEntry[]): boolean => {
 };
 
 export const hasInvalidHistoryEntries = (entries: unknown): boolean => {
-  if (
-    !Array.isArray(entries) ||
-    entries.some(
-      (entry) =>
-        getTimestamp(entry) === undefined || getAmount(entry) === undefined,
-    )
-  ) {
+  if (Array.isArray(entries)) {
+    if (
+      entries.some(
+        (entry) =>
+          getTimestamp(entry) === undefined || getAmount(entry) === undefined,
+      )
+    ) {
+      return true;
+    }
+
+    return hasAggregationOverflow(entries);
+  }
+
+  if (!isRecord(entries)) {
     return true;
   }
 
-  return hasAggregationOverflow(entries);
+  if (!Array.isArray(entries.ranges)) {
+    return true;
+  }
+
+  const hasInvalidRange = entries.ranges.some((range) => {
+    if (
+      !isRecord(range) ||
+      typeof range.range !== 'string' ||
+      !Object.values(RANGE_CONFIG).some(
+        ({ apiRange }) => range.range === apiRange,
+      ) ||
+      !Array.isArray(range.buckets)
+    ) {
+      return true;
+    }
+
+    return range.buckets.some((bucket) => {
+      if (
+        !isRecord(bucket) ||
+        getTimestamp({ timestamp: bucket.start }) === undefined ||
+        getTimestamp({ timestamp: bucket.end }) === undefined
+      ) {
+        return true;
+      }
+
+      return (
+        bucket.interest_earned_usd !== null &&
+        (typeof bucket.interest_earned_usd !== 'string' ||
+          getAmount({
+            interest_earned_usd: bucket.interest_earned_usd,
+          }) === undefined)
+      );
+    });
+  });
+
+  if (hasInvalidRange) {
+    return true;
+  }
+
+  return EARNINGS_RANGES.some((range) =>
+    hasAggregationOverflow(
+      getRangeEntries(entries as unknown as InterestHistoryResponse, range),
+    ),
+  );
 };
 
 export const getDailyEarningsPoints = (
@@ -221,9 +294,10 @@ export const getDailyEarningsPoints = (
   }
 
   const endDay = Date.parse(points[points.length - 1].timestamp);
-  const startDay = endDay - (RANGE_LENGTHS[range] - 1) * MILLISECONDS_PER_DAY;
+  const startDay =
+    endDay - (RANGE_CONFIG[range].days - 1) * MILLISECONDS_PER_DAY;
 
-  return Array.from({ length: RANGE_LENGTHS[range] }, (_, index) => {
+  return Array.from({ length: RANGE_CONFIG[range].days }, (_, index) => {
     const timestamp = startDay + index * MILLISECONDS_PER_DAY;
     return {
       timestamp: new Date(timestamp).toISOString(),
