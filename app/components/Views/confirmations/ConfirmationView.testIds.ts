@@ -112,6 +112,12 @@ export const PerpsAccountPickerSelectorsIDs = {
   ACCOUNT_ITEM: 'perps-account-picker-item',
 } as const;
 
+export const PerpsReceiveToSelectorsIDs = {
+  ROW: 'perps-receive-to-row',
+  SHEET: 'perps-receive-to-sheet',
+  OPTION: 'perps-receive-to-option',
+} as const;
+
 export const PredictAccountPickerSelectorsIDs = {
   ROW: 'predict-account-picker-row',
   SHEET: 'predict-account-picker-sheet',
