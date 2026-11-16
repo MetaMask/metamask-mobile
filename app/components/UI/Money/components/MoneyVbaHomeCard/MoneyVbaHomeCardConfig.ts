@@ -196,7 +196,7 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     i18nPrefix: 'money.vba_home_card.finish_verification',
     // Visible copy is shared with finish_verification. This identifier keeps
     // the tap measurable apart from that card.
-    analyticsCtaLabel: 'money.vba_home_card.kyc_retry.cta',
+    analyticsCtaLabel: 'money_vba_kyc_retry',
     // Same identity-scan art as finish_verification. The orange X is the
     // terminal rejection illustration and would still read as a final no.
     heroArt: IDENTITY_HERO_ART,

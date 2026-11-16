@@ -241,7 +241,7 @@ const VARIANT_EXPECTATIONS: Record<
     componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
     source: 'vba-home-card-kyc-retry',
     i18nPrefix: 'money.vba_home_card.finish_verification',
-    analyticsCtaLabel: 'money.vba_home_card.kyc_retry.cta',
+    analyticsCtaLabel: 'money_vba_kyc_retry',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
 };
@@ -623,8 +623,8 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-      label_en: 'money.vba_home_card.kyc_retry.cta',
-      label_localized: 'money.vba_home_card.kyc_retry.cta',
+      label_en: 'money_vba_kyc_retry',
+      label_localized: 'money_vba_kyc_retry',
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
     expect(mockResolve).toHaveBeenCalledWith('vba-home-card-kyc-retry');
@@ -688,8 +688,8 @@ describe('MoneyVbaHomeCard', () => {
     expect(retryTap).toEqual({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-      label_en: 'money.vba_home_card.kyc_retry.cta',
-      label_localized: 'money.vba_home_card.kyc_retry.cta',
+      label_en: 'money_vba_kyc_retry',
+      label_localized: 'money_vba_kyc_retry',
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
     expect(retryTap).not.toEqual(finishTap);
