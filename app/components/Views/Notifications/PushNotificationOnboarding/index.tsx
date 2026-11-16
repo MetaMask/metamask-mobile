@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   IconAlert,
   IconAlertSeverity,
@@ -15,6 +15,7 @@ import NotificationService, {
   canOsPromptForPushPermission,
   isPushPermissionPromptable,
 } from '../../../../util/notifications/services/NotificationService';
+import Logger from '../../../../util/Logger';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -23,9 +24,9 @@ export type PushPrePromptCompletionReason = 'complete' | 'dismiss' | 'engage';
 interface PushNotificationOnboardingProps {
   dismissPrePrompt: () => void;
   isVisible: boolean;
-  markPrePromptShown: () => Promise<void>;
   nativeOsPermissionEnabled: boolean | null;
   onComplete: (reason: PushPrePromptCompletionReason) => void;
+  onUserAnswered: () => Promise<void>;
   prePromptVariant: PushPrePromptVariant;
 }
 
@@ -34,9 +35,9 @@ const METRICS_OPT_IN_LOCATION = 'push_pre_prompt';
 const PushNotificationOnboarding = ({
   dismissPrePrompt,
   isVisible,
-  markPrePromptShown,
   nativeOsPermissionEnabled,
   onComplete,
+  onUserAnswered,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
   // Helpers to request OS push permission and finish wiring up notifications once granted.
@@ -44,6 +45,8 @@ const PushNotificationOnboarding = ({
     usePushPermissionNotificationSetup();
 
   const viewedPrePromptVariant = useRef<PushPrePromptVariant>(null);
+  const answeredRef = useRef(false);
+  const [isSheetClosed, setIsSheetClosed] = useState(false);
 
   // Analytics emitters for every stage of the pre-prompt → OS prompt funnel.
   const {
@@ -61,10 +64,16 @@ const PushNotificationOnboarding = ({
     metricsOptInLocation: METRICS_OPT_IN_LOCATION,
   });
 
-  // Mark each variant as shown once, when its sheet first becomes visible.
+  // Impressions never consume the prompt. A resumed presentation is another
+  // impression, but navigation itself is not a response.
   useEffect(() => {
+    if (!isVisible) {
+      viewedPrePromptVariant.current = null;
+      return;
+    }
     if (
-      !isVisible ||
+      isSheetClosed ||
+      answeredRef.current ||
       !prePromptVariant ||
       viewedPrePromptVariant.current === prePromptVariant
     ) {
@@ -72,9 +81,21 @@ const PushNotificationOnboarding = ({
     }
 
     viewedPrePromptVariant.current = prePromptVariant;
-    markPrePromptShown().catch(() => undefined);
     trackPrePromptViewed(prePromptVariant);
-  }, [isVisible, markPrePromptShown, prePromptVariant, trackPrePromptViewed]);
+  }, [isSheetClosed, isVisible, prePromptVariant, trackPrePromptViewed]);
+
+  const handleUserAnswered = useCallback(() => {
+    if (answeredRef.current) {
+      return;
+    }
+    answeredRef.current = true;
+    onUserAnswered().catch((error: unknown) => {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Failed to persist push pre-prompt answer',
+      );
+    });
+  }, [onUserAnswered]);
 
   const showNotificationStatusToast = useCallback(
     ({
@@ -140,17 +161,25 @@ const PushNotificationOnboarding = ({
 
   const handlePrePromptDismissed = useCallback(
     (hasPendingAction?: boolean) => {
+      setIsSheetClosed(true);
       // BottomSheet onClose can fire while a CTA action is still running.
       if (hasPendingAction) {
         return;
       }
+      handleUserAnswered();
       if (prePromptVariant) {
         trackPrePromptDismissed(prePromptVariant);
       }
       dismissPrePrompt();
       onComplete('dismiss');
     },
-    [dismissPrePrompt, onComplete, prePromptVariant, trackPrePromptDismissed],
+    [
+      dismissPrePrompt,
+      handleUserAnswered,
+      onComplete,
+      prePromptVariant,
+      trackPrePromptDismissed,
+    ],
   );
 
   const handlePushPermissionYes = useCallback(async () => {
@@ -254,16 +283,23 @@ const PushNotificationOnboarding = ({
     trackPrePromptButtonClicked,
   ]);
 
+  // A button response is recorded before its close animation. Keep that
+  // closing sheet mounted even if navigation changes, so its post-close action
+  // is not lost. Once closed, the nonvisual permission handler stays alive.
+  const presentSheet = !isSheetClosed && (isVisible || answeredRef.current);
+
   return (
     <>
       <NewUserSheet
-        isVisible={isVisible && prePromptVariant === 'push_permission'}
+        isVisible={presentSheet && prePromptVariant === 'push_permission'}
+        onUserAnswered={handleUserAnswered}
         onClose={handlePrePromptDismissed}
         onYes={handlePushPermissionYes}
         onNotNow={handlePushPermissionNotNow}
       />
       <ExistingUserSheet
-        isVisible={isVisible && prePromptVariant === 'marketing_consent'}
+        isVisible={presentSheet && prePromptVariant === 'marketing_consent'}
+        onUserAnswered={handleUserAnswered}
         onClose={handlePrePromptDismissed}
         onConfirm={handleMarketingConsentConfirm}
         onNotNow={handleMarketingConsentNotNow}

@@ -49,6 +49,7 @@ import {
   RAMPS_BUY_CUF_END_REASON,
   RAMPS_BUY_CUF_TAG,
 } from '../../constants/rampsBuyCufTags';
+import { setWalletHomeOnboardingFundFlowOrderAccepted } from '../../../WalletHomeOnboardingSteps/walletHomeOnboardingFundFlow';
 import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
 import {
   RAMP_SCREEN_CONTENT_STATE,
@@ -69,6 +70,22 @@ const PENDING_STATUSES = new Set([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.Unknown,
 ]);
+
+/**
+ * Whether an order counts as funding for the Wallet Home onboarding Fund step: every status
+ * this screen shows as processing or complete.
+ *
+ * @param status - The order status shown.
+ * @returns `true` for pending and completed orders.
+ */
+export function isWalletHomeOnboardingFundFlowOrderAccepted(
+  status: RampsOrderStatus | undefined,
+): boolean {
+  return (
+    status !== undefined &&
+    (PENDING_STATUSES.has(status) || status === RampsOrderStatus.Completed)
+  );
+}
 
 /**
  * V2 order detail screen. Reads RampsOrder from controller state only.
@@ -201,6 +218,17 @@ const OrderDetails = () => {
         .build(),
     );
   }, [navigation, trackEvent, createEventBuilder]);
+
+  // Synced from the order shown, not from Close, so every way of leaving counts.
+  const orderStatus = order?.status;
+  useEffect(() => {
+    if (!params.showCloseButton || orderStatus === undefined) {
+      return;
+    }
+    setWalletHomeOnboardingFundFlowOrderAccepted(
+      isWalletHomeOnboardingFundFlowOrderAccepted(orderStatus),
+    );
+  }, [orderStatus, params.showCloseButton]);
 
   const handleRetryCallbackFetch = useCallback(async () => {
     if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {

@@ -463,11 +463,18 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress);
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (
@@ -513,14 +520,21 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress) ||
+        tokenTransferRecipients.some((recipient) =>
+          areAddressesEqual(recipient, accountAddress),
+        );
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '') ||
-          tokenTransferRecipients.some((recipient) =>
-            areAddressesEqual(recipient, selectedAddress ?? ''),
-          )) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (to?.toLowerCase() === navAddress) return true;
@@ -658,12 +672,16 @@ export const useTokenTransactions = (
             }
             const alreadySubmitted = submittedNonces.includes(nonce);
             const alreadyConfirmed = confirmedTxs.find(
-              (confirmedTransaction: Transaction) =>
-                areAddressesEqual(
+              (confirmedTransaction: Transaction) => {
+                const confirmedFromAddress =
                   safeToChecksumAddress(confirmedTransaction.txParams.from) ??
-                    '',
-                  selectedAddress ?? '',
-                ) && confirmedTransaction.txParams.nonce === nonce,
+                  '';
+                const accountAddress = selectedAddress ?? '';
+                return (
+                  areAddressesEqual(confirmedFromAddress, accountAddress) &&
+                  confirmedTransaction.txParams.nonce === nonce
+                );
+              },
             );
             if (alreadyConfirmed) {
               return false;

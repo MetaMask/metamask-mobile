@@ -103,6 +103,7 @@ import {
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import { getPositionFlagLabelKey } from '../TraderProfileView/utils/positionFlags';
+import { resolvePositionAuthorProfileId } from '../../../../util/social/positionOwnership';
 import {
   buildFollowTradingTokenContext,
   getSocialEventSource,
@@ -201,11 +202,39 @@ const TraderPositionView = () => {
     isLoading: isProfileLoading,
     refresh: refreshProfile,
   } = useTraderProfile(traderId);
-  const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
+
+  // `traderId` is a hint fetched alongside the position; once both settle,
+  // the position's owner confirms it or names who to show instead.
+  const authorProfileId =
+    resolvedPosition && !isProfileLoading
+      ? resolvePositionAuthorProfileId(
+          resolvedPosition,
+          traderId,
+          fetchedProfile?.profile,
+        )
+      : traderId;
+  const isOwnerMismatch = authorProfileId !== traderId;
+  // An owner that isn't the link's `traderId` verbatim can only be confirmed
+  // through the profile, so hold the position back until it settles.
+  const isOwnershipPending =
+    isProfileLoading &&
+    Boolean(resolvedPosition?.profileId) &&
+    resolvedPosition?.profileId !== traderId;
+  const { profile: ownerProfile, refresh: refreshOwnerProfile } =
+    useTraderProfile(isOwnerMismatch ? authorProfileId : '');
+  const authorProfile = isOwnerMismatch ? ownerProfile : fetchedProfile;
+  const authorParams = isOwnerMismatch
+    ? {}
+    : {
+        name: traderNameParam,
+        imageUrl: traderImageUrlParam,
+        address: traderAddressParam,
+      };
+  const traderName = authorParams.name ?? authorProfile?.profile?.name ?? '';
   const traderImageUrl =
-    traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
+    authorParams.imageUrl ?? authorProfile?.profile?.imageUrl ?? undefined;
   const traderAddress =
-    traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
+    authorParams.address ?? authorProfile?.profile?.address ?? '';
 
   const positionData = useTraderPositionData(
     displayPosition,
@@ -241,11 +270,15 @@ const TraderPositionView = () => {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
       // from surfacing in the UI.
-      await Promise.allSettled([refetchPosition(), refreshProfile()]);
+      await Promise.allSettled([
+        refetchPosition(),
+        refreshProfile(),
+        ...(isOwnerMismatch ? [refreshOwnerProfile()] : []),
+      ]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetchPosition, refreshProfile]);
+  }, [isOwnerMismatch, refetchPosition, refreshOwnerProfile, refreshProfile]);
 
   // Plain goBack: returns to whatever the user was on before opening this
   // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
@@ -281,9 +314,9 @@ const TraderPositionView = () => {
             pricePoints: prices.length,
           });
           return buildSocialTradeOgImageRequest({
-            traderId,
+            traderId: authorProfileId,
             positionId: effectivePositionId,
-            username: fetchedProfile?.profile?.name || traderName,
+            username: authorProfile?.profile?.name || traderName,
             avatarUrl: traderImageUrl,
             position: sharedPosition,
             market: symbol,
@@ -302,7 +335,7 @@ const TraderPositionView = () => {
     runShare(() =>
       shareSocialTraderPosition(
         effectivePositionId,
-        traderId,
+        authorProfileId,
         () => {
           trackSocialPost({
             interaction_type: SocialEvent.Interaction.POST_SHARED,
@@ -312,17 +345,18 @@ const TraderPositionView = () => {
           });
         },
         buildSocialPositionOpenGraph({
-          traderName: readTraderShareName(fetchedProfile?.profile, traderName),
+          traderName: readTraderShareName(authorProfile?.profile, traderName),
           assetSymbol: symbol,
         }),
         buildOgImageRequest,
       ),
     );
   }, [
+    authorProfile?.profile,
+    authorProfileId,
     currentPrice,
     displayPosition,
     effectivePositionId,
-    fetchedProfile?.profile,
     historicalPrices,
     isClosed,
     pnlPercent,
@@ -333,7 +367,6 @@ const TraderPositionView = () => {
     sourceParam,
     symbol,
     trackSocialPost,
-    traderId,
     traderImageUrl,
     traderName,
   ]);
@@ -341,7 +374,7 @@ const TraderPositionView = () => {
   const handleTraderPress = useCallback(() => {
     if (isSocialV1Treatment()) {
       navigateToSocialV1Profile(navigation, {
-        traderId,
+        traderId: authorProfileId,
         traderName,
         traderAddress,
         traderAvatarUri: traderImageUrl,
@@ -349,10 +382,10 @@ const TraderPositionView = () => {
       return;
     }
     navigation.navigate(Routes.SOCIAL.PROFILE, {
-      traderId,
+      traderId: authorProfileId,
       traderName,
     });
-  }, [navigation, traderAddress, traderId, traderImageUrl, traderName]);
+  }, [authorProfileId, navigation, traderAddress, traderImageUrl, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
     if (!displayPosition?.tokenAddress) {
@@ -643,9 +676,10 @@ const TraderPositionView = () => {
   );
 
   const isInitialLoading =
-    !displayPosition &&
-    !isBlockedPerpPosition &&
-    (isPositionLoading || isProfileLoading);
+    isOwnershipPending ||
+    (!displayPosition &&
+      !isBlockedPerpPosition &&
+      (isPositionLoading || isProfileLoading));
   const hasFailed =
     isBlockedPerpPosition ||
     (!displayPosition && !isPositionLoading && !isProfileLoading);
@@ -842,7 +876,7 @@ const TraderPositionView = () => {
           tradeActions={tradeActions}
           traderImageUrl={traderImageUrl}
           traderAddress={traderAddress}
-          traderProfileId={traderId}
+          traderProfileId={authorProfileId}
           onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
           emphasizedTradeId={emphasizedTradeId}
           onScroll={onScroll}
@@ -1012,10 +1046,14 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
-            traderProfileId={traderId}
+            traderProfileId={authorProfileId}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
-            onShare={effectivePositionId ? handleSharePosition : undefined}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
             isSharing={isSharing}
             backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
             shareButtonTestID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
@@ -1028,7 +1066,7 @@ const TraderPositionView = () => {
             traderName={traderName}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
-            traderProfileId={traderId}
+            traderProfileId={authorProfileId}
             symbol={symbol}
             pricePercentChange={displayPercentChange}
             activeTimePeriodLabel={periodLabel}
@@ -1036,7 +1074,11 @@ const TraderPositionView = () => {
             perpLeverage={displayPosition?.perpLeverage}
             onBack={handleBack}
             onTraderPress={handleTraderPress}
-            onShare={effectivePositionId ? handleSharePosition : undefined}
+            onShare={
+              effectivePositionId && !isOwnershipPending
+                ? handleSharePosition
+                : undefined
+            }
             isSharing={isSharing}
           />
         )}
@@ -1045,7 +1087,10 @@ const TraderPositionView = () => {
       {isInitialLoading ? (
         <TraderPositionSkeleton />
       ) : hasFailed ? (
-        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+        <TraderPositionFallback
+          traderId={authorProfileId}
+          traderName={traderName}
+        />
       ) : isPerp ? (
         <PerpsStreamProvider>
           {loadedPositionContent}

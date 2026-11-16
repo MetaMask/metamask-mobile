@@ -3,7 +3,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -17,6 +16,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import { CardEntryPoint } from '../../util/metrics';
 import { MoneyUnlinkCardSheetTestIds } from './MoneyUnlinkCardSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface MoneyUnlinkCardSheetRouteParams {
   fundingSource?: string;
@@ -24,6 +26,7 @@ export interface MoneyUnlinkCardSheetRouteParams {
 }
 
 const MoneyUnlinkCardSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -59,7 +62,8 @@ const MoneyUnlinkCardSheet = () => {
       testID={MoneyUnlinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: MoneyUnlinkCardSheetTestIds.CLOSE_BUTTON,
@@ -75,7 +79,7 @@ const MoneyUnlinkCardSheet = () => {
               : 'money.metamask_card.unlink_card_sheet_title_no_funding_source',
           )}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         <Text
           variant={TextVariant.BodyMd}
