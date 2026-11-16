@@ -1,4 +1,5 @@
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import type { Json } from '@metamask/utils';
 import {
   Messenger,
   MOCK_ANY_NAMESPACE,
@@ -50,7 +51,7 @@ describe('getPredictFundingServiceMessenger', () => {
       invalidateQueries,
     );
     const serviceMessenger = getPredictFundingServiceMessenger(rootMessenger);
-    const filters = {
+    const filters: { queryKey: [string, ...Json[]] } = {
       queryKey: ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
     };
 
