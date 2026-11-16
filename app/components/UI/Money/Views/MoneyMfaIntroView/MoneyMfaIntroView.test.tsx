@@ -11,13 +11,14 @@ import {
 } from '../../constants/moneyEvents';
 
 const mockGoBack = jest.fn();
+const mockSetOptions = jest.fn();
 const mockTurnOn = jest.fn();
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, setOptions: mockSetOptions }),
 }));
 
 let mockRootRoutes: { name: string }[] = [];
@@ -123,6 +124,7 @@ describe('MoneyMfaIntroView', () => {
     act(() => mockStateListener?.());
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalledWith({ animation: 'none' });
     expect(mockStopNavigation).toHaveBeenCalled();
   });
 

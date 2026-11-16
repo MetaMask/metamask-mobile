@@ -45,6 +45,8 @@ const MoneyMfaIntroView = () => {
       label_key: 'money.mfa.intro_continue',
     });
     if (stopWaiting.current) return;
+    // The intro closes under the 2-step verification screen; without this its fade plays when that screen closes.
+    navigation.setOptions({ animation: 'none' });
     // Stay on screen until the 2-step verification modal covers it, so Money isn't shown in between.
     let closed = false;
     const close = () => {
