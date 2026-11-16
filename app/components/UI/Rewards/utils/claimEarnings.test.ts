@@ -26,9 +26,11 @@ import {
 import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
+  cashbackMeetsClaimMinimum,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
+  selectClaimRoutes,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
@@ -172,6 +174,73 @@ function summary(options: {
   };
 }
 
+describe('cashbackMeetsClaimMinimum', () => {
+  it('is true at the summary minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: ONE_DOLLAR, cashback: ONE_DOLLAR }),
+      ),
+    ).toBe(true);
+  });
+
+  it('is false below the minimum', () => {
+    expect(
+      cashbackMeetsClaimMinimum(
+        summary({ claimable: UNDER_DOLLAR, cashback: UNDER_DOLLAR }),
+      ),
+    ).toBe(false);
+  });
+
+  it('is false when cashback is absent', () => {
+    expect(
+      cashbackMeetsClaimMinimum(summary({ claimable: '0', cashback: '0' })),
+    ).toBe(false);
+  });
+
+  it('is false when the summary is missing', () => {
+    expect(cashbackMeetsClaimMinimum(null)).toBe(false);
+    expect(cashbackMeetsClaimMinimum(undefined)).toBe(false);
+  });
+});
+
+describe('selectClaimRoutes', () => {
+  const routes = [
+    'referral-trade-fee-cashback',
+    'referral-rev-share',
+    'social-follow-trade',
+  ] as const;
+
+  it('keeps every route when tax does not narrow the press', () => {
+    expect(selectClaimRoutes([...routes])).toEqual([...routes]);
+  });
+
+  it('keeps cashback only', () => {
+    expect(selectClaimRoutes([...routes], { cashbackOnly: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('drops revenue share and follow-trade when income is omitted', () => {
+    expect(selectClaimRoutes([...routes], { omitIncome: true })).toEqual([
+      'referral-trade-fee-cashback',
+    ]);
+  });
+
+  it('returns no routes when income is omitted from an income-only list', () => {
+    expect(
+      selectClaimRoutes(['referral-rev-share', 'social-follow-trade'], {
+        omitIncome: true,
+      }),
+    ).toEqual([]);
+  });
+
+  it('cashback-only wins when both flags are set', () => {
+    expect(
+      selectClaimRoutes([...routes], { cashbackOnly: true, omitIncome: true }),
+    ).toEqual(['referral-trade-fee-cashback']);
+  });
+});
+
 describe('claimRoutesForSummary', () => {
   it('posts cashback only when that family is at least $1', () => {
     expect(
@@ -221,7 +290,7 @@ describe('claimRoutesForSummary', () => {
     );
   });
 
-  it('lights the indicator when an open income route is held only for tax', () => {
+  it('lights the indicator when an open income route is held for tax', () => {
     const held = summary({ claimable: '0', cashback: '0', revShare: '0' });
     held.held = ONE_DOLLAR;
     const revShare = held.earned_by_others.by_claim_family.REFERRAL_REV_SHARE;
@@ -237,7 +306,7 @@ describe('claimRoutesForSummary', () => {
         { ...held, blocked: ONE_DOLLAR },
         { includeRevShare: true },
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   it('leaves revenue share off while that claim route is closed', () => {

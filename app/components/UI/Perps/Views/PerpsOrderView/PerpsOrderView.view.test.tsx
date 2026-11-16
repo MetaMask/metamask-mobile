@@ -125,6 +125,9 @@ const waitForDeferredOrderData = async () => {
   });
 };
 
+// A price or form change after the first validation keeps the CTA disabled
+// for the real ValidationDebounceMs (300ms) plus protocol validation, which a
+// loaded CV shard can stretch past waitFor's 1s default.
 const waitForEnabledPlaceOrderButton = async (
   testId: string = PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
 ) => {
@@ -496,12 +499,9 @@ describe('PerpsOrderView', () => {
       });
       await waitForDeferredOrderData();
       emitEthPrice(stream);
-      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON);
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled();
-      });
+      await waitForEnabledPlaceOrderButton(
+        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
       // The separate TP/SL update runs only after pending take-profit is on
       // the form. The place button can enable first; pressing then leaves the
       // in-progress "Order submitted" toast up and never shows the error.
@@ -998,20 +998,10 @@ describe('PerpsOrderView', () => {
         extraRoutes: [marketDetailsRoute],
       });
 
-    const findEnabledSubmitButton = async () => {
-      const submitButton = await screen.findByTestId(
+    const findEnabledSubmitButton = () =>
+      waitForEnabledPlaceOrderButton(
         PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
-        {},
-        { timeout: TIMEOUT_MS },
       );
-      await waitFor(
-        () => {
-          expect(submitButton).not.toBeDisabled();
-        },
-        { timeout: TIMEOUT_MS },
-      );
-      return submitButton;
-    };
 
     it('shows promotional pricing when Core returns a grant fee quote', async () => {
       const calculateFees = Engine.context.PerpsController
@@ -1352,6 +1342,179 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Typed amount stays after Done; a pre-layout 0% slider commit must not reset it.
+  describe('amount keypad commit', () => {
+    const SHORT_BALANCE = '13.67';
+    const SHORT_PRICE = '941.95';
+
+    const readDisplayedAmount = () =>
+      Number(
+        screen
+          .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
+          .replace(/[^0-9.]/g, ''),
+      );
+
+    const waitForDisplayedAmount = (expected: number) =>
+      waitFor(() => expect(readDisplayedAmount()).toBe(expected), {
+        timeout: TIMEOUT_MS,
+      });
+
+    const renderShortTradeSheet = async (amount: string) => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'short',
+          amount,
+          leverage: 10,
+          useBottomSheet: true,
+        },
+        streamOverrides: {
+          account: accountWithBalance(SHORT_BALANCE),
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream, '-2.14', SHORT_PRICE);
+
+      expect(
+        await screen.findByTestId(
+          PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const amountSlider = () =>
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER);
+
+    const layOutAmountSlider = () => {
+      fireEvent(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT),
+        'layout',
+        {
+          nativeEvent: {
+            layout: { width: 320, height: 48, x: 0, y: 0 },
+          },
+        },
+      );
+    };
+
+    const openAmountKeypad = async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.TOUCHABLE),
+      );
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    };
+
+    const pressKeypadDigit = (digit: '0' | '1' | '2') => {
+      const testId = {
+        '0': KeypadTestIds.KEY_0,
+        '1': KeypadTestIds.KEY_1,
+        '2': KeypadTestIds.KEY_2,
+      }[digit];
+
+      fireEvent.press(screen.getByTestId(testId));
+    };
+
+    const clearKeypadAmount = async () => {
+      const digits = String(Math.trunc(Math.abs(readDisplayedAmount()))).length;
+
+      for (let index = 0; index < digits; index += 1) {
+        fireEvent.press(screen.getByTestId(KeypadTestIds.DELETE_BUTTON));
+      }
+
+      await waitForDisplayedAmount(0);
+    };
+
+    const typeAmount = async (digits: readonly ('0' | '1' | '2')[]) => {
+      for (const digit of digits) {
+        pressKeypadDigit(digit);
+      }
+    };
+
+    const doneAmountKeypad = () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      );
+    };
+
+    // Done unmounts the keypad and mounts the slider under the finger that
+    // released the button. Android delivers that touch to the new track before
+    // it has a width, and a 0-width track maps the touch to 0%.
+    const deliverPreLayoutSliderTouch = () => {
+      fireEvent(amountSlider(), 'valueChange', 0);
+      fireEvent(amountSlider(), 'dragEnd', 0);
+    };
+
+    it('keeps a typed amount after Done when the size was first set with the slider', async () => {
+      await renderShortTradeSheet('0');
+      layOutAmountSlider();
+
+      fireEvent(amountSlider(), 'valueChange', 25);
+      fireEvent(amountSlider(), 'dragEnd', 25);
+
+      await waitFor(
+        () => {
+          expect(readDisplayedAmount()).toBeGreaterThan(0);
+        },
+        { timeout: TIMEOUT_MS },
+      );
+
+      await openAmountKeypad();
+      await clearKeypadAmount();
+      await typeAmount(['1', '0']);
+      await waitForDisplayedAmount(10);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(10);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(10);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+
+    it('keeps a typed amount after Done when the keypad is opened on an empty size', async () => {
+      await renderShortTradeSheet('0');
+      await openAmountKeypad();
+      await typeAmount(['2', '0']);
+      await waitForDisplayedAmount(20);
+
+      doneAmountKeypad();
+      await waitForDisplayedAmount(20);
+      deliverPreLayoutSliderTouch();
+
+      await waitForDisplayedAmount(20);
+      expect(
+        screen.queryByTestId(
+          PerpsTradeSheetSelectorsIDs.AMOUNT_KEYPAD_DONE_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(amountSlider().props.accessibilityValue?.text).not.toBe('0%');
+    });
+  });
+
   describe('fee-adjusted max size', () => {
     const LEVERAGE = 4;
     const BALANCE = 1000;
@@ -1567,13 +1730,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
-    const placeOrderButton = await screen.findByTestId(
-      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-    );
-    await waitFor(() => {
-      expect(placeOrderButton).not.toBeDisabled();
-    });
-    fireEvent.press(placeOrderButton);
+    fireEvent.press(await waitForEnabledPlaceOrderButton());
 
     expect(
       await screen.findByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
@@ -1768,11 +1925,7 @@ describe('PerpsOrderView', () => {
         await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
       ).toBeOnTheScreen();
 
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
-        ).not.toBeDisabled(),
-      );
+      await waitForEnabledPlaceOrderButton();
       expect(screen.queryByText(message)).not.toBeOnTheScreen();
       await act(async () => {
         fireEvent.press(
@@ -1916,13 +2069,11 @@ describe('PerpsOrderView', () => {
         }),
       ).toBeOnTheScreen();
 
-      const placeOrderButton = await screen.findByTestId(
-        PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+      fireEvent.press(
+        await waitForEnabledPlaceOrderButton(
+          PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON,
+        ),
       );
-      await waitFor(() => {
-        expect(placeOrderButton).not.toBeDisabled();
-      });
-      fireEvent.press(placeOrderButton);
 
       await waitFor(() => {
         const placeOrders = sizeUnitEvents(
@@ -2132,13 +2283,7 @@ describe('PerpsOrderView', () => {
       await waitForDeferredOrderData();
       emitEthPrice(stream);
 
-      const placeOrderButton = await screen.findByTestId(
-        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
-      );
-      await waitFor(() => {
-        expect(placeOrderButton).not.toBeDisabled();
-      });
-      fireEvent.press(placeOrderButton);
+      fireEvent.press(await waitForEnabledPlaceOrderButton());
 
       await waitFor(() => {
         const placeOrders = sizeUnitEvents(

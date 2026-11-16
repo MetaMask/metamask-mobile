@@ -14,6 +14,7 @@ import Animated, {
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
+import ShareButtonSpinner from '../../components/ShareButtonSpinner';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 import { useSelector } from 'react-redux';
 import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
@@ -38,6 +39,8 @@ export interface TraderPositionAnimatedHeaderProps {
   onBack: () => void;
   onTraderPress: () => void;
   onShare?: () => void;
+  /** Shows a spinner in place of the share button while the link is made. */
+  isSharing?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -75,6 +78,7 @@ const TraderPositionAnimatedHeader: React.FC<
   onBack,
   onTraderPress,
   onShare,
+  isSharing = false,
 }) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const compactTokenProgress = useDerivedValue(() => {
@@ -125,7 +129,12 @@ const TraderPositionAnimatedHeader: React.FC<
         testID: TraderPositionViewSelectorsIDs.BACK_BUTTON,
       }}
       endAccessory={
-        onShare ? (
+        onShare && isSharing ? (
+          <ShareButtonSpinner
+            isCapsule={isGlassHeader}
+            testID={TraderPositionViewSelectorsIDs.SHARE_SPINNER}
+          />
+        ) : onShare ? (
           <ButtonIconGlass
             isCapsule={isGlassHeader}
             iconName={IconName.Share}

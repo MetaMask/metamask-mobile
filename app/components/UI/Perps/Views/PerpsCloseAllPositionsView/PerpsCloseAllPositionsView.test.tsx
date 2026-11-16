@@ -13,6 +13,11 @@ import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 // Mock all dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
 }));

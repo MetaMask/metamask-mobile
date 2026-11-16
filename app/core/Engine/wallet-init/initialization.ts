@@ -28,6 +28,8 @@ import {
 } from './instance-options/analytics-controller';
 import { getAnalyticsControllerInitMessenger } from './messengers/analytics-controller-messenger';
 import { setupAnalyticsControllerListeners } from './listeners/analytics-controller';
+import { getGeolocationApiServiceInstanceOptions } from './instance-options/geolocation-api-service';
+import { fetchInitialGeolocation } from './listeners/geolocation-controller';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -90,6 +92,7 @@ export function initializeWallet({
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
       gasFeeController: getGasFeeControllerInstanceOptions(),
+      geolocationApiService: getGeolocationApiServiceInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
       permissionController: getPermissionControllerInstanceOptions(
@@ -120,7 +123,13 @@ export function initializeWallet({
     getAnalyticsControllerInitMessenger(messenger),
   );
 
+  // `wallet.init()` also runs `NetworkEnablementController.init()`, which
+  // reads `MultichainNetworkController:getState`. Mobile registers that
+  // controller after the wallet, so Engine calls
+  // `NetworkEnablementController.init()` again once it exists.
   wallet.init().catch((error: unknown) => console.error(error));
+
+  fetchInitialGeolocation(wallet.getInstance('GeolocationController'));
 
   return wallet;
 }

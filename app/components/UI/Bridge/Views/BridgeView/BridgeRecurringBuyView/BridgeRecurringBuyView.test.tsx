@@ -3,10 +3,12 @@ import { fireEvent } from '@testing-library/react-native';
 import {
   FeatureId,
   MetaMetricsSwapsEventSource,
+  MetricsSwapType,
 } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { createBridgeTestState } from '../../../testUtils';
@@ -146,6 +148,20 @@ const destToken = {
   symbol: 'USDC',
 };
 
+const mockActiveQuote = {
+  quote: {
+    requestId: 'quote-1',
+    aggregator: 'lifi',
+    protocols: ['uniswap'],
+    gasIncluded: true,
+    gasIncluded7702: false,
+    dest: { usd: '99.5' },
+    feeData: { network: [{ usd: '0.42' }] },
+    priceData: { priceImpact: { amount: '0.0031' } },
+  },
+  estimatedProcessingTimeInSeconds: 90,
+};
+
 const expectAdvancedOrderProperties = (
   event: { category: string },
   properties: {
@@ -153,7 +169,7 @@ const expectAdvancedOrderProperties = (
     feature_id: FeatureId;
     order_type: OrderType;
     error?: string;
-  },
+  } & Record<string, unknown>,
 ) => {
   const { createEventBuilder } = useAnalytics();
 
@@ -175,7 +191,7 @@ describe('BridgeRecurringBuyView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useBridgeQuoteDataContext).mockReturnValue({
-      activeQuote: { quote: { requestId: 'quote-1' } },
+      activeQuote: mockActiveQuote,
       isLoading: false,
     } as never);
     jest.mocked(useRecurringOrders).mockReturnValue({
@@ -244,9 +260,45 @@ describe('BridgeRecurringBuyView', () => {
     fireEvent.press(getByTestId('preview-order'));
 
     expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED, {
+      chain_id_source: 'eip155:1',
+      chain_id_destination: 'eip155:10',
+      token_symbol_source: 'ETH',
+      token_symbol_destination: 'USDC',
+      token_address_source: 'eip155:1/slip44:60',
+      token_address_destination:
+        'eip155:10/erc20:0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+      token_security_type_destination: null,
+      swap_type: MetricsSwapType.CROSSCHAIN,
+      provider: 'lifi_uniswap',
+      usd_quoted_gas: 0.42,
+      usd_quoted_return: 99.5,
+      quoted_time_minutes: 1.5,
+      gas_included: true,
+      gas_included_7702: false,
+      price_impact: 0.0031,
       location: 'Bottom Nav Bar',
       feature_id: FeatureId.RECURRING_ORDER,
       order_type: OrderType.SELL_BELOW,
+    });
+  });
+
+  it('hands the entry point location to the confirmation modal', () => {
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      {
+        state: createBridgeTestState({
+          bridgeReducerOverrides: { sourceToken, destToken },
+        }),
+      },
+    );
+
+    fireEvent.press(getByTestId('preview-order'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
+      params: { location: MetaMetricsSwapsEventSource.BottomNavBar },
     });
   });
 

@@ -34,7 +34,7 @@ jobs:
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
-        'namespace-profile-metamask-android-e2e-small' ||
+        'namespace-profile-metamask-android-e2e' ||
         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]')
       }}
     env:

@@ -38,6 +38,8 @@ export type DeeplinkResolveResult = DeeplinkIntent | false | null;
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
  * with link.metamask.io/$deeplink_path while preserving the original query string.
+ * A query on `$deeplink_path` itself (e.g. `social/profile?traderId=…`) fills
+ * the keys that string does not already have.
  */
 export function rewriteBranchUri(
   uri: string | undefined,
@@ -50,8 +52,23 @@ export function rewriteBranchUri(
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+    const queryStart = rawPath.indexOf('?');
+    const path = queryStart === -1 ? rawPath : rawPath.slice(0, queryStart);
     // Set the pathname to the sanitized $deeplink_path
-    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    parsed.pathname = `/${path.replace(/^\//, '')}`;
+    // A Branch short link's own query does not carry the route's ids (e.g. a
+    // shared trader's traderId and positionId); the share flow puts them on
+    // $deeplink_path. Copy only keys the short link does not already have, so
+    // an existing query such as a swap amount stays as it was.
+    if (queryStart !== -1) {
+      new URLSearchParams(rawPath.slice(queryStart + 1)).forEach(
+        (value, key) => {
+          if (!parsed.searchParams.has(key)) {
+            parsed.searchParams.set(key, value);
+          }
+        },
+      );
+    }
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);

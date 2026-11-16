@@ -25,6 +25,7 @@ patches/unicode-confusables+0.1.1.patch                     @MetaMask/mobile-pla
 .yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch        @MetaMask/mobile-platform
 .yarn/patches/react-native-aes-crypto-npm-3.0.3-54851d7260.patch           @MetaMask/mobile-platform
 .yarn/patches/react-native-crypto-npm-2.2.1-2210e7481d.patch               @MetaMask/mobile-platform
+.yarn/patches/react-native-keychain-npm-10.0.0-66d5ef899d.patch            @MetaMask/mobile-platform
 .yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch          @MetaMask/mobile-platform
 .yarn/patches/react-native-nitro-websockets-npm-1.0.3-fb47e9a867.patch     @MetaMask/mobile-platform
 .yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch          @MetaMask/mobile-platform
@@ -493,6 +494,7 @@ app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask
 app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/analytics-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/geolocation-api-service* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/listeners/ @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/messengers/analytics-controller-messenger* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations

@@ -6,28 +6,41 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+  type ListRenderItemInfo,
+} from '@shopify/flash-list';
 import React, {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, type View, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useComposedEventHandler,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialContentState } from '../../../../util/social/socialPerformance';
 import { useSocialProfileId } from '../../../../util/social/useSocialProfileId';
 import { useTheme } from '../../../../util/theme';
+import { usePendingPostsOverlay } from '../../../Views/SocialLeaderboard/pendingPosts/usePendingPostsOverlay';
 import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
+import { SOCIAL_FEED_REVEAL_BATCH_SIZE } from '../data/socialFeedRealtime';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -41,9 +54,9 @@ import {
 import { getFeedItemId } from '../utils/feedItemId';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
-  FEED_ROW_LAYOUT_TRANSITION,
-  FEED_ROW_LAYOUT_TRANSITION_LOW,
   createFeedItemEntryScheduler,
+  FEED_ITEM_ENTRY_DURATION_MS,
+  FEED_ROW_SLIDE_MS_LOW,
 } from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type {
@@ -65,30 +78,85 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
 
-/** How often relative post ages ("3 min ago") are recomputed. */
-const AGE_TICK_MS = 60_000;
-
 /** Hold the refresh spinner for a beat so a fast refetch does not flicker. */
 export const REFRESH_MIN_DURATION_MS = 1000;
 
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
 
-/** FlatList window: rows rendered up front and screens kept mounted. */
-const LIST_WINDOW = {
-  default: { initialNumToRender: 6, windowSize: 5 },
-  low: { initialNumToRender: 4, windowSize: 3 },
+const LIST_DRAW_DISTANCE = {
+  default: 400,
+  low: 200,
 } as const;
 
-/**
- * Rows FlatList adds per render pass. A post inserted at the top leaves the
- * row that drops out of the window with a stale measurement, and the list
- * renders one extra batch past its window until the rows are re-measured, then
- * unmounts it. One row keeps that churn to a single card per insertion.
- */
-const MAX_TO_RENDER_PER_BATCH = 1;
+const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
+
+const FeedCellSlideDurationContext = createContext(FEED_ITEM_ENTRY_DURATION_MS);
+
+export const shouldSlideFeedCell = (
+  indexDelta: number,
+  topDelta: number,
+): boolean => indexDelta <= SOCIAL_FEED_REVEAL_BATCH_SIZE && topDelta > 0.5;
+
+const FeedFlashListCell = React.forwardRef<
+  View,
+  React.PropsWithChildren<{ index: number; style?: ViewStyle }>
+>(({ index, style, children, ...rest }, ref) => {
+  const duration = useContext(FeedCellSlideDurationContext);
+  const { top: layoutTop, ...cellStyle } = style ?? {};
+  const targetTop = typeof layoutTop === 'number' ? layoutTop : 0;
+  const top = useSharedValue(targetTop);
+  const placedRef = useRef(false);
+  const previousIndexRef = useRef(index);
+
+  useLayoutEffect(() => {
+    const indexDelta = Math.abs(index - previousIndexRef.current);
+    const topDelta = Math.abs(targetTop - top.value);
+    previousIndexRef.current = index;
+    if (!placedRef.current) {
+      placedRef.current = true;
+      top.value = targetTop;
+      return;
+    }
+    top.value = shouldSlideFeedCell(indexDelta, topDelta)
+      ? withSpring(targetTop, { duration, dampingRatio: 1 })
+      : targetTop;
+  }, [duration, index, targetTop, top]);
+
+  const animatedPosition = useAnimatedStyle(() => ({ top: top.value }));
+
+  return (
+    <Animated.View ref={ref} {...rest} style={[cellStyle, animatedPosition]}>
+      {children}
+    </Animated.View>
+  );
+});
+
+FeedFlashListCell.displayName = 'FeedFlashListCell';
 
 const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
+const NO_LIST_ITEMS: SocialFeedListItem[] = [];
+
+type SocialFeedFlashListProps = FlashListProps<SocialFeedListItem> & {
+  ref?: React.Ref<FlashListRef<SocialFeedListItem>>;
+};
+
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList as unknown as React.ComponentType<SocialFeedFlashListProps>,
+) as unknown as React.ComponentType<SocialFeedFlashListProps>;
+
+export const getSocialFeedListItemType = (item: SocialFeedListItem): string => {
+  switch (item.kind) {
+    case 'post':
+      return `post-${item.post.item.variant}`;
+    case 'inline':
+      return `inline-${item.row.key}`;
+    case 'placeholder':
+      return 'placeholder';
+    default:
+      return item satisfies never;
+  }
+};
 
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
@@ -131,6 +199,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  analyticsEnabled,
   showMockedFields,
   isActive,
   title,
@@ -139,10 +208,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   emptyState,
   realtime = false,
   paused = false,
+  pendingPostsSurface,
+  comparePosts,
   inlineRows = NO_INLINE_ROWS,
   onRefresh,
+  onListStateChange,
   performance,
   onScroll,
+  enabled = true,
+  refreshProgressViewOffset,
   pageRef,
   onAuthorPress,
   onCopyTrade,
@@ -159,16 +233,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const { profileId: viewerProfileId } = useSocialProfileId();
   const livePrices = useSocialLivePrices();
   const { isEntryHidden } = useSocialEntryModeration();
-  const listRef = useRef<Animated.FlatList<SocialFeedListItem>>(null);
+  const listRef = useRef<FlashListRef<SocialFeedListItem>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [clock, setClock] = useState(() => Date.now());
-  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
   const isOffline = networkTier === 'NONE';
-  const listWindow = isLowHardware ? LIST_WINDOW.low : LIST_WINDOW.default;
+  const drawDistance = isLowHardware
+    ? LIST_DRAW_DISTANCE.low
+    : LIST_DRAW_DISTANCE.default;
 
   const query = useMemo(
     (): SocialFeedQuery => ({
@@ -201,7 +275,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     dataUpdatedAt,
     realtime: live,
   } = useSocialFeed(query, {
-    enabled: isFocused && !isOffline,
+    enabled: isFocused && !isOffline && enabled,
     realtime,
     paused,
     nearTop,
@@ -220,19 +294,36 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     isActive,
   );
 
-  const visiblePosts = useMemo(
-    () =>
-      posts.filter(
-        (post) =>
-          !isEntryHidden({
-            postId: post.id,
-            authorId: post.item.author.id,
-            authorHandle: post.authorHandle,
-            commentId: post.commentId,
-          }),
-      ),
-    [isEntryHidden, posts],
-  );
+  // The socket brings the post in, so this feed never polls for it. A feed
+  // without a pending surface passes its posts through (Following pins none).
+  const pendingOverlay = usePendingPostsOverlay({
+    surface: pendingPostsSurface ?? 'following',
+    ownerProfileId: pendingPostsSurface ? viewerProfileId : undefined,
+    serverPosts: posts,
+    refetch: refresh,
+    isActive,
+    refetchUntilServed: false,
+  });
+  const { pinnedPosts, refresh: refreshWithPendingPosts } = pendingOverlay;
+  const overlaidPosts = pendingOverlay.posts;
+  // Pinned posts stay on top; only the feed's own posts are reordered.
+  const visiblePosts = useMemo(() => {
+    const isShown = (post: SocialV1FeedPost) =>
+      !isEntryHidden({
+        postId: post.id,
+        authorId: post.item.author.id,
+        authorHandle: post.authorHandle,
+        commentId: post.commentId,
+      });
+    const shownPinned = (
+      filterPost ? pinnedPosts.filter(filterPost) : pinnedPosts
+    ).filter(isShown);
+    const shown = overlaidPosts.filter(isShown);
+    return [
+      ...shownPinned,
+      ...(comparePosts ? shown.sort(comparePosts) : shown),
+    ];
+  }, [comparePosts, filterPost, isEntryHidden, overlaidPosts, pinnedPosts]);
   const { showSkeleton, showEmpty, showRetry } = getSocialFeedListState({
     postCount: visiblePosts.length,
     // Offline, the query is off: placeholders until a first page exists,
@@ -244,6 +335,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     () => ({ showSkeleton, showEmpty, showRetry }),
     [showEmpty, showRetry, showSkeleton],
   );
+  useEffect(() => {
+    onListStateChange?.(state);
+  }, [onListStateChange, state]);
 
   const firstPageSettled = dataUpdatedAt !== undefined || Boolean(error);
   const showInlineRows =
@@ -300,11 +394,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     setRefreshing(true);
     try {
       onRefresh?.();
-      await Promise.all([refresh(), waitForMinimumRefresh()]);
+      await Promise.all([
+        enabled ? refreshWithPendingPosts() : undefined,
+        waitForMinimumRefresh(),
+      ]);
     } finally {
       setRefreshing(false);
     }
-  }, [onRefresh, refresh]);
+  }, [enabled, onRefresh, refreshWithPendingPosts]);
 
   const revealPending = live?.revealPending;
   const handleRevealPending = useCallback(async () => {
@@ -355,12 +452,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const entrances = live?.entrances;
   const lastIndex = listItems.length - 1;
   const renderItem = useCallback(
-    ({ item, index }: { item: SocialFeedListItem; index: number }) => {
+    ({ item, index }: ListRenderItemInfo<SocialFeedListItem>) => {
+      const itemKey = getSocialFeedListItemKey(item);
       const dividerTestID =
         index < lastIndex
-          ? getSocialV1FeedEntryDividerTestId(
-              `${location}-${getSocialFeedListItemKey(item)}`,
-            )
+          ? getSocialV1FeedEntryDividerTestId(`${location}-${itemKey}`)
           : undefined;
       switch (item.kind) {
         case 'post':
@@ -376,7 +472,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               onAuthorPress={onAuthorPress}
               onCopyTrade={onCopyTrade}
               onPositionPress={handlePositionPress}
-              now={clock}
               viewerProfileId={viewerProfileId}
             />
           );
@@ -396,7 +491,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       }
     },
     [
-      clock,
       emptyState,
       entrances,
       isLowHardware,
@@ -432,6 +526,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      analyticsEnabled={analyticsEnabled}
       showMockedFields={showMockedFields}
     >
       <SocialFeedRealtimeContext.Provider value={realtimeState}>
@@ -444,60 +539,70 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               performance={performance.context}
             />
           ) : null}
-          <Animated.FlatList
-            ref={listRef}
-            data={listItems}
-            renderItem={renderItem}
-            keyExtractor={getSocialFeedListItemKey}
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-grow pb-8')}
-            showsVerticalScrollIndicator={false}
-            initialNumToRender={listWindow.initialNumToRender}
-            maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
-            windowSize={listWindow.windowSize}
-            itemLayoutAnimation={
+          <FeedCellSlideDurationContext.Provider
+            value={
               isLowHardware
-                ? FEED_ROW_LAYOUT_TRANSITION_LOW
-                : FEED_ROW_LAYOUT_TRANSITION
+                ? FEED_ROW_SLIDE_MS_LOW
+                : FEED_ITEM_ENTRY_DURATION_MS
             }
-            onScroll={scrollHandler}
-            scrollEventThrottle={16}
-            onMomentumScrollEnd={handleScrollSettled}
-            onScrollEndDrag={handleScrollSettled}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            refreshControl={
-              <RefreshControl
-                colors={[colors.primary.default]}
-                tintColor={colors.icon.default}
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-            ListHeaderComponent={header}
-            ListEmptyComponent={
-              <SocialFeedPlaceholder
-                state={state}
-                skeletonCount={
-                  isLowHardware || isOffline
-                    ? CONSTRAINED_SKELETON_COUNT
-                    : undefined
-                }
-                emptyState={emptyState}
-              />
-            }
-            ListFooterComponent={
-              <SocialFeedFooter
-                state={state}
-                isFetchingNextPage={isFetchingNextPage}
-                onRetry={() => refresh()}
-              />
-            }
-            testID={scrollTestID}
-          />
+          >
+            <AnimatedFlashList
+              ref={listRef}
+              data={enabled ? listItems : NO_LIST_ITEMS}
+              renderItem={renderItem}
+              keyExtractor={getSocialFeedListItemKey}
+              CellRendererComponent={FeedFlashListCell}
+              getItemType={getSocialFeedListItemType}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('flex-grow pb-8')}
+              showsVerticalScrollIndicator={false}
+              drawDistance={drawDistance}
+              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
+              onScroll={scrollHandler}
+              scrollEventThrottle={16}
+              onMomentumScrollEnd={handleScrollSettled}
+              onScrollEndDrag={handleScrollSettled}
+              onEndReached={enabled ? loadMore : undefined}
+              onEndReachedThreshold={0.5}
+              refreshControl={
+                <RefreshControl
+                  colors={[colors.primary.default]}
+                  tintColor={colors.icon.default}
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  progressViewOffset={refreshProgressViewOffset}
+                />
+              }
+              ListHeaderComponent={header}
+              ListEmptyComponent={
+                enabled ? (
+                  <SocialFeedPlaceholder
+                    state={state}
+                    skeletonCount={
+                      isLowHardware || isOffline
+                        ? CONSTRAINED_SKELETON_COUNT
+                        : undefined
+                    }
+                    emptyState={emptyState}
+                  />
+                ) : null
+              }
+              ListFooterComponent={
+                enabled ? (
+                  <SocialFeedFooter
+                    state={state}
+                    isFetchingNextPage={isFetchingNextPage}
+                    onRetry={() => refresh()}
+                  />
+                ) : null
+              }
+              testID={scrollTestID}
+            />
+          </FeedCellSlideDurationContext.Provider>
           <Box
             pointerEvents="box-none"
-            twClassName="absolute top-5 left-0 right-0 items-center"
+            // Clips the glass pill while it is parked above the feed.
+            twClassName="absolute top-0 left-0 right-0 items-center overflow-hidden pt-5 pb-4"
           >
             <PendingPostsButton
               pendingNewCount={pendingNewCount}

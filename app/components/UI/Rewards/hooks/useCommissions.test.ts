@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -108,6 +108,42 @@ describe('useCommissions', () => {
 
   it('does not fetch when disabled', async () => {
     renderHook(() => useCommissions(PROFILE_A, { enabled: false }));
+    await flushPromises();
+
+    expect(mockEngineCall).not.toHaveBeenCalled();
+  });
+
+  it('asks for a failed later page again only once', async () => {
+    mockEngineCall.mockResolvedValueOnce({
+      ...page,
+      has_more: true,
+      cursor: 'cursor-2',
+    });
+
+    const { result } = renderHook(() => useCommissions(PROFILE_A));
+
+    await waitFor(() => {
+      expect(result.current.items).not.toBeNull();
+    });
+
+    mockEngineCall.mockRejectedValue(new Error('boom'));
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(60_000);
+      });
+
+      expect(mockEngineCall).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not fetch without a profile', async () => {
+    renderHook(() => useCommissions(undefined));
     await flushPromises();
 
     expect(mockEngineCall).not.toHaveBeenCalled();

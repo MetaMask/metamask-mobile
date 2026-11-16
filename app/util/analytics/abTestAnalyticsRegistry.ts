@@ -1,7 +1,6 @@
 import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
-import { GASLESS_SWAP_REDESIGN_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/QuoteDetailsCard/abTestConfig';
 import {
   HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
@@ -12,7 +11,7 @@ import {
 } from '../../components/Views/Homepage/abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
@@ -41,7 +40,6 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Swaps
   SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING,
   CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING,
-  GASLESS_SWAP_REDESIGN_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage
   HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING,
@@ -61,7 +59,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Quick Buy
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING,

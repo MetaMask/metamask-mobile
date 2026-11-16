@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { darkTheme } from '@metamask/design-tokens';
 import Routes from '../../../constants/navigation/Routes';
 import { slideFromRightNativeOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
-import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';

@@ -255,23 +255,6 @@ const extractSellProperties = (
 };
 
 /**
- * Extract properties specific to HOME route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractHomeProperties = (
-  urlParams: UrlParamValues,
-  sensitiveProps: Record<string, string>,
-): void => {
-  // HOME route only extracts previewToken, not common transaction properties
-  addPropertyIfExists(
-    sensitiveProps,
-    'previewToken',
-    getStringValue(urlParams, 'previewToken'),
-  );
-};
-
-/**
  * Extract properties specific to ASSET route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -468,7 +451,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
-  [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.HOME]: extractInvalidProperties,
   [DeepLinkRoute.ASSET]: extractAssetProperties,
   [DeepLinkRoute.DAPP]: extractDappProperties,
   [DeepLinkRoute.WC]: extractWcProperties,

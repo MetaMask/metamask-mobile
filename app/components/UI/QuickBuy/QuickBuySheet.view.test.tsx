@@ -209,17 +209,18 @@ describeForPlatforms('QuickBuySheet', () => {
     });
   });
 
-  it('shows the estimated receive row after a gasless quote loads', async () => {
+  it('shows the estimated receive row without a gas badge after a gasless quote loads', async () => {
     const screen = renderQuickBuySheet();
 
     await selectQuarterBuy(screen);
 
     await waitFor(
       () => {
-        expect(screen.getByText('-$2 for gas')).toBeOnTheScreen();
+        expect(screen.getByTestId('quick-buy-rate-tag')).toBeOnTheScreen();
       },
       { timeout: WAIT_MS },
     );
+    expect(screen.queryByText('-$2 for gas')).not.toBeOnTheScreen();
   });
 
   it('enables confirm when a valid amount and quote are available', async () => {

@@ -33,7 +33,7 @@ export const createStyles = ({ colors, typography }: Theme) =>
     row: {
       flexDirection: 'row',
       minWidth: '100%',
-      paddingVertical: 5,
+      paddingVertical: 4,
       gap: 16,
     },
     badgeWrapper: {

@@ -1,17 +1,22 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { InteractionManager, LayoutAnimation, Platform } from 'react-native';
+import { InteractionManager, Platform } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 import Alert, { AlertType } from '../../../../Base/Alert';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { useSelector } from 'react-redux';
-import { FORMATTED_NETWORK_NAMES } from '../../../../../constants/on-ramp';
 import NotificationManager from '../../../../../core/NotificationManager';
 import { useTheme } from '../../../../../util/theme';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
+import {
+  parseCaipChainId,
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
 import {
@@ -20,17 +25,10 @@ import {
   ButtonSize,
   Box,
   Text,
-  TextFieldSearch,
 } from '@metamask/design-system-react-native';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
-import {
-  CaipAssetType,
-  CaipChainId,
-  Hex,
-  parseCaipAssetType,
-} from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -39,8 +37,9 @@ import {
   getAssetsBalance,
   getCustomAssets,
 } from '../../../../../selectors/assets/assets-controller';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { getCaipChainIdFromAssetId } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
+import { useNetworkName } from '../../../../UI/Trending/hooks/useNetworkName/useNetworkName';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import {
   PriceChangeOption,
@@ -48,6 +47,7 @@ import {
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import {
   convertTrendingAssetsToImporAssets,
+  getImportAssetKey,
   ImportAsset,
 } from '../../utils/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -55,7 +55,7 @@ import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import useAssetVisibility, {
   type UseAssetVisibilityReturn,
 } from '../../../../UI/TokenDetails/components/useAssetVisibility';
-import { filterExcludedImportAssets } from '../../../../../enablement/assets/networks-customization';
+import { isExcludedImportAsset } from '../../../../../enablement/assets/networks-customization';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface Props {
@@ -63,19 +63,29 @@ interface Props {
 	/* navigation object required to push new views
 	*/
   navigation: AppNavigationProp;
-  tabLabel: string;
 
   /**
-   * The selected network chain ID
+   * Network to search in. `null` means all networks.
    */
-  selectedChainId: SupportedCaipChainId | Hex | null;
+  selectedChainId: CaipChainId | null;
+
+  /**
+   * Search query owned by the parent screen's search field
+   */
+  searchQuery: string;
+
+  /**
+   * Whether the user is searching (hides the detection banner)
+   */
+  isSearching?: boolean;
+
+  /**
+   * Opens the custom token screen from the empty state
+   */
+  onAddCustomToken?: () => void;
 }
 
-/**
- * Address key used by SearchTokenResults for already-added checks.
- * Non-EVM import assets use the CAIP-19 id as `address`; EVM uses the
- * contract address extracted from the CAIP asset id.
- */
+// Non-EVM import assets use the full CAIP-19 id as `address`, EVM the contract.
 function addressKeyFromAssetId(
   assetId: string,
   isNonEvm: boolean,
@@ -89,15 +99,6 @@ function addressKeyFromAssetId(
     ).assetReference.toLowerCase();
   } catch {
     return undefined;
-  }
-}
-
-function assetIdBelongsToChain(assetId: string, caipChainId: string): boolean {
-  try {
-    const { chain } = parseCaipAssetType(assetId as CaipAssetType);
-    return `${chain.namespace}:${chain.reference}` === caipChainId;
-  } catch {
-    return false;
   }
 }
 
@@ -143,16 +144,25 @@ async function addSingleToken(
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
+const SearchTokenAutocomplete = ({
+  navigation,
+  selectedChainId,
+  searchQuery,
+  isSearching = false,
+  onAddCustomToken,
+}: Props) => {
   const tw = useTailwind();
+  const selectedChainIds = useMemo(
+    () => (selectedChainId ? [selectedChainId] : null),
+    [selectedChainId],
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch search results from the API based on user's search query.
   // Debouncing and loading state (including debounce period) are handled
   // internally by useSearchRequest.
   const { data: apiResults, isLoading } = useTrendingSearch({
-    chainIds: selectedChainId ? [formatChainIdToCaip(selectedChainId)] : [],
+    chainIds: selectedChainIds,
     searchQuery,
     sortBy: 'h24_trending',
     includeMarketData: false,
@@ -166,19 +176,17 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
   // Convert API search results to ImportAsset format, hiding excluded
   // homonym ERC-20s (e.g. Arc USDC) which duplicate the native gas token.
-  const allTokens = useMemo(() => {
-    if (!selectedChainId) return [];
-
-    return filterExcludedImportAssets(
-      convertTrendingAssetsToImporAssets(apiResults),
-      selectedChainId,
-    );
-  }, [apiResults, selectedChainId]);
+  const allTokens = useMemo(
+    () =>
+      convertTrendingAssetsToImporAssets(apiResults).filter(
+        (token) => !isExcludedImportAsset(token),
+      ),
+    [apiResults],
+  );
 
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const { colors, themeAppearance } = useTheme();
+  const { colors } = useTheme();
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
 
@@ -192,61 +200,55 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   const assetsBalance = useSelector(getAssetsBalance);
   const assetPreferences = useSelector(getAssetPreferences);
 
-  // Create a Set of already added token addresses for quick lookup, sourced
-  // from AssetsController (custom + detected, excluding hidden).
+  // Already added tokens (custom + detected, not hidden), keyed by chain and address.
   const alreadyAddedTokens = useMemo(() => {
-    const addresses = new Set<string>();
+    const keys = new Set<string>();
+    const scope = selectedChainIds ? new Set<string>(selectedChainIds) : null;
 
-    // Native tokens are always "added" since they're inherent to the chain
-    addresses.add(NATIVE_SWAPS_TOKEN_ADDRESS.toLowerCase());
-
-    if (!selectedChainId) {
-      return addresses;
-    }
-
-    const caipChainId = formatChainIdToCaip(selectedChainId);
-    const account = selectInternalAccountByScope(
-      caipChainId as SupportedCaipChainId,
-    );
-    if (!account?.id) {
-      return addresses;
-    }
-
-    const isNonEvm = isNonEvmChainId(selectedChainId);
-    const presentAssetIds = new Set<string>([
-      ...(customAssets[account.id] ?? []),
-      ...Object.keys(assetsBalance[account.id] ?? {}),
+    const accountIds = new Set([
+      ...Object.keys(customAssets),
+      ...Object.keys(assetsBalance),
     ]);
 
-    presentAssetIds.forEach((assetId) => {
-      if (!assetIdBelongsToChain(assetId, caipChainId)) {
-        return;
-      }
-      if (assetPreferences[assetId as CaipAssetType]?.hidden === true) {
-        return;
-      }
-      const addressKey = addressKeyFromAssetId(assetId, isNonEvm);
-      if (addressKey) {
-        addresses.add(addressKey);
-      }
+    accountIds.forEach((accountId) => {
+      const assetIds = new Set<string>([
+        ...(customAssets[accountId] ?? []),
+        ...Object.keys(assetsBalance[accountId] ?? {}),
+      ]);
+
+      assetIds.forEach((assetId) => {
+        const caipChainId = getCaipChainIdFromAssetId(assetId);
+        if (scope && !scope.has(caipChainId)) {
+          return;
+        }
+        // Only the account that owns this chain's assets counts.
+        const account = selectInternalAccountByScope(
+          caipChainId as SupportedCaipChainId,
+        );
+        if (account?.id !== accountId) {
+          return;
+        }
+        if (assetPreferences[assetId as CaipAssetType]?.hidden === true) {
+          return;
+        }
+        const addressKey = addressKeyFromAssetId(
+          assetId,
+          isNonEvmChainId(caipChainId),
+        );
+        if (addressKey) {
+          keys.add(getImportAssetKey(caipChainId, addressKey));
+        }
+      });
     });
 
-    return addresses;
+    return keys;
   }, [
-    selectedChainId,
+    selectedChainIds,
     customAssets,
     assetsBalance,
     assetPreferences,
     selectInternalAccountByScope,
   ]);
-
-  const setFocusState = useCallback(
-    (isFocused: boolean) => {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setIsSearchFocused(isFocused);
-    },
-    [setIsSearchFocused],
-  );
 
   const getTokenAddedAnalyticsParams = useCallback(
     ({
@@ -278,30 +280,20 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     [],
   );
 
-  const handleSelectAsset = useCallback(
-    (asset: ImportAsset) => {
-      const assetAddressLower = asset.address.toLowerCase();
+  const handleSelectAsset = useCallback((asset: ImportAsset) => {
+    const assetKey = getImportAssetKey(asset.chainId, asset.address);
 
-      const newSelectedAsset = selectedAssets.reduce<ImportAsset[]>(
-        (filteredAssets, currentAsset) => {
-          const currentAssetAddressLower = currentAsset.address.toLowerCase();
-          if (currentAssetAddressLower === assetAddressLower) {
-            return filteredAssets;
-          }
-
-          return [...filteredAssets, currentAsset];
-        },
-        [],
-      );
-
-      if (newSelectedAsset.length === selectedAssets.length) {
-        newSelectedAsset.push(asset);
-      }
-
-      setSelectedAssets(newSelectedAsset);
-    },
-    [selectedAssets, setSelectedAssets],
-  );
+    setSelectedAssets((current) =>
+      current.some(
+        (item) => getImportAssetKey(item.chainId, item.address) === assetKey,
+      )
+        ? current.filter(
+            (item) =>
+              getImportAssetKey(item.chainId, item.address) !== assetKey,
+          )
+        : [...current, asset],
+    );
+  }, []);
 
   const addTokens = useCallback(async () => {
     if (selectedAssets.length === 0) {
@@ -369,12 +361,11 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     });
   }, [addTokens, selectedAssets]);
 
-  const networkName = useSelector(selectNetworkName);
+  const networkName = useNetworkName(selectedChainIds);
 
   const goToConfirmAddToken = () => {
     navigation.navigate('ConfirmAddAsset', {
       selectedAsset: selectedAssets,
-      networkName,
       addTokenList,
     });
 
@@ -383,7 +374,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         .addProperties({
           source: 'manual',
           chain_id: selectedChainId
-            ? getDecimalChainId(selectedChainId)
+            ? getDecimalChainId(parseCaipChainId(selectedChainId).reference)
             : undefined,
         })
         .build(),
@@ -391,13 +382,13 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   };
 
   const renderTokenDetectionBanner = useCallback(() => {
-    if (isTokenDetectionEnabled || isSearchFocused) {
+    if (isTokenDetectionEnabled || isSearching || !selectedChainId) {
       return null;
     }
     return (
       <Alert
         type={AlertType.Info}
-        style={tw.style('mx-5 mt-5 pr-0')}
+        style={tw.style('mx-4 mt-3 pr-0')}
         renderIcon={() => (
           <FontAwesome
             style={tw.style('pt-1 pr-2')}
@@ -410,9 +401,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         <>
           <Text style={tw.style('text-default')}>
             {strings('add_asset.banners.search_desc', {
-              network: selectedChainId
-                ? FORMATTED_NETWORK_NAMES[selectedChainId]
-                : '',
+              network: networkName,
             })}
           </Text>
           <Text
@@ -434,11 +423,12 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     );
   }, [
     navigation,
-    isSearchFocused,
+    isSearching,
     isTokenDetectionEnabled,
+    selectedChainId,
+    networkName,
     colors,
     tw,
-    selectedChainId,
   ]);
 
   return (
@@ -446,43 +436,18 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       {renderTokenDetectionBanner()}
 
       <Box twClassName="flex-1">
-        <Box twClassName="m-4">
-          <Box testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
-            <TextFieldSearch
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onPressClearButton={() => setSearchQuery('')}
-              clearButtonProps={{
-                testID: ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
-              }}
-              inputProps={{
-                autoCapitalize: 'none',
-                keyboardAppearance: themeAppearance,
-                testID: ImportTokenViewSelectorsIDs.SEARCH_BAR,
-              }}
-              onFocus={() => setFocusState(true)}
-              onBlur={() => setFocusState(false)}
-              autoFocus={false}
-              placeholder={strings('token.search_tokens_placeholder')}
-              inputAccessibilityLabel={strings(
-                'token.search_tokens_placeholder',
-              )}
-            />
-          </Box>
-        </Box>
-
         <SearchTokenResults
           searchResults={allTokens}
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}
+          onAddCustomToken={onAddCustomToken}
         />
       </Box>
 
-      <Box style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}>
+      <Box style={tw.style('px-4 pt-3', Platform.OS !== 'android' && 'pb-4')}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

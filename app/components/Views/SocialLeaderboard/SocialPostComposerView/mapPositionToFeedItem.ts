@@ -112,6 +112,24 @@ const pnlSignSource = (
   return position.pnlValueUsd ?? position.pnlPercent ?? null;
 };
 
+const isPresentNumber = (value: number | null | undefined): value is number =>
+  value != null && Number.isFinite(value);
+
+/**
+ * Percent for a closed card. The positions API leaves `pnlPercent` null once
+ * there is no exposure left, so fall back the way the published card does:
+ * realized P&L over what was bought.
+ */
+const closedPnlPercent = (position: Position): number | null => {
+  if (position.pnlPercent != null) {
+    return position.pnlPercent;
+  }
+  if (!isPresentNumber(position.realizedPnl) || !position.boughtUsd) {
+    return null;
+  }
+  return (position.realizedPnl / position.boughtUsd) * 100;
+};
+
 /** Stand-in until the composer has a real authenticated social profile. */
 export const COMPOSER_FEED_AUTHOR: SocialV1FeedAuthor = {
   id: 'current-user',
@@ -162,7 +180,9 @@ export const mapPositionToFeedItem = (
   const isPerp = isPerpPosition(position);
   const pnlSource = pnlSignSource(position, closed);
   const isPnlPositive = pnlSource == null ? true : pnlSource >= 0;
-  const pnlLabel = formatPercent(position.pnlPercent);
+  const pnlLabel = formatPercent(
+    closed ? closedPnlPercent(position) : position.pnlPercent,
+  );
   const displaySymbol = position.tokenSymbol;
   const avatar = {
     positionId: position.positionId,

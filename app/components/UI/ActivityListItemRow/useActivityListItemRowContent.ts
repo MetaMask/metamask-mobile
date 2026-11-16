@@ -1193,7 +1193,7 @@ export function useActivityListItemRowContent(
     bridgeHistoryItem,
     counterpartyName,
     isMoneyAccountCounterparty,
-    cachedEvmTransaction?.transactionProtocol,
+    cachedEvmTransaction?.tx.transactionProtocol,
   );
 
   let basePrimaryToken: TokenAmount | undefined;

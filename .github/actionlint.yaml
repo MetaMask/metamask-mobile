@@ -27,7 +27,6 @@ self-hosted-runner:
     - "namespace-profile-metamask-ci-linux-small"
     - "namespace-profile-metamask-ci-linux-large"
     - "namespace-profile-metamask-android-e2e"
-    - "namespace-profile-metamask-android-e2e-small"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

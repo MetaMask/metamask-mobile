@@ -14,7 +14,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -98,10 +98,6 @@ import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { getSocialAccountType } from '../../../constants/onboarding';
-import { setDataCollectionForMarketing } from '../../../actions/security';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { analytics } from '../../../util/analytics/analytics';
 import {
   selectSeedlessOnboardingAuthConnection,
   selectSeedlessOnboardingUserId,
@@ -126,7 +122,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
-  const dispatch = useDispatch();
   const authConnection =
     useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const seedlessUserId = useSelector(selectSeedlessOnboardingUserId);
@@ -227,37 +222,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
     }
   }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
-
-  const syncMarketingOptInAfterUnlock = useCallback(async () => {
-    try {
-      const marketingOptInStatus = await OAuthService.getMarketingOptInStatus();
-      dispatch(setDataCollectionForMarketing(marketingOptInStatus.is_opt_in));
-      analytics.identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-          marketingOptInStatus.is_opt_in,
-        ),
-      });
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-        )
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-              marketingOptInStatus.is_opt_in,
-            ),
-            updated_after_onboarding: true,
-            location: 'oauth_rehydration',
-            account_type: getSocialAccountType(authConnection, true),
-          })
-          .build(),
-      );
-    } catch (err) {
-      Logger.error(
-        ensureError(err, 'Marketing opt-in sync failed'),
-        'OAuthRehydration',
-      );
-    }
-  }, [dispatch, authConnection]);
 
   const track = useCallback(
     (
@@ -648,9 +612,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
-      // run syncMarketingOptInAfterUnlock in the background
-      void syncMarketingOptInAfterUnlock();
-
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
       try {
@@ -691,7 +652,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     unlockWallet,
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
-    syncMarketingOptInAfterUnlock,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {

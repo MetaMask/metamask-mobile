@@ -27,7 +27,6 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -43,6 +42,7 @@ import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useInsufficientNativeReserveError } from '../../Bridge/hooks/useInsufficientNativeReserveError';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import { usePriceImpactViewData } from '../../Bridge/hooks/usePriceImpactViewData';
@@ -79,6 +79,7 @@ import {
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -125,6 +126,9 @@ const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
   typeof recordSocialTrade
 >;
 const mockResolvePostTradePrompt = jest.fn();
+const mockIsUnsupportedPostTradeAsset = jest.mocked(
+  isUnsupportedPostTradeAsset,
+);
 
 const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
@@ -261,9 +265,6 @@ export const setupDefaultMocks = () => {
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
-  (
-    selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-  ).mockReturnValue(false);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
@@ -324,6 +325,7 @@ export const setupDefaultMocks = () => {
   });
 
   mockUseIsInsufficientBalance.mockReturnValue(false);
+  (useInsufficientNativeReserveError as jest.Mock).mockReturnValue(undefined);
   mockUseHasSufficientGas.mockReturnValue(true);
   (
     selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
@@ -348,6 +350,7 @@ export const setupDefaultMocks = () => {
   });
   (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
   mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+  mockIsUnsupportedPostTradeAsset.mockReturnValue(false);
   (usePostTradePromptResolver as jest.Mock).mockReturnValue(
     mockResolvePostTradePrompt,
   );
@@ -1191,6 +1194,23 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.getButtonLabel()).toBe(
           'bridge.insufficient_funds',
         );
+      });
+
+      it('returns the native-reserve label and disables confirm when the amount eats the reserve', () => {
+        const { result, rerender, props } = settleQuote();
+        expect(result.current.isConfirmDisabled).toBe(false);
+
+        (useInsufficientNativeReserveError as jest.Mock).mockReturnValue({
+          minimumNativeBalanceToBeKeptInAccount: '3',
+          maxSwappableNativeBalance: '1',
+        });
+        rerender(props);
+
+        expect(result.current.buttonError).toBe('insufficient_native_reserve');
+        expect(result.current.getButtonLabel()).toBe(
+          'social_leaderboard.quick_buy.insufficient_native_reserve',
+        );
+        expect(result.current.isConfirmDisabled).toBe(true);
       });
 
       it('returns the insufficient-gas label when gas is short', () => {
@@ -3309,6 +3329,27 @@ export const runQuickBuyControllerCases = ({
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
         });
 
+        it('never opens the share sheet after signing a quote token trade', async () => {
+          mockIsUnsupportedPostTradeAsset.mockReturnValue(true);
+          mockResolvePostTradePrompt.mockReturnValue({
+            kind: 'share_sheet',
+            countKey: { address: '0xlinked', product: 'swap' },
+          });
+          const { confirmPromise, outcomeListenerId } =
+            await startHardwareWalletConfirm();
+
+          await act(async () => {
+            notifyHwSubmissionOutcome(outcomeListenerId, {
+              status: 'submitted',
+              transaction: { id: 'tx-1', hash: '0xhash' } as TransactionMeta,
+            });
+            await confirmPromise;
+          });
+
+          expect(getPostTradeShareSession()).toBeNull();
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
         it('posts the copy-trade intent before signing', async () => {
           await startHardwareWalletConfirm({
             commentId: '7f1a9c2e-5b8d-4e3f-9a6c-1d2e3f4a5b6c',
@@ -3713,6 +3754,55 @@ export const runQuickBuyControllerCases = ({
           );
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ caip19: expect.any(String) }),
+          );
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: false }),
+          );
+        });
+
+        it('marks trade submitted and completed as a copy trade with a copy-trade origin', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
+            undefined,
+            undefined,
+            undefined,
+            { commentId: 'comment-1' },
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+        });
+
+        it('marks a copy trade when the sheet was opened from Copy trade without a comment', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(createTarget(), jest.fn(), {
+            source: 'trader_feed',
+            traderAddress: '0xTRADER',
+            isCopyTrade: true,
+          });
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
           );
         });
 
@@ -4145,6 +4235,53 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('formats the share pair label with swap sheet decimals and grouping', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote(),
+              destTokenAmount: '1234.5678912345',
+            }),
+          );
+          (
+            Engine.context.BridgeStatusController.submitTx as jest.Mock
+          ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+          // The test i18n mock returns keys, so spy on the interpolation the
+          // pair label is built from. Restore in `finally` because the suite's
+          // `resetAllMocks` would otherwise leave the spy returning undefined.
+          const i18nMock = jest.requireMock('../../../../../locales/i18n');
+          const stringsSpy = jest.spyOn(i18nMock, 'strings');
+          try {
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              true,
+            );
+
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+
+            expect(stringsSpy).toHaveBeenCalledWith(
+              'bridge.post_trade_modal.trade_subtitle',
+              {
+                sourceAmount: '0.01',
+                sourceSymbol: 'ETH',
+                destAmount: '1,234.56789',
+                destSymbol: 'TARGET',
+              },
+            );
+          } finally {
+            stringsSpy.mockRestore();
+          }
+        });
+
         it('stores the copy-trade origin on the post-trade share session', async () => {
           mockUsableQuote();
           (
@@ -4157,7 +4294,7 @@ export const runQuickBuyControllerCases = ({
           const { result } = renderHook(
             createTarget(),
             jest.fn(),
-            undefined,
+            { source: 'trader_feed', traderAddress: '0xTRADER' },
             undefined,
             'buy',
             true,
@@ -4177,6 +4314,7 @@ export const runQuickBuyControllerCases = ({
             throw new Error('post-trade share session is not a spot session');
           }
           expect(session.copyTradeOrigin).toEqual(copyTradeOrigin);
+          expect(session.traderAddress).toBe('0xTRADER');
           expect(session.owner).toBe('social-v1-feed');
         });
 
@@ -4232,6 +4370,113 @@ export const runQuickBuyControllerCases = ({
             theme: expect.any(Object),
           });
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        describe('in-flight preview entry', () => {
+          const submitWithPostTradeShare = async (
+            tradeMode: 'buy' | 'sell',
+            analyticsContext: QuickBuyAnalyticsContext,
+          ) => {
+            mockUsableQuote();
+            (
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              analyticsContext,
+              undefined,
+              tradeMode,
+              true,
+            );
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+            return result;
+          };
+
+          it('uses the token USD market price as the buy preview entry', async () => {
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+              tokenPriceFiat: 0.006235,
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  side: 'buy',
+                  entryPriceLabel: '$0.006235',
+                }),
+              }),
+            );
+          });
+
+          it('converts the buy token price from the user currency to USD', async () => {
+            (selectCurrencyRates as unknown as jest.Mock).mockReturnValue({
+              ETH: { conversionRate: 1000, usdConversionRate: 1200 },
+            });
+
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+              tokenPriceFiat: 0.006235,
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({
+                  entryPriceLabel: '$0.007482',
+                }),
+              }),
+            );
+          });
+
+          it('leaves the buy preview entry empty without a token price', async () => {
+            await submitWithPostTradeShare('buy', {
+              source: 'profile_position',
+            });
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                preview: expect.objectContaining({ side: 'buy' }),
+              }),
+            );
+            expect(
+              getPostTradeShareSession()?.preview.entryPriceLabel,
+            ).toBeUndefined();
+          });
+
+          it('keeps the swap rate as the sell preview entry', async () => {
+            (usePositionTokenBalance as jest.Mock).mockReturnValue(
+              createSourceToken({
+                address: '0xDEST',
+                symbol: 'TARGET',
+                currencyExchangeRate: 2000,
+              }),
+            );
+            (useReceiveTokens as jest.Mock).mockReturnValue([
+              createSourceToken({
+                address: '0x0000000000000000000000000000000000000000',
+                symbol: 'ETH',
+                currencyExchangeRate: 2000,
+              }),
+            ]);
+            (useLatestBalance as jest.Mock).mockReturnValue({
+              displayBalance: '1.0',
+              atomicBalance: '1000000000000000000',
+            });
+            const result = await submitWithPostTradeShare('sell', {
+              source: 'profile_position',
+            });
+            const swapRate = result.current.formattedRate;
+
+            expect(swapRate).toBeDefined();
+            expect(getPostTradeShareSession()?.preview.entryPriceLabel).toBe(
+              swapRate,
+            );
+          });
         });
 
         describe('post-trade prompt', () => {
@@ -4396,21 +4641,86 @@ export const runQuickBuyControllerCases = ({
             );
           });
 
-          it('uses the normal toasts for copy-trades from a private profile', async () => {
+          describe('quote token positions', () => {
+            beforeEach(() => {
+              mockIsUnsupportedPostTradeAsset.mockReturnValue(true);
+            });
+
+            it('checks the position token on its own chain', async () => {
+              mockShareSheetPrompt();
+
+              await submit();
+
+              const target = createTarget();
+              expect(mockIsUnsupportedPostTradeAsset).toHaveBeenCalledWith(
+                target.tokenAddress,
+                target.chain,
+              );
+            });
+
+            it('uses normal toasts for a share prompt', async () => {
+              mockShareSheetPrompt();
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('uses normal toasts for a create profile prompt', async () => {
+              mockResolvePostTradePrompt.mockReturnValue({
+                kind: 'claim_sheet',
+              });
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('uses normal toasts for copy-trades', async () => {
+              await submit(true);
+
+              expectNormalQuickBuyFeedback();
+            });
+
+            it('drops the post-to-feed link', async () => {
+              mockResolvePostTradePrompt.mockReturnValue({
+                kind: 'post_to_feed_toast',
+              });
+
+              await submit();
+
+              expectNormalQuickBuyFeedback();
+            });
+          });
+
+          it('shares a bridged trade when its position token is not a quote token', async () => {
+            mockUsableQuote();
             (
-              selectIsProfileTradingActivityPrivate as unknown as jest.Mock
-            ).mockReturnValue(true);
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const target = createTarget({ chain: 'robinhood' });
 
-            await submit(true);
+            const { result } = renderHook(
+              target,
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              true,
+            );
+            act(() => {
+              result.current.handleAmountChange('20');
+            });
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
 
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
-            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
-              'tx-1',
-              expect.objectContaining({
-                postTradeShare: false,
-                postTradePrompt: undefined,
-              }),
+            expect(mockIsUnsupportedPostTradeAsset).toHaveBeenCalledWith(
+              target.tokenAddress,
+              target.chain,
+            );
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({ tradeInFlightChain: 'robinhood' }),
             );
           });
         });
@@ -4940,7 +5250,7 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.formattedRate).toBe('1 ETH = 2,000.0 TARGET');
       });
 
-      it('exposes the receive value and gas deduction label for a gasless quote', () => {
+      it('exposes the receive value for a gasless quote', () => {
         setupQuotedDisplayState();
         jest.mocked(useDisplayCurrencyValue).mockReturnValue('$20.00');
         jest.mocked(useFormattedNetworkFee).mockReturnValue('$1.50');
@@ -4948,7 +5258,6 @@ export const runQuickBuyControllerCases = ({
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.estimatedReceiveFiat).toBe('$20.00');
-        expect(result.current.gasFeeDeductionLabel).toBeDefined();
       });
 
       it('uses the quote dest value when the dest token has no local price', () => {
@@ -4968,14 +5277,13 @@ export const runQuickBuyControllerCases = ({
         expect(result.current.estimatedReceiveFiat).toBe('$19.50');
       });
 
-      it('exposes no receive value or gas deduction label without a quote', () => {
+      it('exposes no receive value without a quote', () => {
         setupQuotedDisplayState({ activeQuote: undefined });
         jest.mocked(useDisplayCurrencyValue).mockReturnValue('$0.00');
 
         const { result } = renderHook(createTarget(), jest.fn());
 
         expect(result.current.estimatedReceiveFiat).toBeUndefined();
-        expect(result.current.gasFeeDeductionLabel).toBeUndefined();
       });
 
       it('returns no formatted rate when the quote source amount is zero', () => {

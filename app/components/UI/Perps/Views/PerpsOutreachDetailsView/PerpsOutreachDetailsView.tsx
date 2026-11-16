@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -27,6 +26,9 @@ import ModalSafeAreaProvider from '../../../../../component-library/components-t
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { usePerpsOutreachBanner } from '../../hooks/usePerpsOutreachBanner';
 import { PerpsOutreachDetailsViewSelectorsIDs } from './PerpsOutreachDetailsView.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 // eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const outreachFoxImage = require('../../../../../images/perps-outreach-banner.png');
@@ -78,6 +80,7 @@ const FeatureRow = ({ iconName, title, subtitle, testID }: FeatureRowProps) => (
  * without a mobile release.
  */
 const PerpsOutreachDetailsView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -214,7 +217,8 @@ const PerpsOutreachDetailsView = () => {
         goBack={handleGoBack}
         testID={PerpsOutreachDetailsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{
             testID: PerpsOutreachDetailsViewSelectorsIDs.CLOSE_BUTTON,

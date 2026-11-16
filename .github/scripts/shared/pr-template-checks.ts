@@ -40,7 +40,10 @@ type Validator = (section: string, ctx: ValidatorContext) => ValidatorResult;
 
 // ─── Template loading (single read at module load) ───────────────────────────
 
-const TEMPLATE_PATH = path.join(__dirname, '../../pull-request-template.md');
+export const TEMPLATE_PATH = path.join(
+  __dirname,
+  '../../pull-request-template.md',
+);
 
 // Read once against the base-branch template (the workflow uses
 // pull_request_target without a ref override, so the checkout always reflects
@@ -176,11 +179,35 @@ validatePlanTypes(VALIDATION_PLAN, VALIDATORS);
 
 const SCREENSHOTS_SUBHEADINGS = /^\s*###\s*\*\*(Before|After)\*\*\s*$/gim;
 
-// Matches the verbatim Gherkin example shipped by the template. A real scenario
-// or `N/A — <reason>` removes all of these tokens, so a single regex covers
-// both "untouched template" and "partially edited but a slot was forgotten".
-const MANUAL_TESTING_TEMPLATE_MARKERS =
-  /Feature:\s*my feature name|\[(?:verb for user action|describe expected initial app state|describe expected outcome)\]/i;
+// Substrings that appear only in an unfilled Manual testing skeleton. A real
+// scenario or `N/A` removes all of them, so one regex covers an untouched
+// template and a partial edit that left a slot behind.
+//
+// Retired phrases from the previous skeleton stay in the list. This module
+// runs from the base branch (pull_request_target), so after the template
+// change it still checks PRs that were opened with the old example.
+//
+// The check does not require a Background block or a When/And action list.
+// Any non-placeholder steps pass, including older Given/When/Then scenarios.
+const MANUAL_TESTING_TEMPLATE_MARKERS = new RegExp(
+  [
+    String.raw`Feature:\s*my feature name`,
+    ...[
+      '[verb for user action]',
+      '[describe expected initial app state]',
+      '[describe expected outcome]',
+      '[feature name]',
+      '[flag, build, account, network, or test data]',
+      '[any other shared setup]',
+      '[one behavior]',
+      '[first concrete action]',
+      '[next action, in order]',
+      '[expected outcome]',
+      '[side effect, such as an Activity entry or balance change]',
+    ].map((phrase) => phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+  ].join('|'),
+  'i',
+);
 
 // `Fixes:` / `Closes:` / `Refs:` on its own line, optionally wrapped in bold
 // markers (the PR template uses `## **Related issues**`, contributors sometimes

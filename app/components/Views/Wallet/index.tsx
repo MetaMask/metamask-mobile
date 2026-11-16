@@ -207,8 +207,6 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { Carousel } from '../../UI/Carousel';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
@@ -592,9 +590,7 @@ const Wallet = ({
   }, []);
 
   useEffect(() => {
-    // do not prompt for social login flow
     if (
-      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
@@ -604,7 +600,6 @@ const Wallet = ({
       });
     }
   }, [
-    isSocialLogin,
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
@@ -882,12 +877,8 @@ const Wallet = ({
   }, [navigation, trackEvent]);
 
   const handleAccountHubPress = useCallback(() => {
-    if (isSocialV1Enabled) {
-      navigation.navigate(...createProfileDrawerNavDetails({}));
-      return;
-    }
     navigation.navigate(Routes.ACCOUNT_HUB_VIEW);
-  }, [navigation, isSocialV1Enabled]);
+  }, [navigation]);
 
   // Social V1 hides the account name in the header, so switching accounts moves
   // to this row pinned under the header.
@@ -897,10 +888,6 @@ const Wallet = ({
 
   const handleAccountSelectorPress = useCallback(() => {
     navigation.navigate(...createAccountSelectorNavDetails({}));
-  }, [navigation]);
-
-  const handleProfilePress = useCallback(() => {
-    navigation.navigate(Routes.SOCIAL_PROFILE.DRAWER);
   }, [navigation]);
 
   const handleRewardsPress = useCallback(() => {
@@ -1120,7 +1107,6 @@ const Wallet = ({
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
       handleRewardsPress={handleRewardsPress}
-      handleProfilePress={handleProfilePress}
       touchAreaSlop={touchAreaSlop}
       headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
       headerAccountPickerStyle={styles.headerAccountPickerStyle}

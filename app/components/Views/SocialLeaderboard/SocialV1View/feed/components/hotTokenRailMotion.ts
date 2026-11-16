@@ -1,7 +1,7 @@
 import { Easing, type WithSpringConfig } from 'react-native-reanimated';
 
-/** The rail's left inset. A selected chip docks here. */
-export const DOCK_LEFT = 16;
+/** The rail's left inset, matching the 8px gap between chips. A selected chip docks here. */
+export const DOCK_LEFT = 8;
 
 /** The close icon's slot: a 4px lead plus the 16px icon. */
 export const CLOSE_SLOT_WIDTH = 20;
@@ -58,6 +58,40 @@ export const DOCK_EXIT = {
   shiftX: -10,
   scale: 0.9,
   easing: Easing.bezier(0.4, 0, 1, 1),
+};
+
+/**
+ * UIScrollView.DecelerationRate.normal. A flick keeps its release speed and
+ * eases to rest instead of stopping with the finger.
+ */
+export const RAIL_DRIFT_DECELERATION = 0.998;
+
+/**
+ * Coasts shorter than about a pill's padding resume the crawl directly.
+ * Points per second.
+ */
+export const RAIL_DRIFT_MIN_VELOCITY = 30;
+
+/**
+ * Laps added before the native modulo. A reverse coast drives the offset
+ * negative, and the new-architecture modulo keeps that sign, which opens a
+ * gap ahead of the first pill. This headroom keeps a real flick positive.
+ */
+export const RAIL_DRIFT_WRAP_LAPS = 64;
+
+/**
+ * Where a coast sits after `elapsedMs`, before wrapping.
+ *
+ * React Native's decay animation uses the UIScrollView curve with time in
+ * milliseconds and velocity in pixels per millisecond.
+ */
+export const driftOffset = (
+  origin: number,
+  velocity: number,
+  elapsedMs: number,
+): number => {
+  const rate = 1 - RAIL_DRIFT_DECELERATION;
+  return origin + (velocity / rate) * (1 - Math.exp(-rate * elapsedMs));
 };
 
 /** Keeps the marquee offset within one track width. */

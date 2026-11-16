@@ -906,8 +906,14 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
       fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
+      // Retry refetches the leaderboard and the viewer profile together, and the
+      // error message stays up until the leaderboard rows arrive.
       expect(
-        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
+        await screen.findByTestId(
+          getTraderRowTestId(topFiveIds[0]),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1146,6 +1152,7 @@ describe('PerpsHomeView', () => {
         expect.objectContaining({
           positionId: feedItems[0].positionId,
           isClosed: true,
+          shareSource: 'perps_home',
         }),
       );
     });

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
@@ -28,8 +27,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { KycVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
@@ -105,6 +102,8 @@ const BENEFITS = [
 interface KycVerifyIdentityProps {
   /** Hands the loaded catalog to the verification-partners page. */
   onContinue: (disclaimers: KycCatalogDisclaimerLink[]) => void;
+  /** Leaves identity verification. The caller chooses the destination. */
+  onExit: () => void;
 }
 
 /**
@@ -116,9 +115,8 @@ interface KycVerifyIdentityProps {
  * loading state of its own. Continue stays disabled until it lands — the user
  * cannot be sent to a terms page with no terms on it.
  */
-const KycVerifyIdentity = ({ onContinue }: KycVerifyIdentityProps) => {
+const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
-  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
 
@@ -141,11 +139,8 @@ const KycVerifyIdentity = ({ onContinue }: KycVerifyIdentityProps) => {
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    onExit();
+  }, [onExit]);
 
   useEffect(() => {
     trackIdentityTerms('page1_viewed');

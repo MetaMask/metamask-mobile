@@ -14,16 +14,21 @@ import {
 } from './instance-options/analytics-controller';
 import { getAnalyticsControllerInitMessenger } from './messengers/analytics-controller-messenger';
 import { setupAnalyticsControllerListeners } from './listeners/analytics-controller';
+import { fetchInitialGeolocation } from './listeners/geolocation-controller';
 import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
 import { unrestrictedMethods } from '../../Permissions/specifications';
 import { getLedgerDmkMode, initializeLedgerDmkMode } from '../../Ledger/dmk';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
+const mockGeolocationController = { name: 'GeolocationController' };
+const mockWalletGetInstance = jest.fn((name: string) =>
+  name === 'GeolocationController' ? mockGeolocationController : undefined,
+);
 jest.mock('@metamask/wallet', () => ({
   Wallet: jest.fn().mockImplementation(() => ({
     init: mockWalletInit,
-    getInstance: jest.fn(),
+    getInstance: mockWalletGetInstance,
   })),
 }));
 jest.mock('./instance-options/analytics-controller', () => ({
@@ -35,6 +40,11 @@ jest.mock('./instance-options/analytics-controller', () => ({
     }),
   ),
 }));
+jest.mock('./instance-options/geolocation-api-service', () => ({
+  getGeolocationApiServiceInstanceOptions: jest.fn(
+    () => 'geolocation-api-service-options',
+  ),
+}));
 jest.mock('./messengers/analytics-controller-messenger', () => ({
   getAnalyticsControllerInitMessenger: jest.fn(
     () => 'analytics-init-messenger',
@@ -42,6 +52,9 @@ jest.mock('./messengers/analytics-controller-messenger', () => ({
 }));
 jest.mock('./listeners/analytics-controller', () => ({
   setupAnalyticsControllerListeners: jest.fn(),
+}));
+jest.mock('./listeners/geolocation-controller', () => ({
+  fetchInitialGeolocation: jest.fn(),
 }));
 jest.mock('./instance-options/approval-controller', () => ({
   getApprovalControllerInstanceOptions: jest.fn(() => 'approval-options'),
@@ -123,6 +136,7 @@ describe('initializeWallet', () => {
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
         gasFeeController: 'gas-fee-options',
+        geolocationApiService: 'geolocation-api-service-options',
         seedlessOnboardingController: 'seedless-options',
         storageService: 'storage-options',
         subscriptionService: 'subscription-service-options',
@@ -174,6 +188,15 @@ describe('initializeWallet', () => {
     expect(getAnalyticsControllerInitMessenger).toHaveBeenCalledWith(messenger);
     expect(setupAnalyticsControllerListeners).toHaveBeenCalledWith(
       'analytics-init-messenger',
+    );
+  });
+
+  it('eagerly fetches geolocation from the wallet-owned GeolocationController', () => {
+    initializeWallet({ messenger, state, analyticsId });
+
+    expect(mockWalletGetInstance).toHaveBeenCalledWith('GeolocationController');
+    expect(fetchInitialGeolocation).toHaveBeenCalledWith(
+      mockGeolocationController,
     );
   });
 
