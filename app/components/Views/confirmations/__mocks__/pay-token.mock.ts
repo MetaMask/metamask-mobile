@@ -2,11 +2,11 @@ import type { TransactionPaymentToken } from '@metamask/transaction-pay-controll
 import type { CaipAssetType, Hex } from '@metamask/utils';
 import {
   buildAssetIdIndex,
-  resolveEvmAssetId,
+  encodeEvmAssetId,
 } from '../../../../util/transactions/payment-token';
 
 /**
- * CAIP-19 asset ID of an EVM test token, as `selectEvmAssetIdResolver`
+ * CAIP-19 asset ID of an EVM test token, as `selectEvmAssetIdEncoder`
  * resolves it when the token is absent from `AssetsController` state.
  *
  * @param address - Token address, or the chain's native token address.
@@ -14,14 +14,14 @@ import {
  * @returns The CAIP-19 asset ID.
  */
 export function evmAssetId(address: string, chainId: string): CaipAssetType {
-  return resolveEvmAssetId(
+  return encodeEvmAssetId(
     { address: address as Hex, chainId: chainId as Hex },
     buildAssetIdIndex({}),
   );
 }
 
 /**
- * Resolver matching `selectEvmAssetIdResolver` over empty `AssetsController`
+ * Encoder matching `selectEvmAssetIdEncoder` over empty `AssetsController`
  * state, for tests that mock `useSelector`.
  *
  * @param token - EVM token.
@@ -29,7 +29,7 @@ export function evmAssetId(address: string, chainId: string): CaipAssetType {
  * @param token.chainId - Hex chain ID.
  * @returns The CAIP-19 asset ID.
  */
-export const resolveEvmAssetIdMock = ({
+export const encodeEvmAssetIdMock = ({
   address,
   chainId,
 }: {

@@ -8,12 +8,12 @@ import { useIsMoneyAccountPaymentOverride } from '../../../../Views/confirmation
 import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { usePerpsPayWithToken } from '../../hooks/useIsPerpsBalanceSelected';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
-import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
 import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 export function useInitPerpsPaymentToken(initialAsset: string) {
   const { payToken, setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const selectedPaymentToken = usePerpsPayWithToken();
   const defaultPayTokenWhenNoPerpsBalance =
     useDefaultPayWithTokenWhenNoPerpsBalance();
@@ -58,7 +58,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
         chainId: defaultToken.chainId,
       };
       setPayToken({
-        assetId: resolveAssetId({
+        assetId: encodeAssetId({
           address: defaultToken.address as Hex,
           chainId: defaultToken.chainId as Hex,
         }),
@@ -79,7 +79,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     isMoneyAccountSelected,
     pendingConfigSelectedPaymentToken,
     defaultPayTokenWhenNoPerpsBalance,
-    resolveAssetId,
+    encodeAssetId,
     setPayToken,
   ]);
 
@@ -101,7 +101,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
       chainId: pendingChainId,
     };
 
-    const pendingAssetId = resolveAssetId({
+    const pendingAssetId = encodeAssetId({
       address: pendingAddr as Hex,
       chainId: pendingChainId as Hex,
     });
@@ -124,7 +124,7 @@ export function useInitPerpsPaymentToken(initialAsset: string) {
     isMoneyAccountSelected,
     payToken,
     pendingConfigSelectedPaymentToken,
-    resolveAssetId,
+    encodeAssetId,
     setPayToken,
     selectedPaymentToken,
   ]);

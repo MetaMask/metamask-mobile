@@ -28,12 +28,12 @@ export interface EvmTokenReference {
 }
 
 /**
- * Resolves the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
+ * Encodes the CAIP-19 asset ID of an EVM token as keyed in `AssetsController`
  * state.
  */
-export type EvmAssetIdResolver = (token: EvmTokenReference) => CaipAssetType;
+export type EvmAssetIdEncoder = (token: EvmTokenReference) => CaipAssetType;
 
-/** `AssetsController` asset IDs indexed for {@link resolveEvmAssetId}. */
+/** `AssetsController` asset IDs indexed for {@link encodeEvmAssetId}. */
 export interface AssetIdIndex {
   /** Asset ID by lowercase asset ID, preferring a checksummed key. */
   byLowercaseAssetId: Map<string, CaipAssetType>;
@@ -49,7 +49,7 @@ export interface AssetIdIndex {
  * @param assetId - CAIP-19 asset type.
  * @returns The Hex chain ID and token address, or undefined for a non-EVM asset.
  */
-export function getEvmAsset(
+export function decodeEvmAssetId(
   assetId: CaipAssetType,
 ): EvmTokenReference | undefined {
   const { chain, assetNamespace, assetReference } = parseCaipAssetType(assetId);
@@ -76,10 +76,10 @@ export function getEvmAsset(
  * @returns The Hex chain ID and token address, or undefined if no token is
  * selected or it is not an EVM token.
  */
-export function getPaymentTokenEvmAsset(
+export function decodePaymentTokenAssetId(
   paymentToken: Pick<TransactionPaymentToken, 'assetId'> | undefined,
 ): EvmTokenReference | undefined {
-  return paymentToken && getEvmAsset(paymentToken.assetId);
+  return paymentToken && decodeEvmAssetId(paymentToken.assetId);
 }
 
 /**
@@ -151,7 +151,7 @@ export function buildAssetIdIndex(
  * @param index - `AssetsController` asset IDs, from {@link buildAssetIdIndex}.
  * @returns The CAIP-19 asset ID of the token.
  */
-export function resolveEvmAssetId(
+export function encodeEvmAssetId(
   { address, chainId }: EvmTokenReference,
   index: AssetIdIndex,
 ): CaipAssetType {

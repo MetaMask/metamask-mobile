@@ -6,7 +6,7 @@ import {
   getAssetsBalance,
   getAssetsInfo,
   selectErc20MetadataLookup,
-  selectEvmAssetIdResolver,
+  selectEvmAssetIdEncoder,
 } from './assets-controller';
 
 type DeepPartial<T> = T extends object
@@ -190,7 +190,7 @@ describe('selectErc20MetadataLookup', () => {
   });
 });
 
-describe('selectEvmAssetIdResolver', () => {
+describe('selectEvmAssetIdEncoder', () => {
   const USDC_ASSET_ID =
     'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' as CaipAssetType;
 
@@ -213,10 +213,10 @@ describe('selectEvmAssetIdResolver', () => {
   } as unknown as RootState;
 
   it('resolves an ERC-20 token to its AssetsController key', () => {
-    const resolveAssetId = selectEvmAssetIdResolver(state);
+    const encodeAssetId = selectEvmAssetIdEncoder(state);
 
     expect(
-      resolveAssetId({
+      encodeAssetId({
         address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         chainId: '0x1',
       }),
@@ -224,10 +224,10 @@ describe('selectEvmAssetIdResolver', () => {
   });
 
   it('resolves a native token to the native asset of its chain', () => {
-    const resolveAssetId = selectEvmAssetIdResolver(state);
+    const encodeAssetId = selectEvmAssetIdEncoder(state);
 
     expect(
-      resolveAssetId({
+      encodeAssetId({
         address: '0x0000000000000000000000000000000000001010',
         chainId: '0x89',
       }),
@@ -235,8 +235,6 @@ describe('selectEvmAssetIdResolver', () => {
   });
 
   it('returns the same resolver while assetsInfo is unchanged', () => {
-    expect(selectEvmAssetIdResolver(state)).toBe(
-      selectEvmAssetIdResolver(state),
-    );
+    expect(selectEvmAssetIdEncoder(state)).toBe(selectEvmAssetIdEncoder(state));
   });
 });

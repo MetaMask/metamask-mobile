@@ -5,7 +5,7 @@ import { AssetType } from '../../../Views/confirmations/types/token';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import Engine from '../../../../core/Engine';
 import { parsePayWithToken } from '../utils/parsePayWithToken';
-import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 export type PerpsPaymentTokenInput =
   | AssetType
@@ -18,7 +18,7 @@ export interface UsePerpsPaymentTokenResult {
 
 export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
   const { setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   const onPaymentTokenChange = useCallback(
     (token: PerpsPaymentTokenInput) => {
@@ -28,14 +28,14 @@ export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
       Engine.context.PerpsController?.setSelectedPaymentToken?.(parsed);
       if (parsed !== null) {
         setPayToken({
-          assetId: resolveAssetId({
+          assetId: encodeAssetId({
             address: parsed.address as Hex,
             chainId: parsed.chainId as Hex,
           }),
         });
       }
     },
-    [resolveAssetId, setPayToken],
+    [encodeAssetId, setPayToken],
   );
   return { onPaymentTokenChange };
 }

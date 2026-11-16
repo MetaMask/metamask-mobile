@@ -38,7 +38,7 @@ import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/pr
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
-import { getPaymentTokenEvmAsset } from '../../../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../../../util/transactions/payment-token';
 
 type PredictPayWithRowVariant = 'pill' | 'row';
 
@@ -108,7 +108,7 @@ export function PredictPayWithRow({
   };
 
   const displaySymbol = getDisplaySymbol();
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const tokenIconAddress = showPredictBalance
     ? POLYGON_PUSD.address
     : payTokenAsset?.address;

@@ -41,7 +41,7 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 import { useClearPaymentOverride } from '../../../hooks/pay/sections/useClearPaymentOverride';
 import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
-import { selectEvmAssetIdResolver } from '../../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../../selectors/assets/assets-controller';
 import { isSameAssetId } from '../../../../../../util/transactions/payment-token';
 
 export interface PayWithModalParams {
@@ -66,7 +66,7 @@ export function PayWithModal() {
     HIDE_NETWORK_FILTER_TYPES,
   );
   const { payToken, setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
@@ -142,7 +142,7 @@ export function PayWithModal() {
       // tokens the user does not hold yet are resolved from chain and address.
       const assetId =
         token.caipAssetId ??
-        resolveAssetId({
+        encodeAssetId({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
         });
@@ -216,7 +216,7 @@ export function PayWithModal() {
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       payToken,
-      resolveAssetId,
+      encodeAssetId,
       setPayToken,
       transactionMeta,
     ],

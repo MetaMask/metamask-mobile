@@ -9,7 +9,7 @@ import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
   evmAssetId,
-  resolveEvmAssetIdMock,
+  encodeEvmAssetIdMock,
 } from '../../../__mocks__/pay-token.mock';
 import {
   Icon,
@@ -35,7 +35,7 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import Engine from '../../../../../../core/Engine';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
-import { selectEvmAssetIdResolver } from '../../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../../selectors/assets/assets-controller';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -184,8 +184,8 @@ describe('usePayWithCryptoSection', () => {
    */
   function mockSelectors(paymentOverride?: PaymentOverride) {
     useSelectorMock.mockImplementation((selector) =>
-      selector === selectEvmAssetIdResolver
-        ? resolveEvmAssetIdMock
+      selector === selectEvmAssetIdEncoder
+        ? encodeEvmAssetIdMock
         : paymentOverride,
     );
   }

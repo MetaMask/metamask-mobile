@@ -47,7 +47,7 @@ import {
   useDepositPrefillAmount,
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -144,7 +144,7 @@ export function useTransactionCustomAmount({
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
   useEffect(() => {
     userHasEditedRef.current = false;

@@ -10,7 +10,7 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import {
   getSelectedCurrency,
-  selectEvmAssetIdResolver,
+  selectEvmAssetIdEncoder,
 } from '../../../../../selectors/assets/assets-controller';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
@@ -129,7 +129,7 @@ function useRemoteTokens(
   enrichTokenRequests: EnrichTokenRequest[],
 ): ConfirmationAsset[] {
   const selectedCurrency = useSelector(getSelectedCurrency);
-  const resolveEvmAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeEvmAssetId = useSelector(selectEvmAssetIdEncoder);
   const currency = currencyOverride ?? selectedCurrency;
 
   const assetIds = useMemo(
@@ -173,7 +173,7 @@ function useRemoteTokens(
             address: req.address.toLowerCase(),
             balance: '0',
             balanceInSelectedCurrency: zeroFiat,
-            caipAssetId: resolveEvmAssetId({
+            caipAssetId: encodeEvmAssetId({
               address: req.address as Hex,
               chainId: req.chainId,
             }),
@@ -198,7 +198,7 @@ function useRemoteTokens(
       enrichTokenRequests,
       existingKeys,
       assetIds,
-      resolveEvmAssetId,
+      encodeEvmAssetId,
       tokensByAssetId,
       zeroFiat,
     ],

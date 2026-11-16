@@ -259,7 +259,7 @@ import {
   markClaimSheetSeen,
 } from '../../../../../util/social/postTradePromptStorage';
 import ToastService from '../../../../../core/ToastService';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -445,7 +445,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     useState<PerpsTooltipContentKey | null>(null);
 
   const { payToken } = useTransactionPayToken();
-  const payTokenChainId = getPaymentTokenEvmAsset(payToken)?.chainId;
+  const payTokenChainId = decodePaymentTokenAssetId(payToken)?.chainId;
   const { balanceUsd: payTokenBalanceUsd } = usePayTokenOrMoneyAccountBalance();
   const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
