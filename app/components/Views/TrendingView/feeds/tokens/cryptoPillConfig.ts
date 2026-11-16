@@ -62,6 +62,8 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
       minVolume24hUsd: MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h,
       excludeLabels: ['stable_coin', 'blue_chip'],
       includeTokenSecurityData: true,
+      usePriceApiData: true,
+      includeRwaData: true,
     },
   },
   {
@@ -126,6 +128,8 @@ export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
       minLiquidity: 100000,
       minVolume24hUsd: 25000,
       includeTokenSecurityData: true,
+      usePriceApiData: true,
+      includeRwaData: true,
     },
     popularFallback: {
       path: '/v3/tokens/popular',

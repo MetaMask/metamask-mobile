@@ -158,7 +158,6 @@ const makeResults = (
 
 const DEFAULT_PROPS = {
   title: 'Tokens',
-  refresh: { trigger: 0, silentRefresh: true },
   tabName: 'Crypto' as const,
   headerTestID: 'section-header-view-all-tokens',
   idPrefix: 'tokens',

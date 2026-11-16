@@ -17,6 +17,9 @@ export interface CryptoPillRequestParams {
   minVolume24hUsd?: number;
   excludeLabels?: string[];
   includeTokenSecurityData?: boolean;
+  /** Price-source and RWA parity flags the token API client defaults to true for the trending endpoint. */
+  usePriceApiData?: boolean;
+  includeRwaData?: boolean;
 }
 
 /** Fully resolved request for a single pill fetch. */

@@ -18,7 +18,6 @@ import {
   type ExploreTabName,
   trackExploreInteracted,
 } from '../../search/analytics';
-import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import WatchlistEmptyFallback from '../../../Homepage/Sections/Watchlist/components/WatchlistEmptyFallback';
 import { TokenRowItem } from './TokenRowItem';
@@ -34,8 +33,6 @@ const TrendingTokensSingleSkeleton: React.FC = () => <TrendingTokensSkeleton />;
 
 export interface CryptoTokensPillBlockProps {
   title: string;
-  /** Pull-to-refresh wiring from the Explore tab. */
-  refresh: RefreshConfig;
   /** Shows the Quick Trade button on token rows when provided. */
   onQuickTrade?: (token: TrendingAsset) => void;
   /** Analytics context. */
@@ -56,7 +53,6 @@ export interface CryptoTokensPillBlockProps {
  */
 const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   title,
-  refresh,
   onQuickTrade,
   tabName,
   headerTestID,
@@ -76,7 +72,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     pills[0]?.key ?? 'trending',
   );
 
-  const { results } = useCryptoPillFeed({ activePillKey, refresh });
+  const { results } = useCryptoPillFeed({ activePillKey });
 
   const visiblePills = useMemo(
     () => getVisibleCryptoPills(results, isWatchlistEnabled),

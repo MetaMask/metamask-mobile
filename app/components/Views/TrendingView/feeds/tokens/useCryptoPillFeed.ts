@@ -146,10 +146,12 @@ export const useCryptoPillFeed = ({
           }),
         );
       } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          `ExploreCryptoPillFeed: pill query failed (${descriptor.key})`,
-        );
+        if (!signal?.aborted) {
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            `ExploreCryptoPillFeed: pill query failed (${descriptor.key})`,
+          );
+        }
         throw error;
       }
     },

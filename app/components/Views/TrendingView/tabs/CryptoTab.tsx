@@ -169,7 +169,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
         content: (
           <CryptoTokensPillBlock
             title={strings('trending.crypto_tokens_section')}
-            refresh={refresh}
             onQuickTrade={
               quickBuyVariant.showQuickTradeButton
                 ? tokensOnQuickTrade

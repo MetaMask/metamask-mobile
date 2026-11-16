@@ -365,7 +365,6 @@ describe('CryptoTab — tokens pill block', () => {
 
     expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith({
       title: 'Tokens',
-      refresh: { trigger: 0, silentRefresh: true },
       tabName: 'Crypto',
       headerTestID: 'section-header-view-all-tokens',
       idPrefix: 'tokens',
@@ -374,7 +373,7 @@ describe('CryptoTab — tokens pill block', () => {
     });
   });
 
-  it('forwards the Explore refresh trigger to the pill block', () => {
+  it('forwards the Explore refresh trigger to the crypto pill feed', () => {
     arrangeMocks();
 
     render(
@@ -384,7 +383,7 @@ describe('CryptoTab — tokens pill block', () => {
       />,
     );
 
-    expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith(
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
       expect.objectContaining({
         refresh: { trigger: 1, silentRefresh: true },
       }),
