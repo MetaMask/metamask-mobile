@@ -55,24 +55,12 @@ describe('buildHomeNavResetState', () => {
   });
 
   it('preserves nested Browser params by reference', () => {
-    const browserParams = {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: 'https://nested.test',
-        timestamp: 456,
-      },
-    };
-    const mainNavigatorState = {
-      index: 1,
-      routes: [
-        { name: Routes.HOME_TABS },
-        { name: Routes.BROWSER.HOME, params: browserParams },
-      ],
-    };
+    const params = { screen: Routes.BROWSER.VIEW, params: { timestamp: 1 } };
+    const state = { routes: [{ name: Routes.BROWSER.HOME, params }] };
 
-    const result = buildHomeNavResetState(mainNavigatorState);
+    const result = buildHomeNavResetState(state);
 
-    expect(result.routes[0].state?.routes[1].params).toBe(browserParams);
+    expect(result.routes[0].state?.routes[0].params).toBe(params);
   });
 });
 
