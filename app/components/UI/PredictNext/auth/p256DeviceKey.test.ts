@@ -16,6 +16,17 @@ import {
   type P256DevicePublicMaterial,
 } from './p256DeviceKey';
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
+import type { generateP256Key } from './p256QuickCrypto';
+import type {
+  PersistedP256DeviceKeyRead,
+  readPersistedP256DeviceKey,
+} from './p256DeviceKeyStorage';
+
+const deviceCrypto: { generateP256Key: typeof generateP256Key } =
+  jest.requireActual('./p256QuickCrypto');
+const deviceKeyStorage: {
+  readPersistedP256DeviceKey: typeof readPersistedP256DeviceKey;
+} = jest.requireActual('./p256DeviceKeyStorage');
 
 // The global stub returns fixed bytes. QuickCrypto's own Jest mock forwards
 // to node:crypto, so key generation, signing, and hashing are real here.
@@ -104,6 +115,15 @@ const publicKeyFromRaw = (raw: Uint8Array) =>
     format: 'jwk',
   });
 
+// The mobile TypeScript library target is ES2022, before Promise.withResolvers.
+const deferred = <T>() => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
+
 describe('p256DeviceKey', () => {
   let saved: string | null;
 
@@ -129,6 +149,7 @@ describe('p256DeviceKey', () => {
 
   afterEach(() => {
     clearKalshiDeviceKey();
+    jest.restoreAllMocks();
   });
 
   it('rejects a profile outside the allowlisted P-256 contract', () => {
@@ -313,20 +334,79 @@ describe('p256DeviceKey', () => {
   });
 
   it('does not keep a key created after memory was cleared mid-read', async () => {
-    let resolveRead: (value: null) => void = () => undefined;
-    (SecureKeychain.getSecureItem as jest.Mock).mockReturnValue(
-      new Promise<null>((resolve) => {
-        resolveRead = resolve;
-      }),
-    );
+    const read = deferred<null>();
+    const started = deferred<void>();
+    (SecureKeychain.getSecureItem as jest.Mock).mockImplementationOnce(() => {
+      started.resolve();
+      return read.promise;
+    });
 
     const pending = ensureKalshiDeviceKey(enabledConfig, true);
+    await started.promise;
     clearKalshiDeviceKey();
-    resolveRead(null);
+    read.resolve(null);
 
     await expect(pending).resolves.toBeNull();
     expect(getKalshiDeviceKey()).toBeNull();
     expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+  });
+
+  it('forgets imported plaintext when a delayed key load completes after deletion', async () => {
+    await ensureKalshiDeviceKey(enabledConfig, true);
+    clearKalshiDeviceKey();
+    const imported = deferred<PersistedP256DeviceKeyRead>();
+    const released = deferred<void>();
+    const read = deviceKeyStorage.readPersistedP256DeviceKey;
+    jest
+      .spyOn(deviceKeyStorage, 'readPersistedP256DeviceKey')
+      .mockImplementationOnce(async (profile) => {
+        const result = await read(profile);
+        imported.resolve(result);
+        await released.promise;
+        return result;
+      });
+    const pending = ensureKalshiDeviceKey(enabledConfig, true);
+    const result = await imported.promise;
+    if (result.status !== 'present') {
+      throw new Error('persisted key was not imported');
+    }
+    const deleted = deleteKalshiDeviceKey();
+    released.resolve();
+
+    await expect(pending).resolves.toBeNull();
+    await deleted;
+    expect(result.key.secretKey.every((byte) => byte === 0)).toBe(true);
+    expect(result.key.saltRaw.every((byte) => byte === 0)).toBe(true);
+    expect(result.key.publicRaw.every((byte) => byte === 0)).toBe(true);
+    expect(getKalshiDeviceKey()).toBeNull();
+    expect(saved).toBeNull();
+  });
+
+  it('does not persist a key whose native creation completes after deletion', async () => {
+    const generated = deferred<void>();
+    const released = deferred<void>();
+    const generate = deviceCrypto.generateP256Key;
+    jest
+      .spyOn(deviceCrypto, 'generateP256Key')
+      .mockImplementationOnce(async () => {
+        const key = await generate();
+        generated.resolve();
+        await released.promise;
+        return key;
+      });
+    const pending = ensureKalshiDeviceKey(enabledConfig, true);
+    await generated.promise;
+    const deleted = deleteKalshiDeviceKey();
+    released.resolve();
+
+    await expect(pending).resolves.toBeNull();
+    await deleted;
+    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(getKalshiDeviceKey()).toBeNull();
+    expect(saved).toBeNull();
+    await expect(
+      ensureKalshiDeviceKey(enabledConfig, true),
+    ).resolves.not.toBeNull();
   });
 
   it('deletes the encrypted key after an in-flight write and creates a new one later', async () => {
