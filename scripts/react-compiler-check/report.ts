@@ -41,8 +41,10 @@ export function formatRegressions(comparison: Comparison): string {
     for (const failure of regression.failures) {
       lines.push(`  ${regression.path}:${failure.line}:${failure.column}  ${failure.reason}`);
     }
-    for (const reason of regression.newReasons) {
-      lines.push(`  new reason: ${reason}`);
+    if (regression.baselineCount > 0) {
+      for (const reason of regression.newReasons) {
+        lines.push(`  new reason: ${reason}`);
+      }
     }
     lines.push('');
   }

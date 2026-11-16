@@ -1,5 +1,6 @@
 import {
   type Baseline,
+  type CompilerFailure,
   type FileResult,
   compareWithBaseline,
   parseBaseline,
@@ -12,7 +13,7 @@ import {
 const REFS = 'Cannot access refs during render';
 const TRY = 'Support value blocks within a try/catch statement';
 
-const failure = (reason: string, line = 1) => ({ line, column: 0, reason });
+const failure = (reason: string, line = 1): CompilerFailure => ({ line, column: 0, reason });
 
 describe('toBaselineEntry', () => {
   it('counts failures and keeps unique sorted reasons', () => {

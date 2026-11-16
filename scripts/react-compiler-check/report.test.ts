@@ -27,6 +27,25 @@ describe('formatRegressions', () => {
       'app/Foo.tsx:12:4  Cannot access refs during render',
     );
     expect(text).toContain(MIGRATION_SKILL_URL);
+    expect(text).not.toContain('new reason:');
+  });
+
+  it('calls out new reasons in a baselined file', () => {
+    const text = formatRegressions({
+      improvements: [],
+      regressions: [
+        {
+          path: 'app/Foo.tsx',
+          baselineCount: 1,
+          count: 1,
+          newReasons: ['Other'],
+          failures: [{ line: 3, column: 0, reason: 'Other' }],
+        },
+      ],
+    });
+
+    expect(text).toContain('app/Foo.tsx (1 → 1 failure(s))');
+    expect(text).toContain('  new reason: Other');
   });
 
   it('returns an empty string when nothing regressed', () => {
