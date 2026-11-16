@@ -301,6 +301,7 @@ describe('useCryptoPillFeed', () => {
         ).length,
       ).toBe(2);
     });
+    expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(7);
   });
 
   it('skips the watchlist refetch when the watchlist flag is off', async () => {
@@ -335,5 +336,6 @@ describe('useCryptoPillFeed', () => {
       ).toBe(2);
     });
     expect(refetchWatchlist).not.toHaveBeenCalled();
+    expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(7);
   });
 });

@@ -33,6 +33,8 @@ export const CRYPTO_PILL_QUERY_KEY_ROOT = 'explore-crypto-pill';
 
 export const cryptoPillQueryKeys = {
   all: [CRYPTO_PILL_QUERY_KEY_ROOT] as const,
+  /** Prefix matching every query for one pill, across chains and currencies. */
+  pillRoot: (pillKey: string) => [CRYPTO_PILL_QUERY_KEY_ROOT, pillKey] as const,
   pill: (pillKey: string, chainKey: string, vsCurrency: string) =>
     [CRYPTO_PILL_QUERY_KEY_ROOT, pillKey, chainKey, vsCurrency] as const,
 };

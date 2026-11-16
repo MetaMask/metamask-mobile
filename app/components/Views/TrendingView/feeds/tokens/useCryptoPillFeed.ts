@@ -235,11 +235,11 @@ export const useCryptoPillFeed = ({
   const handleRefresh = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({
-        queryKey: cryptoPillQueryKeys.all,
+        queryKey: cryptoPillQueryKeys.pillRoot(activePillKey),
       }),
       isWatchlistEnabled ? refetchWatchlist() : undefined,
     ]);
-  }, [queryClient, isWatchlistEnabled, refetchWatchlist]);
+  }, [queryClient, activePillKey, isWatchlistEnabled, refetchWatchlist]);
 
   useFeedRefresh(refresh, handleRefresh);
 
