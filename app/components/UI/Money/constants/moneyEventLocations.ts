@@ -73,7 +73,7 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_KYC_DECISION_CARD = 'money_vba_kyc_decision_card',
   /**
    * KYC_RETRY VBA card on Money Home: non-terminal retry, the user can still
-   * resubmit. Placeholder copy pending design (TRAM-4099).
+   * resubmit. Visible copy reuses finish_verification.
    */
   MONEY_VBA_KYC_RETRY_CARD = 'money_vba_kyc_retry_card',
 

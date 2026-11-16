@@ -9736,11 +9736,6 @@
         "description": "Não podemos oferecer transferências bancárias no momento. Fale com o suporte para receber ajuda.",
         "cta": "Saiba mais.",
         "dismiss": "Descartar"
-      },
-      "kyc_retry": {
-        "title": "Precisamos de mais informações suas",
-        "description": "Sua verificação precisa de uma nova análise. Atualize seus documentos para continuar.",
-        "cta": "Continuar verificação"
       }
     },
     "first_time_deposit": {

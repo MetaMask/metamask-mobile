@@ -57,7 +57,7 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
     }
   });
 
-  it('opens the retry screen from Continue verification when KYC finalStatus is retry', async () => {
+  it('opens the retry screen from the shared finish_verification CTA when KYC finalStatus is retry', async () => {
     hydrateVbaOnboarding.mockResolvedValue(hydratedSnapshot('retry'));
 
     const { findByTestId, getByTestId, queryByTestId, queryByText } =
@@ -70,13 +70,17 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
     expect(retryCard).toBeOnTheScreen();
     expect(
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.TITLE),
-    ).toHaveTextContent(strings('money.vba_home_card.kyc_retry.title'));
+    ).toHaveTextContent(
+      strings('money.vba_home_card.finish_verification.title'),
+    );
     expect(
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.DESCRIPTION),
-    ).toHaveTextContent(strings('money.vba_home_card.kyc_retry.description'));
+    ).toHaveTextContent(
+      strings('money.vba_home_card.finish_verification.description'),
+    );
     expect(
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CTA_BUTTON),
-    ).toHaveTextContent(strings('money.vba_home_card.kyc_retry.cta'));
+    ).toHaveTextContent(strings('money.vba_home_card.finish_verification.cta'));
     expect(
       queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
     ).not.toBeOnTheScreen();

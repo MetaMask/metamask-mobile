@@ -69,7 +69,7 @@ export type VbaHomeCard =
   /**
    * KYC_RETRY — non-terminal retry (`finalStatus === 'retry'`). The user can
    * still resubmit documents. Its CTA opens VBA onboarding, which lands on
-   * the retry screen. Copy is a placeholder pending design (TRAM-4099).
+   * the retry screen. Visible copy reuses finish_verification.
    */
   | { type: 'kyc_retry' };
 

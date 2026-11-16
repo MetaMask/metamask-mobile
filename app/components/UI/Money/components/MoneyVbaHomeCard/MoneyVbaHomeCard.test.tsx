@@ -192,6 +192,11 @@ const VARIANT_EXPECTATIONS: Record<
   {
     source: string;
     i18nPrefix: string;
+    /**
+     * When set, the CTA reports this identifier instead of
+     * `${i18nPrefix}.cta`.
+     */
+    analyticsCtaLabel?: string;
     /** Undefined for the disabled KYC_PENDING CTA. */
     buttonIntent?: MONEY_BUTTON_INTENTS;
     componentName: COMPONENT_NAMES;
@@ -235,7 +240,8 @@ const VARIANT_EXPECTATIONS: Record<
   kyc_retry: {
     componentName: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
     source: 'vba-home-card-kyc-retry',
-    i18nPrefix: 'money.vba_home_card.kyc_retry',
+    i18nPrefix: 'money.vba_home_card.finish_verification',
+    analyticsCtaLabel: 'money.vba_home_card.kyc_retry.cta',
     buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
   },
 };
@@ -305,8 +311,13 @@ describe('MoneyVbaHomeCard', () => {
         expect.objectContaining({
           button_type: MONEY_BUTTON_TYPES.TEXT,
           button_intent: expectations.buttonIntent,
-          label_key: `${expectations.i18nPrefix}.cta`,
           redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+          ...(expectations.analyticsCtaLabel
+            ? {
+                label_en: expectations.analyticsCtaLabel,
+                label_localized: expectations.analyticsCtaLabel,
+              }
+            : { label_key: `${expectations.i18nPrefix}.cta` }),
         }),
       );
       expect(mockResolve).toHaveBeenCalledWith(expectations.source);
@@ -568,7 +579,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockNavigateToDestination).not.toHaveBeenCalled();
   });
 
-  it('renders the kyc_retry placeholder copy with no Dismiss button', () => {
+  it('renders finish_verification copy on the kyc_retry card with no Dismiss button', () => {
     const testIds = MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry;
 
     const { getByTestId, queryByText } = render(
@@ -576,13 +587,13 @@ describe('MoneyVbaHomeCard', () => {
     );
 
     expect(getByTestId(testIds.TITLE)).toHaveTextContent(
-      'We need more information from you',
+      strings('money.vba_home_card.finish_verification.title'),
     );
     expect(getByTestId(testIds.DESCRIPTION)).toHaveTextContent(
-      'Your verification needs another look. Update your documents to continue.',
+      strings('money.vba_home_card.finish_verification.description'),
     );
     expect(getByTestId(testIds.CTA_BUTTON)).toHaveTextContent(
-      'Continue verification',
+      strings('money.vba_home_card.finish_verification.cta'),
     );
     expect(
       queryByText(strings('money.vba_home_card.kyc_decision.dismiss')),
@@ -593,7 +604,7 @@ describe('MoneyVbaHomeCard', () => {
     expect(MONEY_VBA_HOME_CARD_CONFIG.kyc_retry.isDismissible).toBeUndefined();
   });
 
-  it('opens the resolved retry screen when Continue verification is pressed', async () => {
+  it('opens the resolved retry screen when the kyc_retry CTA is pressed', async () => {
     const snapshot = {
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       kycStatus: 'retry' as const,
@@ -609,14 +620,13 @@ describe('MoneyVbaHomeCard', () => {
       getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CTA_BUTTON),
     );
 
-    expect(mockTrackButtonClicked).toHaveBeenCalledWith(
-      expect.objectContaining({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-        label_key: 'money.vba_home_card.kyc_retry.cta',
-        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
-      }),
-    );
+    expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      label_en: 'money.vba_home_card.kyc_retry.cta',
+      label_localized: 'money.vba_home_card.kyc_retry.cta',
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+    });
     expect(mockResolve).toHaveBeenCalledWith('vba-home-card-kyc-retry');
     await waitFor(() => {
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
@@ -629,6 +639,64 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
       VBA_CUF_ENTRY_SURFACE.HOME_CARD,
     );
+  });
+
+  it('keeps kyc_retry view and tap analytics distinct from finish_verification', async () => {
+    const { getByTestId, unmount } = render(
+      <MoneyVbaHomeCard variant="finish_verification" />,
+    );
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.finish_verification.CTA_BUTTON),
+    );
+    const finishView = mockUseMoneyAnalytics.mock.calls[0][0];
+    const finishTap = mockTrackButtonClicked.mock.calls[0][0];
+    await waitFor(() => {
+      expect(mockNavigateToDestination).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+    mockUseMoneyAnalytics.mockClear();
+    mockTrackButtonClicked.mockClear();
+
+    const retryRender = render(<MoneyVbaHomeCard variant="kyc_retry" />);
+    fireEvent.press(
+      retryRender.getByTestId(
+        MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CTA_BUTTON,
+      ),
+    );
+    const retryView = mockUseMoneyAnalytics.mock.calls[0][0];
+    const retryTap = mockTrackButtonClicked.mock.calls[0][0];
+    await waitFor(() => {
+      expect(mockNavigateToDestination).toHaveBeenCalledTimes(2);
+    });
+
+    expect(finishView).toEqual({
+      screen_name: SCREEN_NAMES.MONEY_HOME,
+      component_name: COMPONENT_NAMES.MONEY_VBA_FINISH_VERIFICATION_CARD,
+    });
+    expect(retryView).toEqual({
+      screen_name: SCREEN_NAMES.MONEY_HOME,
+      component_name: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
+    });
+    expect(retryView.component_name).not.toBe(finishView.component_name);
+    expect(finishTap).toEqual({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      label_key: 'money.vba_home_card.finish_verification.cta',
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+    });
+    expect(retryTap).toEqual({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+      label_en: 'money.vba_home_card.kyc_retry.cta',
+      label_localized: 'money.vba_home_card.kyc_retry.cta',
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+    });
+    expect(retryTap).not.toEqual(finishTap);
+    expect(mockResolve.mock.calls.map((call) => call[0])).toEqual([
+      'vba-home-card-finish-verification',
+      'vba-home-card-kyc-retry',
+    ]);
   });
 
   it('opens the MetaMask support article when Learn more is pressed on kyc_decision', () => {

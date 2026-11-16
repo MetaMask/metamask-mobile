@@ -126,25 +126,42 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
-    if (config.cta.opensSupportArticle) {
+    const trackCtaClicked = (
+      redirectTarget:
+        | typeof SCREEN_NAMES.VBA_ONBOARDING
+        | typeof MONEY_URLS.METAMASK_SUPPORT,
+    ): void => {
+      // Nested functions do not keep the disabled narrowing from above.
+      if (config.cta.isDisabled) {
+        return;
+      }
+      if (config.analyticsCtaLabel) {
+        trackButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent: config.cta.buttonIntent,
+          label_en: config.analyticsCtaLabel,
+          label_localized: config.analyticsCtaLabel,
+          redirect_target: redirectTarget,
+        });
+        return;
+      }
       trackButtonClicked({
         button_type: MONEY_BUTTON_TYPES.TEXT,
         button_intent: config.cta.buttonIntent,
         label_key: `${config.i18nPrefix}.cta`,
-        redirect_target: MONEY_URLS.METAMASK_SUPPORT,
+        redirect_target: redirectTarget,
       });
+    };
+
+    if (config.cta.opensSupportArticle) {
+      trackCtaClicked(MONEY_URLS.METAMASK_SUPPORT);
       openSupportWithConsent(
         (url) => openInAppBrowser(navigation, url),
         METAMASK_SUPPORT_URL,
       );
       return;
     }
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: config.cta.buttonIntent,
-      label_key: `${config.i18nPrefix}.cta`,
-      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
-    });
+    trackCtaClicked(SCREEN_NAMES.VBA_ONBOARDING);
     startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
     hasPendingCtaOpenRef.current = true;
 
