@@ -1,9 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { selectEvmAssetIdResolver } from '../../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
 import {
-  getPaymentTokenEvmAsset,
+  decodePaymentTokenAssetId,
   isSameAssetId,
 } from '../../../../../util/transactions/payment-token';
 import {
@@ -31,7 +31,7 @@ export function usePayWithSelectedToken({
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithSelectedTokenResult {
   const { payToken, setPayToken } = useTransactionPayToken();
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const automaticToken = useAutomaticTransactionPayToken({
     preferredToken,
     disable: true,
@@ -41,11 +41,11 @@ export function usePayWithSelectedToken({
     if (!payToken || !automaticToken) {
       return false;
     }
-    return !isSameAssetId(payToken.assetId, resolveAssetId(automaticToken));
-  }, [automaticToken, payToken, resolveAssetId]);
+    return !isSameAssetId(payToken.assetId, encodeAssetId(automaticToken));
+  }, [automaticToken, payToken, encodeAssetId]);
 
   const selectedToken = useMemo<PayWithSelectedToken | undefined>(() => {
-    const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
     if (!payToken || !payTokenAsset) {
       return undefined;
@@ -59,14 +59,14 @@ export function usePayWithSelectedToken({
 
   const selectToken = useCallback(
     (target: SetPayTokenRequest) => {
-      const assetId = resolveAssetId(target);
+      const assetId = encodeAssetId(target);
 
       if (isSameAssetId(payToken?.assetId, assetId)) {
         return;
       }
       setPayToken({ assetId });
     },
-    [payToken, resolveAssetId, setPayToken],
+    [payToken, encodeAssetId, setPayToken],
   );
 
   return useMemo(

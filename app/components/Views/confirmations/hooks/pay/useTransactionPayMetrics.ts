@@ -38,7 +38,7 @@ import {
   ConfirmationParams,
   PayWithOption,
 } from '../../components/confirm/confirm-component';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 const CRYPTO_ACCOUNT_TYPES = new Set<string>(
   Object.values(OnboardingCompletedAccountType),
@@ -58,7 +58,7 @@ export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<
     { chainId: Hex; symbol: string } | undefined

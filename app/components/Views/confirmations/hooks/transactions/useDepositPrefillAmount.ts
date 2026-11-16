@@ -34,7 +34,7 @@ import { useTransactionPayFiatPayment } from '../pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
-import { getPaymentTokenEvmAsset } from '../../../../../util/transactions/payment-token';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 /** Smallest fiat amount the input can display and a quote can be built for. */
 export const MIN_FIAT_AMOUNT = 0.01;
@@ -208,7 +208,7 @@ export function useDepositPrefillAmount({
       };
     }
 
-    const payTokenAsset = getPaymentTokenEvmAsset(payToken);
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
     const stable =
       payTokenAsset !== undefined &&
       isListedStablecoin(

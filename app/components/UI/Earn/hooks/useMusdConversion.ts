@@ -26,7 +26,7 @@ import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
-import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
+import { selectEvmAssetIdEncoder } from '../../../../selectors/assets/assets-controller';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -200,7 +200,7 @@ export const useMusdConversion = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
-  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
 
   /**
    * Initiates a max-amount mUSD conversion.
@@ -311,7 +311,7 @@ export const useMusdConversion = () => {
               transactionId,
               assetId:
                 token.caipAssetId ??
-                resolveAssetId({
+                encodeAssetId({
                   address: tokenAddress,
                   chainId: tokenChainId,
                 }),
@@ -384,7 +384,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, pendingTransactionMetas, resolveAssetId, selectedAddress],
+    [navigation, pendingTransactionMetas, encodeAssetId, selectedAddress],
   );
 
   /**

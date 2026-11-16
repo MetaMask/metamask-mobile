@@ -3,10 +3,10 @@ import type { TransactionPaymentToken } from '@metamask/transaction-pay-controll
 import type { Hex } from '@metamask/utils';
 import {
   buildAssetIdIndex,
-  getEvmAsset,
-  getPaymentTokenEvmAsset,
+  decodeEvmAssetId,
+  decodePaymentTokenAssetId,
   isSameAssetId,
-  resolveEvmAssetId,
+  encodeEvmAssetId,
 } from './payment-token';
 
 const NON_EVM_ASSET_ID =
@@ -36,33 +36,33 @@ function buildAssetsInfo(
 }
 
 describe('payment-token', () => {
-  describe('getEvmAsset', () => {
+  describe('decodeEvmAssetId', () => {
     it('derives the Hex chain ID and address of an ERC-20 asset', () => {
-      expect(getEvmAsset(USDC_ASSET_ID)).toStrictEqual({
+      expect(decodeEvmAssetId(USDC_ASSET_ID)).toStrictEqual({
         address: USDC_ADDRESS,
         chainId: '0x1',
       });
     });
 
     it('maps a slip44 native asset to the chain native token address', () => {
-      expect(getEvmAsset('eip155:1/slip44:60')).toStrictEqual({
+      expect(decodeEvmAssetId('eip155:1/slip44:60')).toStrictEqual({
         address: '0x0000000000000000000000000000000000000000',
         chainId: '0x1',
       });
-      expect(getEvmAsset('eip155:137/slip44:966')).toStrictEqual({
+      expect(decodeEvmAssetId('eip155:137/slip44:966')).toStrictEqual({
         address: '0x0000000000000000000000000000000000001010',
         chainId: '0x89',
       });
     });
 
     it('returns undefined for a non-EVM asset', () => {
-      expect(getEvmAsset(NON_EVM_ASSET_ID)).toBeUndefined();
+      expect(decodeEvmAssetId(NON_EVM_ASSET_ID)).toBeUndefined();
     });
   });
 
-  describe('getPaymentTokenEvmAsset', () => {
+  describe('decodePaymentTokenAssetId', () => {
     it('derives the chain ID and address of an EVM payment token', () => {
-      expect(getPaymentTokenEvmAsset(PAYMENT_TOKEN_MOCK)).toStrictEqual({
+      expect(decodePaymentTokenAssetId(PAYMENT_TOKEN_MOCK)).toStrictEqual({
         address: USDC_ADDRESS,
         chainId: '0x1',
       });
@@ -70,12 +70,12 @@ describe('payment-token', () => {
 
     it('returns undefined for a non-EVM or missing token', () => {
       expect(
-        getPaymentTokenEvmAsset({
+        decodePaymentTokenAssetId({
           ...PAYMENT_TOKEN_MOCK,
           assetId: NON_EVM_ASSET_ID,
         }),
       ).toBeUndefined();
-      expect(getPaymentTokenEvmAsset(undefined)).toBeUndefined();
+      expect(decodePaymentTokenAssetId(undefined)).toBeUndefined();
     });
   });
 
@@ -93,7 +93,7 @@ describe('payment-token', () => {
     });
   });
 
-  describe('resolveEvmAssetId', () => {
+  describe('encodeEvmAssetId', () => {
     it('resolves tokens against an index built once', () => {
       const index = buildAssetIdIndex(
         buildAssetsInfo({
@@ -104,13 +104,13 @@ describe('payment-token', () => {
       );
 
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0x1' },
           index,
         ),
       ).toBe(USDC_ASSET_ID);
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           {
             address: '0x0000000000000000000000000000000000000000',
             chainId: '0x1',
@@ -121,7 +121,7 @@ describe('payment-token', () => {
     });
   });
 
-  describe('resolveEvmAssetId with state', () => {
+  describe('encodeEvmAssetId with state', () => {
     it('returns the checksummed AssetsController key of an ERC-20 token', () => {
       const assetsInfo = buildAssetsInfo({
         [USDC_ASSET_ID.toLowerCase()]: 'erc20',
@@ -129,7 +129,7 @@ describe('payment-token', () => {
       });
 
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0x1' },
           buildAssetIdIndex(assetsInfo),
         ),
@@ -140,7 +140,7 @@ describe('payment-token', () => {
       const lowercaseAssetId = USDC_ASSET_ID.toLowerCase();
 
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           { address: USDC_ADDRESS, chainId: '0x1' },
           buildAssetIdIndex(buildAssetsInfo({ [lowercaseAssetId]: 'erc20' })),
         ),
@@ -154,7 +154,7 @@ describe('payment-token', () => {
       });
 
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           {
             address: '0x0000000000000000000000000000000000001010',
             chainId: '0x89',
@@ -166,7 +166,7 @@ describe('payment-token', () => {
 
     it('falls back to the SLIP-44 native asset ID when native metadata is missing', () => {
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           {
             address: '0x0000000000000000000000000000000000000000',
             chainId: '0x2105',
@@ -175,7 +175,7 @@ describe('payment-token', () => {
         ),
       ).toBe('eip155:8453/slip44:60');
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           {
             address: '0x0000000000000000000000000000000000001010',
             chainId: '0x89',
@@ -187,7 +187,7 @@ describe('payment-token', () => {
 
     it('falls back to the checksummed derived asset ID when the token is not in state', () => {
       expect(
-        resolveEvmAssetId(
+        encodeEvmAssetId(
           { address: USDC_ADDRESS.toLowerCase() as Hex, chainId: '0xa' },
           buildAssetIdIndex(buildAssetsInfo({})),
         ),
