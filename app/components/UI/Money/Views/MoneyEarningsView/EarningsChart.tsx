@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import BigNumber from 'bignumber.js';
+import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -26,10 +27,13 @@ import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import {
   EARNINGS_RANGES,
-  getDailyEarningsPoints,
-  getRangeEntries,
-  sumEarnings,
+  getBucketDisplayDateRange,
+  getBucketPoints,
+  getLatestAvailableBucketIndex,
+  getSelectedRange,
+  isAvailableBucket,
   type EarningsRange,
+  type EarningsPoint,
 } from './earningsHistory';
 
 interface EarningsChartProps {
@@ -52,6 +56,11 @@ const RANGE_LABEL_KEYS: Record<EarningsRange, string> = {
 const CHART_HEIGHT = 160;
 const MINIMUM_BAR_HEIGHT = 2;
 
+interface BucketSelection {
+  range: EarningsRange;
+  bucketStart: string | undefined;
+}
+
 const formatDate = (timestamp: string): string =>
   getIntlDateTimeFormatter(I18n.locale, {
     month: 'short',
@@ -64,6 +73,28 @@ const formatSignedUsd = (amount: number): string => {
   return amount > 0 ? `+${formattedAmount}` : formattedAmount;
 };
 
+const formatPointDateRange = (point: EarningsPoint): string => {
+  const { start, end } = getBucketDisplayDateRange(point);
+  const startLabel = formatDate(start);
+  const endLabel = formatDate(end);
+  return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
+};
+
+const getLatestAvailablePoint = (
+  points: EarningsPoint[],
+): EarningsPoint | undefined => {
+  const latestIndex = getLatestAvailableBucketIndex(points);
+  return latestIndex === -1 ? undefined : points[latestIndex];
+};
+
+const createSelection = (
+  range: EarningsRange,
+  points: EarningsPoint[],
+): BucketSelection => ({
+  range,
+  bucketStart: getLatestAvailablePoint(points)?.start,
+});
+
 const EarningsChart = ({
   entries,
   isLoading,
@@ -73,25 +104,63 @@ const EarningsChart = ({
   onRangeChange,
 }: EarningsChartProps): React.ReactElement => {
   const tw = useTailwind();
-  const rangeEntries = useMemo(
-    () => getRangeEntries(entries ?? [], selectedRange),
+  const initialPoints = useMemo(
+    () => getBucketPoints(getSelectedRange(entries, selectedRange)),
+    [entries, selectedRange],
+  );
+  const [selection, setSelection] = useState<BucketSelection>(() =>
+    createSelection(selectedRange, initialPoints),
+  );
+  const selectedRangeData = useMemo(
+    () => getSelectedRange(entries, selectedRange),
     [entries, selectedRange],
   );
   const points = useMemo(
-    () => getDailyEarningsPoints(rangeEntries, selectedRange),
-    [rangeEntries, selectedRange],
+    () => getBucketPoints(selectedRangeData),
+    [selectedRangeData],
   );
-  const total = useMemo(() => sumEarnings(rangeEntries), [rangeEntries]);
+  const selectedPoint = useMemo(() => {
+    if (selection.range === selectedRange) {
+      const selectedPointForRange = points.find(
+        (point) =>
+          point.start === selection.bucketStart && isAvailableBucket(point),
+      );
+      if (selectedPointForRange) {
+        return selectedPointForRange;
+      }
+    }
+
+    return getLatestAvailablePoint(points);
+  }, [points, selectedRange, selection]);
   const maximumAmount = useMemo(
-    () => Math.max(0, ...points.map(({ amount }) => amount)),
+    () =>
+      Math.max(
+        0,
+        ...points.map(({ amount }) => (amount !== null ? amount : 0)),
+      ),
     [points],
   );
-  const dateRange =
-    points.length > 0
-      ? `${formatDate(points[0].timestamp)} – ${formatDate(
-          points[points.length - 1].timestamp,
-        )}`
-      : undefined;
+  const dateRange = selectedPoint
+    ? formatPointDateRange(selectedPoint)
+    : undefined;
+  const selectedAmount = selectedPoint?.amount;
+
+  const handleRangeChange = (range: EarningsRange): void => {
+    const nextPoints = getBucketPoints(getSelectedRange(entries, range));
+    setSelection(createSelection(range, nextPoints));
+    onRangeChange(range);
+  };
+
+  const handlePointPress = (point: EarningsPoint): void => {
+    if (!isAvailableBucket(point)) {
+      return;
+    }
+
+    setSelection({
+      range: selectedRange,
+      bucketStart: point.start,
+    });
+  };
 
   const renderChartContent = (): React.ReactNode => {
     if (isLoading) {
@@ -156,37 +225,55 @@ const EarningsChart = ({
         alignItems={BoxAlignItems.End}
         style={tw.style('h-[160px] gap-px')}
         testID={MoneyEarningsViewTestIds.CHART}
-        accessible
-        accessibilityRole="image"
-        accessibilityLabel={strings(
-          'money.earnings.chart_accessibility_label',
-          {
-            range: strings(RANGE_LABEL_KEYS[selectedRange]),
-            total: formatSignedUsd(total),
-          },
-        )}
       >
         {points.map((point, index) => {
+          const isAvailable = isAvailableBucket(point);
+          const isSelected = selectedPoint?.start === point.start;
           const barHeight =
-            point.amount > 0 && maximumAmount > 0
-              ? Math.max(
-                  MINIMUM_BAR_HEIGHT,
-                  (point.amount / maximumAmount) * CHART_HEIGHT,
-                )
-              : 0;
-          const isLatest = index === points.length - 1;
+            isAvailable && point.amount === 0
+              ? MINIMUM_BAR_HEIGHT
+              : isAvailable && point.amount !== null && maximumAmount > 0
+                ? Math.max(
+                    MINIMUM_BAR_HEIGHT,
+                    (point.amount / maximumAmount) * CHART_HEIGHT,
+                  )
+                : 0;
+          const dateLabel = formatPointDateRange(point);
+          const amountLabel = isAvailable
+            ? formatSignedUsd(point.amount ?? 0)
+            : undefined;
 
           return (
-            <Box
-              key={point.timestamp}
-              style={[
+            <Pressable
+              key={point.start}
+              disabled={!isAvailable}
+              onPress={() => handlePointPress(point)}
+              testID={MoneyEarningsViewTestIds.CHART_SLOT(index)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                amountLabel ? `${dateLabel}, ${amountLabel}` : dateLabel
+              }
+              accessibilityState={{
+                selected: isSelected,
+                disabled: !isAvailable,
+              }}
+              style={({ pressed }) =>
                 tw.style(
-                  'flex-1 rounded-t-sm',
-                  isLatest ? 'bg-primary-default' : 'bg-primary-muted',
-                ),
-                { height: barHeight },
-              ]}
-            />
+                  'h-full flex-1 justify-end',
+                  pressed && isAvailable && 'opacity-70',
+                )
+              }
+            >
+              {isAvailable ? (
+                <Box
+                  testID={MoneyEarningsViewTestIds.CHART_FILL(index)}
+                  twClassName={`w-full rounded-t-sm ${
+                    isSelected ? 'bg-primary-default' : 'bg-primary-muted'
+                  }`}
+                  style={{ height: barHeight }}
+                />
+              ) : null}
+            </Pressable>
           );
         })}
       </Box>
@@ -195,8 +282,8 @@ const EarningsChart = ({
 
   return (
     <Box twClassName="gap-4">
-      {!isLoading && !isError && points.length > 0 ? (
-        <Box>
+      {!isLoading && !isError && selectedAmount !== undefined ? (
+        <Box testID={MoneyEarningsViewTestIds.CHART_HEADER}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {selectedRange === '30D'
               ? strings('money.earnings.earned_last_30_days')
@@ -205,7 +292,7 @@ const EarningsChart = ({
                 })}
           </Text>
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
-            {formatSignedUsd(total)}
+            {formatSignedUsd(selectedAmount)}
           </Text>
           {dateRange ? (
             <Text
@@ -222,7 +309,7 @@ const EarningsChart = ({
 
       <FilterButtonGroup
         value={selectedRange}
-        onChange={(range) => onRangeChange(range as EarningsRange)}
+        onChange={(range) => handleRangeChange(range as EarningsRange)}
         variant={FilterButtonVariant.Secondary}
         twClassName="w-full justify-between"
         testID={MoneyEarningsViewTestIds.RANGE_SELECTOR}

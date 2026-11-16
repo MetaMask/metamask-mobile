@@ -5,6 +5,11 @@ export const MoneyEarningsViewTestIds = {
   TAB_APY: 'money-earnings-view-tab-apy',
   TAB_ALLOCATION: 'money-earnings-view-tab-allocation',
   CHART: 'money-earnings-view-chart',
+  CHART_HEADER: 'money-earnings-view-chart-header',
+  CHART_SLOT: (index: number): string =>
+    `money-earnings-view-chart-slot-${index}`,
+  CHART_FILL: (index: number): string =>
+    `money-earnings-view-chart-fill-${index}`,
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
   SUMMARY: 'money-earnings-view-summary',
   WITHDRAW_BUTTON: 'money-earnings-view-withdraw-button',
