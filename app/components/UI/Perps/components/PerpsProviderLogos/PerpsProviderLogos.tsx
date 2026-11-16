@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
@@ -6,9 +6,12 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
 } from '@metamask/design-system-react-native';
-import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 
-import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import {
+  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
+  PERPS_PROVIDER_LOGO_AVATAR_MAX_PX,
+} from '../../constants/perpsUIConfig';
+import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import { PROVIDER_DISPLAY_INFO } from '../PerpsProviderSelector/PerpsProviderSelector.constants';
 import type {
   PerpsProviderLogoId,
@@ -17,27 +20,16 @@ import type {
 import hyperliquidLogo from './assets/hyperliquid.png';
 import lighterLogo from './assets/lighter.png';
 
-/** Diameter of the marks beside "$X available" on Perps home. */
-export const PERPS_AVAILABLE_BALANCE_LOGO_SIZE = 16;
-
-export const PERPS_PROVIDER_LOGOS_TEST_ID = 'perps-provider-logos';
-
-const NO_PROVIDER_LOGOS: readonly PerpsProviderLogoId[] = [];
-
-/**
- * Hyperliquid then Lighter, matching the stacked pair on Perps Home.
- * The later mark paints on top.
- */
-const AGGREGATED_PROVIDER_LOGO_IDS: readonly PerpsProviderLogoId[] = [
-  'hyperliquid',
-  'lighter',
-];
-
 const PROVIDER_LOGOS: Record<PerpsProviderLogoId, number> = {
   // Bundled requires are numbers at runtime. The png declaration is the wider
   // ImageSourcePropType, which AvatarNetwork does not accept.
   hyperliquid: hyperliquidLogo as number,
   lighter: lighterLogo as number,
+};
+
+const PROVIDER_LOGO_TEST_IDS: Record<PerpsProviderLogoId, string> = {
+  hyperliquid: PerpsProviderLogosSelectorsIDs.HYPERLIQUID,
+  lighter: PerpsProviderLogosSelectorsIDs.LIGHTER,
 };
 
 /**
@@ -53,47 +45,38 @@ const STACKED_LOGO_MARGIN_CLASS: Record<AvatarNetworkSize, string> = {
   [AvatarNetworkSize.Xl]: '-mr-5',
 };
 
-function mapToAvatarNetworkSize(pixels: number): AvatarNetworkSize {
-  if (pixels <= 16) return AvatarNetworkSize.Xs;
-  if (pixels <= 24) return AvatarNetworkSize.Sm;
-  if (pixels <= 32) return AvatarNetworkSize.Md;
-  if (pixels <= 40) return AvatarNetworkSize.Lg;
+/** Later marks paint above earlier ones. Two logos is the maximum. */
+const STACKED_LOGO_Z_CLASS = ['z-10', 'z-20'] as const;
+
+export function mapPerpsLogoPixelsToAvatarSize(
+  pixels: number,
+): AvatarNetworkSize {
+  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Xs) {
+    return AvatarNetworkSize.Xs;
+  }
+  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Sm) {
+    return AvatarNetworkSize.Sm;
+  }
+  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Md) {
+    return AvatarNetworkSize.Md;
+  }
+  if (pixels <= PERPS_PROVIDER_LOGO_AVATAR_MAX_PX.Lg) {
+    return AvatarNetworkSize.Lg;
+  }
   return AvatarNetworkSize.Xl;
 }
 
-/**
- * Marks for the active provider. Aggregated mode draws both exchanges.
- * Returns an empty list for an unknown provider.
- */
-export function getPerpsProviderLogoIds(
-  activeProvider: PerpsActiveProviderMode | undefined,
-): readonly PerpsProviderLogoId[] {
-  switch (activeProvider) {
-    case 'hyperliquid':
-      return ['hyperliquid'];
-    case 'lighter':
-      return ['lighter'];
-    case 'aggregated':
-      return AGGREGATED_PROVIDER_LOGO_IDS;
-    default:
-      return NO_PROVIDER_LOGOS;
+function logoClassName(
+  index: number,
+  avatarSize: AvatarNetworkSize,
+  isCoveredByNextLogo: boolean,
+): string {
+  const zClass =
+    STACKED_LOGO_Z_CLASS[Math.min(index, STACKED_LOGO_Z_CLASS.length - 1)];
+  if (!isCoveredByNextLogo) {
+    return zClass;
   }
-}
-
-/**
- * Logo ids for the available-balance row. Empty when the Lighter flag is off,
- * so callers render nothing and keep the single-provider layout.
- */
-export function usePerpsProviderLogoIds(): readonly PerpsProviderLogoId[] {
-  const { activeProvider, isMultiProviderEnabled } = usePerpsProvider();
-
-  return useMemo(() => {
-    if (!isMultiProviderEnabled) {
-      return NO_PROVIDER_LOGOS;
-    }
-
-    return getPerpsProviderLogoIds(activeProvider);
-  }, [activeProvider, isMultiProviderEnabled]);
+  return `${STACKED_LOGO_MARGIN_CLASS[avatarSize]} ${zClass}`;
 }
 
 /**
@@ -103,14 +86,14 @@ export function usePerpsProviderLogoIds(): readonly PerpsProviderLogoId[] {
 const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
   providerIds,
   size = PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
-  testID = PERPS_PROVIDER_LOGOS_TEST_ID,
+  testID = PerpsProviderLogosSelectorsIDs.CONTAINER,
   twClassName,
 }) => {
   if (providerIds.length === 0) {
     return null;
   }
 
-  const avatarSize = mapToAvatarNetworkSize(size);
+  const avatarSize = mapPerpsLogoPixelsToAvatarSize(size);
   const accessibilityLabel = providerIds
     .map((providerId) => PROVIDER_DISPLAY_INFO[providerId].name)
     .join(', ');
@@ -125,26 +108,21 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
       testID={testID}
       twClassName={twClassName}
     >
-      {providerIds.map((providerId, index) => {
-        const isCoveredByNextLogo = index < providerIds.length - 1;
-
-        return (
-          <AvatarNetwork
-            key={providerId}
-            name={PROVIDER_DISPLAY_INFO[providerId].name}
-            src={PROVIDER_LOGOS[providerId]}
-            size={avatarSize}
-            accessible={false}
-            testID={`${testID}-${providerId}`}
-            twClassName={
-              isCoveredByNextLogo
-                ? STACKED_LOGO_MARGIN_CLASS[avatarSize]
-                : undefined
-            }
-            style={{ zIndex: index + 1 }}
-          />
-        );
-      })}
+      {providerIds.map((providerId, index) => (
+        <AvatarNetwork
+          key={providerId}
+          name={PROVIDER_DISPLAY_INFO[providerId].name}
+          src={PROVIDER_LOGOS[providerId]}
+          size={avatarSize}
+          accessible={false}
+          testID={PROVIDER_LOGO_TEST_IDS[providerId]}
+          twClassName={logoClassName(
+            index,
+            avatarSize,
+            index < providerIds.length - 1,
+          )}
+        />
+      ))}
     </Box>
   );
 };

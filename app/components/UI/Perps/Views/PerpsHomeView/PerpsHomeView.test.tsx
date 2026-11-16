@@ -36,8 +36,9 @@ import {
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
+  PerpsProviderLogosSelectorsIDs,
 } from '../../Perps.testIds';
-import { PERPS_PROVIDER_LOGOS_TEST_ID } from '../../components/PerpsProviderLogos';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   HOME_SCREEN_CONFIG,
@@ -741,7 +742,9 @@ describe('PerpsHomeView', () => {
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
         ),
       ).toBeOnTheScreen();
-      expect(queryByTestId(PERPS_PROVIDER_LOGOS_TEST_ID)).toBeNull();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
     it('shows the HyperLiquid logo when the active provider is Hyperliquid', () => {
@@ -796,7 +799,9 @@ describe('PerpsHomeView', () => {
 
       const { queryByTestId } = render(<PerpsHomeView />);
 
-      expect(queryByTestId(PERPS_PROVIDER_LOGOS_TEST_ID)).toBeNull();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
       expect(
         queryByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
@@ -816,7 +821,9 @@ describe('PerpsHomeView', () => {
       const { getByLabelText, queryByText } = render(<PerpsHomeView />);
 
       expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
-      expect(queryByText('$100')).toBeNull();
+      expect(
+        queryByText(formatPerpsBalance(fundedAccount.account.spendableBalance)),
+      ).toBeNull();
     });
   });
 

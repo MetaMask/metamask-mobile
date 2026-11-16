@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
   Button,
   ButtonSize,
@@ -17,7 +16,6 @@ import {
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -29,10 +27,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
-import PerpsProviderLogos, {
-  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
-  usePerpsProviderLogoIds,
-} from '../PerpsProviderLogos';
+import PerpsAvailableBalanceLabel from '../PerpsAvailableBalanceLabel';
 import { BigNumber } from 'bignumber.js';
 import {
   INITIAL_AMOUNT_UI_PROGRESS,
@@ -87,7 +82,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
   const privacyMode = useSelector(selectPrivacyMode);
-  const providerLogoIds = usePerpsProviderLogoIds();
 
   // Get withdrawal requests filtered by current account using memoized selector
   const withdrawalRequests = useSelector(
@@ -315,37 +309,12 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   {formatPerpsBalance(totalBalance)}
                 </SensitiveText>
               </Animated.View>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                style={tw.style('mt-1')}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                }
-              >
-                {providerLogoIds.length > 0 ? (
-                  <PerpsProviderLogos
-                    providerIds={providerLogoIds}
-                    size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
-                    twClassName="mr-1"
-                  />
-                ) : null}
-                <SensitiveText
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                >
-                  {formatPerpsBalance(spendableBalance)}
-                </SensitiveText>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {' '}
-                  {strings('perps.available')}
-                </Text>
-              </Box>
+              <PerpsAvailableBalanceLabel
+                spendableBalance={spendableBalance}
+                isHidden={privacyMode}
+                variant={TextVariant.BodyMd}
+                twClassName="mt-1"
+              />
               {/* Action Buttons */}
               {showActionButtons && (
                 <Box

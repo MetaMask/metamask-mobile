@@ -4,8 +4,10 @@ import { fireEvent } from '@testing-library/react-native';
 import { GlassView } from 'expo-glass-effect';
 import PerpsMarketBalanceActions from './PerpsMarketBalanceActions';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
-import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
-import { PERPS_PROVIDER_LOGOS_TEST_ID } from '../PerpsProviderLogos';
+import {
+  PerpsMarketBalanceActionsSelectorsIDs,
+  PerpsProviderLogosSelectorsIDs,
+} from '../../Perps.testIds';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import {
   useColorPulseAnimation,
@@ -1175,7 +1177,9 @@ describe('PerpsMarketBalanceActions', () => {
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
         ),
       ).toBeOnTheScreen();
-      expect(queryByTestId(PERPS_PROVIDER_LOGOS_TEST_ID)).toBeNull();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
 
     it('shows the HyperLiquid logo when the active provider is Hyperliquid', () => {
@@ -1183,9 +1187,7 @@ describe('PerpsMarketBalanceActions', () => {
         renderWithLighter('hyperliquid');
 
       expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
-      expect(
-        queryByTestId(`${PERPS_PROVIDER_LOGOS_TEST_ID}-lighter`),
-      ).toBeNull();
+      expect(queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER)).toBeNull();
     });
 
     it('shows the Lighter logo when the active provider is Lighter', () => {
@@ -1205,7 +1207,9 @@ describe('PerpsMarketBalanceActions', () => {
         totalBalance: '0',
       });
 
-      expect(queryByTestId(PERPS_PROVIDER_LOGOS_TEST_ID)).toBeNull();
+      expect(
+        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
       expect(
         queryByTestId(
           PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,

@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import { AvatarNetwork } from '@metamask/design-system-react-native';
+import { AvatarNetworkSize } from '@metamask/design-system-react-native';
 
+import { PerpsProviderLogosSelectorsIDs } from '../../Perps.testIds';
 import PerpsProviderLogos, {
-  getPerpsProviderLogoIds,
-  PERPS_PROVIDER_LOGOS_TEST_ID,
+  mapPerpsLogoPixelsToAvatarSize,
 } from './PerpsProviderLogos';
 
 // Unit, not component-view: this is a presentational contract (provider ids →
@@ -12,29 +12,17 @@ import PerpsProviderLogos, {
 // Perps home is covered by PerpsHomeView.view.test.tsx and the balance row
 // tests in PerpsMarketBalanceActions.test.tsx.
 
-describe('getPerpsProviderLogoIds', () => {
-  it('returns the Hyperliquid mark for the Hyperliquid provider', () => {
-    const logoIds = getPerpsProviderLogoIds('hyperliquid');
-
-    expect(logoIds).toEqual(['hyperliquid']);
+describe('mapPerpsLogoPixelsToAvatarSize', () => {
+  it('maps the available-balance size onto the extra-small avatar', () => {
+    expect(mapPerpsLogoPixelsToAvatarSize(16)).toBe(AvatarNetworkSize.Xs);
   });
 
-  it('returns the Lighter mark for the Lighter provider', () => {
-    const logoIds = getPerpsProviderLogoIds('lighter');
-
-    expect(logoIds).toEqual(['lighter']);
+  it('maps a 32px size onto the medium avatar', () => {
+    expect(mapPerpsLogoPixelsToAvatarSize(32)).toBe(AvatarNetworkSize.Md);
   });
 
-  it('returns Hyperliquid then Lighter for aggregated mode', () => {
-    const logoIds = getPerpsProviderLogoIds('aggregated');
-
-    expect(logoIds).toEqual(['hyperliquid', 'lighter']);
-  });
-
-  it('returns no marks when the provider is missing', () => {
-    const logoIds = getPerpsProviderLogoIds(undefined);
-
-    expect(logoIds).toEqual([]);
+  it('maps sizes above 40px onto the extra-large avatar', () => {
+    expect(mapPerpsLogoPixelsToAvatarSize(48)).toBe(AvatarNetworkSize.Xl);
   });
 });
 
@@ -42,50 +30,44 @@ describe('PerpsProviderLogos', () => {
   it('renders nothing for an empty provider list', () => {
     render(<PerpsProviderLogos providerIds={[]} />);
 
-    expect(screen.queryByTestId(PERPS_PROVIDER_LOGOS_TEST_ID)).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+    ).toBeNull();
   });
 
   it('announces HyperLiquid for a single Hyperliquid mark', () => {
-    render(<PerpsProviderLogos providerIds={['hyperliquid']} testID="logos" />);
+    render(<PerpsProviderLogos providerIds={['hyperliquid']} />);
 
     expect(screen.getByLabelText('HyperLiquid')).toBeOnTheScreen();
-    expect(screen.getByTestId('logos-hyperliquid')).toBeOnTheScreen();
-    expect(screen.queryByTestId('logos-lighter')).toBeNull();
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeNull();
   });
 
   it('announces Lighter for a single Lighter mark', () => {
-    render(<PerpsProviderLogos providerIds={['lighter']} testID="logos" />);
+    render(<PerpsProviderLogos providerIds={['lighter']} />);
 
     expect(screen.getByLabelText('Lighter')).toBeOnTheScreen();
-    expect(screen.getByTestId('logos-lighter')).toBeOnTheScreen();
-    expect(screen.queryByTestId('logos-hyperliquid')).toBeNull();
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+    ).toBeNull();
   });
 
-  it('overlaps Hyperliquid under Lighter and announces both names', () => {
-    const { UNSAFE_getAllByType: getAllByType } = render(
-      <PerpsProviderLogos
-        providerIds={['hyperliquid', 'lighter']}
-        size={16}
-        testID="logos"
-      />,
-    );
+  it('announces both names when the marks overlap', () => {
+    render(<PerpsProviderLogos providerIds={['hyperliquid', 'lighter']} />);
 
     expect(screen.getByLabelText('HyperLiquid, Lighter')).toBeOnTheScreen();
-    expect(screen.getByTestId('logos-hyperliquid')).toBeOnTheScreen();
-    expect(screen.getByTestId('logos-lighter')).toBeOnTheScreen();
-
-    const [hyperliquid, lighter] = getAllByType(AvatarNetwork);
-    expect(hyperliquid.props.size).toBe('xs');
-    expect(hyperliquid.props.twClassName).toBe('-mr-1.5');
-    expect(lighter.props.twClassName).toBeUndefined();
-    expect(lighter.props.style).toEqual({ zIndex: 2 });
-  });
-
-  it('maps a 32px size onto the medium avatar', () => {
-    const { UNSAFE_getByType: getByType } = render(
-      <PerpsProviderLogos providerIds={['lighter']} size={32} />,
-    );
-
-    expect(getByType(AvatarNetwork).props.size).toBe('md');
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeOnTheScreen();
   });
 });
