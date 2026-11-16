@@ -2,8 +2,13 @@ import './mocks';
 import NetInfo from '@react-native-community/netinfo';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Share from 'react-native-share';
-import { toast } from '@metamask/design-system-react-native';
-import { fireEvent } from '@testing-library/react-native';
+import {
+  Icon,
+  IconName,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import type NetInfoMock from '../../app/__mocks__/@react-native-community/netinfo';
 import Engine from '../../app/core/Engine';
 import { strings } from '../../locales/i18n';
@@ -78,7 +83,9 @@ const setApprovedAutoramp = (currency: 'BRL' | 'USD'): void => {
 const expectCopiedFieldToast = (field: string): void => {
   expect(toast).toHaveBeenCalledWith({
     title: strings('virtual_bank_account.vba_details.copied_label', { field }),
+    severity: ToastSeverity.Success,
     hasNoTimeout: false,
+    showCloseButton: false,
   });
 };
 
@@ -164,13 +171,22 @@ describeForPlatforms('VbaDetails copy confirmation', () => {
     });
     unmountScreen = view.unmount;
 
+    const shareButton = await view.findByTestId(
+      VbaDetailsSelectorsIDs.SHARE_BUTTON,
+    );
+    expect(shareButton).toBeOnTheScreen();
     expect(
-      await view.findByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+      within(shareButton).getByText(
+        strings('virtual_bank_account.vba_details.copy_all_button'),
+      ),
     ).toBeOnTheScreen();
+    expect(within(shareButton).UNSAFE_getByType(Icon).props.name).toBe(
+      IconName.Share,
+    );
     jest.mocked(toast).mockClear();
     jest.mocked(Clipboard.setString).mockClear();
 
-    fireEvent.press(view.getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+    fireEvent.press(view.getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON));
 
     expect(Clipboard.setString).toHaveBeenCalled();
     expect(toast).not.toHaveBeenCalled();

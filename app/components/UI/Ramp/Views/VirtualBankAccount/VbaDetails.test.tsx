@@ -1,9 +1,14 @@
 import React, { StrictMode } from 'react';
 import { AccessibilityInfo, Linking } from 'react-native';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Share from 'react-native-share';
-import { toast } from '@metamask/design-system-react-native';
+import {
+  Icon,
+  IconName,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
@@ -647,11 +652,13 @@ describe('VbaDetails', () => {
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Copied Pix key',
+      'Pix key copied',
     );
     expect(toast).toHaveBeenCalledWith({
-      title: 'Copied Pix key',
+      title: 'Pix key copied',
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 
@@ -667,8 +674,10 @@ describe('VbaDetails', () => {
 
     expect(Clipboard.setString).toHaveBeenCalledWith('00020126');
     expect(toast).toHaveBeenCalledWith({
-      title: 'Copied Pix Copia e Cola',
+      title: 'Pix Copia e Cola copied',
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 
@@ -739,24 +748,32 @@ describe('VbaDetails', () => {
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
       expect(toast).toHaveBeenCalledWith({
-        title: 'Copied Routing number',
+        title: 'Routing number copied',
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
     it('copies every US bank row and opens the share sheet', async () => {
       mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
 
-      const { getByTestId } = renderWithProvider(<VbaDetails />);
+      const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
         expect(
-          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+          getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
         ).toBeOnTheScreen();
       });
+      expect(getByText('Share details')).toBeOnTheScreen();
+      expect(
+        within(
+          getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
+        ).UNSAFE_getByType(Icon).props.name,
+      ).toBe(IconName.Share);
 
       await act(async () => {
-        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON));
       });
 
       const bankDetails = [
@@ -874,7 +891,7 @@ describe('VbaDetails', () => {
         strings('virtual_bank_account.vba_details.title'),
       );
       expect(
-        queryByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+        queryByTestId(VbaDetailsSelectorsIDs.SHARE_BUTTON),
       ).not.toBeOnTheScreen();
     });
 

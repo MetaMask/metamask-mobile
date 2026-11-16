@@ -22,6 +22,7 @@ import {
   TextVariant,
   TitleStandard,
   toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -103,7 +104,7 @@ export const VbaDetailsSelectorsIDs = {
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
   DONE_BUTTON: 'vba-details-done-button',
-  COPY_ALL_BUTTON: 'vba-details-copy-all-button',
+  SHARE_BUTTON: 'vba-details-share-button',
 } as const;
 
 interface AutorampCursor {
@@ -734,7 +735,9 @@ const VbaDetails = () => {
       AccessibilityInfo.announceForAccessibility(copiedMessage);
       toast({
         title: copiedMessage,
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     },
     [],
@@ -757,7 +760,7 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
-  const handleCopyAll = useCallback(() => {
+  const handleShareDetails = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
     Clipboard.setString(message);
     AccessibilityInfo.announceForAccessibility(
@@ -990,8 +993,9 @@ const VbaDetails = () => {
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             isFullWidth
-            onPress={handleCopyAll}
-            testID={VbaDetailsSelectorsIDs.COPY_ALL_BUTTON}
+            startIconName={IconName.Share}
+            onPress={handleShareDetails}
+            testID={VbaDetailsSelectorsIDs.SHARE_BUTTON}
           >
             {strings('virtual_bank_account.vba_details.copy_all_button')}
           </Button>
