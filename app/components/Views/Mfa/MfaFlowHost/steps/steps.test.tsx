@@ -614,6 +614,7 @@ describe('CodeStep', () => {
     });
 
     expect(getByText('Send code in 2s')).toBeOnTheScreen();
+    expect(getByText(/^We'll send a 6-digit code to /)).toBeOnTheScreen();
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
