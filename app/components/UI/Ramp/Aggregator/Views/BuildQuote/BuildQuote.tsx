@@ -493,7 +493,7 @@ const BuildQuote = () => {
     amount,
     assetChainId: selectedAsset?.network?.chainId,
     assetReference: selectedAsset?.assetId,
-    walletAddress: selectedAddress,
+    walletAddress: selectedAddress ?? undefined,
   });
 
   const previousTronValidationError = useRef<string | undefined>(undefined);
