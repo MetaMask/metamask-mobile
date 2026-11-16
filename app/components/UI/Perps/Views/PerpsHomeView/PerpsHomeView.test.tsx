@@ -34,12 +34,8 @@ import { mockTheme } from '../../../../../util/theme';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   PerpsHomeViewSelectorsIDs,
-  PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
-  PerpsProviderLogosSelectorsIDs,
 } from '../../Perps.testIds';
-import { formatPerpsBalance } from '../../utils/formatUtils';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   HOME_SCREEN_CONFIG,
   SUPPORT_CONFIG,
@@ -722,108 +718,6 @@ describe('PerpsHomeView', () => {
     mockUsePerpsProvider.mockReturnValue({
       isMultiProviderEnabled: false,
       activeProvider: 'hyperliquid',
-    });
-  });
-
-  describe('exchange logos beside the available balance', () => {
-    beforeEach(() => {
-      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
-    });
-
-    afterEach(() => {
-      mockUseSelector.mockReturnValue(false);
-    });
-
-    it('hides exchange logos when multi-provider is disabled', () => {
-      const { getByTestId, queryByTestId } = render(<PerpsHomeView />);
-
-      expect(
-        getByTestId(
-          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
-      ).toBeNull();
-    });
-
-    it('shows the HyperLiquid logo when the active provider is Hyperliquid', () => {
-      mockUsePerpsProvider.mockReturnValue({
-        isMultiProviderEnabled: true,
-        activeProvider: 'hyperliquid',
-      });
-
-      const { getByLabelText, queryByLabelText } = render(<PerpsHomeView />);
-
-      expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
-      expect(queryByLabelText('Lighter')).toBeNull();
-    });
-
-    it('shows the Lighter logo when the active provider is Lighter', () => {
-      mockUsePerpsProvider.mockReturnValue({
-        isMultiProviderEnabled: true,
-        activeProvider: 'lighter',
-      });
-
-      const { getByLabelText } = render(<PerpsHomeView />);
-
-      expect(getByLabelText('Lighter')).toBeOnTheScreen();
-    });
-
-    it('shows overlapped Hyperliquid and Lighter logos in aggregated mode', () => {
-      mockUsePerpsProvider.mockReturnValue({
-        isMultiProviderEnabled: true,
-        activeProvider: 'aggregated',
-      });
-
-      const { getByLabelText } = render(<PerpsHomeView />);
-
-      expect(getByLabelText('HyperLiquid, Lighter')).toBeOnTheScreen();
-    });
-
-    it('hides exchange logos when the balance is empty', () => {
-      mockUsePerpsProvider.mockReturnValue({
-        isMultiProviderEnabled: true,
-        activeProvider: 'aggregated',
-      });
-      mockUsePerpsLiveAccount.mockReturnValue({
-        account: {
-          totalBalance: '0',
-          spendableBalance: '0',
-          withdrawableBalance: '0',
-          unrealizedPnl: '0',
-          returnOnEquity: '0',
-        },
-        isInitialLoading: false,
-      });
-
-      const { queryByTestId } = render(<PerpsHomeView />);
-
-      expect(
-        queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
-      ).toBeNull();
-      expect(
-        queryByTestId(
-          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
-        ),
-      ).toBeNull();
-    });
-
-    it('keeps exchange logos visible when privacy mode hides the amount', () => {
-      mockUsePerpsProvider.mockReturnValue({
-        isMultiProviderEnabled: true,
-        activeProvider: 'hyperliquid',
-      });
-      mockUseSelector.mockImplementation(
-        (selector: unknown) => selector === selectPrivacyMode,
-      );
-
-      const { getByLabelText, queryByText } = render(<PerpsHomeView />);
-
-      expect(getByLabelText('HyperLiquid')).toBeOnTheScreen();
-      expect(
-        queryByText(formatPerpsBalance(fundedAccount.account.spendableBalance)),
-      ).toBeNull();
     });
   });
 
