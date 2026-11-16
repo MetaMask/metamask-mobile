@@ -50,7 +50,6 @@ jest.mock(
   }),
 );
 
-const mockTopTradersMounted = jest.fn();
 const mockTopTradersProps = jest.fn();
 jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const MockReact = jest.requireActual('react');
@@ -64,9 +63,6 @@ jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
     prefetchProfiles?: boolean;
     chains?: string[];
   }) {
-    MockReact.useEffect(() => {
-      mockTopTradersMounted();
-    }, []);
     MockReact.useEffect(() => {
       mockTopTradersProps({ source, prefetchProfiles, chains });
     });
@@ -352,7 +348,7 @@ describe('CryptoTab — Top Traders section', () => {
     expect(screen.getByTestId('top-traders-section')).toBeOnTheScreen();
   });
 
-  it('passes the explore source and spot chains to the top traders section', () => {
+  it('omits chains so the section defaults to the spot chains', () => {
     arrangeMocks();
 
     render(<CryptoTab {...defaultTabProps} />);
