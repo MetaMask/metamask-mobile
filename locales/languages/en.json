@@ -10551,6 +10551,13 @@
       "contract_deployment": "This site wants you to deploy a contract",
       "decrease_allowance": "This site wants decrease the spending cap for your tokens."
     },
+    "perps_receive_to": {
+      "section": "Perps",
+      "hyperliquid": "USDC on Hyperliquid",
+      "lighter": "USDC on Lighter",
+      "default": "Default",
+      "available": "{{amount}} available"
+    },
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC on HyperCore, the network used by Perps. Swap providers may charge a fee, but MetaMask won't."
