@@ -45,7 +45,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.spend_and_earn_description_suffix':
         ' (variable) on your balance.',
       'card.card_spending_limit.spend_and_earn_description_no_apy':
-        'Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.',
+        'Link your balance to your card and spend it anywhere Mastercard is accepted.',
       'card.card_spending_limit.spend_and_earn_cta': 'Link card',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
     };
@@ -86,7 +86,7 @@ describe('SpendAndEarnPromoCard', () => {
 
     expect(
       screen.getByText(
-        'Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.',
+        'Link your balance to your card and spend it anywhere Mastercard is accepted.',
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByText('4% APY')).not.toBeOnTheScreen();

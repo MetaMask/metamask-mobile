@@ -9821,9 +9821,9 @@
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
       "step2_footer_text": "Money account uses Veda infrastructure.",
-      "step3_title": "Spend your crypto",
-      "step3_body": "MetaMask Card is a fast, easy way to spend your crypto anywhere Mastercard is accepted.",
-      "step3_body_coming_soon": "Coming soon! MetaMask Card is a fast, easy way to spend your crypto anywhere Mastercard is accepted.",
+      "step3_title": "Spend anywhere",
+      "step3_body": "Use your crypto globally, anywhere Mastercard is accepted.",
+      "step3_body_coming_soon": "Coming soon! Use your crypto globally, anywhere Mastercard is accepted.",
       "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
@@ -9914,7 +9914,7 @@
       "link_card_sheet_title": "Spend your crypto",
       "link_card_sheet_description_prefix": "Link your card to spend your Money balance while it keeps earning up to",
       "link_card_sheet_description_suffix": " (variable).",
-      "link_card_sheet_description_no_apy": "Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.",
+      "link_card_sheet_description_no_apy": "Link your card to spend your Money balance anywhere Mastercard is accepted.",
       "link_card_sheet_cta": "Link card",
       "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
       "unlink_card_sheet_title_with_funding_source": "Are you sure?",
@@ -11631,8 +11631,8 @@
       "try_again": "Try again"
     },
     "card_onboarding": {
-      "title": "Spend your crypto",
-      "description": "MetaMask Card is a fast, easy way to spend your crypto anywhere Mastercard is accepted.",
+      "title": "Spend anywhere",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto.",
       "apply_now_button": "Get card",
       "login_button": "Log in",
       "not_now_button": "Not now",
@@ -12143,7 +12143,7 @@
       "spend_and_earn_description_prefix": "Link your balance to your card and spend it anywhere. Plus, earn up to ",
       "spend_and_earn_description_apy": "{{apy}}% APY",
       "spend_and_earn_description_suffix": " (variable) on your balance.",
-      "spend_and_earn_description_no_apy": "Link your Money account to MetaMask Card to spend your balance at 150M+ merchants worldwide.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and spend it anywhere Mastercard is accepted.",
       "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
