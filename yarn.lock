@@ -12511,9 +12511,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/toprf-secure-backup@npm:@metamask/toprf-secure-backup@1.1.0":
+"@metamask/toprf-secure-backup@file:./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz::locator=metamask%40workspace%3A.":
   version: 1.1.0
-  resolution: "@metamask/toprf-secure-backup@npm:1.1.0"
+  resolution: "@metamask/toprf-secure-backup@file:./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz#./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz::hash=9220d2&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@noble/ciphers": "npm:^1.2.1"
@@ -12525,7 +12525,7 @@ __metadata:
     "@toruslabs/fetch-node-details": "npm:^15.0.0"
     "@toruslabs/http-helpers": "npm:^8.1.1"
     bn.js: "npm:^5.2.2"
-  checksum: 10/2714a70eae53a1f46d293980c71a1ed2f59708247019444154e71fc15328e78ec95287ffc2d954a29f903224a1a9fe4d69fb17724e9039bcefd240752f1df26c
+  checksum: 10/06c20960b7f3cc3a2133579e724b6ba64a189859585cc3e81549f98feaea9b74552ace924da13836609236c6313e6e32e90fcfcde9caf7f4d70d69f74c4bf5e9
   languageName: node
   linkType: hard
 
