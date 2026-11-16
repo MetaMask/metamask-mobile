@@ -1,6 +1,9 @@
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import type { CaipAssetType, Hex } from '@metamask/utils';
-import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment-token';
+import {
+  buildAssetIdIndex,
+  resolveEvmAssetId,
+} from '../../../../util/transactions/payment-token';
 
 /**
  * CAIP-19 asset ID of an EVM test token, as `selectEvmAssetIdResolver`
@@ -11,9 +14,9 @@ import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment
  * @returns The CAIP-19 asset ID.
  */
 export function evmAssetId(address: string, chainId: string): CaipAssetType {
-  return getEvmPaymentTokenAssetId(
+  return resolveEvmAssetId(
     { address: address as Hex, chainId: chainId as Hex },
-    {},
+    buildAssetIdIndex({}),
   );
 }
 

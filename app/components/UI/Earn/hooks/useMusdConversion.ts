@@ -26,7 +26,7 @@ import EngineService from '../../../../core/EngineService';
 import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
-import { getEvmPaymentTokenAssetId } from '../../../../util/transactions/payment-token';
+import { selectEvmAssetIdResolver } from '../../../../selectors/assets/assets-controller';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -200,6 +200,7 @@ export const useMusdConversion = () => {
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
   );
+  const resolveAssetId = useSelector(selectEvmAssetIdResolver);
 
   /**
    * Initiates a max-amount mUSD conversion.
@@ -289,7 +290,6 @@ export const useMusdConversion = () => {
           });
 
           const {
-            AssetsController,
             TransactionPayController,
             GasFeeController,
             ApprovalController,
@@ -309,10 +309,12 @@ export const useMusdConversion = () => {
             // Set payment token - this triggers automatic Relay quote fetching
             TransactionPayController.updatePaymentToken({
               transactionId,
-              assetId: getEvmPaymentTokenAssetId(
-                { address: tokenAddress, chainId: tokenChainId },
-                AssetsController.state.assetsInfo,
-              ),
+              assetId:
+                token.caipAssetId ??
+                resolveAssetId({
+                  address: tokenAddress,
+                  chainId: tokenChainId,
+                }),
             });
 
             EngineService.flushState();
@@ -382,7 +384,7 @@ export const useMusdConversion = () => {
         throw err;
       }
     },
-    [navigation, pendingTransactionMetas, selectedAddress],
+    [navigation, pendingTransactionMetas, resolveAssetId, selectedAddress],
   );
 
   /**
