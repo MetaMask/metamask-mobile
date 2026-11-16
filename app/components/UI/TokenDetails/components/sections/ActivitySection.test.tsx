@@ -494,17 +494,7 @@ describe('ActivitySection', () => {
 
     mockUseTokenTransactions.mockReturnValue(
       mockTransactionsResult({
-        transactions: [
-          {
-            ...makeTransaction('0xSelfSend', 60),
-            type: 'simpleSend',
-            hash: '0xSelfSend',
-            txParams: {
-              from: '0x1111111111111111111111111111111111111111',
-              to: '0x123',
-            },
-          },
-        ],
+        transactions: [sameWalletNativeSend('0xSelfSend')],
       }),
     );
 
@@ -535,6 +525,100 @@ describe('ActivitySection', () => {
     const { getByTestId } = render(<ActivitySection token={token} />);
 
     expect(getByTestId('mock-activity-item-tx-own-send')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send when no API receive has that hash', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xOther')] }],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(getByTestId('mock-api-activity-item-0xOther')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send while API history is loading', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(queryByTestId('mock-api-activity-item-0xSelfSend')).toBeNull();
+  });
+
+  it('keeps a same-wallet native send when API history fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send when API history is disabled', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    mockUseTokenCaipAssetId.mockReturnValue(null);
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xSelfSend')] }],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(queryByTestId('mock-api-activity-item-0xSelfSend')).toBeNull();
   });
 
   it('does not render API rows when caipAssetId is null', () => {
@@ -729,6 +813,18 @@ describe('ActivitySection', () => {
     });
   });
 });
+
+function sameWalletNativeSend(id: string) {
+  return {
+    ...makeTransaction(id, 60),
+    type: 'simpleSend',
+    hash: id,
+    txParams: {
+      from: '0x1111111111111111111111111111111111111111',
+      to: '0x123',
+    },
+  };
+}
 
 function apiReceive(hash: string, timestamp = NOW * 1000) {
   return {

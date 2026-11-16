@@ -201,21 +201,45 @@ function useGroupedTokenActivity({
       submittedTxs.length > 0
         ? [...submittedTxs].sort((a, b) => b.time - a.time).concat(confirmedTxs)
         : transactions;
-    const filteredTransactions = filterDuplicateOutgoingTransactions(
-      listTransactions,
-    ).filter((transaction) => {
-      // The sender's simpleSend maps as sent and would hide the API receive.
-      return !isOtherAccountSimpleSend(transaction, selectedAddress);
-    });
-
-    // Convert local transactions to ActivityListItems
-    const localActivityItemsFromTxs = filteredTransactions.map((transaction) =>
+    const dedupedTransactions =
+      filterDuplicateOutgoingTransactions(listTransactions);
+    const mappedLocalItems = dedupedTransactions.map((transaction) =>
       mapTransactionToActivityItem({
         transaction,
         assetSymbol: assetSymbol || 'ETH',
         currentChainId: chainId ?? ('0x1' as Hex),
         tokenChainId: chainId ?? ('0x1' as Hex),
       }),
+    );
+    const apiReceiveHashes = new Set(
+      tokenApiItems.flatMap((item) =>
+        item.type === 'receive' && item.hash ? [item.hash.toLowerCase()] : [],
+      ),
+    );
+    // A same-wallet simpleSend maps as sent and hides the API receive. Drop
+    // that local row only once the receive is loaded; otherwise the transfer
+    // disappears while history is off, loading, failed, or missing the hash.
+    const visibleLocalActivity = dedupedTransactions.flatMap(
+      (transaction, index) => {
+        const activityItem = mappedLocalItems[index];
+        const receiveIsLoaded = Boolean(
+          activityItem.hash &&
+            apiReceiveHashes.has(activityItem.hash.toLowerCase()),
+        );
+        if (
+          isOtherAccountSimpleSend(transaction, selectedAddress) &&
+          receiveIsLoaded
+        ) {
+          return [];
+        }
+        return [{ transaction, activityItem }];
+      },
+    );
+    const filteredTransactions = visibleLocalActivity.map(
+      (entry) => entry.transaction,
+    );
+    const localActivityItemsFromTxs = visibleLocalActivity.map(
+      (entry) => entry.activityItem,
     );
 
     const localTypeByHash = new Map(
