@@ -27,14 +27,22 @@ let restoreMoneyHomeKycState: (() => void) | undefined;
 
 /**
  * Puts back the `ReduxService.store` and the Engine `KycController.state` that
- * were in place before the last Money home render. Call from `afterEach` so
- * later suites on the same worker do not read this test's state.
+ * were in place before the last Money home render.
+ *
+ * Registered automatically below, including when a test throws. Safe to call
+ * again: a second call is a no-op.
  */
 export function restoreMoneyHomeTestState(): void {
   restoreMoneyHomeStore?.();
   restoreMoneyHomeKycState?.();
   restoreMoneyHomeKycState = undefined;
 }
+
+// Jest evaluates this module once per test file. Registering here covers every
+// spec that imports the renderer, so a caller cannot forget the restore.
+afterEach(() => {
+  restoreMoneyHomeTestState();
+});
 
 const bindMoneyHomeStore = (store: ReduxStore): void => {
   restoreMoneyHomeStore?.();
