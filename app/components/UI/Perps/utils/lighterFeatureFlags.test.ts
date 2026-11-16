@@ -1,4 +1,7 @@
-import { isLighterProviderEnabled } from './lighterFeatureFlags';
+import {
+  isLighterProviderEnabled,
+  isPerpsLighterConfirmationEnabled,
+} from './lighterFeatureFlags';
 
 describe('lighterFeatureFlags', () => {
   describe('isLighterProviderEnabled', () => {
@@ -41,6 +44,25 @@ describe('lighterFeatureFlags', () => {
       const result = isLighterProviderEnabled(environment);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('isPerpsLighterConfirmationEnabled', () => {
+    it('enables the deposit receive-to row only for the true override', () => {
+      expect(
+        isPerpsLighterConfirmationEnabled({
+          MM_PERPS_LIGHTER_CONFIRMATION_ENABLED: 'true',
+        }),
+      ).toBe(true);
+    });
+
+    it('keeps the deposit receive-to row hidden without the true override', () => {
+      expect(isPerpsLighterConfirmationEnabled({})).toBe(false);
+      expect(
+        isPerpsLighterConfirmationEnabled({
+          MM_PERPS_LIGHTER_CONFIRMATION_ENABLED: 'false',
+        }),
+      ).toBe(false);
     });
   });
 });
