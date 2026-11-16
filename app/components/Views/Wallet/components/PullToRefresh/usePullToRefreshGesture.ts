@@ -12,6 +12,7 @@ export interface UsePullToRefreshGestureOptions {
   state: PullToRefreshGestureState;
   onCancel: () => void;
   onCommit: () => void;
+  onThreshold: () => void;
   writeRivePulling: (value: boolean) => void;
   writeRiveProgress: (value: number) => void;
 }
@@ -29,12 +30,14 @@ export interface PullToRefreshGestureState {
   refreshLock: SharedValue<boolean>;
   indicatorOutroActive: SharedValue<boolean>;
   refreshCommitRequested: SharedValue<boolean>;
+  thresholdHapticSent: SharedValue<boolean>;
 }
 
 export const usePullToRefreshGesture = ({
   state,
   onCancel,
   onCommit,
+  onThreshold,
   writeRivePulling,
   writeRiveProgress,
 }: UsePullToRefreshGestureOptions): ReturnType<typeof Gesture.Simultaneous> => {
@@ -66,6 +69,7 @@ export const usePullToRefreshGesture = ({
       gestureState.pullingStateSent.value = false;
       gestureState.indicatorOutroActive.value = false;
       gestureState.refreshCommitRequested.value = false;
+      gestureState.thresholdHapticSent.value = false;
       gestureState.initialTouchY.value = touch.y;
       gestureState.initialTouchX.value = touch.x;
       gestureState.pullDistance.value = 0;
@@ -121,6 +125,10 @@ export const usePullToRefreshGesture = ({
       );
       gestureState.pullDistance.value = event.translationY;
       gestureState.pullProgress.value = nextProgress;
+      if (nextProgress >= 100 && !gestureState.thresholdHapticSent.value) {
+        gestureState.thresholdHapticSent.value = true;
+        scheduleOnRN(onThreshold);
+      }
       if (!gestureState.pullingStateSent.value) {
         gestureState.pullingStateSent.value = true;
         scheduleOnRN(writeRivePulling, true);
@@ -136,6 +144,10 @@ export const usePullToRefreshGesture = ({
       }
 
       if (event.translationY >= PULL_REFRESH_THRESHOLD) {
+        if (!gestureState.thresholdHapticSent.value) {
+          gestureState.thresholdHapticSent.value = true;
+          scheduleOnRN(onThreshold);
+        }
         gestureState.refreshCommitRequested.value = true;
         gestureState.pullDistance.value = withTiming(PULL_REFRESH_THRESHOLD, {
           duration: 200,
@@ -148,12 +160,14 @@ export const usePullToRefreshGesture = ({
       }
       gestureState.gestureType.value = null;
       gestureState.pullingStateSent.value = false;
+      gestureState.thresholdHapticSent.value = false;
       gestureState.pullProgress.value = withTiming(0, { duration: 200 });
     })
     .onFinalize(() => {
       'worklet';
       gestureState.gestureType.value = null;
       gestureState.pullingStateSent.value = false;
+      gestureState.thresholdHapticSent.value = false;
       if (!gestureState.refreshCommitRequested.value) {
         gestureState.pullDistance.value = withTiming(0, { duration: 200 });
       }

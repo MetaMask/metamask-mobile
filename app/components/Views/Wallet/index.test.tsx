@@ -427,6 +427,7 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { PullToRefreshTestIds } from './components/PullToRefresh/PullToRefresh';
+import { __fireRiveViewError } from '../../../__mocks__/rive-app-react-native';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -2297,6 +2298,21 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
         .contentInsetAdjustmentBehavior,
     ).toBe('automatic');
+  });
+
+  it('keeps the native fallback refresh control below the native header', () => {
+    mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+    const { getByTestId } = render(Wallet);
+
+    act(() => {
+      __fireRiveViewError({ message: 'Rive unavailable', type: 4 });
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+        .refreshControl.props.progressViewOffset,
+    ).toBe(0);
   });
 
   describe('floating JS header', () => {

@@ -1432,6 +1432,7 @@ const Wallet = ({
                     refreshing={refreshing}
                     onRefresh={handleRefresh}
                     indicatorTopInset={viewportTopInset}
+                    refreshControlTopInset={floatingHeaderInset}
                     indicatorBottomInset={
                       isFloatingJsHeader || isNativeHeader
                         ? FLOATING_HEADER_BALANCE_TOP_GAP

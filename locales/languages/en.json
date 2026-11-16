@@ -4801,6 +4801,8 @@
   },
   "wallet": {
     "title": "Wallet",
+    "refreshing": "Refreshing",
+    "updated": "Updated",
     "search_accessibility_label": "Search",
     "homepage_search_placeholder": "Search",
     "rewards_accessibility_label": "Rewards",

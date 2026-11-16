@@ -72,6 +72,7 @@ const propertySetters = new Map<string, jest.Mock>();
 const propertyValues = new Map<string, unknown>();
 const propertyListeners = new Map<string, Set<(value: unknown) => void>>();
 const triggerCallbacks = new Map<string, Set<() => void>>();
+const unavailableProperties = new Set<string>();
 
 export const __getLastRiveViewMethods = (): RiveViewMethodsMock | undefined =>
   lastRiveViewMethods;
@@ -99,6 +100,17 @@ const createMockViewModelProperty = (path: string) => ({
   removeListeners: () => propertyListeners.delete(path),
 });
 
+export const __setRivePropertyAvailability = (
+  path: string,
+  available: boolean,
+): void => {
+  if (available) {
+    unavailableProperties.delete(path);
+  } else {
+    unavailableProperties.add(path);
+  }
+};
+
 export const __setRivePropertyValue = <T,>(path: string, value: T): void => {
   propertyValues.set(path, value);
   propertyListeners.get(path)?.forEach((listener) => listener(value));
@@ -124,6 +136,7 @@ export const __resetRiveMocks = (): void => {
   propertyValues.clear();
   propertyListeners.clear();
   triggerCallbacks.clear();
+  unavailableProperties.clear();
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -173,8 +186,14 @@ const MOCK_RIVE_FILE = { __mockRiveFile: true };
 const MOCK_VIEW_MODEL_INSTANCE = {
   __mockViewModelInstance: true,
   imageProperty: () => ({ set: __mockRiveImagePropertySet }),
-  numberProperty: (path: string) => createMockViewModelProperty(path),
-  booleanProperty: (path: string) => createMockViewModelProperty(path),
+  numberProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
+  booleanProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
 };
 
 const MOCK_RIVE_IMAGE = { byteSize: 1 };

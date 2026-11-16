@@ -5,7 +5,8 @@ import {
   render,
   type RenderAPI,
 } from '@testing-library/react-native';
-import { StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PullToRefresh, {
   PULL_REFRESH_THRESHOLD,
   PullToRefreshTestIds,
@@ -14,6 +15,7 @@ import {
   __fireRiveViewError,
   __getRivePropertySetter,
   __resetRiveMocks,
+  __setRivePropertyAvailability,
 } from '../../../../../__mocks__/rive-app-react-native';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
@@ -95,6 +97,7 @@ jest.mock('../../../../../util/haptics', () => ({
   fireImpact: jest.fn(),
   ImpactMoment: {
     PullToRefreshEngage: 'pullToRefreshEngage',
+    PullToRefresh: 'pullToRefresh',
   },
 }));
 
@@ -108,6 +111,10 @@ jest.mock('../../../../../util/theme', () => {
 const mockUseNetworkTier = jest.mocked(useNetworkTier);
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
 const mockFireImpact = jest.mocked(fireImpact);
+const mockIsScreenReaderEnabled = jest.spyOn(
+  AccessibilityInfo,
+  'isScreenReaderEnabled',
+);
 
 const createStateManager = (): MockGestureStateManager => ({
   activate: jest.fn(),
@@ -141,6 +148,7 @@ describe('PullToRefresh', () => {
     __resetRiveMocks();
     mockUseNetworkTier.mockReturnValue('WIFI');
     mockGetHardwareTier.mockReturnValue('HIGH');
+    mockIsScreenReaderEnabled.mockResolvedValue(false);
     mockGestureCallbacks.onTouchesDown = undefined;
     mockGestureCallbacks.onTouchesMove = undefined;
     mockGestureCallbacks.onUpdate = undefined;
@@ -151,10 +159,15 @@ describe('PullToRefresh', () => {
     jest.useRealTimers();
   });
 
-  it('binds the Rive animation and uses the native refresh fallback until it is ready', () => {
+  it('renders the Rive animation after binding is ready', () => {
     const { getByTestId } = renderPullToRefresh();
 
     expect(getByTestId(PullToRefreshTestIds.RIVE)).toBeOnTheScreen();
+  });
+
+  it('adds an accessibility action for the custom gesture', () => {
+    const { getByTestId } = renderPullToRefresh();
+
     expect(
       getByTestId('pull-refresh-scroll-view').props.refreshControl,
     ).toBeUndefined();
@@ -205,9 +218,8 @@ describe('PullToRefresh', () => {
     expect(__getRivePropertySetter('isRefreshing')).toHaveBeenCalledWith(true);
   });
 
-  it('updates pull progress and commits refresh at the threshold', async () => {
-    const onRefresh = jest.fn().mockResolvedValue(undefined);
-    renderPullToRefresh({ onRefresh });
+  it('writes pull progress during an active gesture', async () => {
+    renderPullToRefresh();
 
     const stateManager = createStateManager();
     await act(async () => {
@@ -219,20 +231,41 @@ describe('PullToRefresh', () => {
       mockGestureCallbacks.onUpdate?.({
         translationY: PULL_REFRESH_THRESHOLD / 2,
       });
-      mockGestureCallbacks.onEnd?.({
-        translationY: PULL_REFRESH_THRESHOLD,
-      });
       await Promise.resolve();
     });
 
     expect(stateManager.activate).toHaveBeenCalled();
     expect(__getRivePropertySetter('isPulling')).toHaveBeenCalledWith(true);
     expect(__getRivePropertySetter('pullProgress')).toHaveBeenCalledWith(50);
-    expect(__getRivePropertySetter('isRefreshing')).toHaveBeenCalledWith(true);
-    expect(mockFireImpact).toHaveBeenCalledWith(
+  });
+
+  it('commits refresh after a threshold release', async () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    renderPullToRefresh({ onRefresh });
+
+    const stateManager = createStateManager();
+    await act(async () => {
+      mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
+      mockGestureCallbacks.onTouchesMove?.(
+        createTouchEvent(PULL_REFRESH_THRESHOLD),
+        stateManager,
+      );
+      mockGestureCallbacks.onEnd?.({
+        translationY: PULL_REFRESH_THRESHOLD,
+      });
+      await Promise.resolve();
+    });
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenNthCalledWith(
+      1,
       ImpactMoment.PullToRefreshEngage,
     );
-    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(mockFireImpact).toHaveBeenNthCalledWith(
+      2,
+      ImpactMoment.PullToRefresh,
+    );
+    expect(__getRivePropertySetter('isRefreshing')).toHaveBeenCalledWith(true);
   });
 
   it('clamps pull progress before writing it to Rive', async () => {
@@ -256,7 +289,7 @@ describe('PullToRefresh', () => {
     );
   });
 
-  it('cancels a pull below the threshold and resets the Rive bindings', async () => {
+  it('resets Rive bindings after a sub-threshold release', async () => {
     const onRefresh = jest.fn();
     renderPullToRefresh({ onRefresh });
 
@@ -319,6 +352,48 @@ describe('PullToRefresh', () => {
       false,
     );
     expect(__getRivePropertySetter('pullProgress')).toHaveBeenLastCalledWith(0);
+  });
+
+  it('announces programmatic refresh lifecycle changes', () => {
+    const announceForAccessibility = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+    const onRefresh = jest.fn();
+    const { rerender } = renderPullToRefresh({ onRefresh });
+
+    act(() => {
+      rerender(
+        <PullToRefresh
+          refreshing
+          onRefresh={onRefresh}
+          scrollViewProps={{ testID: 'pull-refresh-scroll-view' }}
+        >
+          <View testID="pull-refresh-content" />
+        </PullToRefresh>,
+      );
+    });
+
+    act(() => {
+      rerender(
+        <PullToRefresh
+          refreshing={false}
+          onRefresh={onRefresh}
+          scrollViewProps={{ testID: 'pull-refresh-scroll-view' }}
+        >
+          <View testID="pull-refresh-content" />
+        </PullToRefresh>,
+      );
+    });
+
+    expect(announceForAccessibility).toHaveBeenNthCalledWith(
+      1,
+      strings('wallet.refreshing'),
+    );
+    expect(announceForAccessibility).toHaveBeenNthCalledWith(
+      2,
+      strings('wallet.updated'),
+    );
   });
 
   it('does not let a previous outro timer unlock a newer refresh', () => {
@@ -427,6 +502,40 @@ describe('PullToRefresh', () => {
       mockGestureCallbacks.onTouchesDown?.(createTouchEvent(0), stateManager);
     });
     expect(stateManager.fail).toHaveBeenCalled();
+  });
+
+  it('uses the native refresh control when a Rive property is unavailable', () => {
+    __setRivePropertyAvailability('pullProgress', false);
+
+    const { getByTestId, queryByTestId } = renderPullToRefresh({
+      indicatorTopInset: 120,
+      refreshControlTopInset: 0,
+    });
+
+    expect(queryByTestId(PullToRefreshTestIds.RIVE)).not.toBeOnTheScreen();
+    expect(
+      getByTestId('pull-refresh-scroll-view').props.refreshControl.props,
+    ).toEqual(
+      expect.objectContaining({
+        progressViewOffset: 0,
+        testID: PullToRefreshTestIds.FALLBACK,
+      }),
+    );
+  });
+
+  it('uses the native refresh control for screen reader users', async () => {
+    mockIsScreenReaderEnabled.mockResolvedValue(true);
+
+    const { getByTestId, queryByTestId } = renderPullToRefresh();
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(queryByTestId(PullToRefreshTestIds.RIVE)).not.toBeOnTheScreen();
+    expect(
+      getByTestId('pull-refresh-scroll-view').props.refreshControl.props.testID,
+    ).toBe(PullToRefreshTestIds.FALLBACK);
   });
 
   it('falls back on low hardware with a slow cellular connection', () => {

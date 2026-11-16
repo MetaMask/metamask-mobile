@@ -4,8 +4,10 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import {
+  AccessibilityInfo,
   RefreshControl,
   ScrollView,
   type NativeScrollEvent,
@@ -22,6 +24,7 @@ import Animated, {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ConditionalScrollView from '../../../../../component-library/components-temp/ConditionalScrollView';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { strings } from '../../../../../../locales/i18n';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import Logger from '../../../../../util/Logger';
@@ -48,6 +51,7 @@ interface PullToRefreshProps {
   refreshing: boolean;
   onRefresh: RefreshHandler;
   indicatorTopInset?: number;
+  refreshControlTopInset?: number;
   indicatorBottomInset?: number;
   scrollViewProps: ScrollViewProps;
 }
@@ -59,6 +63,7 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       refreshing,
       onRefresh,
       indicatorTopInset = 0,
+      refreshControlTopInset = indicatorTopInset,
       indicatorBottomInset = 0,
       scrollViewProps,
     },
@@ -69,13 +74,19 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
     const hardwareTier = useMemo(() => getHardwareTier(), []);
     const networkTier = useNetworkTier();
     const prefersReducedMotion = useReducedMotion();
+    const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
 
     const shouldUseRive =
       !prefersReducedMotion &&
+      !screenReaderEnabled &&
       networkTier !== 'NONE' &&
       !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
     const previousRefreshingRef = useRef(refreshing);
+    const refreshAnnouncementStateRef = useRef<'idle' | 'refreshing'>(
+      refreshing ? 'refreshing' : 'idle',
+    );
+    const screenReaderEnabledRef = useRef(false);
     const pullRefreshCommittedRef = useRef(false);
     const outroTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -90,6 +101,7 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
     const refreshLock = useSharedValue(false);
     const indicatorOutroActive = useSharedValue(false);
     const refreshCommitRequested = useSharedValue(false);
+    const thresholdHapticSent = useSharedValue(false);
     const {
       canRenderRive,
       bindingReady,
@@ -106,6 +118,48 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       enabled: shouldUseRive,
       pullDistance,
     });
+
+    useEffect(() => {
+      let isMounted = true;
+      const handleScreenReaderChange = (enabled: boolean): void => {
+        if (isMounted && screenReaderEnabledRef.current !== enabled) {
+          screenReaderEnabledRef.current = enabled;
+          setScreenReaderEnabled(enabled);
+        }
+      };
+
+      AccessibilityInfo.isScreenReaderEnabled()
+        .then(handleScreenReaderChange)
+        .catch(() => undefined);
+
+      const subscription = AccessibilityInfo.addEventListener(
+        'screenReaderChanged',
+        handleScreenReaderChange,
+      );
+
+      return (): void => {
+        isMounted = false;
+        subscription.remove();
+      };
+    }, []);
+
+    const announceRefreshStart = useCallback(() => {
+      if (refreshAnnouncementStateRef.current === 'refreshing') {
+        return;
+      }
+
+      refreshAnnouncementStateRef.current = 'refreshing';
+      AccessibilityInfo.announceForAccessibility(strings('wallet.refreshing'));
+    }, []);
+
+    const announceRefreshComplete = useCallback(() => {
+      if (refreshAnnouncementStateRef.current === 'idle') {
+        return;
+      }
+
+      refreshAnnouncementStateRef.current = 'idle';
+      AccessibilityInfo.announceForAccessibility(strings('wallet.updated'));
+    }, []);
 
     const cancelOutroTimer = useCallback(() => {
       if (outroTimerRef.current) {
@@ -147,8 +201,10 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       refreshingShared.value = false;
       writeRiveRefreshing(false);
       writeRiveProgress(0);
+      announceRefreshComplete();
       startOutroLock();
     }, [
+      announceRefreshComplete,
       refreshingShared,
       startOutroLock,
       writeRiveProgress,
@@ -167,7 +223,8 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       });
       writeRiveRefreshing(true);
       writeRivePulling(false);
-      fireImpact(ImpactMoment.PullToRefreshEngage);
+      announceRefreshStart();
+      fireImpact(ImpactMoment.PullToRefresh);
 
       try {
         const refreshResult = onRefresh();
@@ -184,6 +241,7 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       pullDistance,
       refreshLock,
       refreshingShared,
+      announceRefreshStart,
       writeRivePulling,
       writeRiveRefreshing,
     ]);
@@ -192,6 +250,12 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       refreshingShared.value = refreshing;
       const wasRefreshing = previousRefreshingRef.current;
       previousRefreshingRef.current = refreshing;
+
+      if (refreshing && !wasRefreshing) {
+        announceRefreshStart();
+      } else if (!refreshing && wasRefreshing) {
+        announceRefreshComplete();
+      }
 
       if (!riveViewRef) {
         return;
@@ -218,6 +282,8 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       }
     }, [
       refreshing,
+      announceRefreshComplete,
+      announceRefreshStart,
       cancelOutroTimer,
       indicatorOutroActive,
       pullDistance,
@@ -235,6 +301,10 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       resetRivePull();
     }, [resetRivePull]);
 
+    const triggerThresholdHaptic = useCallback(() => {
+      fireImpact(ImpactMoment.PullToRefreshEngage);
+    }, []);
+
     const gestureState: PullToRefreshGestureState = {
       scrollY,
       pullDistance,
@@ -248,12 +318,14 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
       refreshLock,
       indicatorOutroActive,
       refreshCommitRequested,
+      thresholdHapticSent,
     };
 
     const combinedGesture = usePullToRefreshGesture({
       state: gestureState,
       onCancel: cancelPull,
       onCommit: commitRefresh,
+      onThreshold: triggerThresholdHaptic,
       writeRivePulling,
       writeRiveProgress,
     });
@@ -310,12 +382,14 @@ const PullToRefresh = forwardRef<ScrollView, PullToRefreshProps>(
     );
     const fallbackRefreshControl = useCustomGesture ? undefined : (
       <RefreshControl
-        progressViewOffset={indicatorTopInset}
+        progressViewOffset={refreshControlTopInset}
         refreshing={refreshing}
         onRefresh={() => {
           Promise.resolve()
             .then(() => onRefresh())
-            .catch(() => undefined);
+            .then(announceRefreshComplete)
+            .catch(announceRefreshComplete);
+          announceRefreshStart();
         }}
         tintColor={colors.icon.default}
         colors={[colors.primary.default]}
