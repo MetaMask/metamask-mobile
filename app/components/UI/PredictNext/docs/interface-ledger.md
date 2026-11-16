@@ -55,9 +55,11 @@ marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
 marketDataQueries.searchEvents(venueId, { q, limit });
 marketDataQueries.getVenueCatalog(venueId);
+fundingQueries.openDeposits(venueId);
+fundingQueries.deposit(venueId, operationId);
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`. Funding descriptors belong to `PredictFundingService`: open deposits are fresh for 10 seconds, and one deposit (keyed by Venue and operation ID, family Venue-wide) for 5 seconds.
 
 ## Portfolio
 
@@ -90,6 +92,18 @@ The same route pair serves both Order Actions (ADR-0001). A sell Preview request
 - The sell Preview reports `requestedContracts`, `estimatedContracts`, `averagePrice`, `limitPrice`, `fee` with its `feeBreakdown`, `estimatedProceeds` (gross), `estimatedNetProceeds` (Proceeds minus Fee), and `expiresAt`. `limitPrice` is a shared field on both Preview actions — the worst ask consumed on a buy, the worst bid on a sell: the Immediate Order's price floor — and the mobile buy schema masks it rather than rejecting it. Buy-only fields (`requestedAmount`, `orderAmount`, `totalDebit`, `potentialPayout`, `potentialProfit`) are absent, not null.
 - The sell Receipt reports `quotedContracts` and, once the Venue reports fills, `filledContracts`, `averageFillPrice`, `fee`, `actualProceeds`, and `netProceeds` — fill fields are projected as fixed-point decimal strings, identical across actions (`filledContracts: '7.00'`). `requestedMaxSpend`, `actualSpend`, and `payoutExposure` are absent on sell receipts.
 - Over-selling a Position fails closed with the canonical `insufficient_position` code; a failed position read reports `position_unavailable`. The backend ownership check validates the requested count against venue position evidence at preview and commit, but it is not a reservation — concurrent sells of the shared venue account can jointly exceed the position until fills settle. `reconciliation_required` observation and the idempotent re-POST of the same `previewId` are identical for both actions.
+
+## Deposit (write contract, PRED-1494)
+
+The routes are in [Remote Venue Adapters](./remote-adapters.md#deposits-pred-1494). The contract is va-mmcx-predict-api `docs/FUNDING.md`; `contracts/v1/funding.ts` parses it and fails closed with `INVALID_RESPONSE`. The fixtures in `contracts/v1/fixtures/funding-contract/` come from the API's own `projectDeposit`.
+
+- `PredictDepositOperation` has `operationId` (the backend's, not Kalshi's deposit ID), `status`, `amount` (USD, two decimals), `chainId`, `tokenContract`, `depositAddress` and `planExpiresAt` (both null until Kalshi returns an address), `txHash`, `createdAt` and `next`.
+- `status` is one of `awaiting_transfer`, `processing`, `completed`, `cancelled`, `failed` and `under_review`. An unknown status fails parsing. `cancelled` is final unless a transfer turns up afterwards, which moves the deposit to `under_review`.
+- `next` is a closed union: `wallet_transfer` (the Funding Plan, typed fields only), `wait`, `done` and `review` (with a support reference). Only the unsigned create call answers `sign_request`. An unknown kind fails parsing, and so does a step that does not fit the status or a Funding Plan that disagrees with its deposit's chain, token, amount, address or deadline. There is no generic "sign these bytes" or "send this transaction" step.
+- `listOpenDeposits` returns the deposits that are not final, oldest first. A closed or repeated deposit in that list fails parsing.
+- `PredictFundingService` exposes `prepareDeposit`, `getDeposit`, `listOpenDeposits`, `reportDepositTransfer` and `cancelDeposit` as messenger actions. `prepareDeposit` sends nothing without a `{ kind: 'user-approved' }` approval and shares one call per `clientOperationId` while it is in flight.
+- `PredictFundingService:depositResolved` fires once when the service sees a deposit it saw open reach `completed`, `cancelled`, `failed` or `under_review`. A deposit first read already resolved is not announced. A completed deposit invalidates the Balance and the Portfolio Summary.
+- The phone persists nothing about a deposit. `Engine.resetState` calls `PredictFundingService.clearState()`, which forgets the statuses it saw and detaches calls in flight.
 
 ## Runtime boundary
 
