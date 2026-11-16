@@ -11,6 +11,7 @@ import {
   getFlowErrorCode,
   isCooldownCountdown,
   isReportable,
+  isRetryableFailure,
 } from './errors';
 import {
   getEnrollmentMaxSessionAgeMs,
@@ -561,7 +562,7 @@ export const createMfaFlow = ({
         showInlineError(code);
         return undefined;
       case 'failure':
-        fail(code, false, error);
+        fail(code, isRetryableFailure(code), error);
         return undefined;
       case 'support':
         // Shown even before any other screen: the user needs a way to
@@ -785,7 +786,7 @@ export const createMfaFlow = ({
     const needsPasskey =
       request.kind === 'enroll'
         ? request.method === 'passkey'
-        : request.methods.includes('passkey');
+        : !request.verifyOnly && request.methods.includes('passkey');
     if (needsPasskey && !passkey) {
       rejectWith('passkey_unsupported');
       return Promise.resolve();

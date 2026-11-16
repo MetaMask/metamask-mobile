@@ -10,6 +10,8 @@ import {
 /**
  * Maps a SumSub launch outcome from `trackKycAnalytics.verificationOutcome`
  * to `KYC Verification Updated`. The controller calls it once per attempt.
+ * Properties come from the Iron vendor definition, through
+ * `buildKycBaseProperties`.
  *
  * @param payload - The launch outcome.
  */

@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import type {
-  GetRecurringOrdersResponse,
+  ListRecurringOrdersResponse,
   RecurringOrderState,
 } from '../api/recurringOrders.types';
 import {
@@ -31,9 +31,10 @@ export function useRecurringOrders({
     chainId,
     limit: RECURRING_ORDERS_PAGE_LIMIT,
   });
-  const query = useInfiniteQuery<GetRecurringOrdersResponse>({
+  const query = useInfiniteQuery<ListRecurringOrdersResponse>({
     queryKey: descriptor.queryKey,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.endCursor : undefined,
     initialPageParam: undefined as string | undefined,
     enabled: enabled && Boolean(walletAddress),
   });

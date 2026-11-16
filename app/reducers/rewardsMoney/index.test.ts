@@ -11,6 +11,7 @@ import rewardsMoneyReducer, {
   setPendingReferralCode,
   setReferralLinkPending,
   setCashbackLedger,
+  setCommissionMechanisms,
   setCommissions,
   setEarningsHistory,
   setClaimLock,
@@ -299,6 +300,15 @@ describe('rewardsMoneyReducer', () => {
             data: { enrolled: 12, earning_generating: 5 },
           },
         },
+        commissionMechanisms: {
+          [PROFILE_A]: {
+            REFERRAL_REV_SHARE: {
+              claim_open: false,
+              reason: 'MECHANISM_NOT_CLAIMABLE',
+            },
+            SOCIAL_FOLLOW_TRADE: { claim_open: true, reason: null },
+          },
+        },
         commissions: {
           [PROFILE_A]: [
             {
@@ -379,7 +389,6 @@ describe('rewardsMoneyReducer', () => {
         pendingReferralCode: null,
         answeredReferralCode: null,
         isReferralLinkPending: false,
-        commissionMechanisms: {},
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -667,6 +676,39 @@ describe('rewardsMoneyReducer', () => {
       );
 
       expect(state.commissions[PROFILE_A]).toEqual(items);
+    });
+
+    it('stores commission mechanisms and drops them on rehydrate', () => {
+      const mechanisms = {
+        REFERRAL_REV_SHARE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE' as const,
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: true,
+          reason: null,
+        },
+      };
+      const stored = rewardsMoneyReducer(
+        initialState,
+        setCommissionMechanisms({ profileId: PROFILE_A, mechanisms }),
+      );
+
+      expect(stored.commissionMechanisms[PROFILE_A]).toEqual(mechanisms);
+
+      const state = rewardsMoneyReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewardsMoney: {
+            ...stored,
+            commissionMechanisms: {
+              [PROFILE_A]: mechanisms,
+            },
+          },
+        },
+      } as Action);
+
+      expect(state.commissionMechanisms).toEqual({});
     });
 
     it('caches cashback ledger rows by profile', () => {

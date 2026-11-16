@@ -48,6 +48,8 @@ import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCred
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
   getAddedOn,
+  getCreatedOn,
+  getLastUsedValue,
   getMethodLabel,
   getPasskeyName,
   maskEmail,
@@ -110,6 +112,23 @@ const COPY: Record<
   },
 };
 
+const DetailRow = ({
+  label,
+  value,
+  testID,
+}: {
+  label: string;
+  value: string;
+  testID: string;
+}) => (
+  <Box twClassName="flex-row justify-between gap-4" testID={testID}>
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text variant={TextVariant.BodyMd}>{value}</Text>
+  </Box>
+);
+
 /**
  * One method: when it was added, what it protects, and its removal. Removing
  * the last method is refused; otherwise the user confirms, then proves it's
@@ -147,6 +166,7 @@ const MfaMethodDetails = () => {
   }
 
   const addedOn = getAddedOn(credential);
+  const createdOn = getCreatedOn(credential);
   let name = getMethodLabel(method);
   if (credential.type === 'passkey') {
     name = getPasskeyName(credential, index);
@@ -215,20 +235,38 @@ const MfaMethodDetails = () => {
         includesTopInset
       />
       <ScrollView contentContainerStyle={tw.style('p-4 gap-6')}>
-        <Box twClassName="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
-          <AvatarIcon iconName={copy.icon} />
-          <Box twClassName="flex-1">
-            <Text variant={TextVariant.BodyMd}>{name}</Text>
-            {addedOn ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {addedOn}
-              </Text>
+        {credential.type === 'passkey' ? (
+          <Box twClassName="gap-4 pb-6 border-b border-muted">
+            <Text variant={TextVariant.HeadingLg}>{name}</Text>
+            {createdOn ? (
+              <DetailRow
+                label={strings('mfa.settings.created')}
+                value={createdOn}
+                testID={MfaMethodDetailsSelectorsIDs.CREATED}
+              />
             ) : null}
+            <DetailRow
+              label={strings('mfa.settings.last_used')}
+              value={getLastUsedValue(credential)}
+              testID={MfaMethodDetailsSelectorsIDs.LAST_USED}
+            />
           </Box>
-        </Box>
+        ) : (
+          <Box twClassName="flex-row items-center gap-4 p-4 rounded-2xl border border-muted">
+            <AvatarIcon iconName={copy.icon} />
+            <Box twClassName="flex-1">
+              <Text variant={TextVariant.BodyMd}>{name}</Text>
+              {addedOn ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {addedOn}
+                </Text>
+              ) : null}
+            </Box>
+          </Box>
+        )}
         <Box twClassName="gap-4">
           <Text variant={TextVariant.HeadingSm}>
             {strings('mfa.settings.used_for')}

@@ -11,7 +11,8 @@ import {
 import { ZERO_ADDRESS } from '../../constants/address';
 
 export const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
-const permit2TokenMock = '0x1234567890123456789012345678901234567890';
+export const permit2TokenMock = '0x1234567890123456789012345678901234567890';
+export const shortenedPermit2TokenMock = '0x12345...67890';
 
 export const approvalSpenderMock = '0x9876543210987654321098765432109876543210';
 export const shortenedSpenderMock = '0x98765...43210';
@@ -171,7 +172,7 @@ const approveERC20Permit2Transaction = merge({}, baseApproveTransaction, {
       permit2TokenMock,
       approvalSpenderMock,
       100,
-      1746696740463,
+      1746696740,
     ),
   },
 });
@@ -182,7 +183,7 @@ const revokeERC20Permit2Transaction = merge({}, baseApproveTransaction, {
       permit2TokenMock,
       approvalSpenderMock,
       0,
-      1746696740463,
+      1746696740,
     ),
   },
 });

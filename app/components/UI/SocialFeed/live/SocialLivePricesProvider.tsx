@@ -24,6 +24,7 @@ import {
   selectVisibleKeys,
   type MeasuredCard,
 } from './planLiveSubscriptions';
+import { selectPerpDisplayPrice } from './selectPerpDisplayPrice';
 import {
   SocialLivePricesContext,
   type SocialLivePricesContextValue,
@@ -220,7 +221,10 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
           if (!tracked.has(symbol) || !update) {
             return;
           }
-          const price = Number.parseFloat(update.markPrice ?? update.price);
+          const price = selectPerpDisplayPrice(update);
+          if (price == null) {
+            return;
+          }
           store.publish(`perp:${symbol}`, price);
         });
       },

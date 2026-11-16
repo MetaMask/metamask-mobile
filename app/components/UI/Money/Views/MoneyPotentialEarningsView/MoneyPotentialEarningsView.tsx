@@ -33,13 +33,12 @@ import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/P
 import { isPositiveNumber } from '../../utils/number';
 import styleSheet from './MoneyPotentialEarningsView.styles';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import {
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
@@ -63,7 +62,7 @@ const MoneyPotentialEarningsView = () => {
     overrideToUsd: params?.overrideToUsd ?? false,
   });
 
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { apyDecimal } = useMoneyVaultApy();
   const apyDecimalForProjection = apyDecimal ?? 0;
 
@@ -104,24 +103,25 @@ const MoneyPotentialEarningsView = () => {
       return;
     }
 
-    trackTokenButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: 'money.potential_earnings.convert_cta',
-      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
-      token_symbol: defaultToken.symbol,
-      token_position_in_list: tokenIndex + 1,
-      token_chain_id: defaultToken.chainId ?? '',
-      tokens_in_list: eligibleTokens.length,
-      token_has_balance: new BigNumber(defaultToken.balance).gt(0),
-    });
-
     try {
-      await initiateDeposit({
+      await navigateToMoneyDeposit({
         preferredPaymentToken: {
           address: defaultToken.address as Hex,
           chainId: defaultToken.chainId as Hex,
+        },
+        track: ({ button_intent, redirect_target }) => {
+          trackTokenButtonClicked({
+            button_type: MONEY_BUTTON_TYPES.TEXT,
+            button_intent,
+            label_key: 'money.potential_earnings.convert_cta',
+            redirect_target,
+            component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
+            token_symbol: defaultToken.symbol,
+            token_position_in_list: tokenIndex + 1,
+            token_chain_id: defaultToken.chainId ?? '',
+            tokens_in_list: eligibleTokens.length,
+            token_has_balance: new BigNumber(defaultToken.balance).gt(0),
+          });
         },
       });
     } catch (error) {
@@ -130,28 +130,30 @@ const MoneyPotentialEarningsView = () => {
           '[MoneyPotentialEarningsView] Failed to initiate deposit from CTA',
       });
     }
-  }, [eligibleTokens, initiateDeposit, trackTokenButtonClicked]);
+  }, [eligibleTokens, navigateToMoneyDeposit, trackTokenButtonClicked]);
 
   const handleTokenButtonPress = useCallback(
     (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
-        trackTokenButtonClicked({
-          button_type: MONEY_BUTTON_TYPES.TEXT,
-          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-          label_key: 'money.potential_earnings.add',
-          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-          token_symbol: token.symbol,
-          token_position_in_list: tokenIndex + 1,
-          token_chain_id: token.chainId ?? '',
-          tokens_in_list: eligibleTokens.length,
-          token_has_balance: new BigNumber(token.balance).gt(0),
-        });
-
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
+          },
+          track: ({ button_intent, redirect_target }) => {
+            trackTokenButtonClicked({
+              button_type: MONEY_BUTTON_TYPES.TEXT,
+              button_intent,
+              component_name:
+                COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+              label_key: 'money.potential_earnings.add',
+              redirect_target,
+              token_symbol: token.symbol,
+              token_position_in_list: tokenIndex + 1,
+              token_chain_id: token.chainId ?? '',
+              tokens_in_list: eligibleTokens.length,
+              token_has_balance: new BigNumber(token.balance).gt(0),
+            });
           },
         });
       } catch (error) {
@@ -160,26 +162,28 @@ const MoneyPotentialEarningsView = () => {
         });
       }
     },
-    [eligibleTokens.length, initiateDeposit, trackTokenButtonClicked],
+    [eligibleTokens.length, navigateToMoneyDeposit, trackTokenButtonClicked],
   );
 
   const handleTokenCardPress = useCallback(
     (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
-        trackTokenSurfaceClicked({
-          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-          token_symbol: token.symbol,
-          token_position_in_list: tokenIndex + 1,
-          token_chain_id: token.chainId ?? '',
-          tokens_in_list: eligibleTokens.length,
-          token_has_balance: new BigNumber(token.balance).gt(0),
-        });
-
-        await initiateDeposit({
+        await navigateToMoneyDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
+          },
+          track: ({ redirect_target }) => {
+            trackTokenSurfaceClicked({
+              component_name:
+                COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+              redirect_target,
+              token_symbol: token.symbol,
+              token_position_in_list: tokenIndex + 1,
+              token_chain_id: token.chainId ?? '',
+              tokens_in_list: eligibleTokens.length,
+              token_has_balance: new BigNumber(token.balance).gt(0),
+            });
           },
         });
       } catch (error) {
@@ -188,12 +192,12 @@ const MoneyPotentialEarningsView = () => {
         });
       }
     },
-    [eligibleTokens.length, initiateDeposit, trackTokenSurfaceClicked],
+    [eligibleTokens.length, navigateToMoneyDeposit, trackTokenSurfaceClicked],
   );
 
   const listHeader = useMemo(
     () => (
-      <Box twClassName="px-4 pt-1 pb-3 gap-3">
+      <Box twClassName="px-4 pt-3 pb-3 gap-1">
         <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>

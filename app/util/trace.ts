@@ -99,10 +99,8 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SampleFeatureListPetNames = 'Sample Feature List Pet Names',
   SampleFeatureAddPetName = 'Sample Feature Add Pet Name',
-  ///: END:ONLY_INCLUDE_IF
   OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
   OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
   OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
@@ -304,6 +302,7 @@ export enum TraceName {
   PredictNextSearchEvents = 'PredictNext Search Events',
   PredictNextOrderPreview = 'PredictNext Order Preview',
   PredictNextOrderCommit = 'PredictNext Order Commit',
+  PredictNextLiveDataConnect = 'PredictNext Live Data Connect',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -320,14 +319,18 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  // Explore Search Performance
+  ExploreSearchQuery = 'Explore Search Query',
   // Money Home Performance
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeHistoricalActivityTimeToContent = 'Money Home Historical Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
+  MoneyActivityVaultShareValuationsFetch = 'Money Activity Vault Share Valuations Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
   CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards
@@ -363,10 +366,8 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   SampleFeatureListPetNames = 'sample.feature.list.pet.names',
   SampleFeatureAddPetName = 'sample.feature.add.pet.name',
-  ///: END:ONLY_INCLUDE_IF
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
@@ -411,6 +412,8 @@ export enum TraceOperation {
   WhatsHappeningLoad = 'whats_happening.load',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  // Explore Search Performance
+  ExploreSearch = 'explore.search',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',

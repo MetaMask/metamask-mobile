@@ -142,7 +142,7 @@ const UTC_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
  * Day-level relative label for a UTC `YYYY-MM-DD` bucket.
  * A commission group has no time of day, so this never invents one.
- * @example 'today', '1d ago', '2w ago', '3mo ago', '1y ago'
+ * @example 'Today', '1d ago', '2w ago', '3mo ago', '1y ago'
  */
 export const formatRewardsRelativeDay = (
   day: string,
@@ -166,7 +166,7 @@ export const formatRewardsRelativeDay = (
   const diffDays = Math.round((todayUtc - dayUtc) / DAY_MS);
 
   if (diffDays <= 0) {
-    return 'today';
+    return strings('rewards.today');
   }
   return formatDaysAgo(diffDays);
 };
@@ -521,8 +521,13 @@ export const formatSignedUsd = (
   return `${sign}${formatUsd(value, options)}`;
 };
 
-/** True for a positive integer string of base units. Zero and junk are not. */
-export function isPositiveBaseUnits(value: string | undefined): boolean {
+/**
+ * True when a Money API base-unit string is a positive integer.
+ * Missing, zero, and unreadable values are false.
+ */
+export const isPositiveBaseUnits = (
+  value: string | null | undefined,
+): boolean => {
   if (!value) {
     return false;
   }
@@ -531,7 +536,7 @@ export function isPositiveBaseUnits(value: string | undefined): boolean {
   } catch {
     return false;
   }
-}
+};
 
 /**
  * Formats a Money API mUSD amount as USD. Amounts cross that boundary as

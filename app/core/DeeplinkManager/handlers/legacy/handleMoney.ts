@@ -1,19 +1,20 @@
 /* eslint-disable jsdoc/check-indentation */
-import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { getVbaEligibility } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { VbaOnboardingRoutes } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/routes';
-import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import {
   isVbaGeoBypassEnabled,
   selectMoneyMovementNeobank,
-  selectMoneyOnboardingStepperAnimationEnabled,
+  selectNeobankMarkets,
 } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../selectors/geolocationController';
+import { selectMoneyEntryContext } from '../../../../components/UI/Money/selectors/entry';
+import { getMoneyEntryDecision } from '../../../../components/UI/Money/navigation/moneyEntryDecision';
+import { navigateToMoneyHomeRoute } from '../../../../components/UI/Money/navigation/navigateToMoneyHome';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
@@ -116,15 +117,15 @@ export const MONEY_ACCOUNT_SCREEN = 'account';
 
 // Same gate as the Add money sheet's bank account row (`useVbaEligibility`).
 const isVbaEligible = (state: RootState): boolean => {
-  const { isEnabled, regions, regionOverride } =
-    selectMoneyMovementNeobank(state);
+  const { regionOverride } = selectMoneyMovementNeobank(state);
+  const markets = selectNeobankMarkets(state);
 
   return getVbaEligibility({
-    isFlagEnabled: isEnabled,
+    isFlagEnabled: markets.length > 0,
     location: regionOverride ?? selectGeolocationLocation(state),
     geolocationStatus: selectGeolocationStatus(state),
     isDevBypassEnabled: isVbaGeoBypassEnabled(),
-    regions,
+    markets,
   }).isEligible;
 };
 
@@ -152,11 +153,6 @@ export const handleMoney = ({ moneyPath }: { moneyPath?: string } = {}) => {
       moneyPath?.includes('?') ? moneyPath.split('?')[1] : '',
     );
     const state = ReduxService.store.getState();
-    const isMoneyAccountGeoEligible = selectIsMoneyAccountGeoEligible(state);
-    const hasSeenMoneyOnboarding = selectMoneyOnboardingSeen(state);
-    const isOnboardingEnabled =
-      selectMoneyOnboardingStepperAnimationEnabled(state);
-
     const moneyAccountFlagStatus = getMoneyAccountFlagStatus(state);
 
     if (moneyAccountFlagStatus === MoneyAccountFlagStatus.Disabled) {
@@ -178,26 +174,22 @@ export const handleMoney = ({ moneyPath }: { moneyPath?: string } = {}) => {
       return;
     }
 
-    if (!isMoneyAccountGeoEligible) {
+    const decision = getMoneyEntryDecision(
+      'home',
+      selectMoneyEntryContext(state),
+    );
+
+    if (decision.destination === 'geoBlockSheet') {
       NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
       });
       return;
     }
 
-    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
+    if (decision.destination === 'onboarding') {
       NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
       return;
     }
-
-    NavigationService.navigation.navigate(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
 
     if (
       urlParams.get('screen') === MONEY_ACCOUNT_SCREEN &&
@@ -205,10 +197,14 @@ export const handleMoney = ({ moneyPath }: { moneyPath?: string } = {}) => {
     ) {
       // Same entry as Add money > bank account: Money home stays underneath,
       // so back returns there.
+      navigateToMoneyHomeRoute();
       NavigationService.navigation.navigate(Routes.RAMP.VBA_ONBOARDING, {
         screen: VbaOnboardingRoutes.LOADING,
       });
+      return;
     }
+
+    navigateToMoneyHomeRoute();
   } catch (error) {
     DevLogger.log('[handleMoney] Failed to handle deeplink:', error);
     Logger.error(error as Error, '[handleMoney] Error handling money deeplink');

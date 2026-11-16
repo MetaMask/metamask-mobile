@@ -9,19 +9,22 @@
 # GREP_TAGS selects @PerformanceShadow, so an unfiltered run (schedule, full-suite
 # label) is unchanged.
 #
-# Usage: BUILD_TYPE=onboarding|imported-wallet [GREP_TAGS=...] ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
+# Usage: BUILD_TYPE=onboarding|imported-wallet|dev-onboarding [GREP_TAGS=...] ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
 set -euo pipefail
 
 BUILD_TYPE="${BUILD_TYPE:-}"
 GREP_TAGS="${GREP_TAGS:-}"
 if [[ -z "$BUILD_TYPE" ]]; then
-  echo "BUILD_TYPE is required (onboarding|imported-wallet)" >&2
+  echo "BUILD_TYPE is required (onboarding|imported-wallet|dev-onboarding)" >&2
   exit 1
 fi
 
 case "$BUILD_TYPE" in
   onboarding)
     ROOTS=(tests/performance/onboarding)
+    ;;
+  dev-onboarding)
+    ROOTS=(tests/performance/dev-onboarding)
     ;;
   imported-wallet)
     ROOTS=(tests/performance/login)

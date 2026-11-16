@@ -199,7 +199,6 @@ describe('RewardsSettingsView', () => {
       reducer: {
         rewards: (
           state = {
-            onboardingActiveStep: 'INTRO',
             candidateSubscriptionId: null,
           },
         ) => state,

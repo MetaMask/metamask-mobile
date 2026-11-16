@@ -4,6 +4,11 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsCrossMarginInfoButton from './PerpsCrossMarginInfoButton';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: jest.fn() }),
 }));

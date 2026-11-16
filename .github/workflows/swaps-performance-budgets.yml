@@ -1,0 +1,47 @@
+# Daily Swaps performance budgets check; rules and channel are in .github/scripts/swaps/performance-budgets/swaps-performance-budgets.config.mjs.
+
+name: Swaps Performance Budgets
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log the Slack message instead of posting it'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-budgets:
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+      GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Check budgets
+        env:
+          SWAPS_SENTRY_TOKEN: ${{ secrets.SWAPS_SENTRY_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs
+
+      - name: Post failure notice
+        if: failure()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: node .github/scripts/swaps/performance-budgets/run-swaps-performance-budgets.mjs --failure-notice

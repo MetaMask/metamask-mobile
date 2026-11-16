@@ -16,6 +16,7 @@ import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
+import ProfileVerifiedBadge from '../../shared/ProfileVerifiedBadge';
 import EditableProfileAvatar from './EditableProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
@@ -107,6 +108,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           <TraderAvatar
             imageUrl={profile.imageUrl}
             address={profile.linkedAccountAddress ?? undefined}
+            profileId={profile.profileId}
             size={56}
             recyclingKey={profile.profileId}
             testID={MyProfileViewSelectorsIDs.AVATAR}
@@ -128,6 +130,11 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
+            {profile.verified === true ? (
+              <ProfileVerifiedBadge
+                testID={MyProfileViewSelectorsIDs.VERIFIED_BADGE}
+              />
+            ) : null}
           </Box>
           <Text
             variant={TextVariant.BodyMd}

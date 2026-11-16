@@ -37,6 +37,11 @@ import {
   type ReferrerOriginType,
   type RegisterRefereeDto,
   type RewardsMoneyControllerState,
+  type GetTaxMeDto,
+  type TaxAnswerResultDto,
+  type TaxFormTokenDto,
+  type TaxFormSubmittedSnapshot,
+  type TaxMeDto,
 } from './types';
 
 export type { RewardsMoneyControllerMessenger };
@@ -47,14 +52,20 @@ const controllerName = REWARDS_MONEY_CONTROLLER_NAME;
 export const REFERRAL_ME_CACHE_THRESHOLD_MS = 300_000;
 export const REFERRAL_CODES_CACHE_THRESHOLD_MS = 300_000;
 export const CLAIM_BY_ID_CACHE_THRESHOLD_MS = 300_000;
+/**
+ * Tax determination. A tax POST drops the entry. The form coming back, and a
+ * claim the server refused for tax, pass `forceFresh` because that change
+ * did not come from a POST this app made.
+ */
+export const TAX_ME_CACHE_THRESHOLD_MS = 300_000;
 
 /** Money / funnel cadence — moves with enrollments and fills. */
 export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
 /**
- * Claim history, when a screen reads it, uses this cache on focus and
- * refreshes behind the cached page. A focus visit does not pass forceFresh.
+ * Claim history first page. A focus visit reads through this cache. A claim
+ * that opens drops the entry. `forceFresh` does not join a read already running.
  */
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
@@ -103,6 +114,18 @@ const metadata: StateMetadata<RewardsMoneyControllerState> = {
     usedInUi: true,
   },
   claimById: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  taxMe: {
+    includeInStateLogs: false,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  taxFormSubmitted: {
     includeInStateLogs: false,
     persist: true,
     includeInDebugSnapshot: false,
@@ -223,6 +246,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSwapsRebateQuote',
   'getPerpsRebateQuote',
   'initiateClaim',
+  'getTaxMe',
+  'getTaxFormSubmitted',
+  'noteTaxFormSubmitted',
+  'clearTaxFormSubmitted',
+  'submitTaxAttestation',
+  'submitTaxUsActivity',
+  'mintTaxFormToken',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -359,6 +389,7 @@ export class RewardsMoneyController extends BaseController<
   readonly #isDisabled: () => boolean;
   readonly #referralMeReads = createLatestReadTrackers<ReferralMeDto>();
   readonly #claimHistoryReads = createLatestReadTrackers<ClaimHistoryPageDto>();
+  readonly #taxMeReads = createLatestReadTrackers<TaxMeDto>();
   readonly #earningsSummaryInFlight = new Map<
     string,
     Promise<EarningsSummaryDto>
@@ -807,6 +838,133 @@ export class RewardsMoneyController extends BaseController<
     return result;
   }
 
+  /**
+   * `GET /tax/me`, cached for five minutes per profile.
+   *
+   * `forceFresh` does not join a read already running, and its result wins
+   * if that older read lands last. A tax POST drops the entry, so the next
+   * read cannot return the determination that POST replaced.
+   */
+  async getTaxMe(params: GetTaxMeDto = {}): Promise<TaxMeDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+
+    return readLatest({
+      trackers: this.#taxMeReads,
+      key: profileId,
+      forceFresh: params.forceFresh === true,
+      ttl: TAX_ME_CACHE_THRESHOLD_MS,
+      readCache: (key) => this.state.taxMe[key],
+      load: () => this.messenger.call('RewardsMoneyDataService:getTaxMe'),
+      write: (key, payload) => this.#writeTaxMe(key, payload),
+    });
+  }
+
+  /**
+   * The form-success snapshot for this profile, or null when none is stored.
+   * Claim force-reads `tax/me` while one is set.
+   */
+  async getTaxFormSubmitted(): Promise<TaxFormSubmittedSnapshot | null> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    return this.state.taxFormSubmitted?.[profileId] ?? null;
+  }
+
+  /**
+   * Remember a form submission, or clear it when `snapshot` is null.
+   * The caller decides which reads still count as "checking".
+   */
+  async noteTaxFormSubmitted(
+    snapshot: TaxFormSubmittedSnapshot | null,
+  ): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+    const profileId = await this.#getProfileId();
+    this.update((draft) => {
+      if (!draft.taxFormSubmitted) {
+        draft.taxFormSubmitted = {};
+      }
+      if (snapshot) {
+        draft.taxFormSubmitted[profileId] = snapshot;
+        return;
+      }
+      delete draft.taxFormSubmitted[profileId];
+    });
+  }
+
+  /**
+   * Drop the form-success snapshot after `tax/me` has moved on.
+   */
+  async clearTaxFormSubmitted(): Promise<void> {
+    await this.noteTaxFormSubmitted(null);
+  }
+
+  async submitTaxAttestation(
+    usPersonOrActivity: boolean,
+  ): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:submitTaxAttestation',
+      usPersonOrActivity,
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
+  async submitTaxUsActivity(usActivity: boolean): Promise<TaxAnswerResultDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:submitTaxUsActivity',
+      usActivity,
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
+  /**
+   * Mints one form token. The token is returned to the caller and is not
+   * written into controller state. Minting closes `can_change_answer`, so
+   * the cached determination is dropped with the other tax writes.
+   */
+  async mintTaxFormToken(): Promise<TaxFormTokenDto> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    const result = await this.messenger.call(
+      'RewardsMoneyDataService:mintTaxFormToken',
+    );
+    invalidateLatestRead(this.#taxMeReads, profileId, (key) => {
+      this.update((draft) => {
+        delete draft.taxMe[key];
+      });
+    });
+    return result;
+  }
+
   async getClaimById(params: GetClaimByIdDto): Promise<ClaimDto> {
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
@@ -870,6 +1028,12 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  #writeTaxMe(profileId: string, payload: TaxMeDto): void {
+    this.update((draft) => {
+      draft.taxMe[profileId] = { payload, lastFetched: Date.now() };
+    });
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {
