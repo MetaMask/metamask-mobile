@@ -136,17 +136,12 @@ jest.mock('../../Charts/AdvancedChart/TimeRangeSelector', () => {
     onSelect,
     onChartTypeSelect,
     onChartTypeToggle,
-    isChartLoading,
   }: {
     onSelect: (r: string) => void;
     onChartTypeSelect?: (type: number) => void;
     onChartTypeToggle?: () => void;
-    isChartLoading?: boolean;
   }) => (
-    <View
-      testID="mock-time-range-selector"
-      accessibilityState={{ busy: isChartLoading }}
-    >
+    <View testID="mock-time-range-selector">
       <Pressable testID="select-1W" onPress={() => onSelect('1W')} />
       <Pressable testID="select-1D" onPress={() => onSelect('1D')} />
       {(onChartTypeSelect || onChartTypeToggle) && (
@@ -376,6 +371,14 @@ describe('PriceAdvanced', () => {
   it('renders the AdvancedChart when data is available', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
     expect(getByTestId('mock-advanced-chart')).toBeOnTheScreen();
+  });
+
+  it('asks AdvancedChart for the candle skeleton', () => {
+    const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(getByTestId('mock-advanced-chart').props.skeletonVariant).toBe(
+      'candles',
+    );
   });
 
   it('renders TimeRangeSelector when chart has data', () => {
@@ -1012,17 +1015,16 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('price-chart-no-data')).toBeOnTheScreen();
     });
 
-    it('keeps TimeRangeSelector loading until advanced chart is revealed', () => {
+    it('keeps the time range buttons visible while the advanced chart loads', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const timeRangeSelector = getByTestId('mock-time-range-selector');
 
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(true);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
 
       act(() => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
       });
 
-      expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
     });
 
     it('keeps TimeRangeSelector visible after time range change when technical indicators FF is OFF', () => {
@@ -1032,17 +1034,13 @@ describe('PriceAdvanced', () => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
       });
 
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
 
       act(() => {
         fireEvent.press(getByTestId('select-1W'));
       });
 
-      expect(
-        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
-      ).toBe(false);
+      expect(getByTestId('mock-time-range-selector')).toBeOnTheScreen();
     });
 
     it('draws the indicator bar on glass when the screen passes isGlass', () => {
@@ -1066,7 +1064,7 @@ describe('PriceAdvanced', () => {
       expect(getByTestId('mock-indicator-bar-glass')).toBeOnTheScreen();
     });
 
-    it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
+    it('shows interval and indicator bars while the advanced chart loads', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
         if (selector === selectTokenIndicatorsActual) return [];
@@ -1078,12 +1076,10 @@ describe('PriceAdvanced', () => {
         return ChartType.Candles;
       });
 
-      const { getByTestId, queryByTestId } = render(
-        <PriceAdvanced {...baseProps} />,
-      );
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
-      expect(queryByTestId('mock-interval-bar')).toBeNull();
-      expect(queryByTestId('mock-indicator-bar')).toBeNull();
+      expect(getByTestId('mock-interval-bar')).toBeOnTheScreen();
+      expect(getByTestId('mock-indicator-bar')).toBeOnTheScreen();
 
       act(() => {
         getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
