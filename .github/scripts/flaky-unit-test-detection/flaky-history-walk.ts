@@ -1,16 +1,8 @@
 /**
  * Walking one day of ci.yml history for confirmed same-SHA fail-then-pass.
  *
- * This is the expensive half of the detector, and it runs once a night on
- * main rather than on every push. A weekday is about 500–800 completed
- * ci.yml runs (a weekend is a few dozen), under the 1000-result
- * listWorkflowRuns ceiling. Candidate runs are re-runs and second runs of
- * the same commit; their jobs are read with the REST jobs API. Measured on
- * 2026-11-12 (579 runs, 74 re-runs) that costs a few hundred requests, inside
- * the ~1000 REST requests GITHUB_TOKEN allows per hour.
- *
- * Nothing here is scoped to a pull request. The caller gets every unit test
- * the confirmed jobs reported failing, and decides what to do with it.
+ * Runs once a night. A weekday is about 500–800 ci.yml runs. Candidate
+ * re-runs are read with the REST jobs API, inside the hourly request limit.
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
@@ -57,7 +49,7 @@ export const MAX_REST_REQUESTS_PER_DAY = 400;
 
 export const MAX_REST_REQUESTS_PER_BUILD = 800;
 
-/** REST allows ~1000 requests per hour; confirmed fail-then-pass jobs are rare. */
+/** REST allows 1000 requests per hour; confirmed fail-then-pass jobs are rare. */
 export const MAX_LOG_FETCHES_PER_BUILD = 300;
 
 /** Shared across every day in one build, not reset per day. */
@@ -70,11 +62,7 @@ export function newWalkBudget(): WalkBudget {
   return { restRequests: 0, logFetches: 0 };
 }
 
-/**
- * Next day's request share. A full heavy day, not budget divided by queued days.
- * A leftover below `minToStart` is 0 so the caller defers the day instead of
- * opening it and recording a new gap.
- */
+/** Next day's share. Below `minToStart`, returns 0 so the day is deferred. */
 export function requestShareForDay({
   spent,
   buildBudget = MAX_REST_REQUESTS_PER_BUILD,
@@ -94,14 +82,7 @@ export function requestShareForDay({
   return share;
 }
 
-/**
- * Fresh days first, then gaps, each group oldest to newest.
- *
- * The window only moves forward when a day after `newestDay` is merged.
- * Walking the backlog first let an unfinished gap consume the night and
- * left yesterday unwalked. Within a group, oldest-first fills the range
- * in order so a finished day is not left as a hole behind a newer one.
- */
+/** Fresh days first, then gaps. Oldest first inside each group. */
 export function orderDaysForWalk(
   days: readonly string[],
   gapDays: readonly string[],
@@ -155,7 +136,15 @@ type ListedDay = {
   runs: ListedWorkflowRun[];
   capped: boolean;
   budgetExhausted: boolean;
+  pageError: boolean;
 };
+
+function retryWithinBudget<T>(
+  spend: () => boolean,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return withRetryOnce(fn, undefined, spend);
+}
 
 async function listRunsForDay(
   octokit: Octokit,
@@ -170,9 +159,9 @@ async function listRunsForDay(
   try {
     while (runs.length < MAX_RUNS_PER_DAY) {
       if (!spend()) {
-        return { runs, capped: false, budgetExhausted: true };
+        return { runs, capped: false, budgetExhausted: true, pageError: false };
       }
-      const response = await withRetryOnce(() =>
+      const response = await retryWithinBudget(spend, () =>
         octokit.rest.actions.listWorkflowRuns({
           owner,
           repo,
@@ -207,12 +196,18 @@ async function listRunsForDay(
     core.warning(
       `listWorkflowRuns ${day} stopped after ${runs.length} run(s): ${(error as Error).message}`,
     );
-    return { runs, capped: true, budgetExhausted: false };
+    return {
+      runs,
+      capped: runs.length >= MAX_RUNS_PER_DAY,
+      budgetExhausted: false,
+      pageError: true,
+    };
   }
   return {
     runs,
     capped: runs.length >= MAX_RUNS_PER_DAY,
     budgetExhausted: false,
+    pageError: false,
   };
 }
 
@@ -240,7 +235,7 @@ async function listAttemptJobs(
     let totalCount: number | null = null;
     let pageJobs: Parameters<typeof attemptJobFromApi>[0][] = [];
     try {
-      const response = await withRetryOnce(() =>
+      const response = await retryWithinBudget(spend, () =>
         octokit.rest.actions.listJobsForWorkflowRun({
           owner,
           repo,
@@ -303,15 +298,16 @@ async function classifyMissingLog(
     return 'missing_blob';
   }
   try {
-    const { data } = await withRetryOnce(() =>
+    const { data } = await retryWithinBudget(spend, () =>
       octokit.rest.actions.getJobForWorkflowRun({ owner, repo, job_id: jobId }),
     );
     return classifyLoglessJob({ steps: data.steps }) === 'infrastructure'
       ? 'infrastructure'
       : 'missing_blob';
-  } catch {
-    // Without the job record there is no evidence of a lost runner, so the
-    // conservative reading is a real failure whose log is gone.
+  } catch (error) {
+    if (isRetriableGithubError(error)) {
+      throw error;
+    }
     return 'missing_blob';
   }
 }
@@ -349,7 +345,7 @@ async function downloadFailedUnitLogs(
         return { job, ok: false, failure: 'unread' };
       }
       try {
-        const res = await withRetryOnce(() =>
+        const res = await retryWithinBudget(spend, () =>
           octokit.rest.actions.downloadJobLogsForWorkflowRun({
             owner,
             repo,
@@ -497,7 +493,8 @@ export async function walkDay({
   const jobsBySha = new Map<string, AttemptJob[]>();
   const seenRunIds = new Set<number>();
   const failedLists = { count: 0 };
-  let complete = !listed.capped && !listed.budgetExhausted;
+  let complete =
+    !listed.capped && !listed.budgetExhausted && !listed.pageError;
   let stop = false;
 
   for (const candidate of candidates) {

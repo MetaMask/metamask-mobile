@@ -205,6 +205,16 @@ describe('withRetryOnce', () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
+  it('skips the second request when allowRetry returns false', async () => {
+    const error = makeError({ status: 503, message: unknownEmptyMessage });
+    const fn = jest.fn().mockRejectedValue(error);
+
+    await expect(withRetryOnce(fn, noWait, () => false)).rejects.toBe(error);
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(noWait).not.toHaveBeenCalled();
+  });
+
   it('does not retry a 403', async () => {
     const error = makeError({
       status: 403,
