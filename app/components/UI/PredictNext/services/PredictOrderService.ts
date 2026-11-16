@@ -6,20 +6,27 @@ import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
 import type {
+  PredictOrderApproval,
+  PredictOrderReview,
   PredictOrderPreview,
   PredictOrderPreviewParams,
   PredictOrderReceipt,
   PredictOrderReceiptStatus,
+  PredictUnresolvedOrder,
   PredictVenueId,
 } from '../types';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
 import type { VenueTradingAdapter } from '../adapters/types';
 import { withPredictNextTrace } from './withPredictNextTrace';
+import type {
+  OrderDispatchJournal,
+  OrderDispatchReference,
+} from './internal/orderDispatchJournal';
 
 export const PREDICT_ORDER_SERVICE_NAME = 'PredictOrderService' as const;
 
 /** Receipt statuses in which the backend has accepted the Commit and is
- * still working; they are observed by committing the same Preview again. */
+ * still working; they are observed by reading the operation's receipt. */
 const IN_PROGRESS_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'pending',
   'submitted',
@@ -31,14 +38,20 @@ const TERMINAL_RECEIPT_STATUSES: readonly PredictOrderReceiptStatus[] = [
   'partially_filled',
   'not_filled',
   'rejected',
+  'needs_manual_review',
 ];
 
-/** How many re-POSTs observe one in-flight Commit before handing control
- * back to the caller. The backend's own Commit is fast, so this stays small. */
+/** How many receipt reads observe one in-flight Commit before handing
+ * control back to the caller. The backend's own Commit is fast, so this
+ * stays small. */
 const MAX_COMMIT_OBSERVATIONS = 3;
 
-/** How long to wait between observation re-POSTs, in milliseconds. */
+/** How long to wait between observation reads, in milliseconds. */
 const COMMIT_OBSERVATION_DELAY_MS = 500;
+
+/** Clock-skew/claim grace. A missing-operation GET must begin after the
+ * backend preview expiry plus this interval; expiry alone proves nothing. */
+export const MISSING_OPERATION_EXPIRY_GRACE_MS = 30_000;
 
 /** Delays between the background observations of an unresolved operation,
  * in milliseconds. The last delay repeats. */
@@ -46,20 +59,13 @@ const BACKGROUND_OBSERVATION_DELAYS_MS: readonly number[] = [
   2_000, 5_000, 10_000, 20_000, 30_000,
 ];
 
-/** How long after its first dispatch an unresolved operation is observed in
- * the background. After that its outcome surfaces through the Balance,
- * Positions and Activity reads. */
+/** How long to observe an unresolved operation in the background before
+ * pausing. A local deadline never proves an order's financial outcome. */
 const BACKGROUND_OBSERVATION_WINDOW_MS = 5 * 60_000;
 
-/**
- * How long after a Preview's expiry the background waits before it re-POSTs
- * a Commit that never returned a Receipt. The backend looks up an existing
- * operation before it checks expiry, so a re-POST sent after expiry can only
- * observe an operation, never create one. The grace covers a first request
- * that the backend was still revalidating at the expiry instant, plus modest
- * clock skew.
- */
-const AMBIGUOUS_COMMIT_GRACE_MS = 15_000;
+/** Most background observations of one operation, even if the window is
+ * never hit. One may sign a venue order scan while the backend reconciles. */
+const MAX_BACKGROUND_OBSERVATIONS = 12;
 
 /**
  * Where one Order Preview stands relative to the submission boundary.
@@ -72,10 +78,9 @@ type OrderOperationState =
   | 'cancelled'
   /** A Commit was handed to the transport, so it may have reached the
    * backend: submitted or ambiguous, never cancellable. Only the same
-   * Preview reference may be re-POSTed, which observes the operation. */
+   * Preview reference may be observed. */
   | 'dispatched'
-  /** A terminal Receipt, or a conclusive backend answer that no operation
-   * exists, ended it. */
+  /** A receipt or a proven-unsent first invocation ended the workflow. */
   | 'resolved';
 
 /** How an Order operation ended, as far as this process observed it. */
@@ -100,9 +105,13 @@ export type PredictOrderResolutionListener = (
 interface OrderOperation {
   readonly previewId: string;
   /** Epoch milliseconds; the backend's expiry as the client reads it. */
-  readonly expiresAt: number;
+  readonly expiresAt?: number;
   /** The context the Preview was quoted under. */
   readonly contextEpoch: number;
+  reviewed: boolean;
+  /** Once dispatched, later calls observe only unless the first invocation
+   * was explicitly proven not relayed. Observation errors never reset it. */
+  posted: boolean;
   state: OrderOperationState;
   /** When the first Commit was dispatched. */
   dispatchedAt?: number;
@@ -113,6 +122,9 @@ interface OrderOperation {
   ambiguous: boolean;
   backgroundObservations: number;
   backgroundTimer?: ReturnType<typeof setTimeout>;
+  recoveryState?: 'unresolved' | 'manual_review';
+  lastReceipt?: PredictOrderReceipt;
+  manualReviewPruned?: boolean;
   /** Surfaces currently showing this operation to the Predict User. */
   readonly presenters: Set<PredictOrderResolutionListener>;
 }
@@ -121,6 +133,7 @@ interface OrderOperation {
 interface InFlightCommit {
   promise: Promise<PredictOrderReceipt>;
   abandon: (error: PredictError) => void;
+  suspend: () => void;
 }
 
 const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
@@ -129,45 +142,12 @@ const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
 const isTerminalReceipt = (receipt: PredictOrderReceipt): boolean =>
   TERMINAL_RECEIPT_STATUSES.includes(receipt.status);
 
-/**
- * The Commit route's canonical failure codes. The backend documents every
- * one as a pre-operation failure: it revalidates before it creates the
- * operation, so nothing was submitted to the Venue.
- */
-const PRE_OPERATION_COMMIT_CODES: ReadonlySet<string> = new Set([
-  'preview_not_found',
-  'preview_expired',
-  'market_not_found',
-  'market_not_tradeable',
-  'balance_unavailable',
-  'position_unavailable',
-  'insufficient_balance',
-  'insufficient_position',
-  'venue_unavailable',
-]);
-
-/**
- * The Commit route answered with a canonical failure code. It looks the
- * Preview's operation up first, so for the same Predict User this proves no
- * operation exists for the Preview.
- */
-const isCanonicalCommitFailure = (error: PredictError): boolean => {
-  const { bodyCode } = error.metadata ?? {};
-  return (
-    typeof bodyCode === 'string' && PRE_OPERATION_COMMIT_CODES.has(bodyCode)
-  );
-};
-
-/**
- * The backend answered that this request created nothing: a canonical
- * Commit failure code, or a 401 from the auth guard that runs before the
- * Commit route. Everything else, including network failures, timeouts,
- * aborts, 5xx without a canonical code and unparseable responses, leaves the
- * operation ambiguous.
- */
-const isPreOperationFailure = (error: unknown): error is PredictError =>
+/** Evidence applies only to the first mutation invocation, never an observe
+ * failure or an earlier ambiguous submission. HTTP status alone is not proof. */
+const isUnsentCommitFailure = (error: unknown): error is PredictError =>
   error instanceof PredictError &&
-  (error.metadata?.status === 401 || isCanonicalCommitFailure(error));
+  error.metadata?.phase === 'commit' &&
+  error.metadata?.mutationRelay === 'not_relayed_this_invocation';
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -181,17 +161,44 @@ export interface PredictOrderServiceRequestQuoteAction {
   ) => Promise<PredictOrderPreview>;
 }
 
+export interface PredictOrderServiceReviewPreviewAction {
+  type: 'PredictOrderService:reviewPreview';
+  handler: (
+    venueId: PredictVenueId,
+    previewId: string,
+  ) => Promise<PredictOrderReview>;
+}
+
 export interface PredictOrderServiceCommitPreviewAction {
   type: 'PredictOrderService:commitPreview';
   handler: (
     venueId: PredictVenueId,
     previewId: string,
+    approval?: PredictOrderApproval,
   ) => Promise<PredictOrderReceipt>;
+}
+
+export interface PredictOrderRecoveryItem {
+  previewId: string;
+  status: 'checking' | 'needs_manual_review';
+}
+
+export interface PredictOrderServiceGetRecoveryAction {
+  type: 'PredictOrderService:getRecovery';
+  handler: (venueId: PredictVenueId) => readonly PredictOrderRecoveryItem[];
+}
+
+export interface PredictOrderServiceRefreshRecoveryAction {
+  type: 'PredictOrderService:refreshRecovery';
+  handler: (venueId: PredictVenueId) => Promise<void>;
 }
 
 export type PredictOrderServiceActions =
   | PredictOrderServiceRequestQuoteAction
+  | PredictOrderServiceReviewPreviewAction
   | PredictOrderServiceCommitPreviewAction
+  | PredictOrderServiceGetRecoveryAction
+  | PredictOrderServiceRefreshRecoveryAction
   // Consumed action: after a terminal receipt the Order workflow invalidates
   // the authoritative portfolio reads. The cache itself stays owned by the
   // portfolio service.
@@ -208,7 +215,19 @@ export interface PredictOrderServiceOrderResolvedEvent {
   payload: [PredictOrderResolution & { presented: boolean }];
 }
 
-export type PredictOrderServiceEvents = PredictOrderServiceOrderResolvedEvent;
+export interface PredictOrderServiceRecoveryChangedEvent {
+  type: 'PredictOrderService:recoveryChanged';
+  payload: [
+    {
+      venueId: PredictVenueId;
+      operations: readonly PredictOrderRecoveryItem[];
+    },
+  ];
+}
+
+export type PredictOrderServiceEvents =
+  | PredictOrderServiceOrderResolvedEvent
+  | PredictOrderServiceRecoveryChangedEvent;
 
 export type PredictOrderServiceMessenger = Messenger<
   typeof PREDICT_ORDER_SERVICE_NAME,
@@ -220,14 +239,16 @@ export interface PredictOrderServiceOptions {
   messenger: PredictOrderServiceMessenger;
   trading: VenueTradingAdapter;
   venueId: PredictVenueId;
+  /** Runtime composition supplies durable wallet storage. */
+  journal?: OrderDispatchJournal;
   /** Injectable observation delay for tests. */
   observationDelayMs?: number;
   /** Injectable background observation schedule for tests. */
   backgroundObservationDelaysMs?: readonly number[];
   /** Injectable background observation window for tests. */
   backgroundObservationWindowMs?: number;
-  /** Injectable post-expiry grace for tests. */
-  ambiguousCommitGraceMs?: number;
+  /** Injectable background observation cap for tests. */
+  maxBackgroundObservations?: number;
 }
 
 /**
@@ -242,27 +263,24 @@ export interface PredictOrderServiceOptions {
  * context change ({@link PredictOrderService.cancelUncommittedPreviews})
  * cancels it and its Commit is refused locally. After that, the Commit may
  * have reached the backend: it is submitted or ambiguous, never cancelled.
- * Only the same Preview reference is ever re-POSTed, and the backend is
- * idempotent by that reference, so re-POSTs observe the one operation
- * instead of placing another. A canonical backend failure code proves no
- * operation exists, which puts a Preview with no ambiguous history back
- * before the boundary.
+ * The Commit is signed and POSTed once; afterwards the operation is only
+ * read (GET by Preview reference), which never submits. Only explicit
+ * not-relayed evidence from the first mutation attempt allows re-approval.
+ * Expiry alone never resolves an earlier dispatch. Only a fresh missing
+ * operation read after backend preview expiry and grace can prove it absent.
  *
- * **Observation.** An unresolved operation keeps being observed in the
- * background, whether or not a screen still shows it and whichever Venue is
- * active. When the Commit never returned a Receipt, the background waits
- * until the Preview has expired before it re-POSTs, so an automatic re-POST
- * can observe an operation but never create one. Only the Predict User's
- * explicit re-approval re-POSTs within the validity window.
+ * **Observation.** Unresolved operations are observed with bounded work,
+ * whether or not a screen still shows them. Exhausting the local window
+ * pauses observation without asserting a financial outcome.
  *
  * **Identity.** Observation is bound to the Predict User who approved the
  * Preview. {@link PredictOrderService.abandonCommits} forgets every Preview,
- * so none of them is ever re-POSTed with the next person's bearer token.
+ * so none of them is ever observed with the next person's bearer token.
  *
- * **Process lifetime.** Nothing is persisted (ADR-0002). After process death
- * no operation is observed or notified again, and this process never
- * commits a Preview it did not quote. The outcome surfaces through the
- * Balance, Positions and Activity reads.
+ * **Process lifetime.** Before mutation dispatch, a safe identity-scoped
+ * reference is persisted. Relaunch merges it with owner-scoped server
+ * discovery and only observes GETs. Credentials and approvals are never
+ * restored. Legacy references without backend expiry remain unknown.
  */
 export class PredictOrderService {
   readonly #messenger: PredictOrderServiceMessenger;
@@ -271,39 +289,70 @@ export class PredictOrderService {
   readonly #observationDelayMs: number;
   readonly #backgroundObservationDelaysMs: readonly number[];
   readonly #backgroundObservationWindowMs: number;
-  readonly #ambiguousCommitGraceMs: number;
+  readonly #maxBackgroundObservations: number;
   readonly #operations = new Map<string, OrderOperation>();
   readonly #inFlightCommits = new Map<string, InFlightCommit>();
   readonly #inFlightQuotes = new Set<AbortController>();
+  /** Includes POSTs detached from callers by lifecycle suspension. */
+  readonly #commitTransports = new Set<AbortController>();
   /** Bumped when every Commit already underway is abandoned. */
   #commitGeneration = 0;
   /** Bumped when the context that Previews were quoted under changes. */
   #contextEpoch = 0;
+  readonly #journal?: OrderDispatchJournal;
+  #identityScope?: string;
+  #sessionAvailable = false;
+  #recoveryPromise?: Promise<void>;
+  #recoveryAbort?: AbortController;
+  #recoveryTimer?: ReturnType<typeof setTimeout>;
+  #recoveryStartedAt = 0;
+  #recoveryCalls = 0;
+  #recoveryOffset = 0;
+  #discoveryCursor?: string;
+  #discoveryComplete = false;
+  #recoveryActive = false;
+  #destroyed = false;
+  #resetsInProgress = 0;
+  #cleanupLifecycle?: () => void;
 
   constructor({
     messenger,
     trading,
     venueId,
+    journal,
     observationDelayMs = COMMIT_OBSERVATION_DELAY_MS,
     backgroundObservationDelaysMs = BACKGROUND_OBSERVATION_DELAYS_MS,
     backgroundObservationWindowMs = BACKGROUND_OBSERVATION_WINDOW_MS,
-    ambiguousCommitGraceMs = AMBIGUOUS_COMMIT_GRACE_MS,
+    maxBackgroundObservations = MAX_BACKGROUND_OBSERVATIONS,
   }: PredictOrderServiceOptions) {
     this.#messenger = messenger;
     this.#trading = trading;
     this.#venueId = venueId;
+    this.#journal = journal;
     this.#observationDelayMs = observationDelayMs;
     this.#backgroundObservationDelaysMs = backgroundObservationDelaysMs;
     this.#backgroundObservationWindowMs = backgroundObservationWindowMs;
-    this.#ambiguousCommitGraceMs = ambiguousCommitGraceMs;
+    this.#maxBackgroundObservations = maxBackgroundObservations;
 
     messenger.registerActionHandler(
       'PredictOrderService:requestQuote',
       this.requestQuote.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictOrderService:reviewPreview',
+      this.reviewPreview.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictOrderService:commitPreview',
       this.commitPreview.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictOrderService:getRecovery',
+      this.getRecovery.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictOrderService:refreshRecovery',
+      this.refreshRecovery.bind(this),
     );
   }
 
@@ -319,10 +368,13 @@ export class PredictOrderService {
     options?: { signal?: AbortSignal },
   ): Promise<PredictOrderPreview> {
     this.#assertVenue(venueId);
+    if (this.#resetsInProgress > 0) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+    }
     const generation = this.#commitGeneration;
     const contextEpoch = this.#contextEpoch;
     const controller = new AbortController();
-    const abortForCaller = () => controller.abort();
+    const abortForCaller = (): void => controller.abort();
     if (options?.signal?.aborted) {
       controller.abort();
     }
@@ -356,27 +408,62 @@ export class PredictOrderService {
     }
   }
 
+  async reviewPreview(
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<PredictOrderReview> {
+    this.#assertVenue(venueId);
+    const operation = this.#operations.get(previewId);
+    const generation = this.#commitGeneration;
+    const contextEpoch = this.#contextEpoch;
+    if (
+      this.#resetsInProgress > 0 ||
+      operation?.state !== 'quoted' ||
+      (operation.expiresAt !== undefined && operation.expiresAt <= Date.now())
+    ) {
+      throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
+    }
+    const review = await this.#trading.reviewOrder(previewId);
+    this.#assertQuoteContext(generation, contextEpoch);
+    operation.reviewed = true;
+    return review;
+  }
+
   /**
    * Commits an approved Order Preview and resolves with its canonical Order
    * Receipt. Repeated calls for one Preview coalesce into the single
    * in-flight Commit. While the backend reports `pending` or `submitted`,
-   * the Commit is observed with a bounded number of re-POSTs; a
+   * the Commit is observed with a bounded number of receipt reads; a
    * `reconciliation_required` receipt resolves so the caller can render it.
    * Either way the operation keeps being observed in the background, and an
-   * explicit later call re-POSTs straight away. A terminal receipt also
+   * explicit later call observes straight away. A terminal receipt also
    * invalidates the authoritative portfolio reads.
    *
    * Deliberately not `async`: the cancellation check and the move across
    * the submission boundary run synchronously with the caller's approval,
    * so no context change can land between them.
+   *
+   * Only the actual approval event permits first dispatch. Omission means
+   * observation of an already dispatched operation, never a reused approval.
    */
   commitPreview(
     venueId: PredictVenueId,
     previewId: string,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     if (venueId !== this.#venueId) {
       return Promise.reject(
         PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE),
+      );
+    }
+    if (
+      this.#resetsInProgress > 0 ||
+      (this.#journal && !this.#sessionAvailable)
+    ) {
+      return Promise.reject(
+        this.#operations.get(previewId)?.posted
+          ? this.#suspendedCommitError()
+          : PredictError.from(PredictErrorCode.UNAUTHENTICATED),
       );
     }
     const inFlight = this.#inFlightCommits.get(previewId);
@@ -385,8 +472,7 @@ export class PredictOrderService {
     }
     const operation = this.#operations.get(previewId);
     if (!operation) {
-      // Not quoted by the current Predict User in this process: after a
-      // wallet reset or a relaunch nothing may re-POST it.
+      // Not quoted or restored for the current authenticated Predict User.
       return Promise.reject(
         PredictError.from(PredictErrorCode.UNAUTHENTICATED),
       );
@@ -398,7 +484,17 @@ export class PredictOrderService {
         PredictError.from(PredictErrorCode.PREVIEW_EXPIRED),
       );
     }
-    return this.#dispatch(operation);
+    if (!operation.posted && !operation.reviewed) {
+      return Promise.reject(
+        PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED),
+      );
+    }
+    if (!operation.posted && approval?.kind !== 'user-approved') {
+      return Promise.reject(
+        PredictError.from(PredictErrorCode.INVALID_RESPONSE),
+      );
+    }
+    return this.#dispatch(operation, MAX_COMMIT_OBSERVATIONS, approval);
   }
 
   /**
@@ -410,6 +506,7 @@ export class PredictOrderService {
   cancelUncommittedPreviews(): void {
     this.#contextEpoch += 1;
     this.#abortInFlightQuotes();
+    this.#trading.invalidatePreviews();
     for (const operation of this.#operations.values()) {
       if (operation.state === 'quoted') {
         operation.state = 'cancelled';
@@ -441,7 +538,7 @@ export class PredictOrderService {
   /**
    * Abandons every Commit underway and forgets every Preview. Called when
    * the platform replaces the Predict User: the Previews were approved by
-   * somebody else, so the service must neither re-POST them nor refresh the
+   * somebody else, so the service must neither observe them nor refresh the
    * portfolio reads their receipts describe, nor notify their outcome.
    *
    * A Preview quoted after this returns is a new person's Preview and is
@@ -449,7 +546,20 @@ export class PredictOrderService {
    */
   abandonCommits(): void {
     this.#commitGeneration += 1;
+    this.#trading.invalidatePreviews();
+    this.#recoveryActive = false;
+    this.#recoveryAbort?.abort();
+    this.#recoveryAbort = undefined;
+    this.#recoveryPromise = undefined;
+    if (this.#recoveryTimer !== undefined) {
+      clearTimeout(this.#recoveryTimer);
+      this.#recoveryTimer = undefined;
+    }
     this.#abortInFlightQuotes();
+    for (const transport of this.#commitTransports) {
+      transport.abort();
+    }
+    this.#commitTransports.clear();
     for (const operation of this.#operations.values()) {
       this.#clearBackgroundTimer(operation);
       operation.presenters.clear();
@@ -460,6 +570,470 @@ export class PredictOrderService {
     commits.forEach((commit) =>
       commit.abandon(PredictError.from(PredictErrorCode.UNAUTHENTICATED)),
     );
+    this.#publishRecovery();
+  }
+
+  /** Invalidates identity lookups started before a wallet reset. */
+  getRecoveryGeneration(): number {
+    return this.#commitGeneration;
+  }
+
+  /** Runtime lifecycle owns the authenticated canonical Predict User scope. */
+  resumeRecovery(identityScope: string): Promise<void> {
+    if (
+      this.#destroyed ||
+      this.#resetsInProgress > 0 ||
+      !this.#journal ||
+      !identityScope
+    ) {
+      return Promise.resolve();
+    }
+    if (this.#identityScope !== identityScope) {
+      this.abandonCommits();
+      this.#identityScope = identityScope;
+      this.#discoveryCursor = undefined;
+      this.#recoveryOffset = 0;
+    }
+    this.#sessionAvailable = true;
+    if (this.#recoveryPromise) {
+      return this.#recoveryPromise;
+    }
+    if (this.#recoveryActive) {
+      return Promise.resolve();
+    }
+    this.#recoveryActive = true;
+    this.#recoveryStartedAt = Date.now();
+    this.#recoveryCalls = 0;
+    this.#discoveryComplete = false;
+    return this.#runRecovery();
+  }
+
+  /** Pause observation, never a mutation that may already have landed.
+   * Identity replacement and wallet reset use abandonCommits instead. */
+  suspendRecovery(): void {
+    this.#sessionAvailable = false;
+    this.#recoveryActive = false;
+    this.#recoveryAbort?.abort();
+    this.#recoveryAbort = undefined;
+    this.#recoveryPromise = undefined;
+    if (this.#recoveryTimer !== undefined) {
+      clearTimeout(this.#recoveryTimer);
+      this.#recoveryTimer = undefined;
+    }
+    this.cancelUncommittedPreviews();
+    for (const [previewId, operation] of this.#operations) {
+      this.#clearBackgroundTimer(operation);
+      const commit = this.#inFlightCommits.get(previewId);
+      if (operation.posted) {
+        operation.ambiguous ||= operation.state === 'dispatched';
+        commit?.suspend();
+      } else {
+        commit?.abandon(PredictError.from(PredictErrorCode.UNAUTHENTICATED));
+        this.#operations.delete(previewId);
+      }
+    }
+    this.#inFlightCommits.clear();
+    this.#publishRecovery();
+  }
+
+  #suspendedCommitError(): PredictError {
+    return PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+      metadata: {
+        phase: 'commit',
+        mutationRelay: 'unknown',
+        causeCode: PredictErrorCode.UNAUTHENTICATED,
+      },
+    });
+  }
+
+  async reset(): Promise<void> {
+    this.#resetsInProgress += 1;
+    this.#sessionAvailable = false;
+    this.abandonCommits();
+    try {
+      await this.#journal?.clear();
+    } finally {
+      // Also fence lifecycle callbacks and reads that completed during reset.
+      this.#sessionAvailable = false;
+      this.abandonCommits();
+      this.#identityScope = undefined;
+      this.#discoveryCursor = undefined;
+      this.#resetsInProgress -= 1;
+    }
+  }
+
+  setLifecycleCleanup(cleanup: () => void): void {
+    this.#cleanupLifecycle = cleanup;
+  }
+
+  getRecovery(venueId: PredictVenueId): readonly PredictOrderRecoveryItem[] {
+    this.#assertVenue(venueId);
+    return [...this.#operations.values()]
+      .filter((operation) => operation.recoveryState !== undefined)
+      .map((operation) => ({
+        previewId: operation.previewId,
+        status:
+          operation.recoveryState === 'manual_review'
+            ? ('needs_manual_review' as const)
+            : ('checking' as const),
+      }));
+  }
+
+  /** Explicit refresh is observation-only, including after a local budget pause. */
+  refreshRecovery(venueId: PredictVenueId): Promise<void> {
+    this.#assertVenue(venueId);
+    if (this.#recoveryPromise) {
+      return this.#recoveryPromise;
+    }
+    if (!this.#identityScope || !this.#sessionAvailable) {
+      return Promise.reject(
+        PredictError.from(PredictErrorCode.UNAUTHENTICATED),
+      );
+    }
+    if (this.#recoveryTimer !== undefined) {
+      clearTimeout(this.#recoveryTimer);
+      this.#recoveryTimer = undefined;
+    }
+    this.#recoveryActive = false;
+    return this.resumeRecovery(this.#identityScope);
+  }
+
+  #publishRecovery(): void {
+    this.#messenger.publish('PredictOrderService:recoveryChanged', {
+      venueId: this.#venueId,
+      operations: this.getRecovery(this.#venueId),
+    });
+  }
+
+  #hasRecoveryBudget(): boolean {
+    return (
+      this.#recoveryActive &&
+      this.#recoveryCalls < this.#maxBackgroundObservations &&
+      Date.now() - this.#recoveryStartedAt < this.#backgroundObservationWindowMs
+    );
+  }
+
+  #restoreReference(reference: OrderDispatchReference): OrderOperation {
+    const existing = this.#operations.get(reference.previewId);
+    if (existing) {
+      return existing;
+    }
+    const operation: OrderOperation = {
+      previewId: reference.previewId,
+      expiresAt: reference.expiresAt,
+      contextEpoch: this.#contextEpoch,
+      reviewed: false,
+      posted: true,
+      // Persisted markers never prove an outcome or authorize submission.
+      state: 'dispatched',
+      dispatchedAt: reference.dispatchedAt,
+      receiptSeen: false,
+      ambiguous: true,
+      backgroundObservations: 0,
+      recoveryState: 'unresolved',
+      presenters: new Set(),
+    };
+    this.#operations.set(operation.previewId, operation);
+    return operation;
+  }
+
+  /** A settled operation must not be resurrected by delayed discovery. */
+  #isSettled(previewId: string): boolean {
+    const operation = this.#operations.get(previewId);
+    return (
+      operation?.state === 'resolved' ||
+      (operation?.lastReceipt !== undefined &&
+        isTerminalReceipt(operation.lastReceipt))
+    );
+  }
+
+  /** Adopt server evidence; terminal review is surfaced before pruning. */
+  async #adoptDiscoveredEntry(
+    journal: OrderDispatchJournal,
+    identityScope: string,
+    generation: number,
+    entry: PredictUnresolvedOrder,
+    reference: OrderDispatchReference,
+    signal: AbortSignal,
+  ): Promise<void> {
+    await journal.put(reference);
+    this.#assertNotAbandoned(generation, signal);
+    const after = this.#operations.get(entry.previewId);
+    if (
+      after?.state === 'resolved' ||
+      (after?.lastReceipt && isTerminalReceipt(after.lastReceipt))
+    ) {
+      if (after.lastReceipt?.status === 'needs_manual_review') {
+        after.recoveryState = 'manual_review';
+        this.#publishRecovery();
+        await this.#pruneManualReview(after, identityScope);
+      } else {
+        await journal.remove(identityScope, this.#venueId, entry.previewId);
+      }
+      this.#assertNotAbandoned(generation, signal);
+      return;
+    }
+    const operation = this.#restoreReference(reference);
+    operation.lastReceipt = entry.receipt;
+    operation.receiptSeen = true;
+    if (entry.receipt.status === 'needs_manual_review') {
+      operation.state = 'resolved';
+      operation.recoveryState = 'manual_review';
+      this.#publishRecovery();
+      await this.#pruneManualReview(operation, identityScope);
+      this.#assertNotAbandoned(generation, signal);
+    }
+  }
+
+  /** One discovery page: adopt the venue's unresolved orders into the journal
+   * and into local state. Returns false when the round must stop because the
+   * session is gone; a discovery failure otherwise never drops local
+   * dispatches, whose references are still observed below. */
+  async #mergeDiscoveryPage(
+    identityScope: string,
+    generation: number,
+    references: readonly OrderDispatchReference[],
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    const journal = this.#journal;
+    // One page per round leaves budget for existing journal entries even
+    // when the account has many pages of server operations.
+    if (!journal || this.#discoveryComplete || !this.#hasRecoveryBudget()) {
+      return true;
+    }
+    this.#recoveryCalls += 1;
+    try {
+      const page = await this.#trading.listUnresolvedOrders(
+        { cursor: this.#discoveryCursor, limit: 25 },
+        { signal },
+      );
+      this.#assertNotAbandoned(generation, signal);
+      const known = new Map(
+        references.map((reference) => [reference.previewId, reference]),
+      );
+      for (const entry of page.operations) {
+        if (!this.#isSettled(entry.previewId)) {
+          await this.#adoptDiscoveredEntry(
+            journal,
+            identityScope,
+            generation,
+            entry,
+            {
+              identityScope,
+              venueId: this.#venueId,
+              previewId: entry.previewId,
+              dispatchedAt: Date.parse(entry.submittedAt ?? entry.createdAt),
+              expiresAt: known.get(entry.previewId)?.expiresAt,
+              recoveryState:
+                entry.receipt.status === 'needs_manual_review'
+                  ? 'manual_review'
+                  : 'unresolved',
+            },
+            signal,
+          );
+        }
+      }
+      this.#discoveryCursor = page.nextCursor;
+      this.#discoveryComplete = !page.nextCursor;
+      this.#publishRecovery();
+      return true;
+    } catch (error) {
+      this.#assertNotAbandoned(generation, signal);
+      if (
+        error instanceof PredictError &&
+        [
+          PredictErrorCode.RATE_LIMITED,
+          PredictErrorCode.UNAUTHENTICATED,
+        ].includes(error.code)
+      ) {
+        this.#recoveryActive = false;
+        return false;
+      }
+      return true;
+    }
+  }
+
+  /** Observes one candidate. Returns false when the session is gone, so no
+   * further call in this round can succeed. */
+  async #dispatchRecoveryCandidate(
+    operation: OrderOperation,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<boolean> {
+    this.#recoveryCalls += 1;
+    try {
+      await this.#dispatch(operation, 0);
+    } catch (error) {
+      this.#assertNotAbandoned(generation, signal);
+      const cause =
+        error instanceof PredictError ? error.metadata?.causeCode : undefined;
+      if (
+        cause === PredictErrorCode.RATE_LIMITED ||
+        cause === PredictErrorCode.UNAUTHENTICATED
+      ) {
+        this.#recoveryActive = false;
+        return false;
+      }
+    }
+    this.#assertNotAbandoned(generation, signal);
+    return true;
+  }
+
+  /** Re-observes the dispatched, unresolved operations, round-robin from the
+   * last one attempted and bounded by the recovery budget. */
+  async #dispatchRecoveryCandidates(
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const candidates = [...this.#operations.values()].filter(
+      (operation) =>
+        operation.state === 'dispatched' &&
+        operation.posted &&
+        operation.recoveryState !== 'manual_review',
+    );
+    if (candidates.length === 0) {
+      return;
+    }
+    const start = this.#recoveryOffset % candidates.length;
+    for (
+      let step = 0;
+      step < candidates.length && this.#hasRecoveryBudget();
+      step += 1
+    ) {
+      const index = (start + step) % candidates.length;
+      const operation = candidates[index];
+      if (this.#inFlightCommits.has(operation.previewId)) {
+        continue;
+      }
+      this.#recoveryOffset = index + 1;
+      if (
+        !(await this.#dispatchRecoveryCandidate(operation, generation, signal))
+      ) {
+        return;
+      }
+    }
+  }
+
+  #runRecovery(): Promise<void> {
+    const generation = this.#commitGeneration;
+    const identityScope = this.#identityScope;
+    const abort = new AbortController();
+    this.#recoveryAbort = abort;
+    const work = async (): Promise<void> => {
+      if (!identityScope || !this.#journal) {
+        return;
+      }
+      const references = await this.#journal.list(identityScope, this.#venueId);
+      this.#assertNotAbandoned(generation, abort.signal);
+      references.forEach((reference) => this.#restoreReference(reference));
+      this.#publishRecovery();
+      if (
+        !(await this.#mergeDiscoveryPage(
+          identityScope,
+          generation,
+          references,
+          abort.signal,
+        ))
+      ) {
+        return;
+      }
+      await this.#dispatchRecoveryCandidates(generation, abort.signal);
+    };
+    const tracked = work()
+      .catch((error) => {
+        if (generation === this.#commitGeneration && !abort.signal.aborted) {
+          this.#recoveryActive = false;
+          Logger.error(
+            ensureError(error, 'PredictOrderService.recovery'),
+            'PredictNext: Order recovery paused',
+          );
+        }
+      })
+      .finally(() => {
+        if (this.#recoveryPromise === tracked) {
+          this.#recoveryPromise = undefined;
+          this.#scheduleRecoveryTick();
+        }
+      });
+    this.#recoveryPromise = tracked;
+    return tracked;
+  }
+
+  #scheduleRecoveryTick(): void {
+    if (!this.#hasRecoveryBudget()) {
+      this.#recoveryActive = false;
+      return;
+    }
+    if (
+      this.#recoveryPromise ||
+      this.#recoveryTimer !== undefined ||
+      !this.#identityScope
+    ) {
+      return;
+    }
+    if (
+      this.#discoveryComplete &&
+      ![...this.#operations.values()].some(
+        (operation) => operation.state === 'dispatched' && operation.posted,
+      )
+    ) {
+      this.#recoveryActive = false;
+      return;
+    }
+    const delays = this.#backgroundObservationDelaysMs;
+    const delay =
+      delays[Math.min(this.#recoveryCalls, delays.length - 1)] ??
+      COMMIT_OBSERVATION_DELAY_MS;
+    this.#recoveryTimer = setTimeout(() => {
+      this.#recoveryTimer = undefined;
+      if (this.#hasRecoveryBudget()) {
+        this.#runRecovery().catch(() => undefined);
+      } else {
+        this.#recoveryActive = false;
+      }
+    }, delay);
+  }
+
+  async #finishJournal(
+    operation: OrderOperation,
+    receipt: PredictOrderReceipt,
+  ): Promise<void> {
+    if (!this.#journal || !this.#identityScope) {
+      return;
+    }
+    if (receipt.status === 'needs_manual_review') {
+      operation.recoveryState = 'manual_review';
+      this.#publishRecovery();
+      await this.#pruneManualReview(operation, this.#identityScope);
+    } else {
+      await this.#journal.remove(
+        this.#identityScope,
+        this.#venueId,
+        operation.previewId,
+      );
+      operation.recoveryState = undefined;
+    }
+  }
+
+  /** Server-confirmed terminal review stays queryable for this identity's
+   * process lifetime, but is removed from disk after recoveryChanged.
+   * Discovery can surface it again after restart, without any approval. */
+  async #pruneManualReview(
+    operation: OrderOperation,
+    identityScope: string,
+  ): Promise<void> {
+    await this.#journal?.remove(
+      identityScope,
+      this.#venueId,
+      operation.previewId,
+    );
+    if (!operation.manualReviewPruned) {
+      operation.manualReviewPruned = true;
+      Logger.log('PredictNext: pruned terminal order review', {
+        previewId: operation.previewId,
+        reason: 'server_confirmed_needs_manual_review_surfaced',
+      });
+    }
   }
 
   #registerPreview(preview: PredictOrderPreview, contextEpoch: number): void {
@@ -468,7 +1042,8 @@ export class PredictOrderService {
     for (const [previewId, operation] of this.#operations) {
       if (
         (operation.state === 'quoted' || operation.state === 'cancelled') &&
-        operation.expiresAt + this.#ambiguousCommitGraceMs < now
+        operation.expiresAt !== undefined &&
+        operation.expiresAt < now
       ) {
         this.#operations.delete(previewId);
       }
@@ -481,9 +1056,11 @@ export class PredictOrderService {
       previewId: preview.previewId,
       expiresAt: Number.isFinite(expiresAt) ? expiresAt : now,
       contextEpoch,
+      reviewed: false,
       state: 'quoted',
       receiptSeen: false,
       ambiguous: false,
+      posted: false,
       backgroundObservations: 0,
       presenters: new Set(),
     });
@@ -491,11 +1068,12 @@ export class PredictOrderService {
 
   /** Crosses the submission boundary (if not already across) and commits
    * and observes the operation once. A caller's Commit observes with the
-   * bounded loop; a background tick sends a single re-POST, because its
+   * bounded loop; a background tick sends a single read, because its
    * own schedule is the loop. */
   #dispatch(
     operation: OrderOperation,
     maxObservations = MAX_COMMIT_OBSERVATIONS,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     const { previewId } = operation;
     const generation = this.#commitGeneration;
@@ -506,6 +1084,10 @@ export class PredictOrderService {
       operation.dispatchedAt = startedAt;
     }
     const transport = new AbortController();
+    if (!operation.posted) {
+      this.#commitTransports.add(transport);
+    }
+    const observation = operation.posted ? transport : new AbortController();
     let rejectAbandoned: (error: PredictError) => void = () => undefined;
     const abandonment = new Promise<never>((_resolve, reject) => {
       rejectAbandoned = reject;
@@ -516,10 +1098,11 @@ export class PredictOrderService {
       this.#commitAndObserve(
         operation,
         generation,
-        startedAt,
         transport.signal,
+        observation.signal,
         maxObservations,
-      ),
+        approval,
+      ).finally(() => this.#commitTransports.delete(transport)),
       abandonment,
     ]);
     const tracked = commit.finally(() => {
@@ -532,9 +1115,15 @@ export class PredictOrderService {
     });
     this.#inFlightCommits.set(previewId, {
       promise: tracked,
+      suspend: () => {
+        // Fence observation, but do not abort the dispatched POST.
+        observation.abort();
+        rejectAbandoned(this.#suspendedCommitError());
+      },
       abandon: (error) => {
         // A request still resolving its bearer token never goes out.
         transport.abort();
+        observation.abort();
         rejectAbandoned(error);
       },
     });
@@ -544,9 +1133,10 @@ export class PredictOrderService {
   async #commitAndObserve(
     operation: OrderOperation,
     generation: number,
-    startedAt: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
     maxObservations: number,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
     let receipt: PredictOrderReceipt;
     try {
@@ -557,18 +1147,42 @@ export class PredictOrderService {
           op: TraceOperation.PredictOrderSubmission,
           tags: { venueId: this.#venueId },
         },
-        () => this.#observe(operation, generation, signal, maxObservations),
+        () =>
+          this.#observe(
+            operation,
+            generation,
+            signal,
+            observationSignal,
+            maxObservations,
+            approval,
+          ),
       );
     } catch (error) {
-      if (generation === this.#commitGeneration) {
-        this.#handleCommitFailure(operation, error, startedAt);
+      if (generation === this.#commitGeneration && !observationSignal.aborted) {
+        const unsent = isUnsentCommitFailure(error) && !operation.ambiguous;
+        await this.#handleCommitFailure(operation, error, generation);
+        this.#assertNotAbandoned(generation, observationSignal);
+        if (!unsent && operation.state !== 'resolved') {
+          throw PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
+            metadata:
+              error instanceof PredictError
+                ? { ...error.metadata, causeCode: error.code }
+                : undefined,
+          });
+        }
       }
       throw error;
     }
     // Checked before refreshing: a receipt for an abandoned Commit describes
     // the previous Predict User, so it must not repopulate the cache the
     // reset just cleared.
-    if (generation === this.#commitGeneration && isTerminalReceipt(receipt)) {
+    if (
+      generation === this.#commitGeneration &&
+      !observationSignal.aborted &&
+      isTerminalReceipt(receipt)
+    ) {
+      await this.#finishJournal(operation, receipt);
+      this.#assertNotAbandoned(generation, observationSignal);
       this.#invalidatePortfolioReads();
       this.#resolve(operation, { status: 'settled', receipt });
     }
@@ -576,76 +1190,187 @@ export class PredictOrderService {
   }
 
   /** Commits once, then observes an in-progress operation with bounded
-   * re-POSTs. The Commit is idempotent by Preview reference, so each re-POST
-   * observes the same operation instead of placing another Order. */
+   * receipt reads. Only the first call signs the intent the user
+   * confirmed; observing never submits and never needs his confirmation. */
   async #observe(
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
     maxObservations: number,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
-    const receipt = await this.#commitOnce(operation, generation, signal);
+    const receipt = await this.#commitOnce(
+      operation,
+      generation,
+      signal,
+      observationSignal,
+      approval,
+    );
     if (!isInProgressReceipt(receipt) || maxObservations <= 0) {
       return receipt;
     }
     await sleep(this.#observationDelayMs);
-    return this.#observe(operation, generation, signal, maxObservations - 1);
+    return this.#observe(
+      operation,
+      generation,
+      signal,
+      observationSignal,
+      maxObservations - 1,
+    );
   }
 
-  /** One observation POST. The generation is checked before the request, so
-   * an abandoned Commit is never sent again, and after the response, so a
-   * receipt that arrives for it is not treated as the current person's. */
+  /** Journals the dispatch before the Commit leaves, so a crash mid-request
+   * still leaves a recoverable reference. Without an authenticated session
+   * the Commit must not be sent at all; an unwritable journal refuses it. */
+  async #journalDispatch(
+    journal: OrderDispatchJournal,
+    operation: OrderOperation,
+    generation: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const identityScope = this.#identityScope;
+    if (!identityScope || !this.#sessionAvailable) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
+        metadata: {
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+        },
+      });
+    }
+    try {
+      await journal.put({
+        identityScope,
+        venueId: this.#venueId,
+        previewId: operation.previewId,
+        dispatchedAt: operation.dispatchedAt ?? Date.now(),
+        expiresAt: operation.expiresAt,
+        recoveryState: 'unresolved',
+      });
+    } catch {
+      throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
+        metadata: {
+          phase: 'commit',
+          mutationRelay: 'not_relayed_this_invocation',
+        },
+      });
+    }
+    this.#assertNotAbandoned(generation, signal);
+    operation.recoveryState = 'unresolved';
+    if (!this.#recoveryActive) {
+      this.#recoveryActive = true;
+      this.#recoveryStartedAt = Date.now();
+      this.#recoveryCalls = 0;
+    }
+    this.#publishRecovery();
+  }
+
+  /** The signed Commit the first time, a receipt read afterwards. The
+   * generation is checked before the request, so an abandoned Commit is
+   * never sent again, and after the response, so a receipt that arrives for
+   * it is not treated as the current person's. */
   async #commitOnce(
     operation: OrderOperation,
     generation: number,
     signal: AbortSignal,
+    observationSignal: AbortSignal,
+    approval?: PredictOrderApproval,
   ): Promise<PredictOrderReceipt> {
-    this.#assertNotAbandoned(generation);
-    const receipt = await this.#trading.commitOrder(operation.previewId, {
-      signal,
-    });
-    this.#assertNotAbandoned(generation);
+    this.#assertNotAbandoned(generation, observationSignal);
+    let receipt: PredictOrderReceipt;
+    if (operation.posted) {
+      const observedAt = Date.now();
+      try {
+        receipt = await this.#trading.observeOrder(operation.previewId, {
+          signal: observationSignal,
+        });
+      } catch (error) {
+        this.#assertNotAbandoned(generation, observationSignal);
+        if (
+          error instanceof PredictError &&
+          error.metadata?.phase === 'observe' &&
+          error.metadata?.bodyCode === 'operation_not_found' &&
+          !operation.receiptSeen &&
+          operation.expiresAt !== undefined &&
+          observedAt > operation.expiresAt + MISSING_OPERATION_EXPIRY_GRACE_MS
+        ) {
+          if (this.#journal && this.#identityScope) {
+            await this.#journal.remove(
+              this.#identityScope,
+              this.#venueId,
+              operation.previewId,
+            );
+            this.#assertNotAbandoned(generation, observationSignal);
+          }
+          operation.recoveryState = undefined;
+          this.#resolve(operation, {
+            status: 'not_placed',
+            code: PredictErrorCode.PREVIEW_EXPIRED,
+          });
+          throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
+        }
+        // Even not-relayed mutation metadata cannot resolve an observation.
+        operation.ambiguous = true;
+        throw error;
+      }
+    } else {
+      if (approval?.kind !== 'user-approved') {
+        throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+      }
+      const journal = this.#journal;
+      if (journal) {
+        await this.#journalDispatch(
+          journal,
+          operation,
+          generation,
+          observationSignal,
+        );
+      }
+      operation.posted = true;
+      receipt = await this.#trading.commitOrder(operation.previewId, approval, {
+        signal,
+      });
+    }
+    this.#assertNotAbandoned(generation, observationSignal);
+    operation.lastReceipt = receipt;
     operation.receiptSeen = true;
     return receipt;
   }
 
   /** Decides what a failed Commit means for the operation. */
-  #handleCommitFailure(
+  async #handleCommitFailure(
     operation: OrderOperation,
     error: unknown,
-    startedAt: number,
-  ): void {
+    generation: number,
+  ): Promise<void> {
     if (operation.state !== 'dispatched') {
       return;
     }
-    if (!isPreOperationFailure(error)) {
-      // The request may have reached the backend: keep observing.
+    if (operation.ambiguous || !isUnsentCommitFailure(error)) {
       operation.ambiguous = true;
       return;
     }
-    const mayStillLand = operation.receiptSeen || operation.ambiguous;
-    const sentAfterGrace =
-      startedAt >= operation.expiresAt + this.#ambiguousCommitGraceMs;
-    // An earlier request may have created the operation. Only the Commit
-    // route's own refusal, sent once the Preview has expired, proves it did
-    // not: a Receipt already proves it did, and a 401 comes from the auth
-    // guard (or a token the client could not get) before any lookup.
-    const provesNoOperation =
-      !operation.receiptSeen &&
-      sentAfterGrace &&
-      isCanonicalCommitFailure(error);
-    if (mayStillLand && !provesNoOperation) {
-      return;
+    if (this.#journal && this.#identityScope) {
+      await this.#journal.remove(
+        this.#identityScope,
+        this.#venueId,
+        operation.previewId,
+      );
+      this.#assertNotAbandoned(generation);
+      operation.recoveryState = undefined;
+      this.#publishRecovery();
     }
     const canReturnBeforeBoundary =
-      !mayStillLand &&
       error.code !== PredictErrorCode.PREVIEW_EXPIRED &&
+      error.code !== PredictErrorCode.ORDER_PREVIEW_MISMATCH &&
       operation.contextEpoch === this.#contextEpoch &&
       operation.presenters.size > 0;
     if (canReturnBeforeBoundary) {
       // Nothing was submitted, and the surface that showed the failure may
-      // still re-approve the same Preview: it is pre-submit again.
+      // still re-approve the same Preview: it is pre-submit again, and the
+      // re-approval signs a fresh Commit.
       operation.state = 'quoted';
+      operation.posted = false;
       return;
     }
     this.#resolve(operation, { status: 'not_placed', code: error.code });
@@ -678,13 +1403,20 @@ export class PredictOrderService {
       ...resolution,
       presented,
     });
+    this.#publishRecovery();
   }
 
-  /** Keeps observing a dispatched, unresolved operation, bounded in time. */
+  /** Keeps observing a dispatched, unresolved operation, bounded in time and
+   * in the number of calls. */
   #scheduleBackgroundObservation(operation: OrderOperation): void {
+    if (this.#journal) {
+      this.#scheduleRecoveryTick();
+      return;
+    }
     if (
       operation.state !== 'dispatched' ||
       operation.backgroundTimer !== undefined ||
+      operation.backgroundObservations >= this.#maxBackgroundObservations ||
       this.#operations.get(operation.previewId) !== operation
     ) {
       return;
@@ -698,13 +1430,8 @@ export class PredictOrderService {
     const delay =
       delays[Math.min(operation.backgroundObservations, delays.length - 1)] ??
       COMMIT_OBSERVATION_DELAY_MS;
-    // With no Receipt, the operation may not exist yet: an automatic
-    // re-POST inside the validity window could create it.
-    const earliest = operation.receiptSeen
-      ? now
-      : operation.expiresAt + this.#ambiguousCommitGraceMs;
     operation.backgroundObservations += 1;
-    const observe = () => {
+    const observe = (): void => {
       operation.backgroundTimer = undefined;
       if (
         this.#operations.get(operation.previewId) !== operation ||
@@ -712,22 +1439,10 @@ export class PredictOrderService {
       ) {
         return;
       }
-      // Timers run on the event loop's clock, which can trail `Date.now()`
-      // under load, so one may fire just before `earliest`. A refusal to a
-      // re-POST sent then proves nothing (`sentAfterGrace` is false) and
-      // would cost another round trip, so wait out the remainder instead.
-      const remaining = earliest - Date.now();
-      if (remaining > 0) {
-        operation.backgroundTimer = setTimeout(observe, remaining);
-        return;
-      }
       // Failures are handled inside; the background has no caller.
       this.#dispatch(operation, 0).catch(() => undefined);
     };
-    operation.backgroundTimer = setTimeout(
-      observe,
-      Math.max(delay, earliest - now),
-    );
+    operation.backgroundTimer = setTimeout(observe, delay);
   }
 
   #clearBackgroundTimer(operation: OrderOperation): void {
@@ -751,8 +1466,8 @@ export class PredictOrderService {
     }
   }
 
-  #assertNotAbandoned(generation: number): void {
-    if (generation !== this.#commitGeneration) {
+  #assertNotAbandoned(generation: number, signal?: AbortSignal): void {
+    if (generation !== this.#commitGeneration || signal?.aborted) {
       // The session that approved the Preview is gone; the same code the
       // backend uses for a rejected token keeps this out of user copy.
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
@@ -785,9 +1500,18 @@ export class PredictOrderService {
 
   destroy(): void {
     // Nothing may observe or refresh a Commit once the service is gone: a
-    // destroyed Engine must not re-POST the previous person's Commit.
+    // destroyed Engine must not observe the previous person's Commit.
     this.abandonCommits();
+    this.#destroyed = true;
+    this.#cleanupLifecycle?.();
+    this.#messenger.unregisterActionHandler('PredictOrderService:getRecovery');
+    this.#messenger.unregisterActionHandler(
+      'PredictOrderService:refreshRecovery',
+    );
     this.#messenger.unregisterActionHandler('PredictOrderService:requestQuote');
+    this.#messenger.unregisterActionHandler(
+      'PredictOrderService:reviewPreview',
+    );
     this.#messenger.unregisterActionHandler(
       'PredictOrderService:commitPreview',
     );
