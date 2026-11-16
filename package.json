@@ -189,6 +189,7 @@
     ]
   },
   "resolutions": {
+    "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
     "@metamask/network-controller": "^38.0.0",
@@ -704,8 +705,8 @@
     "@metamask/auto-changelog": "^6.2.0",
     "@metamask/browser-passworder": "^6.0.0",
     "@metamask/browser-playground": "0.8.1",
-    "@metamask/client-mcp-core": "^0.13.1",
-    "@metamask/device-mcp": "^0.7.0",
+    "@metamask/client-mcp-core": "^0.14.0",
+    "@metamask/device-mcp": "^0.8.0",
     "@metamask/eslint-config": "15.0.1",
     "@metamask/eslint-config-typescript": "15.0.1",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
