@@ -240,8 +240,9 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || process.env.BUILD_NAME) + '\n');
           "
 
-      # Production- and RC-signed builds take their runner provider from the repo
-      # NAMESPACE_RUNNER_* variables only, so the dispatcher cannot move them to another provider.
+      # Only unsigned, dev-signed and UAT-signed builds honour the runner_provider input. Any other
+      # signer (production, RC, or one added later) takes its runner provider from the repo
+      # NAMESPACE_RUNNER_* variables only, so the dispatcher cannot move it to another provider.
       - name: Resolve build runner provider
         id: build-runner-provider
         env:
@@ -249,14 +250,14 @@ jobs:
           RUNNER_PROVIDER_INPUT: ${{ inputs.runner_provider }}
         run: |
           case "$SIGNING_AWS_SECRET" in
-            *-prod-signer*|*-rc-signer*)
+            ''|*-dev-signer*|*-uat-signer*)
+              echo "runner_provider=${RUNNER_PROVIDER_INPUT}" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
               if [ -n "$RUNNER_PROVIDER_INPUT" ] && [ "$RUNNER_PROVIDER_INPUT" != 'inherit' ]; then
                 echo "::warning::Ignoring runner_provider '${RUNNER_PROVIDER_INPUT}': ${SIGNING_AWS_SECRET} builds use the repo NAMESPACE_RUNNER_* variables."
               fi
               echo "runner_provider=" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "runner_provider=${RUNNER_PROVIDER_INPUT}" >> "$GITHUB_OUTPUT"
               ;;
           esac
 
