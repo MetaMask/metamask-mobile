@@ -81,7 +81,7 @@ const setHistoricalEarningsResult = ({
   isLoading = false,
   isError = false,
 }: {
-  data?: InterestHistoryResponse;
+  data?: InterestHistoryResponse | null;
   isLoading?: boolean;
   isError?: boolean;
 } = {}): void => {
@@ -115,7 +115,16 @@ describe('MoneyEarningsView', () => {
       selected: true,
       disabled: false,
     });
-    expect(getByTestId(MoneyEarningsViewTestIds.CHART)).toBeOnTheScreen();
+    const chart = getByTestId(MoneyEarningsViewTestIds.CHART);
+    expect(chart).toBeOnTheScreen();
+    expect(chart.props.accessible).toBe(true);
+    expect(chart.props.accessibilityRole).toBe('image');
+    expect(chart.props.accessibilityLabel).toBe(
+      strings('money.earnings.chart_accessibility_label', {
+        range: strings('money.earnings.range_1m'),
+        total: '+$30.00',
+      }),
+    );
   });
 
   it('normalizes an unsupported route tab to Earnings', () => {
@@ -238,6 +247,46 @@ describe('MoneyEarningsView', () => {
             interest_earned_usd: null,
           },
         ] as unknown as InterestHistoryResponse['history'],
+      },
+    });
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('displays error content without a summary for null query data', () => {
+    setHistoricalEarningsResult({ data: null });
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByText(strings('money.earnings.error'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('displays error content without a summary for aggregation overflow', () => {
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        history: [
+          {
+            timestamp: '2026-11-16T12:00:00.000Z',
+            interest_earned_usd: String(Number.MAX_VALUE),
+          },
+          {
+            timestamp: '2026-11-16T13:00:00.000Z',
+            interest_earned_usd: String(Number.MAX_VALUE),
+          },
+        ],
       },
     });
 

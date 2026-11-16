@@ -156,6 +156,7 @@ const EarningsChart = ({
         alignItems={BoxAlignItems.End}
         style={tw.style('h-[160px] gap-px')}
         testID={MoneyEarningsViewTestIds.CHART}
+        accessible
         accessibilityRole="image"
         accessibilityLabel={strings(
           'money.earnings.chart_accessibility_label',

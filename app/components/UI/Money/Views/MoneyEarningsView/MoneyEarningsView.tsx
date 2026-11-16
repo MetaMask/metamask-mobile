@@ -40,6 +40,9 @@ type MoneyEarningsRoute = RouteProp<MoneyNavigationParamList, 'MoneyEarnings'>;
 
 const handleTabPress = (): undefined => undefined;
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
 const MoneyEarningsView = (): React.ReactElement => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -58,8 +61,12 @@ const MoneyEarningsView = (): React.ReactElement => {
   const requestedTab = params?.activeTab ?? 'earnings';
   const activeTab = requestedTab === 'earnings' ? requestedTab : 'earnings';
   const hasMalformedHistory =
-    data !== undefined && hasInvalidHistoryEntries(data.history);
-  const entries = Array.isArray(data?.history) ? data.history : undefined;
+    data !== undefined &&
+    (!isRecord(data) || hasInvalidHistoryEntries(data.history));
+  const entries =
+    !hasMalformedHistory && isRecord(data) && Array.isArray(data.history)
+      ? data.history
+      : undefined;
   const tabs = [
     {
       key: 'earnings',

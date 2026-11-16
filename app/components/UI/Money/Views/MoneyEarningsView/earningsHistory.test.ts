@@ -276,6 +276,17 @@ describe('earningsHistory', () => {
 
       expect(result).toBe(false);
     });
+
+    it('returns true when same-day aggregation exceeds the finite range', () => {
+      const entries = [
+        createEntry('2026-11-13T12:00:00.000Z', String(Number.MAX_VALUE)),
+        createEntry('2026-11-13T13:00:00.000Z', String(Number.MAX_VALUE)),
+      ];
+
+      const result = hasInvalidHistoryEntries(entries);
+
+      expect(result).toBe(true);
+    });
   });
 
   describe('sumEarnings', () => {
