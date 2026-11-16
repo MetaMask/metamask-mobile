@@ -62,6 +62,7 @@ const CancelPostCancelSheet = ({
       <Box twClassName="px-6 pt-2 pb-4 gap-y-4">
         <Text
           variant={TextVariant.HeadingMd}
+          accessibilityRole="header"
           testID={CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE}
         >
           {title}

@@ -82,6 +82,9 @@ describe('CancelPostCancelSheet', () => {
       strings('pro_hub.cancel_membership.post_cancel_sheet.immediate_title'),
     );
     expect(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
+    ).toHaveProp('accessibilityRole', 'header');
+    expect(
       getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
     ).toHaveTextContent(
       strings(
