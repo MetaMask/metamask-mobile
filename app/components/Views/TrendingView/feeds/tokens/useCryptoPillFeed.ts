@@ -4,9 +4,11 @@ import {
   keepPreviousData,
   useQueries,
   useQueryClient,
+  type UseQueryResult,
 } from '@tanstack/react-query';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
+import Logger from '../../../../../util/Logger';
 import { useStableArray } from '../../../../UI/Perps/hooks/useStableArray';
 import { useTrendingChainIds } from '../../../../UI/Trending/hooks/useTrendingChainIds/useTrendingChainIds';
 import { filterLowQualityTokens } from '../../../../UI/Trending/utils/filterTrendingTokens';
@@ -14,7 +16,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { mapWatchlistTokenToTrendingAsset } from '../../../Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
+import { toWatchlistDisplayTokens } from '../../../Homepage/Sections/Watchlist/utils/toWatchlistDisplayTokens';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import {
@@ -102,26 +104,30 @@ export const useCryptoPillFeed = ({
       descriptor: CryptoPillQueryDescriptor;
       signal?: AbortSignal;
     }): Promise<TrendingAsset[]> => {
-      const primary = await fetchCryptoPillTokens({
-        ...descriptor.request,
-        chainIds: descriptor.chainIds,
-        vsCurrency,
-        signal,
-      });
+      const primary = filterLowQualityTokens(
+        await fetchCryptoPillTokens({
+          ...descriptor.request,
+          chainIds: descriptor.chainIds,
+          vsCurrency,
+          signal,
+        }),
+      );
       if (primary.length > 0 || !descriptor.fallback) {
         return primary;
       }
-      return fetchCryptoPillTokens({
-        ...descriptor.fallback,
-        chainIds: descriptor.chainIds,
-        vsCurrency,
-        signal,
-      });
+      return filterLowQualityTokens(
+        await fetchCryptoPillTokens({
+          ...descriptor.fallback,
+          chainIds: descriptor.chainIds,
+          vsCurrency,
+          signal,
+        }),
+      );
     },
     [vsCurrency],
   );
 
-  const queries = useQueries({
+  const tokenPillResults = useQueries({
     queries: descriptors.map((descriptor) => ({
       queryKey: cryptoPillQueryKeys.pill(
         descriptor.key,
@@ -136,21 +142,23 @@ export const useCryptoPillFeed = ({
       enabled: prefetchStarted || descriptor.key === activePillKey,
       staleTime: CRYPTO_PILL_STALE_TIME_MS,
       placeholderData: keepPreviousData,
-      select: (tokens: TrendingAsset[]): TrendingAsset[] =>
-        filterLowQualityTokens(tokens),
     })),
-  });
-
-  const tokenPillResults: Record<string, CryptoPillFeedResult> = {};
-  descriptors.forEach((descriptor, index) => {
-    const query = queries[index];
-    if (query) {
-      tokenPillResults[descriptor.key] = {
-        data: query.data,
-        isLoading: query.isLoading,
-        isError: query.isError,
-      };
-    }
+    combine: (
+      queryResults: UseQueryResult<TrendingAsset[], Error>[],
+    ): Record<string, CryptoPillFeedResult> => {
+      const combined: Record<string, CryptoPillFeedResult> = {};
+      descriptors.forEach((descriptor, index) => {
+        const query = queryResults[index];
+        if (query) {
+          combined[descriptor.key] = {
+            data: query.data,
+            isLoading: query.isLoading,
+            isError: query.isError,
+          };
+        }
+      });
+      return combined;
+    },
   });
 
   const watchlistResult = useMemo<CryptoPillFeedResult>(
@@ -158,14 +166,19 @@ export const useCryptoPillFeed = ({
       data:
         watchlistQuery.data === undefined
           ? undefined
-          : watchlistQuery.data
-              .slice()
-              .reverse()
-              .map(mapWatchlistTokenToTrendingAsset),
+          : toWatchlistDisplayTokens(watchlistQuery.data),
       isLoading: watchlistQuery.isLoading,
       isError: watchlistQuery.isError,
     }),
     [watchlistQuery.data, watchlistQuery.isLoading, watchlistQuery.isError],
+  );
+
+  const results = useMemo<Record<string, CryptoPillFeedResult>>(
+    () => ({
+      ...tokenPillResults,
+      [CRYPTO_WATCHLIST_PILL.key]: watchlistResult,
+    }),
+    [tokenPillResults, watchlistResult],
   );
 
   const activeResult =
@@ -174,6 +187,7 @@ export const useCryptoPillFeed = ({
       : tokenPillResults[activePillKey];
 
   const activeLoaded =
+    activePillKey === CRYPTO_WATCHLIST_PILL.key ||
     activeResult === undefined ||
     activeResult.data !== undefined ||
     activeResult.isError;
@@ -184,6 +198,18 @@ export const useCryptoPillFeed = ({
     }
     setPrefetchStarted(true);
   }, [prefetchStarted, activeLoaded]);
+
+  useEffect(() => {
+    const erroredKeys = descriptors
+      .filter((descriptor) => tokenPillResults[descriptor.key]?.isError)
+      .map((descriptor) => descriptor.key);
+    if (erroredKeys.length > 0) {
+      Logger.error(
+        new Error(erroredKeys.join(', ')),
+        'ExploreCryptoPillFeed: pill query failed',
+      );
+    }
+  }, [descriptors, tokenPillResults]);
 
   const { refetch: refetchWatchlist } = watchlistQuery;
 
@@ -198,10 +224,5 @@ export const useCryptoPillFeed = ({
 
   useFeedRefresh(refresh, handleRefresh);
 
-  return {
-    results: {
-      ...tokenPillResults,
-      [CRYPTO_WATCHLIST_PILL.key]: watchlistResult,
-    },
-  };
+  return { results };
 };

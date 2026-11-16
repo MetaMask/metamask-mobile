@@ -30,6 +30,13 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 let mockIsWatchlistEnabled = false;
 
 jest.mock('react-redux', () => {
@@ -148,9 +155,9 @@ describe('useCryptoPillFeed', () => {
     await waitFor(() => {
       expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(1);
     });
-    expect(
-      isGlobalTrendingRequest(mockedFetchCryptoPillTokens.mock.calls[0][0]),
-    ).toBe(true);
+    const request = mockedFetchCryptoPillTokens.mock.calls[0][0];
+    expect(isGlobalTrendingRequest(request)).toBe(true);
+    expect(request.includeTokenSecurityData).toBe(true);
   });
 
   it('prefetches the remaining pills once the active pill has loaded', async () => {
@@ -189,8 +196,8 @@ describe('useCryptoPillFeed', () => {
     });
   });
 
-  it('does not refetch a prefetched pill when it becomes active within the stale time', async () => {
-    const { rerender } = renderFeed({ activePillKey: 'trending' });
+  it('serves a prefetched pill from cache without refetching within the stale time', async () => {
+    const { rerender, result } = renderFeed({ activePillKey: 'trending' });
 
     await waitFor(() => {
       expect(resolveActiveFetch).toBeDefined();
@@ -202,9 +209,10 @@ describe('useCryptoPillFeed', () => {
 
     rerender({ activePillKey: 'top_gainers' });
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 0);
+    await waitFor(() => {
+      expect(result.current.results.top_gainers.data).toEqual([]);
     });
+    expect(result.current.results.top_gainers.isLoading).toBe(false);
     expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(6);
   });
 

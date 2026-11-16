@@ -61,6 +61,7 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
       minLiquidity: MULTI_CHAIN_BASELINE_THRESHOLDS.minLiquidity,
       minVolume24hUsd: MULTI_CHAIN_BASELINE_THRESHOLDS.minVolume24h,
       excludeLabels: ['stable_coin', 'blue_chip'],
+      includeTokenSecurityData: true,
     },
   },
   {
@@ -74,6 +75,7 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
       minLiquidity: 100000,
       minVolume24hUsd: 100000,
       excludeLabels: ['stable_coin', 'blue_chip'],
+      includeTokenSecurityData: true,
     },
   },
   {
@@ -87,6 +89,7 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
       minLiquidity: 50000,
       minVolume24hUsd: 25000,
       excludeLabels: ['stable_coin', 'blue_chip'],
+      includeTokenSecurityData: true,
     },
   },
   {
@@ -100,13 +103,16 @@ export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [
       minLiquidity: 100000,
       minVolume24hUsd: 100000,
       excludeLabels: ['stable_coin'],
+      includeTokenSecurityData: true,
     },
   },
 ];
 
 /**
- * Chain pills appended after the token pills. Adding an entry here is the
- * only change needed to surface another chain.
+ * Chain pills appended after the token pills. Surfacing another chain
+ * additionally requires extending CryptoPillKey, adding a `tokens_<key>`
+ * member to ExploreSectionName, and adding the label under
+ * `trending.crypto_pills` in en.json.
  */
 export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
   {
@@ -119,6 +125,7 @@ export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
       sort: 'h24_trending',
       minLiquidity: 100000,
       minVolume24hUsd: 25000,
+      includeTokenSecurityData: true,
     },
     popularFallback: {
       path: '/v3/tokens/popular',
@@ -126,6 +133,7 @@ export const CRYPTO_CHAIN_PILLS: readonly CryptoChainPillDefinition[] = [
       minLiquidity: 100000,
       minVolume24hUsd: 25000,
       excludeLabels: ['stable_coin'],
+      includeTokenSecurityData: true,
     },
   },
 ];

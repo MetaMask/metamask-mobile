@@ -304,6 +304,17 @@ describe('CryptoTokensPillBlock', () => {
       expect(getByTestId('watchlist-empty-fallback')).toBeTruthy();
       expect(queryByTestId('crypto-tokens-list')).toBeNull();
     });
+
+    it('hides the watchlist pill and falls back instead of showing the empty state on error', () => {
+      const results = makeResults({
+        watchlist: { data: undefined, isLoading: false, isError: true },
+      });
+      const { getByTestId, queryByTestId } = renderBlock(results);
+
+      expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeNull();
+      expect(queryByTestId('watchlist-empty-fallback')).toBeNull();
+      expect(getByTestId('token-row-BTC')).toBeTruthy();
+    });
   });
 
   describe('section visibility', () => {

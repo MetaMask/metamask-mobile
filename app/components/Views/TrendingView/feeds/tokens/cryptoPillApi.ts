@@ -16,6 +16,7 @@ export interface CryptoPillRequestParams {
   minLiquidity?: number;
   minVolume24hUsd?: number;
   excludeLabels?: string[];
+  includeTokenSecurityData?: boolean;
 }
 
 /** Fully resolved request for a single pill fetch. */

@@ -25,6 +25,7 @@ describe('buildCryptoPillTokensUrl', () => {
       minLiquidity: 200000,
       minVolume24hUsd: 1000000,
       excludeLabels: ['stable_coin', 'blue_chip'],
+      includeTokenSecurityData: true,
       vsCurrency: 'usd',
     });
 
@@ -34,6 +35,7 @@ describe('buildCryptoPillTokensUrl', () => {
         '&sort=h24_trending' +
         '&minLiquidity=200000' +
         '&minVolume24hUsd=1000000' +
+        '&includeTokenSecurityData=true' +
         '&vsCurrency=usd' +
         '&excludeLabels=stable_coin,blue_chip',
     );

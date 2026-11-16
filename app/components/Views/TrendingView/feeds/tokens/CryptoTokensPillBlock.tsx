@@ -83,7 +83,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
       pills.filter((pill) => {
         const result = results[pill.key];
         if (!result) return false;
-        if (pill.key === CRYPTO_WATCHLIST_PILL.key) return true;
         if (result.isError) return false;
         if (result.data === undefined) return true;
         return result.data.length >= pill.minItems;
@@ -154,7 +153,10 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     (activeResult.data === undefined && !activeResult.isError);
   const isWatchlistActive = activeDefinition?.key === CRYPTO_WATCHLIST_PILL.key;
   const showWatchlistEmpty =
-    isWatchlistActive && !isListLoading && activeItems.length === 0;
+    isWatchlistActive &&
+    !isListLoading &&
+    !activeResult.isError &&
+    activeItems.length === 0;
 
   const pillOptions: PillOption[] = visiblePills.map(
     ({ key, labelKey, iconName }) => ({

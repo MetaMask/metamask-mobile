@@ -30,7 +30,7 @@ import {
   WatchlistAnalytics,
 } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
-import { mapWatchlistTokenToTrendingAsset } from './utils/mapWatchlistTokenToTrendingAsset';
+import { toWatchlistDisplayTokens } from './utils/toWatchlistDisplayTokens';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -95,12 +95,7 @@ const WatchlistSection = forwardRef<
   const title = strings('homepage.sections.watchlist');
 
   const displayTokens = useMemo(
-    () =>
-      (data ?? [])
-        .slice()
-        .reverse()
-        .slice(0, MAX_ITEMS_DISPLAYED)
-        .map(mapWatchlistTokenToTrendingAsset),
+    () => toWatchlistDisplayTokens(data ?? [], MAX_ITEMS_DISPLAYED),
     [data],
   );
 
