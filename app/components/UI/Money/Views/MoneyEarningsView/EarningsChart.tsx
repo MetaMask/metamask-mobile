@@ -18,6 +18,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import type { InterestHistoryEntry } from '../../hooks/useMoneyHistoricalEarnings';
@@ -71,6 +72,7 @@ const EarningsChart = ({
   selectedRange,
   onRangeChange,
 }: EarningsChartProps): React.ReactElement => {
+  const tw = useTailwind();
   const rangeEntries = useMemo(
     () => getRangeEntries(entries ?? [], selectedRange),
     [entries, selectedRange],
@@ -152,7 +154,7 @@ const EarningsChart = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.End}
-        twClassName="h-[160px] gap-px"
+        style={tw.style('h-[160px] gap-px')}
         testID={MoneyEarningsViewTestIds.CHART}
       >
         {points.map((point, index) => {
@@ -168,10 +170,13 @@ const EarningsChart = ({
           return (
             <Box
               key={point.timestamp}
-              twClassName={`flex-1 rounded-t-sm ${
-                isLatest ? 'bg-primary-default' : 'bg-primary-muted'
-              }`}
-              style={{ height: barHeight }}
+              style={[
+                tw.style(
+                  'flex-1 rounded-t-sm',
+                  isLatest ? 'bg-primary-default' : 'bg-primary-muted',
+                ),
+                { height: barHeight },
+              ]}
             />
           );
         })}
@@ -184,7 +189,11 @@ const EarningsChart = ({
       {!isLoading && !isError && points.length > 0 ? (
         <Box>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('money.earnings.earned_last_30_days')}
+            {selectedRange === '30D'
+              ? strings('money.earnings.earned_last_30_days')
+              : strings('money.earnings.earned_in_range', {
+                  range: strings(RANGE_LABEL_KEYS[selectedRange]),
+                })}
           </Text>
           <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Medium}>
             {formatSignedUsd(total)}

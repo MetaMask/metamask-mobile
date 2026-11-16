@@ -10097,6 +10097,7 @@
       "tab_apy": "APY",
       "tab_allocation": "Allocation",
       "earned_last_30_days": "Earned in the last 30 days",
+      "earned_in_range": "Earned in the last {{range}}",
       "range_1w": "1W",
       "range_1m": "1M",
       "range_3m": "3M",
