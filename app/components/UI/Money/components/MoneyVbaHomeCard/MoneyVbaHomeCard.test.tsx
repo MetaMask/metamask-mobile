@@ -678,7 +678,7 @@ describe('MoneyVbaHomeCard', () => {
       screen_name: SCREEN_NAMES.MONEY_HOME,
       component_name: COMPONENT_NAMES.MONEY_VBA_KYC_RETRY_CARD,
     });
-    expect(retryView.component_name).not.toBe(finishView.component_name);
+    expect(retryView).not.toEqual(finishView);
     expect(finishTap).toEqual({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
