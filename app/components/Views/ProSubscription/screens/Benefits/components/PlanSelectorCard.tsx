@@ -26,6 +26,7 @@ interface PlanSelectorCardProps {
   plan: PlanOption;
   copy: PlanSelectorCardCopy;
   isSelected: boolean;
+  isDisabled?: boolean;
   onPress: (planId: PlanOption['id']) => void;
 }
 
@@ -33,6 +34,7 @@ const PlanSelectorCard = ({
   plan,
   copy,
   isSelected,
+  isDisabled = false,
   onPress,
 }: PlanSelectorCardProps) => {
   const { themeAppearance } = useTheme();
@@ -69,9 +71,15 @@ const PlanSelectorCard = ({
 
   return (
     <TouchableOpacity
-      onPress={() => onPress(plan.id)}
+      onPress={() => {
+        if (isDisabled) {
+          return;
+        }
+        onPress(plan.id);
+      }}
+      disabled={isDisabled}
       accessibilityRole="radio"
-      accessibilityState={{ checked: isSelected }}
+      accessibilityState={{ checked: isSelected, disabled: isDisabled }}
       accessibilityLabel={accessibilityLabel}
       testID={BenefitsTestIds.PLAN_CARD(plan.id)}
       activeOpacity={1}

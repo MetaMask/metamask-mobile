@@ -157,10 +157,13 @@ const Benefits = ({
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {
+      if (isSubmitting) {
+        return;
+      }
       setSelectedPlan(planId);
       onPlanChange?.(planId);
     },
-    [onPlanChange],
+    [isSubmitting, onPlanChange],
   );
 
   return (
@@ -297,6 +300,7 @@ const Benefits = ({
                 plan={plan}
                 copy={copy}
                 isSelected={resolvedPlan === plan.id}
+                isDisabled={isSubmitting}
                 onPress={handlePlanPress}
               />
             ))

@@ -39,12 +39,14 @@ const renderCard = ({
   plan = ANNUAL_PLAN,
   copy = PRICE_COPY,
   isSelected = false,
+  isDisabled = false,
   isDark = false,
   onPress = jest.fn(),
 }: {
   plan?: PlanOption;
   copy?: PlanSelectorCardCopy;
   isSelected?: boolean;
+  isDisabled?: boolean;
   isDark?: boolean;
   onPress?: (planId: PlanOption['id']) => void;
 } = {}) => {
@@ -53,6 +55,7 @@ const renderCard = ({
       plan={plan}
       copy={copy}
       isSelected={isSelected}
+      isDisabled={isDisabled}
       onPress={onPress}
     />
   );
@@ -179,6 +182,18 @@ describe('PlanSelectorCard', () => {
     fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
 
     expect(onPress).toHaveBeenCalledWith('annual');
+  });
+
+  it('does not call onPress when the card is disabled', () => {
+    const { getByTestId, onPress } = renderCard({ isDisabled: true });
+
+    fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('annual')));
+
+    expect(onPress).not.toHaveBeenCalled();
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ disabled: true }),
+    );
   });
 
   describe('selected radio indicator', () => {
