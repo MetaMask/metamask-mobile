@@ -53,25 +53,48 @@ const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
 
+const createBucket = (
+  start: string,
+  interestEarnedUsd: string | null,
+): { start: string; end: string; interest_earned_usd: string | null } => ({
+  start,
+  end: new Date(Date.parse(start) + 24 * 60 * 60 * 1000).toISOString(),
+  interest_earned_usd: interestEarnedUsd,
+});
+
 const historicalEarnings: InterestHistoryResponse = {
   address: '0x1234',
   chain_id: 143,
-  history: [
+  ranges: [
     {
-      timestamp: '2026-11-16T12:00:00.000Z',
-      interest_earned_usd: '10',
+      range: '7d',
+      buckets: [createBucket('2026-11-16T12:00:00.000Z', '10')],
     },
     {
-      timestamp: '2026-10-18T12:00:00.000Z',
-      interest_earned_usd: '20',
+      range: '30d',
+      buckets: [
+        createBucket('2026-11-16T12:00:00.000Z', '10'),
+        createBucket('2026-10-18T12:00:00.000Z', '20'),
+      ],
     },
     {
-      timestamp: '2026-01-01T12:00:00.000Z',
-      interest_earned_usd: '70',
+      range: '90d',
+      buckets: [createBucket('2026-11-16T12:00:00.000Z', '10')],
     },
     {
-      timestamp: '2025-11-16T12:00:00.000Z',
-      interest_earned_usd: '900',
+      range: '180d',
+      buckets: [
+        createBucket('2026-11-16T12:00:00.000Z', '10'),
+        createBucket('2026-01-01T12:00:00.000Z', '70'),
+      ],
+    },
+    {
+      range: '365d',
+      buckets: [
+        createBucket('2026-11-16T12:00:00.000Z', '10'),
+        createBucket('2026-10-18T12:00:00.000Z', '20'),
+        createBucket('2026-01-01T12:00:00.000Z', '70'),
+      ],
     },
   ],
 };
@@ -241,12 +264,18 @@ describe('MoneyEarningsView', () => {
     setHistoricalEarningsResult({
       data: {
         ...historicalEarnings,
-        history: [
+        ranges: [
           {
-            timestamp: '2026-11-16T12:00:00.000Z',
-            interest_earned_usd: null,
+            range: '30d',
+            buckets: [
+              {
+                start: 'invalid',
+                end: '2026-11-17T12:00:00.000Z',
+                interest_earned_usd: '1',
+              },
+            ],
           },
-        ] as unknown as InterestHistoryResponse['history'],
+        ],
       },
     });
 
@@ -277,14 +306,19 @@ describe('MoneyEarningsView', () => {
     setHistoricalEarningsResult({
       data: {
         ...historicalEarnings,
-        history: [
+        ranges: [
           {
-            timestamp: '2026-11-16T12:00:00.000Z',
-            interest_earned_usd: String(Number.MAX_VALUE),
-          },
-          {
-            timestamp: '2026-11-16T13:00:00.000Z',
-            interest_earned_usd: String(Number.MAX_VALUE),
+            range: '30d',
+            buckets: [
+              createBucket(
+                '2026-11-16T12:00:00.000Z',
+                String(Number.MAX_VALUE),
+              ),
+              createBucket(
+                '2026-11-16T13:00:00.000Z',
+                String(Number.MAX_VALUE),
+              ),
+            ],
           },
         ],
       },
@@ -304,10 +338,15 @@ describe('MoneyEarningsView', () => {
     setHistoricalEarningsResult({
       data: {
         ...historicalEarnings,
-        history: [
+        ranges: [
           {
-            timestamp: '2026-11-16T12:00:00.000Z',
-            interest_earned_usd: String(Number.MAX_VALUE),
+            range: '30d',
+            buckets: [
+              createBucket(
+                '2026-11-16T12:00:00.000Z',
+                String(Number.MAX_VALUE),
+              ),
+            ],
           },
         ],
       },
@@ -326,7 +365,10 @@ describe('MoneyEarningsView', () => {
 
   it('displays empty state without a summary', () => {
     setHistoricalEarningsResult({
-      data: { ...historicalEarnings, history: [] },
+      data: {
+        ...historicalEarnings,
+        ranges: [{ range: '30d', buckets: [] }],
+      },
     });
 
     const { getByText, queryByTestId } = renderWithProvider(

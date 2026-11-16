@@ -21,7 +21,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import type { InterestHistoryEntry } from '../../hooks/useMoneyHistoricalEarnings';
+import type { InterestHistoryResponse } from '../../hooks/useMoneyHistoricalEarnings';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import {
@@ -33,7 +33,7 @@ import {
 } from './earningsHistory';
 
 interface EarningsChartProps {
-  entries: InterestHistoryEntry[] | undefined;
+  entries: InterestHistoryResponse | undefined;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
