@@ -675,6 +675,118 @@ export interface PredictActivityPage {
   settlementsDegradedReason?: 'venue_permission_denied';
 }
 
+/**
+ * The statuses a deposit shows the app. Each covers one or more statuses the
+ * backend stores (va-mmcx-predict-api `docs/FUNDING.md`). `completed`,
+ * `cancelled` and `failed` are final, except that a `cancelled` deposit
+ * becomes `under_review` when a transfer turns up after it.
+ */
+export type PredictDepositStatus =
+  | 'awaiting_transfer'
+  | 'processing'
+  | 'completed'
+  | 'cancelled'
+  | 'failed'
+  | 'under_review';
+
+/** A `0x`-prefixed EVM address or transaction hash. */
+export type PredictHex = `0x${string}`;
+
+/**
+ * The Funding Plan: send exactly `amount` of the token at `tokenContract` on
+ * `chainId` to `depositAddress` before `planExpiresAt`. Typed fields only,
+ * never transaction data. The venue cannot settle a different amount without
+ * manual work.
+ */
+export interface PredictFundingPlan {
+  chainId: number;
+  tokenContract: PredictHex;
+  /** USD, two decimals. The token is a USD stablecoin. */
+  amount: PredictAmount;
+  depositAddress: PredictHex;
+  planExpiresAt: PredictTimestamp;
+}
+
+/**
+ * The values the device signs for a new deposit. Never request bytes: the
+ * phone renders the request from its signing profile.
+ */
+export interface PredictDepositSignRequest {
+  kind: 'sign_request';
+  amountCents: number;
+  clientOperationId: string;
+}
+
+/**
+ * What the app does next for a deposit. The set is closed: the app has one
+ * fixed handler per kind and stops on a kind it does not know. There is no
+ * generic "sign these bytes" or "send this transaction" step.
+ */
+export type PredictDepositNextStep =
+  /** Only the unsigned create call answers it, before a deposit exists. */
+  | PredictDepositSignRequest
+  | ({ kind: 'wallet_transfer' } & PredictFundingPlan)
+  /** The backend is working on it. Read the deposit again later. */
+  | { kind: 'wait' }
+  | { kind: 'done' }
+  /** Support has to look at it. Show the reference and never retry. */
+  | { kind: 'review'; supportReference: string };
+
+/** A deposit's own next step: a deposit never asks to be signed. */
+export type PredictDepositOperationStep = Exclude<
+  PredictDepositNextStep,
+  PredictDepositSignRequest
+>;
+
+/** One deposit operation, as the funding routes return it. */
+export interface PredictDepositOperation {
+  /** The backend's operation ID, not the venue's deposit ID. */
+  operationId: PredictEntityId;
+  status: PredictDepositStatus;
+  /** The USD amount the user asked to deposit, two decimals. */
+  amount: PredictAmount;
+  chainId: number;
+  tokenContract: PredictHex;
+  /** Null until the venue returns an address. Several deposits can share
+   * one address. */
+  depositAddress: PredictHex | null;
+  /** Null until the venue returns an address. The backend's deadline. */
+  planExpiresAt: PredictTimestamp | null;
+  /** Set once the transfer hash is reported. */
+  txHash: PredictHex | null;
+  createdAt: PredictTimestamp;
+  /** Null once the deposit needs nothing more from the app: it failed or was
+   * cancelled. */
+  next: PredictDepositOperationStep | null;
+}
+
+/**
+ * What starting a deposit answers: the values to sign, or the deposit the
+ * same `clientOperationId` already created.
+ */
+export type PredictDepositStart =
+  | { kind: 'sign_request'; signRequest: PredictDepositSignRequest }
+  | { kind: 'deposit'; deposit: PredictDepositOperation };
+
+/** Starts a deposit. `clientOperationId` is a UUID v4 the app makes once per
+ * deposit; it is the idempotency key the device signs. */
+export interface PredictDepositParams {
+  /** USD, at least 1, at most two decimals. */
+  amount: PredictAmount;
+  clientOperationId: string;
+}
+
+/** The deposit's transfer, reported from the user's wallet. */
+export interface PredictDepositTransferParams {
+  txHash: PredictHex;
+  chainId: number;
+}
+
+/** The explicit user approval that lets a deposit request be signed. */
+export interface PredictDepositApproval {
+  kind: 'user-approved';
+}
+
 export interface PredictReadOptions {
   signal?: AbortSignal;
 }
