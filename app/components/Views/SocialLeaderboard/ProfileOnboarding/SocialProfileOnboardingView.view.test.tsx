@@ -1417,10 +1417,15 @@ describe('SocialProfileOnboardingView', () => {
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
 
+    // Availability is debounced 400ms, which leaves too little of findBy's 1s
+    // default on a loaded CV shard. Wait for the unavailable message with a
+    // budget above that debounce.
     fireEvent.changeText(usernameInput, 'hello_');
     expect(
       await screen.findByText(
         'This handle is unavailable. Choose another one.',
+        {},
+        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
 
@@ -1442,6 +1447,8 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       await screen.findByText(
         'This handle is unavailable. Choose another one.',
+        {},
+        { timeout: 3000 },
       ),
     ).toBeOnTheScreen();
     expect(
