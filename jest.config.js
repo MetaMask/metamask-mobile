@@ -174,6 +174,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@metamask/json-rpc-engine',
+  '@metamask/json-rpc-middleware-stream',
   '@metamask/eip1193-permission-middleware',
   '@metamask/ai-controllers',
   '@metamask/app-metadata-controller',
