@@ -1098,6 +1098,7 @@ export const usePriceChartState = ({
     isTechnicalIndicatorsEnabled,
 
     // Chart data
+    assetId,
     chartError,
     chartLoading,
     ohlcvData,

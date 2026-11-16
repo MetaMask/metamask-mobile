@@ -30,6 +30,8 @@ import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import ChartLineSkeleton from '../../Charts/ChartLineSkeleton';
+import SocialAvatarMarkers from './SocialAvatarMarkers';
+import type { AvatarTradeMarker } from '../../Charts/socialMarkers/mapFollowingPositionsToAvatarMarkers';
 
 interface LineProps {
   line: string;
@@ -129,7 +131,7 @@ const createChartPanResponder = (): ChartPanResponder => {
   };
 };
 
-interface PriceChartProps {
+export interface PriceChartProps {
   prices: TokenPrice[];
   priceDiff: number;
   isLoading: boolean;
@@ -151,6 +153,11 @@ interface PriceChartProps {
    * omitted (e.g. "ALL") the chart falls back to index-based x-axis.
    */
   timePeriodMs?: number;
+  /**
+   * Follower avatar markers (ASSETS-4102). Rendered as an `AreaChart`
+   * decorator at each trade's time/price. Empty/omitted => nothing drawn.
+   */
+  avatarMarkers?: readonly AvatarTradeMarker[];
 }
 
 const PriceChart = ({
@@ -162,6 +169,7 @@ const PriceChart = ({
   chartColorOverride,
   hasInsufficientCoverage = false,
   timePeriodMs,
+  avatarMarkers,
 }: PriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -442,6 +450,13 @@ const PriceChart = ({
             {!isLoading && <Line lineStrokeActive />}
             {!isLoading && <Tooltip />}
             {!isLoading && <EndDot />}
+            {!isLoading && avatarMarkers && avatarMarkers.length > 0 && (
+              <SocialAvatarMarkers
+                markers={avatarMarkers}
+                prices={prices}
+                isTimeBased={isTimeBased}
+              />
+            )}
           </AreaChart>
         ) : null}
         {isLoading && (
