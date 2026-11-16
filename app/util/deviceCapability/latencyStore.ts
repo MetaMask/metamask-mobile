@@ -17,6 +17,9 @@ import type { HardwareTier, LatencyBucket, LatencyThresholds } from './types';
 let samples: number[] = [];
 let bucket: LatencyBucket = 'UNKNOWN';
 let thresholds: LatencyThresholds = LATENCY_THRESHOLDS.MID;
+// TestFlight overlay only. The bucket never reads these.
+let hardwareRow: HardwareTier = 'MID';
+let transportLabel = '-';
 // Starts true: until the first NetInfo event the transport is unknown, so
 // cold-start samples (recorded before any NetInfo callback) are dropped.
 let isTransportNone = true;
@@ -94,6 +97,41 @@ export function getLatencyThresholds(): LatencyThresholds {
   return thresholds;
 }
 
+export interface LatencyDebugSnapshot {
+  bucket: LatencyBucket;
+  hardwareRow: HardwareTier;
+  medianMs: number | null;
+  hungCount: number;
+  sampleCount: number;
+  /** NetInfo type, or the cellular generation (`2g`, `5g`) when that is known. */
+  transportLabel: string;
+}
+
+/** TestFlight overlay. Reads the same samples the bucket uses. */
+export function getLatencyDebugSnapshot(): LatencyDebugSnapshot {
+  const recent = samples.slice(-LATENCY_SAMPLE_SIZE);
+  const hungCount = recent.filter(
+    (durationMs) => durationMs >= thresholds.hungMs,
+  ).length;
+  let medianMs: number | null = null;
+  if (recent.length > 0) {
+    const sorted = [...recent].sort((left, right) => left - right);
+    const mid = sorted.length >> 1;
+    medianMs =
+      sorted.length % 2 === 1
+        ? sorted[mid]
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+  return {
+    bucket,
+    hardwareRow,
+    medianMs,
+    hungCount,
+    sampleCount: recent.length,
+    transportLabel,
+  };
+}
+
 /**
  * Selects the thresholds row and starts the reset listeners. `inactive`
  * drops in-flight samples only. `background` clears samples and blocks new
@@ -105,6 +143,7 @@ export function getLatencyThresholds(): LatencyThresholds {
 export function startLatencyMonitoring(
   hardwareTier: HardwareTier | null,
 ): void {
+  hardwareRow = hardwareTier ?? 'MID';
   const nextThresholds = LATENCY_THRESHOLDS[hardwareTier ?? 'MID'];
   if (nextThresholds !== thresholds) {
     // Samples were bucketed against the old row, and in-flight ones were
@@ -121,9 +160,14 @@ export function startLatencyMonitoring(
 
   let previousNetInfoKey: string | undefined;
   addNetInfoEventListener((state: NetInfoState) => {
+    const cellularGeneration = readCellularGeneration(state.details);
+    transportLabel =
+      state.type === 'cellular'
+        ? (cellularGeneration ?? 'cellular')
+        : (state.type ?? 'unknown');
     const input = {
       type: state.type,
-      cellularGeneration: readCellularGeneration(state.details),
+      cellularGeneration,
       isInternetReachable: state.isInternetReachable,
     };
     // The reset key is transport identity only. Raw `isInternetReachable`
