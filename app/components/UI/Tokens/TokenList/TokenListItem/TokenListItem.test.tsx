@@ -816,6 +816,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   });
 
   describe('mUSD Token Long Press', () => {
+    beforeEach(() => {
+      jest.mocked(fireImpact).mockClear();
+    });
+
     const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     const musdAsset = {
       ...defaultAsset,
