@@ -368,14 +368,14 @@ describe('NitroFetchSetup', () => {
 
       const settleHungFetches = async (duringFlight?: () => void) => {
         const hungMs = getLatencyThresholds().hungMs;
-        const originalDateNow = Date.now;
+        const originalNow = performance.now;
         let now = 0;
         let started = 0;
         let release: () => void = () => undefined;
         const gate = new Promise<void>((resolve) => {
           release = resolve;
         });
-        Date.now = () => now;
+        performance.now = () => now;
         mockNitroFetch.mockImplementation(async () => {
           started += 1;
           if (started === 2) {
@@ -393,7 +393,7 @@ describe('NitroFetchSetup', () => {
             global.fetch('https://example.com/b'),
           ]);
         } finally {
-          Date.now = originalDateNow;
+          performance.now = originalNow;
           mockNitroFetch.mockResolvedValue(new Response(null, { status: 200 }));
         }
       };
@@ -426,9 +426,9 @@ describe('NitroFetchSetup', () => {
 
       it('returns the response and samples once when sampling throws', async () => {
         const hungMs = getLatencyThresholds().hungMs;
-        const originalDateNow = Date.now;
+        const originalNow = performance.now;
         let now = 0;
-        Date.now = () => now;
+        performance.now = () => now;
         mockRecordFetchSample.mockImplementationOnce(() => {
           throw new Error('listener failed');
         });
@@ -443,7 +443,7 @@ describe('NitroFetchSetup', () => {
             response,
           );
         } finally {
-          Date.now = originalDateNow;
+          performance.now = originalNow;
         }
 
         expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
@@ -451,9 +451,9 @@ describe('NitroFetchSetup', () => {
 
       it('rethrows the original fetch error when sampling throws', async () => {
         const hungMs = getLatencyThresholds().hungMs;
-        const originalDateNow = Date.now;
+        const originalNow = performance.now;
         let now = 0;
-        Date.now = () => now;
+        performance.now = () => now;
         mockRecordFetchSample.mockImplementationOnce(() => {
           throw new Error('listener failed');
         });
@@ -468,7 +468,7 @@ describe('NitroFetchSetup', () => {
             failure,
           );
         } finally {
-          Date.now = originalDateNow;
+          performance.now = originalNow;
         }
 
         expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);

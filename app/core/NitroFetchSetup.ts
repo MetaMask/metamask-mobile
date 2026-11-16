@@ -153,7 +153,7 @@ function recordFetchOutcome(
     const durationMs = classifyFetchSample({
       outcome,
       startMs,
-      endMs: Date.now(),
+      endMs: performance.now(),
       thresholds: getLatencyThresholds(),
     });
     if (durationMs !== null) {
@@ -164,6 +164,24 @@ function recordFetchOutcome(
   }
 }
 
+// Monotonic clock: `Date.now()` jumps with NTP or a manual clock change.
+async function fetchWithLatencySample(
+  input: RequestInfo | URL,
+  nitroInit: RequestInit | undefined,
+): Promise<Awaited<ReturnType<typeof nitroFetch>>> {
+  const startMs = performance.now();
+  const epochAtStart = getLatencySampleEpoch();
+  let response: Awaited<ReturnType<typeof nitroFetch>>;
+  try {
+    response = await nitroFetch(input, nitroInit);
+  } catch (error) {
+    recordFetchOutcome({ error }, startMs, epochAtStart);
+    throw error;
+  }
+  recordFetchOutcome({ response }, startMs, epochAtStart);
+  return response;
+}
+
 function installProductionNitroFetch(): void {
   // NOTE: nitro-fetch uses a buffered transport by default — the full response
   // body is downloaded natively before the Promise resolves. `response.body.getReader()`
@@ -172,22 +190,12 @@ function installProductionNitroFetch(): void {
   //   - `{ stream: true }` in fetch options (nitro-fetch Cronet streaming transport)
   //   - import `fetch` from 'expo/fetch' directly (see bridge-controller-init.ts)
   startLatencyMonitoring(getHardwareTier());
-  global.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  global.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     const nitroInit = withPrefetchKey(input, normalizeBodyForNitroFetch(init));
     if (isStreamInit(init) || !isHttpInput(input)) {
       return nitroFetch(input, nitroInit);
     }
-    const startMs = Date.now();
-    const epochAtStart = getLatencySampleEpoch();
-    let response: Awaited<ReturnType<typeof nitroFetch>>;
-    try {
-      response = await nitroFetch(input, nitroInit);
-    } catch (error) {
-      recordFetchOutcome({ error }, startMs, epochAtStart);
-      throw error;
-    }
-    recordFetchOutcome({ response }, startMs, epochAtStart);
-    return response;
+    return fetchWithLatencySample(input, nitroInit);
   };
   const _g = globalThis as unknown as {
     Headers: typeof NitroHeaders;
