@@ -72,7 +72,7 @@ const MoneyMfaIntroView = () => {
       stopNavigation();
       stopFlow();
     };
-    turnOn().finally(close);
+    void turnOn().finally(close);
   }, [navigation, trackButtonClicked, turnOn]);
 
   return (
