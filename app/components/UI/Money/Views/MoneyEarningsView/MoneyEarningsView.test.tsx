@@ -121,16 +121,31 @@ describe('MoneyEarningsView', () => {
   it('normalizes an unsupported route tab to Earnings', () => {
     mockUseRoute.mockReturnValue({ params: { activeTab: 'allocation' } });
 
-    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+    const { getByLabelText, getByTestId } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
 
-    expect(
-      getByTestId(MoneyEarningsViewTestIds.TAB_EARNINGS).props
-        .accessibilityState,
-    ).toEqual({ selected: true, disabled: false });
-    expect(
-      getByTestId(MoneyEarningsViewTestIds.TAB_ALLOCATION).props
-        .accessibilityState,
-    ).toEqual({ selected: false, disabled: true });
+    const earningsTab = getByLabelText(strings('money.earnings.tab_earnings'));
+    const apyTab = getByLabelText(strings('money.earnings.tab_apy'));
+    const allocationTab = getByLabelText(
+      strings('money.earnings.tab_allocation'),
+    );
+
+    expect(earningsTab.props.accessibilityState).toEqual({
+      selected: true,
+      disabled: false,
+    });
+    expect(apyTab.props.accessibilityState).toEqual({
+      selected: false,
+      disabled: true,
+    });
+    expect(apyTab.props.onPress).toBeUndefined();
+    expect(allocationTab.props.accessibilityState).toEqual({
+      selected: false,
+      disabled: true,
+    });
+    expect(allocationTab.props.onPress).toBeUndefined();
+    expect(getByTestId(MoneyEarningsViewTestIds.CHART)).toBeOnTheScreen();
   });
 
   it('selects a different earnings range', () => {
@@ -180,27 +195,37 @@ describe('MoneyEarningsView', () => {
   it('displays loading state without a summary', () => {
     setHistoricalEarningsResult({ isLoading: true });
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByLabelText, getByTestId, queryByTestId } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
     expect(getByTestId(MoneyEarningsViewTestIds.LOADING)).toBeOnTheScreen();
     expect(
+      getByLabelText(strings('money.earnings.range_1m')),
+    ).toBeOnTheScreen();
+    expect(
       queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
     ).not.toBeOnTheScreen();
   });
 
-  it('displays error state without a summary', () => {
+  it('displays error content and retries without a summary', () => {
     setHistoricalEarningsResult({ isError: true });
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByText, queryByTestId } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
-    expect(getByTestId(MoneyEarningsViewTestIds.ERROR)).toBeOnTheScreen();
+    const errorMessage = getByText(strings('money.earnings.error'));
+    const retryButton = getByText(strings('money.earnings.retry'));
+
+    expect(errorMessage).toBeOnTheScreen();
     expect(
       queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
     ).not.toBeOnTheScreen();
+
+    fireEvent.press(retryButton);
+
+    expect(mockRefetchHistoricalEarnings).toHaveBeenCalledTimes(1);
   });
 
   it('displays empty state without a summary', () => {
@@ -208,11 +233,11 @@ describe('MoneyEarningsView', () => {
       data: { ...historicalEarnings, history: [] },
     });
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByText, queryByTestId } = renderWithProvider(
       <MoneyEarningsView />,
     );
 
-    expect(getByTestId(MoneyEarningsViewTestIds.EMPTY)).toBeOnTheScreen();
+    expect(getByText(strings('money.earnings.empty'))).toBeOnTheScreen();
     expect(
       queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
     ).not.toBeOnTheScreen();
