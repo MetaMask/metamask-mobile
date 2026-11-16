@@ -147,7 +147,7 @@ test('an unknown BUILD_TYPE exits non-zero and names it', () => {
 
 test('scenario specs are discovered only when @PerformanceShadow is selected', () => {
   const scenario =
-    'tests/performance/login/scenarios/eth-swap-flow.scenario.spec.ts';
+    'tests/performance/login/scenarios/scenarios.scenario.spec.ts';
 
   assert.equal(discover('imported-wallet').specs.includes(scenario), false);
   assert.equal(

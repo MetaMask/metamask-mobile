@@ -6,6 +6,16 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/predict/predict-deposit.spec.ts. Like the original it stops when the fee is shown; nothing is submitted. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- homepage-section-title-predictions
+- predict-home-container
+- predict-portfolio-action-add-funds
+- custom-amount-input
+- custom-amount-input-value
+- keypad
+
 ## Steps
 
 1. Secret: Log in to the wallet

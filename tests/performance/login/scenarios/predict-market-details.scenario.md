@@ -7,6 +7,18 @@ Platforms: Android
 <!-- Original: tests/performance/login/predict/predict-market-details.spec.ts -->
 <!-- The original's 4th timer (Outcomes tab) only runs when the market has an Outcomes tab; scenarios have no conditional steps, so it is not migrated. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- homepage-section-title-predictions
+- predict-home-container
+- predict-home-scroll-view
+- predict-home-categories-tile-politics
+- predict-feed-view-container
+- predict-feed-view-market-list
+- predict-feed-view-market-card-1
+- predict-market-details-tab-bar-tab-about
+
 ## Steps
 
 1. Secret: Log in to the wallet

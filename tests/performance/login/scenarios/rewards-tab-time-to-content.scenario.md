@@ -6,6 +6,11 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/rewards-tab-time-to-content.spec.ts (waitForFirstSuccessful of three elements). -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- tab-bar-item-Rewards
+
 ## Steps
 
 1. Secret: Log in to the wallet

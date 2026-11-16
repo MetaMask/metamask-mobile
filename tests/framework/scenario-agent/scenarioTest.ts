@@ -1,37 +1,36 @@
-/* eslint-disable import-x/no-nodejs-modules -- reads the scenario next to its spec */
+/* eslint-disable import-x/no-nodejs-modules -- reads the scenario and writes its outcome */
 import fs from 'fs';
 import path from 'path';
-import type TimerHelper from '../../../framework/TimerHelper';
-import { test } from '../../../framework/fixtures/playwright';
-import { loginToAppPlaywright } from '../../../flows/wallet.flow';
+import type TimerHelper from '../TimerHelper';
+import { test } from '../fixtures/playwright';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import {
   missingEnv,
   parseScenario,
   requireSecretEnv,
   type AppCommand,
-} from '../../../framework/scenario-agent/scenario';
-import {
-  ScenarioAgent,
-  type StepCache,
-} from '../../../framework/scenario-agent/ScenarioAgent';
+} from './scenario';
+import { ScenarioAgent, type StepCache } from './ScenarioAgent';
 import {
   buildScenarioOutcome,
   OUTCOME_FILE_PREFIX,
   type ScenarioOutcome,
-} from '../../../framework/scenario-agent/heal';
-import QualityGatesValidator from '../../../framework/quality-gates/QualityGatesValidator';
+} from './heal';
+import { builtinSecretStep, scenarioCoverageProblems } from './scenarioCoverage';
+import { KEYPAD_HINTS, resolveScenarioHints } from './scenarioHints';
+import QualityGatesValidator from '../quality-gates/QualityGatesValidator';
 import {
   enableHermesAppProfiling,
   skipHermesCollectionUntilRestart,
-} from '../../helpers/appProfiling';
-import AppiumGestures from '../../../framework/AppiumGestures';
-import LoginView from '../../../page-objects/wallet/LoginView';
-import { getPasswordForScenario } from '../../../framework/utils/TestConstants.js';
-import WalletView from '../../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
-import ImportWalletView from '../../../page-objects/Onboarding/ImportWalletView';
-import { resolvePerpsGtmOnboardingModalEnabled } from '../../../flows/perps.flow.js';
-import { fetchProductionFeatureFlags } from '../../feature-flag-helper.js';
+} from '../../performance/helpers/appProfiling';
+import AppiumGestures from '../AppiumGestures';
+import LoginView from '../../page-objects/wallet/LoginView';
+import { getPasswordForScenario } from '../utils/TestConstants.js';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
+import { resolvePerpsGtmOnboardingModalEnabled } from '../../flows/perps.flow.js';
+import { fetchProductionFeatureFlags } from '../../performance/feature-flag-helper.js';
 
 /**
  * `[check: code=name]` waits: the original specs' own helpers, for ends that
@@ -86,9 +85,9 @@ export interface ScenarioTestOptions {
 
 export { missingEnv };
 
-const REPO_ROOT = path.resolve(__dirname, '../../../..');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
 /** Uploaded by HyperExecute with the performance reports. */
-const OUTCOME_DIR = path.resolve(__dirname, '../../../reporters/reports');
+const OUTCOME_DIR = path.resolve(__dirname, '../../reporters/reports');
 
 /** The outcome an earlier attempt of this job wrote, or null. */
 const readOutcome = (outcomePath: string): ScenarioOutcome | null => {
@@ -198,29 +197,31 @@ export function scenarioTest(
               });
               return;
             }
-            // import-multiple-srps: the second SRP from the environment, typed
-            // by ImportWalletView; never on a screen sent to the model.
-            if (/second (?:srp|secret recovery phrase)/i.test(text)) {
-              const srp = requireSecretEnv('TEST_SRP_2');
-              await ImportWalletView.typeSecretRecoveryPhrase(srp, false);
-              await AppiumGestures.hideKeyboard();
-              await ImportWalletView.tapContinueButton(false);
-              return;
+            switch (builtinSecretStep(text)) {
+              case 'second-srp': {
+                // import-multiple-srps: the second SRP from the environment,
+                // typed by ImportWalletView; never on a screen sent to the model.
+                const srp = requireSecretEnv('TEST_SRP_2');
+                await ImportWalletView.typeSecretRecoveryPhrase(srp, false);
+                await AppiumGestures.hideKeyboard();
+                await ImportWalletView.tapContinueButton(false);
+                return;
+              }
+              case 'login-screen':
+                // On the login screen already (after a relaunch): the same
+                // LoginView calls as the launch-time originals.
+                await LoginView.enterPassword(getPasswordForScenario('login'));
+                await LoginView.tapLoginButton();
+                return;
+              case 'login':
+                await loginToAppPlaywright();
+                // Some originals (cold start) never arm profiling.
+                if (!/without profiling/i.test(text))
+                  await enableHermesAppProfiling();
+                return;
+              default:
+                throw new Error(`No code path for secret step "${text}"`);
             }
-            // On the login screen already (after a relaunch): the same
-            // LoginView calls as the launch-time originals.
-            if (/login screen/i.test(text) && /password/i.test(text)) {
-              await LoginView.enterPassword(getPasswordForScenario('login'));
-              await LoginView.tapLoginButton();
-              return;
-            }
-            if (!/log ?in|unlock/i.test(text)) {
-              throw new Error(`No code path for secret step "${text}"`);
-            }
-            await loginToAppPlaywright();
-            // Some originals (cold start) never arm profiling.
-            if (!/without profiling/i.test(text))
-              await enableHermesAppProfiling();
           },
           runAppStep: async (app: AppCommand) => {
             switch (app.command) {
@@ -275,8 +276,40 @@ export function scenarioTest(
 }
 
 /** In-app amount keypad keys (QuoteView.getKeypadKey / SendView numpad). */
-export const KEYPAD_HINTS = [
-  ...[...'0123456789'].map((digit) => `keypad-key-${digit}`),
-  'keypad-key-dot',
-  'keypad-delete-button',
-];
+export { KEYPAD_HINTS };
+
+/**
+ * Registers every matching `*.scenario.md` in a directory. Throws when the
+ * registry names a missing file or a Secret step has no code path.
+ */
+export function registerScenarioDirectory(options: {
+  directory: string;
+  /** Which markdown files this Playwright project runs. */
+  include: (file: string) => boolean;
+  registry: Record<string, ScenarioTestOptions>;
+}): void {
+  const markdownFiles = fs
+    .readdirSync(options.directory)
+    .filter((file) => file.endsWith('.scenario.md'))
+    .sort();
+  const problems = scenarioCoverageProblems(
+    markdownFiles,
+    options.registry,
+    (file) =>
+      parseScenario(
+        fs.readFileSync(path.join(options.directory, file), 'utf8'),
+      ),
+  );
+  if (problems.length > 0) {
+    throw new Error(`Scenario registry:\n  - ${problems.join('\n  - ')}`);
+  }
+  for (const file of markdownFiles.filter(options.include)) {
+    const scenarioPath = path.join(options.directory, file);
+    const scenario = parseScenario(fs.readFileSync(scenarioPath, 'utf8'));
+    scenarioTest(
+      scenarioPath,
+      resolveScenarioHints(scenario.hints),
+      options.registry[file],
+    );
+  }
+}

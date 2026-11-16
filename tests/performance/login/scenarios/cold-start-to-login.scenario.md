@@ -6,6 +6,10 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/launch-times/cold-start-to-login.spec.ts. App steps call AppiumGestures.terminateApp / activateApp; the clock starts when activateApp returns, as in the original. The original never arms Hermes profiling. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+
 ## Steps
 
 1. Secret: Log in to the wallet without profiling

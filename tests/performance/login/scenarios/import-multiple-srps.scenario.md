@@ -6,6 +6,13 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/import-multiple-srps.spec.ts. Needs TEST_SRP_2 (the Secret step fails without it, like the original). The second SRP is typed by ImportWalletView in the Secret step and never shown to the model; the clock starts when tapContinueButton returns. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- account-hub-add-wallet-button
+- account-list-add-account-button
+- add-account-srp-account
+
 ## Steps
 
 1. Secret: Log in to the wallet

@@ -6,6 +6,10 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/launch-times/warm-start-to-login.spec.ts. Login, arm Hermes profiling (done by the login Secret step, same order), background 40 s, activate; the clock starts when activateApp returns. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+
 ## Steps
 
 1. Secret: Log in to the wallet

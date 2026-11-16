@@ -10,9 +10,9 @@ const SCENARIO_DIRS = [
   path.resolve(__dirname, '../../onboarding/scenarios'),
 ];
 const LOGIN_SCENARIO =
-  'tests/performance/login/scenarios/eth-swap-flow.scenario.spec.ts';
+  'tests/performance/login/scenarios/scenarios.scenario.spec.ts';
 const ONBOARDING_SCENARIO =
-  'tests/performance/onboarding/scenarios/import-wallet.scenario.spec.ts';
+  'tests/performance/onboarding/scenarios/scenarios.scenario.spec.ts';
 
 /** Same grep as tests/playwright.testmu.config.ts and tests/playwright.config.ts. */
 const PERFORMANCE_CONFIG_GREP = /@Performance\b/;
@@ -61,29 +61,22 @@ describe('scenario shadow specs run only when @PerformanceShadow is selected', (
     },
   );
 
-  it('keeps the shadow config referenced only by the HyperExecute scripts', () => {
-    const referencing: string[] = [];
-    const walk = (dir: string): void => {
-      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          walk(fullPath);
-        } else if (
-          !entry.name.endsWith('.test.mjs') &&
-          fs.readFileSync(fullPath, 'utf8').includes('scenario-shadow')
-        ) {
-          referencing.push(path.relative(REPO_ROOT, fullPath));
-        }
-      }
-    };
-    ['.github/workflows', '.github/scripts'].forEach((dir) =>
-      walk(path.join(REPO_ROOT, dir)),
+  it('runs scenarios from the TestMu config, not a separate shadow config', () => {
+    expect(
+      fs.existsSync(
+        path.join(REPO_ROOT, 'tests/playwright.scenario-shadow.config.ts'),
+      ),
+    ).toBe(false);
+    const runner = fs.readFileSync(
+      path.join(
+        REPO_ROOT,
+        '.github/scripts/qa-automation/performance-tests/hyperexecute-run-performance-test.sh',
+      ),
+      'utf8',
     );
-
-    expect(referencing.sort()).toEqual([
-      '.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh',
-      '.github/scripts/qa-automation/performance-tests/hyperexecute-run-performance-test.sh',
-    ]);
+    expect(runner).toContain('tests/playwright.testmu.config.ts');
+    expect(runner).not.toContain('playwright.scenario-shadow.config.ts');
+    expect(runner).toContain('scenario-shadow-testmu-android');
   });
 
   it('use tags and titles that the performance and system greps do not match', () => {

@@ -4,10 +4,10 @@
 # Only emits specs that can match playwright.testmu.config.ts grep /@Performance\b/.
 # Specs tagged only with area tags (for example @PerformanceSwaps) are excluded.
 #
-# Agent-driven Markdown scenarios (*.scenario.spec.ts, tag @PerformanceShadow) run
-# through tests/playwright.scenario-shadow.config.ts. They are emitted only when
-# GREP_TAGS selects @PerformanceShadow, so an unfiltered run (schedule, full-suite
-# label) is unchanged.
+# Agent-driven Markdown scenarios (one *.scenario.spec.ts per area, tag
+# @PerformanceShadow) run as projects in tests/playwright.testmu.config.ts.
+# They are emitted only when GREP_TAGS selects @PerformanceShadow, so an
+# unfiltered run (schedule, full-suite label) is unchanged.
 #
 # Usage: BUILD_TYPE=onboarding|imported-wallet|dev-onboarding [GREP_TAGS=...] ./.github/scripts/qa-automation/performance-tests/hyperexecute-discover-performance-tests.sh
 set -euo pipefail

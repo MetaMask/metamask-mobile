@@ -4,6 +4,13 @@ Tags: @PerformanceShadow @PerfHealTest
 Team: @assets-dev-team
 Platforms: Android
 
+## Hints
+
+- WalletViewSelectorsIDs
+- WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE("tokens")
+- asset-ETH
+- TokenOverviewSelectorsIDs
+
 ## Steps
 
 1. Secret: Log in to the wallet

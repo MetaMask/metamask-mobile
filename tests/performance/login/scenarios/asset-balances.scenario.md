@@ -6,6 +6,10 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/asset-balances.spec.ts. The timer starts right after login and profiling, with no user action, and ends when WalletView.waitForBalanceToStabilize returns. -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+
 ## Steps
 
 1. Secret: Log in to the wallet

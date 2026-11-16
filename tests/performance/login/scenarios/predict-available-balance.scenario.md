@@ -6,6 +6,12 @@ Platforms: Android
 
 <!-- Original: tests/performance/login/predict/predict-available-balance.spec.ts -->
 
+## Hints
+
+- WalletViewSelectorsIDs
+- homepage-section-title-predictions
+- predict-home-container
+
 ## Steps
 
 1. Secret: Log in to the wallet
