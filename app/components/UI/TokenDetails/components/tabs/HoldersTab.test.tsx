@@ -32,7 +32,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockHasAcceptedSocialTerms = jest.fn(() => true);
-const mockEnsureSocialTermsAccepted = jest.fn(() => true);
+const mockEnsureSocialTermsAccepted = jest.fn((_navigate?: unknown) => true);
 jest.mock(
   '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance',
   () => ({

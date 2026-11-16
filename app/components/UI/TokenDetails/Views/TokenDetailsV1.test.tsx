@@ -224,6 +224,15 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../Views/SocialLeaderboard/MyProfileView/hooks', () => ({
+  useMyProfile: () => ({
+    profile: null,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  }),
+}));
+
 const mockQuickBuyRoot = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../QuickBuy', () => ({
   QuickBuy: {
