@@ -23,7 +23,8 @@ The file contains:
   - derives the Money API base URL from `ApiEnv`, using the same dev/UAT/prod
     hosts as the current Money API service;
   - lowercases the account address in the path;
-  - sends the `AuthenticationController` bearer token when available;
+  - makes the GET request without bearer-token handling because this endpoint
+    is publicly readable for the prototype;
   - throws for non-2xx responses;
   - returns the decoded `InterestHistoryResponse`.
 - `useMoneyHistoricalEarnings`, which:
@@ -51,7 +52,7 @@ useMoneyHistoricalEarnings
         ↓
 TanStack Query key: [fetchInterestHistory, address, chainId]
         ↓
-local authenticated GET /v1/positions/:address/interest-history
+local unauthenticated GET /v1/positions/:address/interest-history
         ↓
 InterestHistoryResponse
 ```
@@ -66,6 +67,7 @@ remain serialized strings, preserving the API contract.
 - JSON is returned as the declared response type; no placeholder data or
   silent fallback is introduced.
 - The query uses no local error swallowing.
+- The temporary fetcher does not depend on wallet authentication.
 
 ## Testing
 
@@ -73,7 +75,6 @@ Add focused unit tests beside the hook. Mock:
 
 - `@tanstack/react-query`;
 - `react-redux`;
-- `Engine`;
 - `fetch`.
 
 Cover:
@@ -81,7 +82,7 @@ Cover:
 1. Query key and enabled state with valid account/vault data.
 2. Disabled query when account data is missing.
 3. Disabled query when vault chain ID is invalid.
-4. Fetcher URL, lowercase address, chain ID, and bearer header.
+4. Fetcher URL, lowercase address, and chain ID without an auth header.
 5. Returned response from a successful request.
 6. Rejection from a non-2xx response.
 
