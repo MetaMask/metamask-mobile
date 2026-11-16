@@ -33,7 +33,10 @@ import {
   getVisibleCryptoPills,
   useCryptoPillFeed,
 } from '../feeds/tokens/useCryptoPillFeed';
-import { getCryptoPillOrder } from '../feeds/tokens/cryptoPillConfig';
+import {
+  getCryptoPillOrder,
+  type CryptoPillKey,
+} from '../feeds/tokens/cryptoPillConfig';
 import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -147,8 +150,14 @@ const CryptoTabContent: React.FC<TabProps> = ({
   });
 
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const [activeCryptoPillKey, setActiveCryptoPillKey] =
+    useState<CryptoPillKey>();
+  const defaultCryptoPillKey = useMemo(
+    () => getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
+    [isWatchlistEnabled],
+  );
   const tokensFeed = useCryptoPillFeed({
-    activePillKey: getCryptoPillOrder(isWatchlistEnabled)[0]?.key ?? 'trending',
+    activePillKey: activeCryptoPillKey ?? defaultCryptoPillKey,
     refresh,
   });
   const showTokensSection =
@@ -169,6 +178,8 @@ const CryptoTabContent: React.FC<TabProps> = ({
         content: (
           <CryptoTokensPillBlock
             title={strings('trending.crypto_tokens_section')}
+            activePillKey={activeCryptoPillKey}
+            onActivePillChange={setActiveCryptoPillKey}
             onQuickTrade={
               quickBuyVariant.showQuickTradeButton
                 ? tokensOnQuickTrade
@@ -227,6 +238,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     return items;
   }, [
     showTokensSection,
+    activeCryptoPillKey,
     showCryptoPerps,
     isEarnSectionVisible,
     showPredictions,

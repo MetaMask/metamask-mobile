@@ -125,6 +125,13 @@ const isGlobalTrendingRequest = (request: {
   request.path === '/v3/tokens/trending' &&
   request.chainIds.join(',') === 'eip155:1,eip155:137';
 
+const isTopGainersRequest = (request: {
+  path: string;
+  sort?: string;
+}): boolean =>
+  request.path === '/v3/tokens/top-gainers' &&
+  request.sort === 'h24_price_change_percentage_desc';
+
 describe('useCryptoPillFeed', () => {
   let resolveActiveFetch: ((tokens: TrendingAsset[]) => void) | undefined;
 
@@ -301,6 +308,41 @@ describe('useCryptoPillFeed', () => {
         ).length,
       ).toBe(2);
     });
+    expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(7);
+  });
+
+  it('refetches the user-selected pill rather than the default on a refresh trigger', async () => {
+    mockIsWatchlistEnabled = false;
+    const { rerender } = renderFeed({
+      activePillKey: 'top_gainers',
+      refresh: { trigger: 0, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(resolveActiveFetch).toBeDefined();
+    });
+    resolveActiveFetch?.([]);
+    await waitFor(() => {
+      expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(6);
+    });
+
+    rerender({
+      activePillKey: 'top_gainers',
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    await waitFor(() => {
+      expect(
+        mockedFetchCryptoPillTokens.mock.calls.filter((call) =>
+          isTopGainersRequest(call[0]),
+        ).length,
+      ).toBe(2);
+    });
+    expect(
+      mockedFetchCryptoPillTokens.mock.calls.filter((call) =>
+        isGlobalTrendingRequest(call[0]),
+      ).length,
+    ).toBe(1);
     expect(mockedFetchCryptoPillTokens).toHaveBeenCalledTimes(7);
   });
 

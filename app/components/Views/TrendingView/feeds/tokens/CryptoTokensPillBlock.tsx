@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -33,6 +33,9 @@ const TrendingTokensSingleSkeleton: React.FC = () => <TrendingTokensSkeleton />;
 
 export interface CryptoTokensPillBlockProps {
   title: string;
+  /** The user's pill selection. Owned by the parent so pull-to-refresh targets the displayed pill. */
+  activePillKey?: CryptoPillKey;
+  onActivePillChange: (key: CryptoPillKey) => void;
   /** Shows the Quick Trade button on token rows when provided. */
   onQuickTrade?: (token: TrendingAsset) => void;
   /** Analytics context. */
@@ -53,6 +56,8 @@ export interface CryptoTokensPillBlockProps {
  */
 const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
   title,
+  activePillKey,
+  onActivePillChange,
   onQuickTrade,
   tabName,
   headerTestID,
@@ -68,40 +73,55 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     [isWatchlistEnabled],
   );
 
-  const [activePillKey, setActivePillKey] = useState<CryptoPillKey>(
-    pills[0]?.key ?? 'trending',
-  );
+  const defaultPillKey = pills[0]?.key ?? 'trending';
 
-  const { results } = useCryptoPillFeed({ activePillKey });
+  const { results } = useCryptoPillFeed({
+    activePillKey: activePillKey ?? defaultPillKey,
+  });
 
   const visiblePills = useMemo(
     () => getVisibleCryptoPills(results, isWatchlistEnabled),
     [isWatchlistEnabled, results],
   );
 
-  const firstVisibleKey = visiblePills[0]?.key ?? pills[0]?.key ?? 'trending';
+  const firstVisibleKey = visiblePills[0]?.key ?? defaultPillKey;
+  const isUserKeyVisible =
+    activePillKey !== undefined &&
+    visiblePills.some((pill) => pill.key === activePillKey);
+  const effectiveActiveKey = isUserKeyVisible ? activePillKey : firstVisibleKey;
 
   useEffect(() => {
-    setActivePillKey((current) =>
-      visiblePills.some((pill) => pill.key === current)
-        ? current
-        : firstVisibleKey,
-    );
-  }, [firstVisibleKey, visiblePills]);
+    if (
+      activePillKey !== undefined &&
+      visiblePills.length > 0 &&
+      !isUserKeyVisible
+    ) {
+      onActivePillChange(firstVisibleKey);
+    }
+  }, [
+    activePillKey,
+    firstVisibleKey,
+    isUserKeyVisible,
+    onActivePillChange,
+    visiblePills.length,
+  ]);
 
   const activeDefinition = useMemo(
     () =>
-      pills.find((pill) => pill.key === activePillKey) ??
+      pills.find((pill) => pill.key === effectiveActiveKey) ??
       pills.find((pill) => pill.key === firstVisibleKey) ??
       pills[0],
-    [pills, activePillKey, firstVisibleKey],
+    [pills, effectiveActiveKey, firstVisibleKey],
   );
 
   const activeSectionName = activeDefinition?.sectionName ?? 'tokens_trending';
 
-  const handleSelectPill = useCallback((key: string) => {
-    setActivePillKey(key as CryptoPillKey);
-  }, []);
+  const handleSelectPill = useCallback(
+    (key: string) => {
+      onActivePillChange(key as CryptoPillKey);
+    },
+    [onActivePillChange],
+  );
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -131,7 +151,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     return null;
   }
 
-  const activeResult = results[activePillKey] ?? {
+  const activeResult = results[effectiveActiveKey] ?? {
     data: undefined,
     isLoading: false,
     isError: false,
@@ -168,7 +188,7 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
       />
       <PillRow
         pills={pillOptions}
-        activeKey={activePillKey}
+        activeKey={effectiveActiveKey}
         onSelect={handleSelectPill}
         testIdPrefix={testIdPrefix}
       />

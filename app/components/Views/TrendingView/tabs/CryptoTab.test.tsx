@@ -365,12 +365,24 @@ describe('CryptoTab — tokens pill block', () => {
 
     expect(mockCryptoTokensPillBlock).toHaveBeenCalledWith({
       title: 'Tokens',
+      activePillKey: undefined,
+      onActivePillChange: expect.any(Function),
       tabName: 'Crypto',
       headerTestID: 'section-header-view-all-tokens',
       idPrefix: 'tokens',
       testIdPrefix: 'crypto-tokens',
       listTestId: 'crypto-tokens-list',
     });
+  });
+
+  it('gates the crypto pill feed on the default pill until the user picks one', () => {
+    arrangeMocks();
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
+      expect.objectContaining({ activePillKey: 'trending' }),
+    );
   });
 
   it('forwards the Explore refresh trigger to the crypto pill feed', () => {

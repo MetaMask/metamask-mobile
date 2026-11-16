@@ -45,7 +45,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-import React from 'react';
+import React, { useState } from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -60,7 +60,10 @@ import {
   useCryptoPillFeed,
   type CryptoPillFeedResult,
 } from './useCryptoPillFeed';
-import CryptoTokensPillBlock from './CryptoTokensPillBlock';
+import type { CryptoPillKey } from './cryptoPillConfig';
+import CryptoTokensPillBlock, {
+  type CryptoTokensPillBlockProps,
+} from './CryptoTokensPillBlock';
 
 jest.mock('./TokenRowItem', () => ({
   TokenRowItem: ({
@@ -156,7 +159,10 @@ const makeResults = (
   ...overrides,
 });
 
-const DEFAULT_PROPS = {
+const DEFAULT_PROPS: Omit<
+  CryptoTokensPillBlockProps,
+  'activePillKey' | 'onActivePillChange'
+> = {
   title: 'Tokens',
   tabName: 'Crypto' as const,
   headerTestID: 'section-header-view-all-tokens',
@@ -177,12 +183,35 @@ const arrange = (results: Record<string, CryptoPillFeedResult>) => {
   mockUseCryptoPillFeed.mockReturnValue({ results });
 };
 
-const renderBlock = (results = makeResults(), props = DEFAULT_PROPS) => {
+/** Mirrors CryptoTab: the parent owns the pill selection. */
+const CryptoPillBlockHarness: React.FC<{
+  blockProps: Omit<
+    CryptoTokensPillBlockProps,
+    'activePillKey' | 'onActivePillChange'
+  >;
+}> = ({ blockProps }) => {
+  const [activePillKey, setActivePillKey] = useState<CryptoPillKey>();
+  return (
+    <CryptoTokensPillBlock
+      {...blockProps}
+      activePillKey={activePillKey}
+      onActivePillChange={setActivePillKey}
+    />
+  );
+};
+
+const renderBlock = (
+  results = makeResults(),
+  props: Omit<
+    CryptoTokensPillBlockProps,
+    'activePillKey' | 'onActivePillChange'
+  > = DEFAULT_PROPS,
+) => {
   arrange(results);
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
   } as never);
-  return render(<CryptoTokensPillBlock {...props} />);
+  return render(<CryptoPillBlockHarness blockProps={props} />);
 };
 
 describe('CryptoTokensPillBlock', () => {
