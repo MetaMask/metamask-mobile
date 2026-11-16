@@ -22,6 +22,7 @@ import {
 import React from 'react';
 import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
+import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import Engine from '../../../../core/Engine';
@@ -51,6 +52,10 @@ import {
   takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
+import {
+  getPendingSocialPreviewTarget,
+  setPendingSocialPreviewTarget,
+} from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const engineWithState = Engine as unknown as { state: typeof Engine.state };
@@ -398,6 +403,42 @@ describe('SocialProfileOnboardingView', () => {
     restoreProfileControllerMocks();
   });
 
+  it('opens the trader from a preview link instead of the Social tab on Lets go', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    await renderOnboarding([
+      { name: Routes.HOME_TABS },
+      { name: Routes.SOCIAL.V1_PROFILE },
+    ]);
+
+    await reachReadyStep();
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1_PROFILE)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).not.toBeOnTheScreen();
+    expect(getPendingSocialPreviewTarget()).toBeNull();
+  });
+
+  it('drops a preview link when onboarding closes without finishing', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    const { unmount } = await renderOnboarding();
+
+    unmount();
+
+    expect(getPendingSocialPreviewTarget()).toBeNull();
+  });
+
   it.each([true, false])(
     'uses server verified=%s after creation without an extra profile fetch',
     async (verified) => {
@@ -520,6 +561,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(1);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -1982,6 +2025,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(2);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
