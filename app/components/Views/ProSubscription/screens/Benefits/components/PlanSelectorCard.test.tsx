@@ -194,6 +194,17 @@ describe('PlanSelectorCard', () => {
       'accessibilityState',
       expect.objectContaining({ disabled: true }),
     );
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toHaveStyle({
+      opacity: 0.5,
+    });
+  });
+
+  it('keeps full opacity when the card is enabled', () => {
+    const { getByTestId } = renderCard();
+
+    expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).not.toHaveStyle({
+      opacity: 0.5,
+    });
   });
 
   describe('selected radio indicator', () => {

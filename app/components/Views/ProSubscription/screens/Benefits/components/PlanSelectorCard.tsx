@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -37,6 +38,7 @@ const PlanSelectorCard = ({
   isDisabled = false,
   onPress,
 }: PlanSelectorCardProps) => {
+  const tw = useTailwind();
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
   const showAnnualTrialBanner =
@@ -78,6 +80,7 @@ const PlanSelectorCard = ({
         onPress(plan.id);
       }}
       disabled={isDisabled}
+      style={tw.style(isDisabled && 'opacity-50')}
       accessibilityRole="radio"
       accessibilityState={{ checked: isSelected, disabled: isDisabled }}
       accessibilityLabel={accessibilityLabel}
