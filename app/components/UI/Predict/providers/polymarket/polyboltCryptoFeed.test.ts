@@ -176,9 +176,10 @@ describe('PolyBoltCryptoFeed', () => {
   const connectWith = (
     subscriptions: PolyBoltSubscription[],
     handlers = listener(),
+    feedCredentials: PolyBoltCredentials = credentials,
   ) => {
     const feed = new PolyBoltCryptoFeed(handlers);
-    feed.setCredentials(credentials);
+    feed.setCredentials(feedCredentials);
     feed.setSubscriptions(subscriptions);
     const socket = mockSockets[0];
     socket.open();
@@ -756,6 +757,7 @@ describe('PolyBoltCryptoFeed', () => {
                 status: 4010,
                 channel: 'price.crypto',
                 rid: 's2',
+                hasChainlinkApiKey: false,
               },
             },
           },
@@ -929,6 +931,167 @@ describe('PolyBoltCryptoFeed', () => {
         expect.objectContaining({ requested: 'chainlink', served: 'pyth' }),
       );
       expect(sentryCalls()).toEqual([]);
+    });
+  });
+
+  describe('Chainlink API key', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+    const keyed: PolyBoltCredentials = {
+      ...credentials,
+      chainlinkApiKey: fakeKey,
+    };
+    const authFrames = (socket: MockSocket) =>
+      socket.send.mock.calls
+        .map(
+          ([frame]) => JSON.parse(frame as string) as Record<string, unknown>,
+        )
+        .filter((frame) => frame.op === 'auth');
+
+    const openFeed = (feedCredentials: PolyBoltCredentials) => {
+      const feed = new PolyBoltCryptoFeed(listener());
+      feed.setCredentials(feedCredentials);
+      feed.setSubscriptions([chainlinkBtc]);
+      mockSockets[0].open();
+      return { feed, socket: mockSockets[0] };
+    };
+
+    it('sends the key at the top level of the first auth frame, not inside auth', () => {
+      const { socket } = openFeed(keyed);
+
+      expect(authFrames(socket)).toEqual([
+        {
+          op: 'auth',
+          rid: 'a1',
+          auth: { apiKey: 'key', secret: 'secret', passphrase: 'pass' },
+          chainlink_api_key: fakeKey,
+        },
+      ]);
+    });
+
+    it.each([
+      ['no key', credentials],
+      ['an empty key', { ...credentials, chainlinkApiKey: '' }],
+    ])('sends no key field with %s', (_label, feedCredentials) => {
+      const { socket } = openFeed(feedCredentials);
+
+      expect(Object.keys(authFrames(socket)[0])).toEqual(['op', 'rid', 'auth']);
+    });
+
+    it('sends the key again on a reconnect', () => {
+      const { socket } = openFeed(keyed);
+      socket.receive({ op: 'authed', rid: 'a1' });
+
+      socket.closeWith(1006);
+      jest.advanceTimersByTime(1_000);
+      mockSockets[1].open();
+
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: fakeKey }),
+      ]);
+    });
+
+    it('opens a new connection with a new auth frame when a key arrives', () => {
+      const { feed, socket } = connectWith([chainlinkBtc]);
+
+      feed.setCredentials(keyed);
+
+      expect(socket.close).toHaveBeenCalled();
+      expect(authFrames(socket)).toHaveLength(1);
+      expect(mockSockets).toHaveLength(2);
+      mockSockets[1].open();
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: fakeKey }),
+      ]);
+    });
+
+    it('opens a new connection when the key changes', () => {
+      const { feed, socket } = connectWith([chainlinkBtc], listener(), keyed);
+
+      feed.setCredentials({ ...keyed, chainlinkApiKey: 'fake-rotated-key' });
+
+      expect(socket.close).toHaveBeenCalled();
+      mockSockets[1].open();
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: 'fake-rotated-key' }),
+      ]);
+    });
+
+    it.each([
+      ['the same key again', keyed, { ...keyed }],
+      [
+        'an empty key in place of none',
+        credentials,
+        { ...credentials, chainlinkApiKey: '' },
+      ],
+    ])('keeps the connection for %s', (_label, first, second) => {
+      const { feed } = connectWith([chainlinkBtc], listener(), first);
+
+      feed.setCredentials(second);
+
+      expect(mockSockets).toHaveLength(1);
+    });
+
+    it('holds a key that arrives while disconnected until the next reconnect', () => {
+      const { feed } = connectWith([chainlinkBtc]);
+      feed.disconnect();
+
+      feed.setCredentials(keyed);
+      expect(mockSockets).toHaveLength(1);
+
+      feed.reconnect();
+      mockSockets[1].open();
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: fakeKey }),
+      ]);
+    });
+
+    it('authenticates again on a new connection instead of a second auth frame', () => {
+      const { socket } = connectWith([chainlinkBtc], listener(), keyed);
+
+      socket.receive({ op: 'error', code: 'auth_required' });
+      jest.advanceTimersByTime(999);
+      expect(authFrames(socket)).toHaveLength(1);
+      expect(mockSockets).toHaveLength(1);
+
+      jest.advanceTimersByTime(1);
+      expect(mockSockets).toHaveLength(2);
+      mockSockets[1].open();
+      expect(authFrames(mockSockets[1])).toEqual([
+        expect.objectContaining({ chainlink_api_key: fakeKey }),
+      ]);
+    });
+
+    it('never logs the key', () => {
+      const logSpy = jest.spyOn(DevLogger, 'log');
+      const { feed, socket } = connectWith(
+        [chainlinkBtc, binanceBtc],
+        listener(),
+        keyed,
+      );
+
+      socket.receive({
+        op: 'error',
+        code: 'chainlink_key_required',
+        status: 4010,
+        rid: 's2',
+      });
+      socket.receive({ op: 'error', code: 'provider_required', rid: 's2' });
+      socket.receive({ op: 'error', code: 'bad_filter', rid: 's3' });
+      socket.receive(livePoint('pyth', '100'));
+      socket.onmessage?.({ data: 'not json' });
+      socket.onerror?.();
+      feed.setCredentials({ ...keyed, chainlinkApiKey: 'fake-rotated-key' });
+
+      const logged = JSON.stringify([
+        logSpy.mock.calls,
+        jest
+          .mocked(Logger.error)
+          .mock.calls.map(([error, options]) => [error.message, options]),
+      ]);
+      expect(jest.mocked(Logger.error)).toHaveBeenCalled();
+      expect(logged).not.toContain(fakeKey);
+      expect(logged).not.toContain('fake-rotated-key');
+      expect(logged).toContain('"hasChainlinkApiKey":true');
     });
   });
 

@@ -3387,6 +3387,65 @@ describe('WebSocketManager', () => {
       );
     });
 
+    it('passes the Chainlink key through to the first PolyBolt auth frame', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: {
+          ...polyboltCredentials,
+          chainlinkApiKey: 'fake-chainlink-key-for-tests',
+        },
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const socket = mockWebSocketInstances.find(
+        (candidate) => candidate.url === 'wss://ws-live-v2.polymarket.com/ws',
+      );
+      socket?.simulateOpen();
+
+      expect(JSON.parse(socket?.send.mock.calls[0][0] as string)).toEqual(
+        expect.objectContaining({
+          op: 'auth',
+          chainlink_api_key: 'fake-chainlink-key-for-tests',
+        }),
+      );
+    });
+
+    it('reconnects PolyBolt with a Chainlink key that arrives later, and ignores it on RTDS', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.updateCryptoFeedCredentials({
+        ...polyboltCredentials,
+        chainlinkApiKey: 'fake-chainlink-key-for-tests',
+      });
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      expect(
+        mockWebSocketInstances.some(
+          (socket) => socket.url === 'wss://ws-live-v2.polymarket.com/ws',
+        ),
+      ).toBe(false);
+
+      manager.useCryptoFeed({
+        mode: 'polybolt',
+        credentials: polyboltCredentials,
+      });
+      const first = openPolyboltSocket();
+      manager.updateCryptoFeedCredentials({
+        ...polyboltCredentials,
+        chainlinkApiKey: 'fake-chainlink-key-for-tests',
+      });
+
+      expect(first.close).toHaveBeenCalled();
+      const second = mockWebSocketInstances.filter(
+        (socket) => socket.url === 'wss://ws-live-v2.polymarket.com/ws',
+      )[1];
+      second.simulateOpen();
+      expect(JSON.parse(second.send.mock.calls[0][0] as string)).toEqual(
+        expect.objectContaining({
+          op: 'auth',
+          chainlink_api_key: 'fake-chainlink-key-for-tests',
+        }),
+      );
+    });
+
     it('closes PolyBolt and resubscribes over RTDS when switched back', () => {
       const manager = WebSocketManager.getInstance();
       manager.useCryptoFeed({

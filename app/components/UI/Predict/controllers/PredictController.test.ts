@@ -380,6 +380,7 @@ describe('PredictController', () => {
       beforeSignClaim: jest.fn(),
       publishClaim: jest.fn(),
       syncDepositWalletBalanceAllowanceForDepositTransaction: jest.fn(),
+      refreshCryptoPriceFeedCredentials: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
     mockPolymarketProvider.getAccountState.mockResolvedValue({
@@ -696,6 +697,27 @@ describe('PredictController', () => {
 
       expect(typeof constructorArgs.getFeatureFlags).toBe('function');
       expect(() => constructorArgs.getFeatureFlags?.()).not.toThrow();
+    });
+
+    it('hands the crypto price feed a new Chainlink key when remote flags change', () => {
+      withController(({ messenger }) => {
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).not.toHaveBeenCalled();
+
+        messenger.publish(
+          'RemoteFeatureFlagController:stateChange',
+          {
+            ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+            cacheTimestamp: 1,
+          } as never,
+          [],
+        );
+
+        expect(
+          mockPolymarketProvider.refreshCryptoPriceFeedCredentials,
+        ).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('subscribes to transaction events in constructor', () => {

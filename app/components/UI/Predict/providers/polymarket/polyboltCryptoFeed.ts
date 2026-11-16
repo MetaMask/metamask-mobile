@@ -22,6 +22,12 @@ export interface PolyBoltCredentials {
   apiKey: string;
   secret: string;
   passphrase: string;
+  /**
+   * Chainlink API key for Chainlink-served streams, TWAP included. PolyBolt
+   * reads it only from a connection's first auth frame, so a new key needs a
+   * new connection. Never log it.
+   */
+  chainlinkApiKey?: string;
 }
 
 export type PolyBoltChannel = 'price.crypto' | 'price.crypto.twap';
@@ -200,6 +206,13 @@ export class PolyBoltCryptoFeed {
     return this.authed && this.socket?.readyState === WebSocket.OPEN;
   }
 
+  /**
+   * Sets the credentials for the next connection. A change, including a
+   * Chainlink key that arrives or rotates, opens a new connection, because
+   * PolyBolt reads the key only from a connection's first auth frame. After
+   * `disconnect`, for example in the background, the change waits for
+   * `reconnect` or the next subscription.
+   */
   setCredentials(credentials: PolyBoltCredentials): void {
     if (this.sameCredentials(credentials)) {
       return;
@@ -208,7 +221,7 @@ export class PolyBoltCryptoFeed {
     this.credentials = credentials;
     this.authBlocked = false;
     this.authFramesSent = 0;
-    if (this.subscriptions.length > 0) {
+    if (this.subscriptions.length > 0 && !this.closedByClient) {
       this.connect();
     }
   }
@@ -331,7 +344,9 @@ export class PolyBoltCryptoFeed {
     return (
       this.credentials?.apiKey === credentials.apiKey &&
       this.credentials.secret === credentials.secret &&
-      this.credentials.passphrase === credentials.passphrase
+      this.credentials.passphrase === credentials.passphrase &&
+      (this.credentials.chainlinkApiKey ?? '') ===
+        (credentials.chainlinkApiKey ?? '')
     );
   }
 
@@ -503,6 +518,15 @@ export class PolyBoltCryptoFeed {
       return;
     }
 
+    const { chainlinkApiKey } = this.credentials;
+    // PolyBolt reads the Chainlink key only from a connection's first auth
+    // frame. Another auth frame here would leave Chainlink streams without
+    // it, so authenticate again on a new connection.
+    if (chainlinkApiKey && this.authFramesSent > 0) {
+      this.scheduleReconnect(this.nextBackoffDelay());
+      return;
+    }
+
     this.authFramesSent += 1;
     this.send({
       op: 'auth',
@@ -512,6 +536,8 @@ export class PolyBoltCryptoFeed {
         secret: this.credentials.secret,
         passphrase: this.credentials.passphrase,
       },
+      // Top level, next to `auth`, never inside it.
+      ...(chainlinkApiKey && { chainlink_api_key: chainlinkApiKey }),
     });
   }
 
@@ -748,7 +774,9 @@ export class PolyBoltCryptoFeed {
   private handleChainlinkKeyRequired(message: Record<string, unknown>): void {
     this.takePendingPin(message.rid);
     this.chainlinkUnavailable = true;
-    this.reportErrorOnce(message);
+    this.reportErrorOnce(message, {
+      hasChainlinkApiKey: Boolean(this.credentials?.chainlinkApiKey),
+    });
   }
 
   private reportErrorOnce(

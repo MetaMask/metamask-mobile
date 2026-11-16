@@ -647,6 +647,12 @@ export class PredictController extends BaseController<
       this.handleTransactionStatusUpdate.bind(this),
     );
 
+    // Remote flags can load or change after the crypto price socket opens,
+    // and the Chainlink key in them only takes effect on a new connection.
+    this.messenger.subscribe('RemoteFeatureFlagController:stateChange', () =>
+      this.provider.refreshCryptoPriceFeedCredentials(),
+    );
+
     // refreshEligibility owns failure state and logging.
     this.refreshEligibility().catch(() => undefined);
   }
