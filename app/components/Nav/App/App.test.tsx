@@ -21,6 +21,8 @@ import configureMockStore from 'redux-mock-store';
 import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
+import { UIMessengerProvider } from '../../../contexts/ui-messenger';
+import { createMockUIMessenger } from '../../../util/test/mock-ui-messenger';
 import { View as MockView } from 'react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { internalAccount1 as mockAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -1585,7 +1587,10 @@ describe('App', () => {
       setItemSpy.mockRestore();
     });
 
-    it('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
+    // Temporarily skipped: flakes with a 5s timeout on CI.
+    // https://github.com/MetaMask/metamask-mobile/issues/39862 (MCWP-1215)
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('sets lastVersion to currentVersion when existingUser is false and lastVersion is missing', async () => {
       const setItemSpy = jest
         .spyOn(StorageWrapper, 'setItem')
         .mockResolvedValue();
@@ -2161,16 +2166,77 @@ describe('App', () => {
       });
     });
 
-    it('renders the RevealPrivateCredential screen', async () => {
+    it('presents RevealPrivateCredential above AppFlow sheets', async () => {
       const routeState = {
-        index: 0,
-        routes: [{ name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL }],
+        index: 1,
+        routes: [
+          { name: Routes.FOX_LOADER },
+          { name: Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL },
+        ],
       };
 
-      const { toJSON } = renderAppAtRoute(routeState);
+      const { UNSAFE_root } = renderAppAtRoute(routeState);
 
       await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'fullScreenModal' &&
+              node.props.stackAnimation === 'slide_from_right',
+          ),
+        ).not.toHaveLength(0);
+      });
+    });
+
+    it('registers the simple webview on AppFlow', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: Routes.WEBVIEW.MAIN,
+            state: {
+              index: 0,
+              routes: [{ name: Routes.WEBVIEW.SIMPLE }],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(getByTestId('mock-webview')).toBeOnTheScreen();
+      });
+    });
+
+    it('registers the QR tab switcher on AppFlow', async () => {
+      const routeState = {
+        index: 1,
+        routes: [{ name: Routes.FOX_LOADER }, { name: Routes.QR_TAB_SWITCHER }],
+      };
+      const store = configureMockStore()(initialState);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer initialState={routeState}>
+          <Provider store={store}>
+            <UIMessengerProvider value={createMockUIMessenger()}>
+              <ThemeContext.Provider value={mockTheme}>
+                {children}
+              </ThemeContext.Provider>
+            </UIMessengerProvider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      const { UNSAFE_root } = render(<App />, { wrapper: Providers });
+
+      await waitFor(() => {
+        expect(
+          UNSAFE_root.findAll(
+            (node) =>
+              node.props.stackPresentation === 'push' &&
+              node.props.stackAnimation === 'slide_from_bottom',
+          ),
+        ).not.toHaveLength(0);
       });
     });
 

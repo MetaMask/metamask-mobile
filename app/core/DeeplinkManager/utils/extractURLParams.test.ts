@@ -76,13 +76,13 @@ describe('extractURLParams', () => {
     expect(params).toEqual({ ...expectedParams, hr: false });
   });
 
-  it('extracts referral code from a URL', () => {
-    const url = `${PROTOCOLS.HTTPS}://link.metamask.io/rewards?referral=ABC123`;
-    mockQs.parse.mockReturnValue({ referral: 'ABC123' });
+  it('extracts a Money referral code from ref', () => {
+    const url = `${PROTOCOLS.HTTPS}://link.metamask.io/home?ref=ABC123`;
+    mockQs.parse.mockReturnValue({ ref: 'ABC123' });
 
     const { params } = extractURLParams(url);
 
-    expect(params.referral).toBe('ABC123');
+    expect(params.ref).toBe('ABC123');
   });
 
   it('returns an empty params object when the URL has no query parameters', () => {
