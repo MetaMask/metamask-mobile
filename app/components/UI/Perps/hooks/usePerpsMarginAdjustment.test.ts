@@ -86,6 +86,7 @@ jest.mock('@metamask/perps-controller', () => {
       STATUS: { FAILED: 'failed', SUCCESS: 'success' },
     },
     PERPS_ERROR_CODES: actual.PERPS_ERROR_CODES,
+    PROVIDER_CONFIG: actual.PROVIDER_CONFIG,
     isPerpsErrorCode: actual.isPerpsErrorCode,
     getPerpsDisplaySymbol: jest.fn((symbol: string) => symbol),
   };
