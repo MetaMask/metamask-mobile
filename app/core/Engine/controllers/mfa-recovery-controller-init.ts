@@ -89,6 +89,8 @@ function createLeftPathEscrowStub(): RecoveryEscrowProvider {
     isAvailable: async () => false,
     generateChallenge: async () =>
       leftPathNotWired('escrow', 'generateChallenge')(),
+    getIdentifiers: async (...args) =>
+      leftPathNotWired('escrow', 'getIdentifiers')(...args),
     getSecret: async (...args) =>
       leftPathNotWired('escrow', 'getSecret')(...args),
     applyMutation: async (...args) =>

@@ -116,7 +116,7 @@ export async function authenticateSeedlessViaMfaIdentifier(
   }
 
   const { authConnection, socialLoginEmail, userId } = seedlessAuthData;
-  const typedAuthConnection = authConnection as AuthConnection;
+  const typedAuthConnection = authConnection as unknown as AuthConnection;
 
   // handleSeedlessAuthenticate reads userId / accountName from localState.
   OAuthLoginService.updateLocalState({

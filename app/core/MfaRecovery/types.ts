@@ -1,14 +1,17 @@
 /**
  * Local mirrors of `@metamask/mfa-recovery-controller` identifier-auth /
- * seedless-unlock types. Keep the PR free of the unpublished preview package
- * (CI). Swap to package imports once it is published.
+ * seedless-unlock types for Mobile call sites. `authConnection` must use the
+ * seedless-onboarding `AuthConnection` enum so the provider is assignable to
+ * the preview package’s `RecoveryIdentifierAuthProvider`.
  *
  * Matches Core MFA recovery after #11224 tip (`701acab40`):
  * one provider method (`getKeyBoundIdentifierLogin`); `authenticateIdentifier`
  * returns an `IdentifierSession` that may include `seedlessAuthData`.
  */
 
-export type SeedlessAuthConnection = 'google' | 'apple' | 'telegram';
+import type { AuthConnection } from '@metamask/seedless-onboarding-controller';
+
+export type SeedlessAuthConnection = AuthConnection;
 
 export interface Identifier {
   type: string;
@@ -41,7 +44,7 @@ export interface SeedlessAuthData {
    * checks presence before seedless authenticate.
    */
   revokeToken?: string;
-  authConnection: SeedlessAuthConnection;
+  authConnection: AuthConnection;
   authConnectionId: string;
   groupedAuthConnectionId?: string;
   userId: string;

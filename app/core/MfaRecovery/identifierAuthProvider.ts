@@ -1,7 +1,10 @@
 import { Platform } from 'react-native';
 import { bytesToHex, stringToBytes } from '@metamask/utils';
 import { sha256 } from '@noble/hashes/sha2';
-import type { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import {
+  AuthConnection as SeedlessAuthConnection,
+  type Web3AuthNetwork,
+} from '@metamask/seedless-onboarding-controller';
 import {
   AuthConnection,
   type AuthResponse,
@@ -29,6 +32,16 @@ import type {
   RecoveryIdentifierAuthProvider,
   SeedlessAuthData,
 } from './types';
+
+/**
+ * Mobile OAuth and seedless-onboarding each define an `AuthConnection` enum
+ * with the same string values. Cast at the SeedlessAuthData boundary so the
+ * provider matches `@metamask/mfa-recovery-controller`.
+ */
+const toSeedlessAuthConnection = (
+  authConnection: AuthConnection,
+): SeedlessAuthConnection =>
+  authConnection as unknown as SeedlessAuthConnection;
 
 export const OIDC_ISSUERS: Record<string, AuthConnection> = {
   'https://accounts.google.com': AuthConnection.Google,
@@ -147,7 +160,7 @@ const buildSeedlessAuthData = (
     metadataAccessToken: authResponse.metadata_access_token,
     refreshToken: authResponse.refresh_token,
     revokeToken: authResponse.revoke_token,
-    authConnection,
+    authConnection: toSeedlessAuthConnection(authConnection),
     authConnectionId: config.authConnectionId,
     ...(config.groupedAuthConnectionId
       ? { groupedAuthConnectionId: config.groupedAuthConnectionId }
