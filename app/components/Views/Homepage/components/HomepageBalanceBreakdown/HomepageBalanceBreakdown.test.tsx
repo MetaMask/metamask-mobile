@@ -416,6 +416,31 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBeOnTheScreen();
   });
 
+  it('omits the rows divider when no allocation rows are visible', () => {
+    const emptySlice = { valueFiat: 0, percentOfTotal: 0 };
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        money: makeSlice('money', { isVisible: false }),
+        tokens: makeSlice('tokens', emptySlice),
+        perps: makeSlice('perps', emptySlice),
+        predict: makeSlice('predict', emptySlice),
+        defi: makeSlice('defi', emptySlice),
+      },
+    });
+
+    const { queryByTestId, queryAllByTestId } = render(
+      <HomepageBalanceBreakdown />,
+    );
+
+    expect(queryAllByTestId(/^homepage-balance-breakdown-row-/)).toHaveLength(
+      0,
+    );
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROWS_DIVIDER),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders the Money APY as success text on a neutral muted tag', () => {
     const { getByTestId, getByText } = render(<HomepageBalanceBreakdown />);
 

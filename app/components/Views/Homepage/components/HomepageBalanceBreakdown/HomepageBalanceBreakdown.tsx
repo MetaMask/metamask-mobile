@@ -63,9 +63,11 @@ const HomepageBalanceBreakdown = ({
       ) : null}
       {!hideRows ? (
         <Box testID={HomepageBalanceBreakdownTestIds.ROWS}>
-          <SectionDivider
-            testID={HomepageBalanceBreakdownTestIds.ROWS_DIVIDER}
-          />
+          {visibleSliceKeys.length > 0 ? (
+            <SectionDivider
+              testID={HomepageBalanceBreakdownTestIds.ROWS_DIVIDER}
+            />
+          ) : null}
           {visibleSliceKeys.map((key) => (
             <HomepageBalanceBreakdownRow
               key={key}
