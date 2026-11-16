@@ -17,15 +17,7 @@ export interface SnapAmountValidationResult {
  * Result returned by the Tron Snap `getMaxSendableAmount` client request.
  */
 export interface SnapMaxSendableAmountResult {
-  maxAmount: string;
-  balance: string;
-  fees?: {
-    bandwidth?: string;
-    energy?: string;
-    accountActivation?: string;
-  };
-  valid: boolean;
-  errors?: { code: string }[];
+  amount: string;
 }
 
 /**
@@ -71,16 +63,16 @@ export async function validateTronTransferAmount(
 /**
  * Asks the account's Tron Snap for the maximum sendable amount for an asset.
  *
- * The Snap returns the maximum safe amount that can be sent, accounting for
- * network fees and (when applicable) account activation reserves. The result
- * includes the current balance and a breakdown of estimated fees.
+ * The Snap returns the maximum amount that can be entered so `onAmountInput`
+ * passes, accounting for network fees and (when applicable) account activation
+ * reserves. Returns `0` when no amount can pass (e.g., insufficient TRX for fees).
  *
  * @param fromAccount - The Snap-managed Tron account.
  * @param params - The request parameters.
  * @param params.accountId - The internal account id.
  * @param params.assetId - The CAIP-19 asset id.
  * @param params.toAddress - Optional destination address for precise fee estimates.
- * @returns The max sendable amount result, or undefined if the Snap returned nothing.
+ * @returns The max sendable amount result with `{ amount }`, or undefined if the Snap returned nothing.
  */
 export async function getMaxSendableTronAmount(
   fromAccount: InternalAccount,

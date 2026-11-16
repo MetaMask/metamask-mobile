@@ -4,10 +4,7 @@ import { CaipAssetType } from '@metamask/snaps-sdk';
 
 import Engine from '../../Engine';
 import { handleSnapRequest } from '../../Snaps/utils';
-import {
-  validateTronTransferAmount,
-  getMaxSendableTronAmount,
-} from '../tron';
+import { validateTronTransferAmount, getMaxSendableTronAmount } from '../tron';
 
 jest.mock('../../Engine', () => ({
   controllerMessenger: { call: jest.fn() },
@@ -130,13 +127,7 @@ describe('getMaxSendableTronAmount', () => {
   };
 
   it('calls the Snap getMaxSendableAmount handler', async () => {
-    const mockResult = {
-      maxAmount: '100',
-      balance: '150',
-      fees: { bandwidth: '1', energy: '2' },
-      valid: true,
-      errors: [],
-    };
+    const mockResult = { amount: '100' };
     mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
 
     const result = await getMaxSendableTronAmount(mockAccount, maxParams);
@@ -154,13 +145,7 @@ describe('getMaxSendableTronAmount', () => {
   });
 
   it('returns the Snap result with toAddress when provided', async () => {
-    const mockResult = {
-      maxAmount: '100',
-      balance: '150',
-      fees: { bandwidth: '1', energy: '2' },
-      valid: true,
-      errors: [],
-    };
+    const mockResult = { amount: '100' };
     mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
 
     const paramsWithTo = {
@@ -173,14 +158,8 @@ describe('getMaxSendableTronAmount', () => {
     expect(result).toEqual(mockResult);
   });
 
-  it('returns the Snap result when insufficient balance for fees', async () => {
-    const mockResult = {
-      maxAmount: '0',
-      balance: '10',
-      fees: { bandwidth: '1', energy: '2' },
-      valid: false,
-      errors: [{ code: 'InsufficientBalanceToCoverFee' }],
-    };
+  it('returns zero amount when insufficient balance for fees', async () => {
+    const mockResult = { amount: '0' };
     mockHandleSnapRequest.mockResolvedValueOnce(mockResult);
 
     const result = await getMaxSendableTronAmount(mockAccount, maxParams);

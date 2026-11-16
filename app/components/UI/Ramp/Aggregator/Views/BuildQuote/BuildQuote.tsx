@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { AccessibilityInfo, Pressable, View, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -180,8 +180,7 @@ const BuildQuote = () => {
       isNonEvmChainId(selectedAsset.network.chainId),
   );
 
-  const isTron =
-    selectedAsset?.network?.chainId?.startsWith('tron:') ?? false;
+  const isTron = selectedAsset?.network?.chainId?.startsWith('tron:') ?? false;
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -497,6 +496,18 @@ const BuildQuote = () => {
     walletAddress: selectedAddress,
   });
 
+  const previousTronValidationError = useRef<string | undefined>();
+
+  useEffect(() => {
+    if (
+      tronValidationError &&
+      tronValidationError !== previousTronValidationError.current
+    ) {
+      AccessibilityInfo.announceForAccessibility(tronValidationError);
+    }
+    previousTronValidationError.current = tronValidationError;
+  }, [tronValidationError]);
+
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
       return null;
@@ -647,9 +658,9 @@ const BuildQuote = () => {
                 assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
               });
 
-              if (maxResult?.valid && maxResult.maxAmount) {
+              if (maxResult?.amount) {
                 amountToSet = toTokenMinimalUnit(
-                  maxResult.maxAmount,
+                  maxResult.amount,
                   selectedAsset?.decimals ?? 0,
                 );
               }
@@ -1203,6 +1214,7 @@ const BuildQuote = () => {
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
                   testID={BuildQuoteSelectors.TRON_VALIDATION_ERROR}
+                  accessibilityRole="alert"
                 >
                   {tronValidationError}
                 </Text>

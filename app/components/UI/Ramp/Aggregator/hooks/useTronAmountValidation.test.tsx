@@ -127,14 +127,11 @@ describe('useTronAmountValidation', () => {
     jest.runAllTimers();
 
     await waitFor(() => {
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
-        mockAccount,
-        {
-          accountId: mockAccount.id,
-          assetId: 'tron:728126428/slip44:195',
-          value: '10',
-        },
-      );
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(mockAccount, {
+        accountId: mockAccount.id,
+        assetId: 'tron:728126428/slip44:195',
+        value: '10',
+      });
     });
 
     await waitFor(() => {
@@ -278,14 +275,11 @@ describe('useTronAmountValidation', () => {
 
     await waitFor(() => {
       expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(1);
-      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(
-        mockAccount,
-        {
-          accountId: mockAccount.id,
-          assetId: 'tron:728126428/slip44:195',
-          value: '20',
-        },
-      );
+      expect(mockValidateTronTransferAmount).toHaveBeenCalledWith(mockAccount, {
+        accountId: mockAccount.id,
+        assetId: 'tron:728126428/slip44:195',
+        value: '20',
+      });
     });
 
     await waitFor(() => {
