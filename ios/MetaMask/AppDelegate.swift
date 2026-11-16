@@ -21,12 +21,63 @@ final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   }
 }
 
+final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
+  var window: UIWindow?
+
+  func scene(
+    _ scene: UIScene,
+    willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions
+  ) {
+    guard
+      let windowScene = scene as? UIWindowScene,
+      let appDelegate = UIApplication.shared.delegate as? AppDelegate
+    else {
+      return
+    }
+
+    let window = UIWindow(windowScene: windowScene)
+    self.window = window
+
+    if let url = connectionOptions.urlContexts.first?.url {
+      appDelegate.open(url)
+    }
+
+    appDelegate.connectReactNative(to: window)
+  }
+
+  func sceneDidEnterBackground(_ scene: UIScene) {
+    PrivacyCover.shared.show(in: window)
+  }
+
+  func sceneDidBecomeActive(_ scene: UIScene) {
+    PrivacyCover.shared.markActive()
+  }
+
+  func scene(_ scene: UIScene, openURLContexts urlContexts: Set<UIOpenURLContext>) {
+    guard let url = urlContexts.first?.url else {
+      return
+    }
+    (UIApplication.shared.delegate as? AppDelegate)?.open(url)
+  }
+
+  func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+    _ = (UIApplication.shared.delegate as? AppDelegate)?.application(
+      UIApplication.shared,
+      continue: userActivity,
+      restorationHandler: { _ in }
+    )
+  }
+}
+
 @main
 class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
+  private var initialProperties: [AnyHashable: Any] = [:]
+  private var initialLaunchOptions: [UIApplication.LaunchOptionsKey: Any]?
   private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
   private var isForwardingNotificationResponse = false
 
@@ -57,9 +108,6 @@ class AppDelegate: ExpoAppDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-    window?.makeKeyAndVisible()
-
     // Safe Firebase configuration — validates plist before configure() to prevent
     // FIRInstallations from throwing an uncatchable NSException on launch when
     // GoogleService-Info.plist is missing or contains a blank/placeholder/mock API_KEY.
@@ -74,7 +122,8 @@ class AppDelegate: ExpoAppDelegate {
     }
 
     let foxCode = (Bundle.main.object(forInfoDictionaryKey: "fox_code") as? String) ?? "debug"
-    let initialProps: [AnyHashable: Any] = ["foxCode": foxCode]
+    initialProperties = ["foxCode": foxCode]
+    initialLaunchOptions = launchOptions
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
@@ -115,13 +164,6 @@ class AppDelegate: ExpoAppDelegate {
       BrazeHelperPopulateInitialPayload(launchOptions)
     }
 
-    factory.startReactNative(
-      withModuleName: "MetaMask",
-      in: window,
-      initialProperties: initialProps,
-      launchOptions: launchOptions
-    )
-
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
     // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.
@@ -131,6 +173,26 @@ class AppDelegate: ExpoAppDelegate {
     claimNotificationCenterDelegate()
 
     return superResult
+  }
+
+  func connectReactNative(to window: UIWindow) {
+    self.window = window
+    window.makeKeyAndVisible()
+
+    reactNativeFactory?.startReactNative(
+      withModuleName: "MetaMask",
+      in: window,
+      initialProperties: initialProperties,
+      launchOptions: initialLaunchOptions
+    )
+  }
+
+  func open(_ url: URL) {
+    _ = application(
+      UIApplication.shared,
+      open: url,
+      options: [:]
+    )
   }
 
   override func applicationDidEnterBackground(_ application: UIApplication) {

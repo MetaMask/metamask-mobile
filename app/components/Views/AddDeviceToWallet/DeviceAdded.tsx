@@ -1,5 +1,9 @@
-import React, { useEffect } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -8,67 +12,48 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
+import ExtensionHandoffAnimation from './ExtensionHandoffAnimation';
 
-const LOADER_SIZE = 48;
-const LOADER_BORDER_WIDTH = 4;
+const styles = StyleSheet.create({
+  content: {
+    transform: [{ translateY: -32 }],
+  },
+});
 
-const DeviceAddedLoader = () => {
+interface DeviceAddedProps {
+  onCancel: () => void;
+}
+
+const DeviceAdded = ({ onCancel }: DeviceAddedProps) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const rotation = useSharedValue(0);
-
-  useEffect(() => {
-    rotation.value = withRepeat(
-      withTiming(360, {
-        duration: 1000,
-        easing: Easing.linear,
-      }),
-      -1,
-    );
-
-    return () => {
-      cancelAnimation(rotation);
-    };
-  }, [rotation]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
-  return (
-    <Animated.View
-      testID="device-added-loader"
-      style={[
-        tw.style('rounded-full', {
-          width: LOADER_SIZE,
-          height: LOADER_SIZE,
-          borderWidth: LOADER_BORDER_WIDTH,
-          borderColor: colors.border.muted,
-          borderTopColor: colors.primary.default,
-        }),
-        animatedStyle,
-      ]}
-    />
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
   );
-};
-
-const DeviceAdded = () => {
-  const tw = useTailwind();
 
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <Box twClassName="flex-1 px-4 justify-center items-center gap-4">
-        <DeviceAddedLoader />
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        onBack={onCancel}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+        }}
+      />
+      <Box
+        twClassName="flex-1 px-4 justify-center items-center gap-3"
+        style={[styles.content, { marginTop: headerInset }]}
+      >
+        <ExtensionHandoffAnimation />
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}

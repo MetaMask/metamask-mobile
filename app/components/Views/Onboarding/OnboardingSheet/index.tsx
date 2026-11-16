@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -19,6 +19,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -32,7 +35,10 @@ import {
   TextColor,
   TextVariant,
   BottomSheet,
+  BottomSheetHeader,
   BottomSheetRef,
+  ListItem,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ButtonGlass from '../../../../component-library/components-temp/ButtonGlass';
@@ -74,6 +80,7 @@ const OnboardingSheet = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialLoading = loadingProvider !== null;
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
+  const [showImportOptions, setShowImportOptions] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -127,101 +134,93 @@ const OnboardingSheet = ({
   const socialButtonSpinnerProps = {
     color: IconColor.IconInverse,
   };
+  const hasMultipleImportMethods =
+    !createWallet &&
+    isAddDeviceSyncEnabled &&
+    onPressImportFromExtension !== undefined;
 
   return (
     <BottomSheet goBack={onDismiss} ref={sheetRef}>
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="p-4 gap-y-4"
-        testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
-      >
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={onPressContinueWithGoogleAction}
-          testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
-          startAccessory={
-            <GoogleIcon
-              fill="currentColor"
-              width={24}
-              height={24}
-              name={'google'}
+      {showImportOptions ? (
+        <>
+          <BottomSheetHeader>
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('onboarding.import_wallet_options_title')}
+            </Text>
+          </BottomSheetHeader>
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            twClassName="pb-4"
+          >
+            <ListItem
+              isInteractive
+              variant={ListItemVariant.OneLine}
+              onPress={onPressImportFromExtension}
+              testID={OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON}
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.Monitor}
+                  severity={AvatarIconSeverity.Neutral}
+                  size={AvatarIconSize.Lg}
+                />
+              }
+              title={strings('onboarding.metamask_extension')}
+              endAccessory={
+                <Icon
+                  name={IconName.ArrowRight}
+                  color={IconColor.IconAlternative}
+                />
+              }
             />
-          }
-          isFullWidth
-          size={ButtonSize.Lg}
-          isLoading={loadingProvider === AuthConnection.Google}
-          spinnerProps={socialButtonSpinnerProps}
-          isDisabled={
-            isSocialLoading && loadingProvider !== AuthConnection.Google
-          }
-          contentWrapperProps={{ twClassName: 'gap-3' }}
-          style={tw.style('border border-muted', {
-            backgroundColor: colors.text.default,
-          })}
-          textProps={{ style: { color: colors.background.default } }}
+            <ListItem
+              isInteractive
+              variant={ListItemVariant.OneLine}
+              onPress={onPressImportAction}
+              testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.Key}
+                  severity={AvatarIconSeverity.Neutral}
+                  size={AvatarIconSize.Lg}
+                />
+              }
+              title={strings('onboarding.using_secret_recovery_phrase')}
+              endAccessory={
+                <Icon
+                  name={IconName.ArrowRight}
+                  color={IconColor.IconAlternative}
+                />
+              }
+            />
+          </Box>
+        </>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="p-4 gap-y-4"
+          testID={OnboardingSheetSelectorIDs.CONTAINER_ID}
         >
-          {createWallet
-            ? strings('onboarding.continue_with_google')
-            : strings('onboarding.sign_in_with_google')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={onPressContinueWithAppleAction}
-          testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
-          startAccessory={
-            isDark ? (
-              <AppleIcon
-                fill="currentColor"
-                width={24}
-                height={24}
-                name={'apple'}
-              />
-            ) : (
-              <AppleWhiteIcon
-                fill="currentColor"
-                width={24}
-                height={24}
-                name={'apple-white'}
-              />
-            )
-          }
-          isFullWidth
-          size={ButtonSize.Lg}
-          isLoading={loadingProvider === AuthConnection.Apple}
-          spinnerProps={socialButtonSpinnerProps}
-          isDisabled={
-            isSocialLoading && loadingProvider !== AuthConnection.Apple
-          }
-          contentWrapperProps={{ twClassName: 'gap-3' }}
-          style={tw.style('border border-muted', {
-            backgroundColor: colors.text.default,
-          })}
-          textProps={{ style: { color: colors.background.default } }}
-        >
-          {createWallet
-            ? strings('onboarding.continue_with_apple')
-            : strings('onboarding.sign_in_with_apple')}
-        </Button>
-        {onPressContinueWithTelegram ? (
           <Button
             variant={ButtonVariant.Secondary}
-            onPress={onPressContinueWithTelegramAction}
-            testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+            onPress={onPressContinueWithGoogleAction}
+            testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
             startAccessory={
-              <Icon
-                name={IconName.Telegram}
-                size={IconSize.Lg}
-                style={tw.style({ color: commonColors.telegramBlue })}
+              <GoogleIcon
+                fill="currentColor"
+                width={24}
+                height={24}
+                name={'google'}
               />
             }
             isFullWidth
             size={ButtonSize.Lg}
-            isLoading={loadingProvider === AuthConnection.Telegram}
+            isLoading={loadingProvider === AuthConnection.Google}
             spinnerProps={socialButtonSpinnerProps}
             isDisabled={
-              isSocialLoading && loadingProvider !== AuthConnection.Telegram
+              isSocialLoading && loadingProvider !== AuthConnection.Google
             }
             contentWrapperProps={{ twClassName: 'gap-3' }}
             style={tw.style('border border-muted', {
@@ -230,83 +229,147 @@ const OnboardingSheet = ({
             textProps={{ style: { color: colors.background.default } }}
           >
             {createWallet
-              ? strings('onboarding.continue_with_telegram')
-              : strings('onboarding.sign_in_with_telegram')}
+              ? strings('onboarding.continue_with_google')
+              : strings('onboarding.sign_in_with_google')}
           </Button>
-        ) : null}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-2.5"
-        >
-          <Box twClassName="flex-1 h-px bg-border-muted" />
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
-            style={tw.style({ fontSize: 20 })}
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={onPressContinueWithAppleAction}
+            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
+            startAccessory={
+              isDark ? (
+                <AppleIcon
+                  fill="currentColor"
+                  width={24}
+                  height={24}
+                  name={'apple'}
+                />
+              ) : (
+                <AppleWhiteIcon
+                  fill="currentColor"
+                  width={24}
+                  height={24}
+                  name={'apple-white'}
+                />
+              )
+            }
+            isFullWidth
+            size={ButtonSize.Lg}
+            isLoading={loadingProvider === AuthConnection.Apple}
+            spinnerProps={socialButtonSpinnerProps}
+            isDisabled={
+              isSocialLoading && loadingProvider !== AuthConnection.Apple
+            }
+            contentWrapperProps={{ twClassName: 'gap-3' }}
+            style={tw.style('border border-muted', {
+              backgroundColor: colors.text.default,
+            })}
+            textProps={{ style: { color: colors.background.default } }}
           >
-            {strings('onboarding.or')}
-          </Text>
-          <Box twClassName="flex-1 h-px bg-border-muted" />
-        </Box>
-        {!createWallet &&
-        isAddDeviceSyncEnabled &&
-        onPressImportFromExtension ? (
+            {createWallet
+              ? strings('onboarding.continue_with_apple')
+              : strings('onboarding.sign_in_with_apple')}
+          </Button>
+          {onPressContinueWithTelegram ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={onPressContinueWithTelegramAction}
+              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+              startAccessory={
+                <Icon
+                  name={IconName.Telegram}
+                  size={IconSize.Lg}
+                  style={tw.style({ color: commonColors.telegramBlue })}
+                />
+              }
+              isFullWidth
+              size={ButtonSize.Lg}
+              isLoading={loadingProvider === AuthConnection.Telegram}
+              spinnerProps={socialButtonSpinnerProps}
+              isDisabled={
+                isSocialLoading && loadingProvider !== AuthConnection.Telegram
+              }
+              contentWrapperProps={{ twClassName: 'gap-3' }}
+              style={tw.style('border border-muted', {
+                backgroundColor: colors.text.default,
+              })}
+              textProps={{ style: { color: colors.background.default } }}
+            >
+              {createWallet
+                ? strings('onboarding.continue_with_telegram')
+                : strings('onboarding.sign_in_with_telegram')}
+            </Button>
+          ) : null}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="gap-2.5"
+          >
+            <Box twClassName="flex-1 h-px bg-border-muted" />
+            <Text
+              variant={TextVariant.BodyLg}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextMuted}
+              style={tw.style({ fontSize: 20 })}
+            >
+              {strings('onboarding.or')}
+            </Text>
+            <Box twClassName="flex-1 h-px bg-border-muted" />
+          </Box>
           <ButtonGlass
             isGlass={false}
             variant={ButtonVariant.Secondary}
-            onPress={onPressImportFromExtension}
-            testID={OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON}
+            onPress={
+              createWallet
+                ? onPressCreateAction
+                : hasMultipleImportMethods
+                  ? () => setShowImportOptions(true)
+                  : onPressImportAction
+            }
+            testID={
+              hasMultipleImportMethods
+                ? OnboardingSheetSelectorIDs.IMPORT_OPTIONS_BUTTON
+                : OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON
+            }
             isFullWidth
             size={ButtonSize.Lg}
             containerStyle={tw.style('self-stretch')}
             isDisabled={isSocialLoading}
           >
-            {strings('import_from_seed.import_from_extension_menu')}
+            {createWallet
+              ? strings('onboarding.continue_with_srp')
+              : hasMultipleImportMethods
+                ? strings('onboarding.import_existing_wallet')
+                : strings('onboarding.import_srp')}
           </ButtonGlass>
-        ) : null}
-        <ButtonGlass
-          isGlass={false}
-          variant={ButtonVariant.Secondary}
-          onPress={createWallet ? onPressCreateAction : onPressImportAction}
-          testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
-          isFullWidth
-          size={ButtonSize.Lg}
-          containerStyle={tw.style('self-stretch')}
-          isDisabled={isSocialLoading}
-        >
-          {createWallet
-            ? strings('onboarding.continue_with_srp')
-            : strings('onboarding.import_srp')}
-        </ButtonGlass>
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="mt-6 text-center"
-        >
-          {strings('onboarding.by_continuing')}{' '}
-          <TextButton
+          <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            onPress={onPressTermsOfUse}
-            testID="terms-of-use-link"
+            color={TextColor.TextAlternative}
+            twClassName="mt-6 text-center"
           >
-            {noWrap(strings('onboarding.terms_of_use'))}
-          </TextButton>{' '}
-          {strings('onboarding.and')}{' '}
-          <TextButton
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            onPress={onPressPrivacyNotice}
-            testID="privacy-notice-link"
-          >
-            {noWrap(strings('onboarding.privacy_notice'))}
-          </TextButton>
-        </Text>
-      </Box>
+            {strings('onboarding.by_continuing')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              onPress={onPressTermsOfUse}
+              testID="terms-of-use-link"
+            >
+              {noWrap(strings('onboarding.terms_of_use'))}
+            </TextButton>{' '}
+            {strings('onboarding.and')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              onPress={onPressPrivacyNotice}
+              testID="privacy-notice-link"
+            >
+              {noWrap(strings('onboarding.privacy_notice'))}
+            </TextButton>
+          </Text>
+        </Box>
+      )}
     </BottomSheet>
   );
 };

@@ -117,13 +117,27 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid, { SrpInputGridRef } from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import { selectQrSyncImportMnemonic } from '../../../selectors/qrSyncController';
+import {
+  selectQrSyncImportMnemonic,
+  selectQrSyncImportSummary,
+} from '../../../selectors/qrSyncController';
 import { fetchImportedWalletFundingAmountRange } from '../../../util/analytics/fundingAmountRange';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
+import QrSyncImportSummary from './QrSyncImportSummary';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+const QR_SYNC_IMPORT_SUMMARY_STEP = 2;
+
+type StepTransitionDirection = 'auto' | 'forward' | 'backward';
+
+export const isForwardStepTransition = (
+  currentStep: number,
+  nextStep: number,
+  direction: StepTransitionDirection = 'auto',
+) =>
+  direction === 'forward' || (direction === 'auto' && nextStep > currentStep);
 
 type TrackFn = (
   event: IMetaMetricsEvent | ITrackingEvent,
@@ -236,6 +250,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   const dispatch = useDispatch();
   const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
   const qrSyncMnemonic = useSelector(selectQrSyncImportMnemonic);
+  const qrSyncImportSummary = useSelector(selectQrSyncImportSummary);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -316,7 +331,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   useEffect(() => {
     if (isQrSyncImport && qrSyncMnemonic) {
       setSeedPhrase(qrSyncMnemonic.split(SPACE_CHAR));
-      setCurrentStep(1);
+      setCurrentStep(QR_SYNC_IMPORT_SUMMARY_STEP);
     }
   }, [isQrSyncImport, qrSyncMnemonic]);
 
@@ -405,13 +420,17 @@ const ImportFromSecretRecoveryPhrase = () => {
   }, [hideSeedPhraseInput, navigation]);
 
   const animateToStep = useCallback(
-    (nextStep: number) => {
+    (nextStep: number, direction: StepTransitionDirection = 'auto') => {
       if (isTestEnvironment) {
         setCurrentStep(nextStep);
         return;
       }
 
-      const isForward = nextStep > currentStep;
+      const isForward = isForwardStepTransition(
+        currentStep,
+        nextStep,
+        direction,
+      );
       const exitValue = isForward ? -SCREEN_WIDTH : SCREEN_WIDTH;
       const enterValue = isForward ? SCREEN_WIDTH : -SCREEN_WIDTH;
 
@@ -434,15 +453,18 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   const onBackPress = () => {
     if (isQrSyncImport) {
-      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
-        () => undefined,
-      );
+      if (currentStep === 1) {
+        animateToStep(QR_SYNC_IMPORT_SUMMARY_STEP, 'backward');
+      }
+      return;
     }
-    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
+
+    if (currentStep === 0) {
       navigation.goBack();
-    } else {
-      animateToStep(currentStep - 1);
+      return;
     }
+
+    animateToStep(currentStep - 1);
   };
 
   // The header is rendered in-screen via HeaderStandardGlass, so hide the native one.
@@ -730,6 +752,8 @@ const ImportFromSecretRecoveryPhrase = () => {
   };
 
   const isError = shouldShowPasswordMismatchError(password, confirmPassword);
+  const isQrSyncSummaryStep =
+    isQrSyncImport && currentStep === QR_SYNC_IMPORT_SUMMARY_STEP;
 
   const showWhatIsSeedPhrase = () => {
     track(MetaMetricsEvents.SRP_DEFINITION_CLICKED, {
@@ -744,34 +768,44 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
-        includesTopInset
-        backButtonProps={{
-          accessibilityLabel: strings('navigation.back'),
-          onPress: onBackPress,
-          testID: ImportFromSeedSelectorsIDs.BACK_BUTTON_ID,
-        }}
-        endButtonIconProps={
-          currentStep === 0
-            ? [
-                {
-                  iconName: IconName.Scan,
-                  onPress: onQrCodePress,
-                  testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
-                },
-              ]
-            : undefined
-        }
-      />
+      {!isQrSyncSummaryStep ? (
+        <HeaderStandardGlass
+          backdrop="static"
+          onLayout={onHeaderLayout}
+          includesTopInset
+          backButtonProps={{
+            accessibilityLabel: strings('navigation.back'),
+            onPress: onBackPress,
+            testID: ImportFromSeedSelectorsIDs.BACK_BUTTON_ID,
+          }}
+          endButtonIconProps={
+            currentStep === 0
+              ? [
+                  {
+                    iconName: IconName.Scan,
+                    onPress: onQrCodePress,
+                    testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
+                  },
+                ]
+              : undefined
+          }
+        />
+      ) : null}
       <KeyboardAwareScrollView
-        style={{ marginTop: headerInset }}
-        contentContainerStyle={tw.style('flex-grow px-4')}
+        style={[
+          tw.style('flex-1'),
+          { marginTop: isQrSyncSummaryStep ? safeAreaTop : headerInset },
+        ]}
+        contentContainerStyle={tw.style(
+          currentStep === QR_SYNC_IMPORT_SUMMARY_STEP
+            ? 'flex-1 px-4'
+            : 'flex-grow px-4',
+        )}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
         showsVerticalScrollIndicator={false}
+        scrollEnabled={currentStep !== QR_SYNC_IMPORT_SUMMARY_STEP}
         enabled
       >
         <Animated.View
@@ -944,6 +978,10 @@ const ImportFromSecretRecoveryPhrase = () => {
               </Box>
             </Box>
           )}
+
+          {currentStep === QR_SYNC_IMPORT_SUMMARY_STEP && (
+            <QrSyncImportSummary summary={qrSyncImportSummary} />
+          )}
         </Animated.View>
       </KeyboardAwareScrollView>
       <SafeAreaView
@@ -964,13 +1002,23 @@ const ImportFromSecretRecoveryPhrase = () => {
                   testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
                   size: ButtonSize.Lg,
                 }
-              : {
-                  children: strings('import_from_seed.continue'),
-                  onPress: handleContinueImportFlow,
-                  isDisabled: isSRPContinueButtonDisabled,
-                  testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
-                  size: ButtonSize.Lg,
-                }
+              : currentStep === QR_SYNC_IMPORT_SUMMARY_STEP
+                ? {
+                    children: strings(
+                      'app_settings.add_device.import_summary.create_password',
+                    ),
+                    onPress: () => animateToStep(1, 'forward'),
+                    testID:
+                      ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_CREATE_PASSWORD_ID,
+                    size: ButtonSize.Lg,
+                  }
+                : {
+                    children: strings('import_from_seed.continue'),
+                    onPress: handleContinueImportFlow,
+                    isDisabled: isSRPContinueButtonDisabled,
+                    testID: ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
+                    size: ButtonSize.Lg,
+                  }
           }
         />
       </SafeAreaView>

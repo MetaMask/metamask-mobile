@@ -9,6 +9,7 @@ import {
   selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncImportMnemonic,
+  selectQrSyncImportSummary,
   selectQrSyncShouldNavigateToImport,
 } from './index';
 
@@ -102,6 +103,47 @@ describe('qrSyncController selectors', () => {
           buildState({ pendingSecretImports: payloadWithoutValue }),
         ),
       ).toBeNull();
+    });
+  });
+
+  describe('selectQrSyncImportSummary', () => {
+    it('returns wallet and account metadata from provisioning state', () => {
+      const result = selectQrSyncImportSummary(
+        buildState({
+          pendingSecretImports,
+          provisioningMetadata,
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        accountCount: 1,
+        walletCount: 1,
+        wallets: [
+          {
+            id: 'wallet:test',
+            name: 'Wallet 1',
+            accounts: [
+              {
+                id: 'wallet:test/0',
+                name: 'Account 1',
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it('falls back to pending secrets when provisioning metadata is absent', () => {
+      const result = selectQrSyncImportSummary(
+        buildState({
+          pendingSecretImports,
+          provisioningMetadata: null,
+        }),
+      );
+
+      expect(result.accountCount).toBe(1);
+      expect(result.walletCount).toBe(1);
+      expect(result.wallets[0]?.name).toBe('Wallet 1');
     });
   });
 

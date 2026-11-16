@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -11,9 +11,13 @@ import {
   AvatarIconSeverity,
   AvatarIconSize,
   Box,
+  Icon,
+  IconColor,
   IconName,
   ListItem,
   ListItemVariant,
+  Text,
+  TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -27,13 +31,19 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { AddWalletTestIds } from './AddWallet.testIds';
 
 interface ActionConfig {
-  analyticsEvent: IMetaMetricsEvent;
+  analyticsEvent?: IMetaMetricsEvent;
   description: string;
   iconName: IconName;
-  routeName: string;
+  isDisabled?: boolean;
+  onPress?: () => void;
+  routeName?: string;
   testID: string;
   title: string;
 }
@@ -48,14 +58,19 @@ const AddWallet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
+  const importOptionsSheetRef = useRef<BottomSheetRef>(null);
+  const [showImportOptions, setShowImportOptions] = useState(false);
+
+  const openImportOptions = useCallback(() => {
+    setShowImportOptions(true);
+  }, []);
 
   const actionConfigs = useMemo<ActionConfig[]>(
     () => [
       {
-        analyticsEvent: MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
-        description: strings('multichain_accounts.add_wallet_srp_description'),
+        description: strings('multichain_accounts.import_wallet_description'),
         iconName: IconName.Wallet,
-        routeName: Routes.MULTI_SRP.IMPORT,
+        onPress: openImportOptions,
         testID: AddWalletTestIds.IMPORT_WALLET_BUTTON,
         title: strings('account_actions.import_wallet'),
       },
@@ -70,6 +85,13 @@ const AddWallet = () => {
         title: strings('accounts.import_account'),
       },
       {
+        description: strings('multichain_accounts.create_wallet_description'),
+        iconName: IconName.Add,
+        onPress: () => undefined,
+        testID: AddWalletTestIds.CREATE_WALLET_BUTTON,
+        title: strings('account_actions.create_new_wallet'),
+      },
+      {
         analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
         description: strings(
           'multichain_accounts.add_wallet_hardware_description',
@@ -79,29 +101,24 @@ const AddWallet = () => {
         testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
         title: strings('connect_hardware.title_select_hardware'),
       },
-      ...(isAddDeviceSyncEnabled
-        ? [
-            {
-              // TODO: This is a temporary event for the add device to wallet. Event will be updated after the add device to wallet is implemented.
-              analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
-              description: strings(
-                'multichain_accounts.link_metamask_extension_description',
-              ),
-              iconName: IconName.Monitor,
-              routeName: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-              testID: AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
-              title: strings('multichain_accounts.link_metamask_extension'),
-            },
-          ]
-        : []),
     ],
-    [isAddDeviceSyncEnabled],
+    [openImportOptions],
   );
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
+      if (config.isDisabled) {
+        return;
+      }
+      if (config.onPress) {
+        config.onPress();
+        return;
+      }
+      if (!config.routeName || !config.analyticsEvent) {
+        return;
+      }
       if (config.routeName === Routes.HW.CONNECT) {
         // Replace AddWallet with the hardware wallet flow so completion
         // (pop(2) in the HW screens) lands on AccountSelector instead of
@@ -113,6 +130,18 @@ const AddWallet = () => {
         navigateWithDetails(navigation, [config.routeName]);
       }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
+    },
+    [createEventBuilder, navigation, trackEvent],
+  );
+
+  const handleImportOptionPress = useCallback(
+    (routeName: string, analyticsEvent?: IMetaMetricsEvent) => {
+      importOptionsSheetRef.current?.onCloseBottomSheet(() => {
+        navigateWithDetails(navigation, [routeName]);
+        if (analyticsEvent) {
+          trackEvent(createEventBuilder(analyticsEvent).build());
+        }
+      });
     },
     [createEventBuilder, navigation, trackEvent],
   );
@@ -145,10 +174,14 @@ const AddWallet = () => {
         {actionConfigs.map((config) => (
           <ListItem
             key={config.testID}
-            isInteractive
+            isInteractive={!config.isDisabled}
             variant={ListItemVariant.TwoLines}
-            onPress={() => handleActionPress(config)}
+            onPress={
+              config.isDisabled ? undefined : () => handleActionPress(config)
+            }
             testID={config.testID}
+            style={config.isDisabled ? tw.style('opacity-50') : undefined}
+            accessibilityState={{ disabled: config.isDisabled }}
             avatar={
               <AvatarIcon
                 iconName={config.iconName}
@@ -158,9 +191,80 @@ const AddWallet = () => {
             }
             title={config.title}
             description={config.description}
+            endAccessory={
+              config.isDisabled ? undefined : (
+                <Icon
+                  name={IconName.ArrowRight}
+                  color={IconColor.IconAlternative}
+                />
+              )
+            }
           />
         ))}
       </Box>
+      {showImportOptions ? (
+        <BottomSheet
+          ref={importOptionsSheetRef}
+          shouldNavigateBack={false}
+          onClose={() => setShowImportOptions(false)}
+          testID={AddWalletTestIds.IMPORT_OPTIONS_SHEET}
+        >
+          <BottomSheetHeader>
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('onboarding.import_wallet_options_title')}
+            </Text>
+          </BottomSheetHeader>
+          {isAddDeviceSyncEnabled ? (
+            <ListItem
+              isInteractive
+              variant={ListItemVariant.OneLine}
+              onPress={() =>
+                handleImportOptionPress(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET)
+              }
+              testID={AddWalletTestIds.IMPORT_FROM_EXTENSION_BUTTON}
+              avatar={
+                <AvatarIcon
+                  iconName={IconName.Monitor}
+                  severity={AvatarIconSeverity.Neutral}
+                  size={AvatarIconSize.Lg}
+                />
+              }
+              title={strings('onboarding.metamask_extension')}
+              endAccessory={
+                <Icon
+                  name={IconName.ArrowRight}
+                  color={IconColor.IconAlternative}
+                />
+              }
+            />
+          ) : null}
+          <ListItem
+            isInteractive
+            variant={ListItemVariant.OneLine}
+            onPress={() =>
+              handleImportOptionPress(
+                Routes.MULTI_SRP.IMPORT,
+                MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+              )
+            }
+            testID={AddWalletTestIds.IMPORT_FROM_SRP_BUTTON}
+            avatar={
+              <AvatarIcon
+                iconName={IconName.Key}
+                severity={AvatarIconSeverity.Neutral}
+                size={AvatarIconSize.Lg}
+              />
+            }
+            title={strings('onboarding.using_secret_recovery_phrase')}
+            endAccessory={
+              <Icon
+                name={IconName.ArrowRight}
+                color={IconColor.IconAlternative}
+              />
+            }
+          />
+        </BottomSheet>
+      ) : null}
     </SafeAreaView>
   );
 };

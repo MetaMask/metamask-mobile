@@ -74,6 +74,9 @@ describe('SuccessErrorSheet', () => {
     );
 
     expect(getByTestId(SuccessErrorSheetSelectorsIDs.SHEET)).toBeOnTheScreen();
+    expect(
+      getByTestId(SuccessErrorSheetSelectorsIDs.ERROR_ILLUSTRATION),
+    ).toBeOnTheScreen();
     expect(getByText('Test Title')).toBeOnTheScreen();
     expect(getByText('Test Description')).toBeOnTheScreen();
     expect(getByText('Custom Button')).toBeOnTheScreen();

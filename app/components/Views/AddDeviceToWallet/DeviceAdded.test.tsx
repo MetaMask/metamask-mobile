@@ -10,8 +10,17 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-const renderComponent = () =>
-  renderWithProvider(<DeviceAdded />, {
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    AvatarAccount: () => null,
+  };
+});
+
+const renderComponent = (onCancel = jest.fn()) =>
+  renderWithProvider(<DeviceAdded onCancel={onCancel} />, {
     state: {
       engine: {
         backgroundState: {
@@ -25,9 +34,10 @@ const renderComponent = () =>
 
 describe('DeviceAdded', () => {
   it('renders the waiting for extension screen', () => {
-    const { getByText, getByTestId, queryByTestId } = renderComponent();
+    const { getByText, getByTestId, queryByText } = renderComponent();
 
-    expect(getByTestId('device-added-loader')).toBeOnTheScreen();
+    expect(getByTestId('extension-handoff-animation')).toBeOnTheScreen();
+    expect(getByTestId('extension-handoff-fox')).toBeOnTheScreen();
     expect(
       getByText(strings('app_settings.add_device.waiting_for_extension')),
     ).toBeOnTheScreen();
@@ -36,6 +46,7 @@ describe('DeviceAdded', () => {
         strings('app_settings.add_device.waiting_for_extension_description'),
       ),
     ).toBeOnTheScreen();
-    expect(queryByTestId('device-added-back-button')).toBeNull();
+    expect(queryByText(/step 3 of 3/iu)).not.toBeOnTheScreen();
+    expect(getByTestId('button-icon')).toBeOnTheScreen();
   });
 });

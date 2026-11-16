@@ -30,6 +30,36 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('../../../selectors/featureFlagController/addDeviceSync', () => ({
+  selectAddDeviceSyncEnabled: () => true,
+}));
+
+jest.mock(
+  '../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ReactActual.forwardRef(
+        (
+          { children, testID }: { children: React.ReactNode; testID?: string },
+          ref: React.Ref<{
+            onOpenBottomSheet: () => void;
+            onCloseBottomSheet: (callback?: () => void) => void;
+          }>,
+        ) => {
+          ReactActual.useImperativeHandle(ref, () => ({
+            onOpenBottomSheet: jest.fn(),
+            onCloseBottomSheet: (callback?: () => void) => callback?.(),
+          }));
+          return <View testID={testID}>{children}</View>;
+        },
+      ),
+    };
+  },
+);
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -55,11 +85,19 @@ describe('AddWallet', () => {
       screen.getByText(strings('multichain_accounts.add_wallet')),
     ).toBeOnTheScreen();
     expect(
+      screen.getByText(strings('account_actions.create_new_wallet')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('multichain_accounts.create_wallet_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
       screen.getByText(strings('account_actions.import_wallet')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(
-        strings('multichain_accounts.add_wallet_srp_description'),
+        strings('multichain_accounts.import_wallet_description'),
       ),
     ).toBeOnTheScreen();
     expect(
@@ -90,12 +128,32 @@ describe('AddWallet', () => {
     expect(mockedGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the import wallet flow', () => {
+  it('opens the import wallet options', () => {
+    renderScreen(() => <AddWallet />, {
+      name: 'AddWallet',
+    });
+
+    expect(
+      screen.queryByTestId(AddWalletTestIds.IMPORT_OPTIONS_SHEET),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_WALLET_BUTTON));
+
+    expect(
+      screen.getByTestId(AddWalletTestIds.IMPORT_OPTIONS_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockedNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the Secret Recovery Phrase import flow from import options', () => {
     renderScreen(() => <AddWallet />, {
       name: 'AddWallet',
     });
 
     fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_WALLET_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(AddWalletTestIds.IMPORT_FROM_SRP_BUTTON),
+    );
 
     expect(mockedNavigate).toHaveBeenCalledWith(Routes.MULTI_SRP.IMPORT);
     expect(mockedGoBack).not.toHaveBeenCalled();
@@ -105,6 +163,33 @@ describe('AddWallet', () => {
     expect(mockTrackEvent).toHaveBeenCalledWith(
       MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
     );
+  });
+
+  it('opens the extension sync flow from import options', () => {
+    renderScreen(() => <AddWallet />, {
+      name: 'AddWallet',
+    });
+
+    fireEvent.press(screen.getByTestId(AddWalletTestIds.IMPORT_WALLET_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(AddWalletTestIds.IMPORT_FROM_EXTENSION_BUTTON),
+    );
+
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+    );
+  });
+
+  it('keeps create wallet as a no-op for the prototype', () => {
+    renderScreen(() => <AddWallet />, {
+      name: 'AddWallet',
+    });
+
+    fireEvent.press(screen.getByTestId(AddWalletTestIds.CREATE_WALLET_BUTTON));
+
+    expect(mockedNavigate).not.toHaveBeenCalled();
+    expect(mockedDispatch).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('opens the import account flow', () => {

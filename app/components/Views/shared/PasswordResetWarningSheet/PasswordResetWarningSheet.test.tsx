@@ -50,7 +50,7 @@ describe('PasswordResetWarningSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the info icon in the default text color', () => {
+  it('renders the info icon in the error color', () => {
     const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
       <PasswordResetWarningSheet
         isVisible
@@ -61,7 +61,7 @@ describe('PasswordResetWarningSheet', () => {
 
     const icon = UNSAFE_getByProps({ name: IconName.Info });
 
-    expect(icon.props.color).toBe(IconColor.IconDefault);
+    expect(icon.props.color).toBe(IconColor.ErrorDefault);
     expect(UNSAFE_queryByProps({ name: IconName.Error })).toBeNull();
   });
 

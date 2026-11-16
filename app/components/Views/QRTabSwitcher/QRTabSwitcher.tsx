@@ -267,7 +267,7 @@ const QRTabSwitcher = () => {
   };
 
   if (showDeviceAddedLoader) {
-    return <DeviceAdded />;
+    return <DeviceAdded onCancel={goBack} />;
   }
 
   return (

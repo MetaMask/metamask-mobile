@@ -2,14 +2,10 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   Box,
-  IconAlertSeverity,
-  Text,
-  TextColor,
-  TextVariant,
-  TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import ErrorStateContent from '../../UI/ErrorStateContent';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackupConfirmErrorSheetSelectorsIDs } from './ManualBackupConfirmErrorSheet.testIds';
 
@@ -47,25 +43,17 @@ const ManualBackupConfirmErrorSheet = ({
       onClose={onDismiss}
       testID={ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET}
     >
-      <Box twClassName="px-4 pb-6 gap-4">
-        <TitleAlert
-          severity={IconAlertSeverity.Danger}
+      <Box twClassName="px-4 pb-6 pt-6">
+        <ErrorStateContent
           title={strings('manual_backup_step_2.error-title')}
-          titleProps={{
-            testID: ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TITLE,
-          }}
-          twClassName="pt-6"
-        />
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-left"
-          testID={
+          description={strings('manual_backup_step_2.error-description')}
+          titleTestID={
+            ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TITLE
+          }
+          descriptionTestID={
             ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_DESCRIPTION
           }
-        >
-          {strings('manual_backup_step_2.error-description')}
-        </Text>
+        />
       </Box>
       <FooterGlass
         primaryButtonProps={{

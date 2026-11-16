@@ -13,20 +13,30 @@ const asComponentType = (name: string) => name as unknown as ComponentType;
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  const { View } = ReactNative;
+  const { Pressable, View } = ReactNative;
 
   const BottomSheet = ({
     children,
+    goBack,
   }: {
     children: React.ReactNode;
     goBack?: () => void;
-  }) => <View testID="mock-bottom-sheet">{children}</View>;
+  }) => (
+    <View testID="mock-bottom-sheet">
+      {children}
+      <Pressable testID="mock-bottom-sheet-close" onPress={goBack} />
+    </View>
+  );
 
   return {
     ...actual,
     BottomSheet,
   };
 });
+
+jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
+  selectAddDeviceSyncEnabled: () => true,
+}));
 
 describe('OnboardingSheet', () => {
   const renderSheet = (
@@ -106,5 +116,70 @@ describe('OnboardingSheet', () => {
     expect(
       getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('reveals import methods after pressing the single import action', () => {
+    const onPressImport = jest.fn();
+    const onPressImportFromExtension = jest.fn();
+    const { getByTestId, queryByTestId } = renderSheet({
+      createWallet: false,
+      onPressImport,
+      onPressImportFromExtension,
+    });
+
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_OPTIONS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_OPTIONS_BUTTON),
+    );
+
+    fireEvent.press(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
+    );
+    fireEvent.press(getByTestId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON));
+
+    expect(onPressImportFromExtension).toHaveBeenCalledTimes(1);
+    expect(onPressImport).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show a back button on the import methods sheet', () => {
+    const { getByTestId, queryByTestId } = renderSheet({
+      createWallet: false,
+      onPressImport: jest.fn(),
+      onPressImportFromExtension: jest.fn(),
+    });
+
+    fireEvent.press(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_OPTIONS_BUTTON),
+    );
+
+    expect(
+      queryByTestId('bottomsheetheader-back-button'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('dismisses the sheet when closing from the import methods view', () => {
+    const onDismiss = jest.fn();
+    const { getByTestId } = renderSheet({
+      createWallet: false,
+      onDismiss,
+      onPressImport: jest.fn(),
+      onPressImportFromExtension: jest.fn(),
+    });
+
+    fireEvent.press(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_OPTIONS_BUTTON),
+    );
+    fireEvent.press(getByTestId('mock-bottom-sheet-close'));
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 });

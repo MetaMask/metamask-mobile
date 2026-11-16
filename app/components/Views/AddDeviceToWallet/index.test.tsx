@@ -132,14 +132,11 @@ describe('AddDeviceToWallet', () => {
     });
 
     it('renders the instruction titles and descriptions', () => {
-      const { getByText } = renderComponent();
+      const { getByText, queryByText } = renderComponent();
 
       expect(
-        getByText(strings('app_settings.add_device.points.one_title')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('app_settings.add_device.points.one_description')),
-      ).toBeOnTheScreen();
+        queryByText(strings('app_settings.add_device.points.one_title')),
+      ).not.toBeOnTheScreen();
       expect(
         getByText(strings('app_settings.add_device.points.two_title')),
       ).toBeOnTheScreen();

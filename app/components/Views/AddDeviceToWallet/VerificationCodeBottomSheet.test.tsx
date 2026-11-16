@@ -116,7 +116,13 @@ describe('VerificationCodeBottomSheet', () => {
     it('renders the OTP from QR sync state', () => {
       const { getByText } = renderComponent();
 
-      expect(getByText('123456')).toBeOnTheScreen();
+      expect(getByText('123 456')).toBeOnTheScreen();
+    });
+
+    it('does not show an expiry countdown', () => {
+      const { queryByText } = renderComponent();
+
+      expect(queryByText(/expires/iu)).toBeNull();
     });
   });
 

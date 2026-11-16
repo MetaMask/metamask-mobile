@@ -16,4 +16,8 @@ export const ImportFromSeedSelectorsIDs = {
   QR_CODE_BUTTON_ID: 'import-from-seed-screen-qr-code-button-id',
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
+  QR_SYNC_SUMMARY_ID: 'qr-sync-import-summary',
+  QR_SYNC_SUMMARY_LIST_ID: 'qr-sync-import-summary-list',
+  QR_SYNC_SUMMARY_ACCOUNT_ID: 'qr-sync-import-summary-account',
+  QR_SYNC_SUMMARY_CREATE_PASSWORD_ID: 'qr-sync-import-summary-create-password',
 };

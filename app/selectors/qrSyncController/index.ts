@@ -14,6 +14,23 @@ import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
   state.engine.backgroundState.QrSyncController;
 
+export interface QrSyncImportSummaryAccount {
+  id: string;
+  name: string | null;
+}
+
+export interface QrSyncImportSummaryWallet {
+  id: string;
+  name: string | null;
+  accounts: QrSyncImportSummaryAccount[];
+}
+
+export interface QrSyncImportSummary {
+  accountCount: number;
+  walletCount: number;
+  wallets: QrSyncImportSummaryWallet[];
+}
+
 export const selectQrSyncPhase = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => qrSyncState.phase,
@@ -22,6 +39,11 @@ export const selectQrSyncPhase = createSelector(
 export const selectQrSyncOtp = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) => qrSyncState.otp?.otp ?? null,
+);
+
+export const selectQrSyncOtpDeadline = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) => qrSyncState.otp?.deadline ?? null,
 );
 
 export const selectQrSyncError = createSelector(
@@ -44,6 +66,34 @@ export const selectQrSyncImportMnemonic = createSelector(
     } catch {
       return null;
     }
+  },
+);
+
+export const selectQrSyncImportSummary = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState): QrSyncImportSummary => {
+    const payload =
+      qrSyncState.provisioningMetadata ?? qrSyncState.pendingSecretImports;
+    const wallets =
+      payload?.wallets
+        .map((wallet) => ({
+          id: wallet.id,
+          name: wallet.metadata?.name ?? null,
+          accounts: wallet.groups.map((group) => ({
+            id: group.id,
+            name: group.metadata?.name ?? null,
+          })),
+        }))
+        .filter((wallet) => wallet.accounts.length > 0) ?? [];
+
+    return {
+      accountCount: wallets.reduce(
+        (total, wallet) => total + wallet.accounts.length,
+        0,
+      ),
+      walletCount: wallets.length,
+      wallets,
+    };
   },
 );
 

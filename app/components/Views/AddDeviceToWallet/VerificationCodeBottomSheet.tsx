@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -25,6 +25,11 @@ const VerificationCodeBottomSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const phase = useSelector(selectQrSyncPhase);
   const otp = useSelector(selectQrSyncOtp) ?? '';
+  const groupedOtp = useMemo(
+    () => otp.replace(/^(\d{3})(\d{3})$/u, '$1 $2'),
+    [otp],
+  );
+  const accessibleOtp = useMemo(() => otp.split('').join(' '), [otp]);
 
   const closeSheet = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -43,7 +48,7 @@ const VerificationCodeBottomSheet = () => {
       <HeaderStandardGlass isFloating={false}>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </HeaderStandardGlass>
-      <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
+      <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
@@ -52,12 +57,13 @@ const VerificationCodeBottomSheet = () => {
           {strings('app_settings.add_device.enter_code_on_extension_desc')}
         </Text>
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
           twClassName="my-6"
+          accessibilityLabel={accessibleOtp}
         >
-          {otp}
+          {groupedOtp}
         </Text>
       </Box>
     </BottomSheet>

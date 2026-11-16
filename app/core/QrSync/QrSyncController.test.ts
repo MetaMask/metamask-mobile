@@ -789,6 +789,24 @@ describe('QrSyncController', () => {
         message: 'Handshake failed',
       });
     });
+
+    it('marks the session failed without waiting for peer notification', async () => {
+      const controller = buildController();
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.client.sendResponse.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
+      walletClient.emit('error', new Error('Handshake failed'));
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'SYNC_FAILED',
+        message: 'Handshake failed',
+      });
+    });
   });
 
   describe('provisioning mutations', () => {

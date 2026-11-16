@@ -4,7 +4,7 @@ import baseRenderWithProvider, {
 } from '../../../util/test/renderWithProvider';
 import ReduxService from '../../../core/redux';
 import type { ReduxStore } from '../../../core/redux/types';
-import ImportFromSecretRecoveryPhrase from '.';
+import ImportFromSecretRecoveryPhrase, { isForwardStepTransition } from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import {
@@ -23,7 +23,7 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { Alert, InteractionManager } from 'react-native';
+import { Alert, InteractionManager, StyleSheet } from 'react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -213,6 +213,17 @@ function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
+
+describe('isForwardStepTransition', () => {
+  it('treats the QR sync summary to password transition as forward', () => {
+    expect(isForwardStepTransition(2, 1, 'forward')).toBe(true);
+  });
+
+  it('uses step order for automatic transitions', () => {
+    expect(isForwardStepTransition(0, 1)).toBe(true);
+    expect(isForwardStepTransition(1, 0)).toBe(false);
+  });
+});
 
 describe('ImportFromSecretRecoveryPhrase', () => {
   afterEach(() => {
@@ -1431,12 +1442,55 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
-      const { getByText, queryByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: qrSyncImportState },
-        { qrSyncImport: true },
+    it('shows the imported account summary before the password step', async () => {
+      const { getByText, getByTestId, queryByPlaceholderText, queryByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: qrSyncImportState },
+          { qrSyncImport: true },
+        );
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            strings('app_settings.add_device.import_summary.one_account_title'),
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      expect(getByText('Extension Wallet (1 account)')).toBeOnTheScreen();
+      expect(getByText('Account 1')).toBeOnTheScreen();
+      expect(getByText('$94,857.55')).toBeOnTheScreen();
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_LIST_ID),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_LIST_ID),
+      ).toHaveProp('nestedScrollEnabled', true);
+      expect(
+        StyleSheet.flatten(
+          getByTestId(ImportFromSeedSelectorsIDs.CONTAINER_ID).props
+            .contentContainerStyle,
+        ),
+      ).toEqual(
+        expect.objectContaining({
+          flexBasis: '0%',
+          flexGrow: 1,
+          flexShrink: 1,
+        }),
+      );
+      expect(
+        queryByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+      ).toBeNull();
+      expect(
+        queryByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+      ).toBeNull();
+
+      fireEvent.press(
+        getByTestId(
+          ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_CREATE_PASSWORD_ID,
+        ),
       );
 
       await waitFor(() => {
@@ -1444,13 +1498,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           getByText(strings('import_from_seed.metamask_password')),
         ).toBeOnTheScreen();
       });
-
-      expect(
-        queryByPlaceholderText(strings('import_from_seed.srp_placeholder')),
-      ).toBeNull();
     });
 
-    it('calls navigation.goBack when back is pressed on the password step', async () => {
+    it('returns to the imported account summary from the password step', async () => {
       const mockGoBack = jest.fn();
       const Stack = createNativeStackNavigator();
 
@@ -1474,6 +1524,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       await waitFor(() => {
         expect(
+          getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(
+          ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_CREATE_PASSWORD_ID,
+        ),
+      );
+      await waitFor(() => {
+        expect(
           getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
         ).toBeOnTheScreen();
       });
@@ -1481,9 +1542,30 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
-        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+        expect(
+          getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ID),
+        ).toBeOnTheScreen();
       });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockQrSyncResetState).not.toHaveBeenCalled();
+    });
+
+    it('hides the back button on the imported account summary', async () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ID),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID),
+      ).toBeNull();
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {
@@ -1519,6 +1601,17 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         { qrSyncImport: true },
       );
 
+      await waitFor(() => {
+        expect(
+          getByTestId(ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(
+          ImportFromSeedSelectorsIDs.QR_SYNC_SUMMARY_CREATE_PASSWORD_ID,
+        ),
+      );
       await waitFor(() => {
         expect(
           getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),

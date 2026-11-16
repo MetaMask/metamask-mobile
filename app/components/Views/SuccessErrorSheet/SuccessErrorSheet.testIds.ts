@@ -3,6 +3,7 @@ export const SuccessErrorSheetSelectorsIDs = {
   CLOSE_BUTTON: 'success-error-sheet-close-button',
   TITLE: 'success-error-sheet-title',
   DESCRIPTION: 'success-error-sheet-description',
+  ERROR_ILLUSTRATION: 'success-error-sheet-error-illustration',
   PRIMARY_BUTTON: 'success-error-sheet-primary-button',
   SECONDARY_BUTTON: 'success-error-sheet-secondary-button',
 };

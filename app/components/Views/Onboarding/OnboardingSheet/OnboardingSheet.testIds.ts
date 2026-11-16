@@ -3,6 +3,7 @@ export const OnboardingSheetSelectorIDs = {
   GOOGLE_LOGIN_BUTTON: 'onboarding-sheet-google-login-button-id',
   APPLE_LOGIN_BUTTON: 'onboarding-sheet-apple-login-button-id',
   TELEGRAM_LOGIN_BUTTON: 'onboarding-sheet-telegram-login-button-id',
+  IMPORT_OPTIONS_BUTTON: 'onboarding-sheet-import-options-button-id',
   IMPORT_SEED_BUTTON: 'onboarding-sheet-import-seed-button-id',
   IMPORT_FROM_EXTENSION_BUTTON:
     'onboarding-sheet-import-from-extension-button-id',

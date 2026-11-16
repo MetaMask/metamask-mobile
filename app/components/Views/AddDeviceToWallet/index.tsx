@@ -6,19 +6,17 @@ import {
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  AvatarIcon,
-  AvatarIconSeverity,
-  AvatarIconSize,
   Box,
   BoxBackgroundColor,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   FontWeight,
-  IconName,
-  ListItem,
-  ListItemVariant,
   Text,
   TextColor,
   TextField,
+  TextButton,
   TextVariant,
   TitleStandard,
 } from '@metamask/design-system-react-native';
@@ -74,26 +72,17 @@ const SettingsPathDescription = () => (
 );
 
 const INSTRUCTIONS: {
-  iconName: IconName;
   titleKey: string;
   descriptionKey?: string;
 }[] = [
   {
-    iconName: IconName.Monitor,
-    titleKey: 'app_settings.add_device.points.one_title',
-    descriptionKey: 'app_settings.add_device.points.one_description',
-  },
-  {
-    iconName: IconName.Setting,
     titleKey: 'app_settings.add_device.points.two_title',
   },
   {
-    iconName: IconName.QrCode,
     titleKey: 'app_settings.add_device.points.three_title',
     descriptionKey: 'app_settings.add_device.points.three_description',
   },
   {
-    iconName: IconName.Key,
     titleKey: 'app_settings.add_device.points.four_title',
     descriptionKey: 'app_settings.add_device.points.four_description',
   },
@@ -109,6 +98,7 @@ const AddDeviceToWallet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
   const [manualQrPayload, setManualQrPayload] = useState('');
+  const [showDevQrInput, setShowDevQrInput] = useState(false);
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useIsQrTabSwitcherOpen();
   const presentation = useSelector(selectQrSyncPresentation);
@@ -205,7 +195,7 @@ const AddDeviceToWallet = () => {
   }, [submitManualQrPayload]);
 
   if (presentation === 'device-linked' && !isScannerOpen) {
-    return <DeviceAdded />;
+    return <DeviceAdded onCancel={handleBack} />;
   }
 
   return (
@@ -226,68 +216,105 @@ const AddDeviceToWallet = () => {
           title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
-        {INSTRUCTIONS.map((instruction) => (
-          <ListItem
-            key={instruction.titleKey}
-            variant={ListItemVariant.TwoLines}
-            avatar={
-              <AvatarIcon
-                iconName={instruction.iconName}
-                severity={AvatarIconSeverity.Neutral}
-                size={AvatarIconSize.Lg}
-              />
-            }
-            title={strings(instruction.titleKey)}
-            description={
-              instruction.descriptionKey ? (
-                strings(instruction.descriptionKey)
-              ) : (
-                <SettingsPathDescription />
-              )
-            }
-          />
-        ))}
+        <Box twClassName="px-4 mt-4 gap-5">
+          {INSTRUCTIONS.map((instruction, index) => (
+            <Box
+              key={instruction.titleKey}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              gap={3}
+            >
+              <Box
+                backgroundColor={BoxBackgroundColor.BackgroundSection}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="w-8 h-8 rounded-full shrink-0"
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextDefault}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no"
+                >
+                  {index + 1}
+                </Text>
+              </Box>
+              <Box twClassName="flex-1 pt-0.5" gap={1}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings(instruction.titleKey)}
+                </Text>
+                {instruction.descriptionKey ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings(instruction.descriptionKey)}
+                  </Text>
+                ) : (
+                  <SettingsPathDescription />
+                )}
+              </Box>
+            </Box>
+          ))}
+        </Box>
 
         {__DEV__ ? (
-          <Box
-            backgroundColor={BoxBackgroundColor.BackgroundSection}
-            twClassName="mx-4 mt-4 rounded-xl p-4 gap-3"
-          >
-            <Box gap={1}>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-              >
-                Enter QR data manually
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                Paste the QR code payload here when testing on an emulator.
-              </Text>
-            </Box>
-            <TextField
-              value={manualQrPayload}
-              onChangeText={setManualQrPayload}
-              placeholder="Paste QR payload"
-              isDisabled={isBusy}
-              inputProps={{
-                autoCapitalize: 'none',
-                autoCorrect: false,
-                onSubmitEditing: triggerManualQrSubmit,
-                returnKeyType: 'done',
-              }}
-            />
-            <Button
-              twClassName="w-full"
-              onPress={triggerManualQrSubmit}
-              isDisabled={!manualQrPayload.trim() || isBusy}
-              isLoading={isBusy}
+          <Box twClassName="mx-4 mt-8" alignItems={BoxAlignItems.Start}>
+            <TextButton
+              onPress={() => setShowDevQrInput((isVisible) => !isVisible)}
+              twClassName="text-alternative"
             >
-              Submit QR data
-            </Button>
+              {showDevQrInput
+                ? 'Hide developer options (For testing only)'
+                : 'Developer options (For testing only)'}
+            </TextButton>
+            {showDevQrInput ? (
+              <Box
+                backgroundColor={BoxBackgroundColor.BackgroundSection}
+                twClassName="w-full mt-2 rounded-xl p-4 gap-3"
+              >
+                <Box gap={1}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    Enter QR data manually
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    Paste the QR code payload here when testing on an emulator.
+                  </Text>
+                </Box>
+                <TextField
+                  value={manualQrPayload}
+                  onChangeText={setManualQrPayload}
+                  placeholder="Paste QR payload"
+                  isDisabled={isBusy}
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    autoCorrect: false,
+                    onSubmitEditing: triggerManualQrSubmit,
+                    returnKeyType: 'done',
+                  }}
+                />
+                <Button
+                  twClassName="w-full"
+                  onPress={triggerManualQrSubmit}
+                  isDisabled={!manualQrPayload.trim() || isBusy}
+                  isLoading={isBusy}
+                >
+                  Submit QR data
+                </Button>
+              </Box>
+            ) : null}
           </Box>
         ) : null}
 

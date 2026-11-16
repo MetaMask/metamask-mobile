@@ -6,7 +6,11 @@ import {
   ButtonSize,
   ButtonsAlignment,
   FontWeight,
+  Icon,
   IconAlertSeverity,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -64,6 +68,13 @@ const PasswordResetWarningSheet = ({
       <Box gap={4} twClassName="px-4">
         <TitleAlert
           severity={IconAlertSeverity.Info}
+          topAccessory={
+            <Icon
+              name={IconName.Info}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Xl}
+            />
+          }
           title={strings('choose_password.password_warning_title')}
           titleProps={{
             variant: TextVariant.HeadingMd,

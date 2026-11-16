@@ -15,6 +15,7 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import ErrorStateContent from '../../UI/ErrorStateContent';
 import { SuccessErrorSheetParams } from './interface';
 import { SuccessErrorSheetSelectorsIDs } from './SuccessErrorSheet.testIds';
 
@@ -90,31 +91,41 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       testID={SuccessErrorSheetSelectorsIDs.SHEET}
     >
       <HeaderStandard title="" {...headerCloseProps} />
-      <Box twClassName="px-4 pb-6 gap-4">
-        <TitleAlert
-          severity={
-            type === 'success'
-              ? IconAlertSeverity.Success
-              : IconAlertSeverity.Danger
-          }
-          title={title}
-          titleProps={{
-            testID: SuccessErrorSheetSelectorsIDs.TITLE,
-          }}
-        />
-        {typeof description === 'string' ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-left"
-            testID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
-          >
-            {description}
-          </Text>
-        ) : (
-          description
-        )}
-      </Box>
+      {type === 'error' ? (
+        <Box twClassName="px-4 pb-6">
+          <ErrorStateContent
+            title={title}
+            description={description}
+            titleTestID={SuccessErrorSheetSelectorsIDs.TITLE}
+            descriptionTestID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
+            illustrationTestID={
+              SuccessErrorSheetSelectorsIDs.ERROR_ILLUSTRATION
+            }
+          />
+        </Box>
+      ) : (
+        <Box twClassName="px-4 pb-6 gap-4">
+          <TitleAlert
+            severity={IconAlertSeverity.Success}
+            title={title}
+            titleProps={{
+              testID: SuccessErrorSheetSelectorsIDs.TITLE,
+            }}
+          />
+          {typeof description === 'string' ? (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-left"
+              testID={SuccessErrorSheetSelectorsIDs.DESCRIPTION}
+            >
+              {description}
+            </Text>
+          ) : (
+            description
+          )}
+        </Box>
+      )}
       {hasFooterButtons ? (
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}

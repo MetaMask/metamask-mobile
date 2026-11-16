@@ -682,6 +682,24 @@ export class QrSyncController extends BaseController<
       | typeof QrSyncActionTypes.SYNC_ERROR,
     error?: QrSyncError,
   ): Promise<void> {
+    if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
+      const phaseFrom = this.state.phase;
+      reportQrSyncFailure(new Error(error.message), {
+        surface: QrSyncSurfaces.SESSION,
+        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
+        errorCode: error.code,
+        phase: phaseFrom,
+        source: QrSyncTelemetrySources.CONTROLLER,
+        ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
+      });
+      this.transitionTo(QrSyncPhases.FAILED, {
+        errorCode: error.code,
+        patch: (state) => {
+          state.error = error;
+        },
+      });
+    }
+
     if (this.client) {
       try {
         if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
@@ -704,21 +722,6 @@ export class QrSyncController extends BaseController<
     await this.destroySession();
 
     if (wireType === QrSyncActionTypes.SYNC_ERROR && error) {
-      const phaseFrom = this.state.phase;
-      reportQrSyncFailure(new Error(error.message), {
-        surface: QrSyncSurfaces.SESSION,
-        operation: QrSyncOperations.TERMINATE_WITH_ERROR,
-        errorCode: error.code,
-        phase: phaseFrom,
-        source: QrSyncTelemetrySources.CONTROLLER,
-        ...(this.state.syncFlow ? { syncFlow: this.state.syncFlow } : {}),
-      });
-      this.transitionTo(QrSyncPhases.FAILED, {
-        errorCode: error.code,
-        patch: (state) => {
-          state.error = error;
-        },
-      });
       return;
     }
 
