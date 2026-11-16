@@ -13695,7 +13695,6 @@
       "post_cancel_sheet": {
         "period_end_title": "Your membership is canceled",
         "period_end_description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
-        "period_end_description_no_date": "Renew before your membership ends to continue receiving 7% APY, 3% mUSD back, and more.",
         "immediate_title": "Your membership is canceled",
         "immediate_description": "Your membership has ended, so you no longer have 7% APY, 3% mUSD back, or other membership benefits.",
         "got_it": "Got it"

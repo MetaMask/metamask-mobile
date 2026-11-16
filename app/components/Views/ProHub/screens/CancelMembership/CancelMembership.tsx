@@ -21,10 +21,11 @@ import {
   POST_CANCELLATION_DESTINATIONS,
   shuffleCancelReasons,
   toCancellationReason,
-  type CancellationTiming,
   type PostCancellationDestination,
 } from './CancelMembership.utils';
-import CancelPostCancelSheet from './components/CancelPostCancelSheet';
+import CancelPostCancelSheet, {
+  type CancelPostCancelSheetContent,
+} from './components/CancelPostCancelSheet';
 import CancelSurveyStep from './components/CancelSurveyStep';
 import CancelStayStep from './components/CancelStayStep';
 
@@ -35,12 +36,6 @@ const CANCEL_STEPS = {
 
 type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 
-/** Set once the cancellation request succeeds. Drives the post-cancel sheet. */
-interface CancelOutcome {
-  timing: CancellationTiming;
-  periodEndDate: string | undefined;
-}
-
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
@@ -50,9 +45,8 @@ const CancelMembership = () => {
   const [stayFeedback, setStayFeedback] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [cancelOutcome, setCancelOutcome] = useState<CancelOutcome | null>(
-    null,
-  );
+  const [cancelOutcome, setCancelOutcome] =
+    useState<CancelPostCancelSheetContent | null>(null);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
@@ -105,8 +99,25 @@ const CancelMembership = () => {
     );
     const currentPeriodEnd = subscription?.currentPeriodEnd;
     const timing = getCancellationTiming(subscription?.cancelType);
+    const periodEndDate = formatSubscriptionPeriodEnd(currentPeriodEnd);
 
     if (!subscription || !timing || !currentPeriodEnd) {
+      setErrorMessage(
+        strings('pro_hub.cancel_membership.cancellation_unavailable'),
+      );
+      return;
+    }
+
+    // Period-end copy always names the renewal date, so don't cancel when it
+    // can't be formatted.
+    const outcome: CancelPostCancelSheetContent | undefined =
+      timing === CANCELLATION_TIMINGS.IMMEDIATE
+        ? { timing }
+        : periodEndDate
+          ? { timing, periodEndDate }
+          : undefined;
+
+    if (!outcome) {
       setErrorMessage(
         strings('pro_hub.cancel_membership.cancellation_unavailable'),
       );
@@ -127,10 +138,7 @@ const CancelMembership = () => {
 
       // Stay on this screen with the post-cancel sheet. isSubmitting stays true,
       // so the screen cannot be left until "Got it" is pressed.
-      setCancelOutcome({
-        timing,
-        periodEndDate: formatSubscriptionPeriodEnd(currentPeriodEnd),
-      });
+      setCancelOutcome(outcome);
     } catch (error) {
       Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
         tags: {
@@ -232,8 +240,7 @@ const CancelMembership = () => {
       )}
       {cancelOutcome && (
         <CancelPostCancelSheet
-          timing={cancelOutcome.timing}
-          periodEndDate={cancelOutcome.periodEndDate}
+          {...cancelOutcome}
           onConfirm={handleCancelOutcomeConfirm}
         />
       )}

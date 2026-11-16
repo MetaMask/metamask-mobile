@@ -11,18 +11,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
-import {
-  CANCELLATION_TIMINGS,
-  type CancellationTiming,
-} from '../CancelMembership.utils';
+import { CANCELLATION_TIMINGS } from '../CancelMembership.utils';
 
-export interface CancelPostCancelSheetProps {
-  /** Timing of the cancellation that just succeeded. */
-  timing: CancellationTiming;
-  /** Formatted period end, e.g. `Jul 20, 2027`. Undefined when unavailable. */
-  periodEndDate: string | undefined;
+/** Sheet content. A period-end cancellation always includes its renewal date. */
+export type CancelPostCancelSheetContent =
+  | {
+      timing: typeof CANCELLATION_TIMINGS.IMMEDIATE;
+    }
+  | {
+      timing: typeof CANCELLATION_TIMINGS.PERIOD_END;
+      /** Formatted period end, e.g. `Jul 20, 2027`. */
+      periodEndDate: string;
+    };
+
+export type CancelPostCancelSheetProps = CancelPostCancelSheetContent & {
   onConfirm: () => void;
-}
+};
 
 /**
  * Confirmation shown after a successful cancellation.
@@ -31,34 +35,24 @@ export interface CancelPostCancelSheetProps {
  * Android back, and there is no header close button. "Got it" is the only exit.
  */
 const CancelPostCancelSheet = ({
-  timing,
-  periodEndDate,
   onConfirm,
+  ...content
 }: CancelPostCancelSheetProps) => {
-  const isImmediate = timing === CANCELLATION_TIMINGS.IMMEDIATE;
+  const isImmediate = content.timing === CANCELLATION_TIMINGS.IMMEDIATE;
 
-  let title: string;
-  let description: string;
-  if (isImmediate) {
-    title = strings(
-      'pro_hub.cancel_membership.post_cancel_sheet.immediate_title',
-    );
-    description = strings(
-      'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
-    );
-  } else {
-    title = strings(
-      'pro_hub.cancel_membership.post_cancel_sheet.period_end_title',
-    );
-    description = periodEndDate
-      ? strings(
-          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
-          { date: periodEndDate },
-        )
-      : strings(
-          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description_no_date',
-        );
-  }
+  const title = strings(
+    isImmediate
+      ? 'pro_hub.cancel_membership.post_cancel_sheet.immediate_title'
+      : 'pro_hub.cancel_membership.post_cancel_sheet.period_end_title',
+  );
+  const description = isImmediate
+    ? strings(
+        'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+      )
+    : strings(
+        'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
+        { date: content.periodEndDate },
+      );
 
   return (
     <BottomSheet

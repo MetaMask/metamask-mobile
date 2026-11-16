@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import CancelPostCancelSheet from './CancelPostCancelSheet';
+import CancelPostCancelSheet, {
+  type CancelPostCancelSheetContent,
+} from './CancelPostCancelSheet';
 import { CancelMembershipTestIds } from '../CancelMembership.testIds';
 import { CANCELLATION_TIMINGS } from '../CancelMembership.utils';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,16 +24,14 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 const renderSheet = (
-  overrides: Partial<React.ComponentProps<typeof CancelPostCancelSheet>> = {},
+  content: CancelPostCancelSheetContent = {
+    timing: CANCELLATION_TIMINGS.PERIOD_END,
+    periodEndDate: 'Jul 20, 2027',
+  },
 ) => {
   const onConfirm = jest.fn();
   const utils = render(
-    <CancelPostCancelSheet
-      timing={CANCELLATION_TIMINGS.PERIOD_END}
-      periodEndDate="Jul 20, 2027"
-      onConfirm={onConfirm}
-      {...overrides}
-    />,
+    <CancelPostCancelSheet {...content} onConfirm={onConfirm} />,
   );
   return { ...utils, onConfirm };
 };
@@ -71,25 +71,9 @@ describe('CancelPostCancelSheet', () => {
     );
   });
 
-  it('falls back to period-end copy without a date when the date is unavailable', () => {
-    const { getByTestId } = renderSheet({
-      timing: CANCELLATION_TIMINGS.PERIOD_END,
-      periodEndDate: undefined,
-    });
-
-    expect(
-      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
-    ).toHaveTextContent(
-      strings(
-        'pro_hub.cancel_membership.post_cancel_sheet.period_end_description_no_date',
-      ),
-    );
-  });
-
-  it('shows the immediate copy and ignores any date for an immediate cancellation', () => {
+  it('shows the immediate copy for an immediate cancellation', () => {
     const { getByTestId } = renderSheet({
       timing: CANCELLATION_TIMINGS.IMMEDIATE,
-      periodEndDate: 'Jul 20, 2027',
     });
 
     expect(
@@ -99,7 +83,11 @@ describe('CancelPostCancelSheet', () => {
     );
     expect(
       getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
-    ).not.toHaveTextContent('Jul 20, 2027');
+    ).toHaveTextContent(
+      strings(
+        'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+      ),
+    );
   });
 
   it('calls onConfirm when Got it is pressed', () => {

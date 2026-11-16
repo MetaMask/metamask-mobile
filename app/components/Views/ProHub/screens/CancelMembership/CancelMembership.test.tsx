@@ -598,6 +598,23 @@ describe('CancelMembership', () => {
     expectPostCancellationReset();
   });
 
+  it('does not cancel a period-end membership when the renewal date cannot be shown', async () => {
+    mockGetSubscriptionByProduct.mockReturnValue({
+      ...PLUS_SUBSCRIPTION,
+      currentPeriodEnd: 'not-a-date',
+    });
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockCancelSubscription).not.toHaveBeenCalled();
+  });
+
   it('does not cancel when the subscription disallows cancellation', async () => {
     mockGetSubscriptionByProduct.mockReturnValue({
       ...PLUS_SUBSCRIPTION,
