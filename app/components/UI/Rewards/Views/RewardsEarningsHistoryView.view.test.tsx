@@ -5,11 +5,9 @@
  */
 import '../../../../../tests/component-view/mocks';
 import { act, fireEvent, within } from '@testing-library/react-native';
-import Routes from '../../../../constants/navigation/Routes';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
-import { getRouteParamsProbeTestId } from '../../../../../tests/component-view/render';
 import { renderEarningsHistory } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import {
   EARNINGS_HISTORY_ROW,
@@ -113,15 +111,11 @@ describe('RewardsEarningsHistoryView', () => {
 
     fireEvent.press(getByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER));
 
-    const paramsProbe = await findByTestId(
-      getRouteParamsProbeTestId(Routes.MODAL.REWARDS_INFO_SHEET_MODAL),
-    );
-
-    expect(JSON.parse(String(paramsProbe.props.children))).toEqual(
-      expect.objectContaining({
-        title: REFERRAL_LOCALIZED_TEXT.rewardsPausedTitle,
-        description: REFERRAL_LOCALIZED_TEXT.rewardsPausedDescription,
-      }),
-    );
+    expect(
+      await findByText(REFERRAL_LOCALIZED_TEXT.rewardsPausedTitle),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(REFERRAL_LOCALIZED_TEXT.rewardsPausedDescription),
+    ).toBeOnTheScreen();
   });
 });

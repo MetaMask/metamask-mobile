@@ -4,7 +4,6 @@ import { BigNumber } from 'bignumber.js';
 import { useStyles } from '../../../../../component-library/hooks';
 import customAmountStyleSheet from '../../../../Views/confirmations/components/transactions/custom-amount/custom-amount.styles';
 import {
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -24,6 +23,9 @@ import { InfoRowVariant } from '../../../../Views/confirmations/components/UI/in
 import { moneyFormatUsd } from '../../../../UI/Money/utils/moneyFormatFiat';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { ConfirmMembershipApprovalTestIds } from '../../ConfirmMembershipApproval.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ConfirmMembershipContentProps {
   monthlyAmount: string;
@@ -72,8 +74,10 @@ function getConfirmButtonLabel(isTrial: boolean) {
 }
 
 function Header({ onClose }: { onClose: () => void }) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   return (
-    <BottomSheetHeader
+    <BottomSheetHeaderGlass
+      isGlass={isGlassHeader}
       onClose={onClose}
       closeButtonProps={{
         testID: ConfirmMembershipApprovalTestIds.CLOSE_BUTTON,
@@ -82,7 +86,7 @@ function Header({ onClose }: { onClose: () => void }) {
       <Text variant={TextVariant.HeadingSm}>
         {strings('confirm_membership.title')}
       </Text>
-    </BottomSheetHeader>
+    </BottomSheetHeaderGlass>
   );
 }
 

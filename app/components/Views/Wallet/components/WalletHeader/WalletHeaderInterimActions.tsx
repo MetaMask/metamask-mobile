@@ -135,12 +135,10 @@ const WalletHeaderInterimActions = ({
         twClassName={HEADER_ICON_BUTTON_CLASS}
       />
       {secondaryAction}
-      {!isSocialLayout ? (
-        <WalletHeaderMenuButton
-          handleHamburgerPress={handleHamburgerPress}
-          touchAreaSlop={touchAreaSlop}
-        />
-      ) : null}
+      <WalletHeaderMenuButton
+        handleHamburgerPress={handleHamburgerPress}
+        touchAreaSlop={touchAreaSlop}
+      />
     </Box>
   );
 };

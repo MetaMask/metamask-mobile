@@ -1,5 +1,6 @@
 import type { SocialFeedInlineRow } from '../components/SocialFeed.types';
 import type { SocialV1FeedPost } from '../types';
+import { getFeedItemId } from './feedItemId';
 
 /** One row of a virtualized feed: a post, a host row, or the empty state. */
 export type SocialFeedListItem =
@@ -42,11 +43,13 @@ export const buildSocialFeedListItems = (
   return items;
 };
 
-/** Stable key for a list row. Posts keep the key they had before rows mixed in. */
+/** Stable key for a list row. A post keeps its key across realtime revisions. */
 export const getSocialFeedListItemKey = (item: SocialFeedListItem): string => {
   switch (item.kind) {
     case 'post':
-      return item.post.position?.positionId ?? item.post.id;
+      return item.post.position
+        ? getFeedItemId(item.post.position)
+        : item.post.id;
     case 'inline':
       return `inline-${item.row.key}`;
     case 'placeholder':

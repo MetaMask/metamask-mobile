@@ -287,6 +287,23 @@ describe('MfaMethodDetails', () => {
     expect(getByText('Passkey #2 - 1Password')).toBeOnTheScreen();
   });
 
+  it('shows when the passkey was created and last used', () => {
+    const { getByTestId } = renderDetails({ method: 'passkey', index: 0 }, [
+      {
+        ...passkey,
+        enrolledAt: new Date(2026, 9, 10).getTime(),
+        lastUsedAt: new Date(2026, 9, 12).getTime(),
+      },
+    ]);
+
+    expect(getByTestId(MfaMethodDetailsSelectorsIDs.CREATED)).toHaveTextContent(
+      'CreatedOct 10, 2026',
+    );
+    expect(
+      getByTestId(MfaMethodDetailsSelectorsIDs.LAST_USED),
+    ).toHaveTextContent('Last usedOct 12, 2026');
+  });
+
   it('renders nothing once the method is gone', () => {
     const { queryByTestId } = renderDetails(
       { method: 'passkey', index: 0 },

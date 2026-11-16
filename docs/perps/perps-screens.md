@@ -447,8 +447,10 @@ State:
 Calculations:
   ├─ closeAmount = position.size * (closePercentage / 100)
   ├─ closingValue = positionValue * (closePercentage / 100)
-  ├─ effectivePnL = calculated based on effective price
-  └─ receiveAmount = margin + pnl - fees
+  └─ estimateCloseReceive (@metamask/perps-controller): margin returned,
+     PnL at the close price (limit price, else live price), fee at the
+     quoted rate, and receive; each undefined (shown as --) while an input
+     is missing
 
 User action: Confirm → handleClosePosition()
 ```

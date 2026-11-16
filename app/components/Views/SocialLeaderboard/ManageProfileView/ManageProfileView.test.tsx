@@ -125,6 +125,7 @@ const controllerResult = (
   disconnectX: jest.fn().mockResolvedValue(undefined),
   getXAuthorizationUrl: jest.fn(),
   checkUsernameAvailability: jest.fn(),
+  checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
   ...overrides,
 });
 
@@ -147,6 +148,8 @@ describe('ManageProfileView', () => {
         address: MOCK_ADDRESS_2.toLowerCase(),
         balanceLabel: '$10.00',
         linkedAddresses: [`eip155:1:${MOCK_ADDRESS_2.toLowerCase()}`],
+        accountGroup: null,
+        walletTitle: '',
       },
     ]);
   });

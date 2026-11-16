@@ -7,6 +7,8 @@ import {
 } from '../../../../selectors/accountsController';
 import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { areAddressesEqual } from '../../../../util/address';
+import { strings } from '../../../../../locales/i18n';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
 
 /**
@@ -16,7 +18,15 @@ import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccoun
  */
 export function useFundingAccountName(): string {
   const primaryToken = useSelector(selectCardPrimaryToken);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const fundingWalletAddress = primaryToken?.walletAddress;
+  const isMoneyAccountFunding =
+    primaryToken?.isMoneyAccountEntry === true ||
+    Boolean(
+      fundingWalletAddress &&
+        primaryMoneyAccount?.address &&
+        areAddressesEqual(fundingWalletAddress, primaryMoneyAccount.address),
+    );
   const fundingAccount = useSelector((state: RootState) =>
     fundingWalletAddress
       ? getMemoizedInternalAccountByAddress(state, fundingWalletAddress)
@@ -25,6 +35,10 @@ export function useFundingAccountName(): string {
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const selectedGroupName = useAccountGroupName();
+
+  if (isMoneyAccountFunding) {
+    return strings('card.card_spending_limit.money_account_label');
+  }
 
   const account = fundingAccount ?? selectedAccount;
   if (!account) {

@@ -77,6 +77,16 @@ test('unfiltered HyperExecute tasks retain strict no-tests failure behavior', ()
   assert.equal(args.includes('--pass-with-no-tests'), false);
 });
 
+test('dev onboarding specs use the dev onboarding TestMu project', () => {
+  const args = runWithFakeYarn(
+    '',
+    'tests/performance/dev-onboarding/social-onboarding.spec.ts',
+    'dev-onboarding',
+  );
+
+  assert.ok(args.includes('testmu-android-dev-onboarding'));
+});
+
 test('seedless onboarding specs use the seedless TestMu project', () => {
   const args = runWithFakeYarn(
     '',

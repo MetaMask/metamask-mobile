@@ -12,13 +12,12 @@ import {
   resetWithRoutes,
 } from '../../../../../util/navigation/navUtils';
 import {
-  Box,
-  Label,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Checkbox,
   TextField,
 } from '@metamask/design-system-react-native';
@@ -26,6 +25,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import SelectField from './SelectField';
+import CardFormField from './CardFormField';
 import type { ShippingAddress } from '../../Views/ReviewOrder';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import { useDispatch, useSelector } from 'react-redux';
@@ -51,7 +51,6 @@ import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -122,12 +121,11 @@ export const AddressFields = ({
   return (
     <>
       {/* Address Line 1 */}
-      <Box>
-        <Label>
-          {strings(
-            'card.card_onboarding.physical_address.address_line_1_label',
-          )}
-        </Label>
+      <CardFormField
+        label={strings(
+          'card.card_onboarding.physical_address.address_line_1_label',
+        )}
+      >
         <TextField
           onChangeText={handleAddressLine1Change}
           value={addressLine1}
@@ -143,14 +141,13 @@ export const AddressFields = ({
             testID: 'address-line-1-input',
           }}
         />
-      </Box>
+      </CardFormField>
       {/* Address Line 2 */}
-      <Box>
-        <Label>
-          {strings(
-            'card.card_onboarding.physical_address.address_line_2_label',
-          )}
-        </Label>
+      <CardFormField
+        label={strings(
+          'card.card_onboarding.physical_address.address_line_2_label',
+        )}
+      >
         <TextField
           onChangeText={handleAddressLine2Change}
           value={addressLine2}
@@ -166,12 +163,11 @@ export const AddressFields = ({
             testID: 'address-line-2-input',
           }}
         />
-      </Box>
+      </CardFormField>
       {/* City */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.physical_address.city_label')}
-        </Label>
+      <CardFormField
+        label={strings('card.card_onboarding.physical_address.city_label')}
+      >
         <TextField
           onChangeText={handleCityChange}
           value={city}
@@ -187,25 +183,32 @@ export const AddressFields = ({
             testID: 'city-input',
           }}
         />
-      </Box>
+      </CardFormField>
       {/* State */}
       {selectedCountry?.key === 'US' && (
-        <Box>
-          <Label>
-            {strings('card.card_onboarding.physical_address.state_label')}
-          </Label>
+        <CardFormField
+          label={strings('card.card_onboarding.physical_address.state_label')}
+        >
           <SelectField
             value={state}
+            placeholder={strings(
+              'card.card_onboarding.physical_address.state_placeholder',
+            )}
             onPress={handleStateSelect}
             testID="state-select"
+            accessibilityLabel={`${strings(
+              'card.card_onboarding.physical_address.state_label',
+            )}, ${
+              state ||
+              strings('card.card_onboarding.physical_address.state_placeholder')
+            }`}
           />
-        </Box>
+        </CardFormField>
       )}
       {/* ZIP Code */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.physical_address.zip_code_label')}
-        </Label>
+      <CardFormField
+        label={strings('card.card_onboarding.physical_address.zip_code_label')}
+      >
         <TextField
           onChangeText={handleZipCodeChange}
           value={zipCode}
@@ -221,21 +224,19 @@ export const AddressFields = ({
             testID: 'zip-code-input',
           }}
         />
-      </Box>
+      </CardFormField>
       {/* Country (read-only) */}
-      <Box>
-        <Label>
-          {strings('card.card_onboarding.physical_address.country_label')}
-        </Label>
+      <CardFormField
+        label={strings('card.card_onboarding.physical_address.country_label')}
+      >
         <SelectField value={selectedCountry?.name} />
-      </Box>
+      </CardFormField>
     </>
   );
 };
 
 const PhysicalAddress = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
@@ -691,30 +692,31 @@ const PhysicalAddress = () => {
           isSelected={electronicConsent}
           onChange={handleElectronicConsentToggle}
           label={
-            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
-              <Text
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              twClassName="ml-3 flex-1"
+            >
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_1',
+              )}
+              <TextButton
                 variant={TextVariant.BodySm}
-                twClassName="text-text-alternative"
+                onPress={openESignConsentDisclosureUS}
               >
                 {strings(
-                  'card.card_onboarding.physical_address.electronic_consent_1',
+                  'card.card_onboarding.physical_address.electronic_consent_2',
                 )}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openESignConsentDisclosureUS}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.electronic_consent_2',
-                  )}
-                </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.electronic_consent_3',
-                )}
-              </Text>
-            </Box>
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.electronic_consent_3',
+              )}
+            </Text>
           }
-          twClassName="h-auto flex-row items-start"
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          twClassName="items-start"
           testID="physical-address-electronic-consent-checkbox"
         />
       )}
@@ -724,30 +726,31 @@ const PhysicalAddress = () => {
           isSelected={coinmeConsent}
           onChange={handleCoinmeConsentToggle}
           label={
-            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
-              <Text
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              twClassName="ml-3 flex-1"
+            >
+              {strings(
+                'card.card_onboarding.physical_address.coinme_terms_consent_1',
+              )}
+              <TextButton
                 variant={TextVariant.BodySm}
-                twClassName="text-text-alternative"
+                onPress={openCoinmeTerms}
               >
                 {strings(
-                  'card.card_onboarding.physical_address.coinme_terms_consent_1',
+                  'card.card_onboarding.physical_address.coinme_terms_consent_2',
                 )}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openCoinmeTerms}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.coinme_terms_consent_2',
-                  )}
-                </Text>
-                {strings(
-                  'card.card_onboarding.physical_address.coinme_terms_consent_3',
-                )}
-              </Text>
-            </Box>
+              </TextButton>
+              {strings(
+                'card.card_onboarding.physical_address.coinme_terms_consent_3',
+              )}
+            </Text>
           }
-          twClassName="h-auto flex-row items-start"
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          twClassName="items-start"
           testID="physical-address-coinme-terms-checkbox"
         />
       )}
@@ -757,93 +760,66 @@ const PhysicalAddress = () => {
           isSelected={crbConsent}
           onChange={handleCrbConsentToggle}
           label={
-            <Box style={tw.style('flex-1 flex-shrink mr-2 -mt-1')}>
-              <Text
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              // A node label skips Checkbox's string-label ml-3, so mirror it.
+              twClassName="ml-3 flex-1"
+            >
+              {strings('card.card_onboarding.physical_address.crb_consent_1')}
+              <TextButton variant={TextVariant.BodySm} onPress={openCrbTerms}>
+                {strings('card.card_onboarding.physical_address.crb_consent_2')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_3')}
+              <TextButton
                 variant={TextVariant.BodySm}
-                twClassName="text-text-alternative"
+                onPress={openCrbAccountOpening}
               >
-                {strings('card.card_onboarding.physical_address.crb_consent_1')}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openCrbTerms}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.crb_consent_2',
-                  )}
-                </Text>
-                {strings('card.card_onboarding.physical_address.crb_consent_3')}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openCrbAccountOpening}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.crb_consent_4',
-                  )}
-                </Text>
-                {strings('card.card_onboarding.physical_address.crb_consent_5')}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openCrbPrivacyNotice}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.crb_consent_6',
-                  )}
-                </Text>
-                {strings('card.card_onboarding.physical_address.crb_consent_7')}
-                <Text
-                  variant={TextVariant.BodySm}
-                  twClassName="text-primary-default underline"
-                  onPress={openCrbPrivacyPolicy}
-                >
-                  {strings(
-                    'card.card_onboarding.physical_address.crb_consent_8',
-                  )}
-                </Text>
-                {strings('card.card_onboarding.physical_address.crb_consent_9')}
-              </Text>
-            </Box>
+                {strings('card.card_onboarding.physical_address.crb_consent_4')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_5')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyNotice}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_6')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_7')}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={openCrbPrivacyPolicy}
+              >
+                {strings('card.card_onboarding.physical_address.crb_consent_8')}
+              </TextButton>
+              {strings('card.card_onboarding.physical_address.crb_consent_9')}
+            </Text>
           }
-          twClassName="h-auto flex-row items-start"
+          // Top-align the box with multi-line legal copy (DS gap: Checkbox has
+          // no top-align option).
+          twClassName="items-start"
           testID="physical-address-crb-consent-checkbox"
         />
       )}
-    </>
-  );
-
-  const renderActions = () => (
-    <Box twClassName="flex flex-col justify-center gap-2">
       {registerIsError ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="physical-address-register-error"
-          twClassName="text-error-default"
         >
           {registerError}
-        </Text>
+        </HelpText>
       ) : consentIsError ? (
-        <Text
-          variant={TextVariant.BodySm}
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
           testID="physical-address-consent-error"
-          twClassName="text-error-default"
         >
           {consentError}
-        </Text>
+        </HelpText>
       ) : null}
-      <Button
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Lg}
-        onPress={handleContinue}
-        isFullWidth
-        isDisabled={isDisabled}
-        isLoading={registerLoading || isPollingVerification}
-        testID="physical-address-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
-    </Box>
+    </>
   );
 
   return (
@@ -851,7 +827,13 @@ const PhysicalAddress = () => {
       title={strings('card.card_onboarding.physical_address.title')}
       description={strings('card.card_onboarding.physical_address.description')}
       formFields={renderFormFields()}
-      actions={renderActions()}
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: registerLoading || isPollingVerification,
+        testID: 'physical-address-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

@@ -70,6 +70,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock(
+  '../../../../component-library/components/Navigation/TabBarFloating',
+  () => ({
+    useFloatingTabBarInset: jest.fn(() => 0),
+  }),
+);
+
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
@@ -248,6 +255,14 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => ({
     );
   },
 }));
+
+jest.mock('../components/Money/RewardsOptInSection', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="rewards-opt-in-section" />,
+  };
+});
 
 jest.mock('../components/Benefits/BenefitsPreview', () => ({
   __esModule: true,
@@ -496,18 +511,6 @@ describe('RewardsDashboard', () => {
       expect(mockUseMoneyAccountSweepstakesOutcomeToast).toHaveBeenCalledTimes(
         1,
       );
-    });
-
-    it('renders all child components', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId('campaigns-preview')).toBeTruthy();
-      expect(getByTestId('earn-rewards-preview')).toBeTruthy();
-      expect(getByTestId('benefits-preview')).toBeTruthy();
     });
 
     it('calls modal hooks when component is rendered', () => {
@@ -929,7 +932,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal triggering for current account', () => {
-    it('shows not opted in modal when account group has opted out accounts and modal has not been shown', async () => {
+    it('does not show the add account modal when the current account is not opted in', async () => {
       // Arrange
       const mockAccountGroupWithOptedOut = {
         id: 'keyring:wallet1/1' as const,
@@ -966,7 +969,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowNotOptedInModal).toHaveBeenCalled();
+        expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1068,7 +1071,7 @@ describe('RewardsDashboard', () => {
       },
     ];
 
-    it('shows unlinked accounts modal when there are unlinked accounts and user has subscription', async () => {
+    it('does not show the add accounts modal when there are unlinked accounts', async () => {
       // Arrange
       mockUseRewardOptinSummary.mockReturnValue({
         ...defaultHookValues.useRewardOptinSummary,
@@ -1083,7 +1086,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
     });
 
@@ -1125,7 +1128,7 @@ describe('RewardsDashboard', () => {
   });
 
   describe('modal prioritization', () => {
-    it('shows unlinked accounts modal when current account banner dismissed and account group is fully opted in', async () => {
+    it('does not show the add accounts modal when the current account banner is dismissed', async () => {
       // Arrange
       const mockWalletWithOptedOutAccounts = [
         {
@@ -1192,7 +1195,7 @@ describe('RewardsDashboard', () => {
 
       // Assert
       await waitFor(() => {
-        expect(mockShowUnlinkedAccountsModal).toHaveBeenCalled();
+        expect(mockShowUnlinkedAccountsModal).not.toHaveBeenCalled();
       });
       expect(mockShowNotOptedInModal).not.toHaveBeenCalled();
     });

@@ -3,7 +3,7 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
 import {
-  RecurringSwapStatus,
+  RecurringSwapState,
   type RecurringOrder,
   type RecurringSchedule,
   type RecurringSwap,
@@ -40,7 +40,7 @@ export function isRecurringSwapEligibleForAddFunds(
   orderedSwaps: readonly RecurringSwap[],
 ): boolean {
   if (
-    swap.status !== RecurringSwapStatus.Skipped ||
+    swap.state !== RecurringSwapState.Skipped ||
     swap.skipReason !== 'insufficient_balance'
   ) {
     return false;
@@ -53,7 +53,7 @@ export function isRecurringSwapEligibleForAddFunds(
 
   return !orderedSwaps
     .slice(0, swapIndex)
-    .some(({ status }) => status === RecurringSwapStatus.Filled);
+    .some(({ state }) => state === RecurringSwapState.Filled);
 }
 
 export function formatRecurringTokenAmount(

@@ -30,6 +30,7 @@ const UNSUPPORTED: PredictTrendingFeed = {
 export const usePredictTrendingFeed = ({
   tab = 'now',
   query,
+  performance,
   refresh,
   enabled = true,
 }: UsePredictTrendingFeedOptions = {}): PredictTrendingFeed => {
@@ -44,6 +45,7 @@ export const usePredictTrendingFeed = ({
   const legacy = usePredictionsFeed({
     variant: PREDICT_SURFACE_FEED_KEYS.exploreTabs[tab],
     query,
+    performance,
     refresh,
     enabled: enabled && isLegacy,
   });

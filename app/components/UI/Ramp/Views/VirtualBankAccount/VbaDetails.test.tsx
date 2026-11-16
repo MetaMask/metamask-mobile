@@ -2,13 +2,17 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Share from 'react-native-share';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import ReduxService from '../../../../../core/redux';
-import { updateBgState } from '../../../../../core/redux/slices/engine';
+import {
+  initBgState,
+  updateBgState,
+} from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
@@ -35,7 +39,7 @@ import {
   startVbaCufChildTrace,
 } from './vbaCufTrace';
 import { VBA_CUF_END_REASON } from './vbaCufTags';
-import { AVENIA_URL } from './constants';
+import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
 
 const mockNavigate = jest.fn();
@@ -51,8 +55,11 @@ const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
-let mockRouteParams: { sourceCurrency?: string } | undefined;
 let mockChooseCurrency = false;
+const DEFAULT_NEOBANK_MARKETS = [
+  { currency: 'BRL', regions: ['BR'] },
+  { currency: 'USD', regions: ['US'] },
+];
 let mockRegionOverride: string | undefined;
 let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
@@ -76,6 +83,10 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+jest.mock('react-native-share', () => ({
+  open: jest.fn(() => Promise.resolve()),
+}));
+
 const mockNavigation = {
   canGoBack: () => mockCanGoBack,
   goBack: (...args: unknown[]) => mockGoBack(...args),
@@ -85,7 +96,6 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   // Stable like the real hook, so effects keyed on navigation do not rerun.
   useNavigation: () => mockNavigation,
-  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
@@ -98,13 +108,13 @@ jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
   );
   return {
     ...actual,
+    selectNeobankMarkets: (state: unknown) =>
+      mockNeobankFlagOn
+        ? DEFAULT_NEOBANK_MARKETS
+        : actual.selectNeobankMarkets(state),
     selectMoneyMovementNeobank: (state: unknown) =>
       mockNeobankFlagOn
         ? {
-            isEnabled: true,
-            regions: ['BR', 'US'],
-            regionCurrencies: { BR: 'BRL', US: 'USD' },
-            defaultCurrency: undefined,
             chooseCurrency: mockChooseCurrency,
             regionOverride: mockRegionOverride,
           }
@@ -257,7 +267,6 @@ describe('VbaDetails', () => {
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
-    mockRouteParams = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
     mockNeobankFlagOn = true;
@@ -317,7 +326,7 @@ describe('VbaDetails', () => {
   it('shows the Brazil provider disclosure on the Pix layout', async () => {
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -329,6 +338,9 @@ describe('VbaDetails', () => {
         'virtual_bank_account.vba_details.provider_disclosure_link',
       )}`,
     );
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens Avenia from the provider disclosure link', async () => {
@@ -676,6 +688,37 @@ describe('VbaDetails', () => {
       expect(
         queryByTestId(VbaDetailsSelectorsIDs.PROVIDER_DISCLOSURE_LINK),
       ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+      ).toHaveTextContent(
+        `${strings('virtual_bank_account.vba_details.risk_disclosure')} ${strings(
+          'virtual_bank_account.vba_details.provider_disclosure_link',
+        ).replace(/ /g, '\u00A0')}`,
+      );
+      expect(strings('virtual_bank_account.vba_details.risk_disclosure')).toBe(
+        'Buying or selling crypto-assets can be risky. Once broadcast to the blockchain, a crypto-asset transfer is irreversible.',
+      );
+    });
+
+    it('opens the MoonPay risk page from the USD disclaimer', async () => {
+      const openURLSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK),
+        ).toBeOnTheScreen();
+      });
+
+      const link = getByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK);
+      expect(link).toHaveProp('accessibilityRole', 'link');
+      fireEvent.press(link);
+
+      expect(openURLSpy).toHaveBeenCalledWith(MOONPAY_RISK_URL);
+      openURLSpy.mockRestore();
     });
 
     it('copies the routing number', async () => {
@@ -696,8 +739,43 @@ describe('VbaDetails', () => {
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
     });
 
+    it('copies every US bank row and opens the share sheet', async () => {
+      mockGetDepositInstructions.mockResolvedValue(usBankInstructions);
+
+      const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON));
+      });
+
+      const bankDetails = [
+        'Account holder',
+        'Jane Doe',
+        '',
+        'Routing number',
+        '021000021',
+        '',
+        'Account number',
+        '123456789',
+        '',
+        'Bank name',
+        'Lead Bank',
+      ].join('\n');
+      expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(Share.open).toHaveBeenCalledWith({
+        message: bankDetails,
+        failOnCancel: false,
+      });
+    });
+
     it('renders cached US bank details immediately for a USD account', () => {
-      mockRouteParams = { sourceCurrency: 'USD' };
+      mockLocation = 'US';
       setAutoramps([
         {
           id: 'ar-1',
@@ -728,7 +806,7 @@ describe('VbaDetails', () => {
     });
 
     it('shows the bank transfer title while USD instructions are loading', async () => {
-      mockRouteParams = { sourceCurrency: 'USD' };
+      mockLocation = 'US';
       setAutoramps([
         {
           id: 'ar-1',
@@ -761,7 +839,7 @@ describe('VbaDetails', () => {
     });
 
     it('shows the Pix title when the loaded rail is Pix, even if USD was requested', async () => {
-      mockRouteParams = { sourceCurrency: 'USD' };
+      mockLocation = 'US';
       setAutoramps([
         {
           id: 'ar-1',
@@ -782,7 +860,7 @@ describe('VbaDetails', () => {
     it('shows the Pix rows when the autoramp has a Pix rail', async () => {
       mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
-      const { getByTestId } = renderWithProvider(<VbaDetails />);
+      const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
       await waitFor(() => {
         expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
@@ -790,6 +868,9 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
         strings('virtual_bank_account.vba_details.title'),
       );
+      expect(
+        queryByTestId(VbaDetailsSelectorsIDs.COPY_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('keeps the loading skeleton until a supported rail arrives', async () => {
@@ -1345,7 +1426,6 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     const brlTraceId = mockStartVbaCufChildTrace.mock.results.at(-1)?.value;
-    mockRouteParams = { sourceCurrency: 'USD' };
     mockLocation = 'US';
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
@@ -1358,6 +1438,10 @@ describe('VbaDetails', () => {
       };
       setAutoramps([created]);
       return created;
+    });
+    // A fresh store state makes `useSelector` re-read the mocked location.
+    act(() => {
+      view.store.dispatch(initBgState());
     });
     view.rerender(<VbaDetails />);
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
@@ -1385,9 +1469,8 @@ describe('VbaDetails', () => {
     ).toBeNull();
   });
 
-  it('creates the autoramp in the currency picked on Choose Currency', async () => {
+  it('ignores chooseCurrency and creates in the market currency', async () => {
     mockChooseCurrency = true;
-    mockRouteParams = { sourceCurrency: 'USD' };
     setAutoramps([]);
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
 
@@ -1396,42 +1479,10 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockCreateAutoramp).toHaveBeenCalledWith(
         expect.objectContaining({
-          source_currencies: [{ type: 'Fiat', code: 'USD' }],
+          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
         }),
       );
     });
-  });
-
-  it('ignores an EUR route param and does not create an account', async () => {
-    mockChooseCurrency = true;
-    mockRouteParams = { sourceCurrency: 'EUR' };
-    setAutoramps([]);
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
-        expect.anything(),
-        'accountCreateGeneric',
-      );
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('opens the generic error instead of using the region when chooseCurrency is on and no currency was picked', async () => {
-    mockChooseCurrency = true;
-    setAutoramps([]);
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
-        expect.anything(),
-        'accountCreateGeneric',
-      );
-    });
-    expect(mockHydrate).not.toHaveBeenCalled();
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('opens the generic error when account creation fails', async () => {
@@ -1504,11 +1555,14 @@ describe('VbaDetails', () => {
   it('shows a load error when account details fail', async () => {
     mockGetDepositInstructions.mockRejectedValue(new Error('details failed'));
 
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
     });
+    expect(
+      queryByTestId(VbaDetailsSelectorsIDs.RISK_DISCLOSURE),
+    ).not.toBeOnTheScreen();
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,

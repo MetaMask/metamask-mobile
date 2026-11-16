@@ -37,6 +37,7 @@ import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 const mockInitiateMoneyDeposit = jest.fn();
 const mockTrackMoneyButtonClicked = jest.fn();
 const mockNavigateToPerpsHome = jest.fn();
@@ -95,15 +96,14 @@ jest.mock('../../context/HomepageScrollContext', () => ({
   }),
 }));
 
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: () => ({
+jest.mock('../../../../UI/Money/hooks/useMoneyHomeNavigation', () => ({
+  useMoneyHomeNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
   }),
 }));
-
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  useMoneyAccountDeposit: () => ({
-    initiateDeposit: mockInitiateMoneyDeposit,
+jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
+  useMoneyDepositNavigation: () => ({
+    navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
   }),
 }));
 
@@ -214,6 +214,43 @@ describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInitiateMoneyDeposit.mockResolvedValue(undefined);
+    mockNavigateToMoneyHome.mockImplementation(({ track } = {}) => {
+      if (!mockIsMoneyAccountGeoEligible) {
+        mockNavigate(Routes.MONEY.MODALS.ROOT, {
+          screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+        });
+        track?.({
+          button_intent: 'go_to_money_home',
+          redirect_target: 'money_geo_block_sheet',
+        });
+        return;
+      }
+
+      track?.({
+        button_intent: 'go_to_money_home',
+        redirect_target: 'money_home',
+      });
+    });
+    mockNavigateToMoneyDeposit.mockImplementation(
+      async ({ track, ...options }) => {
+        if (!mockIsMoneyAccountGeoEligible) {
+          track?.({
+            button_intent: 'add_money',
+            redirect_target: 'money_geo_block_sheet',
+          });
+          mockNavigate(Routes.MONEY.MODALS.ROOT, {
+            screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+          });
+          return;
+        }
+
+        track?.({
+          button_intent: 'add_money',
+          redirect_target: 'money_deposit',
+        });
+        await mockInitiateMoneyDeposit(options);
+      },
+    );
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
@@ -752,7 +789,9 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
     });
-    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({
+      analyticsContext: expect.any(Object),
+    });
   });
 
   it('keeps Money Add visible and shows an error warning for failed rows', () => {

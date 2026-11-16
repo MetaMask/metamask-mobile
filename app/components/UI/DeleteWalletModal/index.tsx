@@ -21,7 +21,6 @@ import {
   AvatarIconSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -36,12 +35,15 @@ import {
   TextVariant,
   TitleAlert,
 } from '@metamask/design-system-react-native';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 if (Device.isAndroid() && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 const DeleteWalletModal: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { isEnabled } = useAnalytics();
@@ -128,7 +130,8 @@ const DeleteWalletModal: React.FC = () => {
     >
       {showForgotPassword ? (
         <>
-          <BottomSheetHeader
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
             onClose={triggerClose}
             testID={ForgotPasswordModalSelectorsIDs.TITLE}
             closeButtonProps={{
@@ -136,7 +139,7 @@ const DeleteWalletModal: React.FC = () => {
             }}
           >
             {strings('login.forgot_password_desc')}
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}

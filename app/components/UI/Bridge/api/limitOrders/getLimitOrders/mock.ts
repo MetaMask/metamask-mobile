@@ -66,6 +66,7 @@ function createMockLimitOrder({
     // A booked order commits to its floor, so `amount` and `minAmount` match.
     dest: { asset: ETHEREUM_USDC, amount: destAmount, minAmount: destAmount },
     trigger: { kind: 'ratio', threshold: 'above', price: LIMIT_PRICE },
+    priceTolerance: 0.5,
     state,
     timingData: { createdAt, expiresAt, ...(closedAt ? { closedAt } : {}) },
     isCancellable: state === LimitOrderState.Open,

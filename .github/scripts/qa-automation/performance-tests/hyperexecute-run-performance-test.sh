@@ -30,6 +30,9 @@ select_project_args() {
         echo --project "${PROJECT_PREFIX}-onboarding"
       fi
       ;;
+    dev-onboarding)
+      echo --project testmu-android-dev-onboarding
+      ;;
     imported-wallet)
       echo --project "$PROJECT_PREFIX"
       ;;

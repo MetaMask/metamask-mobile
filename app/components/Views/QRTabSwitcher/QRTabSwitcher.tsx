@@ -290,13 +290,13 @@ const QRTabSwitcher = () => {
         backdrop="none"
         containerStyle={isGlassHeader ? styles.overlay : undefined}
         style={isGlassHeader ? styles.header : [styles.overlay, styles.header]}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Close,
-            size: ButtonIconSize.Md,
-            onPress: goBack,
-          },
-        ]}
+        twClassName="px-2"
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          size: ButtonIconSize.Md,
+          onPress: goBack,
+          testID: 'qr-scanner-back-button',
+        }}
       />
 
       {/* QR scanner interface - camera view only */}

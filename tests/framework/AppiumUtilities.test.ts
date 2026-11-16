@@ -167,6 +167,29 @@ describe('AppiumUtilities.launchApp', () => {
     );
   });
 
+  it('relaunches a killed iOS app with the fixture arguments from the previous launch', async () => {
+    const launchPromise = AppiumUtilities.launchApp(iosDevice, {
+      launchArgs: {
+        fixtureServerPort: '5678',
+      },
+    });
+
+    await jest.advanceTimersByTimeAsync(2500);
+    await launchPromise;
+    executeMock.mockClear();
+
+    await AppiumUtilities.relaunchTerminatedApp(iosDevice);
+
+    expect(executeMock).toHaveBeenCalledWith(
+      'mobile: launchApp',
+      expect.objectContaining({
+        bundleId: 'io.metamask',
+        arguments: expect.arrayContaining(['-fixtureServerPort', '5678']),
+      }),
+    );
+    expect(terminateAppMock).toHaveBeenCalledTimes(1);
+  });
+
   it('launches local Android debug builds via Expo dev-client deep link', async () => {
     jest.useRealTimers();
     process.env.CI = 'false';

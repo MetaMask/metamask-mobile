@@ -23,7 +23,7 @@ A `"flaky": true` history entry widens the AI's scope for that one file from the
 
 Each analyzer process receives a single path in `--changed-files`. Finalize payload bounds keep that call inside the model's output-token cap:
 
-- `config.maxIterations: 6` in `mode.yaml`
+- `config.maxIterations: 12` in `mode.yaml`
 - at most 5 findings, highest severity first
 - `snippet` at most 12 lines; `suggestedFix` at most 20 lines
 - `explanation` at most 2 sentences; `reasoning` at most 3 sentences
