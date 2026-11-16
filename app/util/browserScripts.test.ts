@@ -585,13 +585,17 @@ describe('buildBlobIframeSrcdocScript', () => {
       }
     };
 
+    interface ObservedRecord {
+      type: string;
+      target?: object;
+      addedNodes?: object[];
+    }
+
     const installObservedFrame = (
       createObjectURL: (blob: { type?: string }) => string,
     ) => {
       const assigned: string[] = [];
-      const observers: ((
-        records: { type: string; target: object }[],
-      ) => void)[] = [];
+      const observers: ((records: ObservedRecord[]) => void)[] = [];
       const notifySrcObservers = (node: object): void => {
         queueMicrotask(() => {
           observers.forEach((notify) =>
@@ -633,9 +637,7 @@ describe('buildBlobIframeSrcdocScript', () => {
           },
         },
         MutationObserver: class {
-          constructor(
-            callback: (records: { type: string; target: object }[]) => void,
-          ) {
+          constructor(callback: (records: ObservedRecord[]) => void) {
             observers.push(callback);
           }
 
@@ -652,7 +654,7 @@ describe('buildBlobIframeSrcdocScript', () => {
       (sandbox.HTMLIFrameElement as { prototype: object }).prototype =
         iframeProto;
 
-      return { assigned, sandbox };
+      return { assigned, observers, sandbox };
     };
 
     const assignBlobFrame = (
@@ -764,6 +766,58 @@ describe('buildBlobIframeSrcdocScript', () => {
       expect(assigned).toEqual(['blob:https://example.com/untracked']);
       expect(iframe.srcdoc).toBeUndefined();
     });
+
+    // The parser writes src on these frames, so the src setter never runs and
+    // the childList record is the only signal the shim gets.
+    it.each([
+      ['added directly', 'iframe'],
+      ['nested inside an added wrapper', 'wrapper'],
+    ])(
+      'renders an html blob iframe that is %s',
+      async (_label, addedNodeName) => {
+        const html = '<html><head></head><body>chart</body></html>';
+        const { observers, sandbox } = installObservedFrame(
+          () => 'blob:unused',
+        );
+        sandbox.fetch = () =>
+          Promise.resolve({
+            blob: () =>
+              Promise.resolve({
+                type: 'text/html',
+                text: () => Promise.resolve(html),
+              }),
+          });
+        sandbox.window = sandbox;
+        const inserted = runInNewContext(
+          `${buildBlobIframeSrcdocScript()}
+            var iframe = Object.create(HTMLIFrameElement.prototype);
+            iframe.tagName = 'IFRAME';
+            iframe.getAttribute = function (name) {
+              return String(name).toLowerCase() === 'src'
+                ? 'blob:https://example.com/chart'
+                : null;
+            };
+            var wrapper = {
+              tagName: 'DIV',
+              querySelectorAll: function (selector) {
+                return selector === 'iframe' ? [iframe] : [];
+              }
+            };
+            ({ iframe: iframe, wrapper: wrapper });
+          `,
+          sandbox,
+        );
+
+        observers.forEach((notify) =>
+          notify([
+            { type: 'childList', addedNodes: [inserted[addedNodeName]] },
+          ]),
+        );
+        await drain();
+
+        expect(inserted.iframe.srcdoc).toBe(html);
+      },
+    );
 
     it('keeps the newer chart when an older blob read finishes later', async () => {
       const resolvers: ((html: string) => void)[] = [];

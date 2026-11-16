@@ -734,6 +734,26 @@ export const buildBlobIframeSrcdocScript = (): string =>
     };
   }
 
+  // A childList record lists only the roots of what was inserted. An iframe
+  // parsed from innerHTML or carried inside a wrapper element is a descendant
+  // of such a root, so the subtree is searched as well.
+  function collectIframes(node, found) {
+    if (!node) {
+      return;
+    }
+    if (node.tagName === 'IFRAME') {
+      found.push(node);
+      return;
+    }
+    if (typeof node.querySelectorAll !== 'function') {
+      return;
+    }
+    var nested = node.querySelectorAll('iframe');
+    for (var i = 0; i < nested.length; i++) {
+      found.push(nested[i]);
+    }
+  }
+
   function observeIframes() {
     if (!document.documentElement || typeof MutationObserver !== 'function') {
       return;
@@ -745,7 +765,7 @@ export const buildBlobIframeSrcdocScript = (): string =>
           nodes.push(record.target);
         } else if (record.addedNodes) {
           record.addedNodes.forEach(function (node) {
-            nodes.push(node);
+            collectIframes(node, nodes);
           });
         }
         nodes.forEach(function (node) {
