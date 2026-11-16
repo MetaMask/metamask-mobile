@@ -216,6 +216,7 @@ export const usePerpsHomeActions = (
         navigateToConfirmation({
           loader: 'customAmount' as ConfirmationLoader,
           stack: Routes.PERPS.ROOT,
+          forceBottomSheet: true,
         });
       }
 

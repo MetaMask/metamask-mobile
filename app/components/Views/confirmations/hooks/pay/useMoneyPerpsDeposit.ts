@@ -25,6 +25,7 @@ export function useMoneyPerpsDeposit() {
     navigateToConfirmation({
       stack: Routes.PERPS.ROOT,
       payWithOption: PayWithOption.MoneyAccount,
+      forceBottomSheet: true,
     });
 
     try {
