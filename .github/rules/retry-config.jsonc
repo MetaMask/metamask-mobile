@@ -4,9 +4,9 @@
 // Patterns adapted from Extension's retry-config.jsonc plus Mobile job names.
 {
   "defaults": {
-    // Jobs not matching any pattern use this category. Unmatched jobs trigger
-    // a warning in the report and a ci.retry.unmatchedJobCount Sentry
-    // attribute — add explicit patterns to avoid this.
+    // Any job that still matches nothing is non-retryable in
+    // classify-failures.mts. This value is not used for that decision.
+    // It remains so a report can name the old default.
     "unmatchedCategory": "retryableOnTransientError",
   },
 
@@ -65,6 +65,14 @@
         "^SonarCloud",
         "^Unit tests",
         "^Validate E2E",
+        // Named by review. Previously unmatched, so a transient log line could
+        // retry them. Fixture and coverage merges can fail on artifact download.
+        // The bundle and performance jobs stay transient-only: a deterministic
+        // pattern in the log still blocks the retry.
+        "^Report Fixture Validation",
+        "^Ship JS bundle size check",
+        "^Run Performance Tests \\(PR\\)",
+        "^merge-unit-and-component-view-tests",
       ],
     },
 
@@ -77,6 +85,10 @@
         "^ci-status-gate",
         // Advisory dependency check. Its failure should not drive a retry.
         "^Run `@lavamoat/git-safe-dependencies`",
+        // Cleanup after the run, and a main-only docs deploy. Neither should
+        // decide whether the failed CI run is retried.
+        "^Delete CI JS deps artifact",
+        "^Deploy Platform API Docs",
       ],
     },
   },

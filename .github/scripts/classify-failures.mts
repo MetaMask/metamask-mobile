@@ -381,8 +381,17 @@ function classifyJob(job: Job): JobClassification {
 
   if (unmatched) {
     console.warn(
-      `  ⚠️  "${jobName}" did not match any pattern — using default category '${category}'`,
+      `  ⚠️  "${jobName}" did not match any pattern — not retryable until it has an explicit pattern`,
     );
+    return {
+      jobName,
+      jobId,
+      category,
+      jobRetryable: false,
+      reason:
+        'Unmatched job — not retryable until it has an explicit pattern',
+      unmatched,
+    };
   }
 
   if (category === 'alwaysRetryable') {
@@ -934,7 +943,7 @@ const unmatchedJobs = classifications.filter((c) => c.unmatched);
 if (unmatchedJobs.length > 0) {
   reportLines.push(
     ``,
-    `> ⚠️ **${unmatchedJobs.length} job(s) did not match any pattern** in retry-config.jsonc and used the default category \`${config.defaults.unmatchedCategory}\`:`,
+    `> ⚠️ **${unmatchedJobs.length} job(s) did not match any pattern** in retry-config.jsonc and were not retried. Add an explicit pattern before retrying them:`,
     ...unmatchedJobs.map((c) => `> - ${c.jobName}`),
   );
 }
