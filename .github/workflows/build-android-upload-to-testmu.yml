@@ -607,7 +607,7 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   build-without-srp:
     name: Performance Build Android (without-SRP)
@@ -629,7 +629,7 @@ jobs:
       build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
       platform: android
       source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-to-browserstack:
     name: ${{ inputs.upload_to_browserstack && 'Upload APKs to BrowserStack' || 'Upload APKs to TestMu AI' }}

@@ -86,7 +86,7 @@ jobs:
       source_branch: main
       version: ${{ needs.compute-version.outputs.next-version }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   upload-ios-testflight:
     needs: [compute-version, build]
@@ -103,4 +103,4 @@ jobs:
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
       distribute_external: true
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

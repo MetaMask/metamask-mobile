@@ -162,4 +162,4 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
       ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

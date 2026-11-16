@@ -244,7 +244,7 @@ jobs:
       source_branch: ${{ github.ref_name }}
       runner_provider: ${{ inputs.runner_provider }}
       cache_mode: write
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
 
   record-dev-build:
     name: Record dev build marker

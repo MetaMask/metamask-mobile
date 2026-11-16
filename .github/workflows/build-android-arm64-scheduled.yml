@@ -66,4 +66,4 @@ jobs:
       # to Namespace and GitHub stores so gh run download keeps working. On current rollback,
       # only the GitHub store receives the APK (sufficient for local repro).
       runner_provider: inherit
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

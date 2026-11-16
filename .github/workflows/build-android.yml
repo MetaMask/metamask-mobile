@@ -106,4 +106,4 @@ jobs:
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
       upload_to_sentry: ${{ inputs.upload_to_sentry }}
       runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]

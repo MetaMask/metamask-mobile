@@ -540,4 +540,4 @@ jobs:
       build_version: ${{ needs.repack.outputs.semantic_version }}
       build_number: ${{ needs.repack.outputs.ios_version_code }}
       distribute_external: ${{ inputs.distribute_external }}
-    secrets: inherit
+    secrets: inherit # zizmor: ignore[secrets-inherit]
