@@ -283,9 +283,11 @@ describe('MoneyVbaHomeCard', () => {
    */
   describe('title typography', () => {
     const originalLocale = I18n.locale;
+    const originalOS = Platform.OS;
 
     afterEach(() => {
       I18n.locale = originalLocale;
+      Platform.OS = originalOS;
     });
 
     it.each(VARIANTS)(
@@ -293,15 +295,36 @@ describe('MoneyVbaHomeCard', () => {
       (variant) => {
         I18n.locale = 'en';
 
-        const { getByTestId } = render(<MoneyVbaHomeCard variant={variant} />);
-        const title = getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS[variant].TITLE);
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
 
         expect(title).toHaveStyle({
           fontFamily: 'GrotzecCond-Bold',
           fontSize: 32,
           lineHeight: 32,
           letterSpacing: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          marginBottom: 0,
         });
+      },
+    );
+
+    it.each(VARIANTS)(
+      'keeps the %s title line height at 32px on Android',
+      (variant) => {
+        I18n.locale = 'en';
+        Platform.OS = 'android';
+
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
+
+        expect(title).toHaveStyle({ lineHeight: 32 });
+        expect(title).not.toHaveStyle({ lineHeight: 35.2 });
       },
     );
 
@@ -310,13 +333,16 @@ describe('MoneyVbaHomeCard', () => {
       (variant) => {
         I18n.locale = 'ja';
 
-        const { getByTestId } = render(<MoneyVbaHomeCard variant={variant} />);
-        const title = getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS[variant].TITLE);
+        const { getByRole } = render(<MoneyVbaHomeCard variant={variant} />);
+        const title = getByRole('header', {
+          name: strings(`${VARIANT_EXPECTATIONS[variant].i18nPrefix}.title`),
+        });
 
         expect(title).toHaveStyle({
           fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
           fontWeight: '700',
           fontSize: 24,
+          lineHeight: 32,
         });
       },
     );

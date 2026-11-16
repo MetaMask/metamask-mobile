@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, StyleSheet, type TextStyle } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import LinearGradient from 'react-native-linear-gradient';
@@ -13,6 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -72,21 +73,6 @@ const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
 /**
- * StepperCard titles are DisplayMd + the hero face with `leading-[32px]`.
- * MarketingMomentTitle paints its own DisplayMd classes in `style`, which
- * wins over `twClassName`, so this line box replaces that tighter leading,
- * tracking, and clip padding. Unsupported locales still fall back inside
- * MarketingMomentTitle.
- */
-const VBA_HOME_CARD_TITLE_METRICS: TextStyle = {
-  lineHeight: 32,
-  letterSpacing: 0,
-  paddingTop: 0,
-  paddingBottom: 0,
-  marginBottom: 0,
-};
-
-/**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, identity_verified, account_is_ready, kyc_pending,
  * finish_verification, kyc_decision). Every title uses
@@ -108,6 +94,7 @@ const MoneyVbaHomeCard = ({
   /** Called after the dismissible variant hides itself. */
   onDismiss?: () => void;
 }) => {
+  const tw = useTailwind();
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const navigation = useNavigation<AppNavigationProp>();
@@ -316,7 +303,9 @@ const MoneyVbaHomeCard = ({
         <MarketingMomentTitle
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
-          style={VBA_HOME_CARD_TITLE_METRICS}
+          // `style` wins over `twClassName` inside MarketingMomentTitle.
+          // These classes match the StepperCard title line box.
+          style={tw.style('leading-[32px] tracking-[0px] py-0 mb-0')}
           testID={testIds.TITLE}
         >
           {strings(`${config.i18nPrefix}.title`)}
