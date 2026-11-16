@@ -24,6 +24,7 @@ const NATIVE_TAB_LABELS = {
   ACTIVITY: 'Activity',
   MONEY: 'Money',
   REWARDS: 'Rewards',
+  SOCIAL: 'Social',
 } as const;
 
 const NATIVE_TAB_BAR_MIN_IOS_VERSION = 26;
@@ -73,6 +74,10 @@ class TabBarComponent {
 
   get tabBarMoneyButton(): Promise<AppiumElement> {
     return this.tabItem(TabBarSelectorIDs.MONEY, NATIVE_TAB_LABELS.MONEY);
+  }
+
+  get tabBarSocialButton(): Promise<AppiumElement> {
+    return this.tabItem(TabBarSelectorIDs.SOCIAL, NATIVE_TAB_LABELS.SOCIAL);
   }
 
   get homeButton(): Promise<AppiumElement> {
@@ -340,6 +345,13 @@ class TabBarComponent {
   async tapMoney(): Promise<void> {
     await Gestures.waitAndTap(this.tabBarMoneyButton, {
       elemDescription: 'Tab Bar - Money Button',
+      timeout: 5000,
+    });
+  }
+
+  async tapSocial(): Promise<void> {
+    await Gestures.waitAndTap(this.tabBarSocialButton, {
+      elemDescription: 'Tab Bar - Social Button',
       timeout: 5000,
     });
   }
