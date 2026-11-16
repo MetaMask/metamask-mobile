@@ -424,7 +424,7 @@ describe('NitroFetchSetup', () => {
         expect(mockRecordFetchSample).toHaveBeenCalledWith(expect.any(Number));
       });
 
-      it('does not record a successful response again when sampling throws', async () => {
+      it('returns the response and samples once when sampling throws', async () => {
         const hungMs = getLatencyThresholds().hungMs;
         const originalDateNow = Date.now;
         let now = 0;
@@ -432,14 +432,40 @@ describe('NitroFetchSetup', () => {
         mockRecordFetchSample.mockImplementationOnce(() => {
           throw new Error('listener failed');
         });
+        const response = new Response(null, { status: 200 });
         mockNitroFetch.mockImplementationOnce(async () => {
           now = hungMs;
-          return new Response(null, { status: 200 });
+          return response;
         });
 
         try {
-          await expect(global.fetch('https://example.com')).rejects.toThrow(
-            'listener failed',
+          await expect(global.fetch('https://example.com')).resolves.toBe(
+            response,
+          );
+        } finally {
+          Date.now = originalDateNow;
+        }
+
+        expect(mockRecordFetchSample).toHaveBeenCalledTimes(1);
+      });
+
+      it('rethrows the original fetch error when sampling throws', async () => {
+        const hungMs = getLatencyThresholds().hungMs;
+        const originalDateNow = Date.now;
+        let now = 0;
+        Date.now = () => now;
+        mockRecordFetchSample.mockImplementationOnce(() => {
+          throw new Error('listener failed');
+        });
+        const failure = new Error('Cronet failed: net::ERR_TIMED_OUT');
+        mockNitroFetch.mockImplementationOnce(async () => {
+          now = hungMs;
+          throw failure;
+        });
+
+        try {
+          await expect(global.fetch('https://example.com')).rejects.toBe(
+            failure,
           );
         } finally {
           Date.now = originalDateNow;

@@ -148,14 +148,19 @@ function recordFetchOutcome(
   startMs: number,
   epochAtStart: number,
 ): void {
-  const durationMs = classifyFetchSample({
-    outcome,
-    startMs,
-    endMs: Date.now(),
-    thresholds: getLatencyThresholds(),
-  });
-  if (durationMs !== null) {
-    recordFetchSample(durationMs, epochAtStart);
+  // Sampling is telemetry: a failure here must never change the fetch result.
+  try {
+    const durationMs = classifyFetchSample({
+      outcome,
+      startMs,
+      endMs: Date.now(),
+      thresholds: getLatencyThresholds(),
+    });
+    if (durationMs !== null) {
+      recordFetchSample(durationMs, epochAtStart);
+    }
+  } catch {
+    // Swallowed on purpose.
   }
 }
 
