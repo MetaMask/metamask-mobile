@@ -537,6 +537,7 @@ const Routes = {
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
+    EARNINGS: 'MoneyEarnings',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
     MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
     MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',

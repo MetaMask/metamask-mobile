@@ -173,6 +173,7 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneySplashView from '../../UI/Money/Views/MoneySplashView';
+import MoneyEarningsView from '../../UI/Money/Views/MoneyEarningsView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MusdRescueSendScreen from '../../UI/Money/components/MusdRescueSendSheet';
 import MusdRescueRecipientScreen from '../../UI/Money/components/MusdRescueSendSheet/MusdRescueRecipientSelector';
@@ -1361,6 +1362,10 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.POTENTIAL_EARNINGS}
               component={MoneyPotentialEarningsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.EARNINGS}
+              component={MoneyEarningsView}
             />
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}
