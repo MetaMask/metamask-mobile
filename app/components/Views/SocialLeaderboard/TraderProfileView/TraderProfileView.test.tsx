@@ -111,6 +111,11 @@ jest.mock(
   }),
 );
 
+const mockSelectIsSocialV1Enabled = jest.fn(() => false);
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => mockSelectIsSocialV1Enabled(),
+}));
+
 jest.mock('../navigation/socialOgImageService', () => ({
   createSocialOgImage: jest
     .fn()
@@ -511,6 +516,7 @@ describe('TraderProfileView', () => {
     mockIsMasterNotificationsEnabled = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockSelectIsSocialV1Enabled.mockReturnValue(false);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -945,29 +951,48 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('No closed positions')).toBeOnTheScreen();
   });
 
-  it('defaults to the same posts empty state as my profile', () => {
-    renderWithProvider(<TraderProfileView />);
+  describe('when Social V1 is enabled', () => {
+    beforeEach(() => {
+      mockSelectIsSocialV1Enabled.mockReturnValue(true);
+    });
 
-    expect(screen.getByText('No posts yet')).toBeOnTheScreen();
-    expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
-    expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        scope: 'all',
-        profileId: 'trader-1',
-        commentedOnly: true,
-        location: 'trader_profile',
-        realtime: true,
-      }),
-    );
-    expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
+    it('defaults to the same posts empty state as my profile', () => {
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('No posts yet')).toBeOnTheScreen();
+      expect(screen.queryByText('No open positions')).not.toBeOnTheScreen();
+      expect(mockSocialFeedProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          scope: 'all',
+          profileId: 'trader-1',
+          commentedOnly: true,
+          location: 'trader_profile',
+          realtime: true,
+        }),
+      );
+      expect(mockSocialFeedProps.mock.lastCall?.[0].filterPost).toBeUndefined();
+    });
+
+    it('renders trader posts by default', () => {
+      mockPostsResult.posts = [{ id: 'post-1' }];
+      renderWithProvider(<TraderProfileView />);
+
+      expect(screen.getByText('post-1')).toBeOnTheScreen();
+      expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+    });
   });
 
-  it('renders trader posts by default', () => {
-    mockPostsResult.posts = [{ id: 'post-1' }];
-    renderWithProvider(<TraderProfileView />);
+  describe('when Social V1 is disabled', () => {
+    it('hides the posts tab and defaults to open positions', () => {
+      renderWithProvider(<TraderProfileView />);
 
-    expect(screen.getByText('post-1')).toBeOnTheScreen();
-    expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+      expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
+      expect(mockSocialFeedProps).not.toHaveBeenCalled();
+    });
   });
 
   it('renders skeleton placeholders when profile is loading', () => {
@@ -1016,7 +1041,7 @@ describe('TraderProfileView', () => {
   });
 
   describe('pull-to-refresh', () => {
-    it('calls both profile refresh and positions refetch when pulled', async () => {
+    it('calls profile refresh and positions refetch when pulled', async () => {
       renderWithProvider(<TraderProfileView />);
 
       const refreshControl = screen.UNSAFE_getByProps({
@@ -1029,9 +1054,24 @@ describe('TraderProfileView', () => {
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
       expect(mockRefetchPositions).toHaveBeenCalledTimes(1);
-      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosts).not.toHaveBeenCalled();
       expect(mockPlayImpact).toHaveBeenCalledTimes(1);
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+    });
+
+    it('refreshes posts when Social V1 is enabled', async () => {
+      mockSelectIsSocialV1Enabled.mockReturnValue(true);
+      renderWithProvider(<TraderProfileView />);
+
+      const refreshControl = screen.UNSAFE_getByProps({
+        testID: TraderProfileViewSelectorsIDs.REFRESH_CONTROL,
+      });
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockRefreshPosts).toHaveBeenCalledTimes(1);
     });
   });
 
