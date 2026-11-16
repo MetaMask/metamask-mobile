@@ -21,6 +21,15 @@ const PREDICT_CLUSTER_BY_API_ENV: Partial<Record<ApiEnv, PredictCluster>> = {
   [ApiEnv.Uat]: 'uat',
 };
 
+/** The two env readings a cluster decision needs, plus the build type. */
+export interface ClusterReading {
+  /** `MM_API_ENV` as written, used to tell "unset" from "set to prod". */
+  rawApiEnv: string | undefined;
+  /** `getApiEnv()`'s reading of `rawApiEnv`. */
+  apiEnv: ApiEnv;
+  isDevelopment: boolean;
+}
+
 const explicitUrl = (override: string | undefined): string | undefined => {
   const trimmed = override?.trim();
   return trimmed || undefined;
@@ -31,16 +40,20 @@ const explicitUrl = (override: string | undefined): string | undefined => {
  * uses the UAT hosts. Prod stays blank: there is no production predict
  * deployment yet.
  *
- * Goes through `getApiEnv`, the single reading of `MM_API_ENV`, so predict
- * cannot resolve to a different environment than the A2T issuer it verifies
- * against. `getApiEnv` reads an unset value as prod, so the raw value decides
- * the local-development case itself.
+ * The cluster comes from `getApiEnv()`, the single reading of `MM_API_ENV`,
+ * so predict cannot resolve to a different environment than the A2T issuer
+ * it verifies against. The raw value decides the local-development case,
+ * because `getApiEnv` reads an unset variable as prod.
  */
-const predictCluster = (isDevelopment: boolean): PredictCluster | undefined => {
-  if ((process.env.MM_API_ENV ?? '').trim() === '') {
+const predictCluster = ({
+  rawApiEnv,
+  apiEnv,
+  isDevelopment,
+}: ClusterReading): PredictCluster | undefined => {
+  if ((rawApiEnv ?? '').trim() === '') {
     return isDevelopment ? 'dev' : undefined;
   }
-  return PREDICT_CLUSTER_BY_API_ENV[getApiEnv()];
+  return PREDICT_CLUSTER_BY_API_ENV[apiEnv];
 };
 
 /**
@@ -49,14 +62,14 @@ const predictCluster = (isDevelopment: boolean): PredictCluster | undefined => {
  * uat uses the UAT API, and prod stays blank.
  */
 export const resolvePredictApiUrl = (
+  reading: ClusterReading,
   override: string | undefined,
-  isDevelopment: boolean,
 ): string | undefined => {
   const configured = explicitUrl(override);
   if (configured) {
     return configured;
   }
-  const cluster = predictCluster(isDevelopment);
+  const cluster = predictCluster(reading);
   return cluster ? PREDICT_API_URL_BY_CLUSTER[cluster] : undefined;
 };
 
@@ -66,21 +79,35 @@ export const resolvePredictApiUrl = (
  * the predict API.
  */
 export const resolvePredictDeviceAuthIssuerUrl = (
+  reading: ClusterReading,
   override: string | undefined,
-  isDevelopment: boolean,
 ): string | undefined => {
   const configured = explicitUrl(override);
   if (configured) {
     return configured;
   }
-  const cluster = predictCluster(isDevelopment);
+  const cluster = predictCluster(reading);
   return cluster ? PREDICT_A2T_ISSUER_URL_BY_CLUSTER[cluster] : undefined;
 };
 
 /** Read at call time so a Metro session picks up `.js.env` after a restart. */
 export const getPredictApiUrl = (): string | undefined =>
-  resolvePredictApiUrl(process.env.MM_PREDICT_API_URL, __DEV__);
+  resolvePredictApiUrl(
+    {
+      rawApiEnv: process.env.MM_API_ENV,
+      apiEnv: getApiEnv(),
+      isDevelopment: __DEV__,
+    },
+    process.env.MM_PREDICT_API_URL,
+  );
 
 /** A2T issuer base, read the same way as `getPredictApiUrl`. */
 export const getPredictDeviceAuthIssuerUrl = (): string | undefined =>
-  resolvePredictDeviceAuthIssuerUrl(process.env.MM_PREDICT_A2T_URL, __DEV__);
+  resolvePredictDeviceAuthIssuerUrl(
+    {
+      rawApiEnv: process.env.MM_API_ENV,
+      apiEnv: getApiEnv(),
+      isDevelopment: __DEV__,
+    },
+    process.env.MM_PREDICT_A2T_URL,
+  );
