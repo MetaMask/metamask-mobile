@@ -108,6 +108,31 @@ test('dev-onboarding discovery includes only the dev onboarding spec', () => {
   ]);
 });
 
+test('a shadow-only selection skips dev-onboarding instead of failing', () => {
+  const { status, specs, stderr } = discover(
+    'dev-onboarding',
+    repoRoot,
+    '@PerformanceShadow',
+  );
+
+  assert.equal(status, 0);
+  assert.deepEqual(specs, []);
+  assert.match(stderr, /No scenarios for BUILD_TYPE=dev-onboarding/);
+});
+
+test('a mixed shadow selection still discovers the dev onboarding spec', () => {
+  const { status, specs } = discover(
+    'dev-onboarding',
+    repoRoot,
+    '@Performance|@PerformanceShadow',
+  );
+
+  assert.equal(status, 0);
+  assert.deepEqual(specs, [
+    'tests/performance/dev-onboarding/social-onboarding.spec.ts',
+  ]);
+});
+
 test('onboarding discovery does not include the dev onboarding spec', () => {
   const { specs } = discover('onboarding');
 

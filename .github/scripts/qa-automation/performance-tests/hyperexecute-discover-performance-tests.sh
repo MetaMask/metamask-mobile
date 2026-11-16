@@ -86,8 +86,11 @@ while IFS= read -r -d '' file; do
 done < <(find "${ROOTS[@]}" -type f -name '*.spec.ts' -print0 | LC_ALL=C sort -z)
 
 if [[ "$found" -eq 0 ]]; then
-  # The heal-test tag only matches login scenarios, so the onboarding lane is empty.
-  if [[ "$GREP_TAGS" == "@PerfHealTest" ]]; then
+  # A scenarios-only selection has nothing to run for a build type with no
+  # scenarios (dev-onboarding, or onboarding under @PerfHealTest). That is a
+  # skip, not a failed suite.
+  if [[ "$GREP_TAGS" == "@PerfHealTest" || "$GREP_TAGS" == "@PerformanceShadow" ]]; then
+    echo "No scenarios for BUILD_TYPE=$BUILD_TYPE under ${GREP_TAGS}; skipping." >&2
     exit 0
   fi
   echo "No @Performance specs found under ${ROOTS[*]} for BUILD_TYPE=$BUILD_TYPE" >&2
