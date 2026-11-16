@@ -29,6 +29,7 @@ import {
   PredictWimbledonTabSchema,
 } from '../schemas';
 import {
+  PredictCryptoPriceFeedFlag,
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictHiddenMarketsFlag,
@@ -40,6 +41,25 @@ import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
+}
+
+/**
+ * Reads the Chainlink API key from `predictCryptoPriceFeed`. A missing or
+ * disabled flag, an app below `minimumVersion`, or an empty key all give no
+ * key.
+ *
+ * @param flag - Raw `predictCryptoPriceFeed` value, direct or wrapped.
+ * @returns The key, or undefined.
+ */
+function resolveChainlinkApiKey(flag: unknown): string | undefined {
+  const cryptoPriceFeed =
+    unwrapRemoteFeatureFlag<PredictCryptoPriceFeedFlag>(flag);
+  if (!validatedVersionGatedFeatureFlag(cryptoPriceFeed)) {
+    return undefined;
+  }
+
+  const key = cryptoPriceFeed?.chainlinkApiKey;
+  return typeof key === 'string' && key.trim() !== '' ? key.trim() : undefined;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -162,6 +182,7 @@ export function resolvePredictFeatureFlags(
   const disablePolymarketV2Markets = resolveVersionGatedBooleanFlag(
     flags.predictDisablePolymarketV2Markets,
   );
+  const chainlinkApiKey = resolveChainlinkApiKey(flags.predictCryptoPriceFeed);
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -220,5 +241,6 @@ export function resolvePredictFeatureFlags(
     predictSportsFeed,
     predictHomeCategories,
     predictWimbledonTab,
+    ...(chainlinkApiKey && { chainlinkApiKey }),
   };
 }

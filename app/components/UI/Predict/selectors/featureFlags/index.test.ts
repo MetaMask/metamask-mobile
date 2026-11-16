@@ -15,6 +15,7 @@ import {
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
   selectPredictDisablePolymarketV2MarketsFlag,
+  selectPredictChainlinkApiKey,
   selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
@@ -1946,6 +1947,97 @@ describe('Predict Feature Flag Selectors', () => {
       expect(
         selectPredictDisablePolymarketV2MarketsFlag(createState('enabled')),
       ).toBe(false);
+    });
+  });
+
+  describe('selectPredictChainlinkApiKey', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+    const createState = (flag: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictCryptoPriceFeed: flag },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns null when the remote flag is missing', () => {
+      expect(selectPredictChainlinkApiKey(mockedEmptyFlagsState)).toBeNull();
+    });
+
+    // The app version is mocked to 1.0.0, so the real version gate runs.
+    it('returns the key when the flag is enabled and the version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictChainlinkApiKey(
+          createState({
+            enabled: true,
+            minimumVersion: '1.0.0',
+            chainlinkApiKey: fakeKey,
+          }),
+        ),
+      ).toBe(fakeKey);
+    });
+
+    it('returns the key from the progressive rollout shape', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictChainlinkApiKey(
+          createState({
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+              chainlinkApiKey: fakeKey,
+            },
+          }),
+        ),
+      ).toBe(fakeKey);
+    });
+
+    it('returns null when the flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictChainlinkApiKey(
+          createState({
+            enabled: false,
+            minimumVersion: '1.0.0',
+            chainlinkApiKey: fakeKey,
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it('returns null when the app is below the minimum version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      expect(
+        selectPredictChainlinkApiKey(
+          createState({
+            enabled: true,
+            minimumVersion: '99.0.0',
+            chainlinkApiKey: fakeKey,
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it.each([
+      [
+        'an empty key',
+        { enabled: true, minimumVersion: '1.0.0', chainlinkApiKey: '' },
+      ],
+      ['no key', { enabled: true, minimumVersion: '1.0.0' }],
+      ['no minimum version', { enabled: true, chainlinkApiKey: fakeKey }],
+    ])('returns null for a flag with %s', (_label, flag) => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(selectPredictChainlinkApiKey(createState(flag))).toBeNull();
     });
   });
 

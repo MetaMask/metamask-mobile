@@ -185,6 +185,16 @@ export const selectPredictDisablePolymarketV2MarketsFlag = createSelector(
   (flags) => flags.disablePolymarketV2Markets,
 );
 
+/**
+ * Chainlink API key for the PolyBolt crypto price socket, from the
+ * version-gated `predictCryptoPriceFeed` flag. Null when the flag is missing,
+ * disabled, below its minimum version or has no key. Never log it.
+ */
+export const selectPredictChainlinkApiKey = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.chainlinkApiKey ?? null,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>
