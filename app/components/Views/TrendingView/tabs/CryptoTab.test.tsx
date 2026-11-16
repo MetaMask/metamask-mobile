@@ -1,6 +1,6 @@
 import React from 'react';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -11,6 +11,7 @@ import { useABTest } from '../../../../hooks/useABTest';
 import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useCryptoPillFeed } from '../feeds/tokens/useCryptoPillFeed';
+import type { CryptoPillKey } from '../feeds/tokens/cryptoPillConfig';
 import { selectTokenWatchlistEnabled } from '../../../UI/Assets/selectors/featureFlags';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
@@ -382,6 +383,37 @@ describe('CryptoTab — tokens pill block', () => {
 
     expect(mockUseCryptoPillFeed).toHaveBeenCalledWith(
       expect.objectContaining({ activePillKey: 'trending' }),
+    );
+  });
+
+  it('targets the user-selected pill for the crypto feed', () => {
+    arrangeMocks();
+    mockUseCryptoPillFeed.mockReturnValue({
+      results: {
+        trending: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+        top_gainers: {
+          data: [{} as TrendingAsset],
+          isLoading: false,
+          isError: false,
+        },
+      },
+    } as never);
+
+    render(<CryptoTab {...defaultTabProps} />);
+
+    const blockProps = mockCryptoTokensPillBlock.mock.calls[0]?.[0] as {
+      onActivePillChange: (key: CryptoPillKey) => void;
+    };
+    act(() => {
+      blockProps.onActivePillChange('top_gainers');
+    });
+
+    expect(mockUseCryptoPillFeed).toHaveBeenLastCalledWith(
+      expect.objectContaining({ activePillKey: 'top_gainers' }),
     );
   });
 
