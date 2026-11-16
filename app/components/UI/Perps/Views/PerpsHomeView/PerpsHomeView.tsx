@@ -96,6 +96,10 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
+import PerpsProviderLogos, {
+  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
+  usePerpsProviderLogoIds,
+} from '../../components/PerpsProviderLogos';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
@@ -384,6 +388,7 @@ const PerpsHomeView = () => {
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
+  const providerLogoIds = usePerpsProviderLogoIds();
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -1347,15 +1352,25 @@ const PerpsHomeView = () => {
             }
             bottomLabel={
               !isBalanceEmpty ? (
-                <Box flexDirection={BoxFlexDirection.Row}>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  testID={
+                    PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                  }
+                >
+                  {providerLogoIds.length > 0 ? (
+                    <PerpsProviderLogos
+                      providerIds={providerLogoIds}
+                      size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
+                      twClassName="mr-1"
+                    />
+                  ) : null}
                   <SensitiveText
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     isHidden={privacyMode}
                     length={SensitiveTextLength.Short}
-                    testID={
-                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                    }
                   >
                     {formatPerpsBalance(spendableBalance)}
                   </SensitiveText>

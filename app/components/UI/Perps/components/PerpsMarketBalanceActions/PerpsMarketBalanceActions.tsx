@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   Button,
   ButtonSize,
@@ -28,6 +29,10 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
+import PerpsProviderLogos, {
+  PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
+  usePerpsProviderLogoIds,
+} from '../PerpsProviderLogos';
 import { BigNumber } from 'bignumber.js';
 import {
   INITIAL_AMOUNT_UI_PROGRESS,
@@ -82,6 +87,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
   const privacyMode = useSelector(selectPrivacyMode);
+  const providerLogoIds = usePerpsProviderLogoIds();
 
   // Get withdrawal requests filtered by current account using memoized selector
   const withdrawalRequests = useSelector(
@@ -311,11 +317,19 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Animated.View>
               <Box
                 flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
                 style={tw.style('mt-1')}
                 testID={
                   PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
                 }
               >
+                {providerLogoIds.length > 0 ? (
+                  <PerpsProviderLogos
+                    providerIds={providerLogoIds}
+                    size={PERPS_AVAILABLE_BALANCE_LOGO_SIZE}
+                    twClassName="mr-1"
+                  />
+                ) : null}
                 <SensitiveText
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
