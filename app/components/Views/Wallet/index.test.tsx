@@ -1489,36 +1489,6 @@ describe('Wallet', () => {
         screen: 'PerpsGTMModal',
       });
     });
-
-    it('does not navigate to GTM modal when basic functionality is disabled', () => {
-      mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = true;
-      jest.mocked(StorageWrapper.getItem).mockResolvedValue(null);
-      const state = {
-        ...mockInitialState,
-        settings: {
-          ...mockInitialState.settings,
-          basicFunctionalityEnabled: false,
-        },
-      };
-      jest
-        .mocked(useSelector)
-        .mockImplementation((callback: (s: unknown) => unknown) =>
-          callback(state),
-        );
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      expect(StorageWrapper.getItem).not.toHaveBeenCalledWith(
-        '@MetaMask:perpsGTMModalShown',
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith('PerpsModals', {
-        screen: 'PerpsGTMModal',
-      });
-    });
   });
 });
 

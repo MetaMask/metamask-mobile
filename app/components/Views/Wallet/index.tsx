@@ -123,10 +123,7 @@ import {
   selectWalletHomeOnboardingSteps,
 } from '../../../selectors/onboarding';
 import { selectIsAccountGroupFunded } from '../../../selectors/assets/balances';
-import {
-  selectAvatarAccountType,
-  selectBasicFunctionalityEnabled,
-} from '../../../selectors/settings';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
@@ -413,9 +410,6 @@ const Wallet = ({
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
 
   const { toastRef } = useContext(ToastContext);
   useArcUsageNoticeToast();
@@ -625,14 +619,14 @@ const Wallet = ({
     // With basic functionality off the Perps modal stack only renders its
     // "turn it back on" empty state, which would block the wallet.
     if (
-      isBasicFunctionalityEnabled &&
+      basicFunctionalityEnabled &&
       isPerpsFlagEnabled &&
       isPerpsGTMModalEnabled
     ) {
       checkAndNavigateToPerpsGTM();
     }
   }, [
-    isBasicFunctionalityEnabled,
+    basicFunctionalityEnabled,
     isPerpsFlagEnabled,
     isPerpsGTMModalEnabled,
     checkAndNavigateToPerpsGTM,
