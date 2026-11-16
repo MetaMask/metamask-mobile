@@ -73,9 +73,8 @@ export async function runDevMfaSocialUnlock(
     return;
   }
 
-  const hasSeedlessPrereqs = Boolean(provider && seedlessUserId);
   const seedlessLoginOk = !requireSeedlessLoginFlow || isSeedlessLogin;
-  if (!hasSeedlessPrereqs || !seedlessLoginOk) {
+  if (!provider || !seedlessUserId || !seedlessLoginOk) {
     alert(
       'DEV MFA',
       requireSeedlessLoginFlow
@@ -95,7 +94,7 @@ export async function runDevMfaSocialUnlock(
     await unlock(
       {
         identifier: buildOidcIdentifier({ authConnection: provider }),
-        expectedSeedlessUserId: seedlessUserId as string,
+        expectedSeedlessUserId: seedlessUserId,
         authConnection: provider,
         clientId: loginHandler.options.clientId,
       },

@@ -141,21 +141,27 @@ describe('mfaRecoveryControllerInit', () => {
 
     const escrow = args.escrows[0];
     await expect(escrow.isAvailable()).resolves.toBe(false);
-    await expect(escrow.generateChallenge()).rejects.toThrow(
+    await expect(escrow.generateChallenge({} as never)).rejects.toThrow(
       'escrow.generateChallenge is not wired',
     );
     await expect(escrow.getIdentifiers({} as never)).rejects.toThrow(
       'escrow.getIdentifiers is not wired',
     );
-    await expect(escrow.getSecret({} as never)).rejects.toThrow(
-      'escrow.getSecret is not wired',
-    );
-    await expect(escrow.applyMutation({} as never)).rejects.toThrow(
-      'escrow.applyMutation is not wired',
-    );
-    await expect(escrow.verifyReceipt({} as never)).rejects.toThrow(
-      'escrow.verifyReceipt is not wired',
-    );
+    await expect(
+      escrow.getSecret({} as never, {} as never, '' as never, {} as never),
+    ).rejects.toThrow('escrow.getSecret is not wired');
+    await expect(
+      escrow.applyMutation(
+        {} as never,
+        {} as never,
+        {} as never,
+        {} as never,
+        {} as never,
+      ),
+    ).rejects.toThrow('escrow.applyMutation is not wired');
+    await expect(
+      escrow.verifyReceipt({} as never, {} as never, '' as never),
+    ).rejects.toThrow('escrow.verifyReceipt is not wired');
 
     await expect(
       args.pendingOperationEncryptor.encrypt({} as never),
