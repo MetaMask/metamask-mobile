@@ -165,7 +165,7 @@ describe('BridgeRecurringBuyFooterView', () => {
 
   it('renders the supplied confirm button label', () => {
     const label = strings('bridge.recurring.min_order_amount', {
-      amount: '100',
+      amount: '€90.00',
     });
 
     const { getByTestId } = renderFooter(buildActiveQuoteState(), { label });

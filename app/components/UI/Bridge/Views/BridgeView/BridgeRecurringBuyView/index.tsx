@@ -46,7 +46,6 @@ import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/Bri
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
-import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -181,7 +180,11 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { isBelowMinAmount, minAmountUsd } = useRecurringOrderMinAmount({
+  const {
+    formattedMinAmountInSelectedCurrency,
+    hasError: hasMinAmountError,
+    isBelowMinAmount,
+  } = useRecurringOrderMinAmount({
     sourceToken,
     sourceAmount,
   });
@@ -189,16 +192,17 @@ const BridgeRecurringBuyViewContent = ({
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
     feeTokenValidation.isValid &&
+    !hasMinAmountError &&
     !isBelowMinAmount;
   const previewOrderLabel =
-    isBelowMinAmount && minAmountUsd !== undefined
+    isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
       ? strings('bridge.recurring.min_order_amount', {
-          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+          amount: formattedMinAmountInSelectedCurrency,
         })
       : strings('bridge.recurring.preview_order');
 
   const handlePreviewOrder = useCallback(() => {
-    if (!feeTokenValidation.isValid || isBelowMinAmount) {
+    if (!feeTokenValidation.isValid || hasMinAmountError || isBelowMinAmount) {
       return;
     }
 
@@ -228,6 +232,7 @@ const BridgeRecurringBuyViewContent = ({
     trackEvent,
     createEventBuilder,
     feeTokenValidation.isValid,
+    hasMinAmountError,
     isBelowMinAmount,
     location,
   ]);
@@ -442,6 +447,7 @@ const BridgeRecurringBuyViewContent = ({
           isPreviewDisabled={
             !scheduleValidation.isValid ||
             !feeTokenValidation.isValid ||
+            hasMinAmountError ||
             isBelowMinAmount
           }
         />

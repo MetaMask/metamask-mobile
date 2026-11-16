@@ -215,6 +215,8 @@ describe('BridgeRecurringBuyView', () => {
       retry: jest.fn(),
     });
     jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '$100.00',
+      hasError: false,
       isBelowMinAmount: false,
       minAmountUsd: 100,
     });
@@ -390,6 +392,8 @@ describe('BridgeRecurringBuyView', () => {
 
   it('does not preview an order below the recurring minimum', () => {
     jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '€90.00',
+      hasError: false,
       isBelowMinAmount: true,
       minAmountUsd: 100,
     });
@@ -409,8 +413,33 @@ describe('BridgeRecurringBuyView', () => {
 
     expect(previewButton.props.accessibilityState.disabled).toBe(true);
     expect(previewButton).toHaveTextContent(
-      strings('bridge.recurring.min_order_amount', { amount: '100' }),
+      strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
     );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('fails closed when the minimum cannot be validated', () => {
+    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: undefined,
+      hasError: true,
+      isBelowMinAmount: false,
+      minAmountUsd: 100,
+    });
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      {
+        state: createBridgeTestState({
+          bridgeReducerOverrides: { sourceToken, destToken },
+        }),
+      },
+    );
+
+    const previewButton = getByTestId('preview-order');
+    mockPreviewOrderHandler?.();
+
+    expect(previewButton.props.accessibilityState.disabled).toBe(true);
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

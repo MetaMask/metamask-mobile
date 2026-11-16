@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import type { BridgeToken } from '../../types';
+import { formatCurrency } from '../../utils/currencyUtils';
 import { useFiatToUsdRate } from '../useFiatToUsdRate';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 
 const USD_CENT_DECIMALS = 2;
+const USD_CURRENCY = 'USD';
 
 interface UseOrderMinAmountParams {
   minAmountUsd: number | undefined;
@@ -14,7 +18,13 @@ interface UseOrderMinAmountParams {
 
 export interface UseOrderMinAmountResult {
   minAmountUsd: number | undefined;
+  formattedMinAmountInSelectedCurrency: string | undefined;
+  hasError: boolean;
   isBelowMinAmount: boolean;
+}
+
+function isValidRate(rate: number | undefined): rate is number {
+  return rate !== undefined && Number.isFinite(rate) && rate > 0;
 }
 
 /**
@@ -28,12 +38,35 @@ export function useOrderMinAmount({
 }: UseOrderMinAmountParams): UseOrderMinAmountResult {
   const sourceTokenFiatRate = useLiveTokenFiatRate(sourceToken);
   const fiatToUsdRate = useFiatToUsdRate(sourceToken?.chainId);
+  const currentCurrency =
+    useSelector(selectCurrentCurrency)?.toUpperCase() ?? USD_CURRENCY;
+  const hasError =
+    minAmountUsd !== undefined &&
+    (!isValidRate(sourceTokenFiatRate) || !isValidRate(fiatToUsdRate));
+
+  const formattedMinAmountInSelectedCurrency = useMemo(() => {
+    if (minAmountUsd === undefined || !isValidRate(fiatToUsdRate)) {
+      return undefined;
+    }
+
+    if (currentCurrency === USD_CURRENCY) {
+      return formatCurrency(minAmountUsd, USD_CURRENCY);
+    }
+
+    const minAmountInCurrentCurrency = new BigNumber(minAmountUsd).dividedBy(
+      fiatToUsdRate,
+    );
+
+    return minAmountInCurrentCurrency.isFinite()
+      ? formatCurrency(minAmountInCurrentCurrency.toNumber(), currentCurrency)
+      : undefined;
+  }, [currentCurrency, fiatToUsdRate, minAmountUsd]);
 
   const isBelowMinAmount = useMemo(() => {
     if (
       minAmountUsd === undefined ||
-      sourceTokenFiatRate === undefined ||
-      fiatToUsdRate === undefined
+      !isValidRate(sourceTokenFiatRate) ||
+      !isValidRate(fiatToUsdRate)
     ) {
       return false;
     }
@@ -49,5 +82,10 @@ export function useOrderMinAmount({
     return sourceAmountUsd.isFinite() && sourceAmountUsd.lt(minAmountUsd);
   }, [fiatToUsdRate, minAmountUsd, sourceAmount, sourceTokenFiatRate]);
 
-  return { minAmountUsd, isBelowMinAmount };
+  return {
+    minAmountUsd,
+    formattedMinAmountInSelectedCurrency,
+    hasError,
+    isBelowMinAmount,
+  };
 }

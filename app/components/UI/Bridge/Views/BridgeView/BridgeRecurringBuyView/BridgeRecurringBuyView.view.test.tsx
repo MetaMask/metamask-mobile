@@ -1143,7 +1143,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
 
     it('shows the recurring minimum until the source amount reaches it', async () => {
-      const renderResult = renderBridgeView({ deterministicFiat: true });
+      const renderResult = renderRecurringPriceRangeView({
+        currentCurrency: 'eur',
+      });
 
       await openRecurringTab(renderResult);
       await openAmountKeypad(renderResult);
@@ -1156,7 +1158,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD,
         );
         expect(confirmButton).toHaveTextContent(
-          strings('bridge.recurring.min_order_amount', { amount: '100' }),
+          strings('bridge.recurring.min_order_amount', { amount: '€90.00' }),
         );
         expect(confirmButton.props.accessibilityState.disabled).toBe(true);
       });

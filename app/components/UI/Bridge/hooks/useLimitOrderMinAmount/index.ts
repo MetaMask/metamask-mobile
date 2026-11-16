@@ -13,6 +13,10 @@ interface UseLimitOrderMinAmountResult {
    * `undefined` when no minimum is configured for it.
    */
   minAmountUsd: number | undefined;
+  /** Minimum formatted in the user's selected currency. */
+  formattedMinAmountInSelectedCurrency: string | undefined;
+  /** Whether the minimum cannot be validated with the available rates. */
+  hasError: boolean;
   /**
    * Whether the source amount is worth less than {@link minAmountUsd}.
    */
@@ -26,9 +30,8 @@ interface UseLimitOrderMinAmountResult {
  * The amount is valued at the live market rate, which is what the API checks
  * the minimum against when the order is created.
  *
- * Without a USD price for the source token the amount cannot be checked, so it
- * is not reported as below the minimum; the missing price banner blocks the
- * order in that case instead.
+ * Without the rates required to validate the minimum, the hook returns an
+ * error so the order can fail closed.
  */
 export const useLimitOrderMinAmount = ({
   sourceToken,
