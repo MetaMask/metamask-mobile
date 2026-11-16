@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { StyleProp, ViewStyle } from 'react-native';
 import {
   TransactionType,
@@ -12,7 +11,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import { isHardwareAccount } from '../../../../../util/address';
-import { selectInternalAccountByAddresses } from '../../../../../selectors/accountsController';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
@@ -33,9 +31,6 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
   const accountOverride = useTransactionAccountOverride();
-  const getInternalAccountsByAddresses = useSelector(
-    selectInternalAccountByAddresses,
-  );
 
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -73,33 +68,26 @@ const PayAccountSelector: React.FC<{ style?: StyleProp<ViewStyle> }> = ({
   }, [accountOverride, isMoneyAccountWithdraw, transactionId, transactionMeta]);
 
   const handleAccountSelected = useCallback(
-    (address: string) => {
+    (account: InternalAccount) => {
       if (!transactionId) {
         return;
       }
-
-      const [selectedAccount] = getInternalAccountsByAddresses([address]);
 
       replaceAccountInNestedTransactions({
         transactionId,
         nestedTransactions: transactionMeta?.nestedTransactions,
         oldAddress: accountOverride ?? transactionMeta?.txParams?.from,
-        newAddress: address,
+        newAddress: account.address,
       });
 
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
         (config) => {
-          config.accountOverride = selectedAccount.id;
+          config.accountOverride = account.id;
         },
       );
     },
-    [
-      accountOverride,
-      getInternalAccountsByAddresses,
-      transactionId,
-      transactionMeta,
-    ],
+    [accountOverride, transactionId, transactionMeta],
   );
 
   if (!isMoneyAccountDeposit && !isMoneyAccountWithdraw) {

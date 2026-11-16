@@ -47,7 +47,7 @@ export const ACCOUNT_SELECTOR_TEST_IDS = {
 
 export interface AccountSelectorProps {
   selectedAddress?: string;
-  onAccountSelected: (address: string) => void;
+  onAccountSelected: (account: InternalAccount) => void;
   /** Label shown on the left side of the row. Defaults to the "To" i18n string. */
   label?: string;
   /** Title in the account selection bottom sheet (header). */
@@ -105,7 +105,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       );
       if (internalAccountId) {
         const internalAccount = internalAccountsById[internalAccountId];
-        onAccountSelected(internalAccount.address);
+        onAccountSelected(internalAccount);
         closeAccountSheet();
       }
     },
