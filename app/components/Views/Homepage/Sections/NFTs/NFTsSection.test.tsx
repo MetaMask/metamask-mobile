@@ -430,6 +430,116 @@ describe('NFTsSection', () => {
       });
     });
 
+    const emitStoreUpdate = (
+      store: ReturnType<typeof renderWithProvider>['store'],
+    ): void => {
+      store.replaceReducer((state, action) => {
+        if (!state) {
+          throw new Error('Missing store state');
+        }
+        if (action.type !== 'TEST_ACCOUNT_SWITCH') {
+          return state;
+        }
+        return { ...state };
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST_ACCOUNT_SWITCH' });
+      });
+    };
+
+    it('keeps the section mounted when the selected account changes to one with no NFTs before it is visible', () => {
+      jest
+        .requireMock('./hooks')
+        .useOwnedNfts.mockReturnValue([nftForDetection]);
+
+      const { store } = renderWithProvider(
+        <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+        { state: stateWithNftPreferences },
+      );
+
+      expect(screen.getByText('NFTs')).toBeOnTheScreen();
+      expect(mockDetectNfts).not.toHaveBeenCalled();
+
+      jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
+      mockSelectedAddress = '0xdef';
+      emitStoreUpdate(store);
+
+      expect(screen.getByText('NFTs')).toBeOnTheScreen();
+      expect(screen.getAllByTestId('nft-skeleton-cell')).toHaveLength(3);
+      expect(mockDetectNfts).not.toHaveBeenCalled();
+    });
+
+    it('calls detectNfts again for an in-place account switch inside the throttle window', () => {
+      jest
+        .requireMock('./hooks')
+        .useOwnedNfts.mockReturnValue([nftForDetection]);
+      jest
+        .requireMock('../../hooks/useSectionViewportVisible')
+        .default.mockReturnValue({
+          isVisible: true,
+          onLayout: mockOnViewportLayout,
+        });
+
+      const { store } = renderWithProvider(
+        <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+        { state: stateWithNftPreferences },
+      );
+
+      expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+
+      mockSelectedAddress = '0xdef';
+      emitStoreUpdate(store);
+
+      expect(mockDetectNfts).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not detect again when owned NFTs change after the throttle window', () => {
+      jest.useFakeTimers();
+      try {
+        jest
+          .requireMock('./hooks')
+          .useOwnedNfts.mockReturnValue([nftForDetection]);
+        jest
+          .requireMock('../../hooks/useSectionViewportVisible')
+          .default.mockReturnValue({
+            isVisible: true,
+            onLayout: mockOnViewportLayout,
+          });
+
+        const { rerender } = renderWithProvider(
+          <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+          { state: stateWithNftPreferences },
+        );
+
+        expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+
+        jest.advanceTimersByTime(300_001);
+        jest.requireMock('./hooks').useOwnedNfts.mockReturnValue([]);
+        rerender(<NFTsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+        expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('renders a partial second row when four NFTs are owned', () => {
+      jest
+        .requireMock('./hooks')
+        .useOwnedNfts.mockReturnValue(
+          [0, 1, 2, 3].map((index) => mockNft(`0x${index}`, `${index}`)),
+        );
+
+      renderWithProvider(
+        <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+        { state: stateWithNftPreferences },
+      );
+
+      expect(screen.getByText('NFT 0')).toBeOnTheScreen();
+      expect(screen.getByText('NFT 3')).toBeOnTheScreen();
+      expect(screen.queryByText('NFT 4')).not.toBeOnTheScreen();
+    });
+
     it('calls detectNfts for a new account even within the throttle window of the previous account', () => {
       jest
         .requireMock('./hooks')
