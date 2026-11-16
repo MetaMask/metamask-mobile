@@ -203,9 +203,10 @@ function useGroupedTokenActivity({
         : transactions;
     const filteredTransactions = filterDuplicateOutgoingTransactions(
       listTransactions,
-    ).filter(
-      (transaction) => !isOtherAccountSimpleSend(transaction, selectedAddress),
-    );
+    ).filter((transaction) => {
+      // The sender's simpleSend maps as sent and would hide the API receive.
+      return !isOtherAccountSimpleSend(transaction, selectedAddress);
+    });
 
     // Convert local transactions to ActivityListItems
     const localActivityItemsFromTxs = filteredTransactions.map((transaction) =>
