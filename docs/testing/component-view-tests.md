@@ -479,6 +479,30 @@ Alternatively, set these fields manually in `engine.backgroundState.BridgeContro
 
 Also ensure remote feature flags enable Bridge for the target chain(s) via `RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2`.
 
+#### Perps: two-exchange presets
+
+`perpsTwoExchangeState(scenario)` (in `tests/component-view/presets/perpsTwoExchangePresets.ts`) returns ready-made `{ overrides, streamOverrides }` for a user with Hyperliquid and Lighter both enabled. Spread it into any perps renderer and call `withLighterBuildEnabled()` (from `tests/component-view/helpers/perpsViewTestHelpers.ts`) in the describe block. Lighter needs both the env flag and the remote flag, and the presets already set the remote one.
+
+```typescript
+describe('my two-exchange view', () => {
+  withLighterBuildEnabled();
+
+  it('renders with both venues funded', () => {
+    renderPerpsHomeView(perpsTwoExchangeState('bothFunded'));
+    // ...
+  });
+});
+```
+
+Scenarios:
+
+- `bothFunded`: Hyperliquid 100 and Lighter 50; total 150.
+- `oneFunded`: Hyperliquid 100, Lighter 0; total 100.
+- `sameMarketOnBoth`: both funded; ETH listed for both venues; ETH position on Lighter.
+- `lighterDown`: Hyperliquid 100; no Lighter balance or markets; total 100.
+
+The presets use the current `perps-controller` state shape. [MetaMask/core#11461](https://github.com/MetaMask/core/pull/11461) (TAT-4392) adds per-exchange account state (`providerStates`, `aggregate`). A `@ts-expect-error` alias in the preset file makes `yarn lint:tsc` fail when the package updates, as the reminder to give each scenario per-exchange account states and delete the alias.
+
 #### When no renderer exists for the view yet
 
 Create one. Pattern (copy from `tests/component-view/renderers/bridge.ts`):
