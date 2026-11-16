@@ -4,7 +4,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   FontWeight,
@@ -20,6 +19,9 @@ import {
   formatMusdBaseUnits,
   isPositiveBaseUnits,
 } from '../../utils/formatUtils';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-money-claims-paused-modal',
@@ -147,6 +149,7 @@ interface RewardsMoneyClaimsPausedModalProps {
 const RewardsMoneyClaimsPausedModal: React.FC<
   RewardsMoneyClaimsPausedModalProps
 > = ({ route }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const {
     title,
     description,
@@ -166,7 +169,8 @@ const RewardsMoneyClaimsPausedModal: React.FC<
       onClose={handleClose}
       testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.CLOSE,
@@ -174,7 +178,7 @@ const RewardsMoneyClaimsPausedModal: React.FC<
         testID={REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {isBalanceBreakdown ? null : (
         <Box
           twClassName="px-4"

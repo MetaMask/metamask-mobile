@@ -16,8 +16,18 @@ type WorkflowStep = {
   run?: string;
 };
 
+type WorkflowJob = {
+  needs?: string[] | string;
+  uses?: string;
+  if?: string;
+  with?: Record<string, string | boolean>;
+  'continue-on-error'?: boolean;
+  'runs-on'?: string;
+  steps?: WorkflowStep[];
+};
+
 type Workflow = {
-  jobs: Record<string, { steps?: WorkflowStep[] }>;
+  jobs: Record<string, WorkflowJob>;
 };
 
 const WITH_SRP = 'main-e2e-bs-with-srp';
@@ -220,6 +230,90 @@ describe('build-android-upload-to-testmu sourcemap retention', () => {
         `android-sourcemaps-${WITHOUT_SRP}`,
       ]),
     );
+  });
+});
+
+describe('main-dev performance build', () => {
+  const job = (workflowPath: string, jobId: string) => {
+    const workflow = yaml.load(fs.readFileSync(workflowPath, 'utf8')) as {
+      jobs: Record<string, WorkflowJob>;
+    };
+    return workflow.jobs[jobId];
+  };
+
+  it('builds main-dev as its own workflow call, without continue-on-error', () => {
+    const performancePath = path.join(
+      __dirname,
+      '../../../workflows/run-performance-e2e.yml',
+    );
+    const build = job(performancePath, 'build-main-dev');
+    const upload = job(performancePath, 'upload-main-dev');
+
+    expect(loadWorkflow().jobs['build-main-dev']).toBeUndefined();
+    expect(build.uses).toBe('./.github/workflows/build.yml');
+    expect(build.with).toMatchObject({
+      build_name: 'main-dev-without-srp',
+      platform: 'android',
+    });
+    // A reusable workflow call cannot set continue-on-error. GitHub then
+    // requires runs-on and rejects uses.
+    expect(build['continue-on-error']).toBeUndefined();
+    expect(build.needs).toEqual(['prepare', 'check-testmu-credentials']);
+    expect(upload.needs).toEqual(['build-main-dev']);
+    expect(upload['continue-on-error']).toBe(true);
+    expect(upload['runs-on']).toBe('ubuntu-latest');
+
+    for (const workflowJob of Object.values(loadWorkflow().jobs)) {
+      if (workflowJob.uses) {
+        expect(workflowJob['continue-on-error']).toBeUndefined();
+      }
+    }
+  });
+
+  it('maps the dev profile to main-dev and skips the SRP pair', () => {
+    const names =
+      stepByName('check-builds-needed', 'Resolve build artifact names')?.run ??
+      '';
+
+    expect(names).toContain('main-dev-build-name=main-dev-without-srp');
+    expect(names).toContain('[ "${BUILD_VARIANT}" = "dev" ]');
+    expect(names).toContain('srp-builds-needed=false');
+    expect(names).toContain('github-environment=build-dev');
+
+    for (const jobId of [
+      'build-with-srp',
+      'build-without-srp',
+      'resolve-fingerprint-reuse',
+      'upload-to-browserstack',
+    ]) {
+      expect(loadWorkflow().jobs[jobId].if).toContain(
+        "needs.check-builds-needed.outputs.srp-builds-needed == 'true'",
+      );
+    }
+
+    const manual = fs.readFileSync(
+      path.join(__dirname, '../../../workflows/run-performance-e2e-manual.yml'),
+      'utf8',
+    );
+    expect(manual).toMatch(
+      /options:\n\s+- e2e\n\s+- exp\n\s+- rc\n\s+- dev\n/,
+    );
+  });
+
+  it('is enabled for performance runs and left off for nightly system tests', () => {
+    const performancePath = path.join(
+      __dirname,
+      '../../../workflows/run-performance-e2e.yml',
+    );
+    const systemTests = fs.readFileSync(
+      path.join(__dirname, '../../../workflows/run-system-tests.yml'),
+      'utf8',
+    );
+
+    expect(job(performancePath, 'build-main-dev').with?.build_name).toBe(
+      'main-dev-without-srp',
+    );
+    expect(systemTests).not.toContain('build_name: main-dev');
   });
 });
 

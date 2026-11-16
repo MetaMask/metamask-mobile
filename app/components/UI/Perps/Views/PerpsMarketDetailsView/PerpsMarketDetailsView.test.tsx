@@ -3336,7 +3336,10 @@ describe('PerpsMarketDetailsView', () => {
       }
     });
 
-    it('forwards route source_section into navigateToOrder params', async () => {
+    // Temporarily skipped: flakes with a 5s timeout on a slow shard.
+    // https://github.com/MetaMask/metamask-mobile/issues/39861 (MCWP-1214)
+    // eslint-disable-next-line jest/no-disabled-tests
+    it.skip('forwards route source_section into navigateToOrder params', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
         '../../selectors/perpsController',
