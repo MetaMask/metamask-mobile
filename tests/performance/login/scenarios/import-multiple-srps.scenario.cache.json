@@ -13,7 +13,7 @@
       "type": "tap",
       "locator": {
         "strategy": "testID",
-        "value": "account-list-add-account-button"
+        "value": "account-hub-add-wallet-button"
       }
     }
   ]
