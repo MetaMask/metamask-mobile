@@ -1,7 +1,8 @@
 import type {
   AccountState,
-  PerpsControllerState,
+  PerpsMarketData,
   PerpsProviderType,
+  Position,
 } from '@metamask/perps-controller';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
@@ -13,148 +14,101 @@ import {
   createLongPositionForViews,
 } from '../fixtures/perpsViewFixtures';
 
-/**
- * Ready-made render options for screens with Hyperliquid and Lighter both
- * enabled. Uses the perps-controller 22.3.0 state shape; the tripwire below
- * fires when MetaMask/core#11461 (TAT-4392) ships per-exchange account state,
- * at which point these presets should move to providerStates/aggregate.
- */
-
-export type PerpsTwoExchangeScenario =
-  | 'bothFunded' // HL 100 + Lighter 50, total 150
-  | 'oneFunded' // HL 100, Lighter 0, total 100
-  | 'sameMarketOnBoth' // both funded; ETH on HL and Lighter; ETH position on Lighter
-  | 'lighterDown'; // HL 100, Lighter down: no Lighter balance/markets, total 100
-
-type PerpsBalances = PerpsControllerState['perpsBalances'];
-
-// TAT-4392 tripwire: core#11461 adds `providerStates` and `aggregate` to
-// AccountState. Today the field doesn't exist, so this directive is satisfied;
-// when the package updates, tsc reports it as unused and fails CI here. Then
-// give each scenario per-exchange providerStates/aggregate (Lighter down =
-// Lighter 'unavailable', aggregate 'partial') and delete this alias.
+// TAT-4392: core#11461 adds `AccountState.providerStates`. Once perps-controller
+// ships it, tsc fails on this line. Then give each scenario per-exchange
+// account states (Lighter down = Lighter 'unavailable') and delete the alias.
 // @ts-expect-error TAT-4392: remove once perps-controller ships providerStates.
 export type PerpsAccountProviderStates = AccountState['providerStates'];
 
-const perpsBalance = (totalBalance: string) => ({
-  totalBalance,
-  unrealizedPnl: '0',
-  accountValue1dAgo: totalBalance,
-  lastUpdated: 0,
-});
+interface Scenario {
+  /** Total balance per exchange. A missing exchange has no data. */
+  balances: Partial<Record<PerpsProviderType, string>>;
+  markets: PerpsMarketData[];
+  positions?: Position[];
+}
 
-const toAmount = (value: string) => {
-  const amount = Number(value);
-  return Number.isFinite(amount) ? amount : 0;
-};
+const eth = (providerId: PerpsProviderType): PerpsMarketData =>
+  createEthMarketForViews({ providerId });
 
-// Today's aggregated account is a single combined AccountState; null means the
-// venue is down and contributes nothing. TAT-4392 replaces this with
-// providerStates/aggregate (see the tripwire above).
-const aggregatedAccount = (
-  byProvider: Record<PerpsProviderType, string | null>,
-): AccountState => {
-  const total = Object.values(byProvider)
-    .filter((b): b is string => b !== null)
-    .reduce((sum, b) => sum + toAmount(b), 0)
-    .toString();
-
-  return createFundedAccountForViews(total);
-};
-
-const baseOverrides = (
-  perpsBalances: PerpsBalances,
-): DeepPartial<RootState> => ({
-  engine: {
-    backgroundState: {
-      PerpsController: {
-        activeProvider: 'aggregated',
-        isEligible: true,
-        isFirstTimeUser: { mainnet: false, testnet: false },
-        perpsBalances,
-      },
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          perpsLighterProviderEnabled: {
-            enabled: true,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    },
+const SCENARIOS = {
+  bothFunded: {
+    balances: { hyperliquid: '100', lighter: '50' },
+    markets: [
+      eth('hyperliquid'),
+      createBtcMarketForViews({ providerId: 'lighter' }),
+    ],
   },
-});
+  oneFunded: {
+    balances: { hyperliquid: '100', lighter: '0' },
+    markets: [
+      eth('hyperliquid'),
+      createBtcMarketForViews({ providerId: 'lighter' }),
+    ],
+  },
+  sameMarketOnBoth: {
+    balances: { hyperliquid: '100', lighter: '50' },
+    markets: [eth('hyperliquid'), eth('lighter')],
+    positions: [createLongPositionForViews({ providerId: 'lighter' })],
+  },
+  lighterDown: {
+    balances: { hyperliquid: '100' },
+    markets: [eth('hyperliquid')],
+  },
+} satisfies Record<string, Scenario>;
+
+export type PerpsTwoExchangeScenario = keyof typeof SCENARIOS;
 
 /**
- * Returns `{ overrides, streamOverrides }` for the scenario. Spread into any
- * perps renderer, e.g. `renderPerpsHomeView(perpsTwoExchangeState('bothFunded'))`.
- * Requires the Lighter build flag: call `withLighterBuildEnabled()` in the
- * describe block (see tests/component-view/helpers/perpsViewTestHelpers).
+ * Render options for a user with Hyperliquid and Lighter both enabled:
+ * `renderPerpsHomeView(perpsTwoExchangeState('bothFunded'))`.
+ * Also call `withLighterBuildEnabled()` in the describe block.
  */
 export const perpsTwoExchangeState = (
-  scenario: PerpsTwoExchangeScenario,
+  name: PerpsTwoExchangeScenario,
 ): {
   overrides: DeepPartial<RootState>;
   streamOverrides: PerpsStreamOverrides;
 } => {
-  switch (scenario) {
-    case 'bothFunded':
-      return {
-        overrides: baseOverrides({
-          hyperliquid: perpsBalance('100'),
-          lighter: perpsBalance('50'),
-        }),
-        streamOverrides: {
-          account: aggregatedAccount({ hyperliquid: '100', lighter: '50' }),
-          positions: [],
-          orders: [],
-          marketData: [
-            createEthMarketForViews({ providerId: 'hyperliquid' }),
-            createBtcMarketForViews({ providerId: 'lighter' }),
-          ],
+  const { balances, markets, positions = [] }: Scenario = SCENARIOS[name];
+  const entries = Object.entries(balances);
+  const total = entries.reduce((sum, [, balance]) => sum + Number(balance), 0);
+
+  return {
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider: 'aggregated',
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            perpsBalances: Object.fromEntries(
+              entries.map(([provider, totalBalance]) => [
+                provider,
+                {
+                  totalBalance,
+                  unrealizedPnl: '0',
+                  accountValue1dAgo: totalBalance,
+                  lastUpdated: 0,
+                },
+              ]),
+            ),
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsLighterProviderEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
         },
-      };
-    case 'oneFunded':
-      return {
-        overrides: baseOverrides({
-          hyperliquid: perpsBalance('100'),
-          lighter: perpsBalance('0'),
-        }),
-        streamOverrides: {
-          account: aggregatedAccount({ hyperliquid: '100', lighter: '0' }),
-          positions: [],
-          orders: [],
-          marketData: [
-            createEthMarketForViews({ providerId: 'hyperliquid' }),
-            createBtcMarketForViews({ providerId: 'lighter' }),
-          ],
-        },
-      };
-    case 'sameMarketOnBoth':
-      return {
-        overrides: baseOverrides({
-          hyperliquid: perpsBalance('100'),
-          lighter: perpsBalance('50'),
-        }),
-        streamOverrides: {
-          account: aggregatedAccount({ hyperliquid: '100', lighter: '50' }),
-          positions: [createLongPositionForViews({ providerId: 'lighter' })],
-          orders: [],
-          marketData: [
-            createEthMarketForViews({ providerId: 'hyperliquid' }),
-            createEthMarketForViews({ providerId: 'lighter' }),
-          ],
-        },
-      };
-    case 'lighterDown':
-      return {
-        overrides: baseOverrides({ hyperliquid: perpsBalance('100') }),
-        streamOverrides: {
-          account: aggregatedAccount({ hyperliquid: '100', lighter: null }),
-          positions: [],
-          orders: [],
-          marketData: [createEthMarketForViews({ providerId: 'hyperliquid' })],
-        },
-      };
-  }
+      },
+    },
+    streamOverrides: {
+      account: createFundedAccountForViews(String(total)),
+      positions,
+      orders: [],
+      marketData: markets,
+    },
+  };
 };
