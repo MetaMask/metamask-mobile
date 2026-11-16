@@ -18,7 +18,10 @@ import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTransactionPayPrefetch } from '../pay/useTransactionPayPrefetch';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
-import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  getPaymentTokenKey,
+  getTokenAddress,
+} from '../../utils/transaction-pay';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { debounce } from 'lodash';
@@ -143,7 +146,7 @@ export function useTransactionCustomAmount({
     isMoneyAccountDeposit || isMoneyAccountWithdraw;
   const { balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
-  const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
+  const payTokenKey = getPaymentTokenKey(payToken);
   const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
   useEffect(() => {

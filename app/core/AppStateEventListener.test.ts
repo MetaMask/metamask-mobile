@@ -11,10 +11,16 @@ import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
 import { saveAttribution } from './redux/slices/attribution';
 import { captureAppInstallOnce } from '../util/analytics/appInstallEvent';
+import { recoverSolanaPayTransactions } from './Engine/controllers/transaction-pay-controller/recover-solana-pay';
 
 jest.mock('../util/analytics/appInstallEvent', () => ({
   captureAppInstallOnce: jest.fn(),
 }));
+
+jest.mock(
+  './Engine/controllers/transaction-pay-controller/recover-solana-pay',
+  () => ({ recoverSolanaPayTransactions: jest.fn() }),
+);
 
 function createMockReduxStore(): ReduxStore {
   return {
@@ -96,6 +102,16 @@ describe('AppStateEventListener', () => {
 
   afterEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: true });
+  });
+
+  it('recovers Solana Pay on cold start and each background foreground cycle', () => {
+    expect(recoverSolanaPayTransactions).toHaveBeenCalledTimes(1);
+
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(recoverSolanaPayTransactions).toHaveBeenCalledTimes(2);
   });
 
   it('subscribes to AppState changes on instantiation', () => {

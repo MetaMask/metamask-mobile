@@ -1,4 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
+import { recoverSolanaPayTransactions } from './Engine/controllers/transaction-pay-controller/recover-solana-pay';
 import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
@@ -228,6 +229,9 @@ export class AppStateEventListener {
 
   private processAppStateChange = (appOpenedType: AppOpenedType) => {
     try {
+      // Recovery handles its own errors, so the promise never rejects.
+      void recoverSolanaPayTransactions();
+
       const attribution = processAttribution({
         currentDeeplink: this.currentDeeplink,
         store: ReduxService.store,

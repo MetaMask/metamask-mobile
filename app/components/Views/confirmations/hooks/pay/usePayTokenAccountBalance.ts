@@ -32,6 +32,15 @@ export function usePayTokenAccountBalance(): {
       return { balanceUsd: '0', balanceRaw: '0' };
     }
 
+    // Core refreshes a non-EVM token balance from AssetsController on every
+    // quote update, so its snapshot is the reactive source.
+    if (!payTokenAsset) {
+      return {
+        balanceUsd: payToken.balanceUsd,
+        balanceRaw: payToken.balanceRaw,
+      };
+    }
+
     const matchingToken = accountTokens.find((t) =>
       isSameAssetId(t.caipAssetId, payToken.assetId),
     );
@@ -53,5 +62,5 @@ export function usePayTokenAccountBalance(): {
       : (payToken.balanceUsd ?? '0');
 
     return { balanceUsd, balanceRaw: rawBalanceDecimal };
-  }, [payToken, accountTokens, usdRate]);
+  }, [payToken, payTokenAsset, accountTokens, usdRate]);
 }

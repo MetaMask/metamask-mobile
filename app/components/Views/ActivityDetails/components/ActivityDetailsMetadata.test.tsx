@@ -3,6 +3,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { ActivityDetailsMetadata } from './ActivityDetailsMetadata';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { strings } from '../../../../../locales/i18n';
+import { renderShortAddress } from '../../../../util/address';
 
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
@@ -115,6 +117,54 @@ describe('ActivityDetailsMetadata', () => {
     ).toBeOnTheScreen();
     expect(queryByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeNull();
     expect(queryByTestId(ActivityDetailsSelectorsIDs.TO_ROW)).toBeNull();
+  });
+
+  it('shows the Solana Pay source account resolved from the checkpoint account ID', () => {
+    const item = makeItem();
+    const solanaAddress = '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin';
+
+    const { getByText } = renderWithProvider(
+      <ActivityDetailsMetadata item={item} />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  accounts: {
+                    'solana-account-id': {
+                      id: 'solana-account-id',
+                      address: solanaAddress,
+                    },
+                  },
+                  selectedAccount: 'solana-account-id',
+                },
+              },
+              TransactionController: {
+                transactions: [
+                  {
+                    id: 'tx-1',
+                    chainId: '0x1',
+                    hash: item.hash,
+                    metamaskPay: {
+                      solanaExecution: {
+                        phase: 'ready',
+                        sourceWalletAccountId: 'solana-account-id',
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      getByText(strings('confirm.solana_pay.source_account')),
+    ).toBeOnTheScreen();
+    expect(getByText(renderShortAddress(solanaAddress))).toBeOnTheScreen();
   });
 
   it('omits the transaction id copy control when there is no hash', () => {

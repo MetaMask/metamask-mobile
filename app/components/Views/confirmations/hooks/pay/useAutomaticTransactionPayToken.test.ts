@@ -1009,7 +1009,7 @@ describe('useAutomaticTransactionPayToken', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-      }) as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 
@@ -1218,7 +1218,7 @@ describe('useAutomaticTransactionPayToken', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_1_MOCK,
         chainId: CHAIN_ID_1_MOCK,
-      }) as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 
@@ -1308,6 +1308,46 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('does not re-select MUSD when a Solana source sets the money override on a Money Account deposit', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        balanceFiat: '300',
+        balanceHuman: '2',
+        balanceRaw: '2000000000',
+        balanceUsd: '300',
+        decimals: 9,
+        symbol: 'SOL',
+      },
+      setPayToken: setPayTokenMock,
+    });
+
+    const { rerender } = runHook();
+    setPayTokenMock.mockClear();
+
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
   it('does not re-select on money override change when disabled', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
@@ -1354,7 +1394,7 @@ describe('useAutomaticTransactionPayToken', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_2_MOCK,
         chainId: CHAIN_ID_2_MOCK,
-      }) as unknown as ReturnType<typeof useTransactionPayToken>['payToken'],
+      }),
       setPayToken: setPayTokenMock,
     });
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import {
   getActivityFromTo,
@@ -16,6 +17,9 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
+import { useActivityPayMetadata } from '../hooks/useActivityPayMetadata';
+import { getSolanaPayStatusLabel } from '../solana-pay-status';
+import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 
 /**
  * The type-agnostic metadata block: status, date, account, network, and a
@@ -36,6 +40,13 @@ export function ActivityDetailsMetadata({
 }) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
+  const payMetadata = useActivityPayMetadata(item);
+  const solanaExecution = payMetadata?.solanaExecution;
+  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const solanaSourceAddress =
+    solanaExecution &&
+    internalAccountsById[solanaExecution.sourceWalletAccountId]?.address;
+  const payStatusLabel = getSolanaPayStatusLabel(solanaExecution);
   const showAddressOnly = item.type === 'smartAccountUpgrade';
   const showFromTo =
     !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
@@ -47,9 +58,25 @@ export function ActivityDetailsMetadata({
     <ActivityDetailSection>
       <ActivityDetailRow
         label={strings('activity_details.status')}
-        value={<ActivityDetailsStatus status={item.status} />}
+        value={
+          <ActivityDetailsStatus status={item.status} label={payStatusLabel} />
+        }
         testID={ActivityDetailsSelectorsIDs.STATUS_ROW}
       />
+
+      {solanaSourceAddress ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_account')}
+          value={renderShortAddress(solanaSourceAddress)}
+        />
+      ) : null}
+
+      {solanaExecution?.phase === 'submitted' ? (
+        <ActivityDetailRow
+          label={strings('confirm.solana_pay.source_transaction')}
+          value={solanaExecution.sourceTransactionId}
+        />
+      ) : null}
 
       <ActivityDetailRow
         label={strings('activity_details.date')}

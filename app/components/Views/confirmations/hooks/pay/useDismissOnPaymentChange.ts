@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { getPaymentTokenKey } from '../../utils/transaction-pay';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 interface UseDismissOnPaymentChangeOptions {
   dismissOnPayTokenChange?: boolean;
@@ -25,10 +25,11 @@ export function useDismissOnPaymentChange({
 }: UseDismissOnPaymentChangeOptions = {}): void {
   const navigation = useNavigation<AppNavigationProp>();
   const { payToken } = useTransactionPayToken();
+  const payTokenKey = getPaymentTokenKey(payToken);
   const fiatPayment = useTransactionPayFiatPayment();
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
 
-  const initialPayTokenRef = useRef(payToken);
+  const initialPayTokenKeyRef = useRef(payTokenKey);
   const initialSelectedPaymentMethodIdRef = useRef(selectedPaymentMethodId);
   const isDismissingRef = useRef(false);
 
@@ -37,11 +38,8 @@ export function useDismissOnPaymentChange({
       return;
     }
 
-    const initialPayToken = initialPayTokenRef.current;
     const payTokenMatchesInitial =
-      !dismissOnPayTokenChange ||
-      (!initialPayToken && !payToken) ||
-      isSameAssetId(initialPayToken?.assetId, payToken?.assetId);
+      !dismissOnPayTokenChange || payTokenKey === initialPayTokenKeyRef.current;
 
     const fiatMatchesInitial =
       selectedPaymentMethodId === initialSelectedPaymentMethodIdRef.current;
@@ -57,5 +55,10 @@ export function useDismissOnPaymentChange({
 
     isDismissingRef.current = true;
     navigation.goBack();
-  }, [dismissOnPayTokenChange, navigation, payToken, selectedPaymentMethodId]);
+  }, [
+    dismissOnPayTokenChange,
+    navigation,
+    payTokenKey,
+    selectedPaymentMethodId,
+  ]);
 }
