@@ -9,6 +9,11 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  act,
+  fireEvent,
+  type RenderResult,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider, {
   type DeepPartial,
@@ -19,6 +24,7 @@ import type { AppNavigationProp } from '../../../app/core/NavigationService/type
 import ReduxService, { type ReduxStore } from '../../../app/core/redux';
 import Routes from '../../../app/constants/navigation/Routes';
 import MoneyAddMoneySheet from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet';
+import { MoneyAddMoneySheetTestIds } from '../../../app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import VbaDetails from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaDetails';
 import VbaVendorTermsAdapter from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/modules/VbaVendorTermsAdapter';
@@ -54,6 +60,23 @@ let restoreVbaReduxStore: (() => void) | undefined;
  */
 export function restoreVbaReduxServiceStore(): void {
   restoreVbaReduxStore?.();
+}
+
+/**
+ * Opens Add money and presses the Bank account row. The press mounts the
+ * onboarding fox loader, whose Reduce Motion lookup resolves on a later
+ * microtask, so the press is awaited inside `act`.
+ */
+export async function openVbaBankAccountFromMoney(
+  findByTestId: RenderResult['findByTestId'],
+): Promise<void> {
+  fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
+  const bankAccountRow = await findByTestId(
+    MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+  );
+  await act(async () => {
+    fireEvent.press(bankAccountRow);
+  });
 }
 
 const bindVbaReduxServiceStore = (store: ReduxStore) => {

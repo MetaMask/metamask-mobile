@@ -1,5 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { act, waitFor } from '@testing-library/react-native';
 import {
   getDefaultKycControllerState,
   type KycControllerState,
@@ -13,14 +13,13 @@ import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  openVbaBankAccountFromMoney,
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
-  VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { KycRejectedSelectorsIDs } from '../../../KYC/Views/Status/KycRejected';
 import { KycPendingSelectorsIDs } from '../../../KYC/Views/Status/KycPending';
 import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
-import { MoneyAddMoneySheetTestIds } from '../../../Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 
 // SumSub consent, the provider launch, and the following hydrate share one wait.
 const ONBOARDING_STEP_TIMEOUT_MS = 5000;
@@ -103,12 +102,18 @@ const publishKycSession = (
     previousEngineState = Object.getOwnPropertyDescriptor(Engine, 'state');
     didAssignEngineState = true;
   }
+  // updateBgState copies Engine.state[key] into Redux, so other keys must
+  // keep their values. The controller instance sees the same state.
+  const currentEngineState = (
+    Engine as unknown as { state?: Record<string, unknown> }
+  ).state;
   Object.defineProperty(Engine, 'state', {
     configurable: true,
     enumerable: true,
     writable: true,
-    value: { KycController: kycState },
+    value: { ...currentEngineState, KycController: kycState },
   });
+  Engine.context.KycController.state = kycState;
   store.dispatch(updateBgState({ key: 'KycController' }));
 };
 
@@ -122,15 +127,6 @@ const restoreEngineKycState = (): void => {
     return;
   }
   Reflect.deleteProperty(Engine, 'state');
-};
-
-const openBankAccount = async (
-  findByTestId: ReturnType<typeof renderVbaMoneyEntry>['findByTestId'],
-): Promise<void> => {
-  fireEvent.press(await findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
-  fireEvent.press(
-    await findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-  );
 };
 
 describeForPlatforms('VBA proof-of-address retry', () => {
@@ -182,7 +178,7 @@ describeForPlatforms('VBA proof-of-address retry', () => {
     const { findByTestId, getByTestId, getByText, queryByTestId, store } =
       renderVbaMoneyEntry();
 
-    await openBankAccount(findByTestId);
+    await openVbaBankAccountFromMoney(findByTestId);
 
     expect(
       await findByTestId(
@@ -200,13 +196,13 @@ describeForPlatforms('VBA proof-of-address retry', () => {
 
     await waitFor(
       () => {
-        expect(launchProviderFlow).toHaveBeenCalledTimes(1);
         expect(
           getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
         ).toBeOnTheScreen();
       },
       { timeout: ONBOARDING_STEP_TIMEOUT_MS },
     );
+    expect(launchProviderFlow).toHaveBeenCalledTimes(1);
     expect(getByText(strings('kyc.kyc_rejected.title'))).toBeOnTheScreen();
     expect(
       getByText(strings('kyc.kyc_rejected.retry_description')),
@@ -252,17 +248,17 @@ describeForPlatforms('VBA proof-of-address retry', () => {
       },
     });
 
-    await openBankAccount(view.findByTestId);
+    await openVbaBankAccountFromMoney(view.findByTestId);
 
     await waitFor(
       () => {
-        expect(launchProviderFlow).not.toHaveBeenCalled();
         expect(
           view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
         ).toBeOnTheScreen();
       },
       { timeout: ONBOARDING_STEP_TIMEOUT_MS },
     );
+    expect(launchProviderFlow).not.toHaveBeenCalled();
     expect(view.getByText(strings('kyc.kyc_rejected.title'))).toBeOnTheScreen();
     expect(
       view.getByText(strings('kyc.kyc_rejected.retry_description')),

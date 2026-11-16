@@ -1,6 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import type { KycSessionStatus } from '@metamask/kyc-controller';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
@@ -9,11 +9,10 @@ import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
+  openVbaBankAccountFromMoney,
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
-  VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
-import { MoneyAddMoneySheetTestIds } from '../../../Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { VBA_KYC_VENDOR } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { KycSumSubSelectorsIDs } from '../SumSub/SumSubKyc';
@@ -25,6 +24,8 @@ const mockHydrateVbaOnboarding = jest.mocked(
 const launchProviderFlow = jest.mocked(
   Engine.context.KycController.launchProviderFlow,
 );
+
+let openUrlSpy: jest.SpiedFunction<typeof Linking.openURL> | undefined;
 
 const kycSession = (
   finalStatus: string,
@@ -61,15 +62,6 @@ const withKycSession = (
     },
   }) as unknown as DeepPartial<RootState>;
 
-const openFromMoneyEntry = async (
-  view: ReturnType<typeof renderVbaMoneyEntry>,
-): Promise<void> => {
-  fireEvent.press(await view.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
-  fireEvent.press(
-    await view.findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-  );
-};
-
 describeForPlatforms('KycRejected view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -78,6 +70,8 @@ describeForPlatforms('KycRejected view', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
+    openUrlSpy?.mockRestore();
+    openUrlSpy = undefined;
     launchProviderFlow.mockReset();
     launchProviderFlow.mockResolvedValue('abandoned');
   });
@@ -96,7 +90,7 @@ describeForPlatforms('KycRejected view', () => {
       },
     });
 
-    await openFromMoneyEntry(view);
+    await openVbaBankAccountFromMoney(view.findByTestId);
 
     expect(
       await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
@@ -111,13 +105,21 @@ describeForPlatforms('KycRejected view', () => {
       view.queryByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
     ).not.toBeOnTheScreen();
 
-    const openUrl = jest
+    openUrlSpy = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined as never);
     fireEvent.press(contactSupport);
 
-    expect(openUrl).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
-    openUrl.mockRestore();
+    await waitFor(() => {
+      expect(openUrlSpy).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+    });
+    // The button is busy until the support action settles.
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON),
+      ).toBeEnabled();
+    });
+    expect(openUrlSpy).toHaveBeenCalledTimes(1);
   });
 
   it('opens the rejected screen with Try again when KYC asked for a retry before resubmission', async () => {
@@ -128,7 +130,7 @@ describeForPlatforms('KycRejected view', () => {
       overrides: withKycSession(kycSession('retry', 'retry')),
     });
 
-    await openFromMoneyEntry(view);
+    await openVbaBankAccountFromMoney(view.findByTestId);
 
     expect(
       await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
@@ -144,8 +146,8 @@ describeForPlatforms('KycRejected view', () => {
     ).not.toBeOnTheScreen();
 
     // The shared mock abandons the provider, which pops this screen in the
-    // same turn. A failed launch leaves the SumSub screen up.
-    launchProviderFlow.mockResolvedValue('failed');
+    // same turn. A launch that has not settled leaves the SumSub screen up.
+    launchProviderFlow.mockImplementation(() => new Promise(() => undefined));
     fireEvent.press(view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON));
 
     expect(

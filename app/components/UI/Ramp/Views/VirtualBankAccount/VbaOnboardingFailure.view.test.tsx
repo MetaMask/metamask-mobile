@@ -1,16 +1,14 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
 import type { KycSessionStatus } from '@metamask/kyc-controller';
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteParamsProbeTestId } from '../../../../../../tests/component-view/render';
 import {
+  openVbaBankAccountFromMoney,
   renderVbaMoneyEntryWithDestinationProbes,
   restoreVbaReduxServiceStore,
-  VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
-import { MoneyAddMoneySheetTestIds } from '../../../Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.testIds';
 import { VBA_KYC_VENDOR } from './constants';
 import { VbaOnboardingRoutes } from './routes';
 
@@ -52,15 +50,6 @@ const submittedPendingSnapshot: RampsVbaOnboardingSnapshot = {
   providerFlowStatus: 'submitted',
   kycStatus: 'pending',
   autorampStatus: 'not_ready',
-};
-
-const openBankAccountEntry = async (
-  view: ReturnType<typeof renderVbaMoneyEntryWithDestinationProbes>,
-): Promise<void> => {
-  fireEvent.press(await view.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET));
-  fireEvent.press(
-    await view.findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-  );
 };
 
 describeForPlatforms('VBA onboarding failure view', () => {
@@ -107,7 +96,7 @@ describeForPlatforms('VBA onboarding failure view', () => {
       );
       const view = renderVbaMoneyEntryWithDestinationProbes();
 
-      await openBankAccountEntry(view);
+      await openVbaBankAccountFromMoney(view.findByTestId);
 
       expect(await view.findByTestId(kycPendingProbe)).toBeOnTheScreen();
       expect(mockKycReset).toHaveBeenCalledTimes(1);
@@ -122,7 +111,7 @@ describeForPlatforms('VBA onboarding failure view', () => {
       );
       const view = renderVbaMoneyEntryWithDestinationProbes();
 
-      await openBankAccountEntry(view);
+      await openVbaBankAccountFromMoney(view.findByTestId);
 
       expect(await view.findByTestId(kycPendingProbe)).toBeOnTheScreen();
       expect(mockKycReset).not.toHaveBeenCalled();

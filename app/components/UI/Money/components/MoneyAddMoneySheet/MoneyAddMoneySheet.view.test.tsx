@@ -543,6 +543,16 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
       });
     });
 
+    afterEach(() => {
+      // Tests outside this block expect the shared empty payment methods.
+      mockGetPaymentMethodsForContext.mockReset();
+      mockGetPaymentMethodsForContext.mockResolvedValue({
+        methods: [],
+        selected: null,
+        providerIds: [],
+      });
+    });
+
     const openSheet = async (
       view: ReturnType<typeof renderVbaMoneyEntry>,
     ): Promise<void> => {
