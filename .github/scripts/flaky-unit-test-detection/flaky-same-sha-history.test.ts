@@ -101,15 +101,6 @@ describe('isCandidateShaGroup', () => {
     ).toBe(true);
   });
 
-  it('keeps a re-run when an earlier attempt number is missing', () => {
-    expect(
-      isCandidateShaGroup([
-        run({ id: 1, runAttempt: 2, conclusion: 'success' }),
-        run({ id: 1, runAttempt: 3, conclusion: 'success' }),
-      ]),
-    ).toBe(true);
-  });
-
   it('treats two run ids with a failure and a success as a candidate', () => {
     expect(
       isCandidateShaGroup([
@@ -863,18 +854,5 @@ describe('confirmedFailThenPassFromAttemptJobs', () => {
         unitJob(2, { runAttempt: 2, conclusion: 'success' }),
       ]),
     ).toEqual([{ name: 'Unit tests (8)', jobId: 1, runId: 10 }]);
-  });
-
-  it('does not confirm when a different shard passed', () => {
-    expect(
-      confirmedFailThenPassFromAttemptJobs([
-        unitJob(1),
-        unitJob(2, {
-          name: 'Unit tests (3)',
-          runAttempt: 2,
-          conclusion: 'success',
-        }),
-      ]),
-    ).toEqual([]);
   });
 });

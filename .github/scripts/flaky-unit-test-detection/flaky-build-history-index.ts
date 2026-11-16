@@ -79,7 +79,6 @@ export function renderBuildSummary({
 }: {
   daysWalked: string[];
   gapDays: string[];
-  /** Queued days this build did not start, because an earlier day used the hour. */
   deferredDays?: string[];
   runsScanned: number;
   newHits: number;
@@ -143,9 +142,7 @@ async function main(): Promise<void> {
   const deferredDays: string[] = [];
   const attempted: string[] = [];
 
-  // Fresh days first. A day starts only with enough requests to finish a
-  // heavy weekday. A smaller leftover waits for the next night. Starting it
-  // would mark the day incomplete and store a new gap.
+  // A day starts only when its share can finish a heavy weekday.
   const ordered = orderDaysForWalk(days, prior.gapDays);
 
   for (const day of ordered) {

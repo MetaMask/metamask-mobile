@@ -111,12 +111,12 @@ const sleep = (ms: number): Promise<void> =>
 export async function withRetryOnce<T>(
   fn: () => Promise<T>,
   wait: (ms: number) => Promise<void> = sleep,
-  allowRetry: () => boolean = () => true,
+  beforeRetry: () => boolean = () => true,
 ): Promise<T> {
   try {
     return await fn();
   } catch (error) {
-    if (!isRetriableGithubError(error) || !allowRetry()) {
+    if (!isRetriableGithubError(error) || !beforeRetry()) {
       throw error;
     }
     await wait(retryDelayMs(error));

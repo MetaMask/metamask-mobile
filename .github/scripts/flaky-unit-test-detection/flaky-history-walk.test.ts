@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 import {
   HEAVY_DAY_REST_REQUESTS,
   MAX_REST_REQUESTS_PER_DAY,
@@ -78,7 +79,9 @@ function jobsResponse(params: JobsRequest) {
   const visible =
     params.filter === 'all'
       ? sameRunRerunJobs
-      : sameRunRerunJobs.filter((job) => job.run_attempt === SAME_RUN_RERUN.run_attempt);
+      : sameRunRerunJobs.filter(
+          (job) => job.run_attempt === SAME_RUN_RERUN.run_attempt,
+        );
   const page = params.page ?? 1;
   const perPage = params.per_page ?? 100;
   const start = (page - 1) * perPage;
@@ -193,35 +196,63 @@ describe('walkDay', () => {
       repo: 'metamask-mobile',
       day: '2026-11-11',
       budget: newWalkBudget(),
-      // One request lists the run. The next fetches page 1 of 100 and stops
-      // short of the attempt-2 pass on page 2.
       maxRequestsForDay: 2,
     });
 
-    expect(octokit.rest.actions.listJobsForWorkflowRun).toHaveBeenCalledTimes(1);
+    expect(octokit.rest.actions.listJobsForWorkflowRun).toHaveBeenCalledTimes(
+      1,
+    );
     expect(result.complete).toBe(false);
     expect(result.hits).toEqual([]);
   });
 
-  it('does not fetch jobs for a single attempt that already passed', async () => {
+  it('does not send a retry when the request budget is spent', async () => {
     const octokit = fakeOctokit();
-    octokit.rest.actions.listWorkflowRuns.mockResolvedValue({
-      data: {
-        total_count: 1,
-        workflow_runs: [{ ...SAME_RUN_RERUN, run_attempt: 1, conclusion: 'success' }],
-      },
-    });
+    const error = Object.assign(new Error('503'), { status: 503 });
+    octokit.rest.actions.listWorkflowRuns.mockRejectedValue(error);
 
     const result = await walkDay({
       octokit: octokit as never,
       owner: 'MetaMask',
       repo: 'metamask-mobile',
-      day: '2026-11-08',
+      day: '2026-11-12',
       budget: newWalkBudget(),
+      maxRequestsForDay: 1,
     });
 
-    expect(octokit.rest.actions.listJobsForWorkflowRun).not.toHaveBeenCalled();
-    expect(result.complete).toBe(true);
-    expect(result.hits).toEqual([]);
+    expect(octokit.rest.actions.listWorkflowRuns).toHaveBeenCalledTimes(1);
+    expect(result.complete).toBe(false);
+  });
+
+  it('leaves a 5xx on page 2 incomplete without the listing ceiling', async () => {
+    const octokit = fakeOctokit();
+    const page = Array.from({ length: 100 }, (_, index) => ({
+      ...SAME_RUN_RERUN,
+      id: index + 1,
+      run_attempt: 1,
+      conclusion: 'success' as const,
+    }));
+    const error = Object.assign(new Error('503'), { status: 503 });
+    octokit.rest.actions.listWorkflowRuns
+      .mockResolvedValueOnce({
+        data: { total_count: 150, workflow_runs: page },
+      })
+      .mockRejectedValue(error);
+    jest.mocked(core.warning).mockClear();
+
+    const result = await walkDay({
+      octokit: octokit as never,
+      owner: 'MetaMask',
+      repo: 'metamask-mobile',
+      day: '2026-11-12',
+      budget: newWalkBudget(),
+    });
+    const warnings = jest
+      .mocked(core.warning)
+      .mock.calls.map((call) => String(call[0]));
+
+    expect(result.complete).toBe(false);
+    expect(warnings.join(' ')).not.toContain('ceiling');
+    expect(warnings.join(' ')).toContain('stopped after');
   });
 });

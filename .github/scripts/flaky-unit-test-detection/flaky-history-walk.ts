@@ -1,8 +1,14 @@
 /**
  * Walking one day of ci.yml history for confirmed same-SHA fail-then-pass.
  *
- * Runs once a night. A weekday is about 500–800 ci.yml runs. Candidate
- * re-runs are read with the REST jobs API, inside the hourly request limit.
+ * This is the expensive half of the detector, and it now runs once a night on
+ * main rather than on every push. A day is small enough to stay clear of every
+ * ceiling the per-PR walk kept hitting: roughly 330 runs against the
+ * 1000-result listWorkflowRuns cap, and about 33 candidate commits against the
+ * 1000 GraphQL points GITHUB_TOKEN allows per hour.
+ *
+ * Nothing here is scoped to a pull request. The caller gets every unit test
+ * the confirmed jobs reported failing, and decides what to do with it.
  */
 import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
@@ -41,10 +47,8 @@ const RUNS_PAGE_SIZE = 100;
 const JOBS_PAGE_SIZE = 100;
 const DOWNLOAD_CONCURRENCY = 8;
 
-/** Measured heavy-weekday cost. The per-day cap sits above this. */
 export const HEAVY_DAY_REST_REQUESTS = 350;
 
-/** Two of these fit in the build budget. A third day waits. */
 export const MAX_REST_REQUESTS_PER_DAY = 400;
 
 export const MAX_REST_REQUESTS_PER_BUILD = 800;
@@ -62,7 +66,6 @@ export function newWalkBudget(): WalkBudget {
   return { restRequests: 0, logFetches: 0 };
 }
 
-/** Next day's share. Below `minToStart`, returns 0 so the day is deferred. */
 export function requestShareForDay({
   spent,
   buildBudget = MAX_REST_REQUESTS_PER_BUILD,
@@ -82,7 +85,6 @@ export function requestShareForDay({
   return share;
 }
 
-/** Fresh days first, then gaps. Oldest first inside each group. */
 export function orderDaysForWalk(
   days: readonly string[],
   gapDays: readonly string[],
@@ -136,15 +138,8 @@ type ListedDay = {
   runs: ListedWorkflowRun[];
   capped: boolean;
   budgetExhausted: boolean;
-  pageError: boolean;
+  listingFailed: boolean;
 };
-
-function retryWithinBudget<T>(
-  spend: () => boolean,
-  fn: () => Promise<T>,
-): Promise<T> {
-  return withRetryOnce(fn, undefined, spend);
-}
 
 async function listRunsForDay(
   octokit: Octokit,
@@ -159,18 +154,26 @@ async function listRunsForDay(
   try {
     while (runs.length < MAX_RUNS_PER_DAY) {
       if (!spend()) {
-        return { runs, capped: false, budgetExhausted: true, pageError: false };
+        return {
+          runs,
+          capped: false,
+          budgetExhausted: true,
+          listingFailed: false,
+        };
       }
-      const response = await retryWithinBudget(spend, () =>
-        octokit.rest.actions.listWorkflowRuns({
-          owner,
-          repo,
-          workflow_id: WORKFLOW,
-          status: 'completed',
-          created: day,
-          per_page: RUNS_PAGE_SIZE,
-          page,
-        }),
+      const response = await withRetryOnce(
+        () =>
+          octokit.rest.actions.listWorkflowRuns({
+            owner,
+            repo,
+            workflow_id: WORKFLOW,
+            status: 'completed',
+            created: day,
+            per_page: RUNS_PAGE_SIZE,
+            page,
+          }),
+        undefined,
+        spend,
       );
       const pageRuns = response.data.workflow_runs ?? [];
       for (const run of pageRuns) {
@@ -182,8 +185,7 @@ async function listRunsForDay(
       fetched += pageRuns.length;
       const total = response.data.total_count;
       const shortPage = pageRuns.length < RUNS_PAGE_SIZE;
-      const covered =
-        typeof total === 'number' ? fetched >= total : shortPage;
+      const covered = typeof total === 'number' ? fetched >= total : shortPage;
       if (shortPage || covered || runs.length >= MAX_RUNS_PER_DAY) {
         break;
       }
@@ -200,14 +202,14 @@ async function listRunsForDay(
       runs,
       capped: runs.length >= MAX_RUNS_PER_DAY,
       budgetExhausted: false,
-      pageError: true,
+      listingFailed: true,
     };
   }
   return {
     runs,
     capped: runs.length >= MAX_RUNS_PER_DAY,
     budgetExhausted: false,
-    pageError: false,
+    listingFailed: false,
   };
 }
 
@@ -235,15 +237,18 @@ async function listAttemptJobs(
     let totalCount: number | null = null;
     let pageJobs: Parameters<typeof attemptJobFromApi>[0][] = [];
     try {
-      const response = await retryWithinBudget(spend, () =>
-        octokit.rest.actions.listJobsForWorkflowRun({
-          owner,
-          repo,
-          run_id: runId,
-          filter: 'all',
-          per_page: JOBS_PAGE_SIZE,
-          page,
-        }),
+      const response = await withRetryOnce(
+        () =>
+          octokit.rest.actions.listJobsForWorkflowRun({
+            owner,
+            repo,
+            run_id: runId,
+            filter: 'all',
+            per_page: JOBS_PAGE_SIZE,
+            page,
+          }),
+        undefined,
+        spend,
       );
       totalCount =
         typeof response.data.total_count === 'number'
@@ -298,8 +303,15 @@ async function classifyMissingLog(
     return 'missing_blob';
   }
   try {
-    const { data } = await retryWithinBudget(spend, () =>
-      octokit.rest.actions.getJobForWorkflowRun({ owner, repo, job_id: jobId }),
+    const { data } = await withRetryOnce(
+      () =>
+        octokit.rest.actions.getJobForWorkflowRun({
+          owner,
+          repo,
+          job_id: jobId,
+        }),
+      undefined,
+      spend,
     );
     return classifyLoglessJob({ steps: data.steps }) === 'infrastructure'
       ? 'infrastructure'
@@ -345,12 +357,15 @@ async function downloadFailedUnitLogs(
         return { job, ok: false, failure: 'unread' };
       }
       try {
-        const res = await retryWithinBudget(spend, () =>
-          octokit.rest.actions.downloadJobLogsForWorkflowRun({
-            owner,
-            repo,
-            job_id: job.jobId,
-          }),
+        const res = await withRetryOnce(
+          () =>
+            octokit.rest.actions.downloadJobLogsForWorkflowRun({
+              owner,
+              repo,
+              job_id: job.jobId,
+            }),
+          undefined,
+          spend,
         );
         return { job, ok: true, text: String(res.data) };
       } catch (error) {
@@ -494,7 +509,7 @@ export async function walkDay({
   const seenRunIds = new Set<number>();
   const failedLists = { count: 0 };
   let complete =
-    !listed.capped && !listed.budgetExhausted && !listed.pageError;
+    !listed.capped && !listed.budgetExhausted && !listed.listingFailed;
   let stop = false;
 
   for (const candidate of candidates) {

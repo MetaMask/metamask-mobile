@@ -158,12 +158,7 @@ export function groupRunsByHeadSha(
   return groups;
 }
 
-/**
- * `listWorkflowRuns` returns one row per run: the latest attempt. A green
- * re-run is therefore `runAttempt > 1` with conclusion `success`, and the
- * failed attempt is not in the list. Keep it. Skip a re-run only when every
- * attempt is present and succeeded.
- */
+/** Latest attempt only. Keep a green re-run unless every attempt succeeded. */
 function listedAttemptsCover(
   attempts: ListedWorkflowRun[],
   latestAttempt: number,
@@ -506,10 +501,6 @@ export function jobListTruncated(
   return fetched < totalCount;
 }
 
-/**
- * Failed Unit tests jobs whose same name later succeeded, on one SHA.
- * Order is run id, then attempt, then job id.
- */
 export function confirmedFailThenPassFromAttemptJobs(
   jobs: AttemptJob[],
 ): ConfirmedFailThenPassJob[] {
