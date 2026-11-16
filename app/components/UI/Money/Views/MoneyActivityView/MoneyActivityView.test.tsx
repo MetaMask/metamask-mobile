@@ -317,6 +317,7 @@ function mockApiActivity(
     loadMore: mockLoadMore,
     isLoadingMore: false,
     isLoading: false,
+    isValuationSettling: false,
     error: false,
     refetch: mockRefetch,
     ...overrides,
@@ -533,6 +534,7 @@ describe('MoneyActivityView', () => {
     useCardCapabilities.mockReturnValue({
       supportsTransactionHistory: true,
       supportsMoneyAccountLinking: true,
+      reportsVerificationStatus: true,
     });
     mockedSelectEnrichmentFlag.mockReturnValue(true);
     mockedSelectMoneyAccountFlag.mockReturnValue(true);

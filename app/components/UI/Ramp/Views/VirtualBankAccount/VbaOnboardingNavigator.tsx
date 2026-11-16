@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
-import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
-import VbaIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
+import KycEmailAdapter from '../../../KYC/Views/EmailAdapter';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
+  VbaIdentityVerificationAdapter,
+  VbaIdentityVerifiedAdapter,
   VbaKycPendingAdapter,
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
@@ -34,7 +34,7 @@ const InstrumentedLoading = withScreenPerformance(
   VBA_SCREEN_ID.ONBOARDING_LOADING,
 );
 const InstrumentedEmail = withScreenPerformance(
-  VbaEmailAdapter,
+  KycEmailAdapter,
   VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.EMAIL_VERIFICATION,
 );
@@ -44,7 +44,7 @@ const InstrumentedKycPending = withScreenPerformance(
   VBA_SCREEN_ID.KYC_PENDING,
 );
 const InstrumentedIdentityVerified = withScreenPerformance(
-  VbaIdentityVerified,
+  VbaIdentityVerifiedAdapter,
   VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.IDENTITY_VERIFIED,
 );
@@ -87,7 +87,7 @@ const VbaOnboardingStack = () => (
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFICATION}
-      component={VbaIdentityVerificationModule}
+      component={VbaIdentityVerificationAdapter}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.KYC_PENDING}

@@ -5,6 +5,8 @@ export const PREDICT_MARKET_TYPES = {
   SPREAD: 'spread',
   TOTAL: 'total',
   TEAM_TOTAL: 'team_total',
+  /** An "at least N" ladder: each line reads "N+", with Yes and No. */
+  THRESHOLD: 'threshold',
 } as const;
 
 /** Event screen layout keys PredictNext reads; the backend documents the full set. */

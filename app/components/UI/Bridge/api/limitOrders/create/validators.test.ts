@@ -82,6 +82,22 @@ describe('parseCreateLimitOrderResponse', () => {
     expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
   });
 
+  it('accepts the price tolerance the order was placed with', () => {
+    const response = {
+      order: { ...MINIMAL_RESPONSE.order, priceTolerance: 2.5 },
+    };
+
+    expect(parseCreateLimitOrderResponse(response)).toStrictEqual(response);
+  });
+
+  it('rejects a price tolerance that is not a number', () => {
+    expect(() =>
+      parseCreateLimitOrderResponse({
+        order: { ...MINIMAL_RESPONSE.order, priceTolerance: '2.5' },
+      }),
+    ).toThrow(/Invalid create limit order response/u);
+  });
+
   it('rejects a transaction hash that is not hex', () => {
     expect(() =>
       parseCreateLimitOrderResponse({

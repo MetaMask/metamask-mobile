@@ -10,6 +10,9 @@ import {
   PayWithOption,
 } from '../../components/confirm/confirm-component';
 import { useMoneyAccountAvailability } from '../../../../UI/Money/hooks/useMoneyAccountAvailability';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 
 const mockDepositWithConfirmation = jest
   .fn()
@@ -41,6 +44,23 @@ jest.mock(
     selectMetaMaskPayFlags: jest.fn(),
   }),
 );
+
+// Only `state`, which `updateBgState` publishes to Redux.
+jest.mock('../../../../../core/Engine', () => ({ state: {} }));
+
+const KALSHI_ONLY = {
+  enabled: true,
+  venues: { polymarket: { enabled: false }, kalshi: { enabled: true } },
+  venueSelection: { enabled: false },
+};
+
+const remoteFeatureFlagState = (predictConfig?: typeof KALSHI_ONLY) => ({
+  ...backgroundState.RemoteFeatureFlagController,
+  remoteFeatureFlags: {
+    ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
+    predictConfig,
+  },
+});
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -141,5 +161,62 @@ describe('useMoneyPredictDeposit', () => {
 
     const Logger = jest.requireMock('../../../../../util/Logger').default;
     expect(Logger.error).toHaveBeenCalledTimes(1);
+  });
+
+  describe('Active Venue gate', () => {
+    it('starts nothing while Kalshi is active', async () => {
+      const { result } = renderHookWithProvider(
+        () => useMoneyPredictDeposit(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                ...backgroundState,
+                RemoteFeatureFlagController:
+                  remoteFeatureFlagState(KALSHI_ONLY),
+              },
+            },
+          },
+        },
+      );
+
+      await act(async () => {
+        await result.current.initiatePredictDeposit();
+      });
+
+      expect(mockAssertMoneyAccountAccessible).not.toHaveBeenCalled();
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('re-checks when it runs, so a deposit captured on Polymarket starts nothing after a switch to Kalshi', async () => {
+      const { result, store } = renderHookWithProvider(
+        () => useMoneyPredictDeposit(),
+        {
+          state: {
+            engine: {
+              backgroundState: {
+                ...backgroundState,
+                RemoteFeatureFlagController: remoteFeatureFlagState(),
+              },
+            },
+          },
+        },
+      );
+      const { initiatePredictDeposit } = result.current;
+
+      act(() => {
+        (Engine as unknown as { state: Record<string, unknown> }).state = {
+          RemoteFeatureFlagController: remoteFeatureFlagState(KALSHI_ONLY),
+        };
+        store.dispatch(updateBgState({ key: 'RemoteFeatureFlagController' }));
+      });
+      await act(async () => {
+        await initiatePredictDeposit();
+      });
+
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+    });
   });
 });

@@ -1,9 +1,13 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
+import { darkTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
+import { mockTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import socialTermsOfUseContent from '../../../../../util/termsOfUse/socialTermsOfUseContent';
 import SocialTermsSheet from './SocialTermsSheet';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
 
@@ -80,39 +84,61 @@ describe('SocialTermsSheet', () => {
     mockInjectJavaScript.mockClear();
   });
 
+  it('pads the footer 16px on the top and sides with an 8px gap and no extra bottom padding', () => {
+    const { getByTestId } = renderSheet();
+    const style = StyleSheet.flatten(
+      getByTestId(SocialTermsSheetSelectorsIDs.FOOTER).props.style,
+    );
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        paddingTop: 16,
+        paddingLeft: 16,
+        paddingRight: 16,
+        gap: 8,
+      }),
+    );
+    expect(style.paddingBottom).toBeUndefined();
+  });
+
   it('keeps Agree disabled and shows the scroll helper before the end is reached', () => {
-    const { getByTestId, onAgree } = renderSheet();
+    const { getByTestId, queryByText, onAgree } = renderSheet();
 
     fireEvent.scroll(
       getByTestId(SocialTermsSheetSelectorsIDs.BODY),
       scrollToMiddle,
     );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
+    expect(
+      queryByText(strings('social_leaderboard.terms.checkbox')),
+    ).not.toBeOnTheScreen();
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
     ).toBeOnTheScreen();
     expect(onAgree).not.toHaveBeenCalled();
   });
 
-  it('calls onAgree after scrolling to the end and checking the box', () => {
-    const { getByTestId, queryByTestId, onAgree } = renderSheet();
-
-    fireEvent.scroll(
-      getByTestId(SocialTermsSheetSelectorsIDs.BODY),
-      scrollToEnd,
+  it('keeps Agree disabled before hosted terms reach the end', () => {
+    const onAgree = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={onAgree}
+        onClose={jest.fn()}
+      />,
     );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
+
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    expect(onAgree).not.toHaveBeenCalled();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
-    expect(onAgree).toHaveBeenCalledTimes(1);
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
   });
 
-  it('keeps Agree disabled when the end is reached but the box is not checked', () => {
+  it('calls onAgree after scrolling to the end and keeps the helper visible', () => {
     const { getByTestId, onAgree } = renderSheet();
 
     fireEvent.scroll(
@@ -121,19 +147,24 @@ describe('SocialTermsSheet', () => {
     );
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
-    expect(onAgree).not.toHaveBeenCalled();
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
-  it('treats content that fits the viewport as read', () => {
-    const { getByTestId, queryByTestId } = renderSheet();
+  it('enables Agree when the terms fit in the viewport and keeps the helper visible', () => {
+    const { getByTestId, onAgree } = renderSheet();
     const body = getByTestId(SocialTermsSheetSelectorsIDs.BODY);
 
     fireEvent(body, 'layout', { nativeEvent: { layout: { height: 400 } } });
     fireEvent(body, 'contentSizeChange', 300, 380);
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
   it('calls onClose from the header close button', () => {
@@ -143,6 +174,41 @@ describe('SocialTermsSheet', () => {
 
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(onAgree).not.toHaveBeenCalled();
+  });
+
+  it('paints hosted terms with the sheet background before the document loads', () => {
+    const sheetBackground = darkTheme.colors.background.default;
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html={
+          '<html><head></head><body style="background:white">Terms</body></html>'
+        }
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+      {
+        theme: {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        },
+      },
+    );
+
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+
+    expect(webView.props.style).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.containerStyle).toEqual(
+      expect.objectContaining({ backgroundColor: sheetBackground }),
+    );
+    expect(webView.props.source.html).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
+    expect(webView.props.injectedJavaScriptBeforeContentLoaded).toContain(
+      `background-color:${sheetBackground}!important`,
+    );
   });
 
   it('renders the hosted terms page when a uri is provided', () => {
@@ -158,6 +224,25 @@ describe('SocialTermsSheet', () => {
     expect(
       queryByTestId(SocialTermsSheetSelectorsIDs.BODY),
     ).not.toBeOnTheScreen();
+  });
+
+  it('pins the bundled terms document and WebView to the app background', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html={socialTermsOfUseContent}
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    const webView = getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW);
+    const backgroundColor = webView.props.style.backgroundColor as string;
+
+    expect(webView.props.containerStyle).toEqual({ backgroundColor });
+    expect(webView.props.overScrollMode).toBe('never');
+    expect(webView.props.source.html).toContain(
+      `--terms-bg: ${backgroundColor}`,
+    );
+    expect(webView.props.source.html).not.toContain('prefers-color-scheme');
   });
 
   it('does not hide the scroll-to-bottom button when a WebView native scroll reports the end', () => {
@@ -200,10 +285,11 @@ describe('SocialTermsSheet', () => {
   });
 
   it('marks the WebView terms as read from native scroll events', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const onAgree = jest.fn();
+    const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         html="<html><body>Terms</body></html>"
-        onAgree={jest.fn()}
+        onAgree={onAgree}
         onClose={jest.fn()}
       />,
     );
@@ -212,10 +298,12 @@ describe('SocialTermsSheet', () => {
       getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
       scrollToEnd,
     );
+    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+    expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
   it('ignores a WebView scroll event that reports a viewport-sized document', () => {
@@ -351,7 +439,6 @@ describe('SocialTermsSheet', () => {
       getByTestId(SocialTermsSheetSelectorsIDs.BODY),
       scrollToEnd,
     );
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(scrollToEndSpy).toHaveBeenCalledTimes(1);
@@ -363,20 +450,19 @@ describe('SocialTermsSheet', () => {
   });
 
   it('shows the scroll-to-bottom button again after leaving the end', () => {
-    const { getByTestId, queryByTestId, onAgree } = renderSheet();
+    const { getByTestId, onAgree } = renderSheet();
     const body = getByTestId(SocialTermsSheetSelectorsIDs.BODY);
 
     fireEvent.scroll(body, scrollToEnd);
     fireEvent.scroll(body, scrollToMiddle);
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
     expect(onAgree).toHaveBeenCalledTimes(1);
   });
 
@@ -415,13 +501,13 @@ describe('SocialTermsSheet', () => {
       queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
   });
 
   it('shows the scroll-to-bottom button again when hosted terms leave the end', () => {
     const onAgree = jest.fn();
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
         uri="https://metamask.com/social-tos"
         onAgree={onAgree}
@@ -436,15 +522,14 @@ describe('SocialTermsSheet', () => {
     fireEvent(webView, 'message', {
       nativeEvent: { data: 'social-terms-scroll-not-end' },
     });
-    fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX));
     fireEvent.press(getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON));
 
     expect(
       getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_TO_BOTTOM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
-    ).not.toBeOnTheScreen();
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
     expect(onAgree).toHaveBeenCalledTimes(1);
   });
 });

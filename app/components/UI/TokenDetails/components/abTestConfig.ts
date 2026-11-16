@@ -1,6 +1,7 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 import { COMPONENT_NAMES } from '../../Money/constants/moneyEventLocations';
+import { STABLECOIN_TOKEN_SYMBOLS } from '../../Money/constants/moneyTokens';
 
 // --- Ambient Price Color A/B Test ---
 
@@ -37,94 +38,50 @@ export const AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappi
     ],
   };
 
-// --- Earn Money Deposit Footer CTA Visibility A/B Test ---
+// --- Stablecoin Earn Money Deposit Footer CTA Visibility A/B Test ---
 
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY =
-  'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton';
+export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY =
+  'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton';
 
-export enum EarnMoneyDepositFooterCtaVisibilityVariant {
+export enum EarnMoneyDepositStablecoinFooterCtaVisibilityVariant {
   Control = 'control',
   Treatment = 'treatment',
 }
 
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS: Record<
-  EarnMoneyDepositFooterCtaVisibilityVariant,
+export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_VARIANTS: Record<
+  EarnMoneyDepositStablecoinFooterCtaVisibilityVariant,
   { showMoneyDepositFooterCta: boolean }
 > = {
-  [EarnMoneyDepositFooterCtaVisibilityVariant.Control]: {
+  [EarnMoneyDepositStablecoinFooterCtaVisibilityVariant.Control]: {
     showMoneyDepositFooterCta: false,
   },
-  [EarnMoneyDepositFooterCtaVisibilityVariant.Treatment]: {
+  [EarnMoneyDepositStablecoinFooterCtaVisibilityVariant.Treatment]: {
     showMoneyDepositFooterCta: true,
   },
 };
 
-export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_EXPOSURE_METADATA =
   {
-    flagKey: EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    validVariants: Object.values(EarnMoneyDepositFooterCtaVisibilityVariant),
-    eventNames: [
-      EVENT_NAME.TOKEN_DETAILS_OPENED,
-      EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED,
-      EVENT_NAME.MONEY_BUTTON_CLICKED,
-    ],
-    eventPropertyRequirements: {
-      // Prevent attaching active_ab_test property to unrelated Money Button Clicked events.
-      [EVENT_NAME.MONEY_BUTTON_CLICKED]: {
-        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
-      },
+    experimentName: 'Stablecoin Asset Overview Footer Money Deposit CTA',
+    variationNames: {
+      [EarnMoneyDepositStablecoinFooterCtaVisibilityVariant.Control]:
+        'Stablecoin footer CTA hidden',
+      [EarnMoneyDepositStablecoinFooterCtaVisibilityVariant.Treatment]:
+        'Stablecoin footer CTA shown',
     },
   };
 
-// --- Earn Money Deposit Balance CTA Visibility A/B Test ---
-
-export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY =
-  'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton';
-
-export enum EarnMoneyDepositBalanceCtaVisibilityVariant {
-  Control = 'control',
-  Treatment = 'treatment',
-}
-
-export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_VARIANTS: Record<
-  EarnMoneyDepositBalanceCtaVisibilityVariant,
-  { showMoneyDepositBalanceCta: boolean }
-> = {
-  [EarnMoneyDepositBalanceCtaVisibilityVariant.Control]: {
-    showMoneyDepositBalanceCta: false,
-  },
-  [EarnMoneyDepositBalanceCtaVisibilityVariant.Treatment]: {
-    showMoneyDepositBalanceCta: true,
-  },
-};
-
-export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_EXPOSURE_METADATA = {
-  experimentName: 'Asset Overview Balance Money Deposit CTA',
-  variationNames: {
-    [EarnMoneyDepositBalanceCtaVisibilityVariant.Control]: 'Balance CTA hidden',
-    [EarnMoneyDepositBalanceCtaVisibilityVariant.Treatment]:
-      'Balance CTA shown',
-  },
-};
-
-export const EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+export const EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
-    flagKey: EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY,
-    validVariants: Object.values(EarnMoneyDepositBalanceCtaVisibilityVariant),
-    eventNames: [
-      EVENT_NAME.MONEY_SURFACE_VIEWED,
-      EVENT_NAME.MONEY_TOOLTIP_CLICKED,
-      EVENT_NAME.MONEY_BUTTON_CLICKED,
-    ],
+    flagKey: EARN_MONEY_DEPOSIT_STABLECOIN_FOOTER_CTA_VISIBILITY_AB_KEY,
+    validVariants: Object.values(
+      EarnMoneyDepositStablecoinFooterCtaVisibilityVariant,
+    ),
+    eventNames: [EVENT_NAME.MONEY_BUTTON_CLICKED],
     eventPropertyRequirements: {
-      [EVENT_NAME.MONEY_SURFACE_VIEWED]: {
-        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-      },
-      [EVENT_NAME.MONEY_TOOLTIP_CLICKED]: {
-        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
-      },
       [EVENT_NAME.MONEY_BUTTON_CLICKED]: {
-        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_BALANCE_CTA,
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+        token_symbol: STABLECOIN_TOKEN_SYMBOLS,
       },
     },
   };

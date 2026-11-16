@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { type Position, type PriceUpdate } from '@metamask/perps-controller';
-import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import {
+  calculateSignedRoEForPrice,
+  type Position,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
@@ -69,17 +72,12 @@ export function enrichPositionsWithLivePnL(
 
     const calculatedUnrealizedPnl = (currentPrice - entryPrice) * size;
 
-    const roePercentage = calculateRoEForPrice(
-      currentPrice.toString(),
-      calculatedUnrealizedPnl >= 0, // isProfit
-      true, // isForPositionBoundTpsl - true for existing positions
-      {
-        currentPrice,
-        direction,
-        leverage,
-        entryPrice,
-      },
-    );
+    const roePercentage = calculateSignedRoEForPrice(currentPrice.toString(), {
+      currentPrice,
+      direction,
+      leverage,
+      entryPrice,
+    });
 
     const calculatedRoe = roePercentage
       ? Number.parseFloat(roePercentage) / 100

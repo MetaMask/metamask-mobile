@@ -21,8 +21,28 @@ describe('navigateToSocialV1Profile', () => {
 
     navigateToSocialV1Profile(navigation, { traderId: 'trader-1' });
 
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(
+      mockNavigate,
+      expect.any(Function),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the trader profile once the Social terms are accepted', () => {
+    jest.mocked(ensureSocialTermsAccepted).mockReturnValueOnce(false);
+
+    navigateToSocialV1Profile(navigation, { traderId: 'trader-1' });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    const onAccepted = jest.mocked(ensureSocialTermsAccepted).mock
+      .calls[0]?.[1];
+    expect(onAccepted).toEqual(expect.any(Function));
+    onAccepted?.();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      expect.objectContaining({ traderId: 'trader-1' }),
+      {},
+    );
   });
 
   it('opens the V1 profile without params for the signed-in viewer', () => {

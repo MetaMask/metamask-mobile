@@ -21,3 +21,8 @@ export const formatUTCDateFromUnixTimestamp = (unixTimestamp: number) => {
  * "The deadline argument can be set to uint(-1) to create Permits that effectively never expire."
  */
 export const NONE_DATE_VALUE = -1;
+
+/**
+ * Permit2 expirations are uint48, and the max value is used for approvals that never expire.
+ */
+export const UINT48_MAX = 281474976710655;

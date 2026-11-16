@@ -437,7 +437,7 @@ const RewardsDashboard: React.FC = () => {
               As a tab it stays in HeaderRoot, unchanged. */}
           {isPushedScreen ? (
             <Box
-              twClassName="px-4 pb-3"
+              twClassName="px-4 pt-3 pb-3"
               onLayout={(event) =>
                 setTitleSectionHeight(event.nativeEvent.layout.height)
               }
@@ -480,7 +480,7 @@ const RewardsDashboard: React.FC = () => {
                   <TabEmptyState
                     icon={
                       <AvatarIcon
-                        iconName={IconName.Activity}
+                        iconName={IconName.People}
                         size={AvatarIconSize.Xl}
                         severity={AvatarIconSeverity.Neutral}
                         iconProps={{ color: IconColor.IconDefault }}

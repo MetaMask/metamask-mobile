@@ -31,7 +31,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
     source: 'asset_details',
   });
   const { balance } = useTokenBalance(token);
-  const hasTokenBalance = balance !== undefined && Number(balance) > 0;
+  const hasTokenBalance = Boolean(balance) && balance !== '0';
   const { traderPositionPnl } = useTraderPositionPnl({ token, tokenKey });
 
   return (

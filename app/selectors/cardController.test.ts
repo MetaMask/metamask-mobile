@@ -2,6 +2,9 @@ import { RootState } from '../reducers';
 import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  selectImmersveMoneyAccountMode,
+  selectMoneyAccountVedaTokenConfig,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
@@ -17,6 +20,7 @@ import {
   selectCardHomeDataStatus,
   selectCardHomeDataError,
   selectCardHomeDataFetchedThisSession,
+  selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -44,6 +48,7 @@ import { FundingStatus, CardType } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS } from './featureFlagController/card/defaults';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
@@ -234,6 +239,115 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ activeProviderId: 'baanx' });
 
       expect(selectCardActiveProviderId(state)).toBe('baanx');
+    });
+  });
+
+  describe('Immersve funding channel selectors', () => {
+    const baseAssetId =
+      'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    const moneyAssetId = `eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`;
+    const fundingFlags = {
+      cardImmersveConfig: {
+        fundingChannels: {
+          usdcBase: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-base-channel',
+            assetId: baseAssetId,
+            spenderAddress: '0x1111111111111111111111111111111111111111',
+          },
+          moneyAccount: {
+            source: 'moneyAccount',
+            fundingChannelId: 'money-channel',
+            assetId: moneyAssetId,
+            spenderAddress: '0x2222222222222222222222222222222222222222',
+          },
+        },
+      },
+      cardImmersveCountries: {
+        GB: { fundingChannel: 'usdcBase' },
+        NZ: { fundingChannel: 'moneyAccount' },
+      },
+    };
+
+    it('returns null when no country is selected', () => {
+      const state = createMockRootState({}, undefined, fundingFlags);
+
+      expect(selectImmersveFundingChannelForSelectedCountry(state)).toBeNull();
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the wallet channel for GB', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'GB', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'wallet',
+        symbol: 'USDC',
+        caipChainId: 'eip155:8453',
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the Money account channel for a lowercase country code', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'nz', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'moneyAccount',
+        symbol: 'vmUSD',
+        caipChainId: 'eip155:143',
+        tokenAddress: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(true);
+    });
+
+    it('stays off when another provider is active', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('builds the Veda config from the Money account channel, not cardFeature', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'immersve' },
+        CARD_FEATURE_WITHOUT_VEDA,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        delegationContract: '0x2222222222222222222222222222222222222222',
+      });
+    });
+
+    it('keeps the cardFeature Veda token when the provider is not in Money account mode', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        MONAD_VEDA_FEATURE_FLAG,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: VEDA_ADDRESS,
+        decimals: 6,
+      });
     });
   });
 
@@ -757,6 +871,52 @@ describe('selectCardHomeDataFetchedThisSession', () => {
   });
 });
 
+describe('selectIsCardHomeDataResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when the home data fetch succeeded', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns true when data is already present during a refresh', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns false while an authenticated user is still loading', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+      cardholderAccounts: [],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+});
+
 describe('selectIsCardStateResolved', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -1021,6 +1181,31 @@ describe('selectCardPrimaryToken', () => {
     const token = selectCardPrimaryToken(state);
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
+  });
+
+  it('flags a moneyAccount funding source even when the token is not the selected Veda config', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: 'eip155:8453',
+        fundingSourceType: 'moneyAccount',
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
+
+    const token = selectCardPrimaryToken(state);
+
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
   });
 });
 

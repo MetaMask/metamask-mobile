@@ -31,7 +31,7 @@ export const ExploreActiveTabProvider: React.FC<
 );
 
 /**
- * The currently active Explore tab name (e.g. `'Now'`, `'Macro'`). Falls
+ * The currently active Explore tab name (e.g. `'Now'`, `'Perps'`). Falls
  * back to `'Now'` when rendered outside a provider, matching the tabs list's
  * default first tab.
  */

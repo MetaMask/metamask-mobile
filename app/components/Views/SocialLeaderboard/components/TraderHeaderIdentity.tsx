@@ -24,6 +24,8 @@ export interface TraderHeaderIdentityProps {
   traderName: string;
   traderImageUrl?: string | null;
   traderAddress?: string;
+  /** Profile id used when `traderAddress` is missing. */
+  traderProfileId?: string;
   avatar?: React.ReactNode;
   variant?: TraderHeaderIdentityVariant;
   onPress?: () => void;
@@ -44,6 +46,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
   traderName,
   traderImageUrl,
   traderAddress,
+  traderProfileId,
   avatar,
   variant = 'nav',
   onPress,
@@ -71,6 +74,7 @@ const TraderHeaderIdentity: React.FC<TraderHeaderIdentityProps> = ({
         <TraderAvatar
           imageUrl={traderImageUrl}
           address={traderAddress}
+          profileId={traderProfileId}
           size={avatarSize}
         />
       )}

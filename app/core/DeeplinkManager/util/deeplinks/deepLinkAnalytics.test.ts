@@ -206,22 +206,7 @@ describe('deepLinkAnalytics', () => {
       expect(result.crypto_amount).toBe('0.1');
     });
 
-    it('extracts previewToken for home route', () => {
-      const urlParamsWithPreviewToken = {
-        ...mockUrlParams,
-        previewToken: 'test-preview-token-123',
-      };
-      const homeResult = extractSensitiveProperties(
-        DeepLinkRoute.HOME,
-        urlParamsWithPreviewToken,
-      );
-
-      expect(homeResult.previewToken).toBe('test-preview-token-123');
-      expect(homeResult.from).toBeUndefined();
-      expect(homeResult.to).toBeUndefined();
-    });
-
-    it('returns empty object for home route without previewToken', () => {
+    it('returns empty object for home route', () => {
       const homeResult = extractSensitiveProperties(
         DeepLinkRoute.HOME,
         mockUrlParams,

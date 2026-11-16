@@ -1,4 +1,5 @@
 import type { PredictVenueId } from '../../../../types';
+import { getFeedScreen, type FeedScreenId } from '../../../feedScreens';
 import { PredictNextRoutes } from '../../../routes';
 import { readPredictEventRef } from '../../eventRef';
 import type { PredictIntent } from '../../intents';
@@ -19,8 +20,11 @@ export const resolveNextIntent = (
   venueId: PredictVenueId,
 ): PredictIntentResolution => {
   switch (intent.type) {
+    // A V1 link's list parameters (`linkList`) name Polymarket feeds and
+    // tabs, which a PredictNext Venue does not have, so they open Home too.
     case 'home':
     case 'feed':
+    case 'linkList':
       return ready({
         kind: 'predict',
         params: { screen: PredictNextRoutes.HOME },
@@ -50,6 +54,21 @@ export const resolveNextIntent = (
           params: intent.tab
             ? { venueId, initialTab: intent.tab }
             : { venueId },
+        },
+      });
+    case 'feedScreen':
+      if (!getFeedScreen(intent.feedScreenId)) {
+        return unavailable('notFound');
+      }
+      return ready({
+        kind: 'predict',
+        params: {
+          screen: PredictNextRoutes.FEED,
+          params: {
+            venueId,
+            feedScreenId: intent.feedScreenId as FeedScreenId,
+            ...(intent.tabId ? { selectedTabId: intent.tabId } : {}),
+          },
         },
       });
     case 'addFunds':

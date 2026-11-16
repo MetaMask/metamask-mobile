@@ -2,8 +2,8 @@ import { deriveStateFromMetadata } from '@metamask/base-controller';
 import { ConstantBackoff } from '@metamask/controller-utils';
 import {
   GeolocationApiService,
+  GeolocationController,
   type GeolocationApiServiceMessenger,
-  type GeolocationController,
   type GeolocationControllerMessenger,
 } from '@metamask/geolocation-controller';
 import {
@@ -53,6 +53,11 @@ import {
 } from '../../../app/components/UI/PredictNext/services/PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../../../app/components/UI/PredictNext/auth/venueAuthProfiles';
 import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
+import {
   getPredictLiveDataServiceInitMessenger,
   getPredictLiveDataServiceMessenger,
 } from '../../../app/core/Engine/messengers/predict-live-data-service-messenger';
@@ -63,9 +68,7 @@ import {
   type PredictVenueControllerMessenger,
   type PredictVenueControllerState,
 } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
-import { geolocationControllerInit } from '../../../app/core/Engine/controllers/geolocation-controller';
-import { getGeolocationApiServiceMessenger } from '../../../app/core/Engine/messengers/geolocation-api-service-messenger';
-import { getGeolocationControllerMessenger } from '../../../app/core/Engine/messengers/geolocation-controller-messenger';
+import { fetchInitialGeolocation } from '../../../app/core/Engine/wallet-init/listeners/geolocation-controller';
 import { getPredictDeviceAuthServiceMessenger } from '../../../app/core/Engine/messengers/predict-device-auth-service-messenger';
 import { getPredictVenueControllerMessenger } from '../../../app/core/Engine/messengers/predict-venue-controller-messenger';
 
@@ -221,6 +224,7 @@ const jsonResponse = ({ status = 200, body }: PredictFetchResult): Response =>
   ({
     ok: status >= 200 && status < 300,
     status,
+    clone: () => jsonResponse({ status, body }),
     json: async () => body,
   }) as Response;
 
@@ -265,7 +269,71 @@ export const buildPredictNextIntegrationHarness = (
       clientVersion: '1.0.0',
       fetch: fetchMock,
       getBearerToken: getBearerTokenMock,
+      signRead: async ({ method, path, query }) => ({
+        name: VENUE_AUTHORIZATION_HEADER,
+        value: JSON.stringify({ method, path, query }),
+      }),
+      signOperation: async (operation, input) => {
+        const profile = await loadVenueProfile();
+        const payloadName = profile?.intents.find(
+          (intent) => intent.id === operation,
+        )?.payloads[0];
+        const payload = payloadName && profile?.payloads[payloadName];
+        if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+          throw new Error(`Missing harness signing payload for ${operation}`);
+        }
+        const rendered = renderRequest(
+          payloadName,
+          {
+            class: 'mutation',
+            method: payload.method,
+            path: payload.path,
+            body: payload.body,
+            idempotencyKey: payload.idempotencyKey,
+            invariants: payload.invariants,
+          },
+          {
+            inputs: input?.inputs ?? {},
+            values: input?.values ?? {},
+            nowMs: Date.now(),
+          },
+        );
+        return {
+          header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+          body: rendered.body,
+          idempotencyKey: rendered.idempotencyKey,
+        };
+      },
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: async (operation, input) => {
+        const profile = await loadVenueProfile();
+        const payloadName = profile?.intents.find(({ id }) => id === operation)
+          ?.payloads[0];
+        const payload = payloadName && profile?.payloads[payloadName];
+        if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+          throw new Error(`Missing harness review payload for ${operation}`);
+        }
+        return renderRequest(
+          payloadName,
+          {
+            class: 'mutation',
+            method: payload.method,
+            path: payload.path,
+            body: payload.body,
+            idempotencyKey: payload.idempotencyKey,
+            invariants: payload.invariants,
+          },
+          {
+            inputs: input.inputs ?? {},
+            values: input.values ?? {},
+            nowMs: Date.now(),
+          },
+        ).display;
+      },
+    },
   );
   const policyOptions = {
     backoff: new ConstantBackoff(0),
@@ -541,23 +609,28 @@ export const buildPredictVenueIntegrationHarness = ({
         settle = resolve;
       }),
   ) as unknown as jest.MockedFunction<typeof fetch>;
+  // Mirrors the GeolocationApiService and GeolocationController messengers
+  // that @metamask/wallet builds.
+  const geolocationApiServiceMessenger: GeolocationApiServiceMessenger =
+    new Messenger({ namespace: 'GeolocationApiService', parent: messenger });
   // Registers the fetch action the controller calls; nothing else holds it.
   // eslint-disable-next-line no-new
   new GeolocationApiService({
-    messenger:
-      getGeolocationApiServiceMessenger(
-        rootFor<typeof getGeolocationApiServiceMessenger>(),
-      ),
+    messenger: geolocationApiServiceMessenger,
     fetch: geolocationFetchMock,
     policyOptions: { maxRetries: 0 },
   });
-  const { controller: geolocationController } = geolocationControllerInit({
-    controllerMessenger:
-      getGeolocationControllerMessenger(
-        rootFor<typeof getGeolocationControllerMessenger>(),
-      ),
-    persistedState: {},
-  } as unknown as Parameters<typeof geolocationControllerInit>[0]);
+  const geolocationControllerMessenger: GeolocationControllerMessenger =
+    new Messenger({ namespace: 'GeolocationController', parent: messenger });
+  messenger.delegate({
+    messenger: geolocationControllerMessenger,
+    actions: ['GeolocationApiService:fetchGeolocationData'],
+  });
+  const geolocationController = new GeolocationController({
+    messenger: geolocationControllerMessenger,
+  });
+  // Mirrors the eager Engine-start fetch in initializeWallet.
+  fetchInitialGeolocation(geolocationController);
 
   // Mirrors predictVenueControllerInit, minus its Redux subscription.
   const venueController = new PredictVenueController({

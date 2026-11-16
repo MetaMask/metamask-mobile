@@ -28,6 +28,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 
 let mockBridgeFeatureFlags: {
   chainRanking?: { chainId: CaipChainId; name?: string }[];
@@ -666,7 +667,7 @@ jest.mock('../TokenSelectorItem', () => ({
     onPress,
     children,
     isNoFeeAsset,
-    showStockBadge,
+    badgeLabel,
   }: {
     token: {
       symbol: string;
@@ -681,7 +682,7 @@ jest.mock('../TokenSelectorItem', () => ({
     }) => void;
     children?: React.ReactNode;
     isNoFeeAsset?: boolean;
-    showStockBadge?: boolean;
+    badgeLabel?: string;
   }) => {
     const { createElement } = jest.requireActual('react');
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
@@ -700,8 +701,8 @@ jest.mock('../TokenSelectorItem', () => ({
       isNoFeeAsset
         ? createElement(Text, { testID: `no-fee-${token.symbol}` }, 'No fee')
         : null,
-      showStockBadge
-        ? createElement(Text, { testID: `stock-${token.symbol}` }, 'Stock')
+      badgeLabel
+        ? createElement(Text, { testID: `badge-${token.symbol}` }, badgeLabel)
         : null,
       createElement(View, null, children),
     );
@@ -1232,6 +1233,81 @@ describe('BridgeTokenSelector', () => {
       mockSelectedToken = createMockToken({ symbol: 'USDC', chainId: '0x1' });
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+    });
+  });
+
+  describe('token badges', () => {
+    const mockSelectRWAEnabledFlag = jest.mocked(selectRWAEnabledFlag);
+
+    beforeEach(() => {
+      mockSelectRWAEnabledFlag.mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      mockSelectRWAEnabledFlag.mockReturnValue(false);
+    });
+
+    it('shows the API badgeLabel for tokens that are not stock-classified', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({
+              assetId: 'eip155:4663/erc20:0xamzn' as never,
+              symbol: 'AMZN',
+              name: 'Amazon (Robinhood)',
+            }),
+            rwaData: { instrumentType: 'unspecified' },
+            badgeLabel: 'Stock',
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      const badge = await findByTestId('badge-AMZN');
+      expect(badge).toHaveTextContent('Stock');
+    });
+
+    it('falls back to Stock for stock RWA tokens without badgeLabel', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({
+              assetId: 'eip155:56/erc20:0xamznon' as never,
+              symbol: 'AMZNON',
+              name: 'Amazon (Ondo Tokenized Stock)',
+            }),
+            rwaData: { instrumentType: 'stock' },
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      const badge = await findByTestId('badge-AMZNON');
+      expect(badge).toHaveTextContent('Stock');
+    });
+
+    it('hides badges when the RWA feature flag is disabled', async () => {
+      mockSelectRWAEnabledFlag.mockReturnValue(false);
+      mockPopularTokensState = {
+        popularTokens: [
+          {
+            ...createMockPopularToken({ symbol: 'AMZN', name: 'Amazon' }),
+            badgeLabel: 'Stock',
+          } as never,
+        ],
+        isLoading: false,
+      };
+
+      const { findByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await findByTestId('token-AMZN');
+      expect(queryByTestId('badge-AMZN')).toBeNull();
     });
   });
 

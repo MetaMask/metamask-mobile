@@ -2,17 +2,17 @@ import { create, StructError, type Struct } from '@metamask/superstruct';
 import {
   CancelRecurringOrderResponseSchema,
   CreateRecurringOrderResponseSchema,
-  GetRecurringOrdersResponseSchema,
-  GetRecurringSwapsResponseSchema,
+  GetRecurringOrderResponseSchema,
   ListRecurringOrdersResponseSchema,
   ListRecurringSwapsResponseSchema,
+  PrepareRecurringDelegationResponseSchema,
   RecurringApiErrorSchema,
   type CancelRecurringOrderResponse,
   type CreateRecurringOrderResponse,
-  type GetRecurringOrdersResponse,
-  type GetRecurringSwapsResponse,
+  type GetRecurringOrderResponse,
   type ListRecurringOrdersResponse,
   type ListRecurringSwapsResponse,
+  type PrepareRecurringDelegationResponse,
   type RecurringApiError,
 } from './recurringOrders.types';
 
@@ -41,6 +41,16 @@ export function parseCreateRecurringOrderResponse(
   );
 }
 
+export function parsePrepareRecurringDelegationResponse(
+  value: unknown,
+): PrepareRecurringDelegationResponse {
+  return parseRecurringValue(
+    value,
+    PrepareRecurringDelegationResponseSchema,
+    'prepare recurring delegation response',
+  );
+}
+
 export function parseListRecurringOrdersResponse(
   value: unknown,
 ): ListRecurringOrdersResponse {
@@ -51,13 +61,13 @@ export function parseListRecurringOrdersResponse(
   );
 }
 
-export function parseGetRecurringOrdersResponse(
+export function parseGetRecurringOrderResponse(
   value: unknown,
-): GetRecurringOrdersResponse {
+): GetRecurringOrderResponse {
   return parseRecurringValue(
     value,
-    GetRecurringOrdersResponseSchema,
-    'normalized recurring orders response',
+    GetRecurringOrderResponseSchema,
+    'recurring order response',
   );
 }
 
@@ -68,16 +78,6 @@ export function parseListRecurringSwapsResponse(
     value,
     ListRecurringSwapsResponseSchema,
     'recurring swaps response',
-  );
-}
-
-export function parseGetRecurringSwapsResponse(
-  value: unknown,
-): GetRecurringSwapsResponse {
-  return parseRecurringValue(
-    value,
-    GetRecurringSwapsResponseSchema,
-    'normalized recurring swaps response',
   );
 }
 

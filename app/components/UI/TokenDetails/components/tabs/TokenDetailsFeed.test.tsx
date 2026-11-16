@@ -8,6 +8,7 @@ import {
 } from '../../../SocialFeed/data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../../../SocialFeed/mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../../../SocialFeed/types';
+import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
 import { TokenDetailsIds } from '../../testIds';
 import { TokenDetailsFeed } from './TokenDetailsFeed';
 
@@ -48,6 +49,17 @@ jest.mock(
   () => ({
     useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
   }),
+);
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
+  () => {
+    const onAuthorPress = jest.fn();
+    const onPositionPress = jest.fn();
+    return {
+      useSocialFeedPostNavigation: () => ({ onAuthorPress, onPositionPress }),
+    };
+  },
 );
 
 jest.mock(
@@ -146,6 +158,27 @@ describe('TokenDetailsFeed', () => {
     mockShellProps.mock.calls.forEach(([props]) => {
       expect(props.onCopyTrade).toBe(onCopyTrade);
     });
+  });
+
+  it('opens the author profile and the position sheet from a post', () => {
+    const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
+    const traded = post('one');
+    traded.position = { positionId: 'pos-1' } as SocialV1FeedPost['position'];
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [traded, post('two')] }),
+    );
+
+    renderWithProvider(
+      <TokenDetailsFeed source={source} location="token_details" />,
+    );
+
+    const [withPosition, withoutPosition] = mockShellProps.mock.calls.map(
+      ([props]) => props,
+    );
+    expect(withPosition.onAuthorPress).toBe(onAuthorPress);
+    expect(withPosition.onPositionPress).toBe(onPositionPress);
+    expect(withoutPosition.onAuthorPress).toBe(onAuthorPress);
+    expect(withoutPosition.onPositionPress).toBeUndefined();
   });
 
   it('drops a hidden post from the list instead of leaving a gap', () => {

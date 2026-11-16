@@ -7,6 +7,15 @@ import QuickBuyAmountSection, {
 import { getFontSizeForInputLength } from '../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { mockTheme } from '../../../../util/theme';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
+import I18n from '../../../../../locales/i18n';
+
+jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  strings: (key: string) => key,
+  default: { locale: 'en', strings: (key: string) => key },
+}));
+
+const mockI18n = jest.mocked(I18n);
 
 jest.mock('../../../../util/deviceCapability', () => ({
   getHardwareTier: jest.fn(() => 'HIGH'),
@@ -14,21 +23,6 @@ jest.mock('../../../../util/deviceCapability', () => ({
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: jest.fn(() => 'WIFI'),
-}));
-
-jest.mock('../../Bridge/utils/currencyUtils', () => ({
-  formatCurrency: jest.fn((amount: number, currency: string) => {
-    if (currency === 'EUR') {
-      return `${amount} €`;
-    }
-    return `$${amount}`;
-  }),
-  getCurrencySymbol: jest.fn((currency: string) => {
-    if (currency === 'EUR') {
-      return '€';
-    }
-    return '$';
-  }),
 }));
 
 describe('formatAmountDigitsForDisplay', () => {
@@ -187,23 +181,32 @@ describe('QuickBuyAmountSection', () => {
   });
 
   it('places the caret before a suffix currency and uses its decimal separator', () => {
-    render(
-      <QuickBuyAmountSection
-        {...baseProps}
-        showCursor
-        fiatAmount="12.5"
-        currency="EUR"
-        fiatAmountLabel="12,5 €"
-      />,
-    );
+    // French renders the currency symbol after the digits, so the symbol is a
+    // suffix while editing. The app formatters are language-only, so `fr-FR`
+    // formats with `fr`.
+    const previousLocale = mockI18n.locale;
+    mockI18n.locale = 'fr-FR';
+    try {
+      render(
+        <QuickBuyAmountSection
+          {...baseProps}
+          showCursor
+          fiatAmount="12.5"
+          currency="EUR"
+          fiatAmountLabel="12,5 €"
+        />,
+      );
 
-    expect(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_LABEL),
-    ).toHaveTextContent('12,5');
-    expect(screen.getByText(' €')).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_CURSOR),
-    ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_LABEL),
+      ).toHaveTextContent('12,5');
+      expect(screen.getByText(' €')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_CURSOR),
+      ).toBeOnTheScreen();
+    } finally {
+      mockI18n.locale = previousLocale;
+    }
   });
 
   it('places the caret before the token symbol for unpriced sources', () => {
@@ -241,5 +244,45 @@ describe('QuickBuyAmountSection', () => {
 
     expect(screen.getByRole('button', { name: '$2.55' })).toBeOnTheScreen();
     expect(screen.queryByRole('text', { name: '$2.55' })).not.toBeOnTheScreen();
+  });
+});
+
+describe('QuickBuyAmountSection open-keypad symbol', () => {
+  const actualNumberFormat = Intl.NumberFormat;
+
+  beforeEach(() => {
+    mockI18n.locale = 'en';
+    jest.spyOn(Intl, 'NumberFormat').mockImplementation((locale, options) => {
+      delete options?.currencyDisplay;
+      return actualNumberFormat(locale, options);
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    mockI18n.locale = 'en';
+  });
+
+  it('shows $ as the amount prefix on en-GB devices, never US$', () => {
+    mockI18n.locale = 'en-GB';
+
+    render(
+      <QuickBuyAmountSection
+        amountDisplayMode="fiat"
+        fiatAmountLabel="$0"
+        destSymbol="GIGA"
+        estimatedReceiveAmount={undefined}
+        isQuoteLoading={false}
+        showCursor
+        fiatAmount="0"
+        currency="usd"
+      />,
+    );
+
+    expect(screen.getByText('$')).toBeOnTheScreen();
+    expect(screen.queryByText('US$')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(QuickBuySheetSelectorsIDs.AMOUNT_LABEL),
+    ).toHaveTextContent('0');
   });
 });

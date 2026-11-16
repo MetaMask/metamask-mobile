@@ -160,6 +160,13 @@ export interface VerifyOrEnrollRequest {
   verifyWith?: MfaMethod | MfaMethod[];
   /** Tightens how old a reused verification may be. */
   maxSessionAgeMs?: number;
+  /**
+   * Never sets anything up, for a wallet that cannot enroll, such as one that
+   * is still locked. `methods` are then the ones that may prove it's the user,
+   * and `verifyWith` is required: the flow verifies with the active ones this
+   * platform runs, or rejects with `credential_not_enrolled` when none is.
+   */
+  verifyOnly?: boolean;
 }
 
 export type VerifyOrEnrollOptions = VerifyOrEnrollRequest & {
@@ -179,7 +186,7 @@ export type PlanStep =
 
 export type Plan =
   | { ok: true; steps: PlanStep[] }
-  | { ok: false; code: MfaKitErrorCode };
+  | { ok: false; code: MfaFlowErrorCode };
 
 export interface PlanContext {
   platform: MfaPlatform;

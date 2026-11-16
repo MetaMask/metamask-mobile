@@ -119,7 +119,7 @@ function toGroupCard(
     .sort(compareByDisplayOrder)
     .map(({ market }) => market);
 
-  // One Market is enough: a Player with a single threshold is still a card.
+  // One Market is enough: a single row is still a card.
   if (markets.every((market) => market.group?.groupType === 'choice')) {
     return { type: 'choice', key, markets };
   }

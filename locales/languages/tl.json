@@ -1130,6 +1130,7 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Loading",
     "create_virtual_bank_account": {
       "navbar_title": "Bank account",
       "title": "Magdagdag ng mga pondo mula mismo sa bangko mo",
@@ -1138,6 +1139,7 @@
       "feature_no_fees_description": "Hindi kami naniningil para magdeposito. Posibleng maningil ang bangko mo.",
       "feature_arrives_title": "Darating sa {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Darating pagkatapos ng ilang araw ng negosyo",
+      "feature_arrives_title_pix": "Darating sa loob ng ilang segundo",
       "feature_arrives_description": "Darating ang mga pondo sa sandaling matapos ang pag-transfer.",
       "feature_set_up_title": "Mag-set up nang isang beses, gamitin ito anumang oras",
       "feature_set_up_description": "I-save ito bilang nagbabayad sa banking app mo.",
@@ -1152,85 +1154,12 @@
       "moonpay_privacy_policy_link": "Patakaran sa Pagkapribado ng MoonPay",
       "moonpay_terms_link": "Mga Tuntunin at Kundisyon ng MoonPay",
       "powered_by": "Pinapagana ng",
-      "button": "Kunin ang mga detalye ng account",
-      "feature_arrives_title_pix": "Darating sa loob ng ilang segundo"
-    },
-    "verify_identity": {
-      "title": "I-verify ang pagkakakilanlan mo",
-      "description": "Tumatagal lang ito nang ilang minuto. Kakailanganin mo ng valid na ID na may litrato na inisyu ng gobyerno.",
-      "step_photograph_id": "Kunan ng litrato ang ID mo",
-      "step_take_selfie": "Mag-selfie",
-      "step_confirm_details": "Kumpirmahin ang mga detalye mo",
-      "step_answer_questions": "Sumagot ng ilang tanong",
-      "footer": "Naka-encrypt ang impormasyon mo at ibinabahagi ito nang ligtas sa aming mga tagapag-verify. Masusuri mo ang mga detalye bago magpatuloy.",
-      "powered_by": "Pinapagana ng",
-      "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
-      "disclaimers_retry": "Subukang muli",
-      "button": "Magpatuloy",
-      "terms_sheet_title": "Data at pagkapribado",
-      "terms_sheet_description": "Para i-verify ang pagkakakilanlan mo, ibabahagi nang ligtas ang impormasyon mo sa mga tagapag-verify sa ibaba. Suriin ang mga patakaran at tuntunin nila bago magpatuloy.",
-      "metamask_privacy_policy": "Patakaran sa Pagkapribado ng MetaMask",
-      "metamask_terms": "Mga Tuntunin at Kundisyon ng MetaMask",
-      "terms_sheet_button": "Sumang-ayon at simulan ang pag-verify",
-      "subtitle": "Tumatagal ito nang ilang minuto. Kakailanganin mo ng ID na inisyu ng gobyerno.",
-      "step_indicator": "Hakbang {{current}} ng {{total}}",
-      "partner_title": "Ka-partner namin ang idOS para i-verify ang iyong pagkakakilanlan.",
-      "benefit_reuse_title": "I-verify nang isang beses, gamitin muli mamaya.",
-      "benefit_reuse_description": "Ligtas na iniimbak ng MetaMask ang naka-encrypt na kopya ng iyong na-verify na pagkakakilanlan, kaya makakapag-sign up ka nang mas mabilis sa ibang mga partner.",
-      "benefit_control_title": "Kontrolado mo ang iyong data.",
-      "benefit_control_description": "Ibinabahagi lang namin ang na-verify mo na pagkakakilanlan sa partner kapag sumang-ayon ka.",
-      "benefit_delete_title": "Tanggalin anumang oras.",
-      "benefit_delete_description": "Tanggalin ang na-verify mo na pagkakakilanlan anumang oras sa Mga Setting.",
-      "agreement": "Sa pagpapatuloy, sumasang-ayon ako sa MetaMask {{termsOfUse}}, kinikilala ang MetaMask {{privacyNotice}} at pinahihintulutan ang MetaMask na iimbak at ilipat ang impormasyon ko sa idOS.",
-      "agreement_terms_of_use": "Mga Tuntunin ng Paggamit",
-      "agreement_privacy_notice": "Patakaran sa Pagkapribado",
-      "agree_and_continue_button": "Sumang-ayon at Magpatuloy",
-      "learn_more": "Matuto pa."
-    },
-    "kyc_email": {
-      "error_title": "Hindi masimulan ang pag-verify",
-      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa email. Subukan ulit."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Kailangan namin ng kaunti pang impormasyon",
-      "more_info_description": "Kung minsan, kailangan namin ng dagdag na impormasyon para kumpletuhin ang pag-verify. Suriin kung ano ang kailangan sa ibaba para magpatuloy.",
-      "more_info_item_title": "Patunay ng address",
-      "more_info_item_description": "Mag-upload ng kamakailang dokumento na nagpapakita ng pangalan at kasalukuyang address ng tirahan mo",
-      "more_info_button": "Magpatuloy",
-      "more_info_help": "Kailangan ng tulong sa pag-verify?",
-      "error_title": "Hindi masimulan ang pag-verify",
-      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa pagkakakilanlan. Subukan ulit.",
-      "retry": "Subukang muli"
-    },
-    "kyc_taking_longer": {
-      "title": "Bini-verify ang iyong pagkakakilanlan",
-      "description": "Natatapos ang karamihan ng mga pag-check nang humigit-kumulang 10 segundo. Puwede kang bumalik sa ibang pagkakataon, ipapaalam namin sa iyo kapag natapos na ang pag-check.",
-      "button": "Bumalik sa ibang pagkakataon",
-      "description_few_minutes": "Natatapos ang karamihan ng pag-check sa loob ng ilang minuto. Puwede kang bumalik sa ibang pagkakataon. Ipapaalam namin sa iyo kapag nakumpleto na ito.",
-      "done_button": "Tapos na"
-    },
-    "identity_verified": {
-      "title": "Na-verify ang pagkakakilanlan",
-      "description": "Kumpleto na ang pagsusuri sa iyong pagkakakilanlan.",
-      "button": "Magpatuloy"
+      "button": "Kunin ang mga detalye ng account"
     },
     "creating_account": {
       "title": "Ginagawa ang iyong account...",
       "description": "Karamihan sa mga account ay nagagawa kaagad.",
       "awaiting_provider": "Naghihintay na aprubahan ng MoonPay ang iyong account"
-    },
-    "kyc_rejected": {
-      "title": "Hindi namin ma-verify ang pagkakakilanlan mo",
-      "description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at makipag-ugnayan sa Suporta.",
-      "retry_description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at subukan ulit.",
-      "identity_document_title": "Suriin ang dokumento ng pagkakakilanlan mo",
-      "identity_document_description": "Siguraduhing valid, malinaw, at nababasa ang lahat ng bahagi nito",
-      "selfie_title": "Kumuha ulit ng selfie",
-      "selfie_description": "Siguraduhing may sapat na liwanag at ipakita nang malinaw ang mukha mo",
-      "details_title": "Suriin ang mga detalye mo",
-      "details_description": "Siguraduhing tumutugma ang impormasyon mo sa mga nasa dokumento mo",
-      "button": "Kontakin ang suporta",
-      "retry_button": "Subukang muli"
     },
     "account_provisioning_error": {
       "title": "Hindi makagawa ng account mo",
@@ -1263,8 +1192,7 @@
       "row_label": "{{name}}, {{code}}",
       "currencies": {
         "brl": "Brazilian real",
-        "usd": "US dollar",
-        "eur": "Euro"
+        "usd": "US dollar"
       }
     },
     "vba_details": {
@@ -1282,12 +1210,39 @@
       "bank_name_label": "Pangalan ng bangko",
       "copy_label": "Kopyahin ang {{field}}",
       "copied_label": "Nakopya ang {{field}}",
+      "copy_all_button": "Copy all details",
+      "copied_all_label": "Copied bank details",
       "button": "Tapos na",
       "waiting_for_details": "Lilitaw dito ang mga detalye ng account maya-maya.",
       "loading_details": "Naglo-load ang mga detalye ng account",
       "load_error": "Hindi ma-refresh ang deposito. Subukan ulit.",
       "setup_error": "Hindi makagawa ng iyong account.",
       "retry": "Subukang muli"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "I-verify ang pagkakakilanlan mo",
+      "subtitle": "Tumatagal ito nang ilang minuto. Kakailanganin mo ng ID na inisyu ng gobyerno.",
+      "step_indicator": "Hakbang {{current}} ng {{total}}",
+      "step_photograph_id": "Kunan ng litrato ang ID mo",
+      "step_take_selfie": "Mag-selfie",
+      "step_confirm_details": "Kumpirmahin ang mga detalye mo",
+      "step_answer_questions": "Sumagot ng ilang tanong",
+      "partner_title": "Ka-partner namin ang idOS para i-verify ang iyong pagkakakilanlan.",
+      "benefit_reuse_title": "I-verify nang isang beses, gamitin muli mamaya.",
+      "benefit_reuse_description": "Ligtas na iniimbak ng MetaMask ang naka-encrypt na kopya ng iyong na-verify na pagkakakilanlan, kaya makakapag-sign up ka nang mas mabilis sa ibang mga partner.",
+      "benefit_control_title": "Kontrolado mo ang iyong data.",
+      "benefit_control_description": "Ibinabahagi lang namin ang na-verify mo na pagkakakilanlan sa partner kapag sumang-ayon ka.",
+      "benefit_delete_title": "Tanggalin anumang oras.",
+      "benefit_delete_description": "Tanggalin ang na-verify mo na pagkakakilanlan anumang oras sa Mga Setting.",
+      "agreement": "Sa pagpapatuloy, sumasang-ayon ako sa MetaMask {{termsOfUse}}, kinikilala ang MetaMask {{privacyNotice}} at pinahihintulutan ang MetaMask na iimbak at ilipat ang impormasyon ko sa idOS.",
+      "agreement_terms_of_use": "Mga Tuntunin ng Paggamit",
+      "agreement_privacy_notice": "Patakaran sa Pagkapribado",
+      "disclaimers_error": "Hindi mai-load ang mga tuntunin at kundisyon.",
+      "disclaimers_retry": "Subukang muli",
+      "agree_and_continue_button": "Sumang-ayon at Magpatuloy",
+      "learn_more": "Matuto pa."
     },
     "partner_terms": {
       "title": "Ang aming mga partner sa pag-verify",
@@ -1307,6 +1262,46 @@
       "scroll_to_continue_button": "I-scroll para magpatuloy",
       "agree_to_consent_above_button": "Sumang-ayon sa pahintulot sa itaas",
       "button": "Sumang-ayon at magpatuloy"
+    },
+    "kyc_email": {
+      "error_title": "Hindi masimulan ang pag-verify",
+      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa email. Subukan ulit."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Kailangan namin ng kaunti pang impormasyon",
+      "more_info_description": "Kung minsan, kailangan namin ng dagdag na impormasyon para kumpletuhin ang pag-verify. Suriin kung ano ang kailangan sa ibaba para magpatuloy.",
+      "more_info_item_title": "Patunay ng address",
+      "more_info_item_description": "Mag-upload ng kamakailang dokumento na nagpapakita ng pangalan at kasalukuyang address ng tirahan mo",
+      "more_info_button": "Magpatuloy",
+      "more_info_help": "Kailangan ng tulong sa pag-verify?",
+      "error_title": "Hindi masimulan ang pag-verify",
+      "error_description": "Nagkaproblema sa pagbubukas ng pag-verify sa pagkakakilanlan. Subukan ulit.",
+      "retry": "Subukang muli"
+    },
+    "kyc_taking_longer": {
+      "title": "Bini-verify ang iyong pagkakakilanlan",
+      "description": "Natatapos ang karamihan ng mga pag-check nang humigit-kumulang 10 segundo. Puwede kang bumalik sa ibang pagkakataon, ipapaalam namin sa iyo kapag natapos na ang pag-check.",
+      "button": "Bumalik sa ibang pagkakataon",
+      "description_few_minutes": "Natatapos ang karamihan ng pag-check sa loob ng ilang minuto. Puwede kang bumalik sa ibang pagkakataon. Ipapaalam namin sa iyo kapag nakumpleto na ito.",
+      "done_button": "Tapos na"
+    },
+    "identity_verified": {
+      "title": "Na-verify ang pagkakakilanlan",
+      "description": "Kumpleto na ang pagsusuri sa iyong pagkakakilanlan.",
+      "button": "Magpatuloy"
+    },
+    "kyc_rejected": {
+      "title": "Hindi namin ma-verify ang pagkakakilanlan mo",
+      "description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at makipag-ugnayan sa Suporta.",
+      "retry_description": "Kailangan ang atensyon mo sa ilang detalye. Suriin ang bawat item sa ibaba, at subukan ulit.",
+      "identity_document_title": "Suriin ang dokumento ng pagkakakilanlan mo",
+      "identity_document_description": "Siguraduhing valid, malinaw, at nababasa ang lahat ng bahagi nito",
+      "selfie_title": "Kumuha ulit ng selfie",
+      "selfie_description": "Siguraduhing may sapat na liwanag at ipakita nang malinaw ang mukha mo",
+      "details_title": "Suriin ang mga detalye mo",
+      "details_description": "Siguraduhing tumutugma ang impormasyon mo sa mga nasa dokumento mo",
+      "button": "Kontakin ang suporta",
+      "retry_button": "Subukang muli"
     }
   },
   "social": {
@@ -1329,11 +1324,18 @@
       "report_reason_title": "Magsumbong",
       "report_reason_description": "Piliin ang dahilan na pinakanaglalarawan sa isyu.",
       "report_reasons": {
-        "spam": "Spam",
-        "harassment": "Panliligalig o pang-aapi",
-        "misleading": "Mali o mapanlinlang na impormasyon",
-        "other": "Iba pa"
+        "scams_and_phishing": "Scams and phishing",
+        "impersonation": "Impersonation",
+        "financial_conduct": "Financial conduct",
+        "spam_and_fake_engagement": "Spam and fake engagement",
+        "harassment_hate_and_threats": "Harassment, hate, and threats",
+        "privacy": "Privacy",
+        "sexual_and_graphic_content": "Sexual and graphic content",
+        "illegal_and_dangerous": "Illegal and dangerous",
+        "profile_text": "Profile text"
       },
+      "impersonation_support_title": "Contact customer support",
+      "impersonation_support_description": "Our customer support team handles impersonation claims. They'll ask for your email address and follow up with you.",
       "submit_report": "Isumite",
       "post_hidden_confirmation": "Nakatago ang post",
       "user_blocked_confirmation": "Na-block si {{username}}",
@@ -1397,9 +1399,12 @@
       "trade": "Mag-trade",
       "just_now": "Ngayon lang",
       "age": {
-        "minutes": "{{count}} (na) minuto ang nakalipas",
-        "hours": "{{count}} (na) oras ang nakalipas",
-        "days": "{{count}} (na) araw ang nakalipas"
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago",
+        "years": "{{count}}y ago"
       },
       "action": {
         "perps_opened": "nabuksan",
@@ -1482,13 +1487,17 @@
         "hold_time": "Tagal ng pag-hold",
         "buy": "Bumili",
         "sell": "Magbenta",
+        "closed": "Nakasara",
+        "sold": "Binenta",
+        "opened_ago": "Binuksan · {{age}}",
         "closed_ago": "Nakasara · {{age}}",
-        "sold_ago": "Naibenta · {{age}}",
-        "opened_ago": "Binuksan · {{age}}"
+        "sold_ago": "Naibenta · {{age}}"
       }
     },
     "translation": {
       "see_translation": "Tingnan ang salin",
+      "see_more": "Tingnan pa",
+      "see_less": "See less",
       "translating": "Isinasalin...",
       "translated_to_english": "Isinalin sa Ingles",
       "failed": "Hindi maisalin.",
@@ -1516,8 +1525,9 @@
       "section_tokens": "Mga Token",
       "section_perps": "Perps",
       "empty_title": "Wala pang maipo-post na posisyon",
-      "empty_help": "Bakit wala akong nakikitang posisyon?",
-      "hidden_position_body": "Lumalabas lang dito ang mga posisyon kung may kasama silang kahit isang trade man lang na $10 pataas. Hindi pa sinusubaybayan ang mas maliliit na trade, gaya ng mga umuulit na pagbili.",
+      "empty_help": "Why aren't all positions visible?",
+      "hidden_position_title": "About visible positions",
+      "hidden_position_body": "Positions only appear here if they include a trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
       "got_it": "Nakuha ko",
       "empty_description": "Gumawa ng posisyon para maibahagi ito rito.",
       "empty_open": "Walang mga bukas na posisyon",
@@ -1656,6 +1666,13 @@
     },
     "follow": "I-follow",
     "following": "Following",
+    "share_link": {
+      "profile_title": "{{trader}} on MetaMask",
+      "profile_description": "See {{trader}}'s trades on MetaMask",
+      "position_title": "{{trader}}'s {{asset}} trade",
+      "position_description": "{{trader}} is trading {{asset}}",
+      "position_title_no_asset": "Trade ni {{trader}}"
+    },
     "popular_traders": "Mga sikat na trader",
     "profiles_to_follow": {
       "title": "Mga profile na ifa-follow",
@@ -1721,11 +1738,17 @@
       "error_loading_profile": "Hindi mai-load ang profile",
       "more_options": "Iba pang mga opsyon",
       "profile_options": "Mga opsyon sa profile",
-      "profile_options_description": "Kapag nag-block ka ng profile, itatago ang mga post at posisyon nito sa device na ito para sa sesyon na ito. Magreresulta din ito sa pag-unfollow mo sa kanila.",
+      "profile_options_description": "Report this profile, or block them to hide their posts and positions on this device for this session. Blocking also unfollows them.",
+      "report_user": "Report @{{name}}",
       "block_user": "I-block si @{{name}}",
       "unblock": "I-unblock",
       "blocked_title": "Na-block mo si @{{name}}",
       "blocked_description": "Nakatago ang mga post at posisyon nila sa device na ito para sa sesyon na ito.",
+      "private_title": "This profile is private",
+      "private_description": "@{{name}} keeps their performance, positions and posts hidden.",
+      "private_title_own": "Your profile is private",
+      "private_description_own": "Your performance, positions and posts are hidden from everyone.",
+      "privacy_settings": "Privacy settings",
       "twitter_link": "Tingnan sa X (Twitter)",
       "sort": {
         "value": "Value",
@@ -1745,6 +1768,8 @@
       "mutuals_tab": "{{count}} ang mga mutual",
       "win_rate": "Rate ng panalo",
       "pnl": "P&L",
+      "realized_pnl": "Realized P&L",
+      "unrealized_pnl": "Unrealized P&L",
       "hold_time": "Tagal ng pag-hold",
       "avg_hold_time": "Avg. na hold time",
       "volume": "Volume",
@@ -1761,6 +1786,18 @@
       "section_tokens": "Mga Token",
       "section_perpetuals": "Perpetuals",
       "not_counted_in_pnl": "Hindi ibinilang sa P&L",
+      "not_counted_section_a11y_one": "Hindi ibinilang sa P&L, 1 posisyon. Alamin kung bakit",
+      "not_counted_section_a11y_other": "Hindi ibinilang sa P&L, {{count}} (na) posisyon. Alamin kung bakit",
+      "not_counted_sheet_title": "Bakit hindi ibinibilang ang ilang posisyon",
+      "not_counted_sheet_insider_label": "Insider",
+      "not_counted_sheet_insider_body": "Nakuha ng trader na ito ang token mula sa alokasyon bago ito naging pampubliko.",
+      "not_counted_sheet_insider_body_owner": "Nakuha mo ang token mula sa alokasyon bago ito naging pampubliko.",
+      "not_counted_sheet_developer_label": "Creator ng kontrata",
+      "not_counted_sheet_developer_body": "Ang trade na ito ang nag-deploy ng kontrata ng token.",
+      "not_counted_sheet_developer_body_owner": "Ikaw ang nag-deploy ng kontrata ng token.",
+      "not_counted_sheet_unsupported_label": "Hindi sinusuportahang token",
+      "not_counted_sheet_unsupported_body": "Hindi namin masusubaybayan ang P&L para sa mga hindi sinusuportahang token gaya ng mga deposito sa mga lending pool.",
+      "not_counted_sheet_dismiss": "Nakuha ko",
       "empty_open": "Walang mga bukas na posisyon",
       "empty_closed": "Walang nakasarang posisyon",
       "empty_open_tokens": "Walang open token",
@@ -1774,19 +1811,7 @@
       "no_profile_title": "Gawin ang profile mo",
       "no_profile_description": "Mag-claim ng username para lumabas sa feed.",
       "create_profile": "Gumawa ng profile",
-      "retry": "Subukang muli",
-      "not_counted_section_a11y_one": "Hindi ibinilang sa P&L, 1 posisyon. Alamin kung bakit",
-      "not_counted_section_a11y_other": "Hindi ibinilang sa P&L, {{count}} (na) posisyon. Alamin kung bakit",
-      "not_counted_sheet_title": "Bakit hindi ibinibilang ang ilang posisyon",
-      "not_counted_sheet_insider_label": "Insider",
-      "not_counted_sheet_insider_body": "Nakuha ng trader na ito ang token mula sa alokasyon bago ito naging pampubliko.",
-      "not_counted_sheet_insider_body_owner": "Nakuha mo ang token mula sa alokasyon bago ito naging pampubliko.",
-      "not_counted_sheet_developer_label": "Creator ng kontrata",
-      "not_counted_sheet_developer_body": "Ang trade na ito ang nag-deploy ng kontrata ng token.",
-      "not_counted_sheet_developer_body_owner": "Ikaw ang nag-deploy ng kontrata ng token.",
-      "not_counted_sheet_unsupported_label": "Hindi sinusuportahang token",
-      "not_counted_sheet_unsupported_body": "Hindi namin masusubaybayan ang P&L para sa mga hindi sinusuportahang token gaya ng mga deposito sa mga lending pool.",
-      "not_counted_sheet_dismiss": "Nakuha ko"
+      "retry": "Subukang muli"
     },
     "terms": {
       "title": "Na-update ang aming Mga Tuntunin sa Paggamit",
@@ -1798,7 +1823,9 @@
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
     "profile_onboarding": {
-      "intro_title": "Bantayan ang mga pag-trade habang nangyayari ang mga ito",
+      "intro_title": "See trades in real time",
+      "intro_title_activity": "Follow verified traders and top callers",
+      "intro_title_post": "Earn rewards if someone copies your moves",
       "live_activity": "Live na aktibidad",
       "bought": "nabili",
       "sold": "binenta",
@@ -1871,6 +1898,7 @@
       "save_error": "Hindi ma-save ang mga pagbabago. Suriin ang koneksyon mo at subukan ulit.",
       "bio_prohibited": "Hindi magagamit ang ilan sa mga bio na ito. I-edit at subukan muli.",
       "display_name_unavailable": "Hindi available ang pangalan na ito. Subukan ang iba.",
+      "linked_account_cooldown": "Maaari mo lang palitan ang iyong naka-link na account kada {{days}} (na) araw.",
       "username_unavailable": "Hindi available ang handle na ito. Pumili ng iba.",
       "username_too_short": "Gumamit ng kahit {{min}} (na) character lang.",
       "username_too_long": "Gumamit ng hanggang {{max}} (na) character.",
@@ -1881,8 +1909,7 @@
       "trading_activity_footnote": "Nalalapat kaagad ang mga pagbabago. Mananatiling nakikita ang iyong pagkakakilanlan at content sa social media kahit na may mga pagbabago. ",
       "trading_activity_info": "Higit pang impormasyon sa aktibidad ng pag-trade mo",
       "linked_account_footnote": "Ipapakita sa feed at leaderboard mo ang mga trade na ginawa gamit ang account na ito.",
-      "avatar_accessibility_label": "Avatar ng profile mo",
-      "linked_account_cooldown": "Maaari mo lang palitan ang iyong naka-link na account kada {{days}} (na) araw."
+      "avatar_accessibility_label": "Avatar ng profile mo"
     },
     "position_sheet": {
       "title": "Trade ni {{username}}",
@@ -1890,6 +1917,11 @@
       "following": "Following",
       "today": "Ngayong araw",
       "market_cap_suffix": "(MC)",
+      "price_toggle": "Presyo",
+      "market_cap_toggle": "MC",
+      "market_cap_toggle_accessibility_label": "Market cap",
+      "open_asset_accessibility_hint": "Binubuksan ang page ng asset",
+      "open_market_accessibility_hint": "Binubuksan ang mga detalye ng market",
       "posts_tab": "Mga Post ({{count}})",
       "transactions_tab": "Mga Transaksyon ({{count}})",
       "no_posts": "Wala pang mga post sa trade na ito",
@@ -1925,9 +1957,7 @@
         "spot_added": "Bumili ng higit pa",
         "spot_reduced": "Nagbenta ng ilan",
         "spot_closed": "Ibinenta lahat"
-      },
-      "open_asset_accessibility_hint": "Binubuksan ang page ng asset",
-      "open_market_accessibility_hint": "Binubuksan ang mga detalye ng market"
+      }
     },
     "trader_position": {
       "market_cap": "Market cap",
@@ -1976,6 +2006,7 @@
       "price_impact": "Epekto ng presyo",
       "est_points": "Tinatayang mga point",
       "no_quotes": "Walang available na quote para sa token na ito",
+      "insufficient_native_reserve": "Reduce {{ticker}} amount to maintain reserve",
       "quote_details_empty_no_amount": "Maglagay ng halaga para makita ang mga delalye ng quote.",
       "quote_details_empty_no_quote": "Walang quote na available sa ngayon. Subukan ang ibang halaga.",
       "loading": "Nilo-load...",
@@ -1996,7 +2027,8 @@
       "toast_complete_sell": "Nagbenta ng {{amount}} ng {{symbol}} para sa {{counter}}",
       "toast_failed_buy": "Hindi makabili ng {{symbol}}",
       "toast_failed_sell": "Hindi makapagbenta ng {{symbol}}"
-    }
+    },
+    "share_preparing": "Preparing link"
   },
   "perps": {
     "basic_functionality_disabled_title": "Hindi available ang mga perp",
@@ -3026,6 +3058,8 @@
       "priceMoved": "Gumalaw ang presyo ng {{priceDelta}}%, na lumampas sa iyong {{maxSlippage}}% slippage tolerance. Suriin ang na-update na presyo at subukan muli.",
       "rateLimitExceeded": "Masyado nang maraming kahilingan. Maghintay sandali at subukan muli.",
       "serviceUnavailable": "Pansamantalang hindi available ang serbisyo. Subukan muli mamaya.",
+      "postOnlyWindow": "Pansamantalang ipinagbabawal ang pagti-trade pagkatapos mag-upgrade ng network at magbabalik sa ilang sandali. Subukan muli pagkalipas ng ilang minuto.",
+      "postOnlyWouldCross": "Magko-cross ang presyo sa spread, kaya hindi nai-place ang order na post-only. Ayusin ang presyo o gumamit ng order na non-post-only.",
       "networkErrorSimple": "Nagkaroon ng error sa network. Suriin ang koneksyon mo at subukan muli.",
       "insufficientBalance": "Hindi sapat ang balanse para kumpletuhin ang operasyong ito. Suriin ang mga available mo na pondo.",
       "connectionFailed": {
@@ -3047,9 +3081,7 @@
       "marginValidation": {
         "exceedsMaxRemovable": "Sobra ang halaga sa pinakamalaking margin na pwedeng alisin",
         "insufficientMargin": "Walang sapat na margin ang posisyon para sa pagbabawas na ito"
-      },
-      "postOnlyWindow": "Pansamantalang ipinagbabawal ang pagti-trade pagkatapos mag-upgrade ng network at magbabalik sa ilang sandali. Subukan muli pagkalipas ng ilang minuto.",
-      "postOnlyWouldCross": "Magko-cross ang presyo sa spread, kaya hindi nai-place ang order na post-only. Ayusin ang presyo o gumamit ng order na non-post-only."
+      }
     },
     "position": {
       "title": "Mga Posisyon",
@@ -3481,11 +3513,24 @@
     },
     "margin_mode": {
       "title": "Piliin ang margin mode",
+      "title_with_market": "{{market}} margin mode",
       "isolated_title": "Naka-isolate",
-      "isolated_description": "Gumagamit lamang an bawat posisyon ng nakalaan nitong margin. Kapag naubos ito, mali-liquidate ang posisyon na iyon, habang hindi maaapektuhan ang iba. Maaari mong ayusin ang margin para sa bawat position.",
+      "isolated_description": "Each position uses only its allocated margin. If used up, that position liquidates, others are unaffected.",
       "cross_title": "Cross",
-      "cross_description": "Ginagamit ng lahat ng posisyon ang buong balanse ng account mo. Maaaring makatulong ang tubo mula sa isang posisyon upang maprotektahan ang isa pa — ngunit maaaring magamit ang buong balanse ng iyong account kapag na-liquidate. Malapit nang maging available.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs. Coming soon.",
+      "cross_description_available": "All positions share your full perps balance. Profits on one can protect another, but you may lose all positions if liquidation occurs."
+    },
+    "cross_margin_confirm": {
+      "title": "Confirm cross margin",
+      "description": "You selected cross margin for this order.\nCheck this list to confirm you understand:",
+      "collateral_title": "Collateral:",
+      "collateral_description": "All positions will share your full perps balance.",
+      "liquidation_title": "Liquidation:",
+      "liquidation_description": "If liquidation occurs, this will draw from your entire perps balance.",
+      "margin_title": "Margin:",
+      "margin_description": "Margin cannot be added or removed from a cross position.",
+      "go_back": "Bumalik",
+      "confirm": "Kumpirmahin"
     },
     "cross_position": {
       "badge": "Cross",
@@ -3497,6 +3542,9 @@
       "title": "Hindi suportado ang cross margin",
       "message": "Sinusuportahan lang ng MetaMask Perps ang pag-trade gamit ang isolated margin. Kailangan mo munang isara ang iyong posisyon na cross margin para makapag-trade sa MetaMask.",
       "dismiss": "Nakuha ko"
+    },
+    "crossMarginRatio": {
+      "description": "Cross margin ratio is {{ratio}}."
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3524,6 +3572,9 @@
     },
     "provider_selector": {
       "title": "Pumili ng Provider"
+    },
+    "selection_sheet": {
+      "save": "I-save"
     },
     "market_type": {
       "filter_by": "I-filter ayon sa"
@@ -3789,6 +3840,10 @@
   },
   "predict_next": {
     "available_balance": "Available na balanse",
+    "home_section": {
+      "position_info": "{{costBasis}} sa {{outcome}} para manalo ng {{payout}}",
+      "pnl_unavailable": "Hindi available"
+    },
     "balance_unavailable": {
       "title": "Hindi available ang balanse",
       "description": "Hindi na-load ang available mong balanse.",
@@ -3809,12 +3864,25 @@
       "retry": "Subukang muli",
       "unavailable": "Walang market na available sa ngayon."
     },
+    "home_categories": {
+      "title": "Mga Kategorya",
+      "politics": "Pulitika",
+      "sports": "Palakasan"
+    },
+    "get_started_banner": {
+      "title": "Get started in a few steps",
+      "body": "Verify your identity and sign in with Kalshi to trade prediction markets."
+    },
     "event": {
       "your_positions": "Mga position mo",
       "game_lines": "Mga Linya ng Laro",
       "outcomes": "Mga kinalabasan",
       "view_all_markets": "Tingnan ang lahat ng {{count}} (na) market",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Closes {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
+        "markets": "Market",
         "moneyline": "Moneyline",
         "spread": "Spread",
         "total_points": "Kabuuang puntos",
@@ -3839,7 +3907,14 @@
         "buy_price_unavailable": "Bumili, hindi available ang presyo",
         "holding": "{{shares}} mga share sa {{price}}",
         "holding_shares": "{{shares}} (na) share"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, buy",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, price unavailable"
+    },
+    "trending": {
+      "search_row_chance": "{{probability}} chance on {{outcome}}"
     },
     "search": {
       "placeholder": "Maghanap ng mga market",
@@ -3914,10 +3989,15 @@
       "total_debit": "Kabuuang debit",
       "to_win": "Para manalo ng {{amount}}",
       "pay_with": "Magbayad gamit ang",
-      "predict_balance": "Hulaan ang balanse",
-      "total": "Kabuuan",
-      "price_details": "Mga detalye ng presyo",
+      "predictions_balance": "Balanse ng mga prediksyon",
+      "odds": "Mga Odd",
+      "contracts_row": "Contracts",
+      "fees": "Mga Bayarin",
+      "you_will_receive": "Makakatanggap ka ng",
+      "you_will_receive_value": "{{amount}} ({{price}} avg)",
+      "estimated_payout": "Est. payout",
       "terms": "Sa pagpapatuloy, tinatanggap mo ang mga tuntunin ng platform.",
+      "venue_terms": "By continuing, you accept {{venue}}'s terms.",
       "learn_more": "Matuto pa",
       "submitting": "Isinusumite ang order mo...",
       "done": "Tapos na",
@@ -3927,6 +4007,7 @@
       "refresh": "I-refresh",
       "retry": "Subukang muli",
       "review": "Suriin ang order",
+      "buy": "Bumili",
       "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy."
     },
     "order_approval": {
@@ -3962,10 +4043,6 @@
     "order_notification": {
       "not_placed_title": "Hindi nai-place ang order",
       "not_placed_description": "Walang natira sa iyong balanse. Kumuha ng bagong quote para subukan muli."
-    },
-    "home_section": {
-      "position_info": "{{costBasis}} sa {{outcome}} para manalo ng {{payout}}",
-      "pnl_unavailable": "Hindi available"
     }
   },
   "predict": {
@@ -4024,7 +4101,13 @@
       "price_unavailable": "hindi available ang presyo",
       "option_accessibility_label": "Opsyon sa market para sa {{team}}, line {{line}}, presyo {{price}}",
       "outcome_accessibility_label": "{{team}}, line {{line}}, presyo {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} or more, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} or more, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Tingnan ang mga punutunan ng event",
@@ -5337,16 +5420,6 @@
     "x_account_disconnect_sheet_body_no_handle": "Aalisin ang X account mo sa profile mo. Mananatili ang mga post, bio, profile, mga wallet, at mga setting ng pagkapribado.",
     "x_account_disconnect_error": "Hindi maidiskonekta ang X. Suriin ang koneksyon mo at subukan ulit.",
     "x_account_disconnect_success": "Naidiskonekta na ang X account"
-  },
-  "profile_drawer": {
-    "close": "Isara",
-    "scan": "Mag-scan ng QR Code",
-    "create_profile": "Gumawa ng profile",
-    "notifications": "Mga Abiso",
-    "activity": "Aktibidad",
-    "subscriptions": "Mga subscription",
-    "settings": "Mga Setting",
-    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Pinapagana ang mga notipikasyon...",
@@ -7175,8 +7248,8 @@
     "tx_details_free": "Libre",
     "tx_details_not_available": "Hindi available",
     "smart_contract_interaction": "Interaksyon sa kontrata",
-    "money_account_deposit": "Ideposito sa Money Account",
-    "money_account_withdraw": "Ilipat mula sa Money Account",
+    "money_account_deposit": "Deposit to Money account",
+    "money_account_withdraw": "Transfer from Money account",
     "swaps_transaction": "Transaksyon sa mga swap",
     "bridge_transaction": "Mag-bridge",
     "approve": "Aprubahan",
@@ -8025,7 +8098,10 @@
     "card_title": "Laging ipakita ang button ng MetaMask Card",
     "card_desc": "Available lang ang MetaMask Card sa mga residente ng mga piling bansa.",
     "daimo_demo_title": "Gamitin ang demo environment ng DaimoPay",
-    "daimo_demo_desc": "Mag-toggle sa pagitan ng mga demo at production environment ng DaimoPay para sa mga pagbabayad gamit ang card."
+    "daimo_demo_desc": "Mag-toggle sa pagitan ng mga demo at production environment ng DaimoPay para sa mga pagbabayad gamit ang card.",
+    "card_logout_title": "MetaMask Card",
+    "card_logout_desc": "Log out of your MetaMask Card account on this device. Use this for troubleshooting or if MetaMask Support asks you to.",
+    "card_logout_cta": "Log out of MetaMask Card"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "Wala kang aktibong session",
@@ -8817,7 +8893,8 @@
       "resend_in": "Ipadala muli ang code sa {{seconds}}s",
       "resent": "Nagpadala kami sa iyo ng bagong code.",
       "verifying": "Vine-verify ang code",
-      "get_new_code": "Kumuha ng bagong code"
+      "get_new_code": "Kumuha ng bagong code",
+      "get_new_code_in": "Get new code in {{seconds}}s"
     },
     "totp_setup": {
       "title": "I-set up ang authenticator app",
@@ -8846,7 +8923,7 @@
     },
     "errors": {
       "invalid_code": "Mali ang code na ito. Subukan ulit",
-      "too_many_attempts": "Napakaraming pagtatangka. Humiling ng bagong code.",
+      "too_many_attempts": "Too many incorrect codes. Get a new code when it's available.",
       "invalid_passkey": "Hindi ma-verify ang passkey mo. Subukan ulit.",
       "passkey_cancelled": "Kinansela ang kahilingan sa passkey.",
       "email_taken": "Ginagamit na ang email na ito. Subukan ang iba pa.",
@@ -9608,6 +9685,25 @@
         }
       }
     },
+    "splash": {
+      "eyebrow": "MetaMask Money",
+      "title": "Earn, trade, and spend from one balance",
+      "body_prefix": "MetaMask Money is a stablecoin account that earns up to ",
+      "body_suffix": "—with trading, sending, and spending built in.",
+      "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
+      "benefit_convert_title": "Converts to MetaMask USD, 1:1",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, with no fees.",
+      "benefit_earn_title": "Earn automatically",
+      "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
+      "benefit_trade_title": "Trade from the same balance",
+      "benefit_trade_body": "Fund swaps, perps, and predictions directly from your Money balance.",
+      "benefit_withdraw_title": "Withdraw anytime",
+      "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
+      "benefit_send_title": "Send or spend anywhere",
+      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card for up to 3% back.",
+      "cta": "Start earning",
+      "close": "Close"
+    },
     "vba_home_card": {
       "get_started": {
         "title": "I-convert sa mga digital na dolyar",
@@ -9618,6 +9714,11 @@
         "title": "Handa ka na",
         "description": "Ang mga detalye ng iyong virtual account ay handa na.",
         "cta": "Tingnan ang mga detalye ng account"
+      },
+      "identity_verified": {
+        "title": "Na-verify ang pagkakakilanlan",
+        "description": "Tapos, kunin ang mga detalye ng iyong virtual account para magdagdag ng mga pondo mula sa iyong bangko.",
+        "cta": "Kunin ang mga detalye ng account"
       },
       "kyc_pending": {
         "title": "Bini-verify ang iyong pagkakakilanlan",
@@ -9634,11 +9735,6 @@
         "description": "Hindi kami makapag-alok ng mga bank transfer sa pagkakataong ito. Kontakina ng suporta para sa tulong.",
         "cta": "Matuto pa.",
         "dismiss": "I-dismiss"
-      },
-      "identity_verified": {
-        "title": "Na-verify ang pagkakakilanlan",
-        "description": "Tapos, kunin ang mga detalye ng iyong virtual account para magdagdag ng mga pondo mula sa iyong bangko.",
-        "cta": "Kunin ang mga detalye ng account"
       }
     },
     "first_time_deposit": {
@@ -9718,6 +9814,15 @@
     "metamask_card": {
       "title": "Card",
       "upsell_title": "Kunin ang card",
+      "setup": {
+        "finish_kyc_title": "Finish verifying your identity",
+        "finish_kyc_description": "Pick up where you left off to get your card.",
+        "reviewing_title": "Verifying your identity",
+        "reviewing_description": "Most applications are reviewed within a few hours.",
+        "creating_title": "Creating your card",
+        "creating_description": "This may take a few moments.",
+        "continue": "Continue"
+      },
       "subtitle": "Gastusin ang pera mo kahit saan.",
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
@@ -9748,7 +9853,7 @@
       "unlink_card_sheet_another_money_account": "iba pang Money account",
       "unlink_card_sheet_keep_linked": "Panatilihing naka-link",
       "unlink_card_sheet_unlink_account": "I-unlink ang account",
-      "verification_pending": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
+      "verification_pending": "Your identity verification is being reviewed. Most applications are reviewed within a few hours."
     },
     "what_you_get": {
       "title": "Mga Benepisyo",
@@ -9958,6 +10063,7 @@
       "faq_title": "Mga FAQ",
       "faq_q1": "Ano ang MetaMask Money account?",
       "faq_a1": "Isang account na kumikita ng hanggang {{percentage}}% variable APY. Nagdedeposito ka ng pondo, na inilalagay sa account bilang mUSD, at kikita ng hanggang {{percentage}}% APY. Ang mUSD ay stablecoin ng MetaMask na suportado ng dolyar. Maaari mong gamitin o i-withdraw ang mga pondo mo anumang oras nang walang mga penalty. Maaari mong gastusin ang mga pondo mo gamit ang MetaMask Card sa 150+ milyong Mastercard merchant sa buong mundo.",
+      "faq_a1_no_apy": "An account that earns variable APY. You deposit funds, which are held in the account as mUSD. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
       "faq_q2": "Ligtas ba ang MetaMask Money account?",
       "faq_a2": "Oo, ngunit kagaya ng lahat ng produkto ng DeFi, may dala itong panganib. Ito ay isang self-custodial na wallet, ibig sabihin tanging ikaw ang may ganap na kontrol sa iyong account gamit ang iyong mga Private Key.\n\nKabilang sa mga panganib ang mga pagpalya ng smart-contract, pagsasamantala sa protocol, kakulangan ng liquidity, pagpalya ng third-party, at mga legal o regulatoryong paghihigpit. Ang Money account ay hindi naka-insure sa FDIC o anumang ahensiya ng gobyerno. Mayroong panganib ng pagkalugi.",
       "faq_q3": "Sino ang kumokontrol sa MetaMask Money account ko?",
@@ -9967,6 +10073,7 @@
       "faq_a4_link": "Tingnan ang kabuuan ng breakdown ng bayad sa Card dito.",
       "faq_q5": "Magkano ang maaari kong kitain sa MetaMask Money account?",
       "faq_a5": "Hanggang {{percentage}}% APY. Nagbabago at tumataas-baba ang rate ayon sa mga kondisyon ng market. Laging makikita ang kasalukuyang rate sa loob ng Money account.",
+      "faq_a5_no_apy": "The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Saan nanggagaling ang yield?",
       "faq_a6": "Kapag nagdeposito ka ng mga pondo, inilalagay ang mga iyon sa mga magagandang DeFi protocol, gaya ng Aave at Morpho, kung saan kumikita sila ng tubo mula sa totoong aktibidad pang-ekonomiya. Ibinibigay sa iyo ang tubo na ito bilang APY.\n\nSinusubaybayan ng third-party service provider na tinatawag na Steakhouse Financial kung paano inilalaan ang mga pondo sa mga protocol. Ang Veda, isang third-party infrastructure provider, ang nagde-deploy at nagpapanatili ng mga vault smart contract na may hawak sa mga pondo mo.\n\nAng kinikita ay hindi interes na binabayaran ng MetaMask o ng nag-issue mUSD. Ang mga ito ay tinubo onchain na nilikha ng mga posisyon sa mga third-party DeFi protocol.",
       "faq_q7": "Anong mga token ang maaari kong ideposito sa Money account?",
@@ -10349,6 +10456,12 @@
       "predict_deposit": {
         "transaction_fee": "Isu-swap namin ang mga token mo para sa pUSD sa Polygon, ang network na ginamit ng Predictions. Maaaring maningil ang mga swap provider, ngunit hindi ang MetaMask."
       },
+      "perps_withdraw": {
+        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
+      },
       "musd_conversion": {
         "transaction_fee": "Kasama sa mga bayarin sa pag-convert ng mUSD ang mga bayad sa network at posible ring kasama ang mga bayarin sa provider. Walang hihinging bayad sa MetaMask kapag nag-convert ka sa mUSD."
       },
@@ -10361,13 +10474,7 @@
       "title": {
         "transaction_fee": "Mga bayad sa transaksyon"
       },
-      "network_fee": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo.",
-      "perps_withdraw": {
-        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
-      },
-      "predict_withdraw": {
-        "swap_to_token": "Isu-swap ng MetaMask sa token na gusto mo para sa iyo."
-      }
+      "network_fee": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo."
     },
     "spending_cap": "Limitasyon sa paggastos",
     "withdraw": "I-withdraw",
@@ -10611,7 +10718,7 @@
       "date_created": "Petsa ng paggawa",
       "order_type": "Uri ng order",
       "order_type_limit": "Limit",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Duplicate na order"
     },
     "recurring": {
       "you_get": "Makakakuha ka ng",
@@ -11462,9 +11569,11 @@
       "verify_identity": {
         "title": "I-verify ang pagkakakilanlan mo",
         "description": "Gumagamit ang aming partner na Crypto Life ng serbisyong tinatawag na Veriff para panatilihing ligtas ang account mo. ",
-        "terms_1": "Napupunta nang direkta sa Veriff at Crypto Life ang impormasyon mo. Hindi ito kailanman makikita ng MetaMask.",
-        "terms_2": "Kailangan mo ng ID at patunay ng address mo para maaprubahan. Karaniwan itong tumatagal nang 5 minuto.",
-        "terms_2_us": "Hinihingi sa amin ng pederal na batas (USA PATRIOT Act) na i-verify ang pagkakakilanlan mo gamit ang ID at patunay ng address para makatulong na maiwasan ang terorismo at money laundering. Karaniwang itong tumatagal ng 5 minuto.",
+        "terms_1_title": "MetaMask never sees your info",
+        "terms_1_description": "It goes straight to Veriff and Crypto Life.",
+        "terms_2_title": "Have your ID and proof of address ready",
+        "terms_2_description": "This usually takes 5 minutes.",
+        "terms_2_us_description": "Hinihingi sa amin ng pederal na batas (USA PATRIOT Act) na i-verify ang pagkakakilanlan mo gamit ang ID at patunay ng address para makatulong na maiwasan ang terorismo at money laundering. Karaniwang itong tumatagal ng 5 minuto.",
         "verify_button": "Susunod",
         "start_verification_error": "Nagkaroon ng error na simulan ang pag-verify. Subukan muli mamaya."
       },
@@ -11489,7 +11598,9 @@
       "verifying_veriff_kyc": {
         "title": "Naghihintay ng pag-apruba",
         "description": "Kailangang i-verify ng aming partner ang iyong pagkakakilanlan mo para aprubahan ang aplikasyon mo.",
-        "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app."
+        "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app.",
+        "in_progress_title": "Bini-verify ang iyong pagkakakilanlan",
+        "in_progress_description": "This usually takes a few seconds. Don't close the app."
       },
       "immersve_kyc_processing": {
         "title": "Naghihintay ng pag-apruba",
@@ -11511,6 +11622,7 @@
       "immersve_funding_approval": {
         "title": "I-set up ang pagpopondo sa card",
         "description": "Aprubahan ang MetaMask Card na gamitin ang iyong USDC sa Base para sa mga pagbili.",
+        "money_account_description": "Approve MetaMask Card to use your Money account for purchases.",
         "helper_text": "Karaniwan itong tumatagal nang ilang segundo. Huwag isara ang app.",
         "confirm_button": "Aprubahan ang pagpopondo",
         "retry_button": "Subukang muli",
@@ -11518,7 +11630,8 @@
           "title": "I-set up ang pagpopondo sa card",
           "description": "Aprubahan na gamitin ulit ng MetaMask Card ang USDC mo sa Base para maipagpatuloy mo ang paggastos.",
           "confirm_button": "Aprubahan ang pagpopondo"
-        }
+        },
+        "token_value": "USDC on Base"
       },
       "verifying_registration": {
         "title": "Bini-verify ang iyong pagkakakilanlan",
@@ -11541,12 +11654,6 @@
         "description": "Tinukoy ang pagiging kwalipikado ng regulasyon ng aming partner at mga pagsusuri sa pagbi-verify.",
         "close_button": "Bumalik sa home"
       },
-      "kyc_pending": {
-        "title": "Naghihintay ng pag-apruba",
-        "description": "Kailangang i-verify ng aming partner ang iyong pagkakakilanlan mo para aprubahan ang aplikasyon mo.",
-        "footer_text": "Karaniwang tumatagal ang mga pag-apruba nang humigit-kumulang 12 oras.\nAabisuhan ka namin kapag may desisyon na.",
-        "got_it_button": "Nakuha ko"
-      },
       "personal_details": {
         "title": "Ilagay ang impormasyon mo",
         "description": "Ilagay ang iyong mga personal na detalye. Gagamitin namin ang impormasyong ito para sa pag-verify.",
@@ -11554,6 +11661,7 @@
         "last_name_label": "Apelyido",
         "date_of_birth_label": "Petsa ng kapanganakan",
         "nationality_label": "Nasyonalidad",
+        "nationality_placeholder": "Ilagay ang nasyonalidad mo",
         "ssn_label": "Social Security Number",
         "ssn_description": "Kinakailangan ng taga-isyu ng card. Hindi magsasagawa ng credit check.",
         "invalid_ssn": "Di-wastong SSN",
@@ -11567,6 +11675,7 @@
         "address_line_2_label": "Linya 2 ng address",
         "city_label": "Lungsod",
         "state_label": "Estado",
+        "state_placeholder": "Select your state",
         "zip_code_label": "Zip code",
         "country_label": "Bansa",
         "electronic_consent_1": "Sumasang-ayon ako sa ",
@@ -11590,7 +11699,7 @@
         "description": "Magbigay ng address ng koreo na padadalhan namin ng card mo."
       },
       "complete": {
-        "title": "Pasok ka na!",
+        "title": "Na-verify ka na",
         "description": "Tapusin ang pag-set up sa iyong MetaMask card para masimulan mo na ang paggastos sa crypto mo.",
         "confirm_button": "Tapusin ang pag-setup"
       },
@@ -11616,7 +11725,9 @@
         "success_toast_description": "Ipapaalam namin sa iyo kapag ang card ay available sa iyong bansa."
       },
       "region_selector": {
-        "title": "Piliin ang iyong Rehiyon"
+        "title": "Piliin ang iyong rehiyon",
+        "search_label": "Search regions",
+        "search_placeholder": "Maghanap ayon sa bansa"
       },
       "errors": {
         "no_region_results": "Walang tumugmang rehiyon sa {{searchString}}",
@@ -11650,7 +11761,6 @@
       "enable_assets_button_label": "I-enable ang mga asset",
       "spending_limit_warning": "Malapit mo nang maabot ang limit ng paggastos. Mag-update para maiwasan ang hindi pagtanggap.",
       "spending_limit_available": "available",
-      "logout": "Mag-log out",
       "contact_support": "Kontakin ang suporta",
       "logout_confirmation_title": "I-log out ang Card?",
       "logout_confirmation_message": "Sigurado ka bang gusto mong mag-log out sa MetaMask Card account mo?",
@@ -11692,14 +11802,25 @@
           "description": "Kontakin ang suporta para ma-unblock ang iyong card"
         },
         "kyc_pending": {
-          "title": "Kasalukuyan ang pag-verify",
-          "description": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
+          "title": "Bini-verify ang iyong pagkakakilanlan",
+          "description": "Most applications are reviewed within a few hours."
         }
       },
       "messages": {
         "card_provisioning": {
           "title": "Ginagawa ang card",
           "description": "Ginagawa ang card mo. Maaari itong tumagal nang mga ilang sandali."
+        },
+        "setup_incomplete": {
+          "title": "Finish setting up your card",
+          "descriptions": {
+            "contact": "Add your contact details to continue.",
+            "kyc": "Verify your identity to continue.",
+            "expected_spend": "Tell us how you plan to use your card to continue.",
+            "funding": "Approve funding so you can start spending.",
+            "rejected": "We couldn't verify your identity. Try again to continue."
+          },
+          "confirm_button_label": "Continue"
         }
       },
       "kyc_status": {
@@ -11904,9 +12025,9 @@
         "confirm_button_label": "I-set up ang pagpopondo"
       },
       "money_account_required": {
-        "title": "I-set up ang Money Account",
-        "description": "Kailangan mo ng naka-link na Money Account bago mag-redeem pabalik ng mUSD.",
-        "confirm_button_label": "I-set up ang Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming mUSD back.",
+        "confirm_button_label": "Set up Money account"
       }
     },
     "credit_screen": {
@@ -11927,9 +12048,9 @@
         "confirm_button_label": "I-set up ang pagpopondo"
       },
       "money_account_required": {
-        "title": "I-set up ang Money Account",
-        "description": "Kailangan mo ng naka-link na Money account bago mag-redeem ng iyong credit.",
-        "confirm_button_label": "I-set up ang Money Account"
+        "title": "Set up Money account",
+        "description": "You need a linked Money account before redeeming your credit.",
+        "confirm_button_label": "Set up Money account"
       },
       "refund_info": {
         "title": "Balanse ng refund",
@@ -11988,8 +12109,16 @@
       "location_button_text_uk": "United Kingdom",
       "email_label": "Email",
       "password_label": "Password",
+      "show_password": "Ipakita ang password",
+      "hide_password": "Itago ang password",
+      "email_code_label": "Email code",
+      "request_email_code_button": "Email me a code",
       "login_button": "Mag-sign in",
-      "siwe_button": "Mag-sign in gamit ang Ethereum",
+      "money_account_required": {
+        "title": "Set up Money account",
+        "description": "A Money account is required to get the card in your country.",
+        "confirm_button_label": "Set up Money account"
+      },
       "continue_button": "Magpatuloy",
       "uk_login_button": "Mag-sign in gamit ang account na ito",
       "signup_button": "Mag-sign up",
@@ -12026,6 +12155,7 @@
       "banner_resume_soft_body": "Tapusin ito hanggang {{deadline}}. Magagamit mo pa rin ang kasalukuyan mong card sa ngayon.",
       "banner_bad_creds_title": "Hindi ka namin mai-sigin in",
       "banner_bad_creds_body": "Suriin ang iyong email address at password at subukan muli.",
+      "banner_bad_code_body": "Check the code and try again.",
       "sign_in_help_title": "Alin ang sa akin?",
       "sign_in_help_email_title": "Gumawa ka ng password",
       "sign_in_help_email_body": "Mag-sign in gamit ang email. Ililipat na ang mga UK card sa bagong setup, kaya tuturuan ka naming lumipat kapag naka-sign in ka na.",
@@ -12079,7 +12209,9 @@
     },
     "card_otp_authentication": {
       "title": "Kumpirmahin ang numero ng telepono mo",
+      "title_authenticator": "Confirm your authenticator",
       "description_with_phone_number": "Ilagay ang verification code na ipinadala sa {{maskedPhoneNumber}}",
+      "description_authenticator": "Enter the code from your authenticator app.",
       "description_without_phone_number": "Nagpadala kami ng confirmation code sa numero ng telepono mo. Ilagay ang code para magpatuloy.",
       "confirm_code_label": "Code ng kumpirmasyon",
       "confirm_button": "Kumpirmahin",
@@ -12865,8 +12997,8 @@
       "predict_claim": "Na-claim na mga panalo",
       "predict_deposit": "Pinondohang Hinulaang account",
       "predict_withdraw": "Pag-withdraw",
-      "money_account_deposit": "Ideposito sa Money Account",
-      "money_account_withdraw": "Ilipat mula sa Money Account",
+      "money_account_deposit": "Deposit to Money account",
+      "money_account_withdraw": "Transfer from Money account",
       "default": "Mga detalye ng transaksyon"
     },
     "label": {

@@ -4,6 +4,7 @@ import type {
   SocialFeedEvent,
 } from '@metamask/social-controllers';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import { getFeedItemId } from '../utils/feedItemId';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 
@@ -35,6 +36,20 @@ export interface SocialFeedRow extends TraderFeedRow {
    */
   serverEngagement?: AuthorComment['engagement'];
 }
+
+/** The id realtime revisions of this row carry. */
+export const getRowFeedItemId = (row: TraderFeedRow): string =>
+  getFeedItemId(row.core);
+
+/**
+ * Where the server placed the row: its `occurredAt` on the all and trending
+ * feeds, where a comment is placed at the time it was written, and its latest
+ * trade elsewhere.
+ */
+export const getRowSortTimestamp = (row: TraderFeedRow): number => {
+  const occurredAt = Date.parse(row.core.occurredAt ?? '');
+  return Number.isNaN(occurredAt) ? row.item.timestamp : occurredAt;
+};
 
 export interface PendingRealtimeEvent {
   event: SocialFeedEvent;
@@ -103,27 +118,34 @@ const resolveRefreshedAuthorComment = (
  * `authorComment`: an explicit null clears the Call, while an absent one keeps
  * the HTTP row's Call. When both comments have the same UID, the realtime
  * aggregate reactions are kept while the known viewer reaction is preserved.
+ *
+ * Core's normalized `data` drops the envelope's `feedItemId`, so it is copied
+ * back: a socket-only card keys on it like its HTTP copy does.
  */
 export const mergeRealtimeFeedItem = (
   current: CoreFeedItem | undefined,
   event: SocialFeedEvent,
-): CoreFeedItem => ({
-  ...current,
-  ...event.data,
-  authorComment: resolveRealtimeAuthorComment(
-    event.data.authorComment,
-    current?.authorComment,
-  ),
-  eventId: event.eventId,
-  revision: event.revision,
-  occurredAt: event.occurredAt,
-});
+): CoreFeedItem => {
+  const merged: CoreFeedItem & { feedItemId: string } = {
+    ...current,
+    ...event.data,
+    authorComment: resolveRealtimeAuthorComment(
+      event.data.authorComment,
+      current?.authorComment,
+    ),
+    eventId: event.eventId,
+    revision: event.revision,
+    occurredAt: event.occurredAt,
+    feedItemId: event.feedItemId,
+  };
+  return merged;
+};
 
 export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
   stableId: row.item.id,
-  sortTimestamp: row.item.timestamp,
-  feedItemId: row.core.positionId,
+  sortTimestamp: getRowSortTimestamp(row),
+  feedItemId: getRowFeedItemId(row),
   revision: row.core.revision,
 });
 
@@ -157,7 +179,7 @@ export const applyRealtimeEventToRow = (
     return null;
   }
 
-  const stableId = previous?.stableId ?? row?.item.id ?? mappedItem.id;
+  const stableId = previous?.stableId ?? row?.item.id ?? event.feedItemId;
 
   return {
     item: {
@@ -167,7 +189,8 @@ export const applyRealtimeEventToRow = (
     core: mergedCore,
     stableId,
     sortTimestamp:
-      previous?.sortTimestamp ?? row?.item.timestamp ?? mappedItem.timestamp,
+      previous?.sortTimestamp ??
+      getRowSortTimestamp(row ?? { item: mappedItem, core: mergedCore }),
     realtimeEventId: previous
       ? previous.realtimeEventId
       : animate
@@ -284,7 +307,7 @@ export const mergeRealtimeRows = ({
   const byId = new Map<string, SocialFeedRow>();
   const serverById = new Map<string, TraderFeedRow>();
   serverRows.forEach((row) => {
-    const feedItemId = row.core.positionId;
+    const feedItemId = getRowFeedItemId(row);
     serverById.set(feedItemId, row);
     if (shouldDeferPendingNewRow(pending.get(feedItemId))) {
       return;
@@ -298,6 +321,80 @@ export const mergeRealtimeRows = ({
     }
   });
   return [...byId.values()].sort((a, b) => b.sortTimestamp - a.sortTimestamp);
+};
+
+export interface PinnedRealtimeRows {
+  rows: SocialFeedRow[];
+  /** The sort key each row was shown at, by feed item id. */
+  placed: Map<string, number>;
+}
+
+/**
+ * Keeps every row at the sort key it was first shown with, so the list only
+ * grows at the top: socket delivery across replicas can arrive out of order,
+ * and a refresh can return a moved post.
+ *
+ * A row the list did not show yet goes above the newest shown row, in its own
+ * order, when it is a socket row at or above the oldest shown row, or a server
+ * row newer than everything shown. Any other server row (the next page, which
+ * on the global feed can hold events newer than shown rows) goes below the
+ * oldest shown row, in its own order. Socket rows older than everything shown
+ * keep their own key. `placed` keeps only the ids of `rows`.
+ */
+export const pinRealtimeRows = (
+  rows: readonly SocialFeedRow[],
+  placed: ReadonlyMap<string, number>,
+  serverIds: Pick<ReadonlySet<string>, 'has'>,
+): PinnedRealtimeRows => {
+  let top = -Infinity;
+  let bottom = Infinity;
+  rows.forEach((row) => {
+    const key = placed.get(row.feedItemId);
+    if (key !== undefined) {
+      top = Math.max(top, key);
+      bottom = Math.min(bottom, key);
+    }
+  });
+
+  const keys = new Map<string, number>();
+  if (top !== -Infinity) {
+    const shownTop = top;
+    const unplaced = rows.filter((row) => !placed.has(row.feedItemId));
+    const goesOnTop = (row: SocialFeedRow): boolean =>
+      serverIds.has(row.feedItemId)
+        ? row.sortTimestamp > shownTop
+        : row.sortTimestamp >= bottom;
+
+    unplaced
+      .filter(goesOnTop)
+      .sort((a, b) => a.sortTimestamp - b.sortTimestamp)
+      .forEach((row) => {
+        top = Math.max(row.sortTimestamp, top + 1);
+        keys.set(row.feedItemId, top);
+      });
+    unplaced
+      .filter((row) => serverIds.has(row.feedItemId) && !goesOnTop(row))
+      .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
+      .forEach((row) => {
+        bottom = Math.min(row.sortTimestamp, bottom - 1);
+        keys.set(row.feedItemId, bottom);
+      });
+  }
+
+  const nextPlaced = new Map<string, number>();
+  const pinned = rows.map((row) => {
+    const key =
+      placed.get(row.feedItemId) ??
+      keys.get(row.feedItemId) ??
+      row.sortTimestamp;
+    nextPlaced.set(row.feedItemId, key);
+    return key === row.sortTimestamp ? row : { ...row, sortTimestamp: key };
+  });
+
+  return {
+    rows: pinned.sort((a, b) => b.sortTimestamp - a.sortTimestamp),
+    placed: nextPlaced,
+  };
 };
 
 /** Held-back new posts that pass `filterPost`. */

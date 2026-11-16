@@ -16,15 +16,13 @@ import {
   AnimatedAmountDisplay,
   getFontSizeForInputLength,
 } from '../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { splitNumericString } from '../../../../component-library/components-temp/AnimatedNumericText/splitNumericString';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import useCurrency from '../../../Base/Keypad/useCurrency';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useTheme } from '../../../../util/theme';
-import {
-  formatCurrency,
-  getCurrencySymbol,
-} from '../../Bridge/utils/currencyUtils';
+import { useFormatters } from '../../../hooks/useFormatters';
 import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
 import type { QuickBuyAmountDisplayMode } from '../types';
@@ -73,24 +71,9 @@ const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 // does not change the centered block's height.
 const AMOUNT_ROW_STYLE = { minHeight: getFontSizeForInputLength(0) };
 
-/** True when the currency symbol appears before the digits for this locale. */
-function isCurrencySymbolPrefix(currency: string): boolean {
-  const symbol = getCurrencySymbol(currency);
-  if (!symbol) {
-    return true;
-  }
-  const formatted = formatCurrency(1, currency);
-  const digitIndex = formatted.search(/\d/);
-  const symbolIndex = formatted.indexOf(symbol);
-  if (digitIndex < 0 || symbolIndex < 0) {
-    return true;
-  }
-  return symbolIndex < digitIndex;
-}
-
 /**
  * Show keypad-internal amounts (dot decimal) with the currency's locale
- * separator so editing matches the closed-keypad `formatCurrency` headline.
+ * separator so editing matches the closed-keypad formatted headline.
  */
 export function formatAmountDigitsForDisplay(
   amount: string,
@@ -117,6 +100,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const formatters = useFormatters();
   const hardwareTier = useMemo(() => getHardwareTier(), []);
   const networkTier = useNetworkTier();
   // Glyph motion is local. The UX matrix only reduces it for LOW hardware on
@@ -164,30 +148,54 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     ? TextColor.ErrorDefault
     : TextColor.TextDefault;
 
-  let amountPrefix = '';
-  let amountValue = primaryLabel;
-  let amountSuffix = '';
-  if (showCursor) {
-    amountValue = formatAmountDigitsForDisplay(
-      isUnpricedSource ? sourceCryptoAmount || '0' : fiatAmount || '0',
+  const amountDisplay = useMemo(() => {
+    if (!showCursor) {
+      return { prefix: '', value: primaryLabel, suffix: '' };
+    }
+
+    if (isUnpricedSource) {
+      const value = formatAmountDigitsForDisplay(
+        sourceCryptoAmount || '0',
+        decimalSeparator,
+      );
+      return {
+        prefix: '',
+        value,
+        suffix: sourceSymbol ? ` ${sourceSymbol}` : '',
+      };
+    }
+
+    const { prefix, suffix } = currency
+      ? splitNumericString(
+          formatters.formatCurrency(0, currency, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          }),
+        )
+      : { prefix: '', suffix: '' };
+
+    const value = formatAmountDigitsForDisplay(
+      fiatAmount || '0',
       decimalSeparator,
     );
-    if (isUnpricedSource) {
-      amountSuffix = sourceSymbol ? ` ${sourceSymbol}` : '';
-    } else if (currency) {
-      const symbol = getCurrencySymbol(currency);
-      if (symbol && isCurrencySymbolPrefix(currency)) {
-        amountPrefix = symbol;
-      } else if (symbol) {
-        amountSuffix = ` ${symbol}`;
-      }
-    }
-  }
-  const visibleAmountLabel = `${amountPrefix}${amountValue}${amountSuffix}`;
+
+    return { prefix, value, suffix };
+  }, [
+    currency,
+    decimalSeparator,
+    fiatAmount,
+    formatters,
+    isUnpricedSource,
+    primaryLabel,
+    showCursor,
+    sourceCryptoAmount,
+    sourceSymbol,
+  ]);
+  const visibleAmountLabel = `${amountDisplay.prefix}${amountDisplay.value}${amountDisplay.suffix}`;
   const amountFontSize = getFontSizeForInputLength(
-    amountPrefix.length +
-      amountValue.length +
-      amountSuffix.length +
+    amountDisplay.prefix.length +
+      amountDisplay.value.length +
+      amountDisplay.suffix.length +
       INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const amountTextStyle = {
@@ -227,13 +235,13 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             : false
         }
         fontFamily={FontFamily.Hero}
-        prefix={amountPrefix || undefined}
+        prefix={amountDisplay.prefix || undefined}
         style={amountTextStyle}
-        suffix={amountSuffix || undefined}
+        suffix={amountDisplay.suffix || undefined}
         suffixColor={amountColor}
         suffixStyle={amountTextStyle}
         testID="quick-buy-amount-row"
-        value={amountValue}
+        value={amountDisplay.value}
         variant={TextVariant.DisplayMd}
       />
 

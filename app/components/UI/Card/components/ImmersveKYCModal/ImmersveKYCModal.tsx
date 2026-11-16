@@ -25,6 +25,7 @@ import {
   type PermissionStatus,
 } from 'react-native-permissions';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -34,6 +35,8 @@ import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { useTheme } from '../../../../../util/theme';
+import ImmersveLogo from '../../../../../images/immersve-logo.svg';
 
 export interface ImmersveKYCModalParams {
   url: string;
@@ -101,13 +104,37 @@ export const IMMERSVE_KYC_ERROR_BRIDGE_JS = `
 })();
 `;
 
-// Simple callback registry so the opener (ImmersveKYCProcessing) learns when the
-// webview closes. Needed because this modal is a transparentModal that keeps the
-// presenting screen mounted without blurring it, so useFocusEffect never re-fires
-// on close — mirrors RegionSelectorModal's setOnValueChange pattern.
-let onCloseCallback: (() => void) | null = null;
+/**
+ * Hides Immersve's progress dots, logo, and Close button before first paint,
+ * and collapses the empty logo row so the progress bar sits under our header.
+ * The logo and dots are scoped to their progress header; the Close button is
+ * not, so it stays hidden on every Immersve screen. Sumsub never renders these
+ * hooks. Injected on both platforms; the Vue app mounts into #app and never
+ * replaces <html>, so the style survives in-flow screen changes.
+ */
+export const IMMERSVE_KYC_UI_JS = `
+(function () {
+  var style = document.createElement('style');
+  style.textContent = [
+    '[data-test="session-progress-header"] .rounded-full,',
+    '[data-test="session-progress-header"] .logo,',
+    '[data-test="exit"] { display: none !important; }',
+    '[data-test="session-progress-header"] > header > div:first-child { margin-top: 0 !important; }',
+    '[data-test="session-progress-header"] > header > div:nth-child(2) { margin-top: 8px !important; }',
+  ].join(' ');
+  (document.head || document.documentElement).appendChild(style);
+  true;
+})();
+`;
 
-export const setImmersveKycOnClose = (callback: () => void) => {
+// The opener re-polls when the webview closes back onto it. Close and that
+// re-poll have to happen together: a confirmed exit removes the processing
+// screen before focus returns, so useFocusEffect is not a reliable signal.
+let onCloseCallback: ((completed: boolean) => void) | null = null;
+
+export const setImmersveKycOnClose = (
+  callback: (completed: boolean) => void,
+) => {
   onCloseCallback = callback;
 };
 
@@ -134,18 +161,21 @@ const isAnyPermissionBlocked = (
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
- * and the progress screen re-polls spending-prerequisites.
+ * back onto the KYC screen. That screen re-polls spending-prerequisites and
+ * shows the result in place.
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
  * and the page hangs on a black spinner (CARD-555). That pre-grant, and the
  * script that reports the resulting getUserMedia failure, stay on Android.
- * iOS presents the hosted page with no injected script.
+ * Both platforms inject a style before first paint that hides Immersve's
+ * progress-bar dots, logo, and Close button. Our header shows the logo.
  */
 const ImmersveKYCModal: React.FC = () => {
+  const { colors } = useTheme();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -314,11 +344,12 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Any close (header back, or the Immersve page's X → redirect) re-polls the
-  // opener so it can route forward (completed) or prompt to reopen (bailed).
-  const closeModal = useCallback(
-    (reason: 'redirect' | 'dismiss') => {
-      // WebView can fire multiple navigation updates for the same redirect URL.
+  // Every close returns to the processing screen, which re-polls. The header
+  // X and the completion redirect call goBack. Android back and swipe are
+  // already that goBack, so they only notify — a second goBack would also
+  // pop the processing screen.
+  const closeWebview = useCallback(
+    (completed: boolean) => {
       if (hasClosed.current) {
         return;
       }
@@ -328,19 +359,36 @@ const ImmersveKYCModal: React.FC = () => {
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
           .addProperties(
             withCardProvider(CardProviderIds.Immersve, {
-              action:
-                reason === 'redirect'
-                  ? CardActions.KYC_WEBVIEW_COMPLETED
-                  : CardActions.KYC_WEBVIEW_CLOSE,
+              action: completed
+                ? CardActions.KYC_WEBVIEW_COMPLETED
+                : CardActions.KYC_WEBVIEW_CLOSE,
             }),
           )
           .build(),
       );
-      onCloseCallback?.();
+      onCloseCallback?.(completed);
+    },
+    [trackEvent, createEventBuilder],
+  );
+
+  const dismissWebview = useCallback(
+    (completed: boolean) => {
+      closeWebview(completed);
       navigation.goBack();
     },
-    [navigation, trackEvent, createEventBuilder],
+    [closeWebview, navigation],
   );
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (event) => {
+      const { type } = event.data.action;
+      if (type !== 'GO_BACK' && type !== 'POP') {
+        return;
+      }
+      closeWebview(false);
+    });
+    return unsubscribe;
+  }, [navigation, closeWebview]);
 
   const handleRetry = useCallback(() => {
     trackEvent(
@@ -446,10 +494,10 @@ const ImmersveKYCModal: React.FC = () => {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        closeModal('redirect');
+        dismissWebview(true);
       }
     },
-    [redirectUrl, closeModal],
+    [redirectUrl, dismissWebview],
   );
 
   const isErrorStatus = status === 'error' || status === 'permission-error';
@@ -470,8 +518,18 @@ const ImmersveKYCModal: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        onBack={() => closeModal('dismiss')}
-        backButtonProps={{ testID: 'immersve-kyc-back-button' }}
+        onClose={() => dismissWebview(false)}
+        closeButtonProps={{ testID: 'immersve-kyc-close-button' }}
+        title={
+          <ImmersveLogo
+            name="immersve-logo"
+            width={102}
+            height={24}
+            color={colors.text.default}
+            accessibilityLabel="Immersve"
+            testID="immersve-kyc-header-logo"
+          />
+        }
         twClassName="bg-background-default"
       />
       {isErrorStatus ? (
@@ -507,6 +565,7 @@ const ImmersveKYCModal: React.FC = () => {
               onHttpError={handleError}
               onMessage={handleMessage}
               onNavigationStateChange={handleNavigationStateChange}
+              injectedJavaScriptBeforeContentLoaded={IMMERSVE_KYC_UI_JS}
               injectedJavaScript={
                 requestsAndroidMediaPermission
                   ? IMMERSVE_KYC_ERROR_BRIDGE_JS

@@ -6,6 +6,7 @@ import {
 import { useMemo, useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
+  estimateCloseReceive,
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
@@ -18,21 +19,23 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectPerpsProvider } from '../selectors/perpsController';
+import { resolveProviderId } from '../utils/perpsPostTradeShare';
 
 /**
  * Aggregated calculations result for closing all positions
  */
 export interface CloseAllCalculationsResult {
-  /** Total margin across all positions (excludes P&L) */
-  totalMargin: number;
-  /** Total unrealized P&L across all positions */
-  totalPnl: number;
+  /** Margin returned across all positions, including the P&L (undefined while any is unknown) */
+  totalMargin: number | undefined;
+  /** P&L realized across all positions at the live price (undefined while any is unknown) */
+  totalPnl: number | undefined;
   /** Total fees for closing all positions (undefined when unavailable) */
   totalFees: number | undefined;
   /** Total fee before the resolved builder discount, for the crossed out price */
   originalTotalFees: number | undefined;
-  /** Amount user will receive after closing all positions */
-  receiveAmount: number;
+  /** Amount user will receive after closing all positions (undefined while any is unknown) */
+  receiveAmount: number | undefined;
   /** Aggregated estimated points for closing all positions (undefined when unavailable) */
   totalEstimatedPoints: number | undefined;
   /** Average fee discount percentage across all positions (undefined when unavailable) */
@@ -128,6 +131,7 @@ export function usePerpsCloseAllCalculations({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const activeProvider = useSelector(selectPerpsProvider);
 
   // Use ref to access latest priceData without triggering re-renders
   const priceDataRef = useRef(priceData);
@@ -148,26 +152,6 @@ export function usePerpsCloseAllCalculations({
   // Freeze mechanism: Prevent recalculation on WebSocket updates (price changes)
   // Reset freeze when position or account inputs change to allow recalculation
   const hasValidResultsRef = useRef(false);
-
-  // Calculate total margin
-  const totalMargin = useMemo(
-    () =>
-      positions.reduce((sum, pos) => {
-        const margin = Number.parseFloat(pos.marginUsed) || 0;
-        return sum + margin;
-      }, 0),
-    [positions],
-  );
-
-  // Calculate total PnL
-  const totalPnl = useMemo(
-    () =>
-      positions.reduce(
-        (sum, pos) => sum + (Number.parseFloat(pos.unrealizedPnl) || 0),
-        0,
-      ),
-    [positions],
-  );
 
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation
@@ -384,7 +368,6 @@ export function usePerpsCloseAllCalculations({
   const aggregatedResults = useMemo(() => {
     if (perPositionResults.length === 0) {
       return {
-        totalFees: undefined,
         originalTotalFees: undefined,
         totalEstimatedPoints: undefined,
         avgFeeDiscountPercentage: undefined,
@@ -451,12 +434,6 @@ export function usePerpsCloseAllCalculations({
     ) {
       feeSource = 'grant';
     }
-
-    // Sum fees and points
-    const totalFees = perPositionResults.reduce(
-      (sum, result) => sum + (result.fees.feeAmount ?? 0),
-      0,
-    );
 
     // Batch API returns aggregated total for ALL positions (not per-position)
     // All positions share the same batchPoints object, so use first result directly
@@ -555,7 +532,6 @@ export function usePerpsCloseAllCalculations({
     );
 
     return {
-      totalFees,
       originalTotalFees,
       totalEstimatedPoints,
       avgFeeDiscountPercentage,
@@ -569,21 +545,57 @@ export function usePerpsCloseAllCalculations({
     };
   }, [perPositionResults]);
 
-  // Calculate final receive amount
-  const receiveAmount = useMemo(
-    () =>
-      aggregatedResults.totalFees !== undefined
-        ? totalMargin - aggregatedResults.totalFees
-        : totalMargin,
-    [totalMargin, aggregatedResults.totalFees],
-  );
+  // Margin, P&L, fee and receive per position from Core's
+  // `estimateCloseReceive`, at the live price and each position's quoted fee
+  // rate. A total stays undefined while any position's figure is unknown.
+  const closeTotals = useMemo(() => {
+    // Keyed by provider and symbol: under aggregation two venues can hold
+    // the same symbol at different fee rates.
+    const positionKey = (pos: Position) =>
+      `${pos.providerId ?? ''}:${pos.symbol}`;
+    const feeRates = new Map(
+      perPositionResults.map((result) => [
+        positionKey(result.position),
+        result.fees.feeRate,
+      ]),
+    );
+    const estimates = positions.map((pos) =>
+      estimateCloseReceive({
+        position: pos,
+        providerId: pos.providerId ?? resolveProviderId(activeProvider),
+        closeSize: Math.abs(Number.parseFloat(pos.size)),
+        price: priceData[pos.symbol]?.price,
+        feeRate: feeRates.get(positionKey(pos)),
+      }),
+    );
+    const sum = (values: (number | undefined)[]): number | undefined =>
+      values.reduce<number | undefined>(
+        (total, value) =>
+          total === undefined || value === undefined
+            ? undefined
+            : total + value,
+        0,
+      );
+    return {
+      totalMargin: sum(
+        estimates.map(({ marginReturned, realizedPnl }) =>
+          marginReturned === undefined || realizedPnl === undefined
+            ? undefined
+            : marginReturned + realizedPnl,
+        ),
+      ),
+      totalPnl: sum(estimates.map(({ realizedPnl }) => realizedPnl)),
+      totalFees: sum(estimates.map(({ fee }) => fee)),
+      receiveAmount: sum(estimates.map(({ receive }) => receive)),
+    };
+  }, [positions, priceData, perPositionResults, activeProvider]);
 
   return {
-    totalMargin,
-    totalPnl,
-    totalFees: aggregatedResults.totalFees,
+    totalMargin: closeTotals.totalMargin,
+    totalPnl: closeTotals.totalPnl,
+    totalFees: closeTotals.totalFees,
     originalTotalFees: aggregatedResults.originalTotalFees,
-    receiveAmount,
+    receiveAmount: closeTotals.receiveAmount,
     totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
     avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
     feeDiscountKind: aggregatedResults.feeDiscountKind,

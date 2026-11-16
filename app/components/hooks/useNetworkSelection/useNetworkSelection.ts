@@ -17,9 +17,7 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import Engine from '../../../core/Engine';
-///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectInternalAccounts } from '../../../selectors/accountsController';
-///: END:ONLY_INCLUDE_IF
 
 interface UseNetworkSelectionOptions {
   /**
@@ -69,9 +67,7 @@ export const useNetworkSelection = ({
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const internalAccounts = useSelector(selectInternalAccounts);
-  ///: END:ONLY_INCLUDE_IF
 
   const popularNetworkChainIds = useMemo(
     () =>
@@ -97,7 +93,6 @@ export const useNetworkSelection = ({
     [currentEnabledNetworks, popularNetworkChainIds],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const bitcoinInternalAccounts = useMemo(
     () =>
       internalAccounts.filter((account) =>
@@ -105,12 +100,10 @@ export const useNetworkSelection = ({
       ),
     [internalAccounts],
   );
-  ///: END:ONLY_INCLUDE_IF
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
     async (chainId: CaipChainId, onComplete?: () => void) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       const bitcoAccountInScope = bitcoinInternalAccounts.find((account) =>
         account.scopes.includes(chainId),
       );
@@ -118,20 +111,13 @@ export const useNetworkSelection = ({
       if (chainId.includes(KnownCaipNamespace.Bip122) && bitcoAccountInScope) {
         Engine.setSelectedAddress(bitcoAccountInScope.address);
       }
-      ///: END:ONLY_INCLUDE_IF
 
       // Enable the network in NetworkEnablementController
       await enableNetwork(chainId);
 
       onComplete?.();
     },
-    [
-      enableNetwork,
-
-      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      bitcoinInternalAccounts,
-      ///: END:ONLY_INCLUDE_IF(bitcoin)
-    ],
+    [enableNetwork, bitcoinInternalAccounts],
   );
 
   const selectAllPopularNetworks = useCallback(

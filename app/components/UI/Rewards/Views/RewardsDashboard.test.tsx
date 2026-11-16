@@ -70,6 +70,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock(
+  '../../../../component-library/components/Navigation/TabBarFloating',
+  () => ({
+    useFloatingTabBarInset: jest.fn(() => 0),
+  }),
+);
+
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
