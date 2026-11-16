@@ -50,9 +50,6 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
-import { selectBasicFunctionalityEnabled, selectAvatarAccountType } from '../../../selectors/settings';
-import ReduxService from '../../../core/redux/ReduxService';
 import {
   selectIsMoneyDepositBrazeCampaignEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
@@ -126,6 +123,7 @@ import {
   selectWalletHomeOnboardingSteps,
 } from '../../../selectors/onboarding';
 import { selectIsAccountGroupFunded } from '../../../selectors/assets/balances';
+import { selectAvatarAccountType } from '../../../selectors/settings';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
@@ -611,11 +609,6 @@ const Wallet = ({
     const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
 
     if (hasSeenModal !== 'true') {
-      DevLogger.log(
-        `[TAT-4640] BUG_MARKER: navigating to Perps GTM modal stack with basicFunctionalityEnabled=${JSON.stringify(
-          selectBasicFunctionalityEnabled(ReduxService.store.getState()),
-        )}`,
-      );
       navigate(Routes.PERPS.MODALS.ROOT, {
         screen: Routes.PERPS.MODALS.GTM_MODAL,
       });
