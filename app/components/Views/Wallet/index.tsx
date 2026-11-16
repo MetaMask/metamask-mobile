@@ -20,7 +20,6 @@ import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
-  RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   unstable_batchedUpdates,
@@ -97,7 +96,6 @@ import {
   ToastVariants,
   ButtonIconVariant,
 } from '../../../component-library/components/Toast';
-import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useIsGlassSurfaceEnabled } from '../../hooks/useIsGlassSurfaceEnabled';
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { useFloatingTabBarInset } from '../../../component-library/components/Navigation/TabBarFloating';
@@ -165,6 +163,7 @@ import { navigateToExploreSearch } from './walletSearchNavigation';
 import { useABTest } from '../../../hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+import PullToRefresh from './components/PullToRefresh/PullToRefresh';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -1428,9 +1427,16 @@ const Wallet = ({
                 <HomepageScrollContext.Provider
                   value={homepageScrollContextValue}
                 >
-                  <ConditionalScrollView
+                  <PullToRefresh
                     ref={scrollViewRef}
-                    isScrollEnabled
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                    indicatorTopInset={viewportTopInset}
+                    indicatorBottomInset={
+                      isFloatingJsHeader || isNativeHeader
+                        ? FLOATING_HEADER_BALANCE_TOP_GAP
+                        : 0
+                    }
                     scrollViewProps={{
                       testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                       contentInsetAdjustmentBehavior: isNativeHeader
@@ -1440,15 +1446,6 @@ const Wallet = ({
                       showsVerticalScrollIndicator: false,
                       onScroll: handleHomepageScroll,
                       scrollEventThrottle: 16,
-                      refreshControl: (
-                        <RefreshControl
-                          progressViewOffset={floatingHeaderInset}
-                          colors={[colors.primary.default]}
-                          tintColor={colors.icon.default}
-                          refreshing={refreshing}
-                          onRefresh={handleRefresh}
-                        />
-                      ),
                     }}
                   >
                     {portfolioHeader}
@@ -1458,7 +1455,7 @@ const Wallet = ({
                         balanceBreakdownSectionProps
                       }
                     />
-                  </ConditionalScrollView>
+                  </PullToRefresh>
                 </HomepageScrollContext.Provider>
               </View>
             </>

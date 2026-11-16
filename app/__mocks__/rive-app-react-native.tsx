@@ -85,6 +85,20 @@ export const __getRivePropertySetter = (path: string): jest.Mock => {
   return setter;
 };
 
+const createMockViewModelProperty = (path: string) => ({
+  set: __getRivePropertySetter(path),
+  addListener: (listener: (value: unknown) => void) => {
+    let listeners = propertyListeners.get(path);
+    if (!listeners) {
+      listeners = new Set();
+      propertyListeners.set(path, listeners);
+    }
+    listeners.add(listener);
+    return () => listeners?.delete(listener);
+  },
+  removeListeners: () => propertyListeners.delete(path),
+});
+
 export const __setRivePropertyValue = <T,>(path: string, value: T): void => {
   propertyValues.set(path, value);
   propertyListeners.get(path)?.forEach((listener) => listener(value));
@@ -159,6 +173,8 @@ const MOCK_RIVE_FILE = { __mockRiveFile: true };
 const MOCK_VIEW_MODEL_INSTANCE = {
   __mockViewModelInstance: true,
   imageProperty: () => ({ set: __mockRiveImagePropertySet }),
+  numberProperty: (path: string) => createMockViewModelProperty(path),
+  booleanProperty: (path: string) => createMockViewModelProperty(path),
 };
 
 const MOCK_RIVE_IMAGE = { byteSize: 1 };
