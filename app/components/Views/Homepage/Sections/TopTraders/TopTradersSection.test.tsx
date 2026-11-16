@@ -422,8 +422,97 @@ describe('TopTradersSection', () => {
 
     expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
       expect.objectContaining({
+        contentReady: false,
+        demandStarted: false,
         enabled: true,
         isLoading: false,
+      }),
+    );
+  });
+
+  it('starts TTC with an active leaderboard fetch', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: true,
+      isFetching: true,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = false;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: false,
+        demandStarted: true,
+        isLoading: true,
+      }),
+    );
+  });
+
+  it('completes TTC for a settled empty leaderboard response', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+        isLoading: false,
+      }),
+    );
+  });
+
+  it('completes TTC when the leaderboard error state renders', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: [],
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard unavailable',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: 'error',
+        enabled: true,
+      }),
+    );
+  });
+
+  it('keeps cached trader rows out of the error content state', () => {
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: 'leaderboard refresh failed',
+      refresh: mockRefetch,
+      toggleFollow: jest.fn(),
+    });
+    mockHasFetched = true;
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        contentStateForTrace: undefined,
       }),
     );
   });
