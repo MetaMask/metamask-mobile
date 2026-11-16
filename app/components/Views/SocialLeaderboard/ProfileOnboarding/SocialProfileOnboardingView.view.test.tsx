@@ -279,9 +279,8 @@ const storeOlderTermsVersion = async () => {
 const introActionDisabled = (testID: string): boolean =>
   screen.getByTestId(testID).props.accessibilityState?.disabled === true;
 
-// Availability is debounced 400ms and the CV worker can stall for several
-// seconds mid-test, so waits on its result need a budget well above both.
-const AVAILABILITY_CHECK = { timeout: 10000 };
+// The availability check is debounced 400ms before this status renders.
+const AVAILABILITY_CHECK = { timeout: 3000 };
 
 /**
  * Renders onboarding and waits until the existing-profile check settles and
