@@ -26,6 +26,11 @@ export interface PositionSheetFooterProps {
   isOwnPost: boolean;
   /** Spot only: the viewer holds the token, so Sell is offered. */
   canSell: boolean;
+  /**
+   * Another trader's open position. UK geolocation and an unresolved lookup
+   * pass false so Copy trade is not rendered.
+   */
+  showCopyTrade?: boolean;
   onCopyTrade: () => void;
   onPerpsOrder: (direction: PerpDirection) => void;
   onSpotTrade: (mode: QuickBuyTradeMode) => void;
@@ -42,12 +47,17 @@ const PositionSheetFooter = ({
   isClosed,
   isOwnPost,
   canSell,
+  showCopyTrade = true,
   onCopyTrade,
   onPerpsOrder,
   onSpotTrade,
 }: PositionSheetFooterProps) => {
   const tw = useTailwind();
   const halfWidth = tw.style('flex-1');
+
+  if (!isClosed && !isOwnPost && !showCopyTrade) {
+    return null;
+  }
 
   const renderActions = () => {
     if (!isClosed && !isOwnPost) {

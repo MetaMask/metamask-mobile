@@ -1,9 +1,8 @@
 import { act, fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { Linking } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
+import { strings } from '../../../../locales/i18n';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import ExperienceEnhancerModal from './';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
@@ -127,16 +126,16 @@ describe('ExperienceEnhancerModal', () => {
     );
   });
 
-  it('should open URL when link button is pressed', () => {
-    const { getByTestId } = render(<ExperienceEnhancerModal />);
+  it('renders the marketing paragraph and footer without a MetaMetrics link', () => {
+    const { getByText, queryByText } = render(<ExperienceEnhancerModal />);
 
-    const linkButton = getByTestId(
-      ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON,
-    );
-
-    fireEvent.press(linkButton);
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      HOW_TO_MANAGE_METRAMETRICS_SETTINGS,
-    );
+    expect(
+      getByText(strings('experience_enhancer_modal.paragraph1b')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('experience_enhancer_modal.footer')),
+    ).toBeOnTheScreen();
+    expect(queryByText('MetaMetrics')).toBeNull();
+    expect(queryByText('In addition to')).toBeNull();
   });
 });
