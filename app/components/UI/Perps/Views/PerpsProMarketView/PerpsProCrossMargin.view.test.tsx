@@ -14,12 +14,12 @@ import { wirePerpsControllerForStore } from '../../../../../../tests/component-v
 import {
   openMarginModeSheet,
   resetMarginModeControllerMocks,
+  selectCrossMarginMode,
 } from '../../../../../../tests/component-view/helpers/perpsMarginModeTestHelpers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
-  PerpsMarginModeBottomSheetSelectorsIDs as marginIds,
   PerpsProOrderFormSelectorsIDs as formIds,
   PerpsTPSLViewSelectorsIDs as tpslIds,
 } from '../../Perps.testIds';
@@ -43,10 +43,7 @@ const selectCross = async () => {
   });
   unwire = wirePerpsControllerForStore(store);
   await openMarginModeSheet();
-  await waitFor(() =>
-    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeEnabled(),
-  );
-  fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+  await selectCrossMarginMode();
   await waitFor(() =>
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.margin_mode.cross_title'),

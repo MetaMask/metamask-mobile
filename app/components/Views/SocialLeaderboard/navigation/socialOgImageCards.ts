@@ -7,7 +7,6 @@ import { hasRealAvatar } from '../../../UI/SocialFeed/utils/avatarFallback';
 import { parseMoneyReferralCode } from '../../../UI/Rewards/utils/moneyReferralCode';
 import { tradeTimestampToMs } from '../../../UI/SocialFeed/utils/tradeTimestamp';
 import {
-  isFoxiconAvatarUrl,
   parseFoxiconAvatarUrl,
   toFoxiconAvatarUrl,
 } from '../MyProfileView/avatarPresets';
@@ -46,7 +45,8 @@ const toHttpsUrl = (value: string | null | undefined): string | undefined => {
 
 /**
  * The avatar as the og-image API takes it: a `foxicon://` preset with its
- * current ids (legacy ids translated), or an `https:` image that is not a
+ * current ids (legacy ids translated, retired looks replaced by the fallback
+ * avatar), or an `https:` image that is not a
  * shared placeholder. Anything else is left out and the card shows the
  * handle alone.
  */
@@ -60,7 +60,7 @@ export const toOgAvatarUrl = (
       foxicon.avatarBackgroundId,
     );
   }
-  if (isFoxiconAvatarUrl(avatarUrl) || !hasRealAvatar(avatarUrl)) {
+  if (!hasRealAvatar(avatarUrl)) {
     return undefined;
   }
   return toHttpsUrl(avatarUrl);

@@ -1,7 +1,13 @@
 import { brandColor } from '@metamask/design-tokens';
 import { AvatarSocialBackgroundColor } from '../../../../component-library/components-temp/AvatarSocial';
-import { BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR } from '../../../../component-library/components-temp/AvatarSocial/AvatarSocial.constants';
-import { FoxiconVariant } from '../../../../component-library/components-temp/Foxicon';
+import {
+  AVATARSOCIAL_FALLBACK_BACKGROUND_COLOR,
+  BRAND_COLOR_BY_AVATARSOCIAL_BACKGROUND_COLOR,
+} from '../../../../component-library/components-temp/AvatarSocial/AvatarSocial.constants';
+import {
+  FOXICON_FALLBACK_VARIANT,
+  FoxiconVariant,
+} from '../../../../component-library/components-temp/Foxicon';
 
 export interface ProfileAvatarPreset {
   id: FoxiconVariant;
@@ -9,34 +15,31 @@ export interface ProfileAvatarPreset {
 
 /** Onboarding looks, in the order the avatar grid shows them. */
 export const PROFILE_AVATAR_PRESETS: readonly ProfileAvatarPreset[] = [
-  { id: FoxiconVariant.Superhero },
-  { id: FoxiconVariant.Goth },
-  { id: FoxiconVariant.Vr },
-  { id: FoxiconVariant.Royal },
+  { id: FoxiconVariant.Athlete },
+  { id: FoxiconVariant.Football },
   { id: FoxiconVariant.Nerd },
-  { id: FoxiconVariant.Gentleman },
-  { id: FoxiconVariant.Frozen },
-  { id: FoxiconVariant.Cyborg },
-  { id: FoxiconVariant.Cannibal },
-  { id: FoxiconVariant.Astro },
-  { id: FoxiconVariant.Angel },
+  { id: FoxiconVariant.Chrome },
   { id: FoxiconVariant.Agent },
-  { id: FoxiconVariant.Pirate },
+  { id: FoxiconVariant.Laser },
+  { id: FoxiconVariant.Beanie },
+  { id: FoxiconVariant.Hearts },
   { id: FoxiconVariant.Zombie },
+  { id: FoxiconVariant.Aviator },
+  { id: FoxiconVariant.Vr },
+  { id: FoxiconVariant.Astro },
+  { id: FoxiconVariant.Goth },
+  { id: FoxiconVariant.Frozen },
 ];
 
-/** Preset ids saved before the Foxicon artwork; read-only compatibility. */
+/**
+ * Preset ids saved before the Foxicon artwork that still have a current look;
+ * read-only compatibility. Other old ids render the fallback avatar.
+ */
 const LEGACY_AVATAR_PRESET_IDS: Readonly<Record<string, FoxiconVariant>> = {
-  hero: FoxiconVariant.Superhero,
   punk: FoxiconVariant.Goth,
   visor: FoxiconVariant.Vr,
-  crown: FoxiconVariant.Royal,
   glasses: FoxiconVariant.Nerd,
-  'top-hat': FoxiconVariant.Gentleman,
-  ice: FoxiconVariant.Frozen,
-  skull: FoxiconVariant.Cannibal,
   astronaut: FoxiconVariant.Astro,
-  halo: FoxiconVariant.Angel,
   sunglasses: FoxiconVariant.Agent,
 };
 
@@ -106,24 +109,31 @@ export const getProfileAvatarBackground = (
 
 const FOXICON_AVATAR_SCHEME = 'foxicon://';
 
-/** True for any `foxicon://` value, including ones that fail preset parsing. */
-export const isFoxiconAvatarUrl = (
-  avatarUrl: string | null | undefined,
-): boolean => Boolean(avatarUrl?.startsWith(FOXICON_AVATAR_SCHEME));
-
 /** `foxicon://{avatarVariant}/{backgroundColor}` stored in ProfileController `avatarUrl`. */
 export const toFoxiconAvatarUrl = (
   avatarPresetId: string,
   avatarBackgroundId: string,
 ): string => `${FOXICON_AVATAR_SCHEME}${avatarPresetId}/${avatarBackgroundId}`;
 
-/** Parses a foxicon URL, translating legacy ids to the current ones. */
-export const parseFoxiconAvatarUrl = (
-  avatarUrl: string | null | undefined,
-): {
+export interface ProfileAvatarSelection {
   avatarPresetId: FoxiconVariant;
   avatarBackgroundId: AvatarSocialBackgroundColor;
-} | null => {
+}
+
+/** Drawn for any foxicon avatar whose look is not in the current set. */
+export const FALLBACK_PROFILE_AVATAR: ProfileAvatarSelection = {
+  avatarPresetId: FOXICON_FALLBACK_VARIANT,
+  avatarBackgroundId: AVATARSOCIAL_FALLBACK_BACKGROUND_COLOR,
+};
+
+/**
+ * Parses a foxicon URL, translating legacy ids to the current ones. Any
+ * `foxicon://` value whose look is retired, unknown, or malformed resolves to
+ * {@link FALLBACK_PROFILE_AVATAR}; an unknown backdrop uses the default one.
+ */
+export const parseFoxiconAvatarUrl = (
+  avatarUrl: string | null | undefined,
+): ProfileAvatarSelection | null => {
   if (!avatarUrl?.startsWith(FOXICON_AVATAR_SCHEME)) {
     return null;
   }
@@ -132,15 +142,16 @@ export const parseFoxiconAvatarUrl = (
     .slice(FOXICON_AVATAR_SCHEME.length)
     .split('/');
 
-  if (extra !== undefined) {
-    return null;
+  const preset =
+    extra === undefined ? getProfileAvatarPreset(presetPart) : undefined;
+  if (!preset) {
+    return FALLBACK_PROFILE_AVATAR;
   }
 
-  const preset = getProfileAvatarPreset(presetPart);
-  const background = getProfileAvatarBackground(backgroundPart);
-  if (!preset || !background) {
-    return null;
-  }
-
-  return { avatarPresetId: preset.id, avatarBackgroundId: background.id };
+  return {
+    avatarPresetId: preset.id,
+    avatarBackgroundId:
+      getProfileAvatarBackground(backgroundPart)?.id ??
+      DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+  };
 };
