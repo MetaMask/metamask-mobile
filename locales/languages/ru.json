@@ -9759,7 +9759,6 @@
     },
     "action": {
       "add": "Добавить",
-      "transfer": "Отправить",
       "card": "Карта",
       "details": "Подробности"
     },
@@ -9884,8 +9883,6 @@
       "contact_support": "Связаться с поддержкой"
     },
     "transfer_sheet": {
-      "title": "Отправить средства на",
-      "between_accounts": "Другой счет",
       "perps_account": "Счет перпов",
       "predictions_account": "Счет прогнозов",
       "send_external": "Внешний адрес",

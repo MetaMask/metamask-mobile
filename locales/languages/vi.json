@@ -9759,7 +9759,6 @@
     },
     "action": {
       "add": "Thêm",
-      "transfer": "Gửi",
       "card": "Thẻ",
       "details": "Chi tiết"
     },
@@ -9884,8 +9883,6 @@
       "contact_support": "Liên hệ bộ phận hỗ trợ"
     },
     "transfer_sheet": {
-      "title": "Gửi tiền đến",
-      "between_accounts": "Tài khoản khác",
       "perps_account": "Tài khoản hợp đồng vĩnh cửu",
       "predictions_account": "Tài khoản dự đoán",
       "send_external": "Địa chỉ bên ngoài",

@@ -9760,7 +9760,6 @@
     },
     "action": {
       "add": "Adicionar",
-      "transfer": "Enviar",
       "card": "Cartão",
       "details": "Detalhes"
     },
@@ -9885,8 +9884,6 @@
       "contact_support": "Falar com o suporte"
     },
     "transfer_sheet": {
-      "title": "Enviar fundos para",
-      "between_accounts": "Outra conta",
       "perps_account": "Conta de perps",
       "predictions_account": "Conta de previsões",
       "send_external": "Endereço externo",

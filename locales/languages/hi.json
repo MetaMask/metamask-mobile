@@ -9759,7 +9759,6 @@
     },
     "action": {
       "add": "जोड़ें",
-      "transfer": "भेजें",
       "card": "कार्ड",
       "details": "विवरण"
     },
@@ -9884,8 +9883,6 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
-      "title": "इनको फंड भेजें",
-      "between_accounts": "दूसरा अकाउंट",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
       "send_external": "बाहरी पता",

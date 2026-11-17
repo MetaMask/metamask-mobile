@@ -9759,7 +9759,6 @@
     },
     "action": {
       "add": "Hinzufügen",
-      "transfer": "Senden",
       "card": "Karte",
       "details": "Details"
     },
@@ -9884,8 +9883,6 @@
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
-      "title": "Geld überweisen an",
-      "between_accounts": "Ein anderes Konto",
       "perps_account": "Perps-Konto",
       "predictions_account": "Predictions-Konto",
       "send_external": "Externe Adresse",

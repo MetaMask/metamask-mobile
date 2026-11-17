@@ -9759,7 +9759,6 @@
     },
     "action": {
       "add": "Tambah",
-      "transfer": "Kirim",
       "card": "Kartu",
       "details": "Detail"
     },
@@ -9884,8 +9883,6 @@
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
-      "title": "Kirim dana ke",
-      "between_accounts": "Akun lain",
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",
