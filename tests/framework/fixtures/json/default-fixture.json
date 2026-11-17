@@ -1032,6 +1032,7 @@
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
       "bridgeLimitTabSeen": false,
+      "bridgeRecurringTabSeen": false,
       "existingUser": true,
       "gasEducationCarouselSeen": false,
       "initialScreen": "",

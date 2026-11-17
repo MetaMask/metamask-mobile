@@ -423,7 +423,7 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
       expect(
-        within(lifetimeEarningsSection).getAllByText('+$12.50'),
+        within(lifetimeEarningsSection).getAllByText('$12.50'),
       ).toHaveLength(2);
       expect(lifetimeEarningsSection).not.toHaveTextContent(toRegex('$86.42'));
       expect(moneyBalanceRow).toHaveTextContent(
@@ -433,7 +433,7 @@ describe('ProHub', () => {
           }),
         ),
       );
-      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$12.50'));
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('$12.50'));
       expect(musdBackRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.musd_back', {
@@ -521,10 +521,10 @@ describe('ProHub', () => {
       const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
 
       expect(
-        within(lifetimeEarningsSection).getAllByText('+$15.00'),
+        within(lifetimeEarningsSection).getAllByText('$15.00'),
       ).toHaveLength(2);
-      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$15.00'));
-      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('$15.00'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('$12.50'));
     });
 
     it('shows an em dash for interest when base-vault interest failed', () => {
@@ -541,7 +541,7 @@ describe('ProHub', () => {
 
       expect(within(lifetimeEarningsSection).getAllByText('—')).toHaveLength(2);
       expect(moneyBalanceRow).toHaveTextContent(toRegex('—'));
-      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('$12.50'));
     });
 
     it('renders an active plan without a membership alert', () => {
