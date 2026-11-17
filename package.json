@@ -385,7 +385,7 @@
     "@metamask/eth-money-mpc-keyring": "^0.3.1",
     "@metamask/eth-qr-keyring": "^3.0.2",
     "@metamask/eth-query": "^4.0.0",
-    "@metamask/eth-sig-util": "^10.0.0",
+    "@metamask/eth-sig-util": "^10.0.1",
     "@metamask/eth-snap-keyring": "^24.1.2",
     "@metamask/etherscan-link": "^2.0.0",
     "@metamask/ethjs-contract": "^0.4.1",
