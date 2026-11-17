@@ -237,6 +237,7 @@ app/components/UI/Perps/components/PerpsAdvancedChart/PerpsAdvancedChart.tsx
 app/components/UI/Perps/components/PerpsCrossMarginConfirmBottomSheet/PerpsCrossMarginConfirmBottomSheet.tsx
 app/components/UI/Perps/components/PerpsDeveloperOptionsSection/PerpsProviderToggle.tsx
 app/components/UI/Perps/components/PerpsLeverageBottomSheet/PerpsLeverageBottomSheet.tsx
+app/components/UI/Perps/components/PerpsLiveTrades/usePerpsLiveTrades.ts
 app/components/UI/Perps/components/PerpsMarginModeBottomSheet/PerpsMarginModeBottomSheet.tsx
 app/components/UI/Perps/components/PerpsModeSelectionBottomSheet/PerpsModeSelectionBottomSheet.tsx
 app/components/UI/Perps/components/PerpsModeToggle/PerpsModeSwitchPill.tsx
