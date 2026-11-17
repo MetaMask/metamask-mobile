@@ -165,7 +165,6 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   Quotes: 'QuotesView',
   RemoveAccount: 'RemoveAccount',
   RewardsView: 'RewardsView',
-  Settings: 'SettingsView',
   SettingsView: 'SettingsView',
   ShareAddress: 'ShareAddress',
   SkipAccountSecurityModal: 'SkipAccountSecurityModal',
@@ -236,7 +235,7 @@ const NO_PAGE_OBJECT_ROUTES =
   RewardsTradingCommissionsView RewardsTradingRebatesView RewardsVipRefereeSplashView RewardsVipRefereeView RewardsVipSplashView RewardsVipTiersView RewardsVipTransactionsView RewardsVipView
   RWATokensFullView SampleFeature SDKConnectV2Otp SDKDisconnect SDKFeedback SDKLoading SDKManageConnections SDKSessionsManager
   SecurityBadgeBottomSheet SecuritySettings SecurityTrust SeedphraseModal SelectHardwareWallet SelectSRP Send SendTo
-  SendTransaction SettingsAdvancedFiatOnTestnetsFriction SettingsRegionSelector ShareAddressQR ShowIpfs ShowNftDisplayMedia ShowTokenId SimpleWebview
+  SendTransaction Settings SettingsAdvancedFiatOnTestnetsFriction SettingsRegionSelector ShareAddressQR ShowIpfs ShowNftDisplayMedia ShowTokenId SimpleWebview
   SitesFullView SnapsSettingsList SocialLeaderboardOnboarding SocialLeaderboardTab SocialPositionDetailsSheet SocialPostComposerView SocialTraderPreviewSheet SocialV0View
   SocialV1ProfileView SRPRevealQuiz SRPRevealQuizInMultichainAccountDetails SsnInfoModal StakeConfirmation SuccessErrorSheet SupportConsentSheet SwapCustomSlippageModal
   SwapDefaultSlippageModal SwapsLimitOrderActivity SwapsLimitOrderCustomCostToleranceModal SwapsLimitOrderDefaultCostToleranceModal SwapsLimitOrderExpirationModal TokenSort TokenWarningModal tooltipModal
