@@ -22,6 +22,10 @@ import SocialFeedPostShell, {
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
 import { useSocialFeedPostNavigation } from '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation';
+import {
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
 import { TokenDetailsIds } from '../../testIds';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
@@ -53,6 +57,10 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   onEmptyChange,
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
+  useSocialScreenAnalytics(SocialEvent.Screen.TOKEN_DETAILS_FEED, {
+    source: SocialEvent.Source.TOKEN_DETAILS_FEED,
+    isActive: location === 'token_details' && isActive,
+  });
   const { isEntryHidden } = useSocialEntryModeration();
   const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   // Set only before Social terms are accepted: a tap anywhere on a card opens

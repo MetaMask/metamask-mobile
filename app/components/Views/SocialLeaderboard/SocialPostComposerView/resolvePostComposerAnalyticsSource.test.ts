@@ -120,6 +120,31 @@ describe('resolvePostComposerEntry', () => {
     ).toBe('token_details');
   });
 
+  it('gives a regular swap its own entry and keeps Quick Buy on spot', () => {
+    expect(
+      resolvePostComposerEntry({
+        tradeInFlight: {
+          transactionHash: '0x1',
+          chain: 'eip155:1',
+          tokenAddress: '0xeth',
+        },
+        preview,
+        spotComposerEntry: 'post_trade_swap',
+      }),
+    ).toBe('post_trade_swap');
+    expect(
+      resolvePostComposerEntry({
+        tradeInFlight: {
+          transactionHash: '0x1',
+          chain: 'eip155:1',
+          tokenAddress: '0xeth',
+        },
+        preview,
+        spotComposerEntry: 'post_trade_spot',
+      }),
+    ).toBe('post_trade_spot');
+  });
+
   it('keeps a blank post entry and omits an unknown open', () => {
     expect(resolvePostComposerEntry({ composerEntry: 'my_profile' })).toBe(
       'my_profile',

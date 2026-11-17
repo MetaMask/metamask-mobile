@@ -21,6 +21,10 @@ import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
 import TokenHolderRow from './holders/TokenHolderRow';
 import { useTokenHolders } from './holders/useTokenHolders';
 import { useSocialOnboardingPress } from './useSocialOnboardingPress';
+import {
+  SocialEvent,
+  useSocialScreenAnalytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
 
 export const TokenDetailsHoldersTabSelectorsIDs = {
   CONTAINER: 'token-details-v1-holders-list',
@@ -50,6 +54,10 @@ const TokenDetailsHoldersTab: React.FC<TokenDetailsHoldersTabProps> = ({
   isActive = true,
 }) => {
   const socialEnabled = useSelector(selectSocialLeaderboardEnabled);
+  useSocialScreenAnalytics(SocialEvent.Screen.TOKEN_DETAILS_HOLDERS, {
+    source: SocialEvent.Source.TOKEN_DETAILS_HOLDERS,
+    isActive,
+  });
   const {
     rows,
     isLoading,

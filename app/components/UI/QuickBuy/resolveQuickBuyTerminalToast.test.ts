@@ -630,6 +630,8 @@ describe('resolveQuickBuyTerminalToast', () => {
               tokenAddress: '0xrobinhood-token',
             },
             preview: sellPreview,
+            spotComposerEntry: 'post_trade_spot',
+            shareId: 'share:0xsource-hash',
           },
         );
       });
@@ -793,6 +795,8 @@ describe('resolveQuickBuyTerminalToast', () => {
             tokenAddress: '0xpepe',
           },
           preview,
+          spotComposerEntry: 'post_trade_spot',
+          shareId: 'share:0xhash',
         },
       );
     });

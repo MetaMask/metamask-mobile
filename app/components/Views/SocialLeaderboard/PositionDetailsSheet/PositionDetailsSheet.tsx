@@ -61,9 +61,11 @@ import {
 import { useSocialShareInProgress } from '../navigation/useSocialShareInProgress';
 import {
   SocialEvent,
+  getSocialEventSource,
   useSocialAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
+import { resolveQuickBuyOriginalEntryPointFromPositionSource } from '../../../UI/QuickBuy/analytics/resolveQuickBuyOriginalEntryPoint';
 import { buildSocialPositionAnalytics } from '../../../UI/SocialFeed/utils/socialPositionAnalytics';
 import { playSelection } from '../../../../util/haptics';
 import {
@@ -358,12 +360,12 @@ const PositionDetailsSheet = () => {
         traderName: author.username,
         traderAddress: author.address,
         traderAvatarUri: author.avatarUri ?? undefined,
-        source: 'trader_feed',
+        source: getSocialEventSource(orderSource) ?? 'trader_feed',
         viewerProfileId: profile?.profileId ?? undefined,
         viewerAddress: profile?.linkedAccountAddress ?? undefined,
       });
     });
-  }, [author, closeThen, navigation, profile]);
+  }, [author, closeThen, navigation, orderSource, profile]);
 
   const { trackInteraction: trackSocialPost } = useSocialAnalytics();
   const { isSharing, runShare } = useSocialShareInProgress();
@@ -487,9 +489,14 @@ const PositionDetailsSheet = () => {
   );
 
   const openPerpsMarketOrder = useCallback(
-    (direction: PerpDirection, leverage?: number) => {
+    (direction: PerpDirection, leverage?: number, isCopyTrade = false) => {
       if (!data.perpTradeSymbol) return;
-      openPerpsOrder({ direction, asset: data.perpTradeSymbol, leverage });
+      openPerpsOrder({
+        direction,
+        asset: data.perpTradeSymbol,
+        leverage,
+        ...(isCopyTrade ? { isCopyTrade: true } : {}),
+      });
     },
     [data.perpTradeSymbol, openPerpsOrder],
   );
@@ -531,7 +538,7 @@ const PositionDetailsSheet = () => {
       }
       trackInteraction(Interaction.COPY_TRADE_TAPPED);
       if (data.isPerp) {
-        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage);
+        openPerpsMarketOrder(data.perpDirection ?? 'long', data.leverage, true);
         return;
       }
       openQuickBuy('buy', true);
@@ -717,7 +724,9 @@ const PositionDetailsSheet = () => {
           traderAddress={author.address}
           marketCap={data.marketCap}
           source={orderSource ?? 'trader_feed'}
-          originalEntryPoint="trader_feed"
+          originalEntryPoint={resolveQuickBuyOriginalEntryPointFromPositionSource(
+            orderSource,
+          )}
           // An open position reads as buy, so an own open position reports the
           // pressed action instead (sell or buy).
           isTraderPositionClosed={

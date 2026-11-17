@@ -1489,6 +1489,7 @@ describe('PositionDetailsSheet', () => {
         direction: 'short',
         asset: 'BTC',
         leverage: 40,
+        isCopyTrade: true,
       });
       expect(mockGoBack).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith('PerpsModals');

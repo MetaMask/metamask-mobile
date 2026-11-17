@@ -109,6 +109,7 @@ export function useQuickBuyAnalytics(
     source: analyticsSource,
     originalEntryPoint,
     marketCap,
+    isCopyTrade,
   } = analyticsContext ?? {};
 
   const sharedAnalyticsProps = useMemo(
@@ -117,8 +118,16 @@ export function useQuickBuyAnalytics(
         source: analyticsSource,
         originalEntryPoint,
         marketCap,
+        isCopyTrade,
+        traderAddress: resolvedTraderAddress,
       }),
-    [analyticsSource, originalEntryPoint, marketCap],
+    [
+      analyticsSource,
+      originalEntryPoint,
+      marketCap,
+      isCopyTrade,
+      resolvedTraderAddress,
+    ],
   );
 
   // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when

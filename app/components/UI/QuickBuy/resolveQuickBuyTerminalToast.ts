@@ -18,6 +18,8 @@ import {
   markClaimSheetSeen,
 } from '../../../util/social/postTradePromptStorage';
 import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { SocialEvent } from '../../Views/SocialLeaderboard/analytics/socialEvents';
+import { trackPostToFeedToast } from '../../Views/SocialLeaderboard/analytics/trackPostToFeedToast';
 import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
@@ -161,12 +163,22 @@ const buildPostToFeedLink = (
   return {
     label: strings('social_leaderboard.post_trade_share.post_to_feed'),
     onPress: () => {
+      const shareId = `share:${transactionHash}`;
       ToastService.toastRef?.current?.closeToast();
+      trackPostToFeedToast({
+        composerEntry: SocialEvent.ComposerEntry.POST_TRADE_SPOT,
+        source: prompt.analyticsSource,
+        shareId,
+        transactionHash,
+      });
       openPostTradeComposer(
         buildSpotPostTradeComposerParams({
           transactionHash,
           chain: prompt.tradeInFlightChain,
           preview: prompt.preview,
+          analyticsSource: prompt.analyticsSource,
+          spotComposerEntry: SocialEvent.ComposerEntry.POST_TRADE_SPOT,
+          shareId,
         }),
       );
     },

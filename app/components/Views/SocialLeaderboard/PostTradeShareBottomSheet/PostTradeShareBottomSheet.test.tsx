@@ -223,7 +223,7 @@ describe('PostTradeShareBottomSheet', () => {
   });
 
   it('navigates to the composer with tradeInFlight on Share', () => {
-    beginPostTradeShareSession({
+    const sessionId = beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
       status: 'complete',
@@ -255,6 +255,8 @@ describe('PostTradeShareBottomSheet', () => {
         chain: 'base',
         side: 'buy',
       },
+      spotComposerEntry: 'post_trade_swap',
+      shareId: sessionId,
     });
   });
 
@@ -405,7 +407,7 @@ describe('PostTradeShareBottomSheet', () => {
   });
 
   it('navigates to the composer with a Hyperliquid order id on Share', () => {
-    beginPostTradeShareSession({
+    const sessionId = beginPostTradeShareSession({
       product: 'perps',
       status: 'complete',
       orderId: '42',
@@ -444,6 +446,7 @@ describe('PostTradeShareBottomSheet', () => {
         direction: 'long',
         leverageLabel: '40x',
       },
+      shareId: sessionId,
     });
     expect(mockNavigate.mock.calls[0][1].tradeInFlight.transactionHash).toBe(
       undefined,

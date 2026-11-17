@@ -3785,6 +3785,26 @@ export const runQuickBuyControllerCases = ({
           );
         });
 
+        it('marks a trader-feed trade with a trader address as a copy trade', async () => {
+          mockSuccessfulSubmit();
+
+          const { result } = renderHook(createTarget(), jest.fn(), {
+            source: 'trader_feed',
+            traderAddress: '0xTRADER',
+          });
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+          expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+            expect.objectContaining({ is_copy_trade: true }),
+          );
+        });
+
         it('marks a copy trade when the sheet was opened from Copy trade without a comment', async () => {
           mockSuccessfulSubmit();
 
@@ -3907,7 +3927,10 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
-            expect.objectContaining({ amount_usd: 20 }),
+            expect.objectContaining({
+              amount_usd: 20,
+              metamask_fee_usd: 0.175,
+            }),
           );
         });
 
