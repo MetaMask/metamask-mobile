@@ -155,7 +155,7 @@ module.exports = {
         'app/components/hooks/useAsyncResult.ts',
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
-        'app/components/Nav/App/App.tsx',
+        'app/components/Nav/App/AppShellEffects/AppShellEffects.tsx',
         // Card: capabilities are re-read from Engine when providerId/location
         // change; Engine.context is a module singleton, not a reactive dep.
         'app/components/UI/Card/hooks/useCardCapabilities.ts',
@@ -579,8 +579,6 @@ module.exports = {
     //   - mobile uses `import` (eslint-plugin-import); Core uses `import-x`
     //     (eslint-plugin-import-x). Rules are identical; `--fix` in Core
     //     handles any formatting delta.
-    //
-    // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
       files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],

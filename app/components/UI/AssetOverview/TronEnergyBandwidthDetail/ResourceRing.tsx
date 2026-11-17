@@ -37,7 +37,7 @@ const ResourceRing: React.FC<ResourceRingProps> = ({
   const p = useSharedValue(0);
 
   useEffect(() => {
-    p.value = withTiming(Math.max(0, Math.min(1, progress)), { duration: 800 });
+    p.set(withTiming(Math.max(0, Math.min(1, progress)), { duration: 800 }));
   }, [progress, p]);
 
   const animatedProps = useAnimatedProps(() => {
