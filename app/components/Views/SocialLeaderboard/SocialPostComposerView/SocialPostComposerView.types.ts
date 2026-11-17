@@ -1,6 +1,9 @@
 import type { Position, TradeInFlight } from '@metamask/social-controllers';
 import type { SocialV1PerpDirection } from '../../../UI/SocialFeed/types';
-import type { SocialEventSource } from '../analytics/socialEvents';
+import type {
+  SocialComposerEntry,
+  SocialEventSource,
+} from '../analytics/socialEvents';
 
 /**
  * Card shown while a just-submitted swap is still being indexed.
@@ -45,6 +48,21 @@ interface SocialPostComposerTradeParams {
   position?: never;
   entryPoint?: never;
   openFeedAfterPost?: never;
+  composerEntry?: never;
+}
+
+/** A blank composer opened from a post button. */
+interface SocialPostComposerBlankParams {
+  composerEntry: Extract<
+    SocialComposerEntry,
+    'social_feed' | 'my_profile' | 'token_details'
+  >;
+  analyticsSource?: SocialEventSource;
+  tradeInFlight?: never;
+  preview?: never;
+  position?: never;
+  entryPoint?: never;
+  openFeedAfterPost?: never;
 }
 
 interface SocialPostComposerPositionParams {
@@ -58,17 +76,22 @@ interface SocialPostComposerPositionParams {
   openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;
+  composerEntry?: never;
 }
 
 /**
  * Route params for the composer.
  * A swap share passes `tradeInFlight`. Token details passes the open
- * `position` so the card is attached immediately. Both are absent when the
- * user opens the composer from `+`.
+ * `position` so the card is attached immediately. A post button passes only
+ * `composerEntry`.
  *
  * The `never` members keep plain property access (`params?.preview`) compiling
  * on either branch, matching `TraderPositionViewParams`.
  */
 export type SocialPostComposerViewParams =
   | SocialPostComposerTradeParams
-  | SocialPostComposerPositionParams;
+  | SocialPostComposerPositionParams
+  | SocialPostComposerBlankParams;
+
+export type SocialPostComposerBlankEntry =
+  SocialPostComposerBlankParams['composerEntry'];

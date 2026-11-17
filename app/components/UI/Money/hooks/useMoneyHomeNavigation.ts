@@ -5,7 +5,10 @@ import NavigationService from '../../../../core/NavigationService';
 import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import { strings } from '../../../../../locales/i18n';
 import { selectMoneyEntryContext } from '../selectors/entry';
-import { getMoneyEntryDecision } from '../navigation/moneyEntryDecision';
+import {
+  getMoneyEntryDecision,
+  type MoneyEntryDecision,
+} from '../navigation/moneyEntryDecision';
 import { navigateToMoneyHomeRoute } from '../navigation/navigateToMoneyHome';
 import type { TrackMoneyEntry } from './useMoneyNavigation.types';
 
@@ -17,17 +20,22 @@ interface NavigateToMoneyHomeOptions {
    * navigation into Money Home. Defaults to true.
    */
   pop?: boolean;
+  /**
+   * Skips the Rive onboarding redirect for callers that already showed another
+   * Money intro, such as the splash.
+   */
+  skipOnboardingRedirect?: boolean;
   track?: TrackMoneyEntry;
 }
 
 export const useMoneyHomeNavigation = () => {
   const entryContext = useSelector(selectMoneyEntryContext);
 
-  const navigateToMoneyHome = useCallback(
-    (options?: NavigateToMoneyHomeOptions) => {
-      const { analyticsContext, pop = true, track } = options ?? {};
-      const decision = getMoneyEntryDecision('home', entryContext);
-
+  const navigateHome = useCallback(
+    (
+      { analyticsContext, pop = true, track }: NavigateToMoneyHomeOptions,
+      decision: MoneyEntryDecision,
+    ) => {
       track?.({
         redirect_target: decision.redirect_target,
         button_intent: decision.button_intent,
@@ -53,6 +61,17 @@ export const useMoneyHomeNavigation = () => {
         return;
       }
 
+      if (decision.destination === 'splash') {
+        if (analyticsContext) {
+          NavigationService.navigation.navigate(Routes.MONEY.SPLASH, {
+            analyticsContext,
+          });
+        } else {
+          NavigationService.navigation.navigate(Routes.MONEY.SPLASH);
+        }
+        return;
+      }
+
       if (decision.destination === 'onboarding') {
         if (analyticsContext) {
           NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, {
@@ -66,7 +85,23 @@ export const useMoneyHomeNavigation = () => {
 
       navigateToMoneyHomeRoute({ analyticsContext, pop });
     },
-    [entryContext],
+    [],
+  );
+
+  const navigateToMoneyHome = useCallback(
+    ({
+      skipOnboardingRedirect = false,
+      ...options
+    }: NavigateToMoneyHomeOptions = {}) =>
+      navigateHome(
+        options,
+        getMoneyEntryDecision('home', {
+          ...entryContext,
+          isOnboardingRedirectNeeded:
+            !skipOnboardingRedirect && entryContext.isOnboardingRedirectNeeded,
+        }),
+      ),
+    [entryContext, navigateHome],
   );
 
   return { navigateToMoneyHome };

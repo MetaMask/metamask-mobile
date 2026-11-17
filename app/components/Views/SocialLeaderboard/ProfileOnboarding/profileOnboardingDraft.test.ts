@@ -1,5 +1,4 @@
 import {
-  SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID,
   applyXOnboardingProfile,
   startManualOnboarding,
   buildCreateProfileParams,
@@ -13,6 +12,8 @@ import {
   onboardingProfileFingerprint,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
+
+const PROFILE_ID = 'session-profile-id';
 
 const X_IDENTITY: XOnboardingIdentity = {
   username: 'degangirl',
@@ -186,10 +187,9 @@ describe('profileOnboardingDraft', () => {
         connectedToX: true,
       }),
     );
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID)
-        .avatar_url,
-    ).toBe(X_IDENTITY.avatarUrl);
+    expect(buildCreateProfileParams(draft, PROFILE_ID).avatar_url).toBe(
+      X_IDENTITY.avatarUrl,
+    );
   });
 
   it('preserves the casing of an imported X username in the draft and profile', () => {
@@ -245,10 +245,8 @@ describe('profileOnboardingDraft', () => {
       shareTradingActivity: false,
     };
 
-    expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID),
-    ).toEqual({
-      profile_id: 'social-v1-profile',
+    expect(buildCreateProfileParams(draft, PROFILE_ID)).toEqual({
+      profile_id: PROFILE_ID,
       username: 'Wen_Cat',
       display_name: 'Wen Cat',
       bio: null,
@@ -269,9 +267,8 @@ describe('profileOnboardingDraft', () => {
     ] as const;
 
     expect(
-      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID, [
-        ...linkedAddresses,
-      ]).linked_addresses,
+      buildCreateProfileParams(draft, PROFILE_ID, [...linkedAddresses])
+        .linked_addresses,
     ).toEqual(linkedAddresses);
   });
 });

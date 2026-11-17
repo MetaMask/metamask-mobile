@@ -15,6 +15,11 @@ const mockCrossMarginBottomSheet = {
   latestDismiss: undefined as (() => void) | undefined,
 };
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');

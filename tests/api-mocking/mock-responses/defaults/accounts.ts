@@ -1200,6 +1200,15 @@ export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   pageInfo: { hasNextPage: false, cursor: null, count: 34 },
 };
 
+export const ACCOUNTS_API_V5_TRANSACTIONS_URL =
+  /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/transactions(\?.*)?$/;
+
+export const ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE = {
+  data: [],
+  pageInfo: { count: 0, hasNextPage: false },
+  unprocessedAccounts: [],
+};
+
 export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
   activeNetworks: [
     'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
@@ -1239,6 +1248,11 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/accounts\/[^\/]+\/transactions\?.*$/,
       responseCode: 200,
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
+    },
+    {
+      urlEndpoint: ACCOUNTS_API_V5_TRANSACTIONS_URL,
+      responseCode: 200,
+      response: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
     },
     {
       urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',

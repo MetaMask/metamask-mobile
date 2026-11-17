@@ -14,4 +14,6 @@ export const SocialPostComposerViewSelectorsIDs = {
   REMOVE_GIF: 'social-post-composer-remove-gif',
   GIF_PREVIEW: 'social-post-composer-gif-preview',
   HIDE_KEYBOARD: 'social-post-composer-hide-keyboard',
+  PRIVATE_STATE: 'social-post-composer-private-state',
+  PRIVACY_SETTINGS_BUTTON: 'social-post-composer-privacy-settings',
 } as const;

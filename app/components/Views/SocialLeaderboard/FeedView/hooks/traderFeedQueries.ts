@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type {
   FeedResponse,
+  FeedScope,
   FetchFeedOptions,
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
@@ -10,9 +11,6 @@ import {
   SOCIAL_FEED_INFINITE_QUERY_KIND,
 } from '../../../../UI/SocialFeed/data/socialFeedQueries';
 import type { FeedAudience } from '../../../../UI/SocialFeed/types';
-
-/** The scopes V0 reads, as the installed `fetchFeed` types them. */
-type FeedScope = NonNullable<FetchFeedOptions['scope']>;
 
 /** The feed scope V0's All / Following toggle reads. */
 export const toFeedScope = (audience: FeedAudience): FeedScope =>

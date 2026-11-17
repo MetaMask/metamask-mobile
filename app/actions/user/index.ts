@@ -26,6 +26,7 @@ import {
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,
@@ -36,6 +37,7 @@ import {
   type SetPendingAppInstallAction,
   type ClearPendingAppInstallAction,
   type SetBridgeLimitTabSeenAction,
+  type SetBridgeRecurringTabSeenAction,
   UserActionType,
 } from './types';
 import { type PendingAppInstall } from '../../reducers/user/types';
@@ -242,6 +244,13 @@ export function setMoneyOnboardingSeen(
   };
 }
 
+export function setMoneySplashSeen(seen: boolean): SetMoneySplashSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_SPLASH_SEEN,
+    payload: { seen },
+  };
+}
+
 export function setMoneyEarnBannerDismissed(
   key: string,
 ): SetMoneyEarnBannerDismissedAction {
@@ -344,5 +353,14 @@ export function clearPendingAppInstall(): ClearPendingAppInstallAction {
 export function setBridgeLimitTabSeen(): SetBridgeLimitTabSeenAction {
   return {
     type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
+  };
+}
+
+/**
+ * Action to mark the Swaps Recurring tab as opened, dismissing its discovery dot.
+ */
+export function setBridgeRecurringTabSeen(): SetBridgeRecurringTabSeenAction {
+  return {
+    type: UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN,
   };
 }

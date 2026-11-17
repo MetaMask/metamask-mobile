@@ -4,6 +4,7 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
+import { isCaipChainId } from '@metamask/utils';
 import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import PerpsTokenLogo from '../../Perps/components/PerpsTokenLogo';
 import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
@@ -61,8 +62,13 @@ const PositionTokenAvatarComponent: React.FC<PositionTokenAvatarProps> = ({
   // background and falls back to the Hyperliquid asset CDN.
   const isHyperliquid = position.chain.toLowerCase() === HYPERLIQUID_CHAIN_NAME;
 
+  // Social rows name a chain ('base'). A commission token already carries a
+  // CAIP chain id inside its asset id, so accept that too.
   const caipChainId = useMemo(
-    () => chainNameToId(position.chain),
+    () =>
+      isCaipChainId(position.chain)
+        ? position.chain
+        : chainNameToId(position.chain),
     [position.chain],
   );
 

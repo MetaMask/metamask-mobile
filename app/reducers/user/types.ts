@@ -56,6 +56,7 @@ export interface UserState {
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
+  moneySplashSeen: boolean;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
   /** Candle interval (e.g. '15m') when technical indicators chart is enabled. */
@@ -68,4 +69,6 @@ export interface UserState {
   pendingAppInstall: PendingAppInstall | null;
   /** Whether the Swaps Limit tab has been opened, hiding its discovery dot. */
   bridgeLimitTabSeen: boolean;
+  /** Whether the Swaps Recurring tab has been opened, hiding its discovery dot. */
+  bridgeRecurringTabSeen: boolean;
 }

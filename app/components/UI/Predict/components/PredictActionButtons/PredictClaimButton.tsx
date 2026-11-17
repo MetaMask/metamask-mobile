@@ -1,26 +1,31 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import {
-  ButtonHero,
-  ButtonHeroSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Text,
   TextVariant,
   TextColor,
   Box,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTheme } from '../../../../../util/theme';
 import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
 import { PredictClaimButtonProps } from './PredictActionButtons.types';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from './PredictClaimButton.testIds';
 
 const LoadingContent = () => (
   <Box twClassName="flex-row items-center gap-1">
-    <ActivityIndicator color="white" size="small" />
+    <ActivityIndicator color={useTheme().colors.primary.inverse} size="small" />
     <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
       {strings('predict.claiming_text')}
     </Text>
@@ -38,7 +43,7 @@ const AmountLabel = ({
     return (
       <SensitiveText
         variant={ComponentTextVariant.BodyMD}
-        color="white"
+        color={ComponentTextColor.Inverse}
         isHidden={isHidden}
         length={SensitiveTextLength.Medium}
       >
@@ -76,8 +81,9 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   if (amount === undefined) {
     return withGlass(
-      <ButtonHero
-        size={ButtonHeroSize.Lg}
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
         onPress={onPress}
         isDisabled={isDisabled}
         testID={testID}
@@ -88,7 +94,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
         ) : (
           strings('predict.claim_winnings_text')
         )}
-      </ButtonHero>,
+      </Button>,
     );
   }
 
@@ -97,8 +103,9 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   });
 
   return withGlass(
-    <ButtonHero
-      size={ButtonHeroSize.Lg}
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
       onPress={onPress}
       isDisabled={isDisabled}
       testID={testID}
@@ -109,7 +116,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
       ) : (
         <AmountLabel label={amountLabel} isHidden={isHidden} />
       )}
-    </ButtonHero>,
+    </Button>,
   );
 };
 

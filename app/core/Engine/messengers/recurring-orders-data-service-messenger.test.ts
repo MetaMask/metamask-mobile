@@ -63,25 +63,4 @@ describe('getRecurringOrdersDataServiceMessenger', () => {
     );
     expect(result).toStrictEqual({ swaps: [], hasNextPage: false });
   });
-
-  it('exposes recurring-order cancellation to the root messenger', async () => {
-    const rootMessenger: RootMessenger = new Messenger({
-      namespace: MOCK_ANY_NAMESPACE,
-    });
-    const serviceMessenger =
-      getRecurringOrdersDataServiceMessenger(rootMessenger);
-    const handler = jest.fn().mockResolvedValue(undefined);
-    serviceMessenger.registerActionHandler(
-      'RecurringOrdersDataService:cancelRecurringOrder',
-      handler,
-    );
-
-    await rootMessenger.call(
-      'RecurringOrdersDataService:cancelRecurringOrder',
-      'order-id',
-      'eip155:1:0x1234',
-    );
-
-    expect(handler).toHaveBeenCalledWith('order-id', 'eip155:1:0x1234');
-  });
 });

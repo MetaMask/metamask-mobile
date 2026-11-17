@@ -64,6 +64,7 @@ const PerpsSocialTrending: React.FC = () => {
         isClosed:
           post.item.variant === 'perpsClosed' ||
           post.item.variant === 'spotClosed',
+        shareSource: 'perps_home',
       });
     },
     [navigation],
