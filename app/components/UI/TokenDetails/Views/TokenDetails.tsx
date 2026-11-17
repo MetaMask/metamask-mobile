@@ -41,6 +41,8 @@ import { selectCurrencyRates } from '../../../../selectors/currencyRateControlle
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { TraceName, endTrace } from '../../../../util/trace';
+import { useDeferredRender } from '../../../DeferredRender';
+import { useScreenTransitionMeasure } from '../../../hooks/useScreenTransitionMeasure';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
@@ -108,6 +110,13 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
 import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
 import TokenDetailsPagePending from './TokenDetailsPagePending';
+
+/**
+ * Stands in for the transaction lists while the rows are held out of the
+ * opening transition. A module constant so the gated branch hands
+ * `Transactions` the same reference every render.
+ */
+const EMPTY_TRANSACTIONS: never[] = [];
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -275,12 +284,18 @@ const TokenDetails: React.FC<{
     hasPerpsMarket: boolean;
     isLoading: boolean;
   }) => void;
+  /**
+   * `false` holds the activity rows out of the opening transition. Callers that
+   * do not gate leave it unset.
+   */
+  isReady?: boolean;
 }> = ({
   token,
   onMarketInsightsDisplayResolved,
   onStickyButtonsResolved,
   onCtaClicked,
   onPerpsMarketResolved,
+  isReady = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -774,7 +789,7 @@ const TokenDetails: React.FC<{
         {txIsNonEvmAsset ? (
           <MultichainTransactionsView
             header={renderHeader()}
-            transactions={transactions}
+            transactions={isReady ? transactions : EMPTY_TRANSACTIONS}
             navigation={navigation}
             selectedAddress={selectedAddress}
             chainId={token.chainId as SupportedCaipChainId}
@@ -794,9 +809,13 @@ const TokenDetails: React.FC<{
               onScrollThroughContent={handleListScrollOffset}
               assetSymbol={token.symbol}
               navigation={navigation}
-              transactions={transactions}
-              submittedTransactions={submittedTxs}
-              confirmedTransactions={confirmedTxs}
+              transactions={isReady ? transactions : EMPTY_TRANSACTIONS}
+              submittedTransactions={
+                isReady ? submittedTxs : EMPTY_TRANSACTIONS
+              }
+              confirmedTransactions={
+                isReady ? confirmedTxs : EMPTY_TRANSACTIONS
+              }
               selectedAddress={selectedAddress}
               conversionRate={conversionRate}
               currentCurrency={txCurrentCurrency}
@@ -879,9 +898,10 @@ const TokenDetails: React.FC<{
  * and the perps / sticky-button / market-insights state that gates it. All of
  * it is specific to this page, so none of it runs for a V1 variant.
  */
-const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
-  token,
-}) => {
+const TokenDetailsLegacy: React.FC<{
+  token: TokenDetailsRouteParams;
+  isReady?: boolean;
+}> = ({ token, isReady }) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const [perpsMarket, setPerpsMarket] = useState<{
@@ -1087,6 +1107,19 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const { variant, isLoading } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
 
+  // Called above the early return so the gate mounts on the first commit and
+  // sees the whole push transition. A V1 variant is ungated: that page does not
+  // read `isReady`.
+  const isReady = useDeferredRender({
+    enabled: !variant,
+    screenId: 'TokenDetails',
+  });
+  useScreenTransitionMeasure({
+    screenId: 'TokenDetails',
+    contentReady: isReady,
+    enabled: !variant,
+  });
+
   if (isLoading) {
     return <TokenDetailsPagePending token={token} />;
   }
@@ -1099,7 +1132,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       <TokenDetailsV1 token={token} variant={variant} />
     </PriceApiHostProvider>
   ) : (
-    <TokenDetailsLegacy token={token} />
+    <TokenDetailsLegacy token={token} isReady={isReady} />
   );
 };
 
