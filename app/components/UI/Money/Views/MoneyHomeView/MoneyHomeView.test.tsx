@@ -170,7 +170,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setParams: jest.fn(),
   }),
-  // Runs like a focus effect on an always-focused screen: on mount and when the callback changes.
   useFocusEffect: (callback: () => void | (() => void)) =>
     jest.requireActual('react').useEffect(callback, [callback]),
   useRoute: () => ({ params: mockRouteParams }),

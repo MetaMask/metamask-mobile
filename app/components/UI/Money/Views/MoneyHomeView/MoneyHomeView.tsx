@@ -414,7 +414,6 @@ const MoneyHomeView = () => {
     };
   }
 
-  // Only a failed fetch is "unavailable"; while loading, the last known amount shows muted.
   const showBalanceUnavailableBanner =
     displayState.kind === 'unavailable' && !isBalanceLoading;
 
@@ -425,8 +424,7 @@ const MoneyHomeView = () => {
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
 
-  // While balances and activity reload (e.g. after the default Money account
-  // changes), keep the sections that were on screen so the layout doesn't jump.
+  // Keep the last settled sections while data reloads, so the layout doesn't jump.
   const isLayoutLoading =
     isBalanceLoading ||
     isCryptoBalanceLoading ||
@@ -437,7 +435,6 @@ const MoneyHomeView = () => {
     'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
   const stableLiveHomeCard = useMemo(
     () => liveHomeCard,
-    // Same card, new object each render: compare by type and variant.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [liveHomeCard.type, homeCardVariant],
   );
