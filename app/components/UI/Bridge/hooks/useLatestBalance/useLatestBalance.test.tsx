@@ -1232,6 +1232,103 @@ describe('useLatestBalance', () => {
     });
   });
 
+  describe('money token balance', () => {
+    it('returns the cached money balance without fetching on chain', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+            isMoneyToken: true,
+            decimals: 6,
+            chainId: 'eip155:143',
+            balance: '4.5',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('4500000'),
+      });
+      expect(getProviderByChainId).not.toHaveBeenCalled();
+    });
+
+    it('uses 0 when the money balance is missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            isMoneyToken: true,
+            decimals: 6,
+            chainId: 'eip155:143',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '0',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when the money balance cannot be parsed', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            isMoneyToken: true,
+            decimals: 6,
+            chainId: 'eip155:143',
+            balance: 'not-a-number',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: 'not-a-number',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('uses atomic 0 when money decimals are missing', () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            isMoneyToken: true,
+            chainId: 'eip155:143',
+            balance: '4.5',
+          }),
+        { state: initialState },
+      );
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('0'),
+      });
+    });
+
+    it('keeps the money balance when an EVM fetch returns a different amount', async () => {
+      const { result } = renderHookWithProvider(
+        () =>
+          useLatestBalance({
+            address: constants.AddressZero,
+            isMoneyToken: true,
+            decimals: 6,
+            chainId: '0x1' as Hex,
+            balance: '4.5',
+          }),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        expect(mockProvider.getBalance).toHaveBeenCalled();
+      });
+
+      expect(result.current).toEqual({
+        displayBalance: '4.5',
+        atomicBalance: BigNumber.from('4500000'),
+      });
+    });
+  });
+
   describe('fetchEvmAtomicBalance', () => {
     it('returns the native balance when the token address is the zero address', async () => {
       const balance = await fetchEvmAtomicBalance(
