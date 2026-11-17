@@ -5,21 +5,25 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useReducedMotion } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BottomSheet,
+  BottomSheetFooter,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
+  IconName,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -29,20 +33,24 @@ import { strings } from '../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { clearPendingReferralCode } from '../../../../reducers/rewardsMoney';
 import { useParams } from '../../../../util/navigation/navUtils';
+import giftImage from '../../../../images/socialV1/gift.png';
 import TraderAvatar from '../../../UI/SocialFeed/components/TraderAvatar';
-import { SkeletonShell } from '../components/SkeletonShell';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
+import {
+  EM_DASH,
+  formatAbbreviatedCount,
+  formatFollowerCountLabel,
+  formatPercent,
+} from '../../../UI/SocialFeed/utils/formatters';
+import { InviteTermsLink } from '../../../UI/Rewards/components/InviteTermsLink';
+import type { InviteTermsLink as InviteTermsLinkValue } from '../../../UI/Rewards/utils/inviteTermsLink';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import { traderProfileResponseToMySocialProfile } from '../MyProfileView/utils/traderProfileResponseToMySocialProfile';
-import { formatJoinedLabel } from '../MyProfileView/utils/formatJoinedLabel';
-import {
-  buildPerformanceCells,
-  type PerformanceCell,
-  type PerformanceCellId,
-} from '../MyProfileView/utils/overlayMyProfileLiveStats';
 import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 import {
   getPendingSocialPreviewTarget,
@@ -59,28 +67,6 @@ export interface TraderPreviewSheetParams {
   positionId?: string;
 }
 
-const CELL_LABEL_KEYS: Record<PerformanceCellId, string> = {
-  pnl: 'social_leaderboard.my_profile.realized_pnl',
-  unrealizedPnl: 'social_leaderboard.my_profile.unrealized_pnl',
-  winRate: 'social_leaderboard.my_profile.win_rate',
-  holdTime: 'social_leaderboard.my_profile.avg_hold_time',
-  volume: 'social_leaderboard.my_profile.volume',
-};
-
-const TONE_CLASS: Record<PerformanceCell['tone'], string | undefined> = {
-  default: undefined,
-  success: 'text-success-default',
-  error: 'text-error-default',
-};
-
-const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
-  const rows: PerformanceCell[][] = [];
-  for (let index = 0; index < cells.length; index += 2) {
-    rows.push(cells.slice(index, index + 2));
-  }
-  return rows;
-};
-
 /**
  * The sheet sizes itself once, from its first layout, and later size changes
  * jump instead of animating. Placeholders therefore match the height of what
@@ -89,165 +75,226 @@ const chunkPairs = (cells: PerformanceCell[]): PerformanceCell[][] => {
  */
 export const POSITION_PREVIEW_WAIT_MS = 3000;
 
-/** Body Sm line height, the meta row under the name. */
-const META_ROW_HEIGHT_CLASS = 'h-[22px]';
+/** Stand-in copy that sizes a placeholder like the text it replaces. */
+const PLACEHOLDER_HANDLE = '@placeholder';
+const PLACEHOLDER_VALUE = '00';
 
-const PositionCardSkeleton = () => {
-  const tw = useTailwind();
-  return (
-    <View testID={TraderPreviewSheetSelectorsIDs.POSITION_CARD_SKELETON}>
-      <SkeletonShell>
-        <View style={tw.style('w-full h-56 rounded-2xl')} />
-      </SkeletonShell>
-    </View>
-  );
+/**
+ * Shimmer is the only animation here. It stops for Reduce Motion, and on a
+ * low-end device that is offline or on a slow network. An unknown tier keeps
+ * the default.
+ */
+const useShouldAnimateSkeletons = (): boolean => {
+  const isReducedMotion = useReducedMotion();
+  const networkTier = useNetworkTier();
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const isConstrained =
+    hardwareTier === 'LOW' &&
+    (networkTier === 'NONE' || networkTier === 'SLOW_CELLULAR');
+  return !isReducedMotion && !isConstrained;
 };
 
-/** Same height as the loaded header: a 56pt avatar row and the meta row. */
-const HeaderSkeleton = () => {
-  const tw = useTailwind();
-  return (
-    <View testID={TraderPreviewSheetSelectorsIDs.HEADER_SKELETON}>
-      <SkeletonShell>
-        <View style={tw.style('gap-4')}>
-          <View style={tw.style('flex-row items-center gap-4')}>
-            <View style={tw.style('w-14 h-14 rounded-full')} />
-            <View style={tw.style('flex-1 gap-2')}>
-              <View style={tw.style('w-36 h-5 rounded')} />
-              <View style={tw.style('w-24 h-4 rounded')} />
-            </View>
-          </View>
-          <View style={tw.style('w-48 rounded', META_ROW_HEIGHT_CLASS)} />
-        </View>
-      </SkeletonShell>
-    </View>
-  );
-};
+const formatWinRate = (winRatePercent: number | null): string | null =>
+  winRatePercent == null
+    ? null
+    : formatPercent(winRatePercent, { showSign: false, decimals: 0 });
 
-const PerformanceSection = ({
-  cells,
+const StatColumn = ({
+  label,
+  value,
+  testID,
   isLoading,
+  animate,
 }: {
-  cells: PerformanceCell[];
+  label: string;
+  value: string;
+  testID: string;
   isLoading: boolean;
-}) => {
-  const tw = useTailwind();
-  // Realized P&L, win rate, hold time and volume: two rows once loaded.
-  const rows = isLoading ? [0, 1] : chunkPairs(cells);
-  return (
-    <Box
-      gap={3}
-      twClassName="border-t border-muted pt-4"
-      testID={
-        isLoading
-          ? TraderPreviewSheetSelectorsIDs.PERFORMANCE_SKELETON
-          : TraderPreviewSheetSelectorsIDs.PERFORMANCE_SECTION
-      }
+  animate: boolean;
+}) => (
+  <Box alignItems={BoxAlignItems.Center} twClassName="flex-1 min-w-0 gap-0.5">
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
     >
+      {label}
+    </Text>
+    {isLoading ? (
+      <Skeleton hideChildren autoPlay={animate} twClassName="rounded-md">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {PLACEHOLDER_VALUE}
+        </Text>
+      </Skeleton>
+    ) : (
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+        testID={testID}
       >
-        {strings('social_leaderboard.my_profile.performance_30d')}
+        {value}
       </Text>
-      {isLoading
-        ? rows.map((row) => (
-            <SkeletonShell key={`skeleton-${row}`}>
-              <View style={tw.style('flex-row gap-4')}>
-                {[0, 1].map((column) => (
-                  <View key={column} style={tw.style('flex-1 gap-0.5')}>
-                    <View style={tw.style('w-20 h-[22px] rounded')} />
-                    <View style={tw.style('w-16 h-6 rounded')} />
-                  </View>
-                ))}
-              </View>
-            </SkeletonShell>
-          ))
-        : chunkPairs(cells).map((row) => (
-            <Box
-              key={row.map((cell) => cell.id).join('-')}
-              flexDirection={BoxFlexDirection.Row}
-              gap={4}
-            >
-              {row.map((cell) => (
-                <Box key={cell.id} twClassName="flex-1 min-w-0 gap-0.5">
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                  >
-                    {strings(CELL_LABEL_KEYS[cell.id])}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    twClassName={TONE_CLASS[cell.tone]}
-                    numberOfLines={1}
-                  >
-                    {cell.value}
-                  </Text>
-                </Box>
-              ))}
-              {row.length === 1 ? <Box twClassName="flex-1" /> : null}
-            </Box>
-          ))}
-    </Box>
-  );
-};
+    )}
+  </Box>
+);
 
-const ReferralCodeRow = ({ code }: { code: string | null }) => {
-  const tw = useTailwind();
+/** Followers and win rate, for a profile link. A private trader shares no win rate. */
+const StatsCard = ({
+  followerCount,
+  winRateLabel,
+  showWinRate,
+  isLoading,
+  animate,
+}: {
+  followerCount: number;
+  winRateLabel: string | null;
+  showWinRate: boolean;
+  isLoading: boolean;
+  animate: boolean;
+}) => {
+  const followersLabel = strings('social_leaderboard.trader_profile.followers');
+  const winRateTitle = strings('social_leaderboard.trader_profile.win_rate');
+  const followersValue = formatAbbreviatedCount(followerCount);
+  const winRateValue = winRateLabel ?? EM_DASH;
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      gap={3}
-      twClassName="rounded-xl bg-muted px-4 py-3 mb-2"
+      gap={1}
+      twClassName="w-full rounded-2xl border border-muted py-2"
+      accessible={!isLoading}
+      accessibilityLabel={
+        isLoading
+          ? undefined
+          : [
+              `${followersLabel} ${followersValue}`,
+              showWinRate ? `${winRateTitle} ${winRateValue}` : null,
+            ]
+              .filter(Boolean)
+              .join(', ')
+      }
       testID={
-        code
-          ? TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW
-          : TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON
+        isLoading
+          ? TraderPreviewSheetSelectorsIDs.STATS_SKELETON
+          : TraderPreviewSheetSelectorsIDs.STATS_CARD
       }
     >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-      >
-        {strings('social_leaderboard.trader_preview.referral_code')}
-      </Text>
-      {code ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE}
-        >
-          {code}
-        </Text>
-      ) : (
-        <SkeletonShell>
-          <View style={tw.style('w-20 h-6 rounded')} />
-        </SkeletonShell>
-      )}
+      <StatColumn
+        label={followersLabel}
+        value={followersValue}
+        testID={TraderPreviewSheetSelectorsIDs.FOLLOWERS_COUNT}
+        isLoading={isLoading}
+        animate={animate}
+      />
+      {showWinRate ? (
+        <>
+          <Box twClassName="w-px self-stretch bg-border-muted" />
+          <StatColumn
+            label={winRateTitle}
+            value={winRateValue}
+            testID={TraderPreviewSheetSelectorsIDs.WIN_RATE}
+            isLoading={isLoading}
+            animate={animate}
+          />
+        </>
+      ) : null}
     </Box>
   );
 };
 
+const ReferralRowContent = ({
+  code,
+  termsLink,
+}: {
+  code: string;
+  termsLink: InviteTermsLinkValue | null;
+}) => {
+  const tw = useTailwind();
+  return (
+    <>
+      <Image
+        source={giftImage}
+        style={tw.style('w-12 h-12')}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+      <Box twClassName="flex-1 min-w-0">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE}
+        >
+          {strings('social_leaderboard.trader_preview.referral_code', {
+            code,
+          })}
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('social_leaderboard.trader_preview.referral_benefit')}
+          {termsLink ? (
+            <>
+              {' '}
+              <InviteTermsLink
+                link={termsLink}
+                variant={TextVariant.BodySm}
+                testID={TraderPreviewSheetSelectorsIDs.REFERRAL_TERMS_LINK}
+              />
+            </>
+          ) : null}
+        </Text>
+      </Box>
+    </>
+  );
+};
+
+const REFERRAL_ROW_CLASS =
+  'w-full flex-row items-center gap-2 rounded-2xl border border-muted px-3 py-2';
+
+/** The offered code, or a same-sized placeholder while it is checked. */
+const ReferralCodeRow = ({
+  code,
+  termsLink,
+  animate,
+}: {
+  code: string | null;
+  termsLink: InviteTermsLinkValue | null;
+  animate: boolean;
+}) =>
+  code ? (
+    <Box
+      twClassName={REFERRAL_ROW_CLASS}
+      testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW}
+    >
+      <ReferralRowContent code={code} termsLink={termsLink} />
+    </Box>
+  ) : (
+    <Skeleton
+      hideChildren
+      autoPlay={animate}
+      twClassName="w-full rounded-2xl"
+      testID={TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON}
+    >
+      <Box twClassName={REFERRAL_ROW_CLASS}>
+        <ReferralRowContent code={PLACEHOLDER_VALUE} termsLink={null} />
+      </Box>
+    </Skeleton>
+  );
+
 /**
  * Opened over Home when someone who has not joined Social opens a trader
- * profile or position link. Shows the trader's public profile and 30d
- * performance. Joining starts Social onboarding, which opens the link when it
- * finishes. A pending Money referral code from the same link is offered here
- * instead of in its own sheet, and is registered after onboarding.
+ * profile or position link. Shows the trader's public profile: followers and
+ * win rate for a profile link, the shared position for a position link.
+ * Joining starts Social onboarding, which opens the link when it finishes. A
+ * pending Money referral code from the same link is offered here instead of
+ * in its own sheet, and is registered after onboarding.
  */
 const TraderPreviewSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
+  const animateSkeletons = useShouldAnimateSkeletons();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { traderId: linkTraderId, positionId } =
     useParams<TraderPreviewSheetParams>();
@@ -262,9 +309,6 @@ const TraderPreviewSheet = () => {
       liveProfile ? traderProfileResponseToMySocialProfile(liveProfile) : null,
     [liveProfile],
   );
-  // A position link leads with the position, so it shows no performance. A
-  // private trader shares no trading figures. Unrealized P&L is left out to
-  // keep the grid to two rows, so no positions are fetched for it.
   const isPositionLink = Boolean(positionId);
   const [isPositionWaitOver, setIsPositionWaitOver] = useState(false);
   const isWaitingForPosition =
@@ -279,17 +323,23 @@ const TraderPreviewSheet = () => {
     );
     return () => clearTimeout(timer);
   }, [isWaitingForPosition]);
+  // A private trader shares no trading figures.
   const isPrivate = profile?.shareTradingActivity === false;
-  const performanceCells = useMemo(
-    () =>
-      isPositionLink || isPrivate
-        ? []
-        : buildPerformanceCells(liveProfile).filter(
-            (cell) => cell.id !== 'unrealizedPnl',
-          ),
-    [isPositionLink, isPrivate, liveProfile],
-  );
-  const joinedLabel = formatJoinedLabel(profile?.joinedAt);
+  const winRateLabel = isPrivate
+    ? null
+    : formatWinRate(profile?.winRatePercent ?? null);
+  const statsLine = profile
+    ? [
+        formatFollowerCountLabel(profile.followerCount),
+        winRateLabel
+          ? strings('social_leaderboard.feed.trader_stats.win_rate', {
+              winRate: winRateLabel,
+            })
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : null;
 
   const referralOffer = useSocialPreviewReferralOffer();
   const isReferralOffered = referralOffer.status === 'offered';
@@ -361,7 +411,7 @@ const TraderPreviewSheet = () => {
     referralOffer.pendingReferralCode,
   ]);
 
-  const handleNotNow = useCallback(() => {
+  const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
@@ -370,6 +420,8 @@ const TraderPreviewSheet = () => {
   if (isWaitingForPosition) {
     return null;
   }
+
+  const isCheckingReferral = referralOffer.status === 'checking';
 
   return (
     <BottomSheet
@@ -380,118 +432,110 @@ const TraderPreviewSheet = () => {
       <SocialFeedSurfaceProvider showMockedFields={false}>
         <ScrollView
           style={tw.style('flex-shrink')}
-          contentContainerStyle={tw.style('px-4 pt-2 pb-2 gap-4')}
+          contentContainerStyle={tw.style('px-4 py-5 gap-3 items-center')}
           bounces={false}
           showsVerticalScrollIndicator={false}
           testID={TraderPreviewSheetSelectorsIDs.SCROLL}
         >
-          {profile ? (
-            <Box gap={4}>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={4}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            alignItems={BoxAlignItems.Start}
+            twClassName="w-full"
+          >
+            {/* Mirrors the close button so the avatar stays centred. */}
+            <Box twClassName="w-8 h-8" />
+            {profile ? (
+              <TraderAvatar
+                imageUrl={profile.imageUrl}
+                address={profile.linkedAccountAddress ?? undefined}
+                profileId={profile.profileId}
+                size={56}
+                recyclingKey={profile.profileId}
+                testID={TraderPreviewSheetSelectorsIDs.AVATAR}
+              />
+            ) : (
+              <Skeleton
+                autoPlay={animateSkeletons}
+                twClassName="w-14 h-14 rounded-full"
+                testID={TraderPreviewSheetSelectorsIDs.HEADER_SKELETON}
+              />
+            )}
+            <ButtonIcon
+              iconName={IconName.Close}
+              size={ButtonIconSize.Md}
+              onPress={handleClose}
+              accessibilityLabel={strings('navigation.close')}
+              testID={TraderPreviewSheetSelectorsIDs.CLOSE_BUTTON}
+            />
+          </Box>
+
+          <Box alignItems={BoxAlignItems.Center} gap={1} twClassName="w-full">
+            {profile ? (
+              <Text
+                variant={TextVariant.HeadingLg}
+                twClassName="text-center"
+                numberOfLines={1}
+                accessibilityRole="header"
+                testID={TraderPreviewSheetSelectorsIDs.HANDLE}
               >
-                <TraderAvatar
-                  imageUrl={profile.imageUrl}
-                  address={profile.linkedAccountAddress ?? undefined}
-                  profileId={profile.profileId}
-                  size={56}
-                  recyclingKey={profile.profileId}
-                  testID={TraderPreviewSheetSelectorsIDs.AVATAR}
-                />
-                <Box twClassName="flex-1 min-w-0">
-                  <Text
-                    variant={TextVariant.HeadingMd}
-                    fontWeight={FontWeight.Bold}
-                    numberOfLines={1}
-                    testID={TraderPreviewSheetSelectorsIDs.DISPLAY_NAME}
-                  >
-                    {profile.displayName}
-                  </Text>
+                @{profile.handle}
+              </Text>
+            ) : (
+              <Skeleton
+                hideChildren
+                autoPlay={animateSkeletons}
+                twClassName="rounded-lg"
+              >
+                <Text variant={TextVariant.HeadingLg}>
+                  {PLACEHOLDER_HANDLE}
+                </Text>
+              </Skeleton>
+            )}
+            {isPositionLink ? (
+              statsLine ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-center"
+                  testID={TraderPreviewSheetSelectorsIDs.STATS_LINE}
+                >
+                  {statsLine}
+                </Text>
+              ) : (
+                <Skeleton
+                  hideChildren
+                  autoPlay={animateSkeletons}
+                  twClassName="rounded-md"
+                  testID={TraderPreviewSheetSelectorsIDs.STATS_LINE_SKELETON}
+                >
                   <Text
                     variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    numberOfLines={1}
-                    testID={TraderPreviewSheetSelectorsIDs.HANDLE}
+                    fontWeight={FontWeight.Medium}
                   >
-                    @{profile.handle}
+                    {PLACEHOLDER_HANDLE}
                   </Text>
-                </Box>
-              </Box>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-                twClassName="flex-wrap"
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  testID={TraderPreviewSheetSelectorsIDs.FOLLOWERS_COUNT}
-                >
-                  {profile.followerCount ?? 0}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.my_profile.followers')}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  ·
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  testID={TraderPreviewSheetSelectorsIDs.FOLLOWING_COUNT}
-                >
-                  {profile.followingCount ?? 0}
-                </Text>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.my_profile.following')}
-                </Text>
-                {joinedLabel ? (
-                  <>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      ·
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      testID={TraderPreviewSheetSelectorsIDs.JOINED}
-                    >
-                      {joinedLabel}
-                    </Text>
-                  </>
-                ) : null}
-              </Box>
-            </Box>
-          ) : (
-            <HeaderSkeleton />
+                </Skeleton>
+              )
+            ) : null}
+          </Box>
+
+          {isPositionLink ? null : (
+            <StatsCard
+              followerCount={profile?.followerCount ?? 0}
+              winRateLabel={winRateLabel}
+              showWinRate={!isPrivate}
+              isLoading={!profile}
+              animate={animateSkeletons}
+            />
           )}
 
-          {!isPositionLink && !profile ? (
-            <PerformanceSection cells={[]} isLoading />
-          ) : null}
-          {performanceCells.length > 0 ? (
-            <PerformanceSection cells={performanceCells} isLoading={false} />
-          ) : null}
-
           {isPositionLink ? (
-            <View testID={TraderPreviewSheetSelectorsIDs.POSITION_CARD}>
+            <View
+              style={tw.style('w-full')}
+              testID={TraderPreviewSheetSelectorsIDs.POSITION_CARD}
+            >
               {sharedPosition.feedItem ? (
                 <PositionCardBody
                   item={sharedPosition.feedItem}
@@ -499,47 +543,36 @@ const TraderPreviewSheet = () => {
                   showCopyTrade={false}
                 />
               ) : sharedPosition.isLoading ? (
-                <PositionCardSkeleton />
+                <Skeleton
+                  autoPlay={animateSkeletons}
+                  twClassName="w-full h-56 rounded-2xl"
+                  testID={TraderPreviewSheetSelectorsIDs.POSITION_CARD_SKELETON}
+                />
               ) : null}
             </View>
+          ) : null}
+
+          {offeredReferralCode || isCheckingReferral ? (
+            <ReferralCodeRow
+              code={offeredReferralCode}
+              termsLink={referralOffer.termsLink}
+              animate={animateSkeletons}
+            />
           ) : null}
         </ScrollView>
       </SocialFeedSurfaceProvider>
 
-      <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4} gap={2}>
-        {offeredReferralCode ? (
-          <ReferralCodeRow code={offeredReferralCode} />
-        ) : referralOffer.status === 'checking' ? (
-          <ReferralCodeRow code={null} />
-        ) : null}
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          isLoading={referralOffer.status === 'checking'}
-          isDisabled={referralOffer.status === 'checking'}
-          onPress={handleJoin}
-          testID={TraderPreviewSheetSelectorsIDs.JOIN_BUTTON}
-        >
-          {strings('social_leaderboard.trader_preview.join')}
-        </Button>
-        <Button
-          variant={ButtonVariant.Tertiary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleNotNow}
-          testID={TraderPreviewSheetSelectorsIDs.NOT_NOW_BUTTON}
-        >
-          {strings('social_leaderboard.trader_preview.not_now')}
-        </Button>
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.trader_preview.terms_note')}
-        </Text>
-      </Box>
+      <BottomSheetFooter
+        twClassName="pb-4"
+        primaryButtonProps={{
+          children: strings('social_leaderboard.trader_preview.join'),
+          size: ButtonSize.Lg,
+          isLoading: isCheckingReferral,
+          isDisabled: isCheckingReferral,
+          onPress: handleJoin,
+          testID: TraderPreviewSheetSelectorsIDs.JOIN_BUTTON,
+        }}
+      />
     </BottomSheet>
   );
 };

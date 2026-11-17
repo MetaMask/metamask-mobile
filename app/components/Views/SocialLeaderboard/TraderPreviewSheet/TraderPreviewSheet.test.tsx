@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { TraderProfileResponse } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 import { clearPendingReferralCode } from '../../../../reducers/rewardsMoney';
 import { ensureSocialTermsAccepted } from '../terms/socialTermsAcceptance';
 import TraderPreviewSheet, {
@@ -16,6 +17,8 @@ import type { SocialPreviewReferralOffer } from './useSocialPreviewReferralOffer
 import type { SharedPositionPreview } from './useSharedPositionPreview';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 
+const TERMS_URL = 'https://link.metamask.io/rewards/terms';
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
@@ -25,6 +28,7 @@ let mockProfile: TraderProfileResponse | null = null;
 let mockReferralOffer: SocialPreviewReferralOffer = {
   status: 'none',
   pendingReferralCode: null,
+  termsLink: null,
 };
 let mockParams: { traderId: string; positionId?: string } = {
   traderId: 'trader-1',
@@ -35,7 +39,6 @@ let mockSharedPosition: SharedPositionPreview = {
   isLoading: false,
 };
 const mockUseTraderProfile = jest.fn();
-const mockSheetClassName = jest.fn();
 const mockUseSharedPositionPreview = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -50,6 +53,10 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
   useParams: () => mockParams,
 }));
 
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
 // Renders children and runs the close callback right away, without the sheet
 // animation.
 jest.mock('@metamask/design-system-react-native', () => {
@@ -60,21 +67,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     BottomSheet: ReactActual.forwardRef(
       (
-        {
-          children,
-          testID,
-          twClassName,
-        }: {
-          children: React.ReactNode;
-          testID?: string;
-          twClassName?: string;
-        },
+        { children, testID }: { children: React.ReactNode; testID?: string },
         ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
           onCloseBottomSheet: (callback?: () => void) => callback?.(),
         }));
-        mockSheetClassName(twClassName);
         return <View testID={testID}>{children}</View>;
       },
     ),
@@ -85,10 +83,6 @@ jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
   const { View } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) => <View testID={testID} />;
 });
-
-jest.mock('../components/SkeletonShell', () => ({
-  SkeletonShell: ({ children }: { children: React.ReactNode }) => children,
-}));
 
 jest.mock('../TraderProfileView/hooks/useTraderProfile', () => ({
   useTraderProfile: (traderId: string) => {
@@ -145,6 +139,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const buildProfile = (
   overrides: Partial<TraderProfileResponse['profile']> = {},
+  stats: Partial<TraderProfileResponse['stats']> = {},
 ): TraderProfileResponse =>
   ({
     profile: {
@@ -164,14 +159,39 @@ const buildProfile = (
       winRate30d: 0.25,
       medianHoldMinutes: null,
       volumeUsd30d: 228.69,
+      ...stats,
     },
   }) as unknown as TraderProfileResponse;
+
+const offerReferral = (
+  overrides: Partial<SocialPreviewReferralOffer> = {},
+): void => {
+  mockReferralOffer = {
+    status: 'offered',
+    pendingReferralCode: 'CODE1234',
+    termsLink: null,
+    ...overrides,
+  };
+};
+
+const openPositionLink = (ownerTraderId = 'trader-1'): void => {
+  mockParams = { traderId: 'trader-1', positionId: 'position-1' };
+  mockSharedPosition = {
+    feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
+    ownerTraderId,
+    isLoading: false,
+  };
+};
 
 describe('TraderPreviewSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockProfile = buildProfile();
-    mockReferralOffer = { status: 'none', pendingReferralCode: null };
+    mockReferralOffer = {
+      status: 'none',
+      pendingReferralCode: null,
+      termsLink: null,
+    };
     mockParams = { traderId: 'trader-1' };
     mockSharedPosition = {
       feedItem: null,
@@ -189,342 +209,409 @@ describe('TraderPreviewSheet', () => {
     setPendingSocialPreviewTarget(null);
   });
 
-  it('shows the trader profile and 30d performance', () => {
-    render(<TraderPreviewSheet />);
+  describe('profile link', () => {
+    it('shows the handle as the sheet heading', () => {
+      render(<TraderPreviewSheet />);
 
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.DISPLAY_NAME),
-    ).toHaveTextContent('Theflyingdutch');
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.HANDLE),
-    ).toHaveTextContent('@theflyingdutch');
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.FOLLOWERS_COUNT),
-    ).toHaveTextContent('11');
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.FOLLOWING_COUNT),
-    ).toHaveTextContent('8');
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SECTION),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('25%')).toBeOnTheScreen();
-  });
-
-  it('shows realized P&L but not unrealized P&L', () => {
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByText(strings('social_leaderboard.my_profile.realized_pnl')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(
-        strings('social_leaderboard.my_profile.unrealized_pnl'),
-      ),
-    ).toBeNull();
-  });
-
-  it('shows no position card for a profile link', () => {
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.POSITION_CARD),
-    ).toBeNull();
-    expect(mockUseSharedPositionPreview).toHaveBeenCalledWith(
-      undefined,
-      'trader-1',
-    );
-  });
-
-  it('shows the shared position as a feed card without copy trade', () => {
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
-      ownerTraderId: 'trader-1',
-      isLoading: false,
-    };
-
-    render(<TraderPreviewSheet />);
-
-    expect(screen.getByTestId('mock-position-card')).toHaveTextContent(
-      'composer-position-1:expanded=true:copy=false',
-    );
-    expect(mockUseSharedPositionPreview).toHaveBeenCalledWith(
-      'position-1',
-      'trader-1',
-    );
-  });
-
-  it('hides performance and asks to join Social for a position link', () => {
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
-      ownerTraderId: 'trader-1',
-      isLoading: false,
-    };
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.DISPLAY_NAME),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SECTION),
-    ).toBeNull();
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    ).toHaveTextContent(strings('social_leaderboard.trader_preview.join'));
-  });
-
-  it('shows the referral code and still asks to join Social for a position link', () => {
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockReferralOffer = { status: 'offered', pendingReferralCode: 'CODE1234' };
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE),
-    ).toHaveTextContent('CODE1234');
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    ).toHaveTextContent(strings('social_leaderboard.trader_preview.join'));
-  });
-
-  it('waits for the shared position before opening the sheet', () => {
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: null,
-      ownerTraderId: undefined,
-      isLoading: true,
-    };
-
-    const { rerender } = render(<TraderPreviewSheet />);
-
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.CONTAINER),
-    ).toBeNull();
-
-    mockSharedPosition = {
-      feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
-      ownerTraderId: 'trader-1',
-      isLoading: false,
-    };
-    rerender(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(screen.getByTestId('mock-position-card')).toBeOnTheScreen();
-  });
-
-  it('opens with a card skeleton when the position takes longer than the wait', () => {
-    jest.useFakeTimers();
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: null,
-      ownerTraderId: undefined,
-      isLoading: true,
-    };
-
-    render(<TraderPreviewSheet />);
-    act(() => {
-      jest.advanceTimersByTime(POSITION_PREVIEW_WAIT_MS);
+      const handle = screen.getByTestId(TraderPreviewSheetSelectorsIDs.HANDLE);
+      expect(handle).toHaveTextContent('@theflyingdutch');
+      expect(handle.props.accessibilityRole).toBe('header');
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.AVATAR),
+      ).toBeOnTheScreen();
     });
 
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.POSITION_CARD_SKELETON),
-    ).toBeOnTheScreen();
-    jest.useRealTimers();
-  });
+    it('shows followers and win rate in the stats card', () => {
+      render(<TraderPreviewSheet />);
 
-  it('shows the profile of the position owner when the link named another trader', () => {
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
-      ownerTraderId: 'trader-2',
-      isLoading: false,
-    };
-
-    render(<TraderPreviewSheet />);
-
-    expect(mockUseTraderProfile).toHaveBeenLastCalledWith('trader-2');
-  });
-
-  it('shows a skeleton while the profile loads', () => {
-    mockProfile = null;
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.HEADER_SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SECTION),
-    ).toBeNull();
-  });
-
-  it('holds space for performance while a profile link loads', () => {
-    mockProfile = null;
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SKELETON),
-    ).toBeOnTheScreen();
-    expect(mockSheetClassName).toHaveBeenLastCalledWith(undefined);
-  });
-
-  it('sizes a position link to its content, with no performance placeholder', () => {
-    mockProfile = null;
-    mockParams = { traderId: 'trader-1', positionId: 'position-1' };
-    mockSharedPosition = {
-      feedItem: { id: 'composer-position-1' } as SocialV1FeedItem,
-      ownerTraderId: 'trader-1',
-      isLoading: false,
-    };
-
-    render(<TraderPreviewSheet />);
-
-    expect(mockSheetClassName).toHaveBeenLastCalledWith(undefined);
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SKELETON),
-    ).toBeNull();
-  });
-
-  it('holds space for the referral code while the check runs', () => {
-    mockReferralOffer = { status: 'checking', pendingReferralCode: 'CODE1234' };
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE),
-    ).toBeNull();
-  });
-
-  it('hides performance for a private trader', () => {
-    mockProfile = buildProfile({ tradingPrivacy: 'private' } as Partial<
-      TraderProfileResponse['profile']
-    >);
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.PERFORMANCE_SECTION),
-    ).toBeNull();
-  });
-
-  it('asks to join Social for a profile link without a referral', () => {
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    ).toHaveTextContent(strings('social_leaderboard.trader_preview.join'));
-  });
-
-  it('shows the referral code and still asks to join Social for a profile link', () => {
-    mockReferralOffer = { status: 'offered', pendingReferralCode: 'CODE1234' };
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    ).toHaveTextContent(strings('social_leaderboard.trader_preview.join'));
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({
-        interaction_type: 'viewed',
-        referral_code: 'CODE1234',
-      }),
-    );
-    expect(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE),
-    ).toHaveTextContent('CODE1234');
-  });
-
-  it('hides the referral code when it is not offered', () => {
-    mockReferralOffer = { status: 'none', pendingReferralCode: 'CODE1234' };
-
-    render(<TraderPreviewSheet />);
-
-    expect(
-      screen.queryByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW),
-    ).toBeNull();
-  });
-
-  it('starts onboarding with the offered referral code on join', () => {
-    mockReferralOffer = { status: 'offered', pendingReferralCode: 'CODE1234' };
-    render(<TraderPreviewSheet />);
-
-    fireEvent.press(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    );
-
-    expect(getPendingSocialPreviewTarget()).toEqual({
-      kind: 'trader',
-      traderId: 'trader-1',
-      stage: 'onboarding',
-      referralCode: 'CODE1234',
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.FOLLOWERS_COUNT),
+      ).toHaveTextContent('11');
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.WIN_RATE),
+      ).toHaveTextContent('25%');
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.STATS_CARD).props
+          .accessibilityLabel,
+      ).toBe(
+        `${strings('social_leaderboard.trader_profile.followers')} 11, ${strings(
+          'social_leaderboard.trader_profile.win_rate',
+        )} 25%`,
+      );
     });
-    expect(mockDispatch).toHaveBeenCalledWith(
-      clearPendingReferralCode('CODE1234'),
-    );
-    expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
-  });
 
-  it('starts onboarding without a referral code when it was not offered', () => {
-    mockReferralOffer = { status: 'none', pendingReferralCode: 'CODE1234' };
-    render(<TraderPreviewSheet />);
+    it('shows a dash when the trader has no win rate yet', () => {
+      mockProfile = buildProfile({}, { winRate30d: null } as Partial<
+        TraderProfileResponse['stats']
+      >);
 
-    fireEvent.press(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    );
+      render(<TraderPreviewSheet />);
 
-    expect(getPendingSocialPreviewTarget()).toEqual({
-      kind: 'trader',
-      traderId: 'trader-1',
-      stage: 'onboarding',
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.WIN_RATE),
+      ).toHaveTextContent('\u2014');
+    });
+
+    it('hides the win rate of a private trader', () => {
+      mockProfile = buildProfile({ tradingPrivacy: 'private' } as Partial<
+        TraderProfileResponse['profile']
+      >);
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.FOLLOWERS_COUNT),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.WIN_RATE),
+      ).toBeNull();
+    });
+
+    it('shows no position card or stats line', () => {
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.POSITION_CARD),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.STATS_LINE),
+      ).toBeNull();
+      expect(mockUseSharedPositionPreview).toHaveBeenCalledWith(
+        undefined,
+        'trader-1',
+      );
+    });
+
+    it('holds the header and stats card while the profile loads', () => {
+      mockProfile = null;
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.HEADER_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.STATS_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.HANDLE),
+      ).toBeNull();
     });
   });
 
-  it('keeps the join button busy while the referral check runs', () => {
-    mockReferralOffer = { status: 'checking', pendingReferralCode: 'CODE1234' };
-    render(<TraderPreviewSheet />);
+  describe('position link', () => {
+    it('shows the shared position as a feed card without copy trade', () => {
+      openPositionLink();
 
-    fireEvent.press(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    );
+      render(<TraderPreviewSheet />);
 
-    expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(screen.getByTestId('mock-position-card')).toHaveTextContent(
+        'composer-position-1:expanded=true:copy=false',
+      );
+      expect(mockUseSharedPositionPreview).toHaveBeenCalledWith(
+        'position-1',
+        'trader-1',
+      );
+    });
+
+    it('shows followers and win rate on one line instead of the stats card', () => {
+      openPositionLink();
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.STATS_LINE),
+      ).toHaveTextContent(
+        `${strings('social_leaderboard.trader_profile.followers_count_plural', {
+          count: '11',
+        })} · ${strings('social_leaderboard.feed.trader_stats.win_rate', {
+          winRate: '25%',
+        })}`,
+      );
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.STATS_CARD),
+      ).toBeNull();
+    });
+
+    it('leaves the win rate out of the line for a private trader', () => {
+      openPositionLink();
+      mockProfile = buildProfile({ tradingPrivacy: 'private' } as Partial<
+        TraderProfileResponse['profile']
+      >);
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.STATS_LINE),
+      ).toHaveTextContent(
+        strings('social_leaderboard.trader_profile.followers_count_plural', {
+          count: '11',
+        }),
+      );
+    });
+
+    it('holds the stats line, with no stats card, while the profile loads', () => {
+      openPositionLink();
+      mockProfile = null;
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.STATS_LINE_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.STATS_SKELETON),
+      ).toBeNull();
+    });
+
+    it('waits for the shared position before opening the sheet', () => {
+      mockParams = { traderId: 'trader-1', positionId: 'position-1' };
+      mockSharedPosition = {
+        feedItem: null,
+        ownerTraderId: undefined,
+        isLoading: true,
+      };
+
+      const { rerender } = render(<TraderPreviewSheet />);
+
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.CONTAINER),
+      ).toBeNull();
+
+      openPositionLink();
+      rerender(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-position-card')).toBeOnTheScreen();
+    });
+
+    it('opens with a card skeleton when the position takes longer than the wait', () => {
+      jest.useFakeTimers();
+      mockParams = { traderId: 'trader-1', positionId: 'position-1' };
+      mockSharedPosition = {
+        feedItem: null,
+        ownerTraderId: undefined,
+        isLoading: true,
+      };
+
+      render(<TraderPreviewSheet />);
+      act(() => {
+        jest.advanceTimersByTime(POSITION_PREVIEW_WAIT_MS);
+      });
+
+      expect(
+        screen.getByTestId(
+          TraderPreviewSheetSelectorsIDs.POSITION_CARD_SKELETON,
+        ),
+      ).toBeOnTheScreen();
+      jest.useRealTimers();
+    });
+
+    it('shows the profile of the position owner when the link named another trader', () => {
+      openPositionLink('trader-2');
+
+      render(<TraderPreviewSheet />);
+
+      expect(mockUseTraderProfile).toHaveBeenLastCalledWith('trader-2');
+    });
   });
 
-  it('drops the link and answers the referral when closed without joining', () => {
-    mockReferralOffer = { status: 'offered', pendingReferralCode: 'CODE1234' };
-    const { unmount } = render(<TraderPreviewSheet />);
+  describe('referral', () => {
+    it('shows the offered code with its benefit', () => {
+      offerReferral();
 
-    fireEvent.press(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.NOT_NOW_BUTTON),
-    );
-    unmount();
+      render(<TraderPreviewSheet />);
 
-    expect(getPendingSocialPreviewTarget()).toBeNull();
-    expect(mockDispatch).toHaveBeenCalledWith(
-      clearPendingReferralCode('CODE1234'),
-    );
-    expect(mockAddProperties).toHaveBeenCalledWith(
-      expect.objectContaining({ interaction_type: 'dismissed' }),
-    );
-    expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE),
+      ).toHaveTextContent(
+        strings('social_leaderboard.trader_preview.referral_code', {
+          code: 'CODE1234',
+        }),
+      );
+      expect(
+        screen.getByText(
+          strings('social_leaderboard.trader_preview.referral_benefit'),
+          { exact: false },
+        ),
+      ).toBeOnTheScreen();
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interaction_type: 'viewed',
+          referral_code: 'CODE1234',
+        }),
+      );
+    });
+
+    it('shows the code for a position link too', () => {
+      openPositionLink();
+      offerReferral();
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the invite terms in the in-app browser from Learn more', () => {
+      offerReferral({ termsLink: { label: 'Learn more', url: TERMS_URL } });
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_TERMS_LINK),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: expect.objectContaining({ newTabUrl: TERMS_URL }),
+      });
+    });
+
+    it('shows no Learn more link without a terms link', () => {
+      offerReferral();
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.queryByTestId(
+          TraderPreviewSheetSelectorsIDs.REFERRAL_TERMS_LINK,
+        ),
+      ).toBeNull();
+    });
+
+    it('holds space for the code while the check runs', () => {
+      mockReferralOffer = {
+        status: 'checking',
+        pendingReferralCode: 'CODE1234',
+        termsLink: null,
+      };
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.getByTestId(
+          TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW),
+      ).toBeNull();
+    });
+
+    it('hides the code when it is not offered', () => {
+      mockReferralOffer = {
+        status: 'none',
+        pendingReferralCode: 'CODE1234',
+        termsLink: null,
+      };
+
+      render(<TraderPreviewSheet />);
+
+      expect(
+        screen.queryByTestId(TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_ROW),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          TraderPreviewSheetSelectorsIDs.REFERRAL_CODE_SKELETON,
+        ),
+      ).toBeNull();
+    });
   });
 
-  it('keeps the link for onboarding when the sheet closes after join', () => {
-    const { unmount } = render(<TraderPreviewSheet />);
+  describe('actions', () => {
+    it('asks to join Social', () => {
+      render(<TraderPreviewSheet />);
 
-    fireEvent.press(
-      screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
-    );
-    unmount();
+      expect(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      ).toHaveTextContent(strings('social_leaderboard.trader_preview.join'));
+    });
 
-    expect(getPendingSocialPreviewTarget()?.stage).toBe('onboarding');
+    it('starts onboarding with the offered referral code on join', () => {
+      offerReferral();
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+
+      expect(getPendingSocialPreviewTarget()).toEqual({
+        kind: 'trader',
+        traderId: 'trader-1',
+        stage: 'onboarding',
+        referralCode: 'CODE1234',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(
+        clearPendingReferralCode('CODE1234'),
+      );
+      expect(ensureSocialTermsAccepted).toHaveBeenCalledWith(mockNavigate);
+    });
+
+    it('starts onboarding without a referral code when it was not offered', () => {
+      mockReferralOffer = {
+        status: 'none',
+        pendingReferralCode: 'CODE1234',
+        termsLink: null,
+      };
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+
+      expect(getPendingSocialPreviewTarget()).toEqual({
+        kind: 'trader',
+        traderId: 'trader-1',
+        stage: 'onboarding',
+      });
+    });
+
+    it('keeps the join button busy while the referral check runs', () => {
+      mockReferralOffer = {
+        status: 'checking',
+        pendingReferralCode: 'CODE1234',
+        termsLink: null,
+      };
+      render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+
+      expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+    });
+
+    it('drops the link and answers the referral when closed without joining', () => {
+      offerReferral();
+      const { unmount } = render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+      unmount();
+
+      expect(getPendingSocialPreviewTarget()).toBeNull();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        clearPendingReferralCode('CODE1234'),
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ interaction_type: 'dismissed' }),
+      );
+      expect(ensureSocialTermsAccepted).not.toHaveBeenCalled();
+    });
+
+    it('keeps the link for onboarding when the sheet closes after join', () => {
+      const { unmount } = render(<TraderPreviewSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(TraderPreviewSheetSelectorsIDs.JOIN_BUTTON),
+      );
+      unmount();
+
+      expect(getPendingSocialPreviewTarget()?.stage).toBe('onboarding');
+    });
   });
 });
