@@ -107,53 +107,13 @@ import {
   createMoneyDepositDeeplinkIntent,
   handleMoneyDeposit,
 } from './intent/handleMoneyDeposit';
+import {
+  matchUniversalLinkRoute,
+  SUPPORTED_ACTIONS,
+  type SupportedAction,
+} from '../utils/universalLinkRoutes';
 
-const SUPPORTED_ACTIONS = {
-  DAPP: ACTIONS.DAPP,
-  BUY: ACTIONS.BUY,
-  BUY_CRYPTO: ACTIONS.BUY_CRYPTO,
-  SELL: ACTIONS.SELL,
-  SELL_CRYPTO: ACTIONS.SELL_CRYPTO,
-  HOME: ACTIONS.HOME,
-  ASSET: ACTIONS.ASSET,
-  SWAP: ACTIONS.SWAP,
-  BATCH_SELL: ACTIONS.BATCH_SELL,
-  SEND: ACTIONS.SEND,
-  CREATE_ACCOUNT: ACTIONS.CREATE_ACCOUNT,
-  PERPS: ACTIONS.PERPS,
-  PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
-  PERPS_ASSET: ACTIONS.PERPS_ASSET,
-  PERPS_OUTREACH: ACTIONS.PERPS_OUTREACH,
-  REWARDS: ACTIONS.REWARDS,
-  PREDICT: ACTIONS.PREDICT,
-  WC: ACTIONS.WC,
-  ONBOARDING: ACTIONS.ONBOARDING,
-  CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
-  CARD_HOME: ACTIONS.CARD_HOME,
-  CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
-  TRENDING: ACTIONS.TRENDING,
-  WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
-  TOP_TRADERS: ACTIONS.TOP_TRADERS,
-  SOCIAL: ACTIONS.SOCIAL,
-  SOCIAL_TRADER: ACTIONS.SOCIAL_TRADER,
-  SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
-  SHIELD: ACTIONS.SHIELD,
-  EARN_MUSD: ACTIONS.EARN_MUSD,
-  NFT: ACTIONS.NFT,
-  AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
-  ON_RAMP: ACTIONS.ON_RAMP,
-  PRIVACY: ACTIONS.PRIVACY,
-  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
-  MONEY_ACCOUNT_DEPOSIT: ACTIONS.MONEY_ACCOUNT_DEPOSIT,
-  // MetaMask SDK specific actions
-  ANDROID_SDK: ACTIONS.ANDROID_SDK,
-  CONNECT: ACTIONS.CONNECT,
-  MMSDK: ACTIONS.MMSDK,
-  MONEY: ACTIONS.MONEY,
-} as const;
-
-type SUPPORTED_ACTIONS =
-  (typeof SUPPORTED_ACTIONS)[keyof typeof SUPPORTED_ACTIONS];
+type SUPPORTED_ACTIONS = SupportedAction;
 
 /**
  * Actions that should not show the deep link INTERSTITIAL modal
@@ -400,10 +360,9 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
-  const action:
-    | SUPPORTED_ACTIONS
-    | ACTIONS.OAUTH_REDIRECT
-    | ACTIONS.X_OAUTH_REDIRECT = validatedUrl.pathname.split('/')[1] as
+  const originalAction = validatedUrl.pathname.split('/')[1];
+  const matchedRoute = matchUniversalLinkRoute(validatedUrl.pathname);
+  const action = (matchedRoute?.action ?? originalAction) as
     | SUPPORTED_ACTIONS
     | ACTIONS.OAUTH_REDIRECT
     | ACTIONS.X_OAUTH_REDIRECT;
@@ -426,7 +385,10 @@ async function handleUniversalLink({
   let isInvalidLink = false;
 
   const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
-  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  const isActionSupported =
+    matchedRoute !== undefined &&
+    (!isMetaMaskSDKDeeplinkAction(matchedRoute.action) ||
+      originalAction === matchedRoute.action);
   const universalLinkActionHandler = isActionSupported
     ? UNIVERSAL_LINK_ACTION_HANDLERS[action]
     : undefined;
@@ -442,7 +404,7 @@ async function handleUniversalLink({
   }
 
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
-  if (isMetaMaskSDKDeeplinkAction(action)) {
+  if (isMetaMaskSDKDeeplinkAction(originalAction)) {
     const mappedUrl = url.replace(
       `${PROTOCOLS.HTTPS}://${validatedUrl.hostname}/`,
       `${PROTOCOLS.METAMASK}://`,
@@ -601,7 +563,14 @@ async function handleUniversalLink({
   }
 
   // Type guard to ensure action is a SupportedAction before mapping
-  const route = resolveUniversalLinkRoute(action, validatedUrl.pathname);
+  const route = isActionSupported
+    ? resolveUniversalLinkRoute(action, validatedUrl.pathname)
+    : DeepLinkRoute.INVALID;
+  const requiresCaseConfirmation = originalAction !== action;
+  const skipsInterstitial =
+    isActionSupported &&
+    !requiresCaseConfirmation &&
+    WHITELISTED_ACTIONS.includes(action);
 
   // Get interstitial disabled state safely
   let interstitialDisabled = false;
@@ -618,7 +587,7 @@ async function handleUniversalLink({
   }
 
   // Track analytics for whitelisted actions (they skip the modal)
-  if (WHITELISTED_ACTIONS.includes(action)) {
+  if (skipsInterstitial) {
     const analyticsContext: DeepLinkAnalyticsContext = {
       url,
       route,
@@ -635,7 +604,7 @@ async function handleUniversalLink({
   }
 
   const shouldProceed =
-    WHITELISTED_ACTIONS.includes(action) ||
+    skipsInterstitial ||
     (await new Promise<boolean>((resolve) => {
       // async because app may wait for user to dismiss modal
       const [, actionName] = validatedUrl.pathname.split('/');
@@ -649,6 +618,7 @@ async function handleUniversalLink({
       );
       const linkInstanceType = linkType();
       const isTrustedInAppSource =
+        !requiresCaseConfirmation &&
         trustedInAppSources.includes(source) &&
         (linkInstanceType === DeepLinkModalLinkType.PRIVATE ||
           linkInstanceType === DeepLinkModalLinkType.PUBLIC);
@@ -714,6 +684,7 @@ async function handleUniversalLink({
       // Processed span here — time on the modal is not app work.
       if (
         linkInstanceType === DeepLinkModalLinkType.PUBLIC ||
+        requiresCaseConfirmation ||
         !interstitialDisabled
       ) {
         markDeeplinkInterstitialShown();
@@ -735,7 +706,8 @@ async function handleUniversalLink({
             analyticsContext.interstitialAction = InterstitialState.ACCEPTED;
           } else if (
             linkInstanceType === DeepLinkModalLinkType.PRIVATE &&
-            interstitialDisabled
+            interstitialDisabled &&
+            !requiresCaseConfirmation
           ) {
             // PRIVATE link with disabled setting - modal was skipped (auto-accepted)
             analyticsContext.interstitialShown = false;
@@ -760,7 +732,11 @@ async function handleUniversalLink({
       } as DeepLinkModalParams;
 
       // Pass modal params for display
-      handleDeepLinkModalDisplay(modalParams);
+      if (requiresCaseConfirmation) {
+        handleDeepLinkModalDisplay(modalParams, { forceShow: true });
+      } else {
+        handleDeepLinkModalDisplay(modalParams);
+      }
     }));
 
   // Universal links
@@ -772,7 +748,7 @@ async function handleUniversalLink({
 
   capturePendingMoneyReferralCode(validatedUrl);
 
-  const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
+  const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${originalAction}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
   const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
     actionBasedRampPath,
