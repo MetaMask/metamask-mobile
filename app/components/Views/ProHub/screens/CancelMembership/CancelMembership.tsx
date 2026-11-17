@@ -110,12 +110,10 @@ const CancelMembership = () => {
 
     // Period-end copy always names the renewal date, so don't cancel when it
     // can't be formatted.
+    const periodEndOutcome: CancelPostCancelSheetContent | undefined =
+      periodEndDate ? { timing, periodEndDate } : undefined;
     const outcome: CancelPostCancelSheetContent | undefined =
-      timing === CANCELLATION_TIMINGS.IMMEDIATE
-        ? { timing }
-        : periodEndDate
-          ? { timing, periodEndDate }
-          : undefined;
+      timing === CANCELLATION_TIMINGS.IMMEDIATE ? { timing } : periodEndOutcome;
 
     if (!outcome) {
       setErrorMessage(
