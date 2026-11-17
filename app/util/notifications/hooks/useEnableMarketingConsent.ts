@@ -37,19 +37,24 @@ export function useEnableMarketingConsent({
     }
 
     dispatch(setDataCollectionForMarketing(true));
-    analytics.identify(marketingConsentTraits);
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-      )
-        .addProperties({
-          ...marketingConsentTraits,
-          updated_after_onboarding: true,
-          location: metricsOptInLocation,
-          ...(accountType && { account_type: accountType }),
-        })
-        .build(),
-    );
+
+    // Marketing consent signals only go out while MetaMetrics is on, the same
+    // way the settings screen gates them.
+    if (analytics.isEnabled()) {
+      analytics.identify(marketingConsentTraits);
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+        )
+          .addProperties({
+            ...marketingConsentTraits,
+            updated_after_onboarding: true,
+            location: metricsOptInLocation,
+            ...(accountType && { account_type: accountType }),
+          })
+          .build(),
+      );
+    }
 
     if (isSeedlessOnboardingLoginFlow) {
       // Social-login wallets also store marketing opt-in server-side so the
