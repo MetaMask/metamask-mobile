@@ -269,6 +269,7 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
       recurringSwaps: async () => ({
         swaps: [successfulSwapAfter, insufficientBalanceSwap],
         hasNextPage: false,
+        total: 2,
       }),
     });
 

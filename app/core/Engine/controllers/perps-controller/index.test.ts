@@ -128,6 +128,11 @@ describe('perps controller init', () => {
   it('controller state should be initial state when initial state is passed in', () => {
     const initialPerpsControllerState: PerpsControllerState = {
       activeProvider: 'hyperliquid',
+      defaultProvider: 'hyperliquid',
+      effectiveProvider: null,
+      hasExplicitDefaultProviderSelection: false,
+      hasExplicitProviderSelection: false,
+      hasMigratedToMultiProvider: false,
       isTestnet: true,
       accountState: null,
       perpsBalances: {},
