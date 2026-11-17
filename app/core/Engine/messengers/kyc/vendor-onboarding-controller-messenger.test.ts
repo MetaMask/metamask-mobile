@@ -37,15 +37,21 @@ describe('getVendorOnboardingControllerMessenger', () => {
     );
   });
 
-  it('does not delegate the old controller’s partner identity calls', () => {
+  it('delegates the identity-sharing consent and the token mint together', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
     getVendorOnboardingControllerMessenger(rootMessenger);
 
+    // kyc-api takes the session's email from the partner identity token, and
+    // MetaMask Auth will not mint one without the consent, so the controller
+    // needs both or neither.
     const { actions } = delegateSpy.mock.calls[0][0] as { actions: string[] };
-    expect(actions).not.toContain(
-      'AuthenticationController:getPartnerIdentityToken',
+    expect(actions).toEqual(
+      expect.arrayContaining([
+        'AuthenticatedUserStorageService:putIdentitySharingConsent',
+        'AuthenticationController:getPartnerIdentityToken',
+      ]),
     );
   });
 });

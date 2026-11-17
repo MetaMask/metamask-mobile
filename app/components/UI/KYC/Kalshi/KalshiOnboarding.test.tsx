@@ -48,9 +48,6 @@ jest.mock('../../../../core/Engine', () => ({
       getGeoCountry: jest.fn(),
       fetchVendorDisclaimers: jest.fn(),
     },
-    AuthenticationController: {
-      getPartnerIdentityToken: jest.fn(),
-    },
   },
 }));
 
@@ -62,8 +59,6 @@ const service = Engine.context.KycService as unknown as Record<
   string,
   jest.Mock
 >;
-const mockGetPartnerIdentityToken = Engine.context.AuthenticationController
-  .getPartnerIdentityToken as unknown as jest.Mock;
 
 const TERMS = [
   { id: 'tos-v1', url: 'https://kalshi.example/tos', display_name: 'Terms' },
@@ -107,7 +102,6 @@ describe('KalshiOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    mockGetPartnerIdentityToken.mockResolvedValue('partner-token');
     flow.refreshStep.mockResolvedValue('vendor_terms');
     for (const name of [
       'acceptTerms',
@@ -237,7 +231,7 @@ describe('KalshiOnboarding', () => {
   });
 
   describe('confirm with MetaMask', () => {
-    it('opens the session with the MFA token and an identity token', async () => {
+    it('opens the session with the MFA token', async () => {
       const screen = render('confirm_identity');
 
       fireEvent.press(primary(screen));
@@ -246,25 +240,10 @@ describe('KalshiOnboarding', () => {
         expect(flow.startSession).toHaveBeenCalledWith({
           vendor: 'kalshi',
           aal2Token: 'aal2',
-          partnerIdentityToken: 'partner-token',
         }),
       );
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
         expect.objectContaining({ methods: ['email_otp'] }),
-      );
-    });
-
-    it('mints the identity token for the iron audience for now', async () => {
-      // MetaMask Auth has no `kalshi` audience yet, so kyc-api verifies a
-      // Kalshi session's token against Iron's.
-      const screen = render('confirm_identity');
-
-      fireEvent.press(primary(screen));
-
-      await waitFor(() => expect(flow.startSession).toHaveBeenCalled());
-      expect(mockGetPartnerIdentityToken).toHaveBeenCalledWith(
-        ['email'],
-        'iron',
       );
     });
 

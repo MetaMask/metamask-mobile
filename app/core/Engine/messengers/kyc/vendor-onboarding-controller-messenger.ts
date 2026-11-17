@@ -8,8 +8,9 @@ import type { RootMessenger } from '../../types';
 
 /**
  * Actions {@link VendorOnboardingController} calls on other messengers: the
- * `KycService` requests it makes for each step, and Profile Sync storage for
- * the UKYC local user secret.
+ * `KycService` requests it makes for each step, Profile Sync storage for the
+ * UKYC local user secret, and the identity-sharing consent plus partner
+ * identity token it needs to open a session.
  */
 const VENDOR_ONBOARDING_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:getStep',
@@ -28,6 +29,8 @@ const VENDOR_ONBOARDING_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:createJourney',
   'UserStorageController:performGetStorage',
   'UserStorageController:performSetStorage',
+  'AuthenticatedUserStorageService:putIdentitySharingConsent',
+  'AuthenticationController:getPartnerIdentityToken',
 ] as const;
 
 /**
