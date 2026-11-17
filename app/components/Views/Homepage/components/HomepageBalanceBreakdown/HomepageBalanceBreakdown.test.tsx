@@ -34,6 +34,7 @@ import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { getHomepageBalanceColor } from './HomepageBalanceBreakdownHero';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+import { SLICE_ORDER } from '../../BalanceBreakdown/constants';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -416,7 +417,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBeOnTheScreen();
   });
 
-  it('omits the rows divider when no allocation rows are visible', () => {
+  it('omits the rows block and divider when no allocation rows are visible', () => {
     const emptySlice = { valueFiat: 0, percentOfTotal: 0 };
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -429,13 +430,16 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { queryByTestId, queryAllByTestId } = render(
-      <HomepageBalanceBreakdown />,
-    );
+    const { queryByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(queryAllByTestId(/^homepage-balance-breakdown-row-/)).toHaveLength(
-      0,
-    );
+    SLICE_ORDER.forEach((key) => {
+      expect(
+        queryByTestId(HomepageBalanceBreakdownTestIds.ROW(key)),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROWS),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.ROWS_DIVIDER),
     ).not.toBeOnTheScreen();

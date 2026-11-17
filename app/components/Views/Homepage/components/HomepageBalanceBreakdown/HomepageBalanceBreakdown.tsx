@@ -61,13 +61,11 @@ const HomepageBalanceBreakdown = ({
           </Animated.View>
         </Box>
       ) : null}
-      {!hideRows ? (
+      {!hideRows && visibleSliceKeys.length > 0 ? (
         <Box testID={HomepageBalanceBreakdownTestIds.ROWS}>
-          {visibleSliceKeys.length > 0 ? (
-            <SectionDivider
-              testID={HomepageBalanceBreakdownTestIds.ROWS_DIVIDER}
-            />
-          ) : null}
+          <SectionDivider
+            testID={HomepageBalanceBreakdownTestIds.ROWS_DIVIDER}
+          />
           {visibleSliceKeys.map((key) => (
             <HomepageBalanceBreakdownRow
               key={key}

@@ -21,6 +21,7 @@ import {
   ListItemVariant,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -252,9 +253,9 @@ const HomepageBalanceBreakdownRow = ({
           width={60}
         />
       ) : moneyApy !== undefined ? (
-        <Box
+        <Tag
           testID={HomepageBalanceBreakdownTestIds.APY}
-          twClassName="shrink-0 rounded-md bg-muted px-1.5 py-0.5"
+          twClassName="shrink-0 self-center py-0.5"
         >
           <Text
             color={TextColor.SuccessDefault}
@@ -263,7 +264,7 @@ const HomepageBalanceBreakdownRow = ({
           >
             {apyLabel}
           </Text>
-        </Box>
+        </Tag>
       ) : null}
     </Box>
   );
