@@ -2356,11 +2356,15 @@ describe('OAuthRehydration', () => {
           if (typeof task === 'function') {
             task();
           }
-          return {
-            then: (onFulfilled?: () => void) =>
-              Promise.resolve().then(onFulfilled),
-            cancel: jest.fn(),
-          } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+          const handle: ReturnType<
+            typeof InteractionManager.runAfterInteractions
+          > = {
+            then: (onFulfilled?: () => void, onRejected?: () => void) =>
+              Promise.resolve().then(onFulfilled, onRejected),
+            done: () => undefined,
+            cancel: () => undefined,
+          };
+          return handle;
         });
     };
 
