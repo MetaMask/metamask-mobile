@@ -431,12 +431,18 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   it.skip('opens the Kalshi Event on a result press', async () => {
     const view = renderAutocomplete(KALSHI_ONLY);
     typeQuery(view, 'packers');
-    const row = await view.findByTestId(
-      getPredictSearchResultRowTestId(NFL_1.id),
-      HIDDEN,
+    await waitFor(() =>
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen(),
     );
 
-    fireEvent.press(row);
+    // Re-query immediately before the press. A section above Predictions can
+    // re-key this row after it first appears, and a press on that node never
+    // navigates.
+    fireEvent.press(
+      view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+    );
 
     const params = await view.findByTestId(PREDICT_ROOT_PARAMS_PROBE);
     expect(JSON.parse(String(params.props.children))).toEqual({
