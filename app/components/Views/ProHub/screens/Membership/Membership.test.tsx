@@ -126,13 +126,14 @@ const pricing: PricingResponse = {
 };
 
 const createStoreState = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   ({
     engine: {
       backgroundState: {
         SubscriptionController: {
-          subscriptions: [membershipSubscription],
+          subscriptions:
+            membershipSubscription === null ? [] : [membershipSubscription],
           trialedProducts: [],
           pricing,
         },
@@ -141,7 +142,7 @@ const createStoreState = (
   }) as unknown as RootState;
 
 const renderMembership = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   render(
     <Provider store={configureStore(createStoreState(membershipSubscription))}>
@@ -249,6 +250,46 @@ describe('Membership', () => {
       expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
         toRegex('VISA •••• 4242'),
       );
+    });
+
+    it('hides the money icon beside a card payment', () => {
+      const { queryByTestId } = renderMembership();
+
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
+    });
+
+    it('shows the money icon beside a Money account payment', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        paymentMethod: {
+          type: PAYMENT_TYPES.byCrypto,
+          crypto: {
+            payerAddress: '0x1111111111111111111111111111111111111111',
+            chainId: '0x1',
+            tokenSymbol: 'USDC',
+          },
+        },
+      });
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.money_account')),
+      );
+      expect(
+        getByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the money icon when membership data is unavailable', () => {
+      const { getByTestId, queryByTestId } = renderMembership(null);
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex('--'),
+      );
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
     });
 
     it('renders the renews on row with renewal date', () => {

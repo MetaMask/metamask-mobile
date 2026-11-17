@@ -23,6 +23,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { PAYMENT_TYPES } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -181,6 +182,9 @@ const Membership = () => {
     errorMessage: resumeErrorMessage,
   } = useResumeMembership();
   const manageAction = getMembershipManageAction(subscription);
+  const showMoneyAccountIcon =
+    subscription !== undefined &&
+    subscription.paymentMethod.type !== PAYMENT_TYPES.byCard;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -344,13 +348,18 @@ const Membership = () => {
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-x-2"
               >
-                <Box twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center">
-                  <Icon
-                    name={IconName.AttachMoney}
-                    size={IconSize.Sm}
-                    twClassName="text-accent04-dark font-bold"
-                  />
-                </Box>
+                {showMoneyAccountIcon ? (
+                  <Box
+                    testID={MembershipTestIds.PAYING_WITH_MONEY_ICON}
+                    twClassName="w-5 h-5 bg-accent04-light rounded-lg flex items-center justify-center"
+                  >
+                    <Icon
+                      name={IconName.AttachMoney}
+                      size={IconSize.Sm}
+                      twClassName="text-accent04-dark font-bold"
+                    />
+                  </Box>
+                ) : null}
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
