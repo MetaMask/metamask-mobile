@@ -1361,6 +1361,7 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.EARNINGS}
               component={MoneyEarningsView}
+              options={{ gestureEnabled: false }}
             />
             <NativeStack.Screen
               name={Routes.MONEY.MUSD_RESCUE_SEND}

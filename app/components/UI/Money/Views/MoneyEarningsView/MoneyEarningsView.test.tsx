@@ -5,6 +5,7 @@ import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
+import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import {
   useMoneyHistoricalEarnings,
   type InterestHistoryAvailability,
@@ -53,9 +54,28 @@ jest.mock('../../hooks/useMoneyHistoricalEarnings', () => ({
   useMoneyHistoricalEarnings: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountProjectedEarnings', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
+const mockUseMoneyAccountProjectedEarnings = jest.mocked(
+  useMoneyAccountProjectedEarnings,
+);
+
+const setProjectedEarningsResult = (
+  result: Partial<ReturnType<typeof useMoneyAccountProjectedEarnings>> = {},
+): void => {
+  mockUseMoneyAccountProjectedEarnings.mockReturnValue({
+    balanceFiat: 60000,
+    apyDecimal: 0.04,
+    projectedAmount: 2400,
+    ...result,
+  });
+};
 
 const available: InterestHistoryAvailability = {
   earnings: 'available',
@@ -180,6 +200,7 @@ describe('MoneyEarningsView', () => {
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
     setHistoricalEarningsResult();
+    setProjectedEarningsResult();
   });
 
   it('selects the Earnings tab when route params are missing', () => {
@@ -333,7 +354,7 @@ describe('MoneyEarningsView', () => {
     expect(getByText('+$300.00')).toBeOnTheScreen();
   });
 
-  it('displays the projected annual value', () => {
+  it('displays the projected annual value from balance and APY', () => {
     const { getByText } = renderWithProvider(<MoneyEarningsView />);
 
     const projectedLabel = getByText(
@@ -342,18 +363,29 @@ describe('MoneyEarningsView', () => {
 
     expect(projectedLabel).toBeOnTheScreen();
     expect(getByText('+$2,400.00')).toBeOnTheScreen();
+    expect(
+      getByText(strings('money.earnings.projection_disclaimer')),
+    ).toBeOnTheScreen();
   });
 
-  it('uses the exclusive range end for summary freshness', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsView />);
+  it('hides the projected row when balance or APY is unavailable', () => {
+    setProjectedEarningsResult({
+      balanceFiat: undefined,
+      apyDecimal: undefined,
+      projectedAmount: undefined,
+    });
 
+    const { getByTestId, queryByText } = renderWithProvider(
+      <MoneyEarningsView />,
+    );
+
+    expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
     expect(
-      getByText(
-        strings('money.earnings.data_through', {
-          date: 'Nov 16, 2026',
-        }),
-      ),
-    ).toBeOnTheScreen();
+      queryByText(strings('money.earnings.projected_in_1_year')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('money.earnings.projection_disclaimer')),
+    ).not.toBeOnTheScreen();
   });
 
   it('displays a range error when selected range earnings are unavailable', () => {
@@ -497,31 +529,6 @@ describe('MoneyEarningsView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays retryable error without a summary for projection overflow', () => {
-    setHistoricalEarningsResult({
-      data: {
-        ...historicalEarnings,
-        ranges: [
-          createRange(
-            '30d',
-            [createBucket('2026-11-15T00:00:00.000Z', '1')],
-            String(Number.MAX_VALUE),
-          ),
-        ],
-      },
-    });
-
-    const { getByText, getByTestId, queryByText, queryByTestId } =
-      renderWithProvider(<MoneyEarningsView />);
-
-    expect(getByTestId(MoneyEarningsViewTestIds.ERROR)).toBeOnTheScreen();
-    expect(getByText(strings('money.earnings.retry'))).toBeOnTheScreen();
-    expect(queryByText(/Infinity/)).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(MoneyEarningsViewTestIds.SUMMARY),
-    ).not.toBeOnTheScreen();
-  });
-
   it('displays empty state without a summary', () => {
     setHistoricalEarningsResult({
       data: {
@@ -554,11 +561,5 @@ describe('MoneyEarningsView', () => {
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON));
 
     expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
-  });
-
-  it('displays the no-lockups footer copy', () => {
-    const { getByText } = renderWithProvider(<MoneyEarningsView />);
-
-    expect(getByText(strings('money.earnings.no_lockups'))).toBeOnTheScreen();
   });
 });

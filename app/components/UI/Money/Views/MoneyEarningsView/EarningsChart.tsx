@@ -66,7 +66,11 @@ const formatDate = (timestamp: string): string =>
 
 const formatSignedUsd = (amount: number): string => {
   if (amount !== 0 && Math.abs(amount) < DUST_THRESHOLD) {
-    return amount > 0 ? '+<$0.01' : '-<$0.01';
+    const preciseAmount = new BigNumber(amount)
+      .toFixed(4)
+      .replace(/0+$/, '')
+      .replace(/\.$/, '');
+    return `${amount > 0 ? '+' : ''}$${preciseAmount}`;
   }
 
   const formattedAmount = moneyFormatUsd(new BigNumber(amount));
@@ -142,24 +146,23 @@ const formatAxisUsd = (amount: number): string => {
   return amount >= 1 ? `$${Math.round(amount)}` : `$${amount.toFixed(2)}`;
 };
 
-const getYAxisValues = (maximumAmount: number): number[] => {
+const clampToCents = (amount: number): number =>
+  Math.abs(amount) < DUST_THRESHOLD
+    ? 0
+    : Number(new BigNumber(amount).toFixed(2));
+
+const getNiceChartMaximum = (maximumAmount: number): number => {
   if (maximumAmount <= 0) {
-    return [1, 0.5];
+    return DUST_THRESHOLD;
   }
 
-  const magnitude = 10 ** Math.floor(Math.log10(maximumAmount));
-  const normalizedMaximum = maximumAmount / magnitude;
-  const step =
-    normalizedMaximum <= 1
-      ? 1
-      : normalizedMaximum <= 2
-        ? 2
-        : normalizedMaximum <= 5
-          ? 5
-          : 10;
-  const roundedMaximum = Math.ceil(normalizedMaximum / step) * step * magnitude;
+  if (maximumAmount < 1) {
+    const cents = Math.ceil(maximumAmount * 100);
+    return (cents % 2 === 0 ? cents : cents + 1) / 100;
+  }
 
-  return [roundedMaximum, roundedMaximum / 2];
+  const whole = Math.ceil(maximumAmount);
+  return whole % 2 === 0 ? whole : whole + 1;
 };
 
 const EarningsChart = ({
@@ -173,6 +176,7 @@ const EarningsChart = ({
   const tw = useTailwind();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [plotWidth, setPlotWidth] = useState(0);
+  const [pillWidth, setPillWidth] = useState<number | null>(null);
   const isScrubbing = useRef(false);
   const scrubOriginX = useRef(0);
   const locale = I18n.locale;
@@ -183,6 +187,13 @@ const EarningsChart = ({
   const points = useMemo(
     () => getBucketPoints(selectedRangeData),
     [selectedRangeData],
+  );
+  const chartAmounts = useMemo(
+    () =>
+      points.map((point) =>
+        point.amount === null ? null : clampToCents(point.amount),
+      ),
+    [points],
   );
   const xAxisLabels = useMemo(() => {
     const axisRange = getAxisLabelRange(selectedRange);
@@ -200,14 +211,17 @@ const EarningsChart = ({
     () =>
       Math.max(
         0,
-        ...points.map((point) =>
-          isAvailableBucket(point) && point.amount !== null ? point.amount : 0,
+        ...points.map((point, index) =>
+          isAvailableBucket(point) && chartAmounts[index] !== null
+            ? chartAmounts[index]
+            : 0,
         ),
       ),
-    [points],
+    [chartAmounts, points],
   );
   const yAxisValues = useMemo(() => {
-    const values = getYAxisValues(maximumAmount);
+    const chartMaximum = getNiceChartMaximum(maximumAmount);
+    const values = [chartMaximum, chartMaximum / 2];
     return values.filter(
       (value, index) =>
         index === 0 ||
@@ -222,7 +236,7 @@ const EarningsChart = ({
 
   const handlePointPressIn = (index: number, point: EarningsPoint): void => {
     if (isAvailableBucket(point)) {
-      scrubOriginX.current = (index / points.length) * plotWidth;
+      scrubOriginX.current = ((index + 0.5) / points.length) * plotWidth;
       setActiveIndex(index);
     }
   };
@@ -360,13 +374,14 @@ const EarningsChart = ({
             {points.map((point, index) => {
               const isAvailable = isAvailableBucket(point);
               const isSelected = activeIndex === index;
+              const chartAmount = chartAmounts[index];
               const barHeight =
-                isAvailable && point.amount === 0
+                isAvailable && chartAmount === 0
                   ? MINIMUM_BAR_HEIGHT
-                  : isAvailable && point.amount !== null && chartMaximum > 0
+                  : isAvailable && chartAmount !== null && chartMaximum > 0
                     ? Math.max(
                         MINIMUM_BAR_HEIGHT,
-                        (point.amount / chartMaximum) * CHART_HEIGHT,
+                        (chartAmount / chartMaximum) * CHART_HEIGHT,
                       )
                     : 0;
               const dateLabel = formatPointDateRange(point);
@@ -420,48 +435,61 @@ const EarningsChart = ({
             })}
           </Box>
 
-          <Box
-            pointerEvents="none"
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="absolute bottom-0 left-0 right-0 h-[160px] overflow-visible"
-          >
-            {points.map((point, index) => {
-              const isAvailable = isAvailableBucket(point);
-              const isSelected = activeIndex === index;
+          {activeIndex !== null &&
+          points[activeIndex] &&
+          isAvailableBucket(points[activeIndex])
+            ? ((): React.ReactElement => {
+                const point = points[activeIndex];
+                const barCenter =
+                  ((activeIndex + 0.5) / points.length) * plotWidth;
+                // Center the pill under the bar, clamped to the plot bounds so
+                // edge pills don't overflow. Hidden (opacity 0) until the first
+                // onLayout gives us the measured width, then revealed in the
+                // same frame to avoid a visible shift.
+                const left =
+                  pillWidth !== null
+                    ? Math.max(
+                        0,
+                        Math.min(
+                          barCenter - pillWidth / 2,
+                          plotWidth - pillWidth,
+                        ),
+                      )
+                    : barCenter;
 
-              return (
-                <Box
-                  key={`pill-slot-${point.start}`}
-                  alignItems={
-                    index === 0
-                      ? BoxAlignItems.Start
-                      : index === points.length - 1
-                        ? BoxAlignItems.End
-                        : BoxAlignItems.Center
-                  }
-                  twClassName="h-full flex-1 overflow-visible"
-                >
-                  {isSelected && isAvailable ? (
-                    <Box
-                      testID={MoneyEarningsViewTestIds.CHART_PILL}
-                      twClassName="-top-3 rounded-full bg-text-default px-2 py-0.5 overflow-visible"
+                return (
+                  <Box
+                    pointerEvents="none"
+                    testID={MoneyEarningsViewTestIds.CHART_PILL}
+                    style={[
+                      tw.style(
+                        'absolute -top-3 rounded-full bg-text-default px-2 py-0.5',
+                        pillWidth === null ? 'opacity-0' : 'opacity-100',
+                      ),
+                      { left },
+                    ]}
+                    onLayout={({ nativeEvent: { layout } }) => {
+                      setPillWidth((currentPillWidth) =>
+                        currentPillWidth === layout.width
+                          ? currentPillWidth
+                          : layout.width,
+                      );
+                    }}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      twClassName="text-primary-inverse"
+                      numberOfLines={1}
                     >
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        twClassName="text-primary-inverse whitespace-nowrap"
-                        numberOfLines={1}
-                      >
-                        {`${formatSignedUsd(point.amount ?? 0)} · ${formatPointPillLabel(
-                          point,
-                        )}`}
-                      </Text>
-                    </Box>
-                  ) : null}
-                </Box>
-              );
-            })}
-          </Box>
+                      {`${formatSignedUsd(point.amount ?? 0)} · ${formatPointPillLabel(
+                        point,
+                      )}`}
+                    </Text>
+                  </Box>
+                );
+              })()
+            : null}
         </Box>
 
         <Box twClassName="absolute bottom-0 left-0 right-12 h-10 flex-row">
