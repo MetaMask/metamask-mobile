@@ -74,12 +74,45 @@ export const rampsControllerInit: MessengerClientInitFunction<
     );
   };
 
+  // Order polling raises purchase toasts, so it only runs while the wallet is
+  // unlocked. Polling started at init would keep toasting on the lock screen.
+  let controllerInitialized = false;
+  let walletUnlocked = false;
+
+  const syncOrderPolling = (): void => {
+    if (controllerInitialized && walletUnlocked) {
+      controller.startOrderPolling();
+    } else {
+      controller.stopOrderPolling();
+    }
+  };
+
+  const registerLockSubscriptions = (): void => {
+    initMessenger.subscribe('KeyringController:unlock', () => {
+      walletUnlocked = true;
+      syncOrderPolling();
+    });
+    initMessenger.subscribe('KeyringController:lock', () => {
+      walletUnlocked = false;
+      syncOrderPolling();
+    });
+    try {
+      walletUnlocked =
+        initMessenger.call('KeyringController:getState').isUnlocked === true;
+    } catch {
+      // Keyring not available yet - the unlock event will start polling.
+      walletUnlocked = false;
+    }
+  };
+
   const startRampsController = (): void => {
     registerOrderSubscriptions();
+    registerLockSubscriptions();
     controller
       .init()
       .then(() => {
-        controller.startOrderPolling();
+        controllerInitialized = true;
+        syncOrderPolling();
       })
       .catch(() => {
         // Initialization failed - error state will be available via selectors

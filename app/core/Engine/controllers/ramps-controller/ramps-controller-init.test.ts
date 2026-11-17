@@ -39,6 +39,8 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
 };
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
+const mockStartOrderPolling = jest.fn();
+const mockStopOrderPolling = jest.fn();
 
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
@@ -47,6 +49,8 @@ jest.mock('@metamask/ramps-controller', () => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
     instance.init = mockInit;
+    instance.startOrderPolling = mockStartOrderPolling;
+    instance.stopOrderPolling = mockStopOrderPolling;
     return instance;
   });
 
@@ -78,10 +82,23 @@ const getInitRampsDebugBridgeMock = (): jest.Mock =>
     ) as { initRampsDebugBridge: jest.Mock }
   ).initRampsDebugBridge;
 
+let mockIsUnlocked = false;
+
 const createMockInitMessenger = (): RampsControllerInitMessenger =>
   ({
     subscribe: jest.fn(),
+    call: jest.fn(() => ({ isUnlocked: mockIsUnlocked })),
   }) as unknown as RampsControllerInitMessenger;
+
+const getSubscribedHandler = (
+  messenger: RampsControllerInitMessenger,
+  event: string,
+): (() => void) => {
+  const entry = jest
+    .mocked(messenger.subscribe)
+    .mock.calls.find(([name]) => name === event);
+  return entry?.[1] as unknown as () => void;
+};
 
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
@@ -95,6 +112,7 @@ describe('ramps controller init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInit.mockResolvedValue(undefined);
+    mockIsUnlocked = false;
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -226,13 +244,69 @@ describe('ramps controller init', () => {
   // subscription, so an already-terminal callback order (added via addOrder,
   // never polled) never reaches the metrics handler. This is the mobile-side
   // half of the root cause pinned by the core RampsController TRAM-3691 tests.
+  describe('order polling lock gating', () => {
+    it('does not poll when the wallet is locked at init', async () => {
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+
+    it('polls after init when the wallet is already unlocked', async () => {
+      mockIsUnlocked = true;
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStartOrderPolling).toHaveBeenCalled());
+    });
+
+    it('starts polling on unlock and stops it on lock', async () => {
+      rampsControllerInit(initRequestMock);
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      mockStartOrderPolling.mockClear();
+      mockStopOrderPolling.mockClear();
+      const { initMessenger } = initRequestMock;
+
+      getSubscribedHandler(initMessenger, 'KeyringController:unlock')();
+      expect(mockStartOrderPolling).toHaveBeenCalledTimes(1);
+
+      getSubscribedHandler(initMessenger, 'KeyringController:lock')();
+      expect(mockStopOrderPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not poll on unlock before the controller finished init', () => {
+      mockInit.mockReturnValue(new Promise(() => undefined));
+      rampsControllerInit(initRequestMock);
+
+      getSubscribedHandler(
+        initRequestMock.initMessenger,
+        'KeyringController:unlock',
+      )();
+
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+
+    it('treats an unavailable keyring as locked', async () => {
+      jest.mocked(initRequestMock.initMessenger.call).mockImplementation(() => {
+        throw new Error('not registered');
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+  });
+
   it('subscribes order handlers ONLY to RampsController:orderStatusChanged', () => {
     rampsControllerInit(initRequestMock);
 
     const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
 
     expect(subscribeMock).toHaveBeenCalled();
-    const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
+    const subscribedEvents = subscribeMock.mock.calls
+      .map(([event]) => event)
+      .filter((event) => !String(event).startsWith('KeyringController:'));
     expect(
       subscribedEvents.every(
         (event) => event === 'RampsController:orderStatusChanged',
