@@ -81,13 +81,22 @@ describe('PerpsExchangeFilterSheet', () => {
 
     expect(screen.getByText('Low fee, high leverage')).toBeOnTheScreen();
     expect(screen.getByText('High volume, low slippage')).toBeOnTheScreen();
-    // The logos are decorative (the row announces the exchange name), so they
-    // are hidden from the accessibility tree and not findable.
+    // The logos render but are decorative (the row announces the exchange
+    // name), so they are hidden from the accessibility tree. They are only
+    // findable when hidden elements are included.
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    // Default queries skip hidden elements, so they are absent there.
     expect(
       screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
     ).toBeNull();
   });
 
