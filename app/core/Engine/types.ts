@@ -361,6 +361,10 @@ import {
   type PredictPortfolioServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictPortfolioService';
 import {
+  PredictFundingService,
+  type PredictFundingServiceActions,
+} from '../../components/UI/PredictNext/services/PredictFundingService';
+import {
   PredictOrderService,
   type PredictOrderServiceActions,
   type PredictOrderServiceEvents,
@@ -718,6 +722,7 @@ export type GlobalActions =
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictFundingServiceActions
   | PredictDeviceAuthServiceActions
   | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
@@ -984,6 +989,7 @@ export type MessengerClients = {
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictFundingService: PredictFundingService;
   PredictDeviceAuthService: PredictDeviceAuthService;
   PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
@@ -1177,6 +1183,7 @@ export type MessengerClientsToInitialize =
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictFundingService'
   | 'PredictDeviceAuthService'
   | 'PredictVenueController'
   | 'RecurringOrdersDataService'

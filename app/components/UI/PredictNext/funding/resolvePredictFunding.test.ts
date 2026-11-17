@@ -110,75 +110,83 @@ describe('resolvePredictFunding', () => {
   });
 
   describe('while Kalshi is active', () => {
+    it('runs Withdraw on the next implementation when the descriptor lists it', () => {
+      const result = resolvePredictFunding('withdraw', {
+        available: true,
+        activeVenue: active('kalshi'),
+        getCapabilities: () =>
+          descriptor('kalshi', ['buy', 'sell', 'withdraw']),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'ready',
+        implementation: 'next',
+      });
+    });
+
+    it('offers no Withdraw from a descriptor that omits it', () => {
+      const result = resolvePredictFunding('withdraw', {
+        available: true,
+        activeVenue: active('kalshi'),
+        getCapabilities: () => descriptor('kalshi', ['buy', 'sell']),
+      });
+
+      expect(result).toStrictEqual({
+        status: 'unavailable',
+        reason: 'unsupported',
+      });
+    });
+
+    it('offers no Deposit until this client has that flow', () => {
+      const result = resolvePredictFunding('deposit', {
+        available: true,
+        activeVenue: active('kalshi'),
+        getCapabilities: () => descriptor('kalshi', ['buy', 'sell', 'deposit']),
+      });
+
+      expect(PREDICT_FUNDING_IMPLEMENTATIONS.next).not.toContain('deposit');
+      expect(result).toStrictEqual({
+        status: 'unavailable',
+        reason: 'notImplemented',
+      });
+    });
+
     it.each(FUNDING_ACTIONS)(
-      'offers no %s from its current descriptor',
+      'offers no %s while the Active Venue is resolving',
       (action) => {
-        const result = resolvePredictFunding(action, {
-          available: true,
-          activeVenue: active('kalshi'),
-          getCapabilities: () => descriptor('kalshi', ['buy', 'sell']),
-        });
-
-        expect(result.status).toBe('unavailable');
-      },
-    );
-
-    it.each(FUNDING_ACTIONS)(
-      'offers no %s even when its descriptor lists it, until this client has the flow',
-      (action) => {
-        const result = resolvePredictFunding(action, {
-          available: true,
-          activeVenue: active('kalshi'),
-          getCapabilities: () => descriptor('kalshi', ['buy', 'sell', action]),
-        });
-
-        expect(PREDICT_FUNDING_IMPLEMENTATIONS.next).not.toContain(action);
-        expect(result).toStrictEqual({
-          status: 'unavailable',
-          reason: 'notImplemented',
-        });
-      },
-    );
-
-    it.each(FUNDING_ACTIONS)(
-      'runs %s on the next implementation once both the client flow and the descriptor exist',
-      (action) => {
-        const result = resolvePredictFunding(
-          action,
-          {
+        expect(
+          resolvePredictFunding(action, {
             available: true,
+            activeVenue: { status: 'resolving' },
+            getCapabilities: () =>
+              descriptor('kalshi', ['buy', 'sell', action]),
+          }),
+        ).toStrictEqual({ status: 'unavailable', reason: 'resolving' });
+      },
+    );
+
+    it.each(FUNDING_ACTIONS)(
+      'offers no %s while Predict is unavailable for Kalshi',
+      (action) => {
+        expect(
+          resolvePredictFunding(action, {
+            available: false,
             activeVenue: active('kalshi'),
             getCapabilities: () =>
               descriptor('kalshi', ['buy', 'sell', action]),
-          },
-          { ...PREDICT_FUNDING_IMPLEMENTATIONS, next: [action] },
-        );
-
-        expect(result).toStrictEqual({
-          status: 'ready',
-          implementation: 'next',
-        });
+          }),
+        ).toStrictEqual({ status: 'unavailable', reason: 'unavailable' });
       },
     );
 
-    it.each(FUNDING_ACTIONS)(
-      'offers no %s when the client flow exists but the descriptor does not list it',
-      (action) => {
-        const result = resolvePredictFunding(
-          action,
-          {
-            available: true,
-            activeVenue: active('kalshi'),
-            getCapabilities: () => descriptor('kalshi', ['buy', 'sell']),
-          },
-          { ...PREDICT_FUNDING_IMPLEMENTATIONS, next: [action] },
-        );
-
-        expect(result).toStrictEqual({
-          status: 'unavailable',
-          reason: 'unsupported',
-        });
-      },
-    );
+    it('offers no Withdraw while the descriptor is still loading', () => {
+      expect(
+        resolvePredictFunding('withdraw', {
+          available: true,
+          activeVenue: active('kalshi'),
+          getCapabilities: () => ({ status: 'loading' }),
+        }),
+      ).toStrictEqual({ status: 'unavailable', reason: 'unsupported' });
+    });
   });
 });

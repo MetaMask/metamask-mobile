@@ -19,6 +19,7 @@ import type {
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
+  PredictAmount,
   PredictReadOptions,
   PredictVenueId,
 } from '../../types';
@@ -101,7 +102,36 @@ export interface PredictApiReadTransport {
     params: FetchPortfolioPageParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown>;
 }
+
+/** Wire shape of a Withdraw Preview request: exactly one of a fixed amount or
+ * a sweep. The backend's strict schema rejects any other key, so a client
+ * identity, destination, or idempotency key can never be smuggled in. */
+export type FetchWithdrawPreviewBody =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** Every bearer-authenticated POST body the transport sends. */
+type PredictPostBody =
+  | FetchOrderPreviewParams
+  | FetchOrderCommitParams
+  | FetchWithdrawPreviewBody
+  | Record<string, never>;
 
 type PredictApiReadQueryParams = FetchFeedParams &
   Partial<FetchSearchParams> & {
@@ -405,6 +435,54 @@ export class PredictApiReadClient implements PredictApiReadTransport {
   }
 
   /**
+   * Quotes one Withdraw Preview. Bearer-only: the backend resolves the payout
+   * destination and owns the idempotency key, so the phone sends the amount
+   * shape and nothing else.
+   */
+  fetchWithdrawPreview(
+    venueId: PredictVenueId,
+    params: FetchWithdrawPreviewBody,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', 'preview'],
+      params,
+      options,
+    );
+  }
+
+  /**
+   * Commits a Withdraw Preview by reference only. The body is `{}`: every
+   * executable detail comes from the stored, expiring Preview the
+   * authenticated profile owns.
+   */
+  commitWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#postAuthenticated(
+      ['v1', 'venues', venueId, 'withdrawals', previewId, 'commit'],
+      {},
+      options,
+    );
+  }
+
+  /** The withdrawal's receipt. Never submits: a `pending` or `processing`
+   * operation is resolved from the backend's own venue reads. */
+  observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<unknown> {
+    return this.#get(
+      ['v1', 'venues', venueId, 'withdrawals', previewId],
+      undefined,
+      options,
+    );
+  }
+
+  /**
    * Every predict-api route requires a bearer token, so one is resolved for
    * each request rather than per endpoint.
    */
@@ -607,7 +685,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #postAuthenticated(
     segments: readonly string[],
-    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    body: PredictPostBody,
     options?: PredictReadOptions,
   ): Promise<unknown> {
     const bearerToken = await this.#resolveBearerToken();
@@ -625,7 +703,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
 
   async #post(
     segments: readonly string[],
-    body: FetchOrderPreviewParams | FetchOrderCommitParams,
+    body: PredictPostBody,
     bearerToken: string,
     options?: PredictReadOptions,
   ): Promise<Response> {

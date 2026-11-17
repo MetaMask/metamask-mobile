@@ -31,6 +31,7 @@ const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
   insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
   preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
   preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
+  amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
   venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
   venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
   client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,

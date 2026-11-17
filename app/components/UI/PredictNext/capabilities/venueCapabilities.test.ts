@@ -200,7 +200,7 @@ describe('capability selectors', () => {
       PREDICT_VENUE_ACTIONS.filter((action) =>
         canPerformVenueAction(ready, action),
       ),
-    ).toEqual(['buy', 'sell']);
+    ).toEqual(['buy', 'sell', 'withdraw']);
   });
 
   it('maps present Feed keys to Feed IDs and absent ones to undefined', () => {
