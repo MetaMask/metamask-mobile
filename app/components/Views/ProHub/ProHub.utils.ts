@@ -90,27 +90,50 @@ export const getMembershipManageAction = (
   return MembershipManageAction.Cancel;
 };
 
+export interface FormatSubscriptionPeriodEndOptions {
+  /** App language. Defaults to the current locale. */
+  locale?: string;
+  /**
+   * True when the timestamp is `currentPeriodEnd`, the exclusive start of the
+   * next period. A 30-day membership that starts on the 1st then displays the
+   * 30th. Fallback timestamps such as `canceledAt` leave this false.
+   */
+  exclusivePeriodEnd?: boolean;
+}
+
 /**
- * Formats a subscription period end in the app language and device timezone.
+ * Formats a subscription date as one UTC calendar day.
  *
- * @param currentPeriodEnd - ISO 8601 timestamp from the Plus subscription.
- * @returns e.g. `Jul 20, 2027`, or undefined when missing or unparseable.
+ * `currentPeriodEnd` is the exclusive renewal instant. Moving back one
+ * millisecond keeps a midnight boundary on the previous UTC day, and keeps
+ * a later time of day on that same day. Pro Hub and Membership both use this
+ * so the same timestamp cannot render as two dates.
+ *
+ * @param timestamp - ISO 8601 timestamp from the Plus subscription.
+ * @param options - Locale and whether the timestamp is an exclusive period end.
+ * @returns e.g. `Jul 19, 2027` for `2027-07-20T00:00:00.000Z`, or `Jul 20, 2027` for `2027-07-20T12:00:00.000Z`. Undefined when missing or unparseable.
  */
 export const formatSubscriptionPeriodEnd = (
-  currentPeriodEnd: string | undefined,
+  timestamp: string | undefined,
+  options: FormatSubscriptionPeriodEndOptions = {},
 ): string | undefined => {
-  if (!currentPeriodEnd) {
+  if (!timestamp) {
     return undefined;
   }
 
-  const date = new Date(currentPeriodEnd);
+  const date = new Date(timestamp);
   if (Number.isNaN(date.getTime())) {
     return undefined;
   }
 
-  return getIntlDateTimeFormatter(I18n.locale, {
+  if (options.exclusivePeriodEnd !== false) {
+    date.setTime(date.getTime() - 1);
+  }
+
+  return getIntlDateTimeFormatter(options.locale ?? I18n.locale, {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone: 'UTC',
   }).format(date);
 };

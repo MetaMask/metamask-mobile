@@ -23,10 +23,13 @@ describe('formatSubscriptionPeriodEnd', () => {
   });
 
   it.each([
+    ['2027-07-20T00:00:00.000Z', 'Jul 19, 2027'],
     ['2027-07-20T12:00:00.000Z', 'Jul 20, 2027'],
     ['2026-09-15T12:00:00.000Z', 'Sep 15, 2026'],
     ['2026-10-04T12:00:00.000Z', 'Oct 4, 2026'],
-  ])('formats %s as %s in English', (timestamp, expected) => {
+    ['2026-12-05T02:00:00.000Z', 'Dec 5, 2026'],
+    ['2026-08-01T00:00:00.000Z', 'Jul 31, 2026'],
+  ])('formats %s as the last included UTC day %s', (timestamp, expected) => {
     I18n.locale = 'en';
 
     expect(formatSubscriptionPeriodEnd(timestamp)).toBe(expected);
@@ -40,13 +43,24 @@ describe('formatSubscriptionPeriodEnd', () => {
     );
   });
 
-  it('renders the calendar day in the device timezone', () => {
-    // Jest runs with TZ=America/Toronto.
+  it('uses the UTC day even when the device calendar day differs', () => {
+    // Jest runs with TZ=America/Toronto. 02:00 UTC is still the previous
+    // evening there, while the exclusive end is still Jul 20 in UTC.
     I18n.locale = 'en';
 
-    expect(formatSubscriptionPeriodEnd('2027-07-20T00:00:00.000Z')).toBe(
-      'Jul 19, 2027',
+    expect(formatSubscriptionPeriodEnd('2027-07-20T02:00:00.000Z')).toBe(
+      'Jul 20, 2027',
     );
+  });
+
+  it('keeps a fallback timestamp on its own UTC day', () => {
+    I18n.locale = 'en';
+
+    expect(
+      formatSubscriptionPeriodEnd('2026-09-20T12:00:00.000Z', {
+        exclusivePeriodEnd: false,
+      }),
+    ).toBe('Sep 20, 2026');
   });
 
   it('returns undefined for a missing timestamp', () => {
