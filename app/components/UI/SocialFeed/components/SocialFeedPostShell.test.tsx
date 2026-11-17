@@ -337,6 +337,31 @@ describe('SocialFeedPostShell', () => {
     });
   });
 
+  it('anchors the picker to the reaction row, not the add button', () => {
+    jest
+      .spyOn(View.prototype, 'measureInWindow')
+      .mockImplementation(function measure(this: unknown, cb) {
+        const testID = (this as { props?: { testID?: string } }).props?.testID;
+        if (
+          testID === `${SocialFeedPostShellSelectorsIDs.REACTION_ROW}-post-1`
+        ) {
+          cb(16, 300, 200, 40);
+          return;
+        }
+        cb(200, 320, 36, 36);
+      });
+
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(
+      screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).toHaveStyle({ left: 16 });
+  });
+
   it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
     mockEnsureSocialProfileOnboarding.mockImplementation(() => {
       mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);

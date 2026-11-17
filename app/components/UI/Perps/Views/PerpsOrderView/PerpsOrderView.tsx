@@ -246,7 +246,10 @@ import {
   openPerpsPostTradeShareSession,
 } from '../../utils/perpsPostTradeShare';
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
-import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import {
   SocialEvent,
   getSocialEventSource,
@@ -548,6 +551,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     undefined,
   );
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const canShareCopyTrade = useCanShareCopyTrade();
   const isPerpsProModeActive = useIsPerpsProModeActive();
   // Survives the abandon-tracking focus reset of `hasPlacedOrderRef`, so a
   // stay-on-screen submit that already `goBack`'d is not popped again.
@@ -2173,6 +2177,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         // dismisses back to the presenting screen. A Social V1 copy-trade that
         // can return an order id shows the share sheet instead of these toasts.
         perpsShareSessionIdRef.current = beginPerpsPostTradeShare({
+          canShare: canShareCopyTrade(),
           copyTradeOrigin,
           orderType: orderForm.type,
           activeProvider: activePerpsProvider,
@@ -2342,6 +2347,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       activePerpsProvider,
       isPerpsProModeActive,
       resolvePostTradePrompt,
+      canShareCopyTrade,
       positionSize,
       effectivePrice,
       assetData.price,

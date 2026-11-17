@@ -664,10 +664,14 @@ let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
 const mockResolvePostTradePrompt = jest.fn();
+const mockCanShareCopyTrade = jest.fn(() => true);
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
-  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+  () => ({
+    usePostTradePromptResolver: () => mockResolvePostTradePrompt,
+    useCanShareCopyTrade: () => mockCanShareCopyTrade,
+  }),
 );
 
 jest.mock('../../utils/perpsModeSwitch', () => ({
@@ -7493,6 +7497,7 @@ describe('PerpsOrderView', () => {
 
     afterEach(() => {
       clearPostTradeShareSession();
+      mockCanShareCopyTrade.mockReturnValue(true);
       applyDefaultHookMocks();
     });
 
@@ -7571,6 +7576,32 @@ describe('PerpsOrderView', () => {
 
     it('keeps the normal toasts for a copied market order below $10 position size', async () => {
       mockOrderSize('9', 10);
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order from an account that cannot post', async () => {
+      mockCanShareCopyTrade.mockReturnValue(false);
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
       const showToast = jest.fn();
       (usePerpsToasts as jest.Mock).mockReturnValue({
         ...mockDefaultUsePerpsToasts(),

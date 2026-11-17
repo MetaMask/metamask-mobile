@@ -83,6 +83,16 @@ const StatusIcon = ({ status }: { status: PostTradeShareStatus }) => {
 
 const getTitle = (session: PostTradeShareSession): string => {
   const isPerps = session.product === 'perps';
+  if (isPerps && session.preview.action === 'close') {
+    switch (session.status) {
+      case 'pending':
+        return strings('social_leaderboard.post_trade_share.close_in_progress');
+      case 'failed':
+        return strings('social_leaderboard.post_trade_share.close_failed');
+      default:
+        return strings('social_leaderboard.post_trade_share.position_closed');
+    }
+  }
   switch (session.status) {
     case 'pending':
       return strings(

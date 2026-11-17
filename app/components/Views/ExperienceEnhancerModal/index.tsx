@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
@@ -10,7 +10,7 @@ import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -18,7 +18,6 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
@@ -111,13 +110,6 @@ const ExperienceEnhancerModal = () => {
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
         <Text variant={TextVariant.BodyMd}>
-          {strings('experience_enhancer_modal.paragraph1a')}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('experience_enhancer_modal.link')}
-            onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-            testID={ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON}
-          />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
 

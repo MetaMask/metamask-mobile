@@ -78,7 +78,10 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
-import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import {
+  useCanShareCopyTrade,
+  usePostTradePromptResolver,
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { isUnsupportedPostTradeAsset } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -126,6 +129,7 @@ const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
   typeof recordSocialTrade
 >;
 const mockResolvePostTradePrompt = jest.fn();
+const mockCanShareCopyTrade = jest.fn();
 const mockIsUnsupportedPostTradeAsset = jest.mocked(
   isUnsupportedPostTradeAsset,
 );
@@ -354,6 +358,8 @@ export const setupDefaultMocks = () => {
   (usePostTradePromptResolver as jest.Mock).mockReturnValue(
     mockResolvePostTradePrompt,
   );
+  mockCanShareCopyTrade.mockReturnValue(true);
+  (useCanShareCopyTrade as jest.Mock).mockReturnValue(mockCanShareCopyTrade);
 };
 
 export const runQuickBuyControllerCases = ({
@@ -4526,6 +4532,28 @@ export const runQuickBuyControllerCases = ({
               }),
             );
           };
+
+          it('opens a pending share sheet for a copy-trade from the linked account', async () => {
+            await submit(true);
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'share',
+              }),
+            );
+          });
+
+          it('uses normal toasts for a copy-trade from an account that cannot post', async () => {
+            mockCanShareCopyTrade.mockReturnValue(false);
+
+            await submit(true);
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expectNormalQuickBuyFeedback();
+          });
 
           it.each([
             ['the minimum amount', '10'],
