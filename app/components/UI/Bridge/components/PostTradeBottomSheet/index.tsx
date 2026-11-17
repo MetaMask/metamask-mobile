@@ -517,17 +517,9 @@ export const PostTradeBottomSheet = () => {
         onTokenPress={handleSuggestionPress}
       />
       {isCreatePostVisible ? (
-        // Stacked by hand, so Create post always sits beneath View activity.
-        <Box style={styles.footer} twClassName="gap-2 px-4 pb-6">
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleViewActivity}
-            testID={PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON}
-          >
-            {strings('bridge.post_trade_modal.view_activity')}
-          </Button>
+        // Same layout as PostTradeShareBottomSheet: Create post is the filled
+        // primary action on top, and View activity is a text-only button below.
+        <Box twClassName="px-4 pb-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -537,6 +529,15 @@ export const PostTradeBottomSheet = () => {
             testID={PostTradeBottomSheetTestIds.CREATE_POST_BUTTON}
           >
             {strings('social_leaderboard.post_trade_share.create_post')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleViewActivity}
+            testID={PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON}
+          >
+            {strings('bridge.post_trade_modal.view_activity')}
           </Button>
         </Box>
       ) : (
