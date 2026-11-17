@@ -113,16 +113,18 @@ describe('EarnRewardsPreview', () => {
       expect(getByText('Earn rewards')).toBeOnTheScreen();
     });
 
-    it('renders the title even while rewards geo is loading', () => {
+    it('does not render Earn rewards while the location is still unknown', () => {
       setupSelectors({ geoStatus: 'loading' });
-      const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Earn rewards')).toBeOnTheScreen();
+      const { queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+      ).toBeNull();
     });
   });
 
   describe('geo loading state', () => {
-    it('shows a header spinner while mUSD geo is loading', () => {
-      setupSelectors({ geoStatus: 'loading' });
+    it('shows a header spinner while a known non-UK location is still loading', () => {
+      setupSelectors({ geoLocation: 'US', geoStatus: 'loading' });
 
       const { UNSAFE_getByType } = render(<EarnRewardsPreview />);
 
@@ -137,25 +139,27 @@ describe('EarnRewardsPreview', () => {
       expect(UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
-    it('shows the mUSD skeleton while geo is loading', () => {
+    it('does not show a skeleton while the location is unknown', () => {
       setupSelectors({ geoStatus: 'loading' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
       ).toBeNull();
     });
 
-    it('shows the mUSD skeleton while geo is idle', () => {
+    it('does not show a skeleton while geo is idle and the location is unknown', () => {
       setupSelectors({ geoStatus: 'idle' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeOnTheScreen();
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+      ).toBeNull();
+    });
+
+    it('does not show a skeleton for the UK while geo is still loading', () => {
+      setupSelectors({ geoLocation: 'GB', geoStatus: 'loading' });
+      const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
       ).toBeNull();
     });
 

@@ -116,9 +116,9 @@ type CarouselSlotKey = 'musd-skeleton' | 'musd';
  * The only slide is the mUSD calculator. It is shown when geoLocation has
  * settled and is not UK. 'UNKNOWN' is treated as non-UK. It is hidden when
  * the location is still unknown or is 'GB', so UK users do not see a flash.
- * While geo is loading (status 'idle' or 'loading') a skeleton occupies the
- * slot. If Money is off, or the location has settled with no slide to show,
- * the section is not rendered.
+ * The section stays unmounted until the location is known and is not the UK,
+ * so a loading skeleton does not appear and then disappear. If Money is off,
+ * or there is no slide to show, the section is not rendered.
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -135,7 +135,13 @@ const EarnRewardsPreview: React.FC = () => {
     isMoneyAccountEnabled &&
     geoLocation !== undefined &&
     geoLocation !== UK_COUNTRY_CODE;
-  const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
+  // A skeleton only while we already know the tile will stay. An unknown or UK
+  // location must not mount the section and then remove it.
+  const showMusdSkeleton =
+    isMoneyAccountEnabled &&
+    isMusdGeoLoading &&
+    geoLocation !== undefined &&
+    geoLocation !== UK_COUNTRY_CODE;
   const { apyPercent } = useMoneyVaultApy();
 
   const handleMusdPress = useCallback(() => {
