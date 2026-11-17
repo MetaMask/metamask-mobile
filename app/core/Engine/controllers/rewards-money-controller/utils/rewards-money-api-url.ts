@@ -1,11 +1,13 @@
 import AppConstants from '../../../../AppConstants';
 
-const LOCALHOST_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]'];
+// `10.0.2.2` is the Android emulator's alias for the host machine's loopback.
+// Inside the emulator, `localhost` is the emulator itself.
+const LOCALHOST_HOSTNAMES = ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'];
 
 /**
- * A Money host on this machine (a locally started API) may be switched to any
- * other host. Every other host is shown as the build's Money URL and the
- * selector stays disabled.
+ * A Money host on this machine (a locally started API, including one reached
+ * through the Android emulator) may be switched to any other host. Every other
+ * host is shown as the build's Money URL and the selector stays disabled.
  *
  * @param url - The build's resolved Money base URL.
  * @returns Whether the Money host can be switched.

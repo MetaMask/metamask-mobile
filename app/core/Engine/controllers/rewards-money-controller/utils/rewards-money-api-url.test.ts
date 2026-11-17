@@ -17,6 +17,7 @@ describe('canChangeRewardsMoneyEnvUrl', () => {
     'http://localhost',
     'http://127.0.0.1:3000',
     'http://[::1]:3000',
+    'http://10.0.2.2:3000',
   ])('returns true for the local host %s', (url) => {
     expect(canChangeRewardsMoneyEnvUrl(url)).toBe(true);
   });
@@ -26,6 +27,7 @@ describe('canChangeRewardsMoneyEnvUrl', () => {
     'https://rewards-money.uat-api.cx.metamask.io',
     'https://rewards-money.api.cx.metamask.io',
     'https://localhost.example.com',
+    'http://10.0.2.3:3000',
     'not a url',
     '',
     undefined,
@@ -56,14 +58,17 @@ describe('getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv', () => {
       expect(canChange).toBe(false);
     });
 
-    it('returns a localhost URL and can change it', () => {
-      process.env.REWARDS_MONEY_API_URL = 'http://localhost:3000';
+    it.each(['http://localhost:3000', 'http://10.0.2.2:3000'])(
+      'returns %s and can change it',
+      (url) => {
+        process.env.REWARDS_MONEY_API_URL = url;
 
-      const [apiUrl, canChange] =
-        getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('dev');
-      expect(apiUrl).toEqual('http://localhost:3000');
-      expect(canChange).toBe(true);
-    });
+        const [apiUrl, canChange] =
+          getDefaultRewardsMoneyApiBaseUrlForMetaMaskEnv('dev');
+        expect(apiUrl).toEqual(url);
+        expect(canChange).toBe(true);
+      },
+    );
   });
 
   it('returns the DEV URL and cannot change it for dev', () => {
