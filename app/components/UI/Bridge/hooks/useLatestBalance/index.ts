@@ -80,6 +80,7 @@ const getTokenIdentity = (token?: {
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
  * @param token.address - The token address.
+ * @param token.isMoneyToken - Whether the token represents the money account.
  * @param token.decimals - The token decimals.
  * @param token.chainId - The chain ID to be used for fetching the balance.
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
@@ -89,6 +90,7 @@ const getTokenIdentity = (token?: {
 export const useLatestBalance = (
   token: {
     address?: string;
+    isMoneyToken?: boolean;
     decimals?: number;
     chainId?: Hex | CaipChainId;
     balance?: string;
@@ -270,6 +272,18 @@ export const useLatestBalance = (
   }, [token.balance, token.decimals]);
 
   const latestBalance = useMemo(() => {
+    if (token.isMoneyToken) {
+      const displayBalance = token.balance ?? '0';
+      let atomicBalance = BigNumber.from(0);
+      if (token.decimals !== undefined) {
+        try {
+          atomicBalance = parseUnits(displayBalance, token.decimals);
+        } catch {
+          atomicBalance = BigNumber.from(0);
+        }
+      }
+      return { displayBalance, atomicBalance };
+    }
     if (!token.address || token.decimals === undefined) {
       return undefined;
     }
@@ -286,7 +300,9 @@ export const useLatestBalance = (
     balance,
     cachedBalance,
     token.address,
+    token.balance,
     token.decimals,
+    token.isMoneyToken,
     tokenIdentityChanged,
   ]);
 
