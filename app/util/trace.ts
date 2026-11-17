@@ -324,6 +324,9 @@ export enum TraceName {
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
   // Explore Search Performance
   ExploreSearchQuery = 'Explore Search Query',
+  // Deferred Render
+  DeferredRenderRelease = 'Deferred Render Release',
+  ScreenTransition = 'Screen Transition',
   // Money Home Performance
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
@@ -418,6 +421,9 @@ export enum TraceOperation {
   HomepageSectionPerformance = 'homepage.section.performance',
   // Explore Search Performance
   ExploreSearch = 'explore.search',
+  // Deferred Render
+  DeferredRender = 'deferred_render',
+  ScreenTransition = 'screen.transition',
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',

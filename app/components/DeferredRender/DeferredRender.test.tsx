@@ -8,9 +8,26 @@ import React, { Profiler, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { act, render, renderHook } from '@testing-library/react-native';
 
+import { endTrace, trace } from '../../util/trace';
 import { SCREEN_TRANSITION_FALLBACK_MS } from '../hooks/subscribeScreenTransition';
 import { DeferredRender } from './DeferredRender';
 import { useDeferredRender } from './useDeferredRender';
+
+jest.mock('../../util/trace', () => ({
+  TraceName: {
+    DeferredRenderRelease: 'Deferred Render Release',
+    ScreenTransition: 'Screen Transition',
+  },
+  TraceOperation: {
+    DeferredRender: 'deferred_render',
+    ScreenTransition: 'screen.transition',
+  },
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
+const mockTrace = trace as jest.Mock;
+const mockEndTrace = endTrace as jest.Mock;
 
 type Listener = (event: { data: { closing: boolean } }) => void;
 
@@ -206,6 +223,148 @@ describe('DeferredRender', () => {
     expect(result.current).toBe(true);
   });
 
+  it('honours a fallbackMs override', () => {
+    const { result } = renderHook(() => useDeferredRender({ fallbackMs: 120 }));
+
+    act(() => {
+      jest.advanceTimersByTime(119);
+    });
+    expect(result.current).toBe(false);
+
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    flushFrame();
+
+    expect(result.current).toBe(true);
+  });
+
+  describe('paint mode', () => {
+    it('releases one frame after mount, without waiting for transitionEnd', () => {
+      const view = render(
+        <DeferredRender
+          mode="paint"
+          placeholder={<View testID="deferred-render-placeholder" />}
+        >
+          <View testID="deferred-render-content" />
+        </DeferredRender>,
+      );
+
+      expect(view.getByTestId('deferred-render-placeholder')).toBeOnTheScreen();
+      expect(mockAddListener).not.toHaveBeenCalled();
+
+      flushFrame();
+
+      expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
+    });
+
+    it('schedules nothing when disabled', () => {
+      const view = render(
+        <DeferredRender
+          mode="paint"
+          enabled={false}
+          placeholder={<View testID="deferred-render-placeholder" />}
+        >
+          <View testID="deferred-render-content" />
+        </DeferredRender>,
+      );
+
+      expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
+      expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('release span', () => {
+    it('opens on mount and closes with success once the children commit', () => {
+      render(gate());
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      release();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace.mock.calls[0][0]).toMatchObject({
+        name: 'Deferred Render Release',
+        data: { success: true, mode: 'transition' },
+      });
+    });
+
+    it('tags the span with screenId when provided', () => {
+      render(
+        <DeferredRender
+          screenId="TokenDetails"
+          placeholder={<View testID="deferred-render-placeholder" />}
+        >
+          <View testID="deferred-render-content" />
+        </DeferredRender>,
+      );
+
+      expect(mockTrace.mock.calls[0][0].tags).toMatchObject({
+        screen_id: 'TokenDetails',
+      });
+    });
+
+    it('closes the span as unmounted when the gate never releases', () => {
+      const { unmount } = render(gate());
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace.mock.calls[0][0]).toMatchObject({
+        data: { success: false, reason: 'unmounted' },
+      });
+    });
+
+    it('does not open a span when disabled', () => {
+      render(gate(undefined, false));
+
+      expect(mockTrace).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('placeholder guard', () => {
+    const devGlobal = global as unknown as { __DEV__: boolean };
+    let warnSpy: jest.SpyInstance;
+    let wasDev: boolean;
+
+    beforeEach(() => {
+      wasDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      devGlobal.__DEV__ = wasDev;
+      warnSpy.mockRestore();
+    });
+
+    it('warns once when gated children have no placeholder', () => {
+      const view = render(
+        <DeferredRender>
+          <View testID="deferred-render-content" />
+        </DeferredRender>,
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('no placeholder');
+
+      view.rerender(
+        <DeferredRender>
+          <View testID="deferred-render-content" />
+        </DeferredRender>,
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays silent when a placeholder is provided', () => {
+      render(gate());
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('nested gates', () => {
     const devGlobal = global as unknown as { __DEV__: boolean };
     let warnSpy: jest.SpyInstance;
@@ -271,7 +430,7 @@ describe('DeferredRender', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it('releases a nested gate on its own 450 ms fallback plus a frame', () => {
+    it('releases a nested gate on its own fallback plus a frame', () => {
       const view = render(
         gate(
           <DeferredRender placeholder={<View testID="inner-placeholder" />}>
@@ -330,6 +489,23 @@ describe('DeferredRender', () => {
 
     expect(result.current).toBe(true);
     expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+  });
+
+  it('stays released when enabled flips from true to false after mount', () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useDeferredRender({ enabled }),
+      { initialProps: { enabled: true } },
+    );
+
+    expect(result.current).toBe(false);
+
+    rerender({ enabled: false });
+
+    expect(result.current).toBe(true);
+
+    rerender({ enabled: true });
+
+    expect(result.current).toBe(true);
   });
 
   it('clears the fallback and both listeners when it unmounts before the transition ends', () => {
