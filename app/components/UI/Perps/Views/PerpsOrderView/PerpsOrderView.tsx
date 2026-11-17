@@ -2233,6 +2233,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               getOrderManagementToastKey(orderForm.type)
             ].submitted(orderForm.direction, positionSize, orderForm.asset),
           );
+        } else if (forceTrade) {
+          // The deposit progress toast never times out and is normally replaced
+          // by the submitted toast, which the share sheet suppresses. Close it
+          // so it does not stay on screen next to the share sheet (TSA-1768).
+          ToastService.toastRef?.current?.closeToast();
         }
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
