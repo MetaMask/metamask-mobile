@@ -325,6 +325,7 @@ jest.mock('../../app/core/Engine', () => {
           kycProvider: [],
         }),
         recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Presents SumSub. Continue on the KYC retry home card must not call it.
         launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
         refreshSessionStatus: jest.fn(),
         deleteEncryptedStorage: jest.fn().mockResolvedValue(undefined),

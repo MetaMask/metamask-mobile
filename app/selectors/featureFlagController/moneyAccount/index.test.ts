@@ -17,6 +17,7 @@ import {
   MONEY_MOVEMENT_NEOBANK_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_BRL_FLAG_KEY,
   MONEY_MOVEMENT_NEOBANK_USD_FLAG_KEY,
+  MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 import type { Json } from '@metamask/utils';
@@ -278,6 +279,12 @@ describe('Money Account feature flag selectors', () => {
       currency: 'USD',
       regions: ['US'],
     };
+    const eurFlagOn = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      currency: 'EUR',
+      regions: ['DE'],
+    };
 
     it('returns each open market with normalized regions', () => {
       const result = selectNeobankMarkets.resultFunc({
@@ -289,6 +296,14 @@ describe('Money Account feature flag selectors', () => {
         { currency: 'BRL', regions: ['BR'] },
         { currency: 'USD', regions: ['US'] },
       ]);
+    });
+
+    it('opens the EUR market from its own flag', () => {
+      const result = selectNeobankMarkets.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_EUR_FLAG_KEY]: eurFlagOn,
+      });
+
+      expect(result).toEqual([{ currency: 'EUR', regions: ['DE'] }]);
     });
 
     it('puts BRL before USD even when both open markets list the same country', () => {

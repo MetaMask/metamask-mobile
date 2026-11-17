@@ -142,6 +142,7 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
   NetworkConnectionBannerContent: () => null,
 }));
 let mockNetworkConnectionBannerVisible = false;
+let mockSlowNetworkBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
     status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
@@ -155,6 +156,10 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
           switchableInfuraNetworkClientId: null,
         }
       : null,
+    isVisible:
+      mockNetworkConnectionBannerVisible || mockSlowNetworkBannerVisible,
+    isSlowNetwork: mockSlowNetworkBannerVisible,
+    dismissSlowNetwork: jest.fn(),
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -409,6 +414,10 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
     TabsListRef: {},
   };
 });
+
+jest.mock('../../../hooks/usePrefetchMoneyAccountPlusSubscriptions', () => ({
+  usePrefetchMoneyAccountPlusSubscriptions: jest.fn(),
+}));
 
 import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
@@ -918,6 +927,7 @@ beforeEach(() => {
   mockHeaderNavBarVariantName = 'control';
   mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
+  mockSlowNetworkBannerVisible = false;
   mockCarouselBannersEnabled = false;
   mockIsAccountGroupFunded = false;
 });
@@ -2754,6 +2764,16 @@ describe('Homepage balance breakdown A/B test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
     ).toHaveStyle({ paddingBottom: 16 });
+  });
+
+  it('renders the banner area when the slow network banner is visible', () => {
+    mockSlowNetworkBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
+    ).toBeOnTheScreen();
   });
 
   it('hides breakdown rows during wallet-home post-onboarding', () => {

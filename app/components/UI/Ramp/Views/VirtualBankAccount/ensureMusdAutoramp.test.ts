@@ -119,13 +119,14 @@ describe('ensureMusdAutoramp', () => {
     );
   });
 
-  it.each(['USD', 'BRL'] as const)(
+  it.each(['USD', 'BRL', 'EUR'] as const)(
     'creates the autoramp in %s',
     async (currency) => {
       await expect(ensureMusdAutoramp('0xabc', currency)).resolves.toBe(
         'ready',
       );
 
+      expect(mockRailReadiness).toHaveBeenCalledWith(ABILITIES, currency);
       expect(mockCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           source_currencies: [{ type: 'Fiat', code: currency }],
