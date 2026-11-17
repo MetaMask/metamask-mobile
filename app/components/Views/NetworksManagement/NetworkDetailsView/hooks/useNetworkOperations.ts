@@ -404,7 +404,6 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       NetworkController.removeNetwork(hexChainId);
       PreferencesController.setTokenNetworkFilter(
         getTokenNetworkFilterAfterNetworkDelete(
-          isAllNetworks,
           tokenNetworkFilter,
           hexChainId,
         ) as Record<string, boolean>,
@@ -419,7 +418,6 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
       networkConfigurations,
       providerConfig,
       selectedNetworkClientId,
-      isAllNetworks,
       tokenNetworkFilter,
       identify,
     ],

@@ -1016,6 +1016,29 @@ describe('useNetworkOperations', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
+    it('removes a selected network from a single-network token filter', async () => {
+      setupSelectors({
+        isAllNetworks: false,
+        tokenNetworkFilter: { '0x2a': true },
+        providerConfig: { type: 'rpc', rpcUrl: 'https://other.rpc.io' },
+        networkConfigurations: {
+          '0x2a': {
+            chainId: '0x2a',
+            rpcEndpoints: [{ url: 'https://rpc.example.com' }],
+            defaultRpcEndpointIndex: 0,
+          },
+        },
+      });
+
+      const { result } = renderHook(() => useNetworkOperations());
+
+      await act(async () => {
+        await result.current.removeNetwork('0x2a');
+      });
+
+      expect(mockSetTokenNetworkFilter).toHaveBeenCalledWith({});
+    });
+
     it('throws when network is not found', async () => {
       const { result } = renderHook(() => useNetworkOperations());
 

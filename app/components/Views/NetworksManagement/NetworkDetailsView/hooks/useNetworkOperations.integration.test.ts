@@ -107,7 +107,19 @@ describe('useNetworkOperations — integration', () => {
         ],
       ).toBeDefined();
 
-      const { result } = flow.renderHookWithFlow(() => useNetworkOperations());
+      const { result } = flow.renderHookWithFlow(() => useNetworkOperations(), {
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              PreferencesController: {
+                tokenNetworkFilter: {
+                  [HARNESS_CUSTOM_CHAIN_ID]: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
       await act(async () => {
         await result.current.removeNetwork(HARNESS_CUSTOM_CHAIN_ID);
@@ -118,9 +130,7 @@ describe('useNetworkOperations — integration', () => {
           HARNESS_CUSTOM_CHAIN_ID
         ],
       ).toBeUndefined();
-      expect(flow.mocks.setTokenNetworkFilter).toHaveBeenCalledWith({
-        [HARNESS_CUSTOM_CHAIN_ID]: true,
-      });
+      expect(flow.mocks.setTokenNetworkFilter).toHaveBeenCalledWith({});
       expect(flow.mocks.goBack).toHaveBeenCalled();
     });
 
