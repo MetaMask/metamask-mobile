@@ -16,7 +16,9 @@ export function useCreateRecurringOrder() {
     mutationFn: (request) =>
       recurringOrdersApiClient.createRecurringOrder(request),
     onSuccess: async () => {
-      await invalidateRecurringOrderQueries(queryClient);
+      await invalidateRecurringOrderQueries(queryClient, {
+        refetchOrderLists: true,
+      });
     },
   });
 

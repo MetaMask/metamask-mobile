@@ -87,7 +87,14 @@ describe('useCreateRecurringOrder', () => {
         'RecurringOrdersDataService:invalidateQueries',
         { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
       );
-      expect(invalidateQueries).toHaveBeenCalledTimes(2);
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [RECURRING_ORDERS_QUERY_KEY],
+        refetchType: 'active',
+      });
+      expect(invalidateQueries).toHaveBeenCalledWith({
+        queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY],
+        refetchType: 'active',
+      });
     });
 
     queryClient.clear();

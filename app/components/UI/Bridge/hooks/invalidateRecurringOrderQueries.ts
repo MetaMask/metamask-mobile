@@ -21,6 +21,7 @@ const RECURRING_ORDER_QUERY_INVALIDATIONS = [
 
 export async function invalidateRecurringOrderQueries(
   queryClient: QueryClient,
+  { refetchOrderLists = false }: { refetchOrderLists?: boolean } = {},
 ): Promise<void> {
   await Promise.all(
     RECURRING_ORDER_QUERY_INVALIDATIONS.map(async ({ queryKey }) => {
@@ -41,7 +42,10 @@ export async function invalidateRecurringOrderQueries(
         try {
           await queryClient.invalidateQueries({
             queryKey: [queryKey],
-            refetchType,
+            refetchType:
+              refetchOrderLists && queryKey === RECURRING_ORDERS_QUERY_KEY
+                ? 'active'
+                : refetchType,
           });
         } catch (error) {
           log('Recurring-order UI cache invalidation failed', error);
