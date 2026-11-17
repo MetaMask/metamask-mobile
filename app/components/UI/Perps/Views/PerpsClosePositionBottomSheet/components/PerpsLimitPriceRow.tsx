@@ -95,7 +95,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={0.5}
+            twClassName="gap-0.5"
           >
             {isEmptyInReview ? (
               <>
