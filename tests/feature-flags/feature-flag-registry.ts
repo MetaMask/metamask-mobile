@@ -8416,6 +8416,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialCopyTradeGeoBlockedCountries: {
+    name: 'socialCopyTradeGeoBlockedCountries',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      blockedRegions: ['GB'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tmcuActivityRedesignEnabled: {
     name: 'tmcuActivityRedesignEnabled',
     type: FeatureFlagType.Remote,

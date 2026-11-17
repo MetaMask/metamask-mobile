@@ -27,6 +27,19 @@ describe('PositionSheetFooter', () => {
   });
 
   describe('another trader’s open position', () => {
+    it('omits Copy trade when the viewer is in the UK', () => {
+      render(<PositionSheetFooter {...buildProps({ showCopyTrade: false })} />);
+
+      expect(
+        screen.queryByTestId(
+          PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON,
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PositionDetailsSheetSelectorsIDs.BUY_BUTTON),
+      ).toBeNull();
+    });
+
     it('offers Copy trade and no spot buttons', () => {
       render(<PositionSheetFooter {...buildProps()} />);
 
