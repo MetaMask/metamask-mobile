@@ -180,6 +180,40 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('keeps pending frame completion when demand stops after content is ready', () => {
+      const frameCallbacks: FrameRequestCallback[] = [];
+      global.requestAnimationFrame = jest.fn(
+        (callback: FrameRequestCallback) => {
+          frameCallbacks.push(callback);
+          return frameCallbacks.length;
+        },
+      );
+
+      const { rerender } = renderHook(
+        ({ contentReady, demandStarted }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            demandStarted,
+          }),
+        { initialProps: { contentReady: false, demandStarted: true } },
+      );
+
+      rerender({ contentReady: true, demandStarted: true });
+      rerender({ contentReady: true, demandStarted: false });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      frameCallbacks[0](0);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({ success: true }),
+        }),
+      );
+    });
+
     it('ends the trace when contentReady flips to true', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>

@@ -246,6 +246,16 @@ describe('NFTsSection', () => {
         demandStarted: true,
       }),
     );
+
+    mockIsVisible = false;
+    rerender(<NFTsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        demandStarted: true,
+      }),
+    );
   });
 
   it('navigates to NFTs full view on title press', () => {
