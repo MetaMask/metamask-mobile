@@ -677,9 +677,11 @@ export interface PredictActivityPage {
 
 /**
  * The statuses a deposit shows the app. Each covers one or more statuses the
- * backend stores (va-mmcx-predict-api `docs/FUNDING.md`). `completed`,
- * `cancelled` and `failed` are final, except that a `cancelled` deposit
- * becomes `under_review` when a transfer turns up after it.
+ * backend stores (va-mmcx-predict-api `docs/FUNDING.md`). Only `failed` is
+ * final. A `cancelled` deposit moves on when a transfer turns up after it, a
+ * `completed` one goes to `under_review` when the credited transfer fails or
+ * is returned, and support moves an `under_review` one to `completed` or
+ * `failed`.
  */
 export type PredictDepositStatus =
   | 'awaiting_transfer'

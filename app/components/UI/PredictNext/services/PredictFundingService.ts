@@ -17,9 +17,8 @@ import type {
 
 export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
 
-/** Statuses after which a deposit needs nothing more from the app. A
- * `cancelled` deposit can still move to `under_review`, which resolves it
- * again. */
+/** Statuses after which a deposit needs nothing more from the app. Only
+ * `failed` is final: see {@link RESOLVED_AGAIN}. */
 const RESOLVED_DEPOSIT_STATUSES: readonly PredictDepositStatus[] = [
   'completed',
   'cancelled',
@@ -29,6 +28,32 @@ const RESOLVED_DEPOSIT_STATUSES: readonly PredictDepositStatus[] = [
 
 const isResolved = (status: PredictDepositStatus): boolean =>
   RESOLVED_DEPOSIT_STATUSES.includes(status);
+
+/**
+ * The moves from one resolved status to another that the backend makes
+ * (va-mmcx-predict-api `docs/FUNDING.md`, "Stored statuses and transitions"),
+ * including the ones whose `processing` step a read can miss. Each is news.
+ * A transfer that turns up after a cancel or an expiry moves `cancelled` on.
+ * A credited transfer that fails or is returned moves `completed` to
+ * `under_review`. Support moves `under_review` to `completed` (it got the
+ * funds credited) or `failed` (it closed it without a credit).
+ */
+const RESOLVED_AGAIN: Partial<
+  Record<PredictDepositStatus, readonly PredictDepositStatus[]>
+> = {
+  cancelled: ['under_review', 'completed', 'failed'],
+  completed: ['under_review', 'failed'],
+  under_review: ['completed', 'failed'],
+};
+
+const isAnnouncedMove = (
+  previous: PredictDepositStatus,
+  next: PredictDepositStatus,
+): boolean =>
+  previous !== next &&
+  isResolved(next) &&
+  (!isResolved(previous) ||
+    (RESOLVED_AGAIN[previous]?.includes(next) ?? false));
 
 export interface PredictFundingServicePrepareDepositAction {
   type: 'PredictFundingService:prepareDeposit';
@@ -80,10 +105,12 @@ export type PredictFundingServiceActions =
   | DataServiceInvalidateQueriesAction<'PredictPortfolioService'>;
 
 /**
- * Published once when this process sees a deposit it watched while open
- * reach a status that needs nothing more from the app: `completed`,
- * `cancelled`, `failed` or `under_review`. A deposit first read already
- * resolved is not announced, so an old deposit never shows up as news.
+ * Published when this process sees a deposit it already knew reach a status
+ * that needs nothing more from the app: `completed`, `cancelled`, `failed` or
+ * `under_review`. Each such move is published once, including a later one
+ * after support review (`under_review` to `completed`, say). A deposit first
+ * read already resolved is not announced, so an old deposit never shows up
+ * as news.
  */
 export interface PredictFundingServiceDepositResolvedEvent {
   type: 'PredictFundingService:depositResolved';
@@ -291,18 +318,13 @@ export class PredictFundingService {
     }
     const previous = this.#statuses.get(deposit.operationId);
     this.#statuses.set(deposit.operationId, deposit.status);
-    if (
-      previous !== undefined &&
-      previous !== deposit.status &&
-      isResolved(deposit.status) &&
-      // `cancelled` to `under_review` resolves again: a transfer turned up.
-      (!isResolved(previous) || previous === 'cancelled')
-    ) {
+    if (previous !== undefined && isAnnouncedMove(previous, deposit.status)) {
       this.#messenger.publish('PredictFundingService:depositResolved', {
         venueId: this.#venueId,
         deposit,
       });
-      if (deposit.status === 'completed') {
+      // A credit, or a credit going back to review, changes the Balance.
+      if (deposit.status === 'completed' || previous === 'completed') {
         this.#invalidateBalanceReads();
       }
     }

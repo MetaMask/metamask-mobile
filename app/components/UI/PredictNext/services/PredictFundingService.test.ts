@@ -269,6 +269,89 @@ describe('PredictFundingService', () => {
       ]);
     });
 
+    describe('when support resolves a deposit again', () => {
+      const BALANCE_KEY = ['PredictPortfolioService:getBalance', venueId];
+      const SUMMARY_KEY = [
+        'PredictPortfolioService:getPortfolioSummary',
+        venueId,
+      ];
+      const closedByReview = deposit({
+        ...needsReview,
+        status: 'failed',
+        next: null,
+      });
+      const invalidatedKeys = (): unknown[] =>
+        messenger.mock.call.mock.calls.map(([, { queryKey }]) => queryKey);
+
+      const watch = async (
+        ...statuses: PredictDepositOperation[]
+      ): Promise<void> => {
+        await service.prepareDeposit(venueId, PARAMS, APPROVAL);
+        for (const status of statuses) {
+          funding.getDeposit.mockResolvedValueOnce(status);
+          await service.getDeposit(venueId, OPERATION_ID);
+        }
+        messenger.mock.publish.mockClear();
+        messenger.mock.call.mockClear();
+      };
+
+      it('announces a credit after review and refreshes the Balance and Summary', async () => {
+        await watch(deposit(transferReported), deposit(needsReview));
+        funding.getDeposit.mockResolvedValue(deposit(credited));
+
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(resolvedEvents()).toEqual([
+          [
+            'PredictFundingService:depositResolved',
+            { venueId, deposit: credited },
+          ],
+        ]);
+        expect(invalidatedKeys()).toEqual([BALANCE_KEY, SUMMARY_KEY]);
+      });
+
+      it('announces a review closed without a credit', async () => {
+        await watch(deposit(needsReview));
+        funding.getDeposit.mockResolvedValue(closedByReview);
+
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(resolvedEvents()).toEqual([
+          [
+            'PredictFundingService:depositResolved',
+            { venueId, deposit: closedByReview },
+          ],
+        ]);
+        expect(messenger.mock.call).not.toHaveBeenCalled();
+      });
+
+      it('announces a credit going back to review and refreshes the Balance and Summary', async () => {
+        await watch(deposit(credited));
+        funding.getDeposit.mockResolvedValue(deposit(needsReview));
+
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(resolvedEvents()).toEqual([
+          [
+            'PredictFundingService:depositResolved',
+            { venueId, deposit: needsReview },
+          ],
+        ]);
+        expect(invalidatedKeys()).toEqual([BALANCE_KEY, SUMMARY_KEY]);
+      });
+
+      it('announces a late transfer after a cancel once it is credited', async () => {
+        await watch(deposit(cancelled), deposit(transferReported));
+        funding.getDeposit.mockResolvedValue(deposit(credited));
+
+        await service.getDeposit(venueId, OPERATION_ID);
+        await service.getDeposit(venueId, OPERATION_ID);
+
+        expect(resolvedEvents()).toHaveLength(1);
+        expect(invalidatedKeys()).toEqual([BALANCE_KEY, SUMMARY_KEY]);
+      });
+    });
+
     it('is not published for a deposit first read already resolved', async () => {
       funding.getDeposit.mockResolvedValue(deposit(credited));
 
