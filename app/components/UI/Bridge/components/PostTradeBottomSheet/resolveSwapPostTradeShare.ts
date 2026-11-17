@@ -1,5 +1,8 @@
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isUnsupportedPostTradeAsset } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import {
+  isQuoteTokenListLoaded,
+  isUnsupportedPostTradeAsset,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import {
   isSpotPostTradeShareEligible,
   type PostTradePrompt,
@@ -58,6 +61,11 @@ export const resolveSwapSocialPostTrade = ({
   sourceUsd,
 }: ResolveSwapSocialPostTradeParams): SwapSocialPostTrade | undefined => {
   if (prompt.kind !== 'share_sheet' || !sourceToken || !destToken) {
+    return undefined;
+  }
+  // Without the quote-token list, a quote asset looks like a position, so
+  // quote-to-quote swaps and sells would be offered as buys.
+  if (!isQuoteTokenListLoaded()) {
     return undefined;
   }
   if (!isSpotPostTradeShareEligible(Number(sourceUsd))) {

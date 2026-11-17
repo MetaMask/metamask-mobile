@@ -96,14 +96,18 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 
-// The submit path reads the social post-trade prompt. Its selectors need the
-// version-gated flag helper, which this suite does not exercise.
+// The submit path reads the social post-trade prompt and the social flag. Their
+// selectors need the version-gated flag helper, which this suite does not
+// exercise.
 jest.mock(
   '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
   () => ({
     usePostTradePromptResolver: () => () => ({ kind: 'none' }),
   }),
 );
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => false,
+}));
 
 jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
   useHwConnectionMonitoring: jest.fn(() => ({

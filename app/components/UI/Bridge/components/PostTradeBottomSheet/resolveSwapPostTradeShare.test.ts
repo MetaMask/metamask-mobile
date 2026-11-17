@@ -1,11 +1,17 @@
-import { isUnsupportedPostTradeAsset } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import {
+  isQuoteTokenListLoaded,
+  isUnsupportedPostTradeAsset,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
 import type { BridgeToken } from '../../types';
 import { resolveSwapSocialPostTrade } from './resolveSwapPostTradeShare';
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
-  () => ({ isUnsupportedPostTradeAsset: jest.fn() }),
+  () => ({
+    isQuoteTokenListLoaded: jest.fn(),
+    isUnsupportedPostTradeAsset: jest.fn(),
+  }),
 );
 
 const ETH_NATIVE: BridgeToken = {
@@ -74,6 +80,7 @@ const resolve = (
 
 describe('resolveSwapSocialPostTrade', () => {
   beforeEach(() => {
+    jest.mocked(isQuoteTokenListLoaded).mockReturnValue(true);
     jest
       .mocked(isUnsupportedPostTradeAsset)
       .mockImplementation((address) =>
@@ -115,6 +122,18 @@ describe('resolveSwapSocialPostTrade', () => {
     ['post_to_feed_toast', { kind: 'post_to_feed_toast' }],
   ])('returns nothing when the prompt is %s', (_label, prompt) => {
     expect(resolve({ prompt })).toBeUndefined();
+  });
+
+  it('returns nothing while the quote-token list is not loaded', () => {
+    jest.mocked(isQuoteTokenListLoaded).mockReturnValue(false);
+
+    expect(resolve()).toBeUndefined();
+    expect(
+      resolve({ sourceToken: ETH_NATIVE, destToken: USDC_ETH }),
+    ).toBeUndefined();
+    expect(
+      resolve({ sourceToken: PEPE_ETH, destToken: USDC_ETH }),
+    ).toBeUndefined();
   });
 
   it('returns nothing for a quote-to-quote swap', () => {

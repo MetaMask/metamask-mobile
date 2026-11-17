@@ -18,6 +18,8 @@ import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { BridgeToken } from '../../types';
 import type { RootState } from '../../../../../reducers';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -79,6 +81,31 @@ jest.mock(
   }),
 );
 
+const mockIsQuoteTokenListLoaded = jest.fn();
+const mockPrefetchQuoteTokens = jest.fn();
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens',
+  () => ({
+    isQuoteTokenListLoaded: () => mockIsQuoteTokenListLoaded(),
+    // ETH is a quote asset. Every other test token is a position.
+    isUnsupportedPostTradeAsset: (address: string) =>
+      address === '0x0000000000000000000000000000000000000000',
+    prefetchQuoteTokens: () => mockPrefetchQuoteTokens(),
+  }),
+);
+
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectIsSocialV1Enabled: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/profileController', () => ({
+  ...jest.requireActual('../../../../../selectors/profileController'),
+  selectProfileControllerLinkedEvmAddress: jest.fn(),
+}));
+
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
   state = {},
@@ -92,6 +119,9 @@ describe('useBridgeConfirm', () => {
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    mockIsQuoteTokenListLoaded.mockReturnValue(true);
+    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
+    jest.mocked(selectProfileControllerLinkedEvmAddress).mockReturnValue(null);
     mockSubmitBridgeTx.mockResolvedValue({
       id: 'tx-meta-id',
       hash: '0xabc',
@@ -607,6 +637,70 @@ describe('useBridgeConfirm', () => {
         txHash: 'destination',
       });
     });
+
+    it('passes a sell of the sold token when the received token is a quote asset', async () => {
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(PEPE_ON_ETHEREUM, ETH_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getPostTradeModalParams()?.socialPostTrade).toMatchObject({
+        tradeInFlightChain: 'ethereum',
+        txHash: 'submitted',
+        preview: { tokenSymbol: 'PEPE', side: 'sell' },
+      });
+    });
+
+    it('omits the swap context while the quote-token list is not loaded', async () => {
+      mockIsQuoteTokenListLoaded.mockReturnValue(false);
+      mockResolvePostTradePrompt.mockReturnValue(SHARE_SHEET_PROMPT);
+      const { result } = renderHook(
+        { ...defaultParams, activeQuote: quoteWithSourceUsd('25') },
+        stateWithTokens(ETH_ON_ETHEREUM, PEPE_ON_ETHEREUM),
+      );
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(getPostTradeModalParams()?.status).toBe(
+        PostTradeStatus.InProgress,
+      );
+      expect(getPostTradeModalParams()?.socialPostTrade).toBeUndefined();
+    });
+
+    it('prefetches the quote-token list when social is on and a profile is linked', () => {
+      jest.mocked(selectIsSocialV1Enabled).mockReturnValue(true);
+      jest
+        .mocked(selectProfileControllerLinkedEvmAddress)
+        .mockReturnValue(WALLET_ADDRESS);
+
+      renderHook();
+
+      expect(mockPrefetchQuoteTokens).toHaveBeenCalledTimes(1);
+    });
+
+    it.each<[string, boolean, string | null]>([
+      ['social is off', false, WALLET_ADDRESS],
+      ['no profile is linked', true, null],
+    ])(
+      'does not prefetch the quote-token list when %s',
+      (_label, isSocialV1Enabled, linkedEvmAddress) => {
+        jest.mocked(selectIsSocialV1Enabled).mockReturnValue(isSocialV1Enabled);
+        jest
+          .mocked(selectProfileControllerLinkedEvmAddress)
+          .mockReturnValue(linkedEvmAddress);
+
+        renderHook();
+
+        expect(mockPrefetchQuoteTokens).not.toHaveBeenCalled();
+      },
+    );
 
     it.each([
       ['none', { kind: 'none' }],

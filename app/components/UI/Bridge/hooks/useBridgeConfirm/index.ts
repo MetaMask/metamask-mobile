@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -30,6 +31,9 @@ import Engine from '../../../../../core/Engine';
 import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { resolveSwapSocialPostTrade } from '../../components/PostTradeBottomSheet/resolveSwapPostTradeShare';
+import { prefetchQuoteTokens } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
+import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
+import { selectProfileControllerLinkedEvmAddress } from '../../../../../selectors/profileController';
 
 interface Params {
   activeQuote?: QuoteResponse | null;
@@ -53,6 +57,17 @@ export const useBridgeConfirm = ({
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
+  const linkedEvmAddress = useSelector(selectProfileControllerLinkedEvmAddress);
+  const canOfferSocialShare = isSocialV1Enabled && Boolean(linkedEvmAddress);
+
+  // Only the social feed loads the quote-token list, and the share check needs
+  // it. Load it here so a swap made without visiting the feed can still share.
+  useEffect(() => {
+    if (canOfferSocialShare) {
+      prefetchQuoteTokens();
+    }
+  }, [canOfferSocialShare]);
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {

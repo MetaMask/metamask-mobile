@@ -522,7 +522,7 @@ describe('PostTradeBottomSheet social Create post CTA', () => {
     ).toBeNull();
     expect(
       getByTestId(PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(incrementShareSheetCount).not.toHaveBeenCalled();
   });
 
@@ -546,7 +546,7 @@ describe('PostTradeBottomSheet social Create post CTA', () => {
 
     expect(
       getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(incrementShareSheetCount).toHaveBeenCalledTimes(1);
     expect(incrementShareSheetCount).toHaveBeenCalledWith(
       COUNT_KEY.address,
@@ -615,7 +615,7 @@ describe('PostTradeBottomSheet social Create post CTA', () => {
     ).toBeNull();
     expect(
       getByTestId(PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(incrementShareSheetCount).not.toHaveBeenCalled();
   });
 
