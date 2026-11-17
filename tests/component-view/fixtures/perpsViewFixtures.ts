@@ -25,14 +25,18 @@ export const createCrossMarginAccountForViews = ({
   maintenanceMargin,
   marginUsed,
   notional,
+  spotCollateral = '0',
 }: {
   balance?: string;
   accountValue?: string;
   maintenanceMargin: string;
   marginUsed: string;
   notional: string;
+  /** Spot USDC counted as cross collateral. `undefined` is not known yet. */
+  spotCollateral?: string;
 }): AccountState => ({
   ...createFundedAccountForViews(balance),
+  spotCollateral,
   crossMarginSummary: {
     accountValue,
     maintenanceMargin,

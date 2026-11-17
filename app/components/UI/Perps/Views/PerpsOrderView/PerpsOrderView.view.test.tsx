@@ -473,10 +473,12 @@ describe('PerpsOrderView', () => {
                 ...eligibleOverrides.engine.backgroundState.PerpsController,
                 tradeConfigurations: {
                   mainnet: {
-                    ETH: {
-                      pendingConfig: {
-                        takeProfitPrice: '3500',
-                        timestamp: Date.now(),
+                    hyperliquid: {
+                      ETH: {
+                        pendingConfig: {
+                          takeProfitPrice: '3500',
+                          timestamp: Date.now(),
+                        },
                       },
                     },
                   },
@@ -557,10 +559,12 @@ describe('PerpsOrderView', () => {
               ...eligibleOverrides.engine.backgroundState.PerpsController,
               tradeConfigurations: {
                 mainnet: {
-                  ETH: {
-                    pendingConfig: {
-                      takeProfitPrice: '2000',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '2000',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },

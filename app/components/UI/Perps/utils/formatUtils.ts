@@ -7,12 +7,11 @@ import {
   getIntlDateTimeFormatter,
   getIntlNumberFormatter,
 } from '../../../../util/intl';
-import {
-  CROSS_MARGIN_RATIO_MAX_DECIMALS,
-  LIQUIDATION_DISTANCE_DECIMALS,
-} from '../constants/perpsConfig';
+import { createFormatters } from '@metamask/client-utils';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../constants/perpsConfig';
 import {
   type FiatRangeConfig,
+  formatCrossMarginRatio as formatCrossMarginRatioWithFormatters,
   formatPerpsFiat,
   formatHyperLiquidPrice,
   formatWithSignificantDigits,
@@ -1293,8 +1292,9 @@ export const formatLiquidationDistance = (
 };
 
 /**
- * Formats a 0..1 cross margin ratio as an unsigned, locale-aware percentage
- * with at most one decimal.
+ * Formats a 0..1 cross margin ratio as a locale-aware percentage with at most
+ * one decimal. Core's formatter renders it, so rounding and the `%` placement
+ * follow the locale.
  * @example formatCrossMarginRatio(0.174) => "17.4%"
  * @example formatCrossMarginRatio(0.63) => "63%"
  */
@@ -1302,11 +1302,9 @@ export const formatCrossMarginRatio = (
   ratio: number,
   locale?: string,
 ): string =>
-  getPerpsNumberFormatter(locale, {
-    style: 'percent',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: CROSS_MARGIN_RATIO_MAX_DECIMALS,
-  }).format(ratio);
+  formatCrossMarginRatioWithFormatters(ratio, {
+    formatters: createFormatters({ locale: getCurrentPerpsLocale(locale) }),
+  });
 
 /**
  * Parses formatted currency strings back to numeric values

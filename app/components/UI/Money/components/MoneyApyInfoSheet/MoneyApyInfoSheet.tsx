@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Text,
   TextColor,
   TextVariant,
@@ -18,19 +17,30 @@ import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyApyInfoSheetParams {
   apy?: number;
   variant?: MoneyApyInfoSheetVariant;
+  /** Vault status that drives premium and migration copy. */
+  vaultStatus?: MoneyVaultStatus;
 }
 
 const MoneyApyInfoSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
+  const {
+    apy,
+    variant = 'default',
+    vaultStatus = MoneyVaultStatus.Base,
+  } = useParams<MoneyApyInfoSheetParams>();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
@@ -46,6 +56,16 @@ const MoneyApyInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const isPremiumCopy = vaultStatus === MoneyVaultStatus.Premium;
+  const downgradingCopyKey =
+    vaultStatus === MoneyVaultStatus.Downgrading
+      ? 'money.apy_tooltip.migration_downgrading'
+      : undefined;
+  const migrationCopyKey =
+    vaultStatus === MoneyVaultStatus.Upgrading
+      ? 'money.apy_tooltip.migration_upgrading'
+      : downgradingCopyKey;
+
   const body =
     variant === 'deposit' ? (
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
@@ -54,8 +74,18 @@ const MoneyApyInfoSheet = () => {
     ) : (
       <>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('money.apy_tooltip.paragraph_1', { percentage: apy })}
+          {strings(
+            isPremiumCopy
+              ? 'money.apy_tooltip.paragraph_1_premium'
+              : 'money.apy_tooltip.paragraph_1',
+            { percentage: apy },
+          )}
         </Text>
+        {migrationCopyKey ? (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings(migrationCopyKey)}
+          </Text>
+        ) : null}
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('money.apy_tooltip.paragraph_2')}
         </Text>
@@ -75,11 +105,11 @@ const MoneyApyInfoSheet = () => {
       testID={MoneyApyInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.apy_tooltip.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.content}>{body}</View>
     </BottomSheet>
   );

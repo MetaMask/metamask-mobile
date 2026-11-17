@@ -5,7 +5,13 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent, Pressable } from 'react-native';
+import {
+  View,
+  Modal,
+  NativeScrollEvent,
+  Pressable,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -53,6 +59,7 @@ import {
   usePerpsHomeSectionTracking,
   usePerpsMode,
 } from '../../hooks';
+import { usePerpsSectionNearViewport } from '../../hooks/usePerpsSectionNearViewport';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsNetworkManagement } from '../../hooks/usePerpsNetworkManagement';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
@@ -63,6 +70,7 @@ import {
   LEARN_MORE_CONFIG,
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
+  PERPS_LIVE_TRADES_CONFIG,
 } from '../../constants/perpsConfig';
 import {
   selectPerpsFeedbackEnabledFlag,
@@ -101,6 +109,7 @@ import PerpsHomeSectionList from '../../components/PerpsHomeSectionList';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
+import PerpsAvailableBalanceLabel from '../../components/PerpsAvailableBalanceLabel';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import {
@@ -152,6 +161,7 @@ import PerpsProducts from '../../components/PerpsProducts';
 import PerpsExploreSection from '../../components/PerpsExploreSection';
 import { buildExploreTabs } from '../../components/PerpsExploreSection/buildExploreTabs';
 import { usePerpsHomeExploreAbTest } from '../../hooks/usePerpsHomeExploreAbTest';
+import { usePerpsLiveTradesAbTest } from '../../hooks/usePerpsLiveTradesAbTest';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsSocialFeedSection from '../../components/PerpsSocialFeedSection';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
@@ -323,6 +333,27 @@ const PerpsHomeView = () => {
   const { handleSectionLayout, handleScroll, resetTracking } =
     usePerpsHomeSectionTracking();
 
+  const { showLiveTrades } = usePerpsLiveTradesAbTest();
+  const {
+    isNearViewport: isSocialFeedNearViewport,
+    handleLayout: handleSocialFeedNearViewportLayout,
+    handleScroll: handleSocialFeedNearViewportScroll,
+  } = usePerpsSectionNearViewport({
+    enabled: showLiveTrades,
+    marginPx: PERPS_LIVE_TRADES_CONFIG.NearViewportMarginPx,
+  });
+  const trackSocialFeedLayout = useMemo(
+    () => handleSectionLayout('social_feed'),
+    [handleSectionLayout],
+  );
+  const handleSocialFeedLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      trackSocialFeedLayout(event);
+      handleSocialFeedNearViewportLayout(event);
+    },
+    [handleSocialFeedNearViewportLayout, trackSocialFeedLayout],
+  );
+
   // Bridge analytics handler into the Reanimated worklet via onScrollEvent
   const handleScrollEvent = useCallback(
     (scrollY: number, viewportHeight: number) => {
@@ -332,8 +363,9 @@ const PerpsHomeView = () => {
           layoutMeasurement: { width: 0, height: viewportHeight },
         } as NativeScrollEvent,
       });
+      handleSocialFeedNearViewportScroll(scrollY, viewportHeight);
     },
-    [handleScroll],
+    [handleScroll, handleSocialFeedNearViewportScroll],
   );
   // `useAnimatedScrollHandler` may retain the first worklet closure. Keep the
   // RN callback stable while forwarding each event to the latest tracker.
@@ -987,8 +1019,10 @@ const PerpsHomeView = () => {
       {
         key: 'social-feed',
         visible: isSocialFeedVisible,
-        onLayout: handleSectionLayout('social_feed'),
-        content: <PerpsSocialFeedSection />,
+        onLayout: handleSocialFeedLayout,
+        content: (
+          <PerpsSocialFeedSection isNearViewport={isSocialFeedNearViewport} />
+        ),
       },
       {
         key: 'crypto',
@@ -1165,6 +1199,8 @@ const PerpsHomeView = () => {
       isProductsVisible,
       isTopMoversVisible,
       isSocialFeedVisible,
+      handleSocialFeedLayout,
+      isSocialFeedNearViewport,
       isRecentlyAddedVisible,
       recentlyAddedMarkets,
       handleRecentlyAddedMarketPress,
@@ -1376,26 +1412,11 @@ const PerpsHomeView = () => {
                   }
                   testID={PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON}
                 >
-                  <Box flexDirection={BoxFlexDirection.Row} accessible={false}>
-                    <SensitiveText
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                      isHidden={privacyMode}
-                      length={SensitiveTextLength.Short}
-                      testID={
-                        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                      }
-                    >
-                      {formatPerpsBalance(spendableBalance)}
-                    </SensitiveText>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {' '}
-                      {strings('perps.available')}
-                    </Text>
-                  </Box>
+                  <PerpsAvailableBalanceLabel
+                    spendableBalance={spendableBalance}
+                    isHidden={privacyMode}
+                    variant={TextVariant.BodySm}
+                  />
                 </Pressable>
               ) : undefined
             }

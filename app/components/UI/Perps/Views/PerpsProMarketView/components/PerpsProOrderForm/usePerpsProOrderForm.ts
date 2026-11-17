@@ -2133,6 +2133,7 @@ export const usePerpsProOrderForm = ({
       isLong: orderForm.direction === 'long',
       maxLeverage: marketMaxLeverage,
       crossMarginSummary: liveAccount?.crossMarginSummary,
+      spotCollateral: liveAccount?.spotCollateral,
     });
     return estimate === undefined ? '' : String(estimate);
   }, [
@@ -2144,6 +2145,7 @@ export const usePerpsProOrderForm = ({
     orderForm.direction,
     marketData?.maxLeverage,
     liveAccount?.crossMarginSummary,
+    liveAccount?.spotCollateral,
   ]);
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;

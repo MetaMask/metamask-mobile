@@ -11,7 +11,7 @@ import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../selectors
  *
  * `usePushPrePromptVariant` is reused purely for eligibility resolution — the
  * `push_permission` variant means the user is eligible, OS push is not yet enabled, and the
- * OS dialog is still promptable. `markPrePromptShown` is NOT called here, so the soft prompt
+ * OS dialog is still promptable. `markAnswered` is NOT called here, so the soft prompt
  * remains available if the flag is later enabled.
  *
  * Held off while the wallet home onboarding checklist is active, which owns the notifications

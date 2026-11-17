@@ -1,17 +1,11 @@
 import { createSelector } from 'reselect';
-import {
-  selectFeatureFlagThresholdGroups,
-  selectRemoteFeatureFlags,
-} from '../../../../../selectors/featureFlagController';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import { selectHasSocialV1Access } from '../../../../../selectors/featureFlagController/socialV1';
 import {
   VersionGatedFeatureFlag,
+  hasVersionGatedFeatureFlagMinimumVersion,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { resolveABTestAssignment } from '../../../../../util/abTest';
-import {
-  SOCIAL_V1_AB_KEY,
-  SocialV1Variant,
-} from '../../../../Views/SocialLeaderboard/SocialV1View/abTestConfig';
 import type { RootState } from '../../../../../reducers';
 import { hasProperty } from '@metamask/utils';
 import { parseAllowlistAssets } from '../../utils/parseAllowlistAssets';
@@ -436,18 +430,24 @@ export const selectPerpsSocialEnabledFlag = createSelector(
   },
 );
 
-export const selectIsPerpsSocialEnabled = createSelector(
-  selectPerpsSocialEnabledFlag,
+/** True when the app meets `perpsSocialEnabled.minimumVersion`, whatever `enabled` says. */
+export const selectPerpsSocialVersionSupported = createSelector(
   selectRemoteFeatureFlags,
-  selectFeatureFlagThresholdGroups,
-  (isPerpsSocialFlagEnabled, remoteFeatureFlags, thresholdGroups) =>
-    isPerpsSocialFlagEnabled &&
-    resolveABTestAssignment(
-      remoteFeatureFlags,
-      SOCIAL_V1_AB_KEY,
-      Object.values(SocialV1Variant),
-      thresholdGroups,
-    ).variantName === SocialV1Variant.Treatment,
+  (remoteFeatureFlags) =>
+    hasVersionGatedFeatureFlagMinimumVersion(
+      remoteFeatureFlags?.[PERPS_SOCIAL_ENABLED_FLAG_KEY],
+    ),
+);
+
+/**
+ * Perps Social follows Social V1 access (treatment bucket or early access).
+ * `perpsSocialEnabled` contributes only its `minimumVersion` floor.
+ */
+export const selectIsPerpsSocialEnabled = createSelector(
+  selectPerpsSocialVersionSupported,
+  selectHasSocialV1Access,
+  (isVersionSupported, hasSocialV1Access) =>
+    isVersionSupported && hasSocialV1Access,
 );
 
 /**

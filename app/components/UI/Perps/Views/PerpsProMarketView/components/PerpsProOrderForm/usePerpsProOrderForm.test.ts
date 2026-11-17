@@ -222,7 +222,10 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
-let mockLiveAccount: Pick<AccountState, 'crossMarginSummary'> | null = null;
+let mockLiveAccount: Pick<
+  AccountState,
+  'crossMarginSummary' | 'spotCollateral'
+> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
@@ -4021,6 +4024,7 @@ describe('usePerpsProOrderForm', () => {
       (direction, expected) => {
         mockOrderForm.direction = direction;
         mockLiveAccount = {
+          spotCollateral: '0',
           crossMarginSummary: {
             accountValue: '50',
             maintenanceMargin: '20',
@@ -4041,6 +4045,25 @@ describe('usePerpsProOrderForm', () => {
     it('waits for market max leverage before estimating a Cross liquidation price', () => {
       mockMarketData = null;
       mockMarketDataLoading = true;
+      mockLiveAccount = {
+        spotCollateral: '0',
+        crossMarginSummary: {
+          accountValue: '50',
+          maintenanceMargin: '20',
+          marginUsed: '40',
+          notional: '1600',
+        },
+      };
+      const { result } = renderWithCrossMargin();
+
+      act(() => {
+        result.current.onMarginModeSelect('cross');
+      });
+
+      expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
       mockLiveAccount = {
         crossMarginSummary: {
           accountValue: '50',

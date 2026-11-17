@@ -21,6 +21,7 @@ describe('crossMarginSummary', () => {
       const account = {
         totalBalance: '2000',
         crossMarginSummary,
+        spotCollateral: '0',
       } as AccountState;
 
       const result = calculateCrossMarginAccountSummaryFromAccount(account);
@@ -31,6 +32,37 @@ describe('crossMarginSummary', () => {
         accountLeverage: 6.25,
         crossMarginUsage: 0.5,
       });
+    });
+
+    it('counts the account spot collateral in the ratio and usage', () => {
+      const account = {
+        totalBalance: '2000',
+        crossMarginSummary: {
+          ...crossMarginSummary,
+          accountValue: '100',
+          maintenanceMargin: '60',
+          marginUsed: '60',
+        },
+        spotCollateral: '900',
+      } as AccountState;
+
+      const result = calculateCrossMarginAccountSummaryFromAccount(account);
+
+      expect(result.accountRatio).toBeCloseTo(0.06, 10);
+      expect(result.crossMarginUsage).toBeCloseTo(0.06, 10);
+    });
+
+    it('keeps the ratio and usage unknown until the account publishes spot collateral', () => {
+      const account = {
+        totalBalance: '2000',
+        crossMarginSummary,
+      } as AccountState;
+
+      const result = calculateCrossMarginAccountSummaryFromAccount(account);
+
+      expect(result.maintenanceMargin).toBe(250);
+      expect(result.accountRatio).toBeUndefined();
+      expect(result.crossMarginUsage).toBeUndefined();
     });
 
     it('returns undefined metrics for a null account', () => {
@@ -81,6 +113,7 @@ describe('crossMarginSummary', () => {
       size: 10,
       maxLeverage: 50,
       crossMarginSummary,
+      spotCollateral: '0',
     };
 
     it.each([
@@ -101,6 +134,24 @@ describe('crossMarginSummary', () => {
           ...params,
           isLong: true,
           crossMarginSummary: { ...crossMarginSummary, accountValue: '5000' },
+        }),
+      ).toBeUndefined();
+    });
+
+    it('counts spot collateral and stays unknown while it is not published', () => {
+      // 500 of spot lifts the short's liquidation from 173.2673 to 222.7723
+      const withSpot = estimateCrossLiquidationPrice({
+        ...params,
+        isLong: false,
+        spotCollateral: '500',
+      });
+
+      expect(withSpot).toBeCloseTo(222.7723, 4);
+      expect(
+        estimateCrossLiquidationPrice({
+          ...params,
+          isLong: true,
+          spotCollateral: undefined,
         }),
       ).toBeUndefined();
     });

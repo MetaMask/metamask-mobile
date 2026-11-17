@@ -21,6 +21,7 @@ const mockUsePerpsLivePositions = usePerpsLivePositions as jest.Mock;
 
 const crossAccount = {
   totalBalance: '1000',
+  spotCollateral: '0',
   crossMarginSummary: {
     accountValue: '1000',
     maintenanceMargin: '630',
@@ -60,6 +61,22 @@ describe('usePerpsCrossMarginSummary', () => {
         isCrossMarginEnabled: true,
       }),
     );
+  });
+
+  it('keeps the ratio, usage and tone unknown until the account publishes spot collateral', () => {
+    const { spotCollateral: _spotCollateral, ...accountWithoutSpot } =
+      crossAccount;
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: accountWithoutSpot,
+      isInitialLoading: false,
+    });
+
+    const { result } = renderHook(() => usePerpsCrossMarginSummary());
+
+    expect(result.current.accountRatio).toBeUndefined();
+    expect(result.current.crossMarginUsage).toBeUndefined();
+    expect(result.current.tone).toBeUndefined();
+    expect(result.current.maintenanceMargin).toBe(630);
   });
 
   it('reports cross exposure from a cross position when maintenance margin is zero', () => {

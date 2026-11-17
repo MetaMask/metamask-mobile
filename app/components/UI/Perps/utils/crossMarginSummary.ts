@@ -10,7 +10,6 @@ import { formatCrossMarginRatio } from './formatUtils';
 import {
   CROSS_MARGIN_RATIO_DANGER_THRESHOLD,
   CROSS_MARGIN_RATIO_WARNING_THRESHOLD,
-  CROSS_MARGIN_SPOT_COLLATERAL,
 } from '../constants/perpsConfig';
 
 export type CrossMarginRatioTone = 'safe' | 'warning' | 'danger';
@@ -28,6 +27,10 @@ const EMPTY_ACCOUNT_SUMMARY: PerpsAccountSummary = {
 /**
  * Derives the cross margin metrics shown in the balance summary from the
  * streamed account, using Core's account summary.
+ *
+ * The ratio and usage stay undefined until the controller publishes
+ * `account.spotCollateral`, which it does once the spot state and the
+ * Hyperliquid abstraction mode are known. Standard accounts report `'0'`.
  */
 export const calculateCrossMarginAccountSummaryFromAccount = (
   account: AccountState | null | undefined,
@@ -36,7 +39,7 @@ export const calculateCrossMarginAccountSummaryFromAccount = (
     ? calculateAccountSummary({
         totalEquity: account.totalBalance,
         crossMarginSummary: account.crossMarginSummary,
-        spotCollateral: CROSS_MARGIN_SPOT_COLLATERAL,
+        spotCollateral: account.spotCollateral,
       })
     : EMPTY_ACCOUNT_SUMMARY;
 
@@ -54,8 +57,9 @@ const toFiniteNumber = (value: string | undefined): number | undefined => {
  * of the existing cross positions plus the new one. Maintenance margin is half
  * the initial margin at the market's max leverage.
  *
- * @returns The liquidation price, or undefined when an input is missing or the
- * position cannot be liquidated at a positive price.
+ * @returns The liquidation price, or undefined when an input is missing (the
+ * spot collateral included) or the position cannot be liquidated at a
+ * positive price.
  */
 export const estimateCrossLiquidationPrice = ({
   entryPrice,
@@ -63,6 +67,7 @@ export const estimateCrossLiquidationPrice = ({
   isLong,
   maxLeverage,
   crossMarginSummary,
+  spotCollateral,
 }: {
   entryPrice: number;
   /** Unsigned order size in base units. */
@@ -70,11 +75,10 @@ export const estimateCrossLiquidationPrice = ({
   isLong: boolean;
   maxLeverage: number;
   crossMarginSummary: CrossMarginSummary | undefined;
+  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
+  spotCollateral: string | undefined;
 }): number | undefined => {
-  const collateral = getCrossCollateral(
-    crossMarginSummary,
-    CROSS_MARGIN_SPOT_COLLATERAL,
-  );
+  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
   const maintenanceMargin = toFiniteNumber(
     crossMarginSummary?.maintenanceMargin,
   );
