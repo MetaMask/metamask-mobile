@@ -58,11 +58,8 @@ const TermsSheet: React.FC = () => {
         return;
       }
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: url,
-          timestamp: Date.now(),
-        },
+        newTabUrl: url,
+        timestamp: Date.now(),
       });
     },
     [navigation],

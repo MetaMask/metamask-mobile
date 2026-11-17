@@ -221,8 +221,7 @@ describe('useOptout', () => {
         [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.OFF,
       });
 
-      // Should navigate to wallet view and show "Request received" toast
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
       expect(mockWarningToast).toHaveBeenCalledWith(
         'Request received',
         'In about 7 days, your progress will be fully erased.',

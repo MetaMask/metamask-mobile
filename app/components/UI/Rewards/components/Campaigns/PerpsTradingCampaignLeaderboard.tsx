@@ -91,11 +91,8 @@ const PerpsTradingCampaignLeaderboard: React.FC<
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: HYPERTRACKER_ATTRIBUTION_URL,
-        timestamp: Date.now(),
-      },
+      newTabUrl: HYPERTRACKER_ATTRIBUTION_URL,
+      timestamp: Date.now(),
     });
   }, [navigation]);
 

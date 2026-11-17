@@ -105,12 +105,9 @@ const BenefitFullView = () => {
 
     if (benefit.url) {
       navigation.navigate(Routes.BROWSER.HOME, {
-        screen: Routes.BROWSER.VIEW,
-        params: {
-          newTabUrl: benefit.url,
-          timestamp: Date.now(),
-          fromBenefit: true,
-        },
+        newTabUrl: benefit.url,
+        timestamp: Date.now(),
+        fromBenefit: true,
       });
     }
   };
