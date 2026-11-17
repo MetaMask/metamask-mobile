@@ -37,6 +37,7 @@ const mockCreateEventBuilder = jest.fn((event) => ({
 let mockNow = 1000;
 let mockPostTradeStatus = PostTradeStatus.Failed;
 let mockDestinationTxHash: string | undefined;
+let mockSubmittedTxHash: string | undefined;
 let mockSocialPostTrade: SwapSocialPostTrade | undefined;
 let mockTransactionHash: string | undefined;
 let mockPostTradeTrendingTokens = {
@@ -102,8 +103,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('./usePostTradeTxStatus', () => ({
   usePostTradeTxStatus: () => mockPostTradeStatus,
 }));
-jest.mock('./usePostTradeDestinationTxHash', () => ({
-  usePostTradeDestinationTxHash: () => mockDestinationTxHash,
+jest.mock('./usePostTradeTxHashes', () => ({
+  usePostTradeTxHashes: ({
+    transactionHash,
+  }: {
+    transactionHash?: string;
+  }) => ({
+    submittedTxHash: mockSubmittedTxHash ?? transactionHash,
+    destinationTxHash: mockDestinationTxHash,
+  }),
 }));
 jest.mock('../../../../../util/social/postTradePromptStorage', () => ({
   incrementShareSheetCount: jest.fn(),
@@ -147,6 +155,7 @@ beforeEach(() => {
   mockSocialPostTrade = undefined;
   mockTransactionHash = undefined;
   mockDestinationTxHash = undefined;
+  mockSubmittedTxHash = undefined;
   mockPostTradeTrendingTokens = {
     tokens: [],
     isLoading: false,
@@ -496,17 +505,21 @@ describe('PostTradeBottomSheet social Create post CTA', () => {
     status,
     socialPostTrade = SOCIAL_POST_TRADE,
     transactionHash = SUBMITTED_HASH,
+    submittedTxHash,
     destinationTxHash,
   }: {
     status: PostTradeStatus;
     socialPostTrade?: SwapSocialPostTrade | null;
     transactionHash?: string;
+    /** Hash the live lookup finds when submit returned none. */
+    submittedTxHash?: string;
     destinationTxHash?: string;
   }): ReturnType<typeof render> => {
     mockPostTradeStatus = status;
     mockParams = { ...mockParams, status };
     mockSocialPostTrade = socialPostTrade ?? undefined;
     mockTransactionHash = transactionHash;
+    mockSubmittedTxHash = submittedTxHash;
     mockDestinationTxHash = destinationTxHash;
     return render(React.createElement(PostTradeBottomSheet));
   };
@@ -592,6 +605,23 @@ describe('PostTradeBottomSheet social Create post CTA', () => {
         preview: SOCIAL_POST_TRADE.preview,
       },
     });
+  });
+
+  it('shares the hash found after submit when submit returned none', () => {
+    const LATE_HASH = '0xlate';
+    const { getByTestId } = renderSheet({
+      status: PostTradeStatus.Success,
+      transactionHash: '',
+      submittedTxHash: LATE_HASH,
+    });
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.CREATE_POST_BUTTON),
+    );
+
+    expect(buildSpotPostTradeComposerParams).toHaveBeenCalledWith(
+      expect.objectContaining({ transactionHash: LATE_HASH }),
+    );
   });
 
   it('keeps View activity working while Create post is shown', () => {

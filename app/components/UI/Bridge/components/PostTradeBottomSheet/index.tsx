@@ -77,7 +77,7 @@ import {
   getPostTradeSharedAnalyticsProperties,
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
-import { usePostTradeDestinationTxHash } from './usePostTradeDestinationTxHash';
+import { usePostTradeTxHashes } from './usePostTradeTxHashes';
 import { incrementShareSheetCount } from '../../../../../util/social/postTradePromptStorage';
 import {
   buildSpotPostTradeComposerParams,
@@ -174,7 +174,7 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
-  const destinationTxHash = usePostTradeDestinationTxHash({
+  const { submittedTxHash, destinationTxHash } = usePostTradeTxHashes({
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
@@ -184,7 +184,7 @@ export const PostTradeBottomSheet = () => {
   const socialShareTxHash =
     socialPostTrade?.txHash === 'destination'
       ? destinationTxHash
-      : params.transactionHash;
+      : submittedTxHash;
   // The CTA is disabled until the swap completes. Success without a hash to
   // share hides it, so the sheet never offers a post it cannot make.
   const isCreatePostVisible =
