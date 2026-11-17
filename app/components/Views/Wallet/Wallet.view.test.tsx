@@ -720,7 +720,7 @@ describeForPlatforms('Wallet', () => {
               },
             },
           },
-        } as unknown as Record<string, unknown>,
+        },
       });
 
     beforeEach(async () => {
