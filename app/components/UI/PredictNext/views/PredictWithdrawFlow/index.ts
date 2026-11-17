@@ -1,4 +1,1 @@
-export {
-  PredictWithdrawFlowProvider,
-  usePredictWithdrawFlow,
-} from './PredictWithdrawFlowProvider';
+export { PredictWithdrawScreen } from './PredictWithdrawScreen';

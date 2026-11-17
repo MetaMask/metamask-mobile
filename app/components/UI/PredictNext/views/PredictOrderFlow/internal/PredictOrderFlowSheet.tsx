@@ -26,6 +26,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import {
+  PredictAmountDisplay,
+  PredictKeypad,
+} from '../../../components/PredictAmountEntry';
 import { PredictFlowSheetHost } from '../../../components/PredictFlowSheetHost';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
@@ -56,10 +60,8 @@ import {
   type PredictOrderService,
 } from '../../../services/PredictOrderService';
 
-import { OrderAmountInput } from './OrderAmountInput';
 import { OrderApproval } from './OrderApproval';
 import { OrderBreakdownSheet } from './OrderBreakdownSheet';
-import { OrderKeypad } from './OrderKeypad';
 import { OrderQuickAmounts } from './OrderQuickAmounts';
 import { OrderQuickContracts } from './OrderQuickContracts';
 import { OrderReceiptOutcome } from './OrderReceiptOutcome';
@@ -937,7 +939,7 @@ export const PredictOrderFlowSheet = ({
           ) : (
             <>
               <Box twClassName="items-center justify-center gap-2 py-6">
-                <OrderAmountInput
+                <PredictAmountDisplay
                   amount={intent.action === 'sell' ? contracts : amount}
                   isActive={isKeypadOpen}
                   isDisabled={!isAmountEditable}
@@ -946,7 +948,7 @@ export const PredictOrderFlowSheet = ({
                   accessibilityLabel={
                     intent.action === 'sell'
                       ? strings('predict_next.order_preview.contracts')
-                      : undefined
+                      : strings('predict_next.order_preview.amount')
                   }
                 />
                 {isQuoting ? (
@@ -1050,7 +1052,7 @@ export const PredictOrderFlowSheet = ({
           )}
         </Box>
         {isKeypadOpen && phase === 'input' && (
-          <OrderKeypad
+          <PredictKeypad
             onKeyPress={handleKeyPress}
             onDelete={handleDelete}
             showsDecimalKey={intent.action !== 'sell'}

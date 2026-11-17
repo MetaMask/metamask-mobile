@@ -96,7 +96,7 @@ Money's Predictions-account transfer, pay-with's Predict source (the Predict bal
 
 Kalshi funding needs both halves. The descriptor says what a Venue supports, and `PREDICT_FUNDING_IMPLEMENTATIONS` (`funding/fundingImplementations.ts`) says which flows this client can run. The `next` entry lists `withdraw` only: Withdraw shipped with PRED-1163, and Deposit stays absent until PRED-1161 ships a flow, so a descriptor that lists `deposit` early still shows nothing.
 
-Withdraw's public gate is `usePredictWithdrawAvailable()`, which composes `selectPredictAvailability`, the Active Venue, and that Venue's capabilities through `resolvePredictFunding('withdraw', …)`. Surfaces render their entry point only while it returns `ready`; the execution itself lives in `PredictFundingService` (quote and commit by `previewId`, both bearer-only) and never in the entry point. Receipt observation belongs to the mounted Withdraw sheet (`useWithdrawReceipt`), which polls while it is open and stops when the receipt is terminal, manual review is requested, or the sheet unmounts.
+Withdraw's public gate is `usePredictWithdrawAvailable()`, which composes `selectPredictAvailability`, the Active Venue, and that Venue's capabilities through `resolvePredictFunding('withdraw', …)`. Surfaces render their entry point only while it returns `ready`; the execution itself lives in `PredictFundingService` (quote and commit by `previewId`, both bearer-only) and never in the entry point. Receipt observation belongs to the mounted Withdraw screen (`useWithdrawReceipt`), which polls while it is open and stops when the receipt is terminal, manual review is requested, or the screen unmounts.
 
 ## Rules for the Venue switch
 

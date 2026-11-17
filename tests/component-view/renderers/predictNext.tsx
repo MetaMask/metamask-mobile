@@ -23,7 +23,7 @@ import { PredictPortfolioScreen } from '../../../app/components/UI/PredictNext/v
 import { PredictSearchScreen } from '../../../app/components/UI/PredictNext/views/PredictSearch/PredictSearchScreen';
 import { PredictNextRoutes } from '../../../app/components/UI/PredictNext/navigation/routes';
 import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictOrderFlow';
-import { PredictWithdrawFlowProvider } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
+import { PredictWithdrawScreen } from '../../../app/components/UI/PredictNext/views/PredictWithdrawFlow';
 import { NextVenueProvider } from '../../../app/components/UI/PredictNext/implementation';
 import type { PredictVenueId } from '../../../app/components/UI/PredictNext/types';
 import type {
@@ -37,8 +37,8 @@ import type {
 const DEFAULT_VENUE_ID = 'kalshi' as PredictVenueId;
 
 /** Mirrors production wiring: `PredictImplementationSwitch` provides the
- * Active Venue above the stack, and the Order and Withdraw flow providers wrap
- * it. */
+ * Active Venue above the stack, and the Order flow provider wraps it. The
+ * Withdraw flow is a stack screen, not a provider. */
 const withOrderFlow =
   (
     Component: React.ComponentType,
@@ -47,9 +47,7 @@ const withOrderFlow =
   (props) => (
     <PredictOrderFlowProvider>
       <NextVenueProvider venueId={venueId}>
-        <PredictWithdrawFlowProvider>
-          <Component {...props} />
-        </PredictWithdrawFlowProvider>
+        <Component {...props} />
       </NextVenueProvider>
     </PredictOrderFlowProvider>
   );
@@ -71,6 +69,9 @@ const PortfolioScreen = withOrderFlow(
 );
 const SearchScreen = withOrderFlow(
   PredictSearchScreen as unknown as React.ComponentType<object>,
+);
+const WithdrawScreen = withOrderFlow(
+  PredictWithdrawScreen as unknown as React.ComponentType<object>,
 );
 
 export const renderPredictOrderFlow = (Component: React.ComponentType) =>
@@ -98,6 +99,7 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
       { name: PredictNextRoutes.PORTFOLIO, Component: PortfolioScreen },
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
       // A probe: Home never leaves Predict for the app's Explore tab.
       { name: Routes.TRENDING_VIEW },
     ],
@@ -178,6 +180,7 @@ export const renderPredictPortfolioScreen = (
     [
       { name: PredictNextRoutes.HOME, Component: HomeScreen },
       { name: PredictNextRoutes.EVENT, Component: EventScreen },
+      { name: PredictNextRoutes.WITHDRAW, Component: WithdrawScreen },
     ],
     { state: initialStatePredictNext(privacyMode).build() },
     { ...initialParams },

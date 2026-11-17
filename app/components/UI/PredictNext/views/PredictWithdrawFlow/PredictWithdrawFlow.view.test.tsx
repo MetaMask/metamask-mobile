@@ -14,6 +14,7 @@ import {
 import Engine from '../../../../../core/Engine';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import type { PredictFundingService } from '../../services/PredictFundingService';
+import { PredictAmountEntryTestIds } from '../../components/PredictAmountEntry';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testIds';
 
@@ -127,7 +128,7 @@ const commitBodies = (): unknown[] =>
       init?.body ? (JSON.parse(String(init.body)) as unknown) : undefined,
     );
 
-/** Home's Balance read, which is what the sheet validates against. */
+/** Home's Balance read, which is what the screen validates against. */
 const stubBalance = (available = '12.34') =>
   mockPredictNextMessenger((action: string) => {
     if (action === 'PredictPortfolioService:getBalance') {
@@ -145,14 +146,16 @@ const stubBalance = (available = '12.34') =>
 
 const openWithdrawFlow = async () => {
   fireEvent.press(await screen.findByTestId(PredictHomeTestIds.WITHDRAW));
-  await screen.findByTestId(PredictWithdrawFlowTestIds.SHEET);
+  await screen.findByTestId(PredictWithdrawFlowTestIds.SCREEN);
 };
 
-const typeAmount = (amount: string) =>
-  fireEvent.changeText(
-    screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_INPUT),
-    amount,
-  );
+const typeAmount = (amount: string) => {
+  for (const key of amount) {
+    fireEvent.press(
+      screen.getByTestId(PredictAmountEntryTestIds.KEYPAD_KEY(key)),
+    );
+  }
+};
 
 /** `Engine.context` types stateless services as optional, so the composed
  * instance is read through one named narrowing rather than an inline cast. */
@@ -201,7 +204,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     expect(previewBodies()).toEqual([{ amount: '5.00' }]);
@@ -223,7 +226,7 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
     ).toHaveTextContent('The minimum withdrawal is $1.00.');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await act(async () => undefined);
     expect(previewBodies()).toEqual([]);
@@ -237,7 +240,7 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
     ).toHaveTextContent('Enter an amount within your available balance.');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await act(async () => undefined);
     expect(previewBodies()).toEqual([]);
@@ -251,7 +254,7 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.queryByTestId(PredictWithdrawFlowTestIds.AMOUNT_ERROR),
     ).not.toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     expect(previewBodies()).toEqual([{ amount: '5' }]);
@@ -278,7 +281,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.MAX));
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     expect(previewBodies()).toEqual([{ sweepAll: true }]);
@@ -301,8 +304,13 @@ describe('PredictWithdrawFlow', () => {
   it('shows the destination read-only with the sandbox wallet notice', async () => {
     renderPredictNext();
     await openWithdrawFlow();
+    // The payout account is the Venue's, so the entry step names it and
+    // offers nothing to change.
+    expect(
+      screen.getByTestId(PredictWithdrawFlowTestIds.RECEIVE_VALUE),
+    ).toHaveTextContent('Sandbox wallet');
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.DESTINATION),
@@ -317,7 +325,7 @@ describe('PredictWithdrawFlow', () => {
     ).toBeOnTheScreen();
     // There is no edit affordance for the destination.
     expect(
-      screen.queryByTestId(PredictWithdrawFlowTestIds.AMOUNT_INPUT),
+      screen.queryByTestId(PredictAmountEntryTestIds.DISPLAY),
     ).not.toBeOnTheScreen();
   });
 
@@ -325,14 +333,14 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext(true);
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
 
     expect(screen.queryByText('$5.00')).not.toBeOnTheScreen();
     expect(screen.queryByText('0xcDe7…9B9c')).not.toBeOnTheScreen();
   });
 
-  it('disables Review and shows the offline banner with no connection', async () => {
+  it('disables Continue and shows the offline banner with no connection', async () => {
     netInfoMock.__setMockNetInfo({ type: 'none', isInternetReachable: false });
 
     renderPredictNext();
@@ -342,7 +350,7 @@ describe('PredictWithdrawFlow', () => {
     expect(
       screen.getByTestId(PredictWithdrawFlowTestIds.OFFLINE_BANNER),
     ).toBeOnTheScreen();
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     await act(async () => undefined);
     expect(previewBodies()).toEqual([]);
@@ -367,11 +375,11 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
-    // The sheet hands its tier to the polling hook, which reads the receipt
+    // The screen hands its tier to the polling hook, which reads the receipt
     // back. The step length is a hook-level concern
     // (`useWithdrawReceipt.test.ts`); here the tier must simply not stop
     // observation short of a terminal status. Slow cellular doubles the first
@@ -406,7 +414,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
@@ -435,7 +443,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
@@ -452,7 +460,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
     await screen.findByTestId(PredictWithdrawFlowTestIds.CONFIRM);
     fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONFIRM));
 
@@ -473,7 +481,7 @@ describe('PredictWithdrawFlow', () => {
     renderPredictNext();
     await openWithdrawFlow();
     typeAmount('5.00');
-    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.REVIEW));
+    fireEvent.press(screen.getByTestId(PredictWithdrawFlowTestIds.CONTINUE));
 
     expect(
       await screen.findByTestId(PredictWithdrawFlowTestIds.ERROR),

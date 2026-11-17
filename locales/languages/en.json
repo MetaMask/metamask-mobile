@@ -4030,6 +4030,9 @@
       "pnl_with_percent": "{{amount}} ({{percent}})",
       "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
+    "amount_entry": {
+      "delete": "Delete"
+    },
     "order_preview": {
       "amount": "USD amount",
       "contracts": "Contract count",
@@ -4068,7 +4071,6 @@
       "submitting": "Submitting your order…",
       "done": "Done",
       "close": "Close",
-      "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
@@ -4116,18 +4118,18 @@
     "withdraw": {
       "title": "Withdraw",
       "amount_label": "Amount",
-      "amount_placeholder": "0.00",
-      "available_balance": "Available: {{amount}}",
+      "available_balance": "Available balance: {{amount}}",
       "zero_balance": "Nothing is available to withdraw yet.",
       "max": "Max",
       "below_minimum": "The minimum withdrawal is {{amount}}.",
       "over_balance": "Enter an amount within your available balance.",
       "offline": "You're offline. Reconnect to withdraw.",
-      "review": "Review",
+      "receive_row": "Receive",
+      "receive_sandbox_wallet": "Sandbox wallet",
+      "continue": "Continue",
       "confirm": "Confirm",
       "back": "Back",
       "submitting": "Submitting...",
-      "confirming": "Confirming...",
       "amount_row": "Amount",
       "network_row": "Network",
       "destination_row": "To",

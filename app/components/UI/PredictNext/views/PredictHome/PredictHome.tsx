@@ -48,7 +48,6 @@ import { PredictVenueSelectorButton } from '../../venueSelection';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import { usePredictWithdrawFlow } from '../PredictWithdrawFlow';
 import { usePredictWithdrawAvailable } from '../../funding';
 import type {
   PredictEvent,
@@ -228,7 +227,10 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  const { openWithdrawFlow } = usePredictWithdrawFlow();
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
+    [navigation, venueId],
+  );
   const withdrawResolution = usePredictWithdrawAvailable();
   const openSearch = useCallback(
     () =>
@@ -405,9 +407,7 @@ const PredictHomeView = ({
           <PortfolioActions
             onPositionsPress={openPortfolio}
             onWithdrawPress={
-              withdrawResolution.status === 'ready'
-                ? openWithdrawFlow
-                : undefined
+              withdrawResolution.status === 'ready' ? openWithdraw : undefined
             }
           />
           <HomeTrendingSection

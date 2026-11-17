@@ -157,7 +157,7 @@ describe('PredictPortfolioScreen', () => {
     );
   });
 
-  it('offers Withdraw from the Summary card and opens the sheet', async () => {
+  it('offers Withdraw from the Summary card and opens the screen', async () => {
     const funding = composePredictNextFundingService();
     (Engine.context as Record<string, unknown>).PredictFundingService = funding;
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
@@ -166,7 +166,7 @@ describe('PredictPortfolioScreen', () => {
     fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.WITHDRAW));
 
     expect(
-      await view.findByTestId(PredictWithdrawFlowTestIds.SHEET),
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
     ).toBeOnTheScreen();
     funding.destroy();
   });

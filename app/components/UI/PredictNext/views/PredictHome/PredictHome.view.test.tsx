@@ -284,14 +284,14 @@ describe('PredictHome', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens the Withdraw sheet from the Withdraw action', async () => {
+  it('opens the Withdraw screen from the Withdraw action', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
 
     expect(
-      await view.findByTestId(PredictWithdrawFlowTestIds.SHEET),
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
     ).toBeOnTheScreen();
   });
 

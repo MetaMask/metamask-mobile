@@ -19,7 +19,6 @@ import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import { usePredictWithdrawFlow } from '../PredictWithdrawFlow';
 import { usePredictWithdrawAvailable } from '../../funding';
 import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
@@ -60,7 +59,6 @@ export const PredictPortfolioScreen = () => {
     enabled: activityActive,
   });
   const { openOrderFlow } = usePredictOrderFlow();
-  const { openWithdrawFlow } = usePredictWithdrawFlow();
   const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
@@ -94,6 +92,11 @@ export const PredictPortfolioScreen = () => {
         titleSnapshot,
       });
     },
+    [navigation, venueId],
+  );
+
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
     [navigation, venueId],
   );
 
@@ -139,7 +142,7 @@ export const PredictPortfolioScreen = () => {
           isPrivacyMode={Boolean(privacyMode)}
           onRetry={() => summaryQuery.refetch()}
           onWithdrawPress={
-            withdrawResolution.status === 'ready' ? openWithdrawFlow : undefined
+            withdrawResolution.status === 'ready' ? openWithdraw : undefined
           }
         />
         <PortfolioRecoveryPanel venueId={venueId} />
