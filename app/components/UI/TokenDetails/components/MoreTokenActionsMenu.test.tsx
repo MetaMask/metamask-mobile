@@ -13,6 +13,7 @@ import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import Routes from '../../../../constants/navigation/Routes';
 import NotificationManager from '../../../../core/NotificationManager';
 import { strings } from '../../../../../locales/i18n';
+import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
 
 // Mock BottomSheet so that onCloseBottomSheet(callback) immediately invokes the callback.
 // This allows testing the action handlers (Buy, Receive, View explorer, Remove token).
@@ -158,6 +159,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../Tokens/util/removeNonEvmToken', () => ({
+  removeNonEvmToken: jest.fn(() => Promise.resolve()),
 }));
 
 const mockDeactivateAsset = jest.fn();
@@ -682,6 +687,86 @@ describe('MoreTokenActionsMenu', () => {
         expect.any(Error),
         'MoreTokenActionsMenu: Failed to hide token!',
       );
+    });
+
+    it('passes null as the hidden token symbol when the symbol is empty', async () => {
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        asset: {
+          ...mockRouteParams.asset,
+          symbol: '',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-remove-token'));
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          (call[1] as { screen?: string; params?: { onConfirm?: () => void } })
+            ?.screen === 'AssetHideConfirmation',
+      );
+      const onConfirm = (
+        navigateCall?.[1] as {
+          params?: { onConfirm?: () => void };
+        }
+      )?.params?.onConfirm;
+      onConfirm?.();
+
+      expect(NotificationManager.showSimpleNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: strings('wallet.token_toast.token_hidden_desc', {
+            tokenSymbol: null,
+          }),
+        }),
+      );
+      expect(removeNonEvmToken).not.toHaveBeenCalled();
+    });
+
+    it('removes a non-EVM token before hiding it', async () => {
+      updateRouteParams({
+        hasPerpsMarket: false,
+        hasBalance: true,
+        isBuyable: false,
+        isNativeCurrency: false,
+        asset: {
+          ...mockRouteParams.asset,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
+        state: mockInitialState,
+      });
+
+      await userEvent.press(getByTestId('more-actions-remove-token'));
+
+      const navigateCall = mockNavigate.mock.calls.find(
+        (call: unknown[]) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          (call[1] as { screen?: string; params?: { onConfirm?: () => void } })
+            ?.screen === 'AssetHideConfirmation',
+      );
+      const onConfirm = (
+        navigateCall?.[1] as {
+          params?: { onConfirm?: () => Promise<void> };
+        }
+      )?.params?.onConfirm;
+      await onConfirm?.();
+
+      expect(removeNonEvmToken).toHaveBeenCalledWith({
+        tokenAddress: '0x123',
+        tokenChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        selectInternalAccountByScope: expect.any(Function),
+      });
+      expect(mockHandleHideToken).toHaveBeenCalled();
     });
   });
 

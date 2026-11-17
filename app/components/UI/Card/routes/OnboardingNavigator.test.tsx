@@ -104,7 +104,6 @@ jest.mock(
   () => 'ImmersveFundingApproval',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
-jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
@@ -205,7 +204,7 @@ describe('OnboardingNavigator', () => {
   });
 
   describe('Loading State', () => {
-    describe('when SDK is loading', () => {
+    describe('when SDK is loading and there is no onboarding id', () => {
       beforeEach(() => {
         mockUseSelector.mockReturnValue(null); // onboardingId
         mockUseCardSDK.mockReturnValue({
@@ -215,6 +214,32 @@ describe('OnboardingNavigator', () => {
           setUser: jest.fn(),
           logoutFromProvider: jest.fn(),
           fetchUserData: jest.fn(),
+          isReturningSession: false,
+        });
+      });
+
+      it('renders the stack without a loading indicator', () => {
+        const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+        expect(queryByTestId('activity-indicator')).not.toBeOnTheScreen();
+        const stackNavigator = queryByTestId('stack-navigator');
+        expect(stackNavigator).not.toBeNull();
+        expect(stackNavigator?.props.initialRouteName).toBe(
+          Routes.CARD.ONBOARDING.SIGN_UP,
+        );
+      });
+    });
+
+    describe('when SDK is loading for a Baanx resume', () => {
+      beforeEach(() => {
+        mockUseSelector.mockReturnValue('onboarding-123');
+        mockUseCardSDK.mockReturnValue({
+          user: null,
+          isLoading: true,
+          sdk: null,
+          setUser: jest.fn(),
+          logoutFromProvider: jest.fn(),
+          fetchUserData: jest.fn(() => new Promise<void>(() => undefined)),
           isReturningSession: false,
         });
       });

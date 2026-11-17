@@ -106,6 +106,9 @@ export const getPerpsCrossLiquidationInfoSelector = (
 export const getPerpsMarketDetailsTabSelector = (tab: string) =>
   `perps-market-details-tab-${tab}`;
 
+export const getPerpsLiveTradeRowSelector = (postId: string) =>
+  `perps-home-live-trade-${postId}`;
+
 // ========================================
 // PERPS LOADER SELECTORS
 // ========================================
@@ -187,6 +190,15 @@ export const PerpsWatchlistSelectorsIDs = {
   SHOW_LESS_BUTTON: 'perps-watchlist-show-less-button',
   SUGGESTED_SECTION: 'perps-watchlist-suggested-section',
   SUGGESTED_HEADER: 'perps-watchlist-suggested-header',
+  INLINE_ROWS: 'perps-watchlist-inline-rows',
+} as const;
+
+export const PerpsTabSelectorsIDs = {
+  FILTERS: 'perps-tab-filters',
+  LOADING: 'perps-tab-loading',
+  MARKET_LIST: 'perps-tab-market-list',
+  SORT_SHEET: 'perps-tab-sort-sheet',
+  TRENDING_LISTS_HEADER: 'section-header-perps-trending-lists',
 } as const;
 
 // ========================================
@@ -324,9 +336,11 @@ export const PerpsHomeViewSelectorsIDs = {
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
   SOCIAL_FEED_SECTION: 'perps-home-social-feed-section',
   SOCIAL_FEED_HEADER: 'perps-home-social-feed-header',
+  SOCIAL_FEED_LIVE_TRADES_PILL: 'perps-home-social-feed-live-trades',
   SOCIAL_FEED_TRENDING_PILL: 'perps-home-social-feed-trending',
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
+  LIVE_TRADES_LIST: 'perps-home-live-trades-list',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -500,7 +514,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
   MORE_SECTION: 'perps-market-details-more-section',
   SOCIAL_TABS: 'perps-market-details-social-tabs',
-  FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
+  RISK_DISCLAIMER: 'perps-market-details-risk-disclaimer',
   TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
@@ -960,11 +974,19 @@ export const PerpsChartGridLinesSelectorsIDs = {
 // PERPS MARKET BALANCE ACTIONS SELECTORS
 // ========================================
 
+export const PerpsProviderLogosSelectorsIDs = {
+  CONTAINER: 'perps-provider-logos',
+  HYPERLIQUID: 'perps-provider-logos-hyperliquid',
+  LIGHTER: 'perps-provider-logos-lighter',
+};
+
 export const PerpsMarketBalanceActionsSelectorsIDs = {
   CONTAINER: 'perps-market-balance-actions',
   TITLE_SECTION: 'perps-market-balance-title-section',
   BALANCE_VALUE: 'perps-market-balance-value',
+  AVAILABLE_BALANCE_ROW: 'perps-market-available-balance-row',
   AVAILABLE_BALANCE_TEXT: 'perps-market-available-balance-text',
+  AVAILABLE_BALANCE_SUFFIX: 'perps-market-available-balance-suffix',
   PNL_VALUE: 'perps-market-pnl-value',
   ADD_FUNDS_BUTTON: 'perps-market-add-funds-button',
   WITHDRAW_BUTTON: 'perps-market-withdraw-button',
@@ -1082,6 +1104,7 @@ export const PerpsOrderViewSelectorsIDs = {
   FOOTER: 'perps-order-view-footer',
   SCROLL_VIEW: 'perps-order-view-scroll-view',
   AMOUNT_SLIDER: 'perps-order-view-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-order-view-amount-slider-layout',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
@@ -1111,6 +1134,8 @@ export const PerpsTradeSheetSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'perps-trade-sheet-order-type-button',
   MAX_LEVERAGE_TAG: 'perps-trade-sheet-max-leverage-tag',
   AMOUNT_TOGGLE: 'perps-trade-sheet-amount-toggle',
+  AMOUNT_SLIDER: 'perps-trade-sheet-amount-slider',
+  AMOUNT_SLIDER_LAYOUT: 'perps-trade-sheet-amount-slider-layout',
   LEVERAGE_ROW: 'perps-trade-sheet-leverage-row',
   LIMIT_PRICE_ROW: 'perps-trade-sheet-limit-price-row',
   AUTO_CLOSE_ROW: 'perps-trade-sheet-auto-close-row',

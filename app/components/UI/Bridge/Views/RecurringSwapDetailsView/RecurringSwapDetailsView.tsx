@@ -45,7 +45,7 @@ import { useActivityDetailsItem } from '../../../../Views/ActivityDetails/hooks/
 import { useActivityNetworkName } from '../../../../Views/ActivityDetails/hooks/useActivityNetworkName';
 /* eslint-enable import-x/no-restricted-paths */
 import {
-  RecurringSwapStatus,
+  RecurringSwapState,
   type RecurringSwap,
 } from '../../api/recurringOrders.types';
 import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
@@ -71,15 +71,15 @@ interface RecurringSwapStatusDisplay {
 function getRecurringSwapStatusDisplay(
   swap: RecurringSwap,
 ): RecurringSwapStatusDisplay {
-  if (swap.status === RecurringSwapStatus.Filled) {
+  if (swap.state === RecurringSwapState.Filled) {
     return { status: 'success' };
   }
 
-  if (swap.status === RecurringSwapStatus.Failed) {
+  if (swap.state === RecurringSwapState.Failed) {
     return { status: 'failed' };
   }
 
-  if (swap.status === RecurringSwapStatus.Submitted) {
+  if (swap.state === RecurringSwapState.Submitted) {
     return {
       status: 'pending',
       label: strings('bridge.limit.submitted'),
@@ -93,11 +93,11 @@ function getRecurringSwapStatusDisplay(
 }
 
 function getReason(swap: RecurringSwap): string | undefined {
-  if (swap.status === RecurringSwapStatus.Failed) {
+  if (swap.state === RecurringSwapState.Failed) {
     return swap.failureReason;
   }
 
-  if (swap.status === RecurringSwapStatus.Skipped && swap.skipReason) {
+  if (swap.state === RecurringSwapState.Skipped && swap.skipReason) {
     return strings(`bridge.recurring.${swap.skipReason}`);
   }
 
@@ -259,7 +259,7 @@ function RecurringSwapDetailsView() {
     : undefined;
   const displayChainId = chainId ?? sourceAssetId;
   const networkName = useActivityNetworkName(displayChainId);
-  const hasZeroAmounts = swap.status !== RecurringSwapStatus.Filled;
+  const hasZeroAmounts = swap.state !== RecurringSwapState.Filled;
   const statusDisplay = getRecurringSwapStatusDisplay(swap);
   const sourceTokenAmount: TokenAmount = {
     amount: hasZeroAmounts ? '0' : swap.src.amount,
@@ -278,15 +278,15 @@ function RecurringSwapDetailsView() {
   const executionTimestamp = Date.parse(
     swap.timingData.executedAt ?? swap.timingData.scheduledAt,
   );
-  const accountAddress = isCaipAccountId(order.account)
-    ? parseCaipAccountId(order.account).address
-    : order.account;
+  const accountAddress = isCaipAccountId(order.accountAddress)
+    ? parseCaipAccountId(order.accountAddress).address
+    : order.accountAddress;
   const reason = getReason(swap);
   const shouldOfferDelegation =
-    swap.status === RecurringSwapStatus.Skipped &&
+    swap.state === RecurringSwapState.Skipped &&
     swap.skipReason === 'needs_smart_account';
   const shouldOfferSwapAgain =
-    swap.status === RecurringSwapStatus.Failed && Boolean(swap.txHash);
+    swap.state === RecurringSwapState.Failed && Boolean(swap.txHash);
 
   const handleBack = useCallback(() => {
     navigation.goBack();

@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -50,7 +49,7 @@ import useEarnOpportunityNavigation, {
 } from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useMountEffect from '../../../Money/hooks/useMountEffect';
-import { selectMoneyEntryContext } from '../../../Money/selectors/entry';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
 import {
   EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BUTTON_TYPES,
@@ -62,6 +61,8 @@ import {
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
 import type { EarnModuleNavigationContext } from '../../types/earnModuleEvents.types';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
@@ -174,6 +175,7 @@ const renderNonMoneyStrategyCard = (
 };
 
 const EarnStrategySelectionModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const isNavigatingToDepositRef = useRef(false);
   // Preserve resolved route while bottom sheet closes before navigation runs.
@@ -186,7 +188,7 @@ const EarnStrategySelectionModal = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
-  const moneyEntryContext = useSelector(selectMoneyEntryContext);
+  const moneyEntryContext = useSelector(selectMoneyCtaEntryContext);
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { navigateToDepositForExperience, resolveEarnDepositNavigationRoute } =
@@ -380,7 +382,8 @@ const EarnStrategySelectionModal = () => {
       testID={EarnStrategySelectionModalTestIds.MODAL}
       twClassName="flex-1"
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: EarnStrategySelectionModalTestIds.CLOSE_BUTTON,
@@ -388,7 +391,7 @@ const EarnStrategySelectionModal = () => {
         testID={EarnStrategySelectionModalTestIds.MODAL_HEADER}
       >
         {strings('earn.strategy_selection.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('px-4 pb-6')}

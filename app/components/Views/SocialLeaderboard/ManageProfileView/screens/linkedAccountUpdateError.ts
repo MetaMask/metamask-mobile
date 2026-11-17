@@ -1,22 +1,50 @@
+import {
+  findProfileServiceError,
+  ProfileApiErrorCode,
+} from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { extractHttpStatus } from '../../../../../util/social/socialServiceTelemetry';
+import { LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS } from '../errors/profileApiErrorMessageKeys';
 
 /**
- * A change to `linked_addresses` inside the 30-day window is refused with 403,
- * but 403 is also what the API answers when it will not let this user touch the
- * linked account at all. Only the body tells them apart, and `ProfileService`
- * puts it on the error:
- * `ProfileService: failed to update profile: 403: Linked addresses can only be
- * updated once every 30 days`.
- *
- * Matching the message rather than the status keeps a refusal the user can wait
- * out from being reported as one they cannot.
+ * The Profile API refuses a change inside the cooldown window with
+ * `PROFILE_LINKED_ADDRESSES_COOLDOWN`. The stable code is preferred; older
+ * API deployments omit it, and a 403 plus the message remains the fallback.
  */
 const LINKED_ADDRESS_COOLDOWN_STATUS = 403;
 
 /** The API's cooldown explanation, capturing the length of the window. */
 const LINKED_ADDRESS_COOLDOWN_PATTERN =
-  /linked addresses can only be updated once every (\d+) days/i;
+  /linked addresses can only be updated once every (\d+) days?/i;
+
+/**
+ * The message carried by a thrown error, or '' for a value that is not one.
+ * Envelope-shaped API errors are read through `findProfileServiceError`; this
+ * covers the older deployments that throw a plain `Error`.
+ */
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : '';
+
+/**
+ * The cooldown copy: the window the refusal states, so it never overstates how
+ * long the user must wait. The `RETRY_AFTER` detail is deliberately not used —
+ * it is the time left, which shrinks as the cooldown elapses, and this copy
+ * states the window. A refusal that states no day count uses the fallback key,
+ * which spells out the 30-day policy window.
+ */
+const getCooldownCopy = (error: unknown): string => {
+  const serviceError = findProfileServiceError(error);
+  const message = serviceError?.message ?? getErrorMessage(error);
+  const fromMessage = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
+
+  if (!fromMessage) {
+    return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.default);
+  }
+
+  return strings(LINKED_ADDRESS_COOLDOWN_MESSAGE_KEYS.other, {
+    days: Number(fromMessage),
+  });
+};
 
 /**
  * The copy explaining why the linked account could not be changed, or null
@@ -24,18 +52,21 @@ const LINKED_ADDRESS_COOLDOWN_PATTERN =
  * connection, a server fault, or any other 403 keeps the generic save error.
  */
 export const getLinkedAccountUpdateError = (error: unknown): string | null => {
-  if (extractHttpStatus(error) !== LINKED_ADDRESS_COOLDOWN_STATUS) {
-    return null;
+  const code = findProfileServiceError(error)?.code;
+
+  if (code) {
+    if (code !== ProfileApiErrorCode.ProfileLinkedAddressesCooldown) {
+      return null;
+    }
+  } else {
+    const message = getErrorMessage(error);
+    if (
+      extractHttpStatus(error) !== LINKED_ADDRESS_COOLDOWN_STATUS ||
+      !LINKED_ADDRESS_COOLDOWN_PATTERN.test(message)
+    ) {
+      return null;
+    }
   }
 
-  const message = error instanceof Error ? error.message : '';
-  const cooldownDays = LINKED_ADDRESS_COOLDOWN_PATTERN.exec(message)?.[1];
-
-  if (!cooldownDays) {
-    return null;
-  }
-
-  return strings('social_leaderboard.manage_profile.linked_account_cooldown', {
-    days: cooldownDays,
-  });
+  return getCooldownCopy(error);
 };

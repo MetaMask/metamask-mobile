@@ -696,6 +696,16 @@ export default class AppiumGestures {
   }
 
   /**
+   * Whether the soft keyboard is currently shown.
+   * Page objects use Gestures.isKeyboardShown so they do not touch the driver.
+   */
+  static async isKeyboardShown(): Promise<boolean> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    return drv.isKeyboardShown();
+  }
+
+  /**
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */

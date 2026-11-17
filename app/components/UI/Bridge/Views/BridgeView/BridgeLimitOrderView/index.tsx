@@ -96,6 +96,7 @@ import {
   getOpenLimitOrderDate,
 } from '../../../utils/limitOrders/createLimitOrdersTab';
 import { getLimitOrderDelegationsParams } from '../../../utils/limitOrders/getLimitOrderDelegationsParams';
+import { getAdvancedOrderTokenProperties } from '../../../utils/advancedOrders';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { SentinelFeeTokenErrorBanner } from '../SentinelFeeTokenErrorBanner';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -507,6 +508,7 @@ const BridgeLimitOrderViewContent = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
         .addProperties({
+          ...getAdvancedOrderTokenProperties({ sourceToken, destToken }),
           location,
           feature_id: FeatureId.LIMIT_ORDER,
           order_type: `${executionType}_${LIMIT_ORDER_DIRECTION[priceComparisonDirection].threshold}`,
@@ -541,6 +543,7 @@ const BridgeLimitOrderViewContent = ({
           limitPrice,
           priceComparisonDirection,
         },
+        location,
       },
     });
   }, [

@@ -140,7 +140,6 @@ const addEvmNetworkFromPopularList = async (chainId: Hex) => {
       rpcEndpoints: [
         {
           url: popularNetwork.rpcUrl,
-          failoverUrls: popularNetwork.failoverRpcUrls,
           name: popularNetwork.nickname,
           type: RpcEndpointType.Custom,
         },

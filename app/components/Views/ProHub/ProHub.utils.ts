@@ -1,4 +1,5 @@
 import {
+  CANCEL_TYPES,
   INVOICE_PAYMENT_STATUSES,
   type Subscription,
 } from '@metamask/subscription-controller';
@@ -67,8 +68,24 @@ export const canResumeMembership = (
 export const MembershipManageAction = {
   Resume: 'resume',
   Cancel: 'cancel',
+  CancelBlocked: 'cancel_blocked',
   Hidden: 'hidden',
 } as const;
+
+/**
+ * Whether the server currently refuses cancellation for this membership.
+ *
+ * `not_allowed` and `not_allowed_pending_verification` both mean the Cancel
+ * action cannot be sent, so the row is shown disabled instead.
+ *
+ * @param subscription - Money Account Plus subscription, when one exists.
+ * @returns True when cancellation is blocked.
+ */
+export const isCancelBlocked = (
+  subscription: Subscription | undefined,
+): boolean =>
+  subscription?.cancelType === CANCEL_TYPES.NOT_ALLOWED ||
+  subscription?.cancelType === CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION;
 
 export type MembershipManageAction =
   (typeof MembershipManageAction)[keyof typeof MembershipManageAction];
@@ -78,6 +95,7 @@ export type MembershipManageAction =
  *
  * Resume while a period-end cancellation can still be reversed. Hide the row
  * once that window has closed, and while a payment problem blocks resume.
+ * When the server refuses cancellation, show the Cancel row disabled.
  * Otherwise offer cancel.
  *
  * @param subscription - Money Account Plus subscription, when one exists.
@@ -94,6 +112,10 @@ export const getMembershipManageAction = (
 
   if (subscription?.cancelAtPeriodEnd === true) {
     return MembershipManageAction.Hidden;
+  }
+
+  if (isCancelBlocked(subscription)) {
+    return MembershipManageAction.CancelBlocked;
   }
 
   return MembershipManageAction.Cancel;

@@ -112,7 +112,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const baseForm: NetworkFormState = {
   rpcUrl: 'https://rpc.example.com',
-  failoverRpcUrls: undefined,
   rpcName: 'Test RPC',
   rpcUrlForm: '',
   rpcNameForm: '',

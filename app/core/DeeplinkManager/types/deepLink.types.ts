@@ -23,7 +23,6 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
-  referral?: string;
   ref?: string; // Money referral code
   utm_source?: string;
   utm_medium?: string;
@@ -72,9 +71,6 @@ export interface DeeplinkUrlParams {
   // Buy-specific parameters
   crypto_currency?: string;
   crypto_amount?: string;
-
-  // Home-specific parameters
-  previewToken?: string;
 
   // Privacy-specific parameters
   // Which privacy settings section to scroll to (e.g. 'metametrics',

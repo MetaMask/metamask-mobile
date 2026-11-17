@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonIcon,
@@ -13,7 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ScrollView,
   useWindowDimensions,
@@ -29,6 +28,9 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
 import { themeSocialTermsHtml } from './socialTermsTheme';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -151,6 +153,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onAgree,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const { colors, themeAppearance } = useTheme();
   const termsBackground = colors.background.default;
@@ -161,15 +164,22 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const [viewportHeight, setViewportHeight] = useState(0);
   const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
   const showsHostedTerms = Boolean(uri || html);
-  const themedHtml = html
-    ? themeSocialTermsHtml(html, {
-        background: termsBackground,
-        text: colors.text.default,
-        heading: colors.text.default,
-        link: colors.primary.default,
-        colorScheme: themeAppearance === AppThemeKey.dark ? 'dark' : 'light',
-      })
-    : undefined;
+  const termsText = colors.text.default;
+  const termsLink = colors.primary.default;
+  const colorScheme = themeAppearance === AppThemeKey.dark ? 'dark' : 'light';
+  const themedHtml = useMemo(
+    () =>
+      html
+        ? themeSocialTermsHtml(html, {
+            background: termsBackground,
+            text: termsText,
+            heading: termsText,
+            link: termsLink,
+            colorScheme,
+          })
+        : undefined,
+    [colorScheme, html, termsBackground, termsLink, termsText],
+  );
   const webViewBackgroundStyle = { backgroundColor: termsBackground };
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
@@ -244,7 +254,8 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
       onClose={onClose}
       testID={SocialTermsSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onClose}
         closeButtonProps={{
           testID: SocialTermsSheetSelectorsIDs.CLOSE_BUTTON,
@@ -252,7 +263,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         }}
       >
         {strings('social_leaderboard.terms.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         style={{
           height: windowHeight * BODY_HEIGHT_RATIO,

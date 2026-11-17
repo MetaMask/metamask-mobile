@@ -11,10 +11,9 @@ import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
 import MoneyNextBestActionParallax, {
-  PARALLAX_ARTBOARD_CARD,
   PARALLAX_ARTBOARD_FUND,
 } from '../MoneyNextBestActionParallax';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -28,7 +27,7 @@ import {
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
-  selectIsCardholder,
+  selectHasCard,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -87,7 +86,7 @@ const MoneyOnboardingCard = ({
     isLinking,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
@@ -324,13 +323,6 @@ const MoneyOnboardingCard = ({
       ),
     };
 
-    const cardStepMedia = (
-      <MoneyNextBestActionParallax
-        artboardName={PARALLAX_ARTBOARD_CARD}
-        fallbackImage={moneyOnboardingStepperStep2}
-      />
-    );
-
     // Case 1: Cardholder, or authenticated with a card not yet linked.
     const step2: StepperCardStep = shouldShowLinkCardAction
       ? {
@@ -362,7 +354,6 @@ const MoneyOnboardingCard = ({
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         }
       : // No MetaMask card yet.
         {
@@ -394,7 +385,6 @@ const MoneyOnboardingCard = ({
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         };
 
     return [step1, step2];

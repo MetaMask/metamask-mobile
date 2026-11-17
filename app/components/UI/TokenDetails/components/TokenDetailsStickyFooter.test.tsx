@@ -1,9 +1,25 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  type RenderResult,
+} from '@testing-library/react-native';
+import {
+  fireGestureHandler,
+  getByGestureTestId,
+} from 'react-native-gesture-handler/jest-utils';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { darkTheme } from '@metamask/design-tokens';
+import {
+  LIGHT_MODE_SUCCESS_GREEN,
+  mockTheme,
+  ThemeContext,
+} from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
@@ -65,11 +81,6 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
   __esModule: true,
   default: jest.fn(() => null),
 }));
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
-});
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -147,6 +158,20 @@ const setupSelectorMock = (geolocation?: string) => {
 
 const mockTrackEvent = jest.fn();
 
+// The dialog's sheet has no testID; it is the host view that wraps its drag handle.
+const getSheetShell = (
+  getByTestId: RenderResult['getByTestId'],
+): ReturnType<RenderResult['getByTestId']> => {
+  let node = getByTestId('bottom-sheet-dialog-drag-handle').parent;
+  while (node && (typeof node.type !== 'string' || !node.props.style)) {
+    node = node.parent;
+  }
+  if (!node) {
+    throw new Error('Bottom sheet shell not found');
+  }
+  return node;
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -221,6 +246,177 @@ describe('TokenDetailsStickyFooter', () => {
       ).toBeOnTheScreen();
     });
 
+    it.each([
+      ['collapsed', false, darkTheme.colors.background.default],
+      ['expanded', true, darkTheme.colors.background.elevated1],
+    ])(
+      'paints the %s trader position sheet in one color in dark mode',
+      (_state, isExpanded, expectedColor) => {
+        const darkMockTheme = {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          themeAppearance: AppThemeKey.dark,
+        };
+        const { getByTestId } = render(
+          <ThemeContext.Provider value={darkMockTheme}>
+            <TokenDetailsStickyFooter
+              {...defaultProps}
+              traderPositionPnl={{ positionValue: '$103.31', isExpanded }}
+            />
+          </ThemeContext.Provider>,
+        );
+
+        expect(getByTestId('token-details-sticky-footer-surface')).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+        expect(getSheetShell(getByTestId)).toHaveStyle({
+          backgroundColor: expectedColor,
+        });
+      },
+    );
+
+    it('reports the measured height of the trader position footer', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31' }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 132 } },
+        persist: jest.fn(),
+      });
+
+      await waitFor(() => expect(onFooterLayout).toHaveBeenLastCalledWith(132));
+    });
+
+    it('keeps the collapsed height while the trader position sheet is expanded', async () => {
+      const onFooterLayout = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ positionValue: '$103.31', isExpanded: true }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+
+      await new Promise(process.nextTick);
+      expect(onFooterLayout).not.toHaveBeenCalled();
+    });
+
+    it('reports the collapsed height again once the trader position sheet collapses', async () => {
+      jest.useFakeTimers();
+      const onFooterLayout = jest.fn();
+      const traderPositionPnl = { positionValue: '$103.31', isExpanded: true };
+      const { getByTestId, rerender } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={traderPositionPnl}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      rerender(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{ ...traderPositionPnl, isExpanded: false }}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 392 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(onFooterLayout).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+      fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+        nativeEvent: { layout: { height: 163 } },
+        persist: jest.fn(),
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(163);
+      jest.useRealTimers();
+    });
+
+    it('stops reporting footer height after the trader position sheet expands', async () => {
+      jest.useFakeTimers();
+      try {
+        const onFooterLayout = jest.fn();
+        const traderPositionPnl = {
+          positionValue: '$103.31',
+          isExpanded: false,
+        };
+        const { getByTestId, rerender } = render(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={traderPositionPnl}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 132 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+        expect(onFooterLayout).toHaveBeenLastCalledWith(132);
+
+        rerender(
+          <TokenDetailsStickyFooter
+            {...defaultProps}
+            traderPositionPnl={{ ...traderPositionPnl, isExpanded: true }}
+            onFooterLayout={onFooterLayout}
+          />,
+        );
+        act(() => {
+          jest.advanceTimersByTime(300);
+        });
+        onFooterLayout.mockClear();
+        fireEvent(getByTestId('token-details-sticky-footer'), 'layout', {
+          nativeEvent: { layout: { height: 392 } },
+          persist: jest.fn(),
+        });
+        await act(async () => {
+          await Promise.resolve();
+        });
+
+        expect(onFooterLayout).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports no overlay height when the footer renders in flow', () => {
+      const onFooterLayout = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onFooterLayout={onFooterLayout}
+        />,
+      );
+
+      expect(onFooterLayout).toHaveBeenLastCalledWith(0);
+    });
+
     it('renders the expanded trader position sheet with footer actions', () => {
       const { getByTestId, getByText, getAllByText, queryByText } = render(
         <TokenDetailsStickyFooter
@@ -264,6 +460,34 @@ describe('TokenDetailsStickyFooter', () => {
       ).toBeOnTheScreen();
       expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
       expect(getByText('Buy ETH')).toBeOnTheScreen();
+    });
+
+    it('collapses the trader position sheet after a downward swipe', () => {
+      jest.useFakeTimers();
+      const onToggleExpanded = jest.fn();
+      render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          traderPositionPnl={{
+            positionValue: '$103.31',
+            isExpanded: true,
+            onToggleExpanded,
+          }}
+        />,
+      );
+
+      act(() => {
+        fireGestureHandler(
+          getByGestureTestId('token-details-sticky-footer-sheet-gesture'),
+          [{ translationY: 200, velocityY: 900 }],
+        );
+      });
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(onToggleExpanded).toHaveBeenCalledWith(false);
+      jest.useRealTimers();
     });
 
     it('collapses the expanded trader position sheet when the overlay is pressed', () => {

@@ -71,8 +71,7 @@
           {
             "networkClientId": "mainnet",
             "type": "infura",
-            "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
+            "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -87,8 +86,7 @@
           {
             "networkClientId": "megaeth-testnet-v2",
             "type": "custom",
-            "url": "https://carrot.megaeth.com/rpc",
-            "failoverUrls": []
+            "url": "https://carrot.megaeth.com/rpc"
           }
         ]
       },
@@ -101,7 +99,6 @@
         "nativeCurrency": "MON",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "monad-testnet",
             "type": "custom",
             "url": "https://testnet-rpc.monad.xyz"
@@ -117,7 +114,6 @@
         "nativeCurrency": "BNB",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "bsc-mainnet",
             "type": "infura",
             "url": "https://bsc-mainnet.infura.io/v3/{infuraProjectId}"
@@ -133,7 +129,6 @@
         "nativeCurrency": "POL",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "polygon-mainnet",
             "type": "infura",
             "url": "https://polygon-mainnet.infura.io/v3/{infuraProjectId}"
@@ -149,7 +144,6 @@
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "optimism-mainnet",
             "type": "infura",
             "url": "https://optimism-mainnet.infura.io/v3/{infuraProjectId}"
@@ -165,7 +159,6 @@
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "arbitrum-mainnet",
             "type": "infura",
             "url": "https://arbitrum-mainnet.infura.io/v3/{infuraProjectId}"
@@ -183,8 +176,7 @@
           {
             "networkClientId": "sepolia",
             "type": "infura",
-            "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
+            "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -199,8 +191,7 @@
           {
             "networkClientId": "linea-sepolia",
             "type": "infura",
-            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
+            "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -215,8 +206,7 @@
           {
             "networkClientId": "linea-mainnet",
             "type": "infura",
-            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
-            "failoverUrls": []
+            "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       },
@@ -229,7 +219,6 @@
         "nativeCurrency": "ETH",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "base-mainnet",
             "type": "infura",
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
@@ -245,7 +234,6 @@
         "nativeCurrency": "MON",
         "rpcEndpoints": [
           {
-            "failoverUrls": [],
             "networkClientId": "monad-mainnet",
             "type": "infura",
             "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"

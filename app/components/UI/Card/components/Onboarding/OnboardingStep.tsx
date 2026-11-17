@@ -1,11 +1,15 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
   type LayoutChangeEvent,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import {
+  KeyboardAwareScrollView,
+  KeyboardEvents,
+  type KeyboardAwareScrollViewRef,
+} from 'react-native-keyboard-controller';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, TitleStandard } from '@metamask/design-system-react-native';
@@ -56,8 +60,8 @@ interface OnboardingStepProps {
  * Shared layout for Card onboarding steps.
  *
  * The title block is MMDS `TitleStandard` (title plus `bottomLabel`
- * description, built-in spacing), as in the shipped KYC VerifyIdentity and
- * PartnerTerms screens, with 16pt to the form.
+ * description, built-in 4px gap), as in the shipped KYC VerifyIdentity and
+ * PartnerTerms screens, with 12px above the title and 16pt to the form.
  *
  * Buttons render through the shared `FooterGlass`, pinned outside the scroll
  * and lifted above the keyboard. The pinned container (pt-4, bottom inset plus
@@ -92,11 +96,30 @@ const OnboardingStep = ({
   // the keyboard (pb-4).
   const footerBottomPadding = Number(tw.style('pb-2').paddingBottom ?? 0);
   const keyboardGap = Number(tw.style('pb-4').paddingBottom ?? 0);
+  // Room for the field box itself, not only the caret line, above the footer.
+  const fieldGap = Number(tw.style('pb-6').paddingBottom ?? 0);
   // The pinned footer sits between the scroll content and the keyboard, so
   // the focused field has to clear the footer as well as the keyboard.
   const [footerHeight, setFooterHeight] = useState(0);
+  const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
   const handleFooterLayout = useCallback((event: LayoutChangeEvent) => {
     setFooterHeight(event.nativeEvent.layout.height);
+  }, []);
+
+  // The scroll view waits for the focused input's selection event, and on iOS
+  // that can arrive after the keyboard animation. A press then leaves the
+  // field under the footer until the user types. Once the keyboard is shown,
+  // measure again and scroll. Typing already takes this path.
+  useEffect(() => {
+    const subscription = KeyboardEvents.addListener(
+      'keyboardDidShow',
+      (): void => {
+        scrollRef.current?.assureFocusedInputVisible();
+      },
+    );
+    return (): void => {
+      subscription.remove();
+    };
   }, []);
 
   useFocusEffect(
@@ -130,12 +153,13 @@ const OnboardingStep = ({
         style={tw.style('flex-1')}
       >
         <KeyboardAwareScrollView
+          ref={scrollRef}
           contentContainerStyle={tw.style('flex-grow px-4 pb-6 gap-4')}
           showsVerticalScrollIndicator={false}
           alwaysBounceVertical={false}
           keyboardShouldPersistTaps="handled"
           // Scrolls the focused field into view above the pinned footer.
-          bottomOffset={footerHeight + keyboardGap}
+          bottomOffset={footerHeight + keyboardGap + fieldGap}
           disableScrollOnKeyboardHide
           testID="onboarding-step-scroll"
         >
@@ -144,7 +168,7 @@ const OnboardingStep = ({
             titleProps={{ testID: 'onboarding-step-title' }}
             bottomLabel={description}
             bottomLabelProps={{ testID: 'onboarding-step-description' }}
-            twClassName="shrink-0"
+            twClassName="mt-3 shrink-0"
           />
           <Box testID="onboarding-step-form" twClassName="gap-4 flex-1">
             {formFields}

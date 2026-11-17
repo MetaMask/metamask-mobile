@@ -48,6 +48,17 @@ import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagC
 
 const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
 
+const logIdosJwksPrefetchError =
+  (step: 'fetchIdosEnclaveJwks' | 'fetchIdosRelayJwks') => (error: unknown) => {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: {
+        name: 'CreateVirtualBankAccount',
+        data: { step },
+      },
+    });
+  };
+
 const trackVendorTerms = (
   status: 'viewed' | 'accepted' | 'failed',
   failureReason?: string,
@@ -90,6 +101,7 @@ const CreateVirtualBankAccount = ({
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [isAdvancing, setIsAdvancing] = useState(false);
+  const hasPrefetchedIdosJwksRef = useRef(false);
   const hasEnsuredLocalUserSecretRef = useRef(false);
   const {
     disclaimers,
@@ -128,6 +140,30 @@ const CreateVirtualBankAccount = ({
   useEffect(() => {
     trackVendorTerms('viewed');
   }, []);
+
+  // Warm both idOS JWKS caches once the disclaimers request settles, so
+  // session creation finds the enclave and relay signing keys already cached.
+  // Each fetch runs on its own. A failure is logged, and session creation
+  // fetches any key that is still missing. The ref keeps a disclaimers retry
+  // from firing the pair again.
+  useEffect(() => {
+    if (isLoading || hasPrefetchedIdosJwksRef.current) {
+      return;
+    }
+
+    const kycService = Engine.context.KycService;
+    if (!kycService) {
+      return;
+    }
+
+    hasPrefetchedIdosJwksRef.current = true;
+    kycService
+      .fetchIdosEnclaveJwks()
+      .catch(logIdosJwksPrefetchError('fetchIdosEnclaveJwks'));
+    kycService
+      .fetchIdosRelayJwks()
+      .catch(logIdosJwksPrefetchError('fetchIdosRelayJwks'));
+  }, [isLoading]);
 
   // Pre-creates and persists the UKYC `local_user_secret` once the initial
   // disclaimers request settles, so the later `startSession` call does not

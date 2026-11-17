@@ -1,17 +1,15 @@
+import { assetIdsMatch } from '@metamask/bridge-controller';
 import {
-  assetIdsMatch,
-  BridgeClientId,
-  getClientHeaders,
-} from '@metamask/bridge-controller';
-import {
+  isCaipAccountId,
   isCaipAssetType,
   KnownCaipNamespace,
+  parseCaipAccountId,
   parseCaipAssetType,
+  parseCaipChainId,
   toCaipAccountId,
 } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
-import { getBaseSemVerVersion } from '../../../../util/version';
 import {
+  createMockPrepareRecurringDelegationResponse,
   MOCK_RECURRING_OPEN_ORDER,
   MOCK_RECURRING_ORDERS,
 } from './recurringOrders.mock';
@@ -19,83 +17,41 @@ import { MOCK_RECURRING_SWAPS_BY_ORDER_ID } from './recurringSwaps.mock';
 import {
   RecurringOrderState,
   type CancelRecurringOrderResponse,
+  type CancelRecurringOrderQuery,
   type CreateRecurringOrderRequest,
   type CreateRecurringOrderResponse,
+  type GetRecurringOrderQuery,
+  type GetRecurringOrderResponse,
   type GetRecurringOrdersByAssetQuery,
   type GetRecurringOrdersByAssetResponse,
-  type GetRecurringOrdersQuery,
-  type GetRecurringOrdersResponse,
-  type GetRecurringSwapsQuery,
-  type GetRecurringSwapsResponse,
-  type RecurringApiError,
-  type RecurringApiErrorCode,
+  type ListRecurringOrdersQuery,
+  type ListRecurringOrdersResponse,
+  type ListRecurringSwapsQuery,
+  type ListRecurringSwapsResponse,
+  type PrepareRecurringDelegationQuery,
+  type PrepareRecurringDelegationResponse,
   type RecurringOrder,
 } from './recurringOrders.types';
 import {
   parseCancelRecurringOrderResponse,
   parseCreateRecurringOrderResponse,
-  parseGetRecurringOrdersResponse,
-  parseGetRecurringSwapsResponse,
-  parseRecurringApiError,
+  parseGetRecurringOrderResponse,
+  parseListRecurringOrdersResponse,
+  parseListRecurringSwapsResponse,
+  parsePrepareRecurringDelegationResponse,
 } from './recurringOrders.validators';
-import { getRecurringOrdersBaseUrl } from './getRecurringOrdersBaseUrl';
+import {
+  recurringOrdersApiClient,
+  RecurringApiRequestError,
+} from './recurringOrders.client';
 
-const RECURRING_ORDERS_PATH = '/v2/orders/recurring';
 const DEFAULT_ORDERS_PAGE_LIMIT = 20;
 const DEFAULT_SWAPS_PAGE_LIMIT = 50;
 const MOCK_API_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 500;
 const IS_RECURRING_ORDERS_API_ENABLED = false;
 const cancelledOrderIds = new Set<string>();
 
-export class RecurringApiRequestError extends Error {
-  readonly code: RecurringApiErrorCode;
-  readonly details?: Record<string, unknown>;
-  readonly status: number;
-
-  constructor(status: number, error: RecurringApiError) {
-    super(error.message);
-    this.name = 'RecurringApiRequestError';
-    this.status = status;
-    this.code = error.code;
-    this.details = error.details;
-  }
-}
-
-async function getRecurringHeaders(includeContentType = false) {
-  const bearerToken =
-    await Engine.context.AuthenticationController.getBearerToken();
-
-  return {
-    ...(includeContentType ? { 'Content-Type': 'application/json' } : {}),
-    ...getClientHeaders({
-      clientId: BridgeClientId.MOBILE,
-      clientVersion: getBaseSemVerVersion(),
-      jwt: bearerToken ?? '',
-    }),
-  };
-}
-
-async function throwRecurringApiRequestError(
-  response: Response,
-  operation: string,
-): Promise<never> {
-  try {
-    const error = parseRecurringApiError(await response.json());
-    throw new RecurringApiRequestError(response.status, error);
-  } catch (requestError) {
-    if (requestError instanceof RecurringApiRequestError) {
-      throw requestError;
-    }
-  }
-
-  throw new Error(
-    `${operation}: Request failed with status ${response.status}`,
-  );
-}
-
-function getRecurringOrdersUrl(path = ''): string {
-  return `${getRecurringOrdersBaseUrl()}${RECURRING_ORDERS_PATH}${path}`;
-}
+export { RecurringApiRequestError };
 
 function recurringAssetIdsMatch(left: string, right: string): boolean {
   return (
@@ -109,40 +65,94 @@ export function resetRecurringOrdersMockState(): void {
   cancelledOrderIds.clear();
 }
 
+function getAccountWalletAddress(accountAddress: string): string | undefined {
+  return isCaipAccountId(accountAddress)
+    ? parseCaipAccountId(accountAddress).address.toLowerCase()
+    : undefined;
+}
+
+function getMockAccountAddress(
+  order: RecurringOrder,
+  requestedAccountAddress?: string,
+): RecurringOrder['accountAddress'] {
+  const walletAddress = requestedAccountAddress
+    ? getAccountWalletAddress(requestedAccountAddress)
+    : undefined;
+  const sourceAssetId = order.src.asset.assetId;
+
+  if (!walletAddress || !isCaipAssetType(sourceAssetId)) {
+    return order.accountAddress;
+  }
+
+  const { reference } = parseCaipChainId(
+    parseCaipAssetType(sourceAssetId).chainId,
+  );
+
+  return toCaipAccountId(KnownCaipNamespace.Eip155, reference, walletAddress);
+}
+
 function getRecurringOrdersFromMockState(
-  walletAddress?: string,
+  accountAddress?: string,
 ): RecurringOrder[] {
   return MOCK_RECURRING_ORDERS.map((order) => ({
     ...order,
-    ...(walletAddress
-      ? {
-          account: toCaipAccountId(
-            KnownCaipNamespace.Eip155,
-            '1',
-            walletAddress,
-          ),
-        }
-      : {}),
+    accountAddress: getMockAccountAddress(order, accountAddress),
     ...(cancelledOrderIds.has(order.id)
-      ? { state: RecurringOrderState.Cancelled }
+      ? {
+          state: RecurringOrderState.Cancelled,
+          isCancellable: false,
+          timingData: {
+            ...order.timingData,
+            closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+          },
+        }
       : {}),
   }));
 }
 
+export async function prepareRecurringDelegation(
+  query: PrepareRecurringDelegationQuery,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<PrepareRecurringDelegationResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.prepareRecurringDelegation(query);
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  return parsePrepareRecurringDelegationResponse(
+    createMockPrepareRecurringDelegationResponse(query),
+  );
+}
+
 export async function cancelRecurringOrder(
   orderId: string,
-  accountAddress: string,
+  { accountAddress }: CancelRecurringOrderQuery,
   delayMs = MOCK_API_DELAY_MS,
 ): Promise<CancelRecurringOrderResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.cancelRecurringOrder(orderId, {
+      accountAddress,
+    });
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-  const order = getRecurringOrdersFromMockState().find(
-    ({ id }) => id === orderId,
+  const walletAddress = getAccountWalletAddress(accountAddress);
+  const order = getRecurringOrdersFromMockState(accountAddress).find(
+    (candidate) =>
+      candidate.id === orderId &&
+      getAccountWalletAddress(candidate.accountAddress) === walletAddress,
   );
   if (!order) {
     throw new Error('order_not_found');
   }
-  if (order.state !== RecurringOrderState.Open) {
+  if (order.state === RecurringOrderState.Cancelled) {
+    return parseCancelRecurringOrderResponse({ order });
+  }
+  if (
+    order.state === RecurringOrderState.Completed ||
+    order.state === RecurringOrderState.Expired
+  ) {
     throw new Error('order_not_cancellable');
   }
 
@@ -150,40 +160,52 @@ export async function cancelRecurringOrder(
   return parseCancelRecurringOrderResponse({
     order: {
       ...order,
-      account: accountAddress,
       state: RecurringOrderState.Cancelled,
+      isCancellable: false,
+      timingData: {
+        ...order.timingData,
+        closedAt: order.timingData.closedAt ?? order.timingData.endsAt,
+      },
     },
   });
 }
 
 export async function getRecurringOrders(
-  query: GetRecurringOrdersQuery,
+  query: ListRecurringOrdersQuery,
   delayMs = MOCK_API_DELAY_MS,
-): Promise<GetRecurringOrdersResponse> {
+): Promise<ListRecurringOrdersResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringOrders(query);
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-  const orders = getRecurringOrdersFromMockState(query.walletAddress)
+  const walletAddress = getAccountWalletAddress(query.accountAddress);
+  const orders = getRecurringOrdersFromMockState(query.accountAddress)
     .filter((order) => {
       const sourceAssetId = order.src.asset.assetId;
       const destinationAssetId = order.dest.asset.assetId;
 
+      if (getAccountWalletAddress(order.accountAddress) !== walletAddress) {
+        return false;
+      }
       if (
-        query.orderStates &&
-        !query.orderStates.some((state) => state === order.state)
+        query.states &&
+        !query.states.some((state) => state === order.state)
       ) {
         return false;
       }
       if (
-        query.chainId &&
+        query.chainIds &&
         (!isCaipAssetType(sourceAssetId) ||
-          parseCaipAssetType(sourceAssetId).chainId !== query.chainId)
+          !query.chainIds.includes(parseCaipAssetType(sourceAssetId).chainId))
       ) {
         return false;
       }
       if (
-        query.assetId &&
-        !recurringAssetIdsMatch(sourceAssetId, query.assetId) &&
-        !recurringAssetIdsMatch(destinationAssetId, query.assetId)
+        query.asset &&
+        !recurringAssetIdsMatch(sourceAssetId, query.asset) &&
+        !recurringAssetIdsMatch(destinationAssetId, query.asset)
       ) {
         return false;
       }
@@ -195,15 +217,15 @@ export async function getRecurringOrders(
         Date.parse(left.timingData.createdAt),
     );
   const limit = query.limit ?? DEFAULT_ORDERS_PAGE_LIMIT;
-  const pageStart = Number(query.cursor ?? 0);
+  const pageStart = Number(query.after ?? 0);
   const page = orders.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < orders.length;
 
-  return parseGetRecurringOrdersResponse({
+  return parseListRecurringOrdersResponse({
     orders: page,
-    ...(nextPageStart < orders.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   });
 }
 
@@ -213,9 +235,13 @@ export async function getRecurringOrdersByAsset(
 ): Promise<GetRecurringOrdersByAssetResponse> {
   const response = await getRecurringOrders(
     {
-      walletAddress: query.walletAddress,
-      orderStates: [RecurringOrderState.Open],
-      assetId: query.assetId,
+      accountAddress: toCaipAccountId(
+        KnownCaipNamespace.Eip155,
+        '1',
+        query.walletAddress,
+      ),
+      states: [RecurringOrderState.Open],
+      asset: query.assetId,
       limit: 1,
     },
     delayMs,
@@ -224,15 +250,53 @@ export async function getRecurringOrdersByAsset(
   return response.orders;
 }
 
+export async function getRecurringOrder(
+  orderId: string,
+  { accountAddress }: GetRecurringOrderQuery,
+  delayMs = MOCK_API_DELAY_MS,
+): Promise<GetRecurringOrderResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringOrder(orderId, {
+      accountAddress,
+    });
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, delayMs));
+  const walletAddress = getAccountWalletAddress(accountAddress);
+  const order = getRecurringOrdersFromMockState(accountAddress).find(
+    (candidate) =>
+      candidate.id === orderId &&
+      getAccountWalletAddress(candidate.accountAddress) === walletAddress,
+  );
+
+  if (!order) {
+    throw new Error('order_not_found');
+  }
+
+  return parseGetRecurringOrderResponse(order);
+}
+
 export async function getRecurringSwaps(
   orderId: string,
-  query: GetRecurringSwapsQuery = {},
+  query: ListRecurringSwapsQuery,
   delayMs = MOCK_API_DELAY_MS,
-): Promise<GetRecurringSwapsResponse> {
+): Promise<ListRecurringSwapsResponse> {
+  if (IS_RECURRING_ORDERS_API_ENABLED) {
+    return recurringOrdersApiClient.getRecurringSwaps(orderId, query);
+  }
+
   await new Promise((resolve) => setTimeout(resolve, delayMs));
 
   const orderSwaps = MOCK_RECURRING_SWAPS_BY_ORDER_ID[orderId];
-  if (!orderSwaps) {
+  const order = getRecurringOrdersFromMockState(query.accountAddress).find(
+    ({ id }) => id === orderId,
+  );
+  if (
+    !orderSwaps ||
+    !order ||
+    getAccountWalletAddress(order.accountAddress) !==
+      getAccountWalletAddress(query.accountAddress)
+  ) {
     throw new Error('order_not_found');
   }
 
@@ -242,15 +306,15 @@ export async function getRecurringSwaps(
       Date.parse(left.timingData.executedAt ?? left.timingData.scheduledAt),
   );
   const limit = query.limit ?? DEFAULT_SWAPS_PAGE_LIMIT;
-  const pageStart = Number(query.cursor ?? 0);
+  const pageStart = Number(query.after ?? 0);
   const page = swaps.slice(pageStart, pageStart + limit);
   const nextPageStart = pageStart + page.length;
+  const hasNextPage = nextPageStart < swaps.length;
 
-  return parseGetRecurringSwapsResponse({
+  return parseListRecurringSwapsResponse({
     swaps: page,
-    ...(nextPageStart < swaps.length
-      ? { nextCursor: String(nextPageStart) }
-      : {}),
+    ...(hasNextPage ? { endCursor: String(nextPageStart) } : {}),
+    hasNextPage,
   });
 }
 
@@ -270,15 +334,5 @@ export async function createRecurringOrder(
     );
   }
 
-  const response = await fetch(getRecurringOrdersUrl(), {
-    method: 'POST',
-    headers: await getRecurringHeaders(true),
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    return throwRecurringApiRequestError(response, 'createRecurringOrder');
-  }
-
-  return parseCreateRecurringOrderResponse(await response.json());
+  return recurringOrdersApiClient.createRecurringOrder(request);
 }

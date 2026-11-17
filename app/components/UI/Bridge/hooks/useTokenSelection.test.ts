@@ -102,7 +102,6 @@ jest.mock('../../../../util/networks/customNetworks', () => {
         chainId: '0xa',
         nickname: 'OP',
         rpcUrl: 'https://op-mainnet.infura.io/v3/mock',
-        failoverRpcUrls: [],
         ticker: 'ETH',
         rpcPrefs: {
           blockExplorerUrl: 'https://optimistic.etherscan.io',

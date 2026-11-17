@@ -447,8 +447,10 @@ describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
 
     // ── Kalshi: every surface agrees, Polymarket is gone and idle.
     const kalshi = await readSurfaces(view, 'kalshi');
+    // A featured card shows the Team abbreviation only. The Team name is on the
+    // quote's accessibility label ("Team name, price, buy").
     expect(
-      within(kalshi.sportsCard).getByText('Packers', HIDDEN),
+      within(kalshi.sportsCard).getByLabelText(/^Packers, /, HIDDEN),
     ).toBeOnTheScreen();
     expect(
       within(kalshi.searchRow).getByText(NFL_1.title, HIDDEN),

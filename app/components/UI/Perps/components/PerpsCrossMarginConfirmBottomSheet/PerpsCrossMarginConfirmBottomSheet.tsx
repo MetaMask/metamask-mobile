@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   ButtonsAlignment,
@@ -16,6 +15,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsCrossMarginConfirmBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsCrossMarginConfirmBottomSheetProps } from './PerpsCrossMarginConfirmBottomSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const ACKNOWLEDGEMENT_ITEMS = [
   {
@@ -53,6 +55,7 @@ const INITIAL_ACKNOWLEDGEMENTS: Record<AcknowledgementKey, boolean> = {
 const PerpsCrossMarginConfirmBottomSheet: React.FC<
   PerpsCrossMarginConfirmBottomSheetProps
 > = ({ isVisible = true, onClose, onConfirm, sheetRef: externalSheetRef }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
   const closeIntentRef = useRef<'dismiss' | 'confirm'>('dismiss');
@@ -139,14 +142,15 @@ const PerpsCrossMarginConfirmBottomSheet: React.FC<
       goBack={!externalSheetRef ? handleDismissed : undefined}
       onClose={externalSheetRef ? handleDismissed : undefined}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: PerpsCrossMarginConfirmBottomSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('perps.cross_margin_confirm.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4 pb-3 gap-4" accessible={false}>
         <Text
           variant={TextVariant.BodyMd}

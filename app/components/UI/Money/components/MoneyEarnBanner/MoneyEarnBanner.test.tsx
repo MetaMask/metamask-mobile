@@ -15,7 +15,7 @@ import {
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
-import { useMoneyDepositNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { TokenI } from '../../../Tokens/types';
 
 jest.mock('react-redux', () => ({
@@ -38,7 +38,7 @@ jest.mock('../../hooks/useMoneyVaultApy', () => ({
 
 jest.mock('../../hooks/useMoneyAnalytics');
 jest.mock('../../hooks/useMoneyCtaVisibility');
-jest.mock('../../hooks/useMoneyNavigation');
+jest.mock('../../hooks/useMoneyDepositNavigation');
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -48,7 +48,7 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseDispatch = jest.mocked(useDispatch);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockUseMoneyCtaVisibility = jest.mocked(useMoneyCtaVisibility);
-const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
+const mockUseMoneyDepositNavigation = jest.mocked(useMoneyCtaDepositNavigation);
 
 const MOCK_USDC = {
   name: 'USD Coin',

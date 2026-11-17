@@ -26,8 +26,10 @@ import {
   isPendingClaimRow,
   type EarningsHistoryListItem,
 } from '../../utils/claimEarnings';
+import { CASHBACK_LEDGER_ORIGIN_TYPES } from '../../hooks/useCashbackLedger';
 import {
   formatMusdBaseUnits,
+  formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
 import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
@@ -115,9 +117,20 @@ export const EarningsHistoryRow: React.FC<{
     ? TextColor.TextAlternative
     : (credited?.color ?? TextColor.SuccessDefault);
   const voided = credited?.voided === true;
-  const subtitle = pending
-    ? localizedText.historyClaimPending
-    : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  // Social and referral rows are one UTC day, so ledger_timestamp is that
+  // day's midnight. Counting hours from it reads "19h ago" on a row that is
+  // still today. Cashback rows and settled claims carry a real instant.
+  let subtitle: string;
+  if (isPendingClaimRow(item)) {
+    subtitle = localizedText.historyClaimPending;
+  } else if (
+    item.type === 'earning' &&
+    !CASHBACK_LEDGER_ORIGIN_TYPES.includes(item.earning_origin_type)
+  ) {
+    subtitle = formatRewardsRelativeDay(item.ledger_timestamp.slice(0, 10));
+  } else {
+    subtitle = formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  }
   const iconName = isClaim
     ? IconName.Arrow2UpRight
     : earningIcon(item.earning_origin_type);

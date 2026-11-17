@@ -149,7 +149,7 @@ const SplitBar = ({
 );
 
 const Actions = ({ children }: ChildrenProps) => (
-  <Box twClassName="flex-row gap-[10px]">{children}</Box>
+  <Box twClassName="flex-row gap-2">{children}</Box>
 );
 
 const OutcomeButton = ({
