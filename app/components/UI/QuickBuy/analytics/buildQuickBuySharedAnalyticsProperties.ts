@@ -11,11 +11,7 @@ import type { QuickBuyAnalyticsContext } from '../types';
 export function buildQuickBuySharedAnalyticsProperties(
   analyticsContext?: Pick<
     QuickBuyAnalyticsContext,
-    | 'source'
-    | 'originalEntryPoint'
-    | 'marketCap'
-    | 'isCopyTrade'
-    | 'traderAddress'
+    'source' | 'originalEntryPoint' | 'marketCap' | 'isCopyTrade'
   > & { copyTradeOrigin?: CopyTradeOrigin },
 ): Record<string, string | number | boolean> {
   const props: Record<string, string | number | boolean> = {};
@@ -26,8 +22,6 @@ export function buildQuickBuySharedAnalyticsProperties(
   props[QuickBuyEventProperties.IS_COPY_TRADE] = isQuickBuyCopyTrade({
     copyTradeOrigin: analyticsContext?.copyTradeOrigin,
     isCopyTrade: analyticsContext?.isCopyTrade,
-    source: analyticsContext?.source,
-    traderAddress: analyticsContext?.traderAddress,
   });
   if (analyticsContext?.originalEntryPoint) {
     props[QuickBuyEventProperties.ORIGINAL_ENTRY_POINT] =

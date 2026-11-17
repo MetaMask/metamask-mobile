@@ -10,7 +10,7 @@ describe('isQuickBuyCopyTrade', () => {
       true,
     ],
     [{ isCopyTrade: true, source: 'trader_feed' }, true],
-    [{ source: 'trader_feed', traderAddress: '0xTRADER' }, true],
+    [{ source: 'trader_feed', traderAddress: '0xTRADER' }, false],
     [{ source: 'asset_details', traderAddress: '0xTRADER' }, false],
     [{ source: 'social_trending' }, false],
   ] as const)('returns %s', (input, expected) => {

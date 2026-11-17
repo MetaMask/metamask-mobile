@@ -16,6 +16,7 @@ export type TrackedQuickBuyPostTradePrompt =
       tradeInFlightChain: string;
       preview: SocialPostTradePreview;
       analyticsSource?: SocialEventSource;
+      isCopyTrade?: boolean;
     };
 
 export interface TrackedQuickBuyTrade {

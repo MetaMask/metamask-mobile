@@ -435,7 +435,6 @@ export function useQuickBuyQuotes({
             source: analyticsContext.source,
             originalEntryPoint: analyticsContext.originalEntryPoint,
             isCopyTrade: analyticsContext.isCopyTrade,
-            traderAddress: analyticsContext.traderAddress,
           }),
           ...(analyticsContext.traderAddress
             ? {

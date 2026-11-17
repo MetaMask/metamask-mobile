@@ -1688,8 +1688,6 @@ export function useQuickBuyController(
           [QuickBuyEventProperties.IS_COPY_TRADE]: isQuickBuyCopyTrade({
             copyTradeOrigin,
             isCopyTrade: analyticsContext.isCopyTrade,
-            source: analyticsContext.source,
-            traderAddress: submittedTraderAddress,
           }),
           ...(submittedPayWith
             ? {
@@ -1814,6 +1812,10 @@ export function useQuickBuyController(
         kind: 'post_to_feed_toast',
         tradeInFlightChain,
         preview: sharePreview,
+        isCopyTrade: isQuickBuyCopyTrade({
+          copyTradeOrigin,
+          isCopyTrade: analyticsContext.isCopyTrade,
+        }),
         ...(shareAnalyticsSource
           ? { analyticsSource: shareAnalyticsSource }
           : {}),

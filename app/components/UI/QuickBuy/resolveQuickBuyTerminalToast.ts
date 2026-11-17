@@ -165,8 +165,11 @@ const buildPostToFeedLink = (
     onPress: () => {
       const shareId = `share:${transactionHash}`;
       ToastService.toastRef?.current?.closeToast();
+      const composerEntry = prompt.isCopyTrade
+        ? SocialEvent.ComposerEntry.POST_TRADE_SPOT
+        : SocialEvent.ComposerEntry.POST_TRADE_SWAP;
       trackPostToFeedToast({
-        composerEntry: SocialEvent.ComposerEntry.POST_TRADE_SPOT,
+        composerEntry,
         source: prompt.analyticsSource,
         shareId,
         transactionHash,
@@ -177,7 +180,7 @@ const buildPostToFeedLink = (
           chain: prompt.tradeInFlightChain,
           preview: prompt.preview,
           analyticsSource: prompt.analyticsSource,
-          spotComposerEntry: SocialEvent.ComposerEntry.POST_TRADE_SPOT,
+          spotComposerEntry: composerEntry,
           shareId,
         }),
       );

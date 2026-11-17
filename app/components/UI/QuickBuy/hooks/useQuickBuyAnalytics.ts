@@ -119,15 +119,8 @@ export function useQuickBuyAnalytics(
         originalEntryPoint,
         marketCap,
         isCopyTrade,
-        traderAddress: resolvedTraderAddress,
       }),
-    [
-      analyticsSource,
-      originalEntryPoint,
-      marketCap,
-      isCopyTrade,
-      resolvedTraderAddress,
-    ],
+    [analyticsSource, originalEntryPoint, marketCap, isCopyTrade],
   );
 
   // Dismiss cleanup must run only on unmount. `sharedAnalyticsProps` updates when
