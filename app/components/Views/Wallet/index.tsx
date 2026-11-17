@@ -566,10 +566,6 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
-
-  const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
-
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
 
@@ -591,18 +587,13 @@ const Wallet = ({
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
-      isParticipatingInMetaMetrics &&
       isPastPrivacyPolicyDate
     ) {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.EXPERIENCE_ENHANCER,
       });
     }
-  }, [
-    isDataCollectionForMarketingEnabled,
-    isParticipatingInMetaMetrics,
-    navigate,
-  ]);
+  }, [isDataCollectionForMarketingEnabled, navigate]);
 
   const checkAndNavigateToPerpsGTM = useCallback(async () => {
     const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);
