@@ -37,7 +37,7 @@ export function useTransactionPayAccountLoading(): boolean {
   );
 
   const [settledGroupId, setSettledGroupId] = useState<AccountGroupId>();
-  const pendingGroupIdRef = useRef<AccountGroupId>();
+  const pendingGroupIdRef = useRef<AccountGroupId | undefined>(undefined);
 
   useEffect(() => {
     if (!accountGroupId) {
