@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, BackHandler } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
@@ -10,6 +10,7 @@ import Engine from '../../../core/Engine';
 import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { strings } from '../../../../locales/i18n';
+import { WalletRecoverySelectorsIDs } from './WalletRecovery';
 import {
   AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
@@ -193,6 +194,40 @@ jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(),
 }));
 
+const mockSelectMfaRecoveryEnabled = jest.fn().mockReturnValue(false);
+jest.mock('../../../selectors/featureFlagController/mfaRecovery', () => ({
+  selectMfaRecoveryEnabled: (state: unknown) =>
+    mockSelectMfaRecoveryEnabled(state),
+}));
+
+const mockSelectMfaUiKitEnabled = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMfaFlag = jest.fn().mockReturnValue(false);
+jest.mock('../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitEnabled: (state: unknown) => mockSelectMfaUiKitEnabled(state),
+}));
+jest.mock('../../UI/Money/selectors/featureFlags', () => {
+  const actual = jest.requireActual('../../UI/Money/selectors/featureFlags');
+  return {
+    ...actual,
+    selectMoneyEnableMfaFlag: (state: unknown) =>
+      mockSelectMoneyEnableMfaFlag(state),
+  };
+});
+
+const mockVerifyForSocialLogin = jest.fn();
+const mockListActiveSocialLoginMethods = jest.fn();
+jest.mock('../../../util/identity/mfa', () => ({
+  useMfa: () => ({
+    credentials: [],
+    verifyOrEnroll: jest.fn(),
+    enroll: jest.fn(),
+    listActiveSocialLoginMethods: (...args: unknown[]) =>
+      mockListActiveSocialLoginMethods(...args),
+    verifyForSocialLogin: (...args: unknown[]) =>
+      mockVerifyForSocialLogin(...args),
+  }),
+}));
+
 jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
@@ -253,6 +288,12 @@ describe('OAuthRehydration', () => {
       isInternetReachable: true,
     });
     mockIsDeletingInProgress.mockReturnValue(false);
+    mockSelectMfaUiKitEnabled.mockReturnValue(false);
+    mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+    mockSelectMfaRecoveryEnabled.mockReturnValue(false);
+    mockVerifyForSocialLogin.mockReset();
+    mockListActiveSocialLoginMethods.mockReset();
+    mockListActiveSocialLoginMethods.mockResolvedValue([]);
     (traceMock as jest.Mock).mockImplementation(
       (_config: unknown, fn?: () => Promise<void>) =>
         fn ? fn() : Promise.resolve(),
@@ -1499,6 +1540,352 @@ describe('OAuthRehydration', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
       expect(true).toBe(true);
+    });
+  });
+
+  describe('MFA wallet recovery', () => {
+    const mfaState = {
+      engine: {
+        backgroundState: {
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+          },
+        },
+      },
+    };
+
+    const enableMfaFlags = () => {
+      mockSelectMfaUiKitEnabled.mockReturnValue(true);
+      mockSelectMoneyEnableMfaFlag.mockReturnValue(true);
+    };
+
+    /** First kit attempt (OS highest factor) cancelled → full-page picker. */
+    const cancelHighestFactorOnce = () => {
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+      );
+    };
+
+    /**
+     * Highest-factor OS sheet is cancelled → full-page verify → Use passkey.
+     */
+    const completePasskeyVerify = async (
+      getByTestId: (id: string) => unknown,
+    ) => {
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON) as never,
+        );
+      });
+    };
+
+    it('shows full-page verify when the highest MFA factor is cancelled', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+      );
+      let resolveList!: (value: unknown) => void;
+      mockListActiveSocialLoginMethods.mockReturnValue(
+        new Promise((resolve) => {
+          resolveList = resolve;
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveList(['passkey', 'totp']);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.VERIFY_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows only enrolled methods on the custom verify picker', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+      );
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        { state: mfaState },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP)).toBeNull();
+      expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
+    });
+
+    it('continues to password after picker verify', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin
+        .mockRejectedValueOnce(
+          Object.assign(new Error('cancelled'), { code: 'flow_cancelled' }),
+        )
+        .mockResolvedValueOnce({ token: 'aal2-token' });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalledWith(
+        expect.objectContaining({ method: 'passkey' }),
+      );
+    });
+
+    it('continues to password when no MFA methods are enrolled', async () => {
+      enableMfaFlags();
+      mockVerifyForSocialLogin.mockRejectedValueOnce(
+        Object.assign(new Error('none'), { code: 'credential_not_enrolled' }),
+      );
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+    });
+
+    it('times out the loading gate when social auth never arrives', async () => {
+      jest.useFakeTimers();
+      enableMfaFlags();
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: undefined,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
+      ).toBeOnTheScreen();
+      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(10_000);
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      jest.useRealTimers();
+    });
+
+    it('unlocks from MFA password step', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'validPassword123',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      await waitFor(() => {
+        expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      });
+    });
+
+    it('exits recovery when hardware back is pressed from password', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+
+      const backHandlerCallback = addEventListenerSpy.mock.calls
+        .filter((call) => call[0] === 'hardwareBackPress')
+        .at(-1)?.[1] as (() => boolean) | undefined;
+      act(() => {
+        backHandlerCallback?.();
+      });
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      addEventListenerSpy.mockRestore();
+    });
+
+    it('shows the recovery password screen without reset wallet', async () => {
+      enableMfaFlags();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockListActiveSocialLoginMethods.mockResolvedValue([]);
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <OAuthRehydration />,
+        {
+          state: mfaState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        getByText(strings('wallet_recovery_mfa.password_description')),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+    });
+
+    it('offers MFA via recovery flag when Money MFA is off and password is outdated', async () => {
+      mockSelectMfaUiKitEnabled.mockReturnValue(true);
+      mockSelectMoneyEnableMfaFlag.mockReturnValue(false);
+      mockSelectMfaRecoveryEnabled.mockReturnValue(true);
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      cancelHighestFactorOnce();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({ token: 'aal2-token' });
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+        ).toBeOnTheScreen();
+      });
+      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
+    });
+
+    it('unlocks with the existing password after picker MFA verify', async () => {
+      enableMfaFlags();
+      mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
+      cancelHighestFactorOnce();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({ token: 'aal2-token' });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+          mockReplace(Routes.ONBOARDING.HOME_NAV);
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await completePasskeyVerify(getByTestId);
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'wallet-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            password: 'wallet-password',
+          }),
+        );
+      });
     });
   });
 });
