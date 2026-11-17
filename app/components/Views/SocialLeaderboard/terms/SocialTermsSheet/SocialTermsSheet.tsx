@@ -40,6 +40,12 @@ const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
 const WEBVIEW_SCROLL_NOT_END_EVENT = 'social-terms-scroll-not-end';
 const TERMS_BASE_URL = 'https://metamask.com';
+/** Origins that links in the terms may open in the device browser. */
+const EXTERNAL_LINK_ORIGINS = new Set([
+  'https://metamask.com',
+  'https://metamask.io',
+  'https://support.metamask.io',
+]);
 /** Sheet fills are hex tokens. Reject anything else before it reaches CSS. */
 const SHEET_BACKGROUND_COLOR_PATTERN =
   /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
@@ -252,16 +258,18 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
 
   const handleShouldStartLoadWithRequest = useCallback(
     (request: { url: string }) => {
-      if (!isAllowedTermsUrl(request.url, allowedOrigin)) {
-        return false;
+      if (!hasLoadedTermsDocument.current) {
+        return isAllowedTermsUrl(request.url, allowedOrigin);
       }
 
-      if (hasLoadedTermsDocument.current) {
+      const origin = getUrlOrigin(request.url);
+      if (
+        origin !== null &&
+        (origin === allowedOrigin || EXTERNAL_LINK_ORIGINS.has(origin))
+      ) {
         Linking.openURL(request.url).catch(() => undefined);
-        return false;
       }
-
-      return true;
+      return false;
     },
     [allowedOrigin],
   );

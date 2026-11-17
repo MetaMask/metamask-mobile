@@ -354,7 +354,7 @@ describe('SocialTermsSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens same-origin links externally for the bundled terms page', () => {
+  it('opens allowed MetaMask links externally for the bundled terms page', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet
@@ -379,12 +379,25 @@ describe('SocialTermsSheet', () => {
     expect(openURL).toHaveBeenCalledWith('https://metamask.com/privacy');
     expect(
       onShouldStartLoadWithRequest({
+        url: 'https://metamask.io/privacy-notice',
+      }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://metamask.io/privacy-notice');
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://support.metamask.io/' }),
+    ).toBe(false);
+    expect(openURL).toHaveBeenCalledWith('https://support.metamask.io/');
+
+    openURL.mockClear();
+    expect(
+      onShouldStartLoadWithRequest({
         url: 'https://metamask.com.evil.example/terms',
       }),
     ).toBe(false);
     expect(
       onShouldStartLoadWithRequest({ url: 'http://metamask.com/terms' }),
     ).toBe(false);
+    expect(openURL).not.toHaveBeenCalled();
   });
 
   it('opens same-origin links externally for a hosted terms page', () => {
