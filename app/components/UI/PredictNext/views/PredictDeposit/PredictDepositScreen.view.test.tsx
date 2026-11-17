@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -43,7 +44,7 @@ const TRANSFER_25_USDC = `0xa9059cbb${DEPOSIT_ADDRESS.slice(2).padStart(
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
-const minutesFromNow = (minutes: number) =>
+const minutesFromNow = (minutes: number): PredictTimestamp =>
   new Date(Date.now() + minutes * 60_000).toISOString() as PredictTimestamp;
 
 const makeDeposit = ({
@@ -83,12 +84,13 @@ const makeDeposit = ({
 type Handler = (...params: never[]) => unknown;
 
 /** Answers the funding routes; every other action resolves to nothing. */
-const mockFunding = (handlers: Record<string, Handler>) =>
+const mockFunding = (handlers: Record<string, Handler>): void => {
   mockPredictNextMessenger((action, ...params) =>
     handlers[action] ? handlers[action](...params) : Promise.resolve(undefined),
   );
+};
 
-const mockUsdcBalance = (baseUnits: string) => {
+const mockUsdcBalance = (baseUnits: string): void => {
   jest
     .spyOn(Engine.context.NetworkController, 'findNetworkClientIdByChainId')
     .mockReturnValue('base-mainnet' as never);
@@ -98,7 +100,7 @@ const mockUsdcBalance = (baseUnits: string) => {
 };
 
 /** The wallet submits the transfer it was given and answers `result`. */
-const mockWallet = (result: () => Promise<string>) =>
+const mockWallet = (result: () => Promise<string>): void => {
   jest
     .mocked(Engine.context.TransactionController.addTransaction)
     .mockImplementation(
@@ -108,11 +110,12 @@ const mockWallet = (result: () => Promise<string>) =>
           transactionMeta: { id: 'tx-1', chainId: '0x2105', txParams },
         }) as never,
     );
+};
 
 const typeAmount = async (
   view: ReturnType<typeof renderPredictDepositScreen>,
   keys: string,
-) => {
+): Promise<void> => {
   await view.findByTestId(TestIds.BALANCE);
   for (const key of keys) {
     fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY(key)));
@@ -121,26 +124,32 @@ const typeAmount = async (
 
 const addFunds = async (
   view: ReturnType<typeof renderPredictDepositScreen>,
-) => {
+): Promise<void> => {
   fireEvent.press(view.getByTestId(TestIds.CONTINUE));
   await act(async () => {
     fireEvent.press(view.getByTestId(TestIds.ADD_FUNDS));
   });
 };
 
-const calledActions = () =>
+const calledActions = (): unknown[] =>
   jest
     .mocked(Engine.controllerMessenger.call)
     .mock.calls.map(([action]) => action);
 
 describe('PredictDepositScreen', () => {
+  let announceForAccessibility: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    announceForAccessibility = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     mockUsdcBalance('100000000');
   });
 
   afterEach(() => {
+    announceForAccessibility.mockRestore();
     netInfoMock.__resetMockNetInfo();
     jest.restoreAllMocks();
   });
@@ -451,5 +460,124 @@ describe('PredictDepositScreen', () => {
     expect(secondParams.clientOperationId).not.toBe(
       firstParams.clientOperationId,
     );
+  });
+
+  it('announces the minimum amount error as an alert once while the message stays the same', async () => {
+    mockFunding({});
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '0.5');
+
+    expect(view.getByTestId(TestIds.ALERT)).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(announceForAccessibility).toHaveBeenLastCalledWith(
+      strings('predict_next.deposit.minimum'),
+    );
+
+    announceForAccessibility.mockClear();
+    fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('0')));
+    expect(announceForAccessibility).not.toHaveBeenCalled();
+  });
+
+  it('announces the not-enough-USDC error as an alert', async () => {
+    mockUsdcBalance('10000000');
+    mockFunding({});
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '25');
+
+    expect(view.getByTestId(TestIds.ALERT)).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(announceForAccessibility).toHaveBeenCalledTimes(1);
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      strings('predict_next.deposit.not_enough_usdc', { network: 'Base' }),
+    );
+  });
+
+  it('announces a failing deposit notice as an alert', async () => {
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => makeDeposit(),
+      'PredictFundingService:cancelDeposit': async () => undefined,
+    });
+    mockWallet(() => Promise.reject(providerErrors.userRejectedRequest()));
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '25');
+    await addFunds(view);
+
+    const notice = await view.findByTestId(TestIds.NOTICE);
+    expect(notice).toHaveProp('accessibilityRole', 'alert');
+    expect(announceForAccessibility).toHaveBeenCalledTimes(1);
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      strings('predict_next.deposit.rejected'),
+    );
+  });
+
+  it('announces when cancelling an open deposit fails', async () => {
+    const openDeposit = makeDeposit({ amount: '40.00' });
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => {
+        throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
+      },
+      'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+      'PredictFundingService:cancelDeposit': async () => {
+        throw new Error('cancel failed');
+      },
+    });
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '25');
+    await addFunds(view);
+    await view.findByTestId(TestIds.IN_PROGRESS);
+
+    await act(async () => {
+      fireEvent.press(view.getByTestId(TestIds.IN_PROGRESS_CANCEL));
+    });
+
+    const cancelFailed = await view.findByText(
+      strings('predict_next.deposit.in_progress.cancel_failed'),
+    );
+    expect(cancelFailed).toHaveProp('accessibilityRole', 'alert');
+    expect(announceForAccessibility).toHaveBeenCalledTimes(1);
+    expect(announceForAccessibility).toHaveBeenCalledWith(
+      strings('predict_next.deposit.in_progress.cancel_failed'),
+    );
+  });
+
+  it('marks the processing title as a heading', async () => {
+    mockFunding({
+      'PredictFundingService:prepareDeposit': async () => makeDeposit(),
+      'PredictFundingService:reportDepositTransfer': async () =>
+        makeDeposit({ status: 'processing' }),
+    });
+    mockWallet(async () => TX_HASH);
+    const view = renderPredictDepositScreen(
+      { venueId: KALSHI_VENUE_ID },
+      { environment: WALLET_ENVIRONMENT },
+    );
+
+    await typeAmount(view, '25');
+    await addFunds(view);
+    await view.findByTestId(TestIds.PROCESSING);
+
+    expect(
+      view.getByText(strings('predict_next.deposit.processing_title')),
+    ).toHaveProp('accessibilityRole', 'header');
   });
 });

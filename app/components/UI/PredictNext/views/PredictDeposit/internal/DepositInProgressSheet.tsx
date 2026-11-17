@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Modal, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { AccessibilityInfo, Modal, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
@@ -80,7 +80,7 @@ export const DepositInProgressSheet = ({
   onContinue,
   onCancel,
   onClose,
-}: DepositInProgressSheetProps) => {
+}: DepositInProgressSheetProps): React.JSX.Element => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const close = useCallback(() => sheetRef.current?.onCloseBottomSheet(), []);
   const payable =
@@ -88,6 +88,17 @@ export const DepositInProgressSheet = ({
     deposit.next?.kind === 'wallet_transfer'
       ? deposit
       : null;
+  const cancelFailedText = cancelFailed
+    ? strings('predict_next.deposit.in_progress.cancel_failed')
+    : undefined;
+
+  // VoiceOver ignores RN live regions on iOS, so announce the failure when it
+  // appears after Cancel.
+  useEffect(() => {
+    if (cancelFailedText) {
+      AccessibilityInfo.announceForAccessibility(cancelFailedText);
+    }
+  }, [cancelFailedText]);
 
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
@@ -115,12 +126,13 @@ export const DepositInProgressSheet = ({
                 >
                   {describeDeposit(deposit)}
                 </Text>
-                {cancelFailed ? (
+                {cancelFailedText ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.ErrorDefault}
+                    accessibilityRole="alert"
                   >
-                    {strings('predict_next.deposit.in_progress.cancel_failed')}
+                    {cancelFailedText}
                   </Text>
                 ) : null}
                 {payable ? (

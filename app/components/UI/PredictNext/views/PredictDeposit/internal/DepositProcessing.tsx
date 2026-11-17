@@ -28,7 +28,7 @@ export const DepositProcessing = ({
 }: {
   amount: PredictAmount;
   onDone: () => void;
-}) => (
+}): React.JSX.Element => (
   <Box
     twClassName="flex-1 justify-between px-4 pb-4"
     testID={PredictDepositScreenTestIds.PROCESSING}
@@ -39,7 +39,7 @@ export const DepositProcessing = ({
         size={IconSize.Xl}
         color={IconColor.IconAlternative}
       />
-      <Text variant={TextVariant.HeadingMd}>
+      <Text variant={TextVariant.HeadingMd} accessibilityRole="header">
         {strings('predict_next.deposit.processing_title')}
       </Text>
       <Text

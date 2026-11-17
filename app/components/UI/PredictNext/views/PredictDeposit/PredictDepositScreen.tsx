@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import {
   type RouteProp,
   useNavigation,
@@ -102,7 +103,11 @@ const exceedsBalance = (input: string, balance: UsdcBalance): boolean => {
   );
 };
 
-const BalanceCaption = ({ balance }: { balance: UsdcBalance }) => {
+const BalanceCaption = ({
+  balance,
+}: {
+  balance: UsdcBalance;
+}): React.JSX.Element => {
   if (balance.status === 'loading') {
     return (
       <Skeleton
@@ -134,7 +139,7 @@ const BalanceCaption = ({ balance }: { balance: UsdcBalance }) => {
  * the deposit, checks its Funding Plan and sends the USDC transfer through
  * the wallet's standard confirmation (`funding/deposit`).
  */
-export const PredictDepositScreen = () => {
+export const PredictDepositScreen = (): React.JSX.Element => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const route =
@@ -229,24 +234,42 @@ export const PredictDepositScreen = () => {
   const close = useCallback(() => navigation.goBack(), [navigation]);
 
   const isAmountStage = stage.kind === 'amount';
-  let caption: React.ReactNode;
-  if (isShort || isBelowMinimum) {
-    caption = (
-      <Text
-        color={TextColor.ErrorDefault}
-        twClassName="text-center"
-        testID={PredictDepositScreenTestIds.ALERT}
-      >
-        {isShort
-          ? strings('predict_next.deposit.not_enough_usdc', {
-              network: environment.network.networkName,
-            })
-          : strings('predict_next.deposit.minimum')}
-      </Text>
-    );
-  } else {
-    caption = <BalanceCaption balance={balance} />;
+  let alertText: string | undefined;
+  if (isShort) {
+    alertText = strings('predict_next.deposit.not_enough_usdc', {
+      network: environment.network.networkName,
+    });
+  } else if (isBelowMinimum) {
+    alertText = strings('predict_next.deposit.minimum');
   }
+  const noticeText = notice ? strings(NOTICE_COPY[notice]) : undefined;
+
+  // VoiceOver ignores RN live regions on iOS, so announce errors explicitly
+  // only when the rendered message appears or changes.
+  useEffect(() => {
+    if (alertText) {
+      AccessibilityInfo.announceForAccessibility(alertText);
+    }
+  }, [alertText]);
+
+  useEffect(() => {
+    if (noticeText) {
+      AccessibilityInfo.announceForAccessibility(noticeText);
+    }
+  }, [noticeText]);
+
+  const caption = alertText ? (
+    <Text
+      color={TextColor.ErrorDefault}
+      twClassName="text-center"
+      accessibilityRole="alert"
+      testID={PredictDepositScreenTestIds.ALERT}
+    >
+      {alertText}
+    </Text>
+  ) : (
+    <BalanceCaption balance={balance} />
+  );
 
   return (
     <SafeAreaView
@@ -279,14 +302,15 @@ export const PredictDepositScreen = () => {
           </Box>
           <Box twClassName="gap-4 px-4 pb-4">
             <DepositPayWithRow network={environment.network} />
-            {notice ? (
+            {noticeText ? (
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.ErrorDefault}
                 twClassName="text-center"
+                accessibilityRole="alert"
                 testID={PredictDepositScreenTestIds.NOTICE}
               >
-                {strings(NOTICE_COPY[notice])}
+                {noticeText}
               </Text>
             ) : null}
             {isAmountStage ? (
