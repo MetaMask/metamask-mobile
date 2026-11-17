@@ -377,7 +377,6 @@ const MoneyHomeView = () => {
       dismissedVbaVariant === 'kyc_decision' &&
       vbaHomeCard.type === 'kyc_decision',
   });
-  const moneyHomeCard = devOverride?.card ?? liveHomeCard;
 
   const metamaskCardMode = deriveMoneyMetaMaskCardMode({
     isCardLinkedToMoneyAccount,
@@ -402,6 +401,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -421,7 +422,52 @@ const MoneyHomeView = () => {
     !!totalFiatRaw &&
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
-  const isEmptyState = hasBalanceValue && !isFunded;
+
+  // While balances and activity reload (e.g. after the default Money account
+  // changes), keep the sections that were on screen so the layout doesn't jump.
+  const isLayoutLoading =
+    isBalanceLoading ||
+    isCryptoBalanceLoading ||
+    isActivitySettling ||
+    isVbaEligibilityLoading ||
+    !isCardStateResolved;
+  const homeCardVariant =
+    'variant' in liveHomeCard ? liveHomeCard.variant : undefined;
+  const stableLiveHomeCard = useMemo(
+    () => liveHomeCard,
+    // Same card, new object each render: compare by type and variant.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [liveHomeCard.type, homeCardVariant],
+  );
+  const liveLayout = useMemo(
+    () => ({
+      homeCard: stableLiveHomeCard,
+      cardMode: metamaskCardMode,
+      isEmptyState: hasBalanceValue && !isFunded,
+      showEarnings: hasBalanceValue && isFunded,
+      isActivitySettling,
+      activityItems,
+    }),
+    [
+      stableLiveHomeCard,
+      metamaskCardMode,
+      hasBalanceValue,
+      isFunded,
+      isActivitySettling,
+      activityItems,
+    ],
+  );
+  const [settledLayout, setSettledLayout] = useState<
+    typeof liveLayout | undefined
+  >(undefined);
+  useEffect(() => {
+    if (!isLayoutLoading) {
+      setSettledLayout(liveLayout);
+    }
+  }, [isLayoutLoading, liveLayout]);
+  const layout = isLayoutLoading && settledLayout ? settledLayout : liveLayout;
+  const isEmptyState = layout.isEmptyState;
+  const moneyHomeCard = devOverride?.card ?? layout.homeCard;
 
   const balanceReady = !isBalanceLoading;
   // Only ready once the preview is no longer settling, so the time-to-content
@@ -1035,12 +1081,12 @@ const MoneyHomeView = () => {
     cardHomeDataStatus === 'success' ||
     cardHomeDataStatus === 'error';
 
-  const metamaskCardSection = metamaskCardMode
+  const metamaskCardSection = layout.cardMode
     ? {
         key: 'metamask-card',
         node: (
           <MoneyMetaMaskCard
-            mode={metamaskCardMode}
+            mode={layout.cardMode}
             onHeaderPress={handleMetaMaskCardHeaderPress}
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
@@ -1066,11 +1112,11 @@ const MoneyHomeView = () => {
     : null;
 
   const shouldShowMetaMaskCardEarly =
-    metamaskCardMode !== null && metamaskCardMode !== 'upsell';
+    layout.cardMode !== null && layout.cardMode !== 'upsell';
 
   const contentSections: { key: string; node: React.ReactNode }[] = [];
 
-  if (isMoneyEarningSectionEnabled && hasBalanceValue && isFunded) {
+  if (isMoneyEarningSectionEnabled && layout.showEarnings) {
     contentSections.push({
       key: 'earnings',
       node: (
@@ -1107,14 +1153,14 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (isActivitySettling || activityItems.length >= 1) {
+  if (layout.isActivitySettling || layout.activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
-      node: isActivitySettling ? (
+      node: layout.isActivitySettling ? (
         <MoneyActivityLoading />
       ) : (
         <MoneyActivityList
-          items={activityItems}
+          items={layout.activityItems}
           moneyAddress={moneyAddress}
           hasMore={hasMoreActivity}
           onHeaderPress={handleActivityHeaderPress}

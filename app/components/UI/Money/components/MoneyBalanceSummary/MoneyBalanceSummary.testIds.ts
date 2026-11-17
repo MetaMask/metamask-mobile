@@ -6,6 +6,7 @@ export const MoneyBalanceSummaryTestIds = {
   BALANCE_PRESSABLE: 'money-balance-summary-balance-pressable',
   BALANCE_NO_ACCOUNT: 'money-balance-summary-balance-no-account',
   BALANCE_UNAVAILABLE: 'money-balance-summary-balance-unavailable',
+  BALANCE_LOADING: 'money-balance-summary-balance-loading',
   APY: 'money-balance-summary-apy',
   APY_PRESSABLE: 'money-balance-summary-apy-pressable',
 } as const;
