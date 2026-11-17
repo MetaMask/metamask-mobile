@@ -10,7 +10,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
-import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
 import OptOutConfirmationSheet from '../components/Settings/OptOutConfirmationSheet';
 import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
@@ -96,24 +95,10 @@ const RewardsSettingsView: React.FC = () => {
           includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
-          {offDeviceAccounts.length > 0 && (
-            <Box twClassName="px-4">
-              <RewardsInfoBanner
-                title={strings(
-                  'rewards.settings.off_device_accounts_banner_title',
-                )}
-                description={strings(
-                  'rewards.settings.off_device_accounts_banner_description',
-                )}
-                onConfirm={handleOpenOffDeviceSheet}
-                confirmButtonLabel={strings(
-                  'rewards.settings.off_device_accounts_banner_cta',
-                )}
-              />
-            </Box>
-          )}
           <RewardSettingsAccountGroupList
             onRequestOptOut={handleRequestOptOut}
+            offDeviceAccounts={offDeviceAccounts}
+            onOpenOffDeviceSheet={handleOpenOffDeviceSheet}
           />
         </Box>
 
