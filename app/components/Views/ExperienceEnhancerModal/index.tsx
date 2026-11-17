@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { strings } from '../../../../locales/i18n';
@@ -10,7 +10,7 @@ import createStyles from './styles';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Button, {
+import {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -18,7 +18,6 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
@@ -30,7 +29,8 @@ const ExperienceEnhancerModal = () => {
   const dispatch = useDispatch();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const styles = createStyles();
-  const { trackEvent, identify, createEventBuilder } = useAnalytics();
+  const { trackEvent, identify, createEventBuilder, isEnabled } =
+    useAnalytics();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   // Social-login wallets also store the choice server-side so the auth
@@ -44,6 +44,27 @@ const ExperienceEnhancerModal = () => {
     }
   };
 
+  // Marketing consent signals only go out while MetaMetrics is on, the same
+  // way the settings screen gates them. The choice itself is stored above.
+  const trackMarketingConsent = (value: boolean) => {
+    if (!isEnabled()) {
+      return;
+    }
+
+    identify({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: value,
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+        .addProperties({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: value,
+          updated_after_onboarding: true,
+          location: 'marketing_consent_modal',
+        })
+        .build(),
+    );
+  };
+
   const cancelButtonProps: ButtonProps = {
     variant: ButtonVariants.Secondary,
     label: strings('experience_enhancer_modal.cancel'),
@@ -53,18 +74,7 @@ const ExperienceEnhancerModal = () => {
       syncMarketingConsentToServer(false);
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-      });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-            updated_after_onboarding: true,
-            location: 'marketing_consent_modal',
-          })
-          .build(),
-      );
+      trackMarketingConsent(false);
     },
     testID: ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
   };
@@ -78,18 +88,7 @@ const ExperienceEnhancerModal = () => {
       syncMarketingConsentToServer(true);
       bottomSheetRef.current?.onCloseBottomSheet();
 
-      identify({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-      });
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-          .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-            updated_after_onboarding: true,
-            location: 'marketing_consent_modal',
-          })
-          .build(),
-      );
+      trackMarketingConsent(true);
     },
     testID: ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
   };
@@ -111,13 +110,6 @@ const ExperienceEnhancerModal = () => {
         testID={ExperienceEnhancerBottomSheetSelectorsIDs.CONTENT}
       >
         <Text variant={TextVariant.BodyMd}>
-          {strings('experience_enhancer_modal.paragraph1a')}
-          <Button
-            variant={ButtonVariants.Link}
-            label={strings('experience_enhancer_modal.link')}
-            onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-            testID={ExperienceEnhancerBottomSheetSelectorsIDs.LINK_BUTTON}
-          />
           {strings('experience_enhancer_modal.paragraph1b')}
         </Text>
 
