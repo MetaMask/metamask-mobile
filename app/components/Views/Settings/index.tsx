@@ -245,6 +245,7 @@ const Settings = () => {
           <SettingsDrawer
             title={strings('app_settings.developer_options.title')}
             onPress={onPressDeveloperOptions}
+            testID={SettingsViewSelectorsIDs.DEVELOPER_OPTIONS}
           />
         )}
         {process.env.METAMASK_ENVIRONMENT !== 'production' && (

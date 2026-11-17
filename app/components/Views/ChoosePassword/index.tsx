@@ -6,7 +6,13 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { AccessibilityInfo, Platform, Keyboard, TextInput } from 'react-native';
+import {
+  AccessibilityInfo,
+  Alert,
+  Platform,
+  Keyboard,
+  TextInput,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -100,6 +106,9 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
+import { usePasswordlessRecovery } from '../../../core/MfaRecovery/usePasswordlessRecovery';
+import { ensurePasswordlessRecoverySetup } from '../../../core/MfaRecovery/ensurePasswordlessRecoverySetup';
+import { PasswordlessRecoveryError } from '../../../core/MfaRecovery/passwordlessSocialRecovery';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -250,6 +259,15 @@ const ChoosePassword = () => {
   const messenger = useMessenger<RouteMessengerInstance>();
 
   const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
+  const isPasswordlessSocialRecovery =
+    route.params?.passwordlessSocialRecovery === true;
+  const passwordlessRecovery = usePasswordlessRecovery(
+    route.params?.provider ?? '',
+  );
+  // Leaving Create password must not wipe the Recovery Secret. Back returns
+  // to the unlock screen, and Forgot password reuses the secret while it is
+  // still held. The secret is wiped when recovery changes the password, when
+  // the user leaves recovery, or when a new prefetch replaces it.
   const geoLocation = useSelector(selectGeolocationLocation);
   const hasKnownGeolocation =
     geoLocation != null && geoLocation !== UNKNOWN_LOCATION;
@@ -604,6 +622,11 @@ const ChoosePassword = () => {
         Logger.error(analyticsError as Error);
       }
 
+      // New social wallet: seal Recovery Secret while unlocked. Soft-fails.
+      // Forgot-password Create password uses passwordlessSocialRecovery and
+      // never reaches this branch (oauth create only).
+      await ensurePasswordlessRecoverySetup();
+
       const accountType = reduxAccountType;
       if (shouldShowQuestionnaire) {
         navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
@@ -761,7 +784,71 @@ const ChoosePassword = () => {
     ],
   );
 
+  /**
+   * Forgot-password MFA recovery: new password via passwordless recover
+   * (AAL2 held + Recovery Secret already prefetched before this screen),
+   * then unlock. No passkey / escrow prompt on Create password submit.
+   *
+   * Use PASSWORD auth storage — BIOMETRIC would show an OS sheet on submit.
+   */
+  const startPasswordlessSocialRecovery = useCallback(async () => {
+    setLoading(true);
+    try {
+      const authType: AuthData = {
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        oauth2Login: true,
+      };
+
+      await passwordlessRecovery.recover(
+        password,
+        async (vaultPassword, secrets) => {
+          await Authentication.unlockWallet({
+            password: vaultPassword,
+            authPreference: authType,
+            recoveredSecrets: secrets,
+            onBeforeNavigate: async () => {
+              dispatch(passwordSetAction());
+              dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
+              endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+              endTrace({ name: TraceName.OnboardingJourneyOverall });
+            },
+          });
+        },
+      );
+    } catch (err) {
+      Logger.error(
+        err instanceof Error ? err : new Error(String(err)),
+        'ChoosePassword: passwordless social recovery failed',
+      );
+      const passwordAlreadySet =
+        err instanceof PasswordlessRecoveryError &&
+        err.stage === 'restoring_vault';
+      const detail =
+        __DEV__ && err instanceof PasswordlessRecoveryError
+          ? ` (${err.code}: ${err.detail})`
+          : '';
+      // Do not recreateVault/unset password — recovery is not new-wallet create.
+      // After the global password changes, the old password no longer works.
+      Alert.alert(
+        strings(
+          passwordAlreadySet
+            ? 'wallet_recovery_mfa.recovery_password_already_set'
+            : 'wallet_recovery_mfa.recovery_failed',
+        ),
+        detail || undefined,
+      );
+    } finally {
+      foxRiveLoaderRef.current?.stop();
+      setLoading(false);
+    }
+  }, [password, passwordlessRecovery, dispatch]);
+
   const startWalletCreation = useCallback(async () => {
+    if (isPasswordlessSocialRecovery) {
+      await startPasswordlessSocialRecovery();
+      return;
+    }
+
     const provider = route.params?.provider;
     const accountType = provider
       ? getSocialAccountType(provider, false)
@@ -779,6 +866,8 @@ const ChoosePassword = () => {
       await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
+    isPasswordlessSocialRecovery,
+    startPasswordlessSocialRecovery,
     route.params?.provider,
     track,
     getOauth2LoginSuccess,
@@ -791,6 +880,12 @@ const ChoosePassword = () => {
     const validation = validatePasswordSubmission();
     if (!validation.valid) return;
 
+    // Passwordless recovery already proved MFA; create password directly.
+    if (isPasswordlessSocialRecovery) {
+      await startWalletCreation();
+      return;
+    }
+
     if (!getOauth2LoginSuccess()) {
       Keyboard.dismiss();
       setIsWarningSheetVisible(true);
@@ -798,7 +893,12 @@ const ChoosePassword = () => {
     }
 
     await startWalletCreation();
-  }, [validatePasswordSubmission, getOauth2LoginSuccess, startWalletCreation]);
+  }, [
+    validatePasswordSubmission,
+    isPasswordlessSocialRecovery,
+    getOauth2LoginSuccess,
+    startWalletCreation,
+  ]);
 
   const onDismissWarningSheet = useCallback(() => {
     setIsWarningSheetVisible(false);
@@ -1094,7 +1194,8 @@ const ChoosePassword = () => {
               ) : null}
             </Box>
 
-            {getOauth2LoginSuccess() && (
+            {/* Marketing opt-in is onboarding-only — hide on MFA passwordless recovery. */}
+            {getOauth2LoginSuccess() && !isPasswordlessSocialRecovery && (
               <ListItemMultiSelect
                 variant={ListItemVariant.MultiLine}
                 isSelected={marketingOptInChecked}

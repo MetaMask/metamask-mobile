@@ -98,6 +98,24 @@ describe('WalletRecoveryPassword', () => {
     ).toBe(false);
   });
 
+  it('calls onForgotPassword from the unlock screen', () => {
+    const onForgotPassword = jest.fn();
+    const { getByTestId } = renderPassword({ onForgotPassword });
+
+    fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+    expect(onForgotPassword).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides forgot password while creating a password', () => {
+    const { queryByTestId } = renderPassword({
+      mode: 'create',
+      onForgotPassword: jest.fn(),
+    });
+
+    expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+  });
+
   it('calls onBack from the header', () => {
     const { getByTestId, props } = renderPassword();
 
