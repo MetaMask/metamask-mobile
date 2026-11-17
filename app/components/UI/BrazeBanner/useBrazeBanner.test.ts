@@ -119,12 +119,13 @@ function makeBanner(
     imageUrl: string;
     ctaLabel: string;
     isTestSend: boolean;
+    isControl: boolean;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
-    isControl: false,
+    isControl: overrides.isControl ?? false,
     isTestSend: overrides.isTestSend ?? false,
     expiresAt: -1,
     properties: makeRawProperties({
@@ -313,6 +314,57 @@ describe('useBrazeBanner', () => {
 
     expect(result.current.status).toBe('visible');
     expect(result.current.body).toBe('Original body');
+  });
+
+  describe('control banner state', () => {
+    it('transitions to control when the warm-cache probe returns a control banner', async () => {
+      mockGetBannerForPlacement.mockResolvedValue(
+        makeBanner({ isControl: true, bannerName: 'campaign-abc' }),
+      );
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      await waitFor(() => expect(result.current.status).toBe('control'));
+
+      expect(result.current.banner).toBeNull();
+    });
+
+    it('transitions to control for a control banner event without properties', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([
+        {
+          ...makeBanner({ isControl: true }),
+          properties: {},
+        },
+      ]);
+
+      expect(result.current.status).toBe('control');
+      expect(result.current.banner).toBeNull();
+    });
+
+    it('keeps control status across repeated control banner events', () => {
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([
+        makeBanner({ isControl: true, trackingId: 'control-1' }),
+      ]);
+      fireBannerEvent([
+        makeBanner({ isControl: true, trackingId: 'control-2' }),
+      ]);
+
+      expect(result.current.status).toBe('control');
+    });
+
+    it('stays empty for a control banner from another placement', async () => {
+      mockGetBannerForPlacement.mockResolvedValue(
+        makeBanner({ isControl: true, placementId: 'other-placement' }),
+      );
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      await waitFor(() => expect(result.current.status).toBe('empty'));
+    });
   });
 
   it('transitions to dismissed when dismiss() is called', () => {
@@ -667,7 +719,7 @@ describe('useBrazeBanner', () => {
       });
 
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-      await waitFor(() => expect(result.current.status).toBe('empty'));
+      await waitFor(() => expect(result.current.status).toBe('control'));
 
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledWith({

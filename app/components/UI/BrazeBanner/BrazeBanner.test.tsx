@@ -154,12 +154,13 @@ function makeBanner(
     dismissable: boolean;
     deeplink: string;
     body: string;
+    isControl: boolean;
   }> = {},
 ) {
   return {
     trackingId: overrides.trackingId ?? 'tracking-abc',
     placementId: overrides.placementId ?? TEST_PLACEMENT_ID,
-    isControl: false,
+    isControl: overrides.isControl ?? false,
     isTestSend: false,
     expiresAt: -1,
     properties: makeRawProperties({
@@ -178,12 +179,13 @@ const fireBannerEvent = (banners: object[]) => {
   });
 };
 
-type BannerState = 'visible' | 'empty';
+type BannerState = 'visible' | 'hidden';
 
 /**
  * Asserts the complete set of structural test IDs for a given banner state:
- * - `visible`  → CONTAINER + PRESSABLE + DISMISS_BUTTON present
- * - `empty`    → all absent (component returns null; covers loading + empty + dismissed)
+ * - `visible` → CONTAINER + PRESSABLE + DISMISS_BUTTON present
+ * - `hidden`  → all absent (component returns null; covers loading, control,
+ * empty, and dismissed)
  */
 function assertBannerState(
   queryByTestId: (id: string) => unknown,
@@ -226,7 +228,7 @@ describe('BrazeBanner', () => {
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    assertBannerState(queryByTestId, 'empty');
+    assertBannerState(queryByTestId, 'hidden');
   });
 
   it('shows the banner card and dismiss button when a banner event arrives', async () => {
@@ -248,7 +250,7 @@ describe('BrazeBanner', () => {
       jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
     });
 
-    assertBannerState(queryByTestId, 'empty');
+    assertBannerState(queryByTestId, 'hidden');
   });
 
   it('renders nothing when bannerCardsUpdated arrives with no banner for the placement', () => {
@@ -259,7 +261,7 @@ describe('BrazeBanner', () => {
     fireBannerEvent([]);
 
     // No match → handleBanner not called → returns null (loading now returns null)
-    assertBannerState(queryByTestId, 'empty');
+    assertBannerState(queryByTestId, 'hidden');
   });
 
   it('renders null immediately on dismiss with no skeleton shown', () => {
@@ -272,7 +274,7 @@ describe('BrazeBanner', () => {
 
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    assertBannerState(queryByTestId, 'empty');
+    assertBannerState(queryByTestId, 'hidden');
   });
 
   it('calls dismissBrazeBanner with the placement ID on close', () => {
@@ -312,7 +314,7 @@ describe('BrazeBanner', () => {
 
     fireBannerEvent([makeBanner({ trackingId: 'new-banner' })]);
 
-    assertBannerState(queryByTestId, 'empty');
+    assertBannerState(queryByTestId, 'hidden');
   });
 
   it('uses warm-cache banner from getBannerForPlacement on mount', async () => {
@@ -360,6 +362,30 @@ describe('BrazeBanner', () => {
     render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
 
     expect(mockLogBrazeBannerImpression).not.toHaveBeenCalled();
+  });
+
+  it('renders nothing and logs one impression for a control banner', () => {
+    const { queryByTestId } = render(
+      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
+    );
+
+    fireBannerEvent([makeBanner({ isControl: true })]);
+
+    assertBannerState(queryByTestId, 'hidden');
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      null,
+    );
+  });
+
+  it('logs one impression across repeated control banner events', () => {
+    render(<BrazeBanner placementId={TEST_PLACEMENT_ID} />);
+
+    fireBannerEvent([makeBanner({ isControl: true, trackingId: 'control-1' })]);
+    fireBannerEvent([makeBanner({ isControl: true, trackingId: 'control-2' })]);
+
+    expect(mockLogBrazeBannerImpression).toHaveBeenCalledTimes(1);
   });
 
   describe('banner tap', () => {

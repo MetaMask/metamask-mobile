@@ -35,6 +35,7 @@ interface BrazeBannerProps {
  * State machine (managed by `useBrazeBanner`):
  * - `loading`   → nothing rendered, waits for a valid banner
  * - `visible`   → BrazeBannerCard rendered
+ * - `control`   → returns null; logs one impression for the control group
  * - `empty`     → returns null (no campaign / timeout reached)
  * - `dismissed` → returns null immediately; Braze owns re-eligibility
  */
@@ -54,6 +55,11 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
   useEffect(() => {
     if (status === 'visible') {
       logBrazeBannerImpression(placementId, eventProperties);
+    } else if (status === 'control') {
+      // Braze records control-group exposure through an impression even
+      // though nothing renders. Repeated control events keep the same status,
+      // so this runs once per mount.
+      logBrazeBannerImpression(placementId, null);
     }
   }, [status, placementId, eventProperties]);
 
@@ -99,10 +105,9 @@ const BrazeBanner = ({ placementId, isGlass = false }: BrazeBannerProps) => {
       });
   }, [deeplink, eventProperties, placementId]);
 
-  if (status === 'empty' || status === 'dismissed' || status === 'loading')
-    return null;
+  if (status !== 'visible') return null;
 
-  return status === 'visible' && body ? (
+  return body ? (
     <Box testID={BRAZE_BANNER_TEST_IDS.CONTAINER} style={tw.style('mx-4')}>
       <Pressable testID={BRAZE_BANNER_TEST_IDS.PRESSABLE} onPress={handlePress}>
         <BrazeBannerCard

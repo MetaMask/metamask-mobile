@@ -20,25 +20,24 @@ The Braze placement ID this banner should render for. Must match the placement c
 
 ## State machine
 
-The banner moves through four states managed by `useBrazeBanner`:
+The banner moves through five states managed by `useBrazeBanner`:
 
-| State       | UI                                | Transition                                                                              |
-| ----------- | --------------------------------- | --------------------------------------------------------------------------------------- |
-| `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives during the startup window; → `empty` on timeout |
-| `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                                           |
-| `empty`     | Nothing rendered                  | Terminal                                                                                |
-| `dismissed` | Nothing rendered                  | Terminal for this mount; Braze decides later eligibility                                |
+| State       | UI                                | Transition                                                                                |
+| ----------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `loading`   | Nothing rendered (see note below) | → `visible` when a valid banner arrives during the startup window; → `control` or `empty` |
+| `visible`   | BrazeBannerCard rendered          | → `dismissed` when user taps the close button                                             |
+| `control`   | Nothing rendered                  | Resolved for this mount; logs one impression for the control group                        |
+| `empty`     | Nothing rendered                  | Terminal                                                                                  |
+| `dismissed` | Nothing rendered                  | Terminal for this mount; Braze decides later eligibility                                  |
 
 > **Why no loading skeleton?** At mount time it is unknown whether the current user has a banner assigned. Showing a skeleton and then removing it — with nothing taking its place — is not ideal. The component renders nothing during `loading` and the banner only appears if a valid banner arrives.
 
 Late first-time banners from `bannerCardsUpdated` events are ignored after the startup window closes so the home screen does not jump by inserting a new block after the user has started interacting. Warm-cache banners are still accepted when the native cache probe resolves because they are the returning-user fast path. If a banner is already visible from the warm cache or an early event, a later banner with a different `trackingId` may still replace it in the same reserved slot.
 
-### Why a banner transitions to `empty`
+### Why a banner renders nothing
 
-- No banner for this placement arrived within 5 seconds (timeout)
-- SDK returned an empty-HTML banner
-- Banner is a control-group assignment (`isControl === true`)
-- HTML payload exceeds 256 KB
+- `control` — the placement resolved to a control-group assignment (`isControl === true`). The banner renders nothing, but one Braze banner impression is logged for the control group.
+- `empty` — no banner for this placement arrived within 5 seconds (timeout), the SDK returned an empty-HTML banner, or the HTML payload exceeds 256 KB.
 
 ## Dismiss behaviour
 
@@ -49,6 +48,7 @@ Test sends skip the SDK dismiss call so they can be shown again without waiting 
 ## Impression and click logging
 
 - `Braze.logBannerImpression` is called automatically when the banner enters the `visible` state.
+- A control-group assignment enters the `control` state, renders nothing, but still logs one `Braze.logBannerImpression` per mount, so campaigns and experiments record control-group exposure. No `Banner Display` custom event is logged for control banners.
 - `Braze.logBannerClick` is called on every tap of the banner surface (not the close button), with or without a `deeplink`.
 - When the banner has a `campaign_name`, a `Banner Select` custom event is logged with the same `campaign_name` and `variant_name` properties as `Banner Display` and `Banner Dismissed`. Growth Marketing binds full-screen in-app message triggers to this event.
 - The `Banner Select` event rides Braze's next scheduled data batch; it is not flushed immediately.
@@ -56,7 +56,7 @@ Test sends skip the SDK dismiss call so they can be shown again without waiting 
 
 ## Deduplication
 
-The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates by the banner's `trackingId` — repeated events for the same banner are ignored, while a different `trackingId` can replace a warm-cache banner after a refresh.
+The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server update. `useBrazeBanner` deduplicates by the banner's `trackingId` — repeated events for the same banner are ignored, while a different `trackingId` can replace a warm-cache banner after a refresh. Control-group impressions are deduplicated by the `control` status: repeated control events keep the same status, so the impression effect runs at most once per mount.
 
 ## Usage
 

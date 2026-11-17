@@ -16,7 +16,12 @@ import {
   getRawStringOrImageProp,
   getRawStringProp,
 } from './brazeBannerProperties';
-export type BrazeBannerStatus = 'loading' | 'visible' | 'empty' | 'dismissed';
+export type BrazeBannerStatus =
+  | 'loading'
+  | 'visible'
+  | 'control'
+  | 'empty'
+  | 'dismissed';
 type BrazeBannerSource = 'warm-cache' | 'event';
 
 export interface UseBrazeBannerResult {
@@ -74,12 +79,22 @@ function logBrazeBannerDebug(
 /**
  * Drives the BrazeBanner state machine.
  *
- * States: `loading → visible`, `loading → empty`, `visible → dismissed`.
+ * States: `loading → visible`, `loading → control`, `loading → empty`,
+ * `visible → dismissed`.
  *
  * - `loading`   Skeleton shown; waiting for the first valid banner event.
  * - `visible`   A banner is ready to render.
- * - `empty`     No banner arrived within the timeout (or SDK returned empty).
+ * - `control`   The placement resolved to a control banner. Renders nothing;
+ * the renderer logs one impression for Braze control-group exposure.
+ * - `empty`     No renderable banner for this placement.
  * - `dismissed` User dismissed this mount; renders nothing until next mount.
+ *
+ * Control-group behaviour:
+ * - A control banner renders nothing, but the renderer logs one Braze banner
+ * impression per mount so Braze records control-group exposure.
+ * - Repeated control events keep the same `control` status, so the impression
+ * effect does not run twice.
+ * - No click or dismissal is logged because nothing is rendered.
  *
  * Dismissal behaviour:
  * - Hides immediately for this mount (in-memory).
@@ -158,16 +173,22 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
           return;
         }
 
+        const isControlForPlacement =
+          candidate.isControl && candidate.placementId === placementId;
+
         logBrazeBannerDebug(
-          'Ignoring control or mismatched placement banner',
+          'Control or mismatched placement banner resolves without rendering',
           placementId,
           candidate,
         );
-        // Control-group assignment or no banner for this placement.
+        // A control-group assignment resolves to `control` so the renderer
+        // logs one impression without rendering. Repeated events keep the same
+        // status, so the impression effect does not run again. A mismatched
+        // placement is a plain `empty` result.
         clearNoResponseTimeout();
         currentBannerTrackingIdRef.current = null;
         setBanner(null);
-        setStatus('empty');
+        setStatus(isControlForPlacement ? 'control' : 'empty');
         // Content determination is finished: no banner will be shown. Settle
         // the span now instead of letting it run until unmount.
         endBrazeTrace({
@@ -256,9 +277,13 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       (event: { banners: Banner[] }) => {
         if (dismissedRef.current) return;
 
+        // Control banners carry no renderable content and may omit
+        // properties, so match them by placement alone; variant banners still
+        // need a body to be meaningful.
         const match = event.banners.find(
           (b) =>
-            b.placementId === placementId && getRawStringProp(b, PROP_BODY),
+            b.placementId === placementId &&
+            (b.isControl || getRawStringProp(b, PROP_BODY)),
         );
 
         logBrazeBannerDebug(
