@@ -9,8 +9,8 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 # Native projects (signing configs, entitlements, native dependencies)
-android/                                                    @MetaMask/mobile-platform
-ios/                                                        @MetaMask/mobile-platform
+/android/                                                   @MetaMask/mobile-platform
+/ios/                                                       @MetaMask/mobile-platform
 .ai-pr-analyzer/modes/dependency-audit-fix/                 @MetaMask/mobile-platform
 # Patches
 patches/@react-native-clipboard+clipboard+1.16.1.patch      @MetaMask/mobile-platform
