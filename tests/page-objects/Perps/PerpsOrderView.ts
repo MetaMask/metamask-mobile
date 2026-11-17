@@ -234,17 +234,14 @@ class PerpsOrderView {
     return Matchers.getElementByText(label);
   }
 
-  /** First text glyph of the amount display, e.g. "$10". */
+  /**
+   * Amount text node, e.g. "$10".
+   *
+   * `perps-amount-display-amount` is the text node itself. A descendant
+   * TextView/StaticText query misses it.
+   */
   private get amountValueText(): Promise<AppiumElement> {
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByNativeXPath(
-        `//*[@resource-id='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//android.widget.TextView`,
-      );
-    }
-    // The amount container itself has no text on iOS; read its static text.
-    return Matchers.getElementByNativeXPath(
-      `//*[@name='${PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}']//XCUIElementTypeStaticText`,
-    );
+    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
   /** Amount keypad key by testID (the text matcher is ambiguous on iOS). */
