@@ -17,7 +17,6 @@ import {
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../component-library/hooks';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -30,7 +29,7 @@ import {
 import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
-import { Box } from '@metamask/design-system-react-native';
+import ChartLineSkeleton from '../../Charts/ChartLineSkeleton';
 
 interface LineProps {
   line: string;
@@ -397,30 +396,10 @@ const PriceChart = ({
   };
 
   /**
-   * Loading overlay component.
-   * Note: We render this conditionally in the return statement rather than early-returning
-   * to work around an Android bug where charts wouldn't render until screen interaction.
+   * Loading overlay stays in the tree (not an early return) to work around an
+   * Android bug where charts wouldn't render until screen interaction.
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
-  const LoadingOverlay = () => (
-    <Box twClassName="justify-center items-center" testID="price-chart-loading">
-      <SkeletonPlaceholder
-        backgroundColor={theme.colors.background.section}
-        highlightColor={theme.colors.background.subsection}
-      >
-        <SkeletonPlaceholder.Item
-          width={
-            chartRowWidth > 0
-              ? chartRowWidth
-              : Dimensions.get('window').width - 32
-          }
-          height={chartHeight}
-          borderRadius={6}
-        ></SkeletonPlaceholder.Item>
-      </SkeletonPlaceholder>
-    </Box>
-  );
-
   return (
     <View
       style={styles.chart}
@@ -466,8 +445,11 @@ const PriceChart = ({
           </AreaChart>
         ) : null}
         {isLoading && (
-          <View style={styles.loadingOverlayContainer}>
-            <LoadingOverlay />
+          <View
+            style={styles.loadingOverlayContainer}
+            testID="price-chart-loading"
+          >
+            <ChartLineSkeleton height={chartHeight} />
           </View>
         )}
         {!isLoading && !chartHasData && (
