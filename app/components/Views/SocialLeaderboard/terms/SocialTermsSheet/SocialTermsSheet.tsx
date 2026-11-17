@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonIcon,
@@ -15,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Linking,
   ScrollView,
   useWindowDimensions,
   type LayoutChangeEvent,
@@ -29,6 +29,9 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTheme } from '../../../../../util/theme';
 import { SocialTermsSheetSelectorsIDs } from './SocialTermsSheet.testIds';
 import { themeSocialTermsHtml } from './socialTermsTheme';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /** Distance from the bottom that still counts as "read to the end". */
 const SCROLL_END_THRESHOLD = 20;
@@ -37,6 +40,12 @@ const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
 const WEBVIEW_SCROLL_NOT_END_EVENT = 'social-terms-scroll-not-end';
 const TERMS_BASE_URL = 'https://metamask.com';
+/** Origins that links in the terms may open in the device browser. */
+const EXTERNAL_LINK_ORIGINS = new Set([
+  'https://metamask.com',
+  'https://metamask.io',
+  'https://support.metamask.io',
+]);
 /** Sheet fills are hex tokens. Reject anything else before it reaches CSS. */
 const SHEET_BACKGROUND_COLOR_PATTERN =
   /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
@@ -151,11 +160,13 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   onAgree,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { height: windowHeight } = useWindowDimensions();
   const { colors, themeAppearance } = useTheme();
-  const termsBackground = colors.background.default;
+  const termsBackground = colors.background.elevated1;
   const scrollViewRef = useRef<ScrollView>(null);
   const webViewRef = useRef<WebView>(null);
+  const hasLoadedTermsDocument = useRef(false);
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
@@ -245,13 +256,32 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
     [markReachedEnd],
   );
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: { url: string }) => {
+      if (!hasLoadedTermsDocument.current) {
+        return isAllowedTermsUrl(request.url, allowedOrigin);
+      }
+
+      const origin = getUrlOrigin(request.url);
+      if (
+        origin !== null &&
+        (origin === allowedOrigin || EXTERNAL_LINK_ORIGINS.has(origin))
+      ) {
+        Linking.openURL(request.url).catch(() => undefined);
+      }
+      return false;
+    },
+    [allowedOrigin],
+  );
+
   return (
     <BottomSheet
       isFullscreen={false}
       onClose={onClose}
       testID={SocialTermsSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onClose}
         closeButtonProps={{
           testID: SocialTermsSheetSelectorsIDs.CLOSE_BUTTON,
@@ -259,7 +289,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         }}
       >
         {strings('social_leaderboard.terms.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         style={{
           height: windowHeight * BODY_HEIGHT_RATIO,
@@ -288,9 +318,10 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
             onScroll={handleWebViewScroll}
-            onShouldStartLoadWithRequest={(request) =>
-              isAllowedTermsUrl(request.url, allowedOrigin)
-            }
+            onLoadEnd={() => {
+              hasLoadedTermsDocument.current = true;
+            }}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
             testID={SocialTermsSheetSelectorsIDs.WEBVIEW}
           />
         ) : (

@@ -27,7 +27,7 @@ import {
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
-  selectIsCardholder,
+  selectHasCard,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -71,7 +71,10 @@ const MoneyOnboardingCard = ({
 
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
-  const { apyPercent } = useMoneyVaultApy();
+  // Money home's positions query owns this key, including the offline pause.
+  const { apyPercent } = useMoneyVaultApy({
+    positionsRefetchInterval: false,
+  });
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
@@ -86,7 +89,7 @@ const MoneyOnboardingCard = ({
     isLinking,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
