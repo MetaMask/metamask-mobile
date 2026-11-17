@@ -1562,14 +1562,14 @@ describe('setupSentry', () => {
       globalWithDev.__DEV__ = false;
     });
 
-    it('samples Swap Quote Fetch at 25% on Android', async () => {
+    it('uses the override rate for a listed trace on its platform (Swap Quote Fetch on Android)', async () => {
       mockIsAndroid.mockReturnValue(true);
       const { tracesSampler } = await getTracesSampler();
 
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
     });
 
-    it('keeps the default rate for Swap Quote Fetch on iOS', async () => {
+    it('falls back to tracesSampleRate when the override has no rate for the platform (Swap Quote Fetch on iOS)', async () => {
       mockIsAndroid.mockReturnValue(false);
       const { tracesSampler, tracesSampleRate } = await getTracesSampler();
 
@@ -1577,12 +1577,15 @@ describe('setupSentry', () => {
       expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
     });
 
-    it('keeps the default rate for other transactions on Android', async () => {
-      mockIsAndroid.mockReturnValue(true);
-      const { tracesSampler } = await getTracesSampler();
+    it.each([true, false])(
+      'falls back to tracesSampleRate for traces without an override (isAndroid: %s)',
+      async (isAndroid) => {
+        mockIsAndroid.mockReturnValue(isAndroid);
+        const { tracesSampler } = await getTracesSampler();
 
-      expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
-    });
+        expect(tracesSampler({ name: 'SomeRoute' })).toBe(0.03);
+      },
+    );
 
     it.each([true, false])(
       'inherits the parent sampling decision (%s)',

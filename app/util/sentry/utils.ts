@@ -666,6 +666,15 @@ export function getNavIntegration(): ReturnType<
   return _navIntegration;
 }
 
+/**
+ * Per-platform sample rates for root transactions, keyed by trace name; add an entry to raise or lower a trace's rate (this changes Sentry volume and cost).
+ */
+const TRACE_SAMPLE_RATE_OVERRIDES: Partial<
+  Record<TraceName, { android?: number; ios?: number }>
+> = {
+  [TraceName.SwapQuoteFetch]: { android: 0.25 },
+};
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -714,14 +723,13 @@ export async function setupSentry(
         if (parentSampled !== undefined) {
           return parentSampled;
         }
-        if (
-          !isFullSampling &&
-          name === TraceName.SwapQuoteFetch &&
-          Device.isAndroid()
-        ) {
-          return 0.25;
+        if (isFullSampling) {
+          return tracesSampleRate;
         }
-        return tracesSampleRate;
+        const override = TRACE_SAMPLE_RATE_OVERRIDES[name as TraceName];
+        return (
+          override?.[Device.isAndroid() ? 'android' : 'ios'] ?? tracesSampleRate
+        );
       },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
