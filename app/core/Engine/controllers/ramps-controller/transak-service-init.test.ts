@@ -6,10 +6,20 @@ import {
   transakServiceInit,
 } from './transak-service-init';
 
-const mockSetApiKey = jest.fn();
+let mockStoredApiKey: string | null = null;
+const mockSetApiKey = jest.fn((apiKey: string) => {
+  mockStoredApiKey = apiKey;
+});
 const mockTransakService = jest
   .fn()
-  .mockImplementation((opts) => ({ ...opts, setApiKey: mockSetApiKey }));
+  .mockImplementation((opts: { apiKey?: string }) => {
+    mockStoredApiKey = opts.apiKey ?? null;
+    return {
+      ...opts,
+      setApiKey: mockSetApiKey,
+      getApiKey: () => mockStoredApiKey,
+    };
+  });
 
 jest.mock('@metamask/ramps-controller', () => ({
   // Declared as a function (not an arrow) so `new TransakService()` works, and
@@ -219,6 +229,18 @@ describe('transak-service-init', () => {
       emitFlags({});
 
       expect(mockSetApiKey).not.toHaveBeenCalled();
+    });
+
+    it('sets the flag key again when the service key was changed elsewhere', () => {
+      const { emitFlags } = initialize({
+        depositConfig: { providerApiKey: 'startup-key' },
+      });
+      mockStoredApiKey = 'other-key';
+
+      emitFlags({ depositConfig: { providerApiKey: 'startup-key' } });
+
+      expect(mockSetApiKey).toHaveBeenCalledTimes(1);
+      expect(mockSetApiKey).toHaveBeenCalledWith('startup-key');
     });
   });
 });

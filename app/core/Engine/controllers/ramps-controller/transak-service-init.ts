@@ -42,30 +42,29 @@ export const transakServiceInit: MessengerClientInitFunction<
   TransakServiceMessenger,
   TransakServiceInitMessenger
 > = ({ controllerMessenger, initMessenger }) => {
-  let apiKey = getTransakApiKey(
-    initMessenger.call('RemoteFeatureFlagController:getState')
-      .remoteFeatureFlags,
-  );
-
   const service = new TransakService({
     messenger: controllerMessenger,
     environment: getTransakEnvironment(),
     context: getTransakContext(),
     fetch,
     referrerDomain: getBundleId(),
-    apiKey,
+    apiKey: getTransakApiKey(
+      initMessenger.call('RemoteFeatureFlagController:getState')
+        .remoteFeatureFlags,
+    ),
     ...getRampsClientIdentity(),
   });
 
-  // On a fresh install the flags arrive after startup, so set the key when
-  // they do. A key that is later removed from the flags is not cleared,
-  // because the service has no way to unset it.
+  // Without the key, the native Transak quote lookup throws and the fee
+  // estimate falls back to the aggregator fee. On a fresh install the flags
+  // arrive after startup, so set the key when they do. A key that is later
+  // removed from the flags is not cleared, because the service has no way to
+  // unset it.
   initMessenger.subscribe(
     'RemoteFeatureFlagController:stateChange',
     ({ remoteFeatureFlags }) => {
       const nextApiKey = getTransakApiKey(remoteFeatureFlags);
-      if (nextApiKey && nextApiKey !== apiKey) {
-        apiKey = nextApiKey;
+      if (nextApiKey && nextApiKey !== service.getApiKey()) {
         service.setApiKey(nextApiKey);
       }
     },
