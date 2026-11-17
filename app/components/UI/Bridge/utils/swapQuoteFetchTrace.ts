@@ -37,7 +37,7 @@ const toAssetId = (
   address?: string,
   chainId?: GenericQuoteRequest['srcChainId'],
 ): ReturnType<typeof formatAddressToAssetId> =>
-  address === undefined || !chainId
+  address === undefined
     ? undefined
     : formatAddressToAssetId(
         normalizeTokenAddress(address, chainId as Hex),
