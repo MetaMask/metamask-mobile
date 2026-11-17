@@ -19,6 +19,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { isProduction } from '../../../../util/environment';
 import { StartProSubscriptionOutcome } from '../utils/proSubscriptionPaymentStatus';
 import {
   buildConfirmMembershipRequestData,
@@ -57,6 +58,10 @@ jest.mock('../../../UI/Money/hooks/useMoneyAccount', () => ({
 
 jest.mock('../utils/waitForMembershipTopUp', () => ({
   waitForMembershipTopUp: jest.fn(),
+}));
+
+jest.mock('../../../../util/environment', () => ({
+  isProduction: jest.fn(() => false),
 }));
 
 jest.mock('uuid', () => ({
@@ -140,6 +145,7 @@ const mockedStartSubscription = Engine.context.SubscriptionDelegationService
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
+const mockIsProduction = jest.mocked(isProduction);
 const mockInitiateDeposit = jest.fn();
 const mockCancelTopUp = jest.fn();
 
@@ -175,6 +181,7 @@ describe('useStartProSubscription', () => {
       cancel: mockCancelTopUp,
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
+    mockIsProduction.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -222,6 +229,42 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
+  });
+
+  it('forwards useTestClock when test clocks are enabled outside production', async () => {
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+      useTestClock: true,
+    });
+  });
+
+  it('omits useTestClock in production even when test clocks are requested', async () => {
+    mockIsProduction.mockReturnValue(true);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(PLAN, {
+        enableTestClocks: true,
+      });
+    });
+
+    expect(mockedStartSubscription).toHaveBeenCalledWith({
+      product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+      recurringInterval: RECURRING_INTERVALS.year,
+      chainId: CHAIN_ID,
+      payerAddress: PAYER_ADDRESS,
+    });
   });
 
   it('does not start delegation, log, or set an error when membership consent is rejected', async () => {
