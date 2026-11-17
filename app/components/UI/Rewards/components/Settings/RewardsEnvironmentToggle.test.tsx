@@ -33,6 +33,7 @@ const mockNavigate = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
+  useSelector: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => ({

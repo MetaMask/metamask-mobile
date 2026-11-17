@@ -7,7 +7,6 @@ import {
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Button,
   ButtonSize,
@@ -29,6 +28,8 @@ import {
   withMinutes,
 } from '../../utils/taxDocumentation';
 import { TAX_FORM_OPEN_FORM_SHEET_TEST_IDS } from './TaxFormOpenFormSheet.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TaxFormOpenFormSheetParams {
   title: string;
@@ -45,6 +46,7 @@ export interface TaxFormOpenFormSheetParams {
 }
 
 const TaxFormOpenFormSheet: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const params = route.params as TaxFormOpenFormSheetParams;
@@ -118,12 +120,13 @@ const TaxFormOpenFormSheet: React.FC = () => {
       goBack={navigation.goBack}
       testID={TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTAINER}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.TITLE}
       >
         {params.title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="gap-4 px-4">
         <Text
           variant={TextVariant.BodyMd}

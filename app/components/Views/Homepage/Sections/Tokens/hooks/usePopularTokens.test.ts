@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { handleFetch } from '@metamask/controller-utils';
 import { usePopularTokens } from './usePopularTokens';
@@ -200,5 +200,118 @@ describe('usePopularTokens', () => {
       result.current.tokens.find((t) => t.symbol === 'mUSD'),
     ).toBeUndefined();
     expect(result.current.tokens[0].name).toBe('Ethereum');
+  });
+
+  it('keeps the newer fetch loading when an older price response arrives', async () => {
+    let resolveFirst: (value: Record<string, unknown>) => void = () =>
+      undefined;
+    const firstRequest = new Promise<Record<string, unknown>>((resolve) => {
+      resolveFirst = resolve;
+    });
+    let resolveSecond: (value: Record<string, unknown>) => void = () =>
+      undefined;
+    const secondRequest = new Promise<Record<string, unknown>>((resolve) => {
+      resolveSecond = resolve;
+    });
+
+    mockHandleFetch
+      .mockReturnValueOnce(firstRequest)
+      .mockReturnValueOnce(secondRequest);
+
+    const { result } = renderHook(() => usePopularTokens());
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    await act(async () => {
+      resolveFirst({
+        'eip155:1/slip44:60': {
+          price: 1,
+          pricePercentChange1d: 1,
+        },
+      });
+    });
+
+    expect(result.current.isInitialLoading).toBe(true);
+    expect(result.current.isRefreshing).toBe(false);
+    expect(result.current.tokens).toStrictEqual([]);
+    expect(result.current.error).toBeNull();
+
+    await act(async () => {
+      resolveSecond({
+        'eip155:1/slip44:60': {
+          price: 3000,
+          pricePercentChange1d: 2.5,
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    expect(result.current.tokens[1].price).toBe(3000);
+    expect(result.current.tokens[1].priceChange1d).toBe(2.5);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('ignores an older price failure while a newer fetch is in flight', async () => {
+    let rejectFirst: (reason: Error) => void = () => undefined;
+    const firstRequest = new Promise<Record<string, unknown>>(
+      (_resolve, reject) => {
+        rejectFirst = reject;
+      },
+    );
+    let resolveSecond: (value: Record<string, unknown>) => void = () =>
+      undefined;
+    const secondRequest = new Promise<Record<string, unknown>>((resolve) => {
+      resolveSecond = resolve;
+    });
+
+    mockHandleFetch
+      .mockReturnValueOnce(firstRequest)
+      .mockReturnValueOnce(secondRequest);
+
+    const { result } = renderHook(() => usePopularTokens());
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      result.current.refetch();
+    });
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    await act(async () => {
+      rejectFirst(new Error('stale network error'));
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.isInitialLoading).toBe(true);
+    expect(result.current.tokens).toStrictEqual([]);
+
+    await act(async () => {
+      resolveSecond({});
+    });
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.tokens).toHaveLength(5);
   });
 });

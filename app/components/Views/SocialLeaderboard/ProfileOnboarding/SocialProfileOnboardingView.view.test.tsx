@@ -22,6 +22,7 @@ import {
 import React from 'react';
 import { AccessibilityInfo, StyleSheet, Text } from 'react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
+import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_TERMS_ACCEPTED } from '../../../../constants/storage';
 import Engine from '../../../../core/Engine';
@@ -45,10 +46,16 @@ import { strings } from '../../../../../locales/i18n';
 import { __setRivePropertyValue } from '../../../../__mocks__/rive-app-react-native';
 import {
   acceptSocialTerms,
+  ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
   resetSocialTermsAcceptance,
+  takePendingSocialEntry,
 } from '../terms/socialTermsAcceptance';
 import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
+import {
+  getPendingSocialPreviewTarget,
+  setPendingSocialPreviewTarget,
+} from '../TraderPreviewSheet/pendingSocialPreviewTarget';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const engineWithState = Engine as unknown as { state: typeof Engine.state };
@@ -380,6 +387,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   afterEach(async () => {
+    takePendingSocialEntry();
     engineWithState.state = originalEngineState;
     await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
@@ -393,6 +401,42 @@ describe('SocialProfileOnboardingView', () => {
       .mockClear();
     jest.mocked(Engine.context.ProfileController.connectX).mockClear();
     restoreProfileControllerMocks();
+  });
+
+  it('opens the trader from a preview link instead of the Social tab on Lets go', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    await renderOnboarding([
+      { name: Routes.HOME_TABS },
+      { name: Routes.SOCIAL.V1_PROFILE },
+    ]);
+
+    await reachReadyStep();
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1_PROFILE)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+    ).not.toBeOnTheScreen();
+    expect(getPendingSocialPreviewTarget()).toBeNull();
+  });
+
+  it('drops a preview link when onboarding closes without finishing', async () => {
+    setPendingSocialPreviewTarget({
+      kind: 'trader',
+      traderId: 'trader-1',
+      stage: 'onboarding',
+    });
+    const { unmount } = await renderOnboarding();
+
+    unmount();
+
+    expect(getPendingSocialPreviewTarget()).toBeNull();
   });
 
   it.each([true, false])(
@@ -517,6 +561,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(1);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -635,6 +681,92 @@ describe('SocialProfileOnboardingView', () => {
         screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
       ).toBeOnTheScreen();
       expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('continues to the blocked Social entry once the terms-only sheet is accepted', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      agreeToTerms();
+
+      expect(hasAcceptedSocialTerms()).toBe(true);
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the blocked Social entry when the terms-only sheet is closed', () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      renderSocialProfileOnboarding([], { initialParams: { termsOnly: true } });
+
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+      expect(openBlockedEntry).not.toHaveBeenCalled();
+    });
+
+    it('forgets the blocked Social entry when onboarding closes', () => {
+      ensureSocialTermsAccepted(jest.fn(), jest.fn());
+      const { unmount } = renderSocialProfileOnboarding([], {
+        initialParams: { termsOnly: true },
+      });
+
+      unmount();
+
+      expect(takePendingSocialEntry()).toBeUndefined();
+    });
+
+    it('opens the blocked Social entry instead of the feed after a new profile', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      await renderOnboarding([
+        { name: Routes.HOME_TABS, Component: FeedExitStackProbe },
+      ]);
+
+      await reachReadyStep();
+      await leaveReadyStep();
+
+      expect(openBlockedEntry).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(getRouteProbeTestId(Routes.HOME_TABS)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens My Profile after the X path even with a blocked Social entry', async () => {
+      const openBlockedEntry = jest.fn();
+      ensureSocialTermsAccepted(jest.fn(), openBlockedEntry);
+      await acceptSocialTerms();
+      signIn();
+      await renderOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+      );
+      await leaveReadyStep();
+
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE),
+        ),
+      ).toBeOnTheScreen();
+      expect(openBlockedEntry).not.toHaveBeenCalled();
     });
 
     it('skips the sheet when the current terms were already accepted', async () => {
@@ -1036,6 +1168,108 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the reserved copy, which reads as unavailable', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'RESERVED', message: 'This username is reserved' }],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_reserved'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the character rule when the server refuses the format with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [
+          {
+            code: 'USERNAME_INVALID_FORMAT',
+            message: 'This username has invalid characters',
+          },
+        ],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the character rule for the short INVALID_FORMAT code with valid true', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValueOnce({
+        username: 'wen_cat',
+        available: false,
+        valid: true,
+        normalized: 'wen_cat',
+        errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+      });
+    await renderOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('social_leaderboard.profile_onboarding.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('checks the display name only when continue is pressed', async () => {
     await openManualUsernameStep();
     fireEvent.changeText(
@@ -1337,7 +1571,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
@@ -1893,6 +2127,8 @@ describe('SocialProfileOnboardingView', () => {
         new RegExp(`^${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-`),
       ),
     ).toHaveLength(2);
+    expect(screen.queryByText('Wallet 1')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(AccountCellIds.MENU)).not.toBeOnTheScreen();
     expect(screen.queryByText('Solana Account')).not.toBeOnTheScreen();
 
     fireEvent.press(
@@ -2073,7 +2309,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that username. Check your connection and try again.",
+        "Couldn't check that handle. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(

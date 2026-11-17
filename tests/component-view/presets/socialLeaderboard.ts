@@ -111,6 +111,9 @@ export function initialStateSocialLeaderboard(
         backgroundState: {
           // isUnlocked: true so useTopTraders query is enabled.
           KeyringController: { isUnlocked: true, keyrings: [] },
+          // A resolved non-UK IP so Copy trade stays visible. UK and an
+          // unfinished lookup hide it.
+          GeolocationController: { location: 'US', status: 'complete' },
           NotificationServicesController: {
             isNotificationServicesEnabled: notificationsEnabled,
             isFeatureAnnouncementsEnabled: true,

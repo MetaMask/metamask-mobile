@@ -109,6 +109,22 @@ describe('CardTransactionRow', () => {
     expect(props.display.showPrimaryAmount).toBe(true);
   });
 
+  it('shows only the USD billing amount when usdBillingOnly is set', () => {
+    render(
+      <CardTransactionRow
+        usdBillingOnly
+        transaction={createTransaction({
+          billingAmount: { value: '11.95', currency: 'USD' },
+          originalAmount: { value: '61.35', currency: 'BRL' },
+        })}
+      />,
+    );
+
+    const props = lastRowProps();
+    expect(props.display.fiatAmount).toBe('-$11.95');
+    expect(props.display.showPrimaryAmount).toBe(false);
+  });
+
   it('forwards privacyMode to ActivityRowView', () => {
     render(
       <CardTransactionRow transaction={createTransaction()} privacyMode />,

@@ -623,6 +623,9 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUsePerpsProvider = jest.requireMock('../../hooks/usePerpsProvider')
+  .usePerpsProvider as jest.Mock;
+
 const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
   .useBottomSafeAreaInset as jest.Mock;
 
@@ -711,6 +714,10 @@ describe('PerpsHomeView', () => {
         returnOnEquity: '0',
       },
       isInitialLoading: false,
+    });
+    mockUsePerpsProvider.mockReturnValue({
+      isMultiProviderEnabled: false,
+      activeProvider: 'hyperliquid',
     });
   });
 

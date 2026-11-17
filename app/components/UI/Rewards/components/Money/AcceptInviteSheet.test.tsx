@@ -10,6 +10,7 @@ import {
   setReferralMe,
 } from '../../../../../reducers/rewardsMoney';
 import type { MoneyReferralEntryType } from '../../types/navigation';
+import Routes from '../../../../../constants/navigation/Routes';
 import { setGeoRewardsMetadata } from '../../../../../reducers/rewards';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -50,6 +51,7 @@ const sessionBackgroundState = (profileId: string) => ({
 });
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const mockAcceptReferralCode = jest.fn();
 const mockUseAcceptMoneyReferralCode = jest.fn();
@@ -59,6 +61,7 @@ const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -124,6 +127,8 @@ const LOCALIZED_TEXT = {
   inviteDecline: 'Continue without referral',
   inviteAccept: 'Accept invite',
   inviteIllustrationLabel: 'Two friends trading',
+  inviteTermsLearnMore: 'Learn more',
+  inviteTermsUrl: 'https://link.metamask.io/rewards/terms',
 } as unknown as ReferralLocalizedText;
 
 const buildReferralMe = (
@@ -403,9 +408,66 @@ describe('AcceptInviteSheet', () => {
     const { getByTestId, queryByTestId } = await renderSheet('KOL1');
 
     expect(getByTestId(TEST_IDS.BODY)).toHaveTextContent(
-      'Your friend sent you a code that earns you cashback.',
+      'Your friend sent you a code that earns you cashback. Learn more',
     );
     expect(queryByTestId('accept-invite-sheet-hero')).toBeNull();
+  });
+
+  it('opens the terms link after the invite body in the in-app browser', async () => {
+    const { getByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.TERMS_LINK)).toHaveTextContent('Learn more');
+
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://link.metamask.io/rewards/terms',
+        timestamp: expect.any(Number),
+      },
+    });
+  });
+
+  it('does not open the terms link after Accept has started', async () => {
+    let settleAccept: (result: { accepted: boolean }) => void = () => undefined;
+    mockAcceptReferralCode.mockReturnValue(
+      new Promise((resolve) => {
+        settleAccept = resolve;
+      }),
+    );
+
+    const { getByTestId } = await renderSheet('KOL1');
+
+    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
+    fireEvent.press(getByTestId(TEST_IDS.TERMS_LINK));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    await act(async () => {
+      settleAccept({ accepted: true });
+      await Promise.resolve();
+    });
+  });
+
+  it('hides the terms link when the terms URL is blank', async () => {
+    referralMeEntries = {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: buildReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            inviteTermsUrl: '',
+          } as ReferralLocalizedText,
+        }),
+      },
+    };
+
+    const { getByTestId, queryByTestId } = await renderSheet('KOL1');
+
+    expect(getByTestId(TEST_IDS.BODY)).toBeOnTheScreen();
+    expect(queryByTestId(TEST_IDS.TERMS_LINK)).toBeNull();
   });
 
   it('reads no copy from another profile entry', async () => {
@@ -852,6 +914,7 @@ describe('AcceptInviteSheet', () => {
     ['accept', ACCEPT_INVITE_SHEET_TEST_IDS.ACCEPT],
     ['decline', ACCEPT_INVITE_SHEET_TEST_IDS.DECLINE],
     ['close', ACCEPT_INVITE_SHEET_TEST_IDS.CLOSE],
+    ['terms link', ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK],
   ])(
     'ignores %s while a registration is already in flight',
     async (_name, testId) => {
@@ -869,6 +932,13 @@ describe('AcceptInviteSheet', () => {
       expect(getByTestId(TEST_IDS.CONTAINER).props.isInteractable).toBe(false);
       expect(mockAcceptReferralCode).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      if (testId === ACCEPT_INVITE_SHEET_TEST_IDS.TERMS_LINK) {
+        expect(getByTestId(testId).props.onPress).toBeUndefined();
+        expect(getByTestId(testId).props.accessibilityState).toEqual({
+          disabled: true,
+        });
+      }
     },
   );
   describe('analytics', () => {

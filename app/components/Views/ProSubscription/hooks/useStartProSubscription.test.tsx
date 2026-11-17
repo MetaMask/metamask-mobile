@@ -203,6 +203,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: formatExpectedMembershipDate(addYears(FIXED_NOW, 1)),
       },
     });
@@ -254,6 +255,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.17',
         totalAmount: '49.99',
+        isAnnual: true,
         renewDate: billedOn,
         isTrial: true,
         billedOn,
@@ -275,6 +277,7 @@ describe('useStartProSubscription', () => {
       requestData: {
         monthlyAmount: '4.99',
         totalAmount: '4.99',
+        isAnnual: false,
         renewDate: formatExpectedMembershipDate(addMonths(FIXED_NOW, 1)),
       },
     });
@@ -309,7 +312,7 @@ describe('useStartProSubscription', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       batchId: GENERATED_BATCH_ID,
-      amount: '39.99041',
+      amount: '40.00',
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
@@ -335,7 +338,7 @@ describe('useStartProSubscription', () => {
     });
   });
 
-  it('tops up a padded 6-decimal amount for a fresh account', async () => {
+  it('rounds a padded top-up up to the next cent for a fresh account', async () => {
     mockedCheckBalance.mockResolvedValue({
       hasSufficientBalance: false,
       balance: '0',
@@ -354,7 +357,53 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith(
-      expect.objectContaining({ amount: '4.99006' }),
+      expect.objectContaining({ amount: '5.00' }),
+    );
+  });
+
+  it('rounds a fractional shortfall up to the next cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '1234567',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '3.76' }),
+    );
+  });
+
+  it('rounds a sub-cent shortfall up to one cent', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '4989989',
+      requiredBalance: '4990000',
+    });
+    mockedWaitForMembershipTopUp.mockReturnValue({
+      promise: new Promise(() => undefined),
+      cancel: mockCancelTopUp,
+    });
+
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      result.current.startSubscription(MONTHLY_PLAN);
+      await Promise.resolve();
+    });
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '0.01' }),
     );
   });
 

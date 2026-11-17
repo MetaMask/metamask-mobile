@@ -59,7 +59,7 @@ const ConfirmMembershipApproval = () => {
     return null;
   }
 
-  const { monthlyAmount, totalAmount, renewDate, isTrial, billedOn } =
+  const { monthlyAmount, totalAmount, isAnnual, renewDate, isTrial, billedOn } =
     (approvalRequest.requestData ??
       {}) as Partial<ConfirmMembershipRequestData>;
 
@@ -81,6 +81,7 @@ const ConfirmMembershipApproval = () => {
           <ConfirmMembershipContent
             monthlyAmount={monthlyAmount ?? '0'}
             totalAmount={totalAmount ?? '0'}
+            isAnnual={isAnnual ?? false}
             renewDate={renewDate ?? ''}
             isTrial={isTrial ?? false}
             billedOn={billedOn ?? ''}

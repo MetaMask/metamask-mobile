@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Appearance, StatusBar, type ViewStyle } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { lightTheme } from '@metamask/design-tokens';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   WebView,
@@ -16,6 +18,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { selectSessionProfileId } from '../../../../selectors/identity';
+import { selectAppTheme } from '../../../../selectors/user';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { useTaxDocumentation } from '../hooks/useTaxDocumentation';
 import {
   clearTaxFormSession,
@@ -31,6 +35,12 @@ export interface RewardsTaxFormViewParams {
 
 /** One extra mint after the Continue mint. A second expiry closes the form. */
 const MAX_TOKEN_REMINTS = 1;
+
+/**
+ * The form page forces a light canvas. The close bar matches it instead of
+ * `bg-default`, which follows the app theme and is black in dark mode.
+ */
+const TAX_FORM_CANVAS = lightTheme.colors.background.default;
 
 interface TaxFormPageMessage {
   type?: unknown;
@@ -83,6 +93,7 @@ const RewardsTaxFormView: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
   const sessionRef = useRef<TaxFormSession | null>(readTaxFormSession());
   const remintsRef = useRef(0);
+  const appTheme = useSelector(selectAppTheme);
   const origin = new URL(url).origin;
 
   useEffect(
@@ -91,6 +102,18 @@ const RewardsTaxFormView: React.FC = () => {
     },
     [],
   );
+
+  useEffect(() => {
+    StatusBar.setBarStyle('dark-content', true);
+    return () => {
+      const resolved =
+        appTheme === AppThemeKey.os ? Appearance.getColorScheme() : appTheme;
+      StatusBar.setBarStyle(
+        resolved === AppThemeKey.dark ? 'light-content' : 'dark-content',
+        true,
+      );
+    };
+  }, [appTheme]);
 
   const postToken = useCallback(() => {
     const session = sessionRef.current;
@@ -159,14 +182,19 @@ const RewardsTaxFormView: React.FC = () => {
   return (
     <SafeAreaView
       edges={['top']}
-      style={tw.style('flex-1 bg-default')}
+      style={tw.style('flex-1', { backgroundColor: TAX_FORM_CANVAS })}
       testID={REWARDS_TAX_FORM_VIEW_TEST_IDS.CONTAINER}
     >
       <Box twClassName="items-end px-4 pt-4">
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Md}
-          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Md }}
+          iconProps={{
+            color: IconColor.IconDefault,
+            size: IconSize.Md,
+            // RN SVG reads `color` from style; ViewStyle does not declare it.
+            style: { color: lightTheme.colors.icon.default } as ViewStyle,
+          }}
           onPress={handleClose}
           accessibilityLabel="Close"
           testID={REWARDS_TAX_FORM_VIEW_TEST_IDS.CLOSE}
@@ -175,6 +203,7 @@ const RewardsTaxFormView: React.FC = () => {
       <WebView
         ref={webViewRef}
         source={{ uri: url }}
+        style={{ backgroundColor: TAX_FORM_CANVAS }}
         originWhitelist={[origin]}
         onShouldStartLoadWithRequest={(request) =>
           allowsNavigation(request.url, origin)

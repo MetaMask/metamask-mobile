@@ -123,13 +123,17 @@ const mockStartSubscriptionState = ({
   });
 };
 
-const renderBenefits = (initialPlan?: PlanId) =>
+const renderBenefits = (
+  initialPlan?: PlanId,
+  onPlanChange?: (planId: PlanId) => void,
+) =>
   render(
     <Benefits
       onSuccess={mockOnSuccess}
       onProcessing={mockOnProcessing}
       onCheckoutStart={mockOnCheckoutStart}
       onCheckoutError={mockOnCheckoutError}
+      onPlanChange={onPlanChange}
       initialPlan={initialPlan}
     />,
   );
@@ -558,6 +562,31 @@ describe('Benefits', () => {
         'accessibilityState',
         expect.objectContaining({ busy: true, disabled: true }),
       );
+    });
+
+    it('keeps the selected plan locked while the subscription is submitting', () => {
+      mockStartSubscriptionState({ isSubmitting: true });
+      const onPlanChange = jest.fn();
+      const { getByTestId, getByText, queryByText } = renderBenefits(
+        undefined,
+        onPlanChange,
+      );
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+
+      expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeChecked();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).not.toBeChecked();
+      expect(
+        getByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('pro_subscription.benefits.atm_fees.subtitle_monthly'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(onPlanChange).not.toHaveBeenCalled();
     });
 
     it('pressing a benefit row opens the detail sheet', () => {
