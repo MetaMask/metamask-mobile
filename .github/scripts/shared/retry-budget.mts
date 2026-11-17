@@ -45,6 +45,18 @@ export interface RetryBudgetDecision {
   willRetry: boolean;
 }
 
+/**
+ * Wording for a run that is at or past the retry-ci ceiling. Keeps the real
+ * attempt number, so attempt 5 reads as past the limit of 4 rather than
+ * "attempt 5 of 4".
+ */
+export function formatRetryCiLimitReached(
+  attemptNumber: number,
+  labelRetryLimit: number,
+): string {
+  return `attempt ${attemptNumber} reached the retry-ci limit of ${labelRetryLimit}`;
+}
+
 export function parseAttempt(attempt: number | string): number {
   const attemptNumber =
     typeof attempt === 'number' ? attempt : Number.parseInt(attempt, 10);

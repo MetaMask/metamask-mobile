@@ -58,6 +58,7 @@ import { getGitHubToken } from './shared/github-token.mts';
 import { stripJsonComments } from './shared/json-tools.mts';
 import {
   DEFAULT_RETRY_MAX_ATTEMPT,
+  formatRetryCiLimitReached,
   getRetryBudget,
   RETRY_CI_LABEL_MAX_ATTEMPT,
   type RetryBudgetDecision,
@@ -823,7 +824,7 @@ function resolveDecision(
     if (hasPr && budget.labelRetryLimitReached)
       return {
         key: 'max-attempts-reached',
-        label: `🛑 Retryable, but attempt ${budget.attemptNumber} reached the retry-ci limit of ${budget.labelRetryLimit}`,
+        label: `🛑 Retryable, but ${formatRetryCiLimitReached(budget.attemptNumber, budget.labelRetryLimit)}`,
       };
     // PR without label: tell user to add retry-ci (Phase 1 stealth mode)
     if (hasPr && !hasLabel)
@@ -881,7 +882,7 @@ const { key: decision, label: decisionLabel } = resolveDecision(
 
 if (atRetryCiLimit && isRetryable) {
   console.log(
-    `${hasPR ? `PR #${prNumber}` : `Release branch ${HEAD_BRANCH}`}: attempt ${retryBudget.attemptNumber} reached the retry-ci limit (${retryBudget.labelRetryLimit}) — will not retry`,
+    `${hasPR ? `PR #${prNumber}` : `Release branch ${HEAD_BRANCH}`}: ${formatRetryCiLimitReached(retryBudget.attemptNumber, retryBudget.labelRetryLimit)} — will not retry`,
   );
 } else {
   console.log(
@@ -951,7 +952,7 @@ if (unmatchedJobs.length > 0) {
 if (retryBudget.labelRetryLimitReached && isRetryable && hasPR) {
   reportLines.push(
     ``,
-    `> 🛑 **Retry-ci limit reached** — attempt ${retryBudget.attemptNumber} of ${retryBudget.labelRetryLimit}. The failures look retryable, but no further retries will be attempted for this run.`,
+    `> 🛑 **Retry-ci limit reached** — ${formatRetryCiLimitReached(retryBudget.attemptNumber, retryBudget.labelRetryLimit)}. The failures look retryable, but no further retries will be attempted for this run.`,
   );
 }
 

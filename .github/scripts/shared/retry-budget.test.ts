@@ -1,4 +1,8 @@
-import { getRetryBudget, parseAttempt } from './retry-budget.mts';
+import {
+  formatRetryCiLimitReached,
+  getRetryBudget,
+  parseAttempt,
+} from './retry-budget.mts';
 
 describe('parseAttempt', () => {
   it('uses attempt 1 when the value is missing or invalid', () => {
@@ -10,6 +14,18 @@ describe('parseAttempt', () => {
   it('normalizes valid attempts to whole numbers', () => {
     expect(parseAttempt('2')).toBe(2);
     expect(parseAttempt(3.9)).toBe(3);
+  });
+});
+
+describe('formatRetryCiLimitReached', () => {
+  it('keeps the real attempt number when a run is past the limit', () => {
+    expect(formatRetryCiLimitReached(4, 4)).toBe(
+      'attempt 4 reached the retry-ci limit of 4',
+    );
+    expect(formatRetryCiLimitReached(5, 4)).toBe(
+      'attempt 5 reached the retry-ci limit of 4',
+    );
+    expect(formatRetryCiLimitReached(6, 4)).not.toContain('6 of 4');
   });
 });
 
