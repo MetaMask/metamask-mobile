@@ -212,7 +212,6 @@ describe('loginWithNonceAndSeedlessAuthViaHandlers', () => {
         web3AuthNetwork: 'sapphire_devnet',
       }),
       'https://auth.example',
-      'offline',
     );
     expect(result.providerIdToken).toBe(providerIdToken);
     expect(result.seedlessAuthData).toMatchObject({

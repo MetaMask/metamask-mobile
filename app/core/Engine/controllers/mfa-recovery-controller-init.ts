@@ -1,6 +1,5 @@
 import {
   MfaRecoveryController,
-  type MfaRecoveryControllerMessenger,
   type MfaRecoveryControllerState,
   type PendingOperationEncryptor,
   type RecoveryAuthProvider,
@@ -8,8 +7,7 @@ import {
 } from '@metamask/mfa-recovery-controller';
 import { createMoneyMfaOidcIdentifierAuthProvider } from '../../MfaRecovery';
 import Logger from '../../../util/Logger';
-import type { MessengerClientInitFunction } from '../types';
-import type { MfaRecoveryControllerInitMessenger } from '../messengers/mfa-recovery-controller-messenger';
+import type { MessengerClientInitFunctionsByMessengerClientName } from '../types';
 
 const getMfaRecoveryPreviewVersion = (): string => {
   try {
@@ -35,43 +33,43 @@ const leftPathNotWired = (surface: string, method: string): Promise<never> =>
  *
  * Constructor still requires authProvider / escrows / pending encryptor;
  * those are stubs. Cubist and Auth API AAL2 approvals are out of scope.
+ *
+ * Same pattern as SamplePetnames: controller may be omitted when init fails so
+ * Engine still starts (`MessengerClients.MfaRecoveryController` is optional).
  */
-export const mfaRecoveryControllerInit: MessengerClientInitFunction<
-  MfaRecoveryController,
-  MfaRecoveryControllerMessenger,
-  MfaRecoveryControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState }) => {
-  const previewVersion = getMfaRecoveryPreviewVersion();
-  try {
-    const controller = new MfaRecoveryController({
-      messenger: controllerMessenger,
-      state: persistedState.MfaRecoveryController as
-        | Partial<MfaRecoveryControllerState>
-        | undefined,
-      authProvider: createLeftPathAuthProviderStub(),
-      identifierAuthProvider: createMoneyMfaOidcIdentifierAuthProvider({
-        getRemoteFeatureFlags: () =>
-          initMessenger.call('RemoteFeatureFlagController:getState')
-            .remoteFeatureFlags as Record<string, unknown> | undefined,
-      }),
-      escrows: [createLeftPathEscrowStub()],
-      pendingOperationEncryptor: createLeftPathPendingEncryptorStub(),
-    });
+export const mfaRecoveryControllerInit: MessengerClientInitFunctionsByMessengerClientName['MfaRecoveryController'] =
+  ({ controllerMessenger, initMessenger, persistedState }) => {
+    const previewVersion = getMfaRecoveryPreviewVersion();
+    try {
+      const controller = new MfaRecoveryController({
+        messenger: controllerMessenger,
+        state: persistedState.MfaRecoveryController as
+          | Partial<MfaRecoveryControllerState>
+          | undefined,
+        authProvider: createLeftPathAuthProviderStub(),
+        identifierAuthProvider: createMoneyMfaOidcIdentifierAuthProvider({
+          getRemoteFeatureFlags: () =>
+            initMessenger.call('RemoteFeatureFlagController:getState')
+              .remoteFeatureFlags as Record<string, unknown> | undefined,
+        }),
+        escrows: [createLeftPathEscrowStub()],
+        pendingOperationEncryptor: createLeftPathPendingEncryptorStub(),
+      });
 
-    return { controller };
-  } catch (error) {
-    // Do not abort Engine startup — fall back to classic OAuth rehydration
-    // when Money MFA gating sees no MfaRecoveryController on context.
-    Logger.error(error instanceof Error ? error : new Error(String(error)), {
-      tags: {
-        feature: 'mfa',
-        operation: 'mfa_recovery_controller_init',
-        previewVersion,
-      },
-    });
-    return { controller: undefined };
-  }
-};
+      return { controller };
+    } catch (error) {
+      // Do not abort Engine startup — fall back to classic OAuth rehydration
+      // when Money MFA gating sees no MfaRecoveryController on context.
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        tags: {
+          feature: 'mfa',
+          operation: 'mfa_recovery_controller_init',
+          previewVersion,
+        },
+      });
+      return { controller: undefined };
+    }
+  };
 
 function createLeftPathAuthProviderStub(): RecoveryAuthProvider {
   return {

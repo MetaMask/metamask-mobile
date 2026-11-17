@@ -210,7 +210,6 @@ export const loginWithNonceAndSeedlessAuthViaHandlers: LoginWithNonceAndSeedless
           web3AuthNetwork: web3AuthNetwork as Web3AuthNetwork,
         } as HandleFlowParams,
         AuthServerUrl,
-        'offline',
       );
     } catch (error) {
       if (error instanceof OAuthError) {
