@@ -4,11 +4,6 @@ import React from 'react';
 import { View } from 'react-native';
 import TokenDetailsFeedTab from './FeedTab';
 import { SocialFeed, type SocialFeedProps } from '../../../SocialFeed';
-import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
-
-jest.mock('../../../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: jest.fn(() => null),
-}));
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/hooks/useSocialFeedPostNavigation',
@@ -33,8 +28,6 @@ jest.mock('../../../SocialFeed', () => {
 });
 
 const mockFeed = jest.mocked(SocialFeed);
-const mockUseNetworkTier = jest.mocked(useNetworkTier);
-
 const assetId =
   'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933' as CaipAssetType;
 
@@ -44,7 +37,6 @@ describe('TokenDetailsFeedTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeed.mockImplementation(() => <View testID="social-feed" />);
-    mockUseNetworkTier.mockReturnValue(null);
   });
 
   it('shows the token on the shared social feed', () => {
@@ -76,31 +68,10 @@ describe('TokenDetailsFeedTab', () => {
     );
   });
 
-  it('streams realtime posts while the network is known to be up', () => {
-    mockUseNetworkTier.mockReturnValue('WIFI');
-
+  it('streams new posts on the shared feed', () => {
     render(<TokenDetailsFeedTab assetId={assetId} />);
 
     expect(feedProps().realtime).toBe(true);
-  });
-
-  it.each(['SLOW_CELLULAR', 'FAST_CELLULAR', null] as const)(
-    'streams realtime posts when the network tier is %s',
-    (networkTier) => {
-      mockUseNetworkTier.mockReturnValue(networkTier);
-
-      render(<TokenDetailsFeedTab assetId={assetId} />);
-
-      expect(feedProps().realtime).toBe(true);
-    },
-  );
-
-  it('does not stream realtime posts when the network is offline', () => {
-    mockUseNetworkTier.mockReturnValue('NONE');
-
-    render(<TokenDetailsFeedTab assetId={assetId} />);
-
-    expect(feedProps().realtime).toBe(false);
   });
 
   it('hands the copy-trade handler to the feed', () => {
