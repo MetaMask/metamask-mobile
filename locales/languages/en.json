@@ -9036,6 +9036,7 @@
       "description": "Adds protection to Money account transactions.",
       "manage": "Manage",
       "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "notice_social_login": "These methods add protection to Money account transactions and to recovering your wallet.",
       "add": "Add",
       "passkeys": "Passkeys",
       "passkey_count": {
@@ -9052,6 +9053,7 @@
       "not_used_yet": "Not used yet",
       "used_for": "Used for",
       "used_for_money": "Verifying Money transactions",
+      "used_for_wallet_recovery": "Wallet recovery",
       "remove_passkey": "Remove passkey",
       "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
       "remove_email": "Remove email",
