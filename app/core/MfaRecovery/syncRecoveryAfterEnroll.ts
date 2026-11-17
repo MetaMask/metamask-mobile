@@ -27,7 +27,7 @@ export async function syncRecoveryAfterEnroll(
   method: MfaMethod,
   { verifyMfa, getSocialLinkEmail }: SyncRecoveryAfterEnrollOptions,
 ): Promise<void> {
-  const service = MfaRecoveryService.getInstance({
+  const service = new MfaRecoveryService({
     verifyMfa,
     approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
   });

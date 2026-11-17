@@ -6,7 +6,7 @@ import { syncRecoveryAfterEnroll } from './syncRecoveryAfterEnroll';
 
 jest.mock(
   '../Engine/controllers/mfa-recovery-controller/services/mfa-recovery-service',
-  () => ({ MfaRecoveryService: { getInstance: jest.fn() } }),
+  () => ({ MfaRecoveryService: jest.fn() }),
 );
 
 jest.mock('./ensureSocialLoginLinked', () => ({
@@ -54,8 +54,8 @@ function createService({
     },
   };
   jest
-    .mocked(MfaRecoveryService.getInstance)
-    .mockReturnValue(service as unknown as MfaRecoveryService);
+    .mocked(MfaRecoveryService)
+    .mockImplementation(() => service as unknown as MfaRecoveryService);
   return service;
 }
 
@@ -107,13 +107,31 @@ describe('syncRecoveryAfterEnroll', () => {
     expect(mockEnsureLinked).not.toHaveBeenCalled();
   });
 
-  it('shares one service per flow with the setup approval operation', async () => {
+  it("builds the service with the caller's verifyMfa and the setup approval operation", async () => {
     createService();
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa });
 
-    expect(MfaRecoveryService.getInstance).toHaveBeenCalledWith({
+    expect(MfaRecoveryService).toHaveBeenCalledWith({
       verifyMfa,
+      approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+    });
+  });
+
+  it("builds a new service with each call's own verifyMfa", async () => {
+    createService();
+    const verifyPasskey = jest.fn();
+    const verifyTotp = jest.fn();
+
+    await syncRecoveryAfterEnroll('passkey', { verifyMfa: verifyPasskey });
+    await syncRecoveryAfterEnroll('totp', { verifyMfa: verifyTotp });
+
+    expect(MfaRecoveryService).toHaveBeenNthCalledWith(1, {
+      verifyMfa: verifyPasskey,
+      approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+    });
+    expect(MfaRecoveryService).toHaveBeenNthCalledWith(2, {
+      verifyMfa: verifyTotp,
       approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
     });
   });

@@ -180,56 +180,6 @@ function captureSecrets(
   return captured;
 }
 
-describe('MfaRecoveryService.getInstance', () => {
-  it('returns the same instance for the same approval operation', () => {
-    const options = {
-      verifyMfa: jest.fn(),
-      approvalOperation: 'test.singleton_same_operation',
-    };
-
-    const first = MfaRecoveryService.getInstance(options);
-    const second = MfaRecoveryService.getInstance({
-      verifyMfa: jest.fn(),
-      approvalOperation: 'test.singleton_same_operation',
-    });
-
-    expect(second).toBe(first);
-  });
-
-  it('returns separate instances for different approval operations', () => {
-    const verifyMfa = jest.fn();
-
-    const first = MfaRecoveryService.getInstance({
-      verifyMfa,
-      approvalOperation: 'test.singleton_operation_a',
-    });
-    const second = MfaRecoveryService.getInstance({
-      verifyMfa,
-      approvalOperation: 'test.singleton_operation_b',
-    });
-
-    expect(second).not.toBe(first);
-  });
-
-  it('keeps the first call options for an operation', async () => {
-    const firstVerify = jest.fn().mockResolvedValue(undefined);
-    const secondVerify = jest.fn().mockResolvedValue(undefined);
-    const service = MfaRecoveryService.getInstance({
-      verifyMfa: firstVerify,
-      approvalOperation: 'test.singleton_first_options',
-    });
-    MfaRecoveryService.getInstance({
-      verifyMfa: secondVerify,
-      approvalOperation: 'test.singleton_first_options',
-    });
-
-    await service.verifyMfa();
-
-    expect(firstVerify).toHaveBeenCalledTimes(1);
-    expect(secondVerify).not.toHaveBeenCalled();
-  });
-});
-
 describe('MfaRecoveryService', () => {
   beforeEach(() => {
     jest
