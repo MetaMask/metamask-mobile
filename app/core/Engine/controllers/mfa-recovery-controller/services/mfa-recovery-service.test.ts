@@ -543,6 +543,18 @@ describe('MfaRecoveryService', () => {
       expect(controller.register).not.toHaveBeenCalled();
     });
 
+    it('resumes and reads identifiers once when prepareRun is followed by setUp', async () => {
+      const { service, controller } = createSetUpService({
+        controller: createController({ epoch: 0, phase: 'authorizing' }),
+      });
+
+      const { passkeyIdentifier } = await service.prepareRun();
+      await service.setUp([passkeyIdentifier]);
+
+      expect(controller.resume).toHaveBeenCalledTimes(1);
+      expect(controller.getPhase).toHaveBeenCalledTimes(1);
+    });
+
     it("registers a fresh secret with SIWE, Auth's social identifier, and the given passkey", async () => {
       const { service, controller, seedless } = createSetUpService();
       const captured = captureSecrets(controller, seedless);

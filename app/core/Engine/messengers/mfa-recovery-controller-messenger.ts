@@ -78,7 +78,6 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'AuthenticationController:getVerificationToken',
   'AuthenticationController:requestMfaApproval',
   'KeyringController:getState',
-  'MfaRecoveryController:abort',
   'MfaRecoveryController:authenticateIdentifier',
   'MfaRecoveryController:getIdentifiers',
   'MfaRecoveryController:getPhase',
