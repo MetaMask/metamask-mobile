@@ -131,7 +131,7 @@ describe('KycPartnerTerms', () => {
     expect(getByText('Our verification partners')).toBeOnTheScreen();
     expect(
       getByText(
-        'idOS verifies your identity. idOS engages Sumsub to complete verification.',
+        'idOS verifies your identity and works with Sumsub to complete it.',
       ),
     ).toBeOnTheScreen();
     expect(getByText('Terms and privacy')).toBeOnTheScreen();
@@ -353,7 +353,7 @@ describe('KycPartnerTerms', () => {
     expect(
       getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
     ).toHaveTextContent(
-      'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
+      'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in the idOS Privacy Notice.',
     );
     // Policy stays listed as a row; notice is reserved for the sentence link.
     expect(getByText('idOS Privacy Policy')).toBeOnTheScreen();
@@ -386,7 +386,7 @@ describe('KycPartnerTerms', () => {
     expect(
       getByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT),
     ).toHaveTextContent(
-      'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in idOS Privacy Notice.',
+      'I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in the idOS Privacy Notice.',
     );
     expect(
       queryByTestId(KycPartnerTermsSelectorsIDs.BIOMETRIC_CONSENT_LINK),
