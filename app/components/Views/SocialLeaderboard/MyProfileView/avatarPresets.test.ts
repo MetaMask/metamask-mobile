@@ -1,12 +1,15 @@
 import { brandColor } from '@metamask/design-tokens';
 import { AvatarSocialBackgroundColor } from '../../../../component-library/components-temp/AvatarSocial';
-import { FoxiconVariant } from '../../../../component-library/components-temp/Foxicon';
+import {
+  FoxiconVariant,
+  RetiredFoxiconVariant,
+} from '../../../../component-library/components-temp/Foxicon';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
   DEFAULT_PROFILE_AVATAR_PRESET_ID,
+  FALLBACK_PROFILE_AVATAR,
   getProfileAvatarBackground,
   getProfileAvatarPreset,
-  isFoxiconAvatarUrl,
   parseFoxiconAvatarUrl,
   PROFILE_AVATAR_BACKGROUNDS,
   PROFILE_AVATAR_PRESETS,
@@ -14,12 +17,11 @@ import {
 } from './avatarPresets';
 
 describe('avatarPresets', () => {
-  it('lists each onboarding look once, without the base fox', () => {
+  it('lists every current look once', () => {
     const ids = PROFILE_AVATAR_PRESETS.map((preset) => preset.id);
 
     expect(ids).toHaveLength(14);
-    expect(new Set(ids).size).toBe(ids.length);
-    expect(ids).not.toContain(FoxiconVariant.Base);
+    expect([...ids].sort()).toEqual(Object.values(FoxiconVariant).sort());
   });
 
   it('offers every AvatarSocial background slot', () => {
@@ -38,22 +40,25 @@ describe('avatarPresets', () => {
   });
 
   it.each([
-    ['hero', FoxiconVariant.Superhero],
     ['punk', FoxiconVariant.Goth],
     ['visor', FoxiconVariant.Vr],
-    ['crown', FoxiconVariant.Royal],
     ['glasses', FoxiconVariant.Nerd],
-    ['top-hat', FoxiconVariant.Gentleman],
-    ['ice', FoxiconVariant.Frozen],
-    ['cyborg', FoxiconVariant.Cyborg],
-    ['skull', FoxiconVariant.Cannibal],
     ['astronaut', FoxiconVariant.Astro],
-    ['halo', FoxiconVariant.Angel],
     ['sunglasses', FoxiconVariant.Agent],
-    ['pirate', FoxiconVariant.Pirate],
-    ['zombie', FoxiconVariant.Zombie],
   ])('translates the legacy %s preset to %s', (legacyId, variant) => {
     expect(getProfileAvatarPreset(legacyId)?.id).toBe(variant);
+  });
+
+  it.each([
+    ...Object.values(RetiredFoxiconVariant),
+    'hero',
+    'crown',
+    'top-hat',
+    'ice',
+    'skull',
+    'halo',
+  ])('does not offer the retired %s preset', (presetId) => {
+    expect(getProfileAvatarPreset(presetId)).toBeUndefined();
   });
 
   it.each([
@@ -73,7 +78,6 @@ describe('avatarPresets', () => {
 
   it('returns undefined for unknown or missing ids', () => {
     expect(getProfileAvatarPreset('retired-preset')).toBeUndefined();
-    expect(getProfileAvatarPreset(FoxiconVariant.Base)).toBeUndefined();
     expect(getProfileAvatarPreset(null)).toBeUndefined();
     expect(getProfileAvatarBackground('neon')).toBeUndefined();
     expect(getProfileAvatarBackground(undefined)).toBeUndefined();
@@ -96,13 +100,30 @@ describe('avatarPresets', () => {
     });
   });
 
-  it('rejects malformed or unknown foxicon URLs', () => {
+  it('ignores values that are not foxicon URLs', () => {
     expect(parseFoxiconAvatarUrl('https://example.com/a.png')).toBeNull();
-    expect(parseFoxiconAvatarUrl('foxicon://retired/lime')).toBeNull();
-    expect(parseFoxiconAvatarUrl('foxicon://zombie/neon')).toBeNull();
-    expect(parseFoxiconAvatarUrl('foxicon://zombie/lime/extra')).toBeNull();
-    expect(isFoxiconAvatarUrl('foxicon://retired/lime')).toBe(true);
-    expect(isFoxiconAvatarUrl('https://example.com/a.png')).toBe(false);
+    expect(parseFoxiconAvatarUrl(null)).toBeNull();
+  });
+
+  it.each([
+    'foxicon://royal/background1',
+    'foxicon://hero/lime',
+    'foxicon://retired/lime',
+    'foxicon://zombie/lime/extra',
+    'foxicon://',
+  ])('parses %s as the astronaut on the sky backdrop', (avatarUrl) => {
+    expect(parseFoxiconAvatarUrl(avatarUrl)).toEqual(FALLBACK_PROFILE_AVATAR);
+    expect(FALLBACK_PROFILE_AVATAR).toEqual({
+      avatarPresetId: FoxiconVariant.Astro,
+      avatarBackgroundId: AvatarSocialBackgroundColor.Background4,
+    });
+  });
+
+  it('keeps a current look with an unknown backdrop on the default backdrop', () => {
+    expect(parseFoxiconAvatarUrl('foxicon://zombie/neon')).toEqual({
+      avatarPresetId: FoxiconVariant.Zombie,
+      avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+    });
   });
 
   it('takes every backdrop color from the brand palette', () => {
